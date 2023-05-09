@@ -1,2 +1,2 @@
 # Elsa Dashboard
-A modular, extensible dashboard application framework built with Blazor.
+A modular, extensible dashboard application framework built with MudBlazor.

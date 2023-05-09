@@ -1,0 +1,69 @@
+﻿@using Elsa.Dashboard.Contracts
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IThemeService ThemeService
+
+<MudThemeProvider IsDarkMode="@_darkMode" Theme="ThemeService.CurrentTheme"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Color="Color.Default">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="@DrawerToggle" />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Default" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code" />
+        
+        @if(_darkMode)
+        {
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
+        }
+        else
+        {
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
+        }
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0">
+        <MudDrawerHeader>
+            <div class="d-flex gap-2 align-center">
+                <MudImage Src="_content/Elsa.Dashboard.Shell/img/icon.png" ObjectFit="ObjectFit.ScaleDown" Fluid="true" Width="32" Height="32"></MudImage>
+                <MudText Typo="Typo.h6">ELSA 3.0</MudText>
+            </div>
+        </MudDrawerHeader>
+        <div class="mt-10">
+            <NavMenu />
+        </div>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _darkMode = true;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.CurrentThemeChanged += OnThemeChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeService.CurrentThemeChanged -= OnThemeChanged;
+    }
+
+    private void OnThemeChanged() => StateHasChanged();
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ToggleDarkMode()
+    {
+        _darkMode = !_darkMode;
+    }
+}
