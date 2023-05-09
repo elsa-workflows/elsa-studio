@@ -1,5 +1,7 @@
 using Elsa.Dashboard.Counter.Extensions;
+using Elsa.Dashboard.Dashboard.Extensions;
 using Elsa.Dashboard.Extensions;
+using Elsa.Dashboard.Workflows.Extensions;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddDashboardServices();
+builder.Services.AddDashboardModule();
+builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
 
 var app = builder.Build();

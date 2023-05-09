@@ -1,0 +1,73 @@
+@page "/workflows/definitions"
+@using MudBlazor
+@using Elsa.Dashboard.Workflows.Models
+
+<PageTitle>Workflow definitions</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudText Typo="Typo.h3" GutterBottom="true">Workflow definitions</MudText>
+
+    <MudTable ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinition>>>(ServerReload))" Dense="false" Hover="true" @ref="_table" Elevation="0">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortLabel="nr_field" T="WorkflowDefinition">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="sign_field" T="WorkflowDefinition">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="name_field" T="WorkflowDefinition">Version</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="position_field" T="WorkflowDefinition">Description</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Version">@context.Version</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No workflow definitions found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private IEnumerable<WorkflowDefinition> _pagedData = null!;
+    private MudTable<WorkflowDefinition> _table = null!;
+
+    private int _totalItems;
+    private string? _searchString;
+
+    /// <summary>
+    /// Here we simulate getting the paged, filtered and ordered data from the server
+    /// </summary>
+    private async Task<TableData<WorkflowDefinition>> ServerReload(TableState state)
+    {
+    //var data = await HttpClient.GetFromJsonAsync<List<WorkflowDefinition>>("webapi/periodictable");
+        var data = new List<WorkflowDefinition>
+        {
+            new("1", "1", 1, "Workflow 1", "A workflow")
+        };
+        await Task.Delay(300);
+
+        _totalItems = data.Count();
+        _pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        return new TableData<WorkflowDefinition> { TotalItems = _totalItems, Items = _pagedData };
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        _table.ReloadServerData();
+    }
+
+}

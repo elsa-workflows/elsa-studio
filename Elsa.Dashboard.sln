@@ -31,6 +31,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framework", "framework", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Core", "src\framework\Elsa.Dashboard.Core\Elsa.Dashboard.Core.csproj", "{CB05EE07-EC29-4FA0-AB61-4E62451B32C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Workflows", "src\modules\Elsa.Dashboard.Workflows\Elsa.Dashboard.Workflows.csproj", "{58DD1DD6-03E5-4057-AD49-A451783922D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Dashboard", "src\modules\Elsa.Dashboard.Dashboard\Elsa.Dashboard.Dashboard.csproj", "{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,14 @@ Global
 		{CB05EE07-EC29-4FA0-AB61-4E62451B32C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB05EE07-EC29-4FA0-AB61-4E62451B32C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB05EE07-EC29-4FA0-AB61-4E62451B32C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58DD1DD6-03E5-4057-AD49-A451783922D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58DD1DD6-03E5-4057-AD49-A451783922D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58DD1DD6-03E5-4057-AD49-A451783922D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58DD1DD6-03E5-4057-AD49-A451783922D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -68,5 +80,7 @@ Global
 		{F88BD795-2CBB-459E-8D19-8B208D4739CA} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{C5288F1B-F4E5-423C-AEE8-049996613668} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
 		{CB05EE07-EC29-4FA0-AB61-4E62451B32C9} = {C5288F1B-F4E5-423C-AEE8-049996613668}
+		{58DD1DD6-03E5-4057-AD49-A451783922D9} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 EndGlobal

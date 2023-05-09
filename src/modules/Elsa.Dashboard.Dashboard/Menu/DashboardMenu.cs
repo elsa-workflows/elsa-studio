@@ -3,9 +3,9 @@ using Elsa.Dashboard.Models;
 using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
 
-namespace Elsa.Dashboard.Services;
+namespace Elsa.Dashboard.Dashboard.Menu;
 
-public class DefaultMenuProvider : IMenuProvider
+public class DashboardMenu : IMenuProvider
 {
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
@@ -13,7 +13,7 @@ public class DefaultMenuProvider : IMenuProvider
         {
             new()
             {
-                Icon = Icons.Material.Filled.Dashboard,
+                Icon = Icons.Material.Outlined.SpaceDashboard,
                 Href = "/",
                 Text = "Dashboard",
                 GroupName = MenuItemGroups.General.Name,

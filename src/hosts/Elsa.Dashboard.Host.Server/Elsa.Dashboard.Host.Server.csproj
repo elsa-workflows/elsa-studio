@@ -24,7 +24,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\modules\Elsa.Dashboard.Counter\Elsa.Dashboard.Counter.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Dashboard.Dashboard\Elsa.Dashboard.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Dashboard.Workflows\Elsa.Dashboard.Workflows.csproj" />
       <ProjectReference Include="..\..\shell\Elsa.Dashboard.Shell\Elsa.Dashboard.Shell.csproj" />
+      <ProjectReference Include="..\Elsa.Dashboard.Host.Wasm\Elsa.Dashboard.Host.Wasm.csproj" />
     </ItemGroup>
 
 </Project>

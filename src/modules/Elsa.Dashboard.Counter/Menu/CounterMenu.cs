@@ -2,9 +2,9 @@ using Elsa.Dashboard.Contracts;
 using Elsa.Dashboard.Models;
 using MudBlazor;
 
-namespace Elsa.Dashboard.Counter.Services;
+namespace Elsa.Dashboard.Counter.Menu;
 
-public class CounterMenuProvider : IMenuProvider
+public class CounterMenu : IMenuProvider
 {
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
