@@ -1,32 +1,38 @@
 @page "/workflows/definitions"
 @using MudBlazor
 @using Elsa.Dashboard.Workflows.Models
+@inject NavigationManager NavigationManager
 
 <PageTitle>Workflow definitions</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge">
     <MudText Typo="Typo.h3" GutterBottom="true">Workflow definitions</MudText>
 
-    <MudTable ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinition>>>(ServerReload))" Dense="false" Hover="true" @ref="_table" Elevation="0">
+    <MudTable ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinition>>>(ServerReload))" Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinition" OnRowClick="@RowClick" RowStyle="cursor: pointer;">
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="nr_field" T="WorkflowDefinition">ID</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="id_field" T="WorkflowDefinition">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="sign_field" T="WorkflowDefinition">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="name_field" T="WorkflowDefinition">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh Style="text-align:right">
+                <MudTableSortLabel SortLabel="version_field" T="WorkflowDefinition">Version</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="name_field" T="WorkflowDefinition">Version</MudTableSortLabel>
+                Description
             </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="position_field" T="WorkflowDefinition">Description</MudTableSortLabel>
-            </MudTh>
+            <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Version">@context.Version</MudTd>
+            <MudTd DataLabel="Version" Style="text-align:right">@context.Version</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="" Style="text-align:right">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" @onclick="Edit" />
+                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+            </MudTd>
         </RowTemplate>
         <NoRecordsContent>
             <MudText>No workflow definitions found</MudText>
@@ -68,6 +74,16 @@
     {
         _searchString = text;
         _table.ReloadServerData();
+    }
+
+    private void Edit()
+    {
+        NavigationManager.NavigateTo("/workflows/definitions/edit");
+    }
+
+    public void RowClick(TableRowClickEventArgs<WorkflowDefinition> e)
+    {
+        NavigationManager.NavigateTo("/workflows/definitions/edit");
     }
 
 }

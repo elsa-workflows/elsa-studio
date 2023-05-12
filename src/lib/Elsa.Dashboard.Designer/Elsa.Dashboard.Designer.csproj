@@ -16,8 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\framework\Elsa.Dashboard.Core\Elsa.Dashboard.Core.csproj" />
-      <ProjectReference Include="..\..\lib\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj" />
+      <Folder Include="wwwroot" />
     </ItemGroup>
 
 </Project>

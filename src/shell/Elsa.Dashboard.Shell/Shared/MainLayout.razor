@@ -8,13 +8,15 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Color="Color.Default">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="@DrawerToggle" />
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Default" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation" />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code" />
-        
-        @if(_darkMode)
+    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))" />
+    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" />
+    <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Default">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="@DrawerToggle"/>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Default" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
+
+        @if (_darkMode)
         {
             <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
@@ -23,7 +25,7 @@
             <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="0">
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="_themeManager.DrawerElevation" ClipMode="_themeManager.DrawerClipMode">
         <MudDrawerHeader>
             <div class="d-flex gap-2 align-center">
                 <MudImage Src="_content/Elsa.Dashboard.Shell/img/icon.png" ObjectFit="ObjectFit.ScaleDown" Fluid="true" Width="32" Height="32"></MudImage>
@@ -31,23 +33,30 @@
             </div>
         </MudDrawerHeader>
         <div class="mt-10">
-            <NavMenu />
+            <NavMenu/>
         </div>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
-            @Body
-        </MudContainer>
+        @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
     private bool _drawerOpen = true;
     private bool _darkMode = true;
+    private ThemeManagerTheme _themeManager = new();
+    private bool _themeManagerOpen;
 
     protected override void OnInitialized()
     {
         ThemeService.CurrentThemeChanged += OnThemeChanged;
+        
+        // For theme manager.
+        _themeManager.Theme = ThemeService.CurrentTheme;
+        _themeManager.DefaultElevation = 0;
+        _themeManager.AppBarElevation = 0;
+        _themeManager.DrawerElevation = 0;
+        StateHasChanged();
     }
 
     public void Dispose()
@@ -65,5 +74,17 @@
     void ToggleDarkMode()
     {
         _darkMode = !_darkMode;
+    }
+    
+    void OpenThemeManager(bool value)
+    {
+        _themeManagerOpen = value;
+    }
+
+    void UpdateTheme(ThemeManagerTheme value)
+    {
+        _themeManager = value;
+        ThemeService.CurrentTheme = value.Theme;
+        StateHasChanged();
     }
 }

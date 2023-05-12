@@ -38,7 +38,7 @@ public class DefaultThemeService : IThemeService
                 AppbarBackground = new MudColor("#0f172a"),
                 DrawerBackground = new MudColor("#0f172a"),
                 Background = new MudColor("#0f172a"),
-                Surface = new MudColor("#182234")
+                Surface = new MudColor("#182234"),
             }
         };
 
