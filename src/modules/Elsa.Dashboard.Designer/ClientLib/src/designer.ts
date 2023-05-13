@@ -1,7 +1,7 @@
 import {Graph, Shape} from '@antv/x6';
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Selection} from "@antv/x6-plugin-selection";
-import {Scroller} from "@antv/x6-plugin-scroller";
+import {Transform} from "@antv/x6-plugin-transform";
 import "../css/designer.css";
 
 Shape.HTML.register({
@@ -222,6 +222,7 @@ export async function createGraph() {
             allowBlank: false,
             snap: {
                 radius: 20,
+                
             },
             createEdge() {
                 return graph.createEdge({
@@ -254,7 +255,11 @@ export async function createGraph() {
 
     const data = await loadData()
     graph.fromJSON(data);
-    graph.use(new Snapline({enabled: true}));
+    
+    graph.use(new Snapline({
+        enabled: true,
+        className: 'elsa-snapline',
+    }));
 
     graph.use(
         new Selection({
@@ -266,6 +271,19 @@ export async function createGraph() {
             movable: true,
             showNodeSelectionBox: true
         }),
+    );
+
+    // We could enable this, but then we also need to update the Blazor activity component to support resizing.
+    graph.use(
+        new Transform({
+            resizing: {
+                enabled: false,
+                
+            },
+            rotating: {
+                enabled: false,
+            }
+        })
     );
 
     // graph.use(
@@ -289,17 +307,17 @@ export async function createGraph() {
         })
     });
 
-    graph.on("edge:mouseenter", ({ cell }) => {
+    graph.on("edge:mouseenter", ({cell}) => {
         cell.addTools([
-            { name: "vertices" },
+            {name: "vertices"},
             {
                 name: "button-remove",
-                args: { distance: 20 },
+                args: {distance: 20},
             },
         ]);
     });
 
-    graph.on("edge:mouseleave", ({ cell }) => {
+    graph.on("edge:mouseleave", ({cell}) => {
         if (cell.hasTool("button-remove")) {
             cell.removeTool("button-remove");
         }

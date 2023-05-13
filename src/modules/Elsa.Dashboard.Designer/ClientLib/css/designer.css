@@ -9,3 +9,8 @@
 .x6-widget-selection-inner {
     border: 1px solid var(--mud-palette-secondary);
 }
+
+.elsa-snapline .x6-widget-snapline-horizontal, 
+.elsa-snapline .x6-widget-snapline-vertical {
+    stroke: var(--mud-palette-secondary);
+}
