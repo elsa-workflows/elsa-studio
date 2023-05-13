@@ -1,0 +1,11 @@
+.x6-graph-background {
+    background-color: #fff;
+}
+
+.x6-widget-selection-box {
+    border: 2px dashed var(--mud-palette-secondary);
+}
+
+.x6-widget-selection-inner {
+    border: 1px solid var(--mud-palette-secondary);
+}

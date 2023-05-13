@@ -12,8 +12,8 @@
 
     <ItemGroup>
         <PackageReference Include="Elsa.Workflows.Designer" Version="3.0.0-preview.365" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.4" />
-        <PackageReference Include="MudBlazor" Version="6.0.13" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
+        <PackageReference Include="MudBlazor" Version="6.2.3" />
         <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
     </ItemGroup>
 

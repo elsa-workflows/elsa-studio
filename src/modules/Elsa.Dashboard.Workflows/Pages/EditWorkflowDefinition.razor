@@ -2,25 +2,21 @@
 
 <PageTitle>Workflow definition</PageTitle>
 
-@* <MudPaper Class="pa-2" Style="height: 100%;"> *@
-@*     Activities *@
-@* </MudPaper> *@
-
-    <RadzenSplitter Style="height: calc(100vh - var(--mud-appbar-height));">
-        <RadzenSplitterPane Size="15%" Min="100px">
-            <MudPaper Class="pa-2" Style="height: 100%;">
-                Activities
-            </MudPaper>
-        </RadzenSplitterPane>
-        <RadzenSplitterPane Size="70%">
-            <MudPaper Style="height: 100%;">
-                <Component1></Component1>
-                @* Designer *@
-            </MudPaper>
-        </RadzenSplitterPane>
-        <RadzenSplitterPane Size="15%" Min="100px">
-            <MudPaper Class="pa-2" Style="height: 100%;">
-                Properties
-            </MudPaper>
-        </RadzenSplitterPane>
-    </RadzenSplitter>
+<RadzenSplitter Style="height: calc(100vh - var(--mud-appbar-height));">
+    <RadzenSplitterPane Size="15%" Min="100px">
+        <MudPaper Class="pa-2" Style="height: 100%;">
+            Activities
+        </MudPaper>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="70%">
+        <MudPaper Style="height: 100%;">
+            <Component1></Component1>
+            @* Designer *@
+        </MudPaper>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="15%" Min="100px">
+        <MudPaper Class="pa-2" Style="height: 100%;">
+            Properties
+        </MudPaper>
+    </RadzenSplitterPane>
+</RadzenSplitter>

@@ -12,12 +12,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Dashboard.Core\Elsa.Dashboard.Core.csproj" />
-      <ProjectReference Include="..\..\lib\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj" />
+      <ProjectReference Include="..\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj" />
     </ItemGroup>
 
 </Project>

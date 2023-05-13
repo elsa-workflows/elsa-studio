@@ -12516,6 +12516,1492 @@ var GeometryUtil;
 
 /***/ }),
 
+/***/ "./node_modules/@antv/x6-plugin-selection/es/api.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/@antv/x6-plugin-selection/es/api.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _antv_x6__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @antv/x6 */ "./node_modules/@antv/x6/es/index.js");
+
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isSelectionEnabled = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isEnabled();
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.enableSelection = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.enable();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.disableSelection = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.disable();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.toggleSelection = function (enabled) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.toggleEnabled(enabled);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isMultipleSelection = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isMultipleSelection();
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.enableMultipleSelection = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.enableMultipleSelection();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.disableMultipleSelection = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.disableMultipleSelection();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.toggleMultipleSelection = function (multiple) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.toggleMultipleSelection(multiple);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isSelectionMovable = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isSelectionMovable();
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.enableSelectionMovable = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.enableSelectionMovable();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.disableSelectionMovable = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.disableSelectionMovable();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.toggleSelectionMovable = function (movable) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.toggleSelectionMovable(movable);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isRubberbandEnabled = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isRubberbandEnabled();
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.enableRubberband = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.enableRubberband();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.disableRubberband = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.disableRubberband();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.toggleRubberband = function (enabled) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.toggleRubberband(enabled);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isStrictRubberband = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isStrictRubberband();
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.enableStrictRubberband = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.enableStrictRubberband();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.disableStrictRubberband = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.disableStrictRubberband();
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.toggleStrictRubberband = function (strict) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.toggleStrictRubberband(strict);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.setRubberbandModifiers = function (modifiers) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.setRubberbandModifiers(modifiers);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.setSelectionFilter = function (filter) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.setSelectionFilter(filter);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.setSelectionDisplayContent = function (content) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.setSelectionDisplayContent(content);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isSelectionEmpty = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isEmpty();
+    }
+    return true;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.cleanSelection = function (options) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.clean(options);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.resetSelection = function (cells, options) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.reset(cells, options);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.getSelectedCells = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.getSelectedCells();
+    }
+    return [];
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.getSelectedCellCount = function () {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.getSelectedCellCount();
+    }
+    return 0;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.isSelected = function (cell) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.isSelected(cell);
+    }
+    return false;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.select = function (cells, options) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        selection.select(cells, options);
+    }
+    return this;
+};
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.prototype.unselect = function (cells, options) {
+    const selection = this.getPlugin('selection');
+    if (selection) {
+        return selection.unselect(cells, options);
+    }
+    return this;
+};
+//# sourceMappingURL=api.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@antv/x6-plugin-selection/es/index.js":
+/*!************************************************************!*\
+  !*** ./node_modules/@antv/x6-plugin-selection/es/index.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Selection": () => (/* binding */ Selection)
+/* harmony export */ });
+/* harmony import */ var _antv_x6__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @antv/x6 */ "./node_modules/@antv/x6/es/index.js");
+/* harmony import */ var _selection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selection */ "./node_modules/@antv/x6-plugin-selection/es/selection.js");
+/* harmony import */ var _style_raw__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./style/raw */ "./node_modules/@antv/x6-plugin-selection/es/style/raw.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./api */ "./node_modules/@antv/x6-plugin-selection/es/api.js");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+
+
+
+class Selection extends _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Basecoat {
+    get rubberbandDisabled() {
+        return this.options.enabled !== true || this.options.rubberband !== true;
+    }
+    get disabled() {
+        return this.options.enabled !== true;
+    }
+    get length() {
+        return this.selectionImpl.length;
+    }
+    get cells() {
+        return this.selectionImpl.cells;
+    }
+    constructor(options = {}) {
+        super();
+        this.name = 'selection';
+        this.movedMap = new WeakMap();
+        this.unselectMap = new WeakMap();
+        this.options = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.ObjectExt.merge({ enabled: true }, Selection.defaultOptions, options);
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.CssLoader.ensure(this.name, _style_raw__WEBPACK_IMPORTED_MODULE_2__.content);
+    }
+    init(graph) {
+        this.graph = graph;
+        this.selectionImpl = new _selection__WEBPACK_IMPORTED_MODULE_1__.SelectionImpl(Object.assign(Object.assign({}, this.options), { graph }));
+        this.setup();
+        this.startListening();
+    }
+    // #region api
+    isEnabled() {
+        return !this.disabled;
+    }
+    enable() {
+        if (this.disabled) {
+            this.options.enabled = true;
+        }
+    }
+    disable() {
+        if (!this.disabled) {
+            this.options.enabled = false;
+        }
+    }
+    toggleEnabled(enabled) {
+        if (enabled != null) {
+            if (enabled !== this.isEnabled()) {
+                if (enabled) {
+                    this.enable();
+                }
+                else {
+                    this.disable();
+                }
+            }
+        }
+        else if (this.isEnabled()) {
+            this.disable();
+        }
+        else {
+            this.enable();
+        }
+        return this;
+    }
+    isMultipleSelection() {
+        return this.isMultiple();
+    }
+    enableMultipleSelection() {
+        this.enableMultiple();
+        return this;
+    }
+    disableMultipleSelection() {
+        this.disableMultiple();
+        return this;
+    }
+    toggleMultipleSelection(multiple) {
+        if (multiple != null) {
+            if (multiple !== this.isMultipleSelection()) {
+                if (multiple) {
+                    this.enableMultipleSelection();
+                }
+                else {
+                    this.disableMultipleSelection();
+                }
+            }
+        }
+        else if (this.isMultipleSelection()) {
+            this.disableMultipleSelection();
+        }
+        else {
+            this.enableMultipleSelection();
+        }
+        return this;
+    }
+    isSelectionMovable() {
+        return this.options.movable !== false;
+    }
+    enableSelectionMovable() {
+        this.selectionImpl.options.movable = true;
+        return this;
+    }
+    disableSelectionMovable() {
+        this.selectionImpl.options.movable = false;
+        return this;
+    }
+    toggleSelectionMovable(movable) {
+        if (movable != null) {
+            if (movable !== this.isSelectionMovable()) {
+                if (movable) {
+                    this.enableSelectionMovable();
+                }
+                else {
+                    this.disableSelectionMovable();
+                }
+            }
+        }
+        else if (this.isSelectionMovable()) {
+            this.disableSelectionMovable();
+        }
+        else {
+            this.enableSelectionMovable();
+        }
+        return this;
+    }
+    isRubberbandEnabled() {
+        return !this.rubberbandDisabled;
+    }
+    enableRubberband() {
+        if (this.rubberbandDisabled) {
+            this.options.rubberband = true;
+        }
+        return this;
+    }
+    disableRubberband() {
+        if (!this.rubberbandDisabled) {
+            this.options.rubberband = false;
+        }
+        return this;
+    }
+    toggleRubberband(enabled) {
+        if (enabled != null) {
+            if (enabled !== this.isRubberbandEnabled()) {
+                if (enabled) {
+                    this.enableRubberband();
+                }
+                else {
+                    this.disableRubberband();
+                }
+            }
+        }
+        else if (this.isRubberbandEnabled()) {
+            this.disableRubberband();
+        }
+        else {
+            this.enableRubberband();
+        }
+        return this;
+    }
+    isStrictRubberband() {
+        return this.selectionImpl.options.strict === true;
+    }
+    enableStrictRubberband() {
+        this.selectionImpl.options.strict = true;
+        return this;
+    }
+    disableStrictRubberband() {
+        this.selectionImpl.options.strict = false;
+        return this;
+    }
+    toggleStrictRubberband(strict) {
+        if (strict != null) {
+            if (strict !== this.isStrictRubberband()) {
+                if (strict) {
+                    this.enableStrictRubberband();
+                }
+                else {
+                    this.disableStrictRubberband();
+                }
+            }
+        }
+        else if (this.isStrictRubberband()) {
+            this.disableStrictRubberband();
+        }
+        else {
+            this.enableStrictRubberband();
+        }
+        return this;
+    }
+    setRubberbandModifiers(modifiers) {
+        this.setModifiers(modifiers);
+    }
+    setSelectionFilter(filter) {
+        this.setFilter(filter);
+        return this;
+    }
+    setSelectionDisplayContent(content) {
+        this.setContent(content);
+        return this;
+    }
+    isEmpty() {
+        return this.length <= 0;
+    }
+    clean(options = {}) {
+        this.selectionImpl.clean(options);
+        return this;
+    }
+    reset(cells, options = {}) {
+        this.selectionImpl.reset(cells ? this.getCells(cells) : [], options);
+        return this;
+    }
+    getSelectedCells() {
+        return this.cells;
+    }
+    getSelectedCellCount() {
+        return this.length;
+    }
+    isSelected(cell) {
+        return this.selectionImpl.isSelected(cell);
+    }
+    select(cells, options = {}) {
+        const selected = this.getCells(cells);
+        if (selected.length) {
+            if (this.isMultiple()) {
+                this.selectionImpl.select(selected, options);
+            }
+            else {
+                this.reset(selected.slice(0, 1), options);
+            }
+        }
+        return this;
+    }
+    unselect(cells, options = {}) {
+        this.selectionImpl.unselect(this.getCells(cells), options);
+        return this;
+    }
+    // #endregion
+    setup() {
+        this.selectionImpl.on('*', (name, args) => {
+            this.trigger(name, args);
+            this.graph.trigger(name, args);
+        });
+    }
+    startListening() {
+        this.graph.on('blank:mousedown', this.onBlankMouseDown, this);
+        this.graph.on('blank:click', this.onBlankClick, this);
+        this.graph.on('cell:mousemove', this.onCellMouseMove, this);
+        this.graph.on('cell:mouseup', this.onCellMouseUp, this);
+        this.selectionImpl.on('box:mousedown', this.onBoxMouseDown, this);
+    }
+    stopListening() {
+        this.graph.off('blank:mousedown', this.onBlankMouseDown, this);
+        this.graph.off('blank:click', this.onBlankClick, this);
+        this.graph.off('cell:mousemove', this.onCellMouseMove, this);
+        this.graph.off('cell:mouseup', this.onCellMouseUp, this);
+        this.selectionImpl.off('box:mousedown', this.onBoxMouseDown, this);
+    }
+    onBlankMouseDown({ e }) {
+        const allowGraphPanning = this.graph.panning.allowPanning(e, true);
+        const scroller = this.graph.getPlugin('scroller');
+        const allowScrollerPanning = scroller && scroller.allowPanning(e, true);
+        if (this.allowRubberband(e, true) ||
+            (this.allowRubberband(e) && !allowScrollerPanning && !allowGraphPanning)) {
+            this.startRubberband(e);
+        }
+    }
+    onBlankClick() {
+        this.clean();
+    }
+    allowRubberband(e, strict) {
+        return (!this.rubberbandDisabled &&
+            _antv_x6__WEBPACK_IMPORTED_MODULE_0__.ModifierKey.isMatch(e, this.options.modifiers, strict));
+    }
+    allowMultipleSelection(e) {
+        return (this.isMultiple() &&
+            _antv_x6__WEBPACK_IMPORTED_MODULE_0__.ModifierKey.isMatch(e, this.options.multipleSelectionModifiers));
+    }
+    onCellMouseMove({ cell }) {
+        this.movedMap.set(cell, true);
+    }
+    onCellMouseUp({ e, cell }) {
+        const options = this.options;
+        let disabled = this.disabled;
+        if (!disabled && this.movedMap.has(cell)) {
+            disabled = options.selectCellOnMoved === false;
+            if (!disabled) {
+                disabled = options.selectNodeOnMoved === false && cell.isNode();
+            }
+            if (!disabled) {
+                disabled = options.selectEdgeOnMoved === false && cell.isEdge();
+            }
+        }
+        if (!disabled) {
+            if (!this.allowMultipleSelection(e)) {
+                this.reset(cell);
+            }
+            else if (this.unselectMap.has(cell)) {
+                this.unselectMap.delete(cell);
+            }
+            else if (this.isSelected(cell)) {
+                this.unselect(cell);
+            }
+            else {
+                this.select(cell);
+            }
+        }
+        this.movedMap.delete(cell);
+    }
+    onBoxMouseDown({ e, cell, }) {
+        if (!this.disabled) {
+            if (this.allowMultipleSelection(e)) {
+                this.unselect(cell);
+                this.unselectMap.set(cell, true);
+            }
+        }
+    }
+    getCells(cells) {
+        return (Array.isArray(cells) ? cells : [cells])
+            .map((cell) => typeof cell === 'string' ? this.graph.getCellById(cell) : cell)
+            .filter((cell) => cell != null);
+    }
+    startRubberband(e) {
+        if (!this.rubberbandDisabled) {
+            this.selectionImpl.startSelecting(e);
+        }
+        return this;
+    }
+    isMultiple() {
+        return this.options.multiple !== false;
+    }
+    enableMultiple() {
+        this.options.multiple = true;
+        return this;
+    }
+    disableMultiple() {
+        this.options.multiple = false;
+        return this;
+    }
+    setModifiers(modifiers) {
+        this.options.modifiers = modifiers;
+        return this;
+    }
+    setContent(content) {
+        this.selectionImpl.setContent(content);
+        return this;
+    }
+    setFilter(filter) {
+        this.selectionImpl.setFilter(filter);
+        return this;
+    }
+    dispose() {
+        this.stopListening();
+        this.off();
+        this.selectionImpl.dispose();
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.CssLoader.clean(this.name);
+    }
+}
+__decorate([
+    _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Basecoat.dispose()
+], Selection.prototype, "dispose", null);
+(function (Selection) {
+    Selection.defaultOptions = {
+        rubberband: false,
+        rubberNode: true,
+        rubberEdge: false,
+        pointerEvents: 'auto',
+        multiple: true,
+        multipleSelectionModifiers: ['ctrl', 'meta'],
+        movable: true,
+        strict: false,
+        selectCellOnMoved: false,
+        selectNodeOnMoved: false,
+        selectEdgeOnMoved: false,
+        following: true,
+        content: null,
+    };
+})(Selection || (Selection = {}));
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@antv/x6-plugin-selection/es/selection.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@antv/x6-plugin-selection/es/selection.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "SelectionImpl": () => (/* binding */ SelectionImpl)
+/* harmony export */ });
+/* harmony import */ var _antv_x6__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @antv/x6 */ "./node_modules/@antv/x6/es/index.js");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+class SelectionImpl extends _antv_x6__WEBPACK_IMPORTED_MODULE_0__.View {
+    get graph() {
+        return this.options.graph;
+    }
+    get boxClassName() {
+        return this.prefixClassName(Private.classNames.box);
+    }
+    get $boxes() {
+        return _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.children(this.container, this.boxClassName);
+    }
+    get handleOptions() {
+        return this.options;
+    }
+    constructor(options) {
+        super();
+        this.options = options;
+        if (this.options.model) {
+            this.options.collection = this.options.model.collection;
+        }
+        if (this.options.collection) {
+            this.collection = this.options.collection;
+        }
+        else {
+            this.collection = new _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Collection([], {
+                comparator: Private.depthComparator,
+            });
+            this.options.collection = this.collection;
+        }
+        this.boxCount = 0;
+        this.createContainer();
+        this.startListening();
+    }
+    startListening() {
+        const graph = this.graph;
+        const collection = this.collection;
+        this.delegateEvents({
+            [`mousedown .${this.boxClassName}`]: 'onSelectionBoxMouseDown',
+            [`touchstart .${this.boxClassName}`]: 'onSelectionBoxMouseDown',
+        }, true);
+        graph.on('scale', this.onGraphTransformed, this);
+        graph.on('translate', this.onGraphTransformed, this);
+        graph.model.on('updated', this.onModelUpdated, this);
+        collection.on('added', this.onCellAdded, this);
+        collection.on('removed', this.onCellRemoved, this);
+        collection.on('reseted', this.onReseted, this);
+        collection.on('updated', this.onCollectionUpdated, this);
+        collection.on('node:change:position', this.onNodePositionChanged, this);
+        collection.on('cell:changed', this.onCellChanged, this);
+    }
+    stopListening() {
+        const graph = this.graph;
+        const collection = this.collection;
+        this.undelegateEvents();
+        graph.off('scale', this.onGraphTransformed, this);
+        graph.off('translate', this.onGraphTransformed, this);
+        graph.model.off('updated', this.onModelUpdated, this);
+        collection.off('added', this.onCellAdded, this);
+        collection.off('removed', this.onCellRemoved, this);
+        collection.off('reseted', this.onReseted, this);
+        collection.off('updated', this.onCollectionUpdated, this);
+        collection.off('node:change:position', this.onNodePositionChanged, this);
+        collection.off('cell:changed', this.onCellChanged, this);
+    }
+    onRemove() {
+        this.stopListening();
+    }
+    onGraphTransformed() {
+        this.updateSelectionBoxes();
+    }
+    onCellChanged() {
+        this.updateSelectionBoxes();
+    }
+    onNodePositionChanged({ node, options, }) {
+        const { showNodeSelectionBox, pointerEvents } = this.options;
+        const { ui, selection, translateBy, snapped } = options;
+        const allowTranslating = (showNodeSelectionBox !== true || pointerEvents === 'none') &&
+            !this.translating &&
+            !selection;
+        const translateByUi = ui && translateBy && node.id === translateBy;
+        if (allowTranslating && (translateByUi || snapped)) {
+            this.translating = true;
+            const current = node.position();
+            const previous = node.previous('position');
+            const dx = current.x - previous.x;
+            const dy = current.y - previous.y;
+            if (dx !== 0 || dy !== 0) {
+                this.translateSelectedNodes(dx, dy, node, options);
+            }
+            this.translating = false;
+        }
+    }
+    onModelUpdated({ removed }) {
+        if (removed && removed.length) {
+            this.unselect(removed);
+        }
+    }
+    isEmpty() {
+        return this.length <= 0;
+    }
+    isSelected(cell) {
+        return this.collection.has(cell);
+    }
+    get length() {
+        return this.collection.length;
+    }
+    get cells() {
+        return this.collection.toArray();
+    }
+    select(cells, options = {}) {
+        options.dryrun = true;
+        const items = this.filter(Array.isArray(cells) ? cells : [cells]);
+        this.collection.add(items, options);
+        return this;
+    }
+    unselect(cells, options = {}) {
+        // dryrun to prevent cell be removed from graph
+        options.dryrun = true;
+        this.collection.remove(Array.isArray(cells) ? cells : [cells], options);
+        return this;
+    }
+    reset(cells, options = {}) {
+        if (cells) {
+            if (options.batch) {
+                const filterCells = this.filter(Array.isArray(cells) ? cells : [cells]);
+                this.collection.reset(filterCells, Object.assign(Object.assign({}, options), { ui: true }));
+                return this;
+            }
+            const prev = this.cells;
+            const next = this.filter(Array.isArray(cells) ? cells : [cells]);
+            const prevMap = {};
+            const nextMap = {};
+            prev.forEach((cell) => (prevMap[cell.id] = cell));
+            next.forEach((cell) => (nextMap[cell.id] = cell));
+            const added = [];
+            const removed = [];
+            next.forEach((cell) => {
+                if (!prevMap[cell.id]) {
+                    added.push(cell);
+                }
+            });
+            prev.forEach((cell) => {
+                if (!nextMap[cell.id]) {
+                    removed.push(cell);
+                }
+            });
+            if (removed.length) {
+                this.unselect(removed, Object.assign(Object.assign({}, options), { ui: true }));
+            }
+            if (added.length) {
+                this.select(added, Object.assign(Object.assign({}, options), { ui: true }));
+            }
+            if (removed.length === 0 && added.length === 0) {
+                this.updateContainer();
+            }
+            return this;
+        }
+        return this.clean(options);
+    }
+    clean(options = {}) {
+        if (this.length) {
+            if (options.batch === false) {
+                this.unselect(this.cells, options);
+            }
+            else {
+                this.collection.reset([], Object.assign(Object.assign({}, options), { ui: true }));
+            }
+        }
+        return this;
+    }
+    setFilter(filter) {
+        this.options.filter = filter;
+    }
+    setContent(content) {
+        this.options.content = content;
+    }
+    startSelecting(evt) {
+        // Flow: startSelecting => adjustSelection => stopSelecting
+        evt = this.normalizeEvent(evt); // eslint-disable-line
+        this.clean();
+        let x;
+        let y;
+        const graphContainer = this.graph.container;
+        if (evt.offsetX != null &&
+            evt.offsetY != null &&
+            graphContainer.contains(evt.target)) {
+            x = evt.offsetX;
+            y = evt.offsetY;
+        }
+        else {
+            const offset = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.offset(graphContainer);
+            const scrollLeft = graphContainer.scrollLeft;
+            const scrollTop = graphContainer.scrollTop;
+            x = evt.clientX - offset.left + window.pageXOffset + scrollLeft;
+            y = evt.clientY - offset.top + window.pageYOffset + scrollTop;
+        }
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(this.container, {
+            top: y,
+            left: x,
+            width: 1,
+            height: 1,
+        });
+        this.setEventData(evt, {
+            action: 'selecting',
+            clientX: evt.clientX,
+            clientY: evt.clientY,
+            offsetX: x,
+            offsetY: y,
+            scrollerX: 0,
+            scrollerY: 0,
+            moving: false,
+        });
+        this.delegateDocumentEvents(Private.documentEvents, evt.data);
+    }
+    filter(cells) {
+        const filter = this.options.filter;
+        return cells.filter((cell) => {
+            if (Array.isArray(filter)) {
+                return filter.some((item) => {
+                    if (typeof item === 'string') {
+                        return cell.shape === item;
+                    }
+                    return cell.id === item.id;
+                });
+            }
+            if (typeof filter === 'function') {
+                return _antv_x6__WEBPACK_IMPORTED_MODULE_0__.FunctionExt.call(filter, this.graph, cell);
+            }
+            return true;
+        });
+    }
+    stopSelecting(evt) {
+        const graph = this.graph;
+        const eventData = this.getEventData(evt);
+        const action = eventData.action;
+        switch (action) {
+            case 'selecting': {
+                let width = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.width(this.container);
+                let height = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.height(this.container);
+                const offset = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.offset(this.container);
+                const origin = graph.pageToLocal(offset.left, offset.top);
+                const scale = graph.transform.getScale();
+                width /= scale.sx;
+                height /= scale.sy;
+                const rect = new _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Rectangle(origin.x, origin.y, width, height);
+                const cells = this.getCellViewsInArea(rect).map((view) => view.cell);
+                this.reset(cells, { batch: true });
+                this.hideRubberband();
+                break;
+            }
+            case 'translating': {
+                const client = graph.snapToGrid(evt.clientX, evt.clientY);
+                if (!this.options.following) {
+                    const data = eventData;
+                    this.updateSelectedNodesPosition({
+                        dx: data.clientX - data.originX,
+                        dy: data.clientY - data.originY,
+                    });
+                }
+                this.graph.model.stopBatch('move-selection');
+                this.notifyBoxEvent('box:mouseup', evt, client.x, client.y);
+                break;
+            }
+            default: {
+                this.clean();
+                break;
+            }
+        }
+    }
+    onMouseUp(evt) {
+        const action = this.getEventData(evt).action;
+        if (action) {
+            this.stopSelecting(evt);
+            this.undelegateDocumentEvents();
+        }
+    }
+    onSelectionBoxMouseDown(evt) {
+        if (!this.options.following) {
+            evt.stopPropagation();
+        }
+        const e = this.normalizeEvent(evt);
+        if (this.options.movable) {
+            this.startTranslating(e);
+        }
+        const activeView = this.getCellViewFromElem(e.target);
+        this.setEventData(e, { activeView });
+        const client = this.graph.snapToGrid(e.clientX, e.clientY);
+        this.notifyBoxEvent('box:mousedown', e, client.x, client.y);
+        this.delegateDocumentEvents(Private.documentEvents, e.data);
+    }
+    startTranslating(evt) {
+        this.graph.model.startBatch('move-selection');
+        const client = this.graph.snapToGrid(evt.clientX, evt.clientY);
+        this.setEventData(evt, {
+            action: 'translating',
+            clientX: client.x,
+            clientY: client.y,
+            originX: client.x,
+            originY: client.y,
+        });
+    }
+    getRestrictArea() {
+        const restrict = this.graph.options.translating.restrict;
+        const area = typeof restrict === 'function'
+            ? _antv_x6__WEBPACK_IMPORTED_MODULE_0__.FunctionExt.call(restrict, this.graph, null)
+            : restrict;
+        if (typeof area === 'number') {
+            return this.graph.transform.getGraphArea().inflate(area);
+        }
+        if (area === true) {
+            return this.graph.transform.getGraphArea();
+        }
+        return area || null;
+    }
+    getSelectionOffset(client, data) {
+        let dx = client.x - data.clientX;
+        let dy = client.y - data.clientY;
+        const restrict = this.getRestrictArea();
+        if (restrict) {
+            const cells = this.collection.toArray();
+            const totalBBox = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Cell.getCellsBBox(cells, { deep: true }) || _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Rectangle.create();
+            const minDx = restrict.x - totalBBox.x;
+            const minDy = restrict.y - totalBBox.y;
+            const maxDx = restrict.x + restrict.width - (totalBBox.x + totalBBox.width);
+            const maxDy = restrict.y + restrict.height - (totalBBox.y + totalBBox.height);
+            if (dx < minDx) {
+                dx = minDx;
+            }
+            if (dy < minDy) {
+                dy = minDy;
+            }
+            if (maxDx < dx) {
+                dx = maxDx;
+            }
+            if (maxDy < dy) {
+                dy = maxDy;
+            }
+            if (!this.options.following) {
+                const offsetX = client.x - data.originX;
+                const offsetY = client.y - data.originY;
+                dx = offsetX <= minDx || offsetX >= maxDx ? 0 : dx;
+                dy = offsetY <= minDy || offsetY >= maxDy ? 0 : dy;
+            }
+        }
+        return {
+            dx,
+            dy,
+        };
+    }
+    updateElementPosition(elem, dLeft, dTop) {
+        const strLeft = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(elem, 'left');
+        const strTop = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(elem, 'top');
+        const left = strLeft ? parseFloat(strLeft) : 0;
+        const top = strTop ? parseFloat(strTop) : 0;
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(elem, 'left', left + dLeft);
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(elem, 'top', top + dTop);
+    }
+    updateSelectedNodesPosition(offset) {
+        const { dx, dy } = offset;
+        if (dx || dy) {
+            if ((this.translateSelectedNodes(dx, dy), this.boxesUpdated)) {
+                if (this.collection.length > 1) {
+                    this.updateSelectionBoxes();
+                }
+            }
+            else {
+                const scale = this.graph.transform.getScale();
+                for (let i = 0, len = this.$boxes.length; i < len; i += 1) {
+                    this.updateElementPosition(this.$boxes[i], dx * scale.sx, dy * scale.sy);
+                }
+                this.updateElementPosition(this.selectionContainer, dx * scale.sx, dy * scale.sy);
+            }
+        }
+    }
+    autoScrollGraph(x, y) {
+        const scroller = this.graph.getPlugin('scroller');
+        if (scroller) {
+            return scroller.autoScroll(x, y);
+        }
+        return { scrollerX: 0, scrollerY: 0 };
+    }
+    adjustSelection(evt) {
+        const e = this.normalizeEvent(evt);
+        const eventData = this.getEventData(e);
+        const action = eventData.action;
+        switch (action) {
+            case 'selecting': {
+                const data = eventData;
+                if (data.moving !== true) {
+                    _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.appendTo(this.container, this.graph.container);
+                    this.showRubberband();
+                    data.moving = true;
+                }
+                const { scrollerX, scrollerY } = this.autoScrollGraph(e.clientX, e.clientY);
+                data.scrollerX += scrollerX;
+                data.scrollerY += scrollerY;
+                const dx = e.clientX - data.clientX + data.scrollerX;
+                const dy = e.clientY - data.clientY + data.scrollerY;
+                const left = parseInt(_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(this.container, 'left') || '0', 10);
+                const top = parseInt(_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(this.container, 'top') || '0', 10);
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(this.container, {
+                    left: dx < 0 ? data.offsetX + dx : left,
+                    top: dy < 0 ? data.offsetY + dy : top,
+                    width: Math.abs(dx),
+                    height: Math.abs(dy),
+                });
+                break;
+            }
+            case 'translating': {
+                const client = this.graph.snapToGrid(e.clientX, e.clientY);
+                const data = eventData;
+                const offset = this.getSelectionOffset(client, data);
+                if (this.options.following) {
+                    this.updateSelectedNodesPosition(offset);
+                }
+                else {
+                    this.updateContainerPosition(offset);
+                }
+                if (offset.dx) {
+                    data.clientX = client.x;
+                }
+                if (offset.dy) {
+                    data.clientY = client.y;
+                }
+                this.notifyBoxEvent('box:mousemove', evt, client.x, client.y);
+                break;
+            }
+            default:
+                break;
+        }
+        this.boxesUpdated = false;
+    }
+    translateSelectedNodes(dx, dy, exclude, otherOptions) {
+        const map = {};
+        const excluded = [];
+        if (exclude) {
+            map[exclude.id] = true;
+        }
+        this.collection.toArray().forEach((cell) => {
+            cell.getDescendants({ deep: true }).forEach((child) => {
+                map[child.id] = true;
+            });
+        });
+        if (otherOptions && otherOptions.translateBy) {
+            const currentCell = this.graph.getCellById(otherOptions.translateBy);
+            if (currentCell) {
+                map[currentCell.id] = true;
+                currentCell.getDescendants({ deep: true }).forEach((child) => {
+                    map[child.id] = true;
+                });
+                excluded.push(currentCell);
+            }
+        }
+        this.collection.toArray().forEach((cell) => {
+            if (!map[cell.id]) {
+                const options = Object.assign(Object.assign({}, otherOptions), { selection: this.cid, exclude: excluded });
+                cell.translate(dx, dy, options);
+                this.graph.model.getConnectedEdges(cell).forEach((edge) => {
+                    if (!map[edge.id]) {
+                        edge.translate(dx, dy, options);
+                        map[edge.id] = true;
+                    }
+                });
+            }
+        });
+    }
+    getCellViewsInArea(rect) {
+        const graph = this.graph;
+        const options = {
+            strict: this.options.strict,
+        };
+        let views = [];
+        if (this.options.rubberNode) {
+            views = views.concat(graph.model
+                .getNodesInArea(rect, options)
+                .map((node) => graph.renderer.findViewByCell(node))
+                .filter((view) => view != null));
+        }
+        if (this.options.rubberEdge) {
+            views = views.concat(graph.model
+                .getEdgesInArea(rect, options)
+                .map((edge) => graph.renderer.findViewByCell(edge))
+                .filter((view) => view != null));
+        }
+        return views;
+    }
+    notifyBoxEvent(name, e, x, y) {
+        const data = this.getEventData(e);
+        const view = data.activeView;
+        this.trigger(name, { e, view, x, y, cell: view.cell });
+    }
+    getSelectedClassName(cell) {
+        return this.prefixClassName(`${cell.isNode() ? 'node' : 'edge'}-selected`);
+    }
+    addCellSelectedClassName(cell) {
+        const view = this.graph.renderer.findViewByCell(cell);
+        if (view) {
+            view.addClass(this.getSelectedClassName(cell));
+        }
+    }
+    removeCellUnSelectedClassName(cell) {
+        const view = this.graph.renderer.findViewByCell(cell);
+        if (view) {
+            view.removeClass(this.getSelectedClassName(cell));
+        }
+    }
+    destroySelectionBox(cell) {
+        this.removeCellUnSelectedClassName(cell);
+        if (this.canShowSelectionBox(cell)) {
+            _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.remove(this.container.querySelector(`[data-cell-id="${cell.id}"]`));
+            if (this.$boxes.length === 0) {
+                this.hide();
+            }
+            this.boxCount = Math.max(0, this.boxCount - 1);
+        }
+    }
+    destroyAllSelectionBoxes(cells) {
+        cells.forEach((cell) => this.removeCellUnSelectedClassName(cell));
+        this.hide();
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.remove(this.$boxes);
+        this.boxCount = 0;
+    }
+    hide() {
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.removeClass(this.container, this.prefixClassName(Private.classNames.rubberband));
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.removeClass(this.container, this.prefixClassName(Private.classNames.selected));
+    }
+    showRubberband() {
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.container, this.prefixClassName(Private.classNames.rubberband));
+    }
+    hideRubberband() {
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.removeClass(this.container, this.prefixClassName(Private.classNames.rubberband));
+    }
+    showSelected() {
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.removeAttribute(this.container, 'style');
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.container, this.prefixClassName(Private.classNames.selected));
+    }
+    createContainer() {
+        this.container = document.createElement('div');
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.container, this.prefixClassName(Private.classNames.root));
+        if (this.options.className) {
+            _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.container, this.options.className);
+        }
+        this.selectionContainer = document.createElement('div');
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.selectionContainer, this.prefixClassName(Private.classNames.inner));
+        this.selectionContent = document.createElement('div');
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(this.selectionContent, this.prefixClassName(Private.classNames.content));
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.append(this.selectionContainer, this.selectionContent);
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.attr(this.selectionContainer, 'data-selection-length', this.collection.length);
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.prepend(this.container, this.selectionContainer);
+    }
+    updateContainerPosition(offset) {
+        if (offset.dx || offset.dy) {
+            this.updateElementPosition(this.selectionContainer, offset.dx, offset.dy);
+        }
+    }
+    updateContainer() {
+        const origin = { x: Infinity, y: Infinity };
+        const corner = { x: 0, y: 0 };
+        const cells = this.collection
+            .toArray()
+            .filter((cell) => this.canShowSelectionBox(cell));
+        cells.forEach((cell) => {
+            const view = this.graph.renderer.findViewByCell(cell);
+            if (view) {
+                const bbox = view.getBBox({
+                    useCellGeometry: true,
+                });
+                origin.x = Math.min(origin.x, bbox.x);
+                origin.y = Math.min(origin.y, bbox.y);
+                corner.x = Math.max(corner.x, bbox.x + bbox.width);
+                corner.y = Math.max(corner.y, bbox.y + bbox.height);
+            }
+        });
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(this.selectionContainer, {
+            position: 'absolute',
+            pointerEvents: 'none',
+            left: origin.x,
+            top: origin.y,
+            width: corner.x - origin.x,
+            height: corner.y - origin.y,
+        });
+        _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.attr(this.selectionContainer, 'data-selection-length', this.collection.length);
+        const boxContent = this.options.content;
+        if (boxContent) {
+            if (typeof boxContent === 'function') {
+                const content = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.FunctionExt.call(boxContent, this.graph, this, this.selectionContent);
+                if (content) {
+                    this.selectionContent.innerHTML = content;
+                }
+            }
+            else {
+                this.selectionContent.innerHTML = boxContent;
+            }
+        }
+        if (this.collection.length > 0 && !this.container.parentNode) {
+            _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.appendTo(this.container, this.graph.container);
+        }
+        else if (this.collection.length <= 0 && this.container.parentNode) {
+            this.container.parentNode.removeChild(this.container);
+        }
+    }
+    canShowSelectionBox(cell) {
+        return ((cell.isNode() && this.options.showNodeSelectionBox === true) ||
+            (cell.isEdge() && this.options.showEdgeSelectionBox === true));
+    }
+    createSelectionBox(cell) {
+        this.addCellSelectedClassName(cell);
+        if (this.canShowSelectionBox(cell)) {
+            const view = this.graph.renderer.findViewByCell(cell);
+            if (view) {
+                const bbox = view.getBBox({
+                    useCellGeometry: true,
+                });
+                const className = this.boxClassName;
+                const box = document.createElement('div');
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(box, className);
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.addClass(box, `${className}-${cell.isNode() ? 'node' : 'edge'}`);
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.attr(box, 'data-cell-id', cell.id);
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.css(box, {
+                    position: 'absolute',
+                    left: bbox.x,
+                    top: bbox.y,
+                    width: bbox.width,
+                    height: bbox.height,
+                    pointerEvents: this.options.pointerEvents || 'auto',
+                });
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.appendTo(box, this.container);
+                this.showSelected();
+                this.boxCount += 1;
+            }
+        }
+    }
+    updateSelectionBoxes() {
+        if (this.collection.length > 0) {
+            this.boxesUpdated = true;
+            this.confirmUpdate();
+            // this.graph.renderer.requestViewUpdate(this as any, 1, options)
+        }
+    }
+    confirmUpdate() {
+        if (this.boxCount) {
+            this.hide();
+            for (let i = 0, len = this.$boxes.length; i < len; i += 1) {
+                const box = this.$boxes[i];
+                const cellId = _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.attr(box, 'data-cell-id');
+                _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Dom.remove(box);
+                const cell = this.collection.get(cellId);
+                if (cell) {
+                    this.createSelectionBox(cell);
+                }
+            }
+            this.updateContainer();
+        }
+        return 0;
+    }
+    getCellViewFromElem(elem) {
+        const id = elem.getAttribute('data-cell-id');
+        if (id) {
+            const cell = this.collection.get(id);
+            if (cell) {
+                return this.graph.renderer.findViewByCell(cell);
+            }
+        }
+        return null;
+    }
+    onCellRemoved({ cell }) {
+        this.destroySelectionBox(cell);
+        this.updateContainer();
+    }
+    onReseted({ previous, current }) {
+        this.destroyAllSelectionBoxes(previous);
+        current.forEach((cell) => {
+            this.listenCellRemoveEvent(cell);
+            this.createSelectionBox(cell);
+        });
+        this.updateContainer();
+    }
+    onCellAdded({ cell }) {
+        // The collection do not known the cell was removed when cell was
+        // removed by interaction(such as, by "delete" shortcut), so we should
+        // manually listen to cell's remove event.
+        this.listenCellRemoveEvent(cell);
+        this.createSelectionBox(cell);
+        this.updateContainer();
+    }
+    listenCellRemoveEvent(cell) {
+        cell.off('removed', this.onCellRemoved, this);
+        cell.on('removed', this.onCellRemoved, this);
+    }
+    onCollectionUpdated({ added, removed, options, }) {
+        added.forEach((cell) => {
+            this.trigger('cell:selected', { cell, options });
+            if (cell.isNode()) {
+                this.trigger('node:selected', { cell, options, node: cell });
+            }
+            else if (cell.isEdge()) {
+                this.trigger('edge:selected', { cell, options, edge: cell });
+            }
+        });
+        removed.forEach((cell) => {
+            this.trigger('cell:unselected', { cell, options });
+            if (cell.isNode()) {
+                this.trigger('node:unselected', { cell, options, node: cell });
+            }
+            else if (cell.isEdge()) {
+                this.trigger('edge:unselected', { cell, options, edge: cell });
+            }
+        });
+        const args = {
+            added,
+            removed,
+            options,
+            selected: this.cells.filter((cell) => !!this.graph.getCellById(cell.id)),
+        };
+        this.trigger('selection:changed', args);
+    }
+    // #endregion
+    dispose() {
+        this.clean();
+        this.remove();
+        this.off();
+    }
+}
+__decorate([
+    _antv_x6__WEBPACK_IMPORTED_MODULE_0__.View.dispose()
+], SelectionImpl.prototype, "dispose", null);
+// private
+// -------
+var Private;
+(function (Private) {
+    const base = 'widget-selection';
+    Private.classNames = {
+        root: base,
+        inner: `${base}-inner`,
+        box: `${base}-box`,
+        content: `${base}-content`,
+        rubberband: `${base}-rubberband`,
+        selected: `${base}-selected`,
+    };
+    Private.documentEvents = {
+        mousemove: 'adjustSelection',
+        touchmove: 'adjustSelection',
+        mouseup: 'onMouseUp',
+        touchend: 'onMouseUp',
+        touchcancel: 'onMouseUp',
+    };
+    function depthComparator(cell) {
+        return cell.getAncestors().length;
+    }
+    Private.depthComparator = depthComparator;
+})(Private || (Private = {}));
+//# sourceMappingURL=selection.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@antv/x6-plugin-selection/es/style/raw.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@antv/x6-plugin-selection/es/style/raw.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "content": () => (/* binding */ content)
+/* harmony export */ });
+/* eslint-disable */
+/**
+ * Auto generated file, do not modify it!
+ */
+const content = `.x6-widget-selection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  width: 0;
+  height: 0;
+  touch-action: none;
+}
+.x6-widget-selection-rubberband {
+  display: block;
+  overflow: visible;
+  opacity: 0.3;
+}
+.x6-widget-selection-selected {
+  display: block;
+}
+.x6-widget-selection-box {
+  cursor: move;
+}
+.x6-widget-selection-inner[data-selection-length='0'],
+.x6-widget-selection-inner[data-selection-length='1'] {
+  display: none;
+}
+.x6-widget-selection-content {
+  position: absolute;
+  top: 100%;
+  right: -20px;
+  left: -20px;
+  margin-top: 30px;
+  padding: 6px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 6px;
+}
+.x6-widget-selection-content:empty {
+  display: none;
+}
+.x6-widget-selection-rubberband {
+  background-color: #3498db;
+  border: 2px solid #2980b9;
+}
+.x6-widget-selection-box {
+  box-sizing: content-box !important;
+  margin-top: -4px;
+  margin-left: -4px;
+  padding-right: 4px;
+  padding-bottom: 4px;
+  border: 2px dashed #feb663;
+  box-shadow: 2px 2px 5px #d3d3d3;
+}
+.x6-widget-selection-inner {
+  box-sizing: content-box !important;
+  margin-top: -8px;
+  margin-left: -8px;
+  padding-right: 12px;
+  padding-bottom: 12px;
+  border: 2px solid #feb663;
+  box-shadow: 2px 2px 5px #d3d3d3;
+}
+.x6-widget-selection-content {
+  color: #fff;
+  font-size: 10px;
+  background-color: #6a6b8a;
+}
+`;
+//# sourceMappingURL=raw.js.map
+
+/***/ }),
+
 /***/ "./node_modules/@antv/x6-plugin-snapline/es/api.js":
 /*!*********************************************************!*\
   !*** ./node_modules/@antv/x6-plugin-snapline/es/api.js ***!
@@ -36823,6 +38309,472 @@ var Private;
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/dist/cjs.js!./css/designer.css":
+/*!****************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./css/designer.css ***!
+  \****************************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/sourceMaps.js */ "./node_modules/css-loader/dist/runtime/sourceMaps.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, ".x6-graph-background {\n    background-color: #fff;\n}\n\n.x6-widget-selection-box {\n    border: 2px dashed var(--mud-palette-secondary);\n}\n\n.x6-widget-selection-inner {\n    border: 1px solid var(--mud-palette-secondary);\n}", "",{"version":3,"sources":["webpack://./css/designer.css"],"names":[],"mappings":"AAAA;IACI,sBAAsB;AAC1B;;AAEA;IACI,+CAA+C;AACnD;;AAEA;IACI,8CAA8C;AAClD","sourcesContent":[".x6-graph-background {\n    background-color: #fff;\n}\n\n.x6-widget-selection-box {\n    border: 2px dashed var(--mud-palette-secondary);\n}\n\n.x6-widget-selection-inner {\n    border: 1px solid var(--mud-palette-secondary);\n}"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/api.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/api.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+*/
+module.exports = function (cssWithMappingToString) {
+  var list = [];
+
+  // return the list of modules as css string
+  list.toString = function toString() {
+    return this.map(function (item) {
+      var content = "";
+      var needLayer = typeof item[5] !== "undefined";
+      if (item[4]) {
+        content += "@supports (".concat(item[4], ") {");
+      }
+      if (item[2]) {
+        content += "@media ".concat(item[2], " {");
+      }
+      if (needLayer) {
+        content += "@layer".concat(item[5].length > 0 ? " ".concat(item[5]) : "", " {");
+      }
+      content += cssWithMappingToString(item);
+      if (needLayer) {
+        content += "}";
+      }
+      if (item[2]) {
+        content += "}";
+      }
+      if (item[4]) {
+        content += "}";
+      }
+      return content;
+    }).join("");
+  };
+
+  // import a list of modules into the list
+  list.i = function i(modules, media, dedupe, supports, layer) {
+    if (typeof modules === "string") {
+      modules = [[null, modules, undefined]];
+    }
+    var alreadyImportedModules = {};
+    if (dedupe) {
+      for (var k = 0; k < this.length; k++) {
+        var id = this[k][0];
+        if (id != null) {
+          alreadyImportedModules[id] = true;
+        }
+      }
+    }
+    for (var _k = 0; _k < modules.length; _k++) {
+      var item = [].concat(modules[_k]);
+      if (dedupe && alreadyImportedModules[item[0]]) {
+        continue;
+      }
+      if (typeof layer !== "undefined") {
+        if (typeof item[5] === "undefined") {
+          item[5] = layer;
+        } else {
+          item[1] = "@layer".concat(item[5].length > 0 ? " ".concat(item[5]) : "", " {").concat(item[1], "}");
+          item[5] = layer;
+        }
+      }
+      if (media) {
+        if (!item[2]) {
+          item[2] = media;
+        } else {
+          item[1] = "@media ".concat(item[2], " {").concat(item[1], "}");
+          item[2] = media;
+        }
+      }
+      if (supports) {
+        if (!item[4]) {
+          item[4] = "".concat(supports);
+        } else {
+          item[1] = "@supports (".concat(item[4], ") {").concat(item[1], "}");
+          item[4] = supports;
+        }
+      }
+      list.push(item);
+    }
+  };
+  return list;
+};
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/sourceMaps.js":
+/*!************************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/sourceMaps.js ***!
+  \************************************************************/
+/***/ ((module) => {
+
+
+
+module.exports = function (item) {
+  var content = item[1];
+  var cssMapping = item[3];
+  if (!cssMapping) {
+    return content;
+  }
+  if (typeof btoa === "function") {
+    var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(cssMapping))));
+    var data = "sourceMappingURL=data:application/json;charset=utf-8;base64,".concat(base64);
+    var sourceMapping = "/*# ".concat(data, " */");
+    return [content].concat([sourceMapping]).join("\n");
+  }
+  return [content].join("\n");
+};
+
+/***/ }),
+
+/***/ "./css/designer.css":
+/*!**************************!*\
+  !*** ./css/designer.css ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleDomAPI.js */ "./node_modules/style-loader/dist/runtime/styleDomAPI.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertBySelector.js */ "./node_modules/style-loader/dist/runtime/insertBySelector.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js */ "./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertStyleElement.js */ "./node_modules/style-loader/dist/runtime/insertStyleElement.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleTagTransform.js */ "./node_modules/style-loader/dist/runtime/styleTagTransform.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_designer_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! !!../node_modules/css-loader/dist/cjs.js!./designer.css */ "./node_modules/css-loader/dist/cjs.js!./css/designer.css");
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var options = {};
+
+options.styleTagTransform = (_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default());
+options.setAttributes = (_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default());
+
+      options.insert = _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default().bind(null, "head");
+    
+options.domAPI = (_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default());
+options.insertStyleElement = (_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default());
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_designer_css__WEBPACK_IMPORTED_MODULE_6__["default"], options);
+
+
+
+
+       /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_designer_css__WEBPACK_IMPORTED_MODULE_6__["default"] && _node_modules_css_loader_dist_cjs_js_designer_css__WEBPACK_IMPORTED_MODULE_6__["default"].locals ? _node_modules_css_loader_dist_cjs_js_designer_css__WEBPACK_IMPORTED_MODULE_6__["default"].locals : undefined);
+
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js ***!
+  \****************************************************************************/
+/***/ ((module) => {
+
+
+
+var stylesInDOM = [];
+function getIndexByIdentifier(identifier) {
+  var result = -1;
+  for (var i = 0; i < stylesInDOM.length; i++) {
+    if (stylesInDOM[i].identifier === identifier) {
+      result = i;
+      break;
+    }
+  }
+  return result;
+}
+function modulesToDom(list, options) {
+  var idCountMap = {};
+  var identifiers = [];
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var id = options.base ? item[0] + options.base : item[0];
+    var count = idCountMap[id] || 0;
+    var identifier = "".concat(id, " ").concat(count);
+    idCountMap[id] = count + 1;
+    var indexByIdentifier = getIndexByIdentifier(identifier);
+    var obj = {
+      css: item[1],
+      media: item[2],
+      sourceMap: item[3],
+      supports: item[4],
+      layer: item[5]
+    };
+    if (indexByIdentifier !== -1) {
+      stylesInDOM[indexByIdentifier].references++;
+      stylesInDOM[indexByIdentifier].updater(obj);
+    } else {
+      var updater = addElementStyle(obj, options);
+      options.byIndex = i;
+      stylesInDOM.splice(i, 0, {
+        identifier: identifier,
+        updater: updater,
+        references: 1
+      });
+    }
+    identifiers.push(identifier);
+  }
+  return identifiers;
+}
+function addElementStyle(obj, options) {
+  var api = options.domAPI(options);
+  api.update(obj);
+  var updater = function updater(newObj) {
+    if (newObj) {
+      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap && newObj.supports === obj.supports && newObj.layer === obj.layer) {
+        return;
+      }
+      api.update(obj = newObj);
+    } else {
+      api.remove();
+    }
+  };
+  return updater;
+}
+module.exports = function (list, options) {
+  options = options || {};
+  list = list || [];
+  var lastIdentifiers = modulesToDom(list, options);
+  return function update(newList) {
+    newList = newList || [];
+    for (var i = 0; i < lastIdentifiers.length; i++) {
+      var identifier = lastIdentifiers[i];
+      var index = getIndexByIdentifier(identifier);
+      stylesInDOM[index].references--;
+    }
+    var newLastIdentifiers = modulesToDom(newList, options);
+    for (var _i = 0; _i < lastIdentifiers.length; _i++) {
+      var _identifier = lastIdentifiers[_i];
+      var _index = getIndexByIdentifier(_identifier);
+      if (stylesInDOM[_index].references === 0) {
+        stylesInDOM[_index].updater();
+        stylesInDOM.splice(_index, 1);
+      }
+    }
+    lastIdentifiers = newLastIdentifiers;
+  };
+};
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/insertBySelector.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/insertBySelector.js ***!
+  \********************************************************************/
+/***/ ((module) => {
+
+
+
+var memo = {};
+
+/* istanbul ignore next  */
+function getTarget(target) {
+  if (typeof memo[target] === "undefined") {
+    var styleTarget = document.querySelector(target);
+
+    // Special case to return head of iframe instead of iframe itself
+    if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+      try {
+        // This will throw an exception if access to iframe is blocked
+        // due to cross-origin restrictions
+        styleTarget = styleTarget.contentDocument.head;
+      } catch (e) {
+        // istanbul ignore next
+        styleTarget = null;
+      }
+    }
+    memo[target] = styleTarget;
+  }
+  return memo[target];
+}
+
+/* istanbul ignore next  */
+function insertBySelector(insert, style) {
+  var target = getTarget(insert);
+  if (!target) {
+    throw new Error("Couldn't find a style target. This probably means that the value for the 'insert' parameter is invalid.");
+  }
+  target.appendChild(style);
+}
+module.exports = insertBySelector;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/insertStyleElement.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/insertStyleElement.js ***!
+  \**********************************************************************/
+/***/ ((module) => {
+
+
+
+/* istanbul ignore next  */
+function insertStyleElement(options) {
+  var element = document.createElement("style");
+  options.setAttributes(element, options.attributes);
+  options.insert(element, options.options);
+  return element;
+}
+module.exports = insertStyleElement;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js ***!
+  \**********************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+/* istanbul ignore next  */
+function setAttributesWithoutAttributes(styleElement) {
+  var nonce =  true ? __webpack_require__.nc : 0;
+  if (nonce) {
+    styleElement.setAttribute("nonce", nonce);
+  }
+}
+module.exports = setAttributesWithoutAttributes;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/styleDomAPI.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/styleDomAPI.js ***!
+  \***************************************************************/
+/***/ ((module) => {
+
+
+
+/* istanbul ignore next  */
+function apply(styleElement, options, obj) {
+  var css = "";
+  if (obj.supports) {
+    css += "@supports (".concat(obj.supports, ") {");
+  }
+  if (obj.media) {
+    css += "@media ".concat(obj.media, " {");
+  }
+  var needLayer = typeof obj.layer !== "undefined";
+  if (needLayer) {
+    css += "@layer".concat(obj.layer.length > 0 ? " ".concat(obj.layer) : "", " {");
+  }
+  css += obj.css;
+  if (needLayer) {
+    css += "}";
+  }
+  if (obj.media) {
+    css += "}";
+  }
+  if (obj.supports) {
+    css += "}";
+  }
+  var sourceMap = obj.sourceMap;
+  if (sourceMap && typeof btoa !== "undefined") {
+    css += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))), " */");
+  }
+
+  // For old IE
+  /* istanbul ignore if  */
+  options.styleTagTransform(css, styleElement, options.options);
+}
+function removeStyleElement(styleElement) {
+  // istanbul ignore if
+  if (styleElement.parentNode === null) {
+    return false;
+  }
+  styleElement.parentNode.removeChild(styleElement);
+}
+
+/* istanbul ignore next  */
+function domAPI(options) {
+  if (typeof document === "undefined") {
+    return {
+      update: function update() {},
+      remove: function remove() {}
+    };
+  }
+  var styleElement = options.insertStyleElement(options);
+  return {
+    update: function update(obj) {
+      apply(styleElement, options, obj);
+    },
+    remove: function remove() {
+      removeStyleElement(styleElement);
+    }
+  };
+}
+module.exports = domAPI;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/styleTagTransform.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/styleTagTransform.js ***!
+  \*********************************************************************/
+/***/ ((module) => {
+
+
+
+/* istanbul ignore next  */
+function styleTagTransform(css, styleElement) {
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = css;
+  } else {
+    while (styleElement.firstChild) {
+      styleElement.removeChild(styleElement.firstChild);
+    }
+    styleElement.appendChild(document.createTextNode(css));
+  }
+}
+module.exports = styleTagTransform;
+
+/***/ }),
+
 /***/ "./node_modules/lodash-es/_DataView.js":
 /*!*********************************************!*\
   !*** ./node_modules/lodash-es/_DataView.js ***!
@@ -48086,7 +50038,7 @@ function words(string, pattern, guard) {
 /******/ 	}
 /******/ 	// Create a new module (and put it into the cache)
 /******/ 	var module = __webpack_module_cache__[moduleId] = {
-/******/ 		// no module.id needed
+/******/ 		id: moduleId,
 /******/ 		// no module.loaded needed
 /******/ 		exports: {}
 /******/ 	};
@@ -48139,6 +50091,11 @@ function words(string, pattern, guard) {
 /******/ 	};
 /******/ })();
 /******/ 
+/******/ /* webpack/runtime/nonce */
+/******/ (() => {
+/******/ 	__webpack_require__.nc = undefined;
+/******/ })();
+/******/ 
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
@@ -48152,63 +50109,301 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _antv_x6__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @antv/x6 */ "./node_modules/@antv/x6/es/index.js");
 /* harmony import */ var _antv_x6_plugin_snapline__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @antv/x6-plugin-snapline */ "./node_modules/@antv/x6-plugin-snapline/es/index.js");
-
-
-
-const data = {
-    nodes: [
-        {
-            id: 'node1', // String，可选，节点的唯一标识
-            x: 40,       // Number，必选，节点位置的 x 值
-            y: 40,       // Number，必选，节点位置的 y 值
-            width: 80,   // Number，可选，节点大小的 width 值
-            height: 40,  // Number，可选，节点大小的 height 值
-            label: 'hello', // String，节点标签
-        },
-        {
-            id: 'node2', // String，节点的唯一标识
-            x: 160,      // Number，必选，节点位置的 x 值
-            y: 180,      // Number，必选，节点位置的 y 值
-            width: 80,   // Number，可选，节点大小的 width 值
-            height: 40,  // Number，可选，节点大小的 height 值
-            label: 'world!', // String，节点标签
-        },
-    ],
-    edges: [
-        {
-            source: 'node1', // String，必须，起始节点 id
-            target: 'node2', // String，必须，目标节点 id
-        },
-    ],
+/* harmony import */ var _antv_x6_plugin_selection__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @antv/x6-plugin-selection */ "./node_modules/@antv/x6-plugin-selection/es/index.js");
+/* harmony import */ var _css_designer_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../css/designer.css */ "./css/designer.css");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
 
 
-function createGraph() {
-    const graph = new _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph({
-        container: document.getElementById('container'),
-        autoResize: true,
-        grid: {
-            visible: true,
-            size: 10,
-        },
-        background: {
-            color: '#f5f5f5',
-        },
-        height: 1000,
-        width: 2000,
-        panning: {
-            enabled: true,
-        },
-        mousewheel: {
-            enabled: true,
-            factor: 1.05,
-            modifiers: ['ctrl', 'meta'],
-        }
-    });
 
-    graph.fromJSON(data)
-    graph.use(new _antv_x6_plugin_snapline__WEBPACK_IMPORTED_MODULE_1__.Snapline({enabled: true}))
+
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Shape.HTML.register({
+    shape: "elsa-activity",
+    effect: ["data"],
+    html(cell) {
+        console.debug("custom-html");
+        const { label } = cell.getData();
+        const htmlElement = document.createElement("div");
+        htmlElement.innerHTML = `<blazor-activity label="${label}"></blazor-activity>`;
+        return htmlElement;
+    },
+    ports: {
+        groups: {
+            in: {
+                position: "left",
+                attrs: {
+                    circle: {
+                        r: 5,
+                        magnet: true,
+                        stroke: "#0ea5e9",
+                        strokeWidth: 2,
+                        fill: "#fff",
+                    },
+                    text: {
+                        fontSize: 12,
+                        fill: "#888",
+                    },
+                },
+                label: {
+                    position: {
+                        name: "outside",
+                    },
+                },
+            },
+            out: {
+                position: "right",
+                attrs: {
+                    circle: {
+                        r: 5,
+                        magnet: true,
+                        stroke: "#fff",
+                        strokeWidth: 2,
+                        fill: "#0ea5e9",
+                    },
+                    text: {
+                        fontSize: 12,
+                        fill: "#888",
+                    },
+                },
+                label: {
+                    position: {
+                        name: "outside",
+                    },
+                },
+            },
+        },
+    }
+});
+function calculateSize() {
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.innerHTML = createHtml();
+    // Append the temporary element to the DOM.
+    const elsaStudioShell = document.getElementsByTagName('body')[0];
+    elsaStudioShell.append(wrapper);
+    // Wait for activity element to be completely rendered.
+    // When using custom elements, they are rendered after they are mounted. Before then, they have a 0 width and height.
+    return new Promise((resolve, reject) => {
+        const checkSize = () => {
+            const activityElement = wrapper.getElementsByTagName('blazor-activity')[0];
+            const activityElementRect = activityElement.getBoundingClientRect();
+            // If the custom element has no width or height yet, it means it has not yet rendered.
+            if (activityElementRect.width == 0 || activityElementRect.height == 0) {
+                // Request an animation frame and call ourselves back immediately after.
+                window.requestAnimationFrame(checkSize);
+            }
+            else {
+                const rect = wrapper.firstElementChild.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                // Remove the temporary element (used only to calculate its size).
+                wrapper.remove();
+                // Update size of the activity node and resolve the promise.
+                resolve({ width, height });
+            }
+        };
+        // Begin try to get our element size.
+        checkSize();
+    });
 }
+function createHtml() {
+    console.debug("custom-html");
+    const label = "Write line";
+    return `<blazor-activity label="${label}"></blazor-activity>`;
+}
+_antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph.registerEdge('elsa-edge', {
+    inherit: 'edge',
+    attrs: {
+        line: {
+            stroke: '#C2C8D5',
+            strokeWidth: 1,
+            targetMarker: 'classic',
+            size: 6,
+        },
+    },
+}, true);
+function loadData() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const size = yield calculateSize();
+        return {
+            nodes: [
+                {
+                    id: 'node1',
+                    shape: 'elsa-activity',
+                    x: 40,
+                    y: 40,
+                    width: size.width,
+                    height: size.height,
+                    data: {
+                        label: 'Write line', // String，节点标签
+                    },
+                    ports: [{
+                            id: "port1",
+                            group: "in",
+                        }, {
+                            id: "port2",
+                            group: "out",
+                        }]
+                },
+                {
+                    id: 'node2',
+                    shape: 'elsa-activity',
+                    x: 320,
+                    y: 40,
+                    width: size.width,
+                    height: size.height,
+                    data: {
+                        label: 'Write line', // String，节点标签
+                    },
+                    ports: [{
+                            id: "port3",
+                            group: "in",
+                        }, {
+                            id: "port4",
+                            group: "out",
+                        }]
+                }
+            ],
+            edges: [
+                {
+                    source: {
+                        cell: 'node1',
+                        port: 'port2',
+                    },
+                    target: {
+                        cell: 'node2',
+                        port: 'port3',
+                    },
+                    shape: 'elsa-edge'
+                }
+            ],
+        };
+    });
+}
+function createGraph() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const graph = new _antv_x6__WEBPACK_IMPORTED_MODULE_0__.Graph({
+            container: document.getElementById('container'),
+            autoResize: true,
+            grid: {
+                type: 'mesh',
+                visible: true,
+                size: 20,
+                args: {
+                    color: '#f1f1f1',
+                    thickness: 1,
+                }
+            },
+            magnetThreshold: 0,
+            height: 1000,
+            width: 2000,
+            panning: {
+                enabled: true,
+                modifiers: ['ctrl', 'meta'],
+            },
+            mousewheel: {
+                enabled: true,
+                factor: 1.05,
+                modifiers: ['ctrl', 'meta'],
+                minScale: 0.5,
+                maxScale: 3,
+            },
+            connecting: {
+                router: 'manhattan',
+                connector: {
+                    name: 'rounded',
+                    args: {
+                        radius: 8,
+                    },
+                },
+                anchor: 'center',
+                connectionPoint: 'anchor',
+                allowBlank: false,
+                snap: {
+                    radius: 20,
+                },
+                createEdge() {
+                    return graph.createEdge({
+                        shape: 'elsa-edge',
+                        attrs: {
+                            line: {
+                                strokeDasharray: '5 5',
+                            },
+                        },
+                        zIndex: -1,
+                    });
+                },
+                validateConnection({ targetMagnet }) {
+                    return !!targetMagnet;
+                }
+            },
+            highlighting: {
+                magnetAdsorbed: {
+                    name: 'stroke',
+                    args: {
+                        attrs: {
+                            fill: '#fff',
+                            stroke: '#31d0c6',
+                            strokeWidth: 4,
+                        },
+                    },
+                },
+            }
+        });
+        const data = yield loadData();
+        graph.fromJSON(data);
+        graph.use(new _antv_x6_plugin_snapline__WEBPACK_IMPORTED_MODULE_1__.Snapline({ enabled: true }));
+        graph.use(new _antv_x6_plugin_selection__WEBPACK_IMPORTED_MODULE_2__.Selection({
+            enabled: true,
+            multiple: true,
+            rubberEdge: true,
+            rubberNode: true,
+            rubberband: true,
+            movable: true,
+            showNodeSelectionBox: true
+        }));
+        // graph.use(
+        //     new Scroller({
+        //         enabled: true,
+        //         modifiers: ['ctrl', 'meta'],
+        //         autoResize: true,
+        //         pannable: true
+        //     }));
+        graph.centerContent({ padding: 20 });
+        graph.grid.update({ color: '#f1f1f1' });
+        //graph.zoomToFit({padding: 60});
+        // Change the edge's color and style when it is connected to a magnet.
+        graph.on('edge:connected', ({ edge }) => {
+            edge.attr({
+                line: {
+                    strokeDasharray: '',
+                },
+            });
+        });
+        graph.on("edge:mouseenter", ({ cell }) => {
+            cell.addTools([
+                { name: "vertices" },
+                {
+                    name: "button-remove",
+                    args: { distance: 20 },
+                },
+            ]);
+        });
+        graph.on("edge:mouseleave", ({ cell }) => {
+            if (cell.hasTool("button-remove")) {
+                cell.removeTool("button-remove");
+            }
+        });
+    });
+}
+
 })();
 
 var __webpack_exports__createGraph = __webpack_exports__.createGraph;

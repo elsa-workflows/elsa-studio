@@ -11,25 +11,25 @@ namespace Elsa.Dashboard.Designer.Interop;
 
 public class DesignerJsInterop : IAsyncDisposable
 {
-    private readonly Lazy<Task<IJSObjectReference>> moduleTask;
+    private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
 
     public DesignerJsInterop(IJSRuntime jsRuntime)
     {
-        moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
+        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
             "import", "./_content/Elsa.Dashboard.Designer/designer.entry.js").AsTask());
     }
 
     public async ValueTask<string> CreateGraph()
     {
-        var module = await moduleTask.Value;
-        return await module.InvokeAsync<string>("createGraph");
+        var module = await _moduleTask.Value;
+         return await module.InvokeAsync<string>("createGraph");
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (moduleTask.IsValueCreated)
+        if (_moduleTask.IsValueCreated)
         {
-            var module = await moduleTask.Value;
+            var module = await _moduleTask.Value;
             await module.DisposeAsync();
         }
     }
