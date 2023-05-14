@@ -1,0 +1,120 @@
+@page "/workflows/definitions/{definitionId}/edit"
+@using Variant = MudBlazor.Variant
+
+<PageTitle>Workflow definition</PageTitle>
+
+<RadzenSplitter Style="height: calc(100vh - var(--mud-appbar-height));">
+    <RadzenSplitterPane Size="15%" Min="100px">
+        <div class="ma-4">
+            <MudText Typo="Typo.h6">Activities</MudText>
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="@_searchText"
+                              Placeholder="Search..."
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Clearable="true">
+                </MudTextField>
+
+                <MudExpansionPanels Elevation="1">
+                    @foreach (var category in new[] { "Primitives", "Console", "HTTP" })
+                    {
+                        <MudExpansionPanel Text="@category">
+                            <MudStack>
+                                @for (var i = 0; i < 5; i++)
+                                {
+                                    <MudTooltip Text="Write a line of text to the console">
+                                        <MudPaper
+                                            Class="pa-3"
+                                            Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));"
+                                            Width="fit-content"
+                                            Outlined="true">
+                                            <MudStack Row="true">
+                                                <MudIcon Icon="@DashboardIcons.Tabler.PenTool"></MudIcon>
+                                                Write line
+                                            </MudStack>
+                                        </MudPaper>
+                                    </MudTooltip>
+                                }
+                            </MudStack>
+                        </MudExpansionPanel>
+                    }
+                </MudExpansionPanels>
+            </MudStack>
+        </div>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="70%">
+        <MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
+                        Style="height: 100%"
+                        AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
+                        AddIconToolTip="Click to add a new tab" CloseIconToolTip="Close tab. All data will be lost"
+                        PanelClass="px-4 py-6 full-height" Elevation="4" Rounded ApplyEffectsToContainer>
+            @foreach (var tab in UserTabs)
+            {
+                <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
+                    <Designer></Designer>
+                </MudTabPanel>
+            }
+        </MudDynamicTabs>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="15%" Min="100px">
+        <MudPaper Class="pa-2" Style="height: 100%;">
+            Properties
+        </MudPaper>
+    </RadzenSplitterPane>
+</RadzenSplitter>
+
+@code
+{
+    [Parameter]
+    public string DefinitionId { get; set; } = default!;
+
+    private string _searchText = "";
+    public MudDynamicTabs DynamicTabs;
+    public List<TabView> UserTabs = new();
+    public int UserIndex;
+
+    public class TabView
+    {
+        public string Label { get; set; }
+        public Guid Id { get; set; }
+        public bool ShowCloseIcon { get; set; } = true;
+    }
+
+    void RestoreUserTabs()
+    {
+        UserTabs.Clear();
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 1" });
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 2", ShowCloseIcon = true });
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 3" });
+        UserIndex = 0;
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        RestoreUserTabs();
+    }
+
+    public void AddTab(Guid id)
+    {
+        UserTabs.Add(new TabView { Id = id, Label = "dynamic tab" });
+        UserIndex = UserTabs.Count - 1; // Automatically switch to the new tab.
+        StateHasChanged();
+    }
+
+    public void RemoveTab(Guid id)
+    {
+        var tabView = UserTabs.SingleOrDefault((t) => Equals(t.Id, id));
+        if (tabView is not null)
+        {
+            UserTabs.Remove(tabView);
+            StateHasChanged();
+        }
+    }
+
+    void AddTabCallback() => AddTab(Guid.NewGuid());
+    void CloseTabCallback(MudTabPanel panel) => RemoveTab((Guid)panel.ID);
+}

@@ -1,5 +1,4 @@
 @page "/workflows/definitions"
-@using MudBlazor
 @using Elsa.Dashboard.Workflows.Models
 @inject NavigationManager NavigationManager
 
@@ -58,10 +57,10 @@
     /// </summary>
     private async Task<TableData<WorkflowDefinition>> ServerReload(TableState state)
     {
-    //var data = await HttpClient.GetFromJsonAsync<List<WorkflowDefinition>>("webapi/periodictable");
+        //var data = await HttpClient.GetFromJsonAsync<List<WorkflowDefinition>>("webapi/periodictable");
         var data = new List<WorkflowDefinition>
         {
-            new("1", "1", 1, "Workflow 1", "A workflow")
+            new(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), 1, "Workflow 1", "A workflow")
         };
         await Task.Delay(300);
 
@@ -70,20 +69,26 @@
         return new TableData<WorkflowDefinition> { TotalItems = _totalItems, Items = _pagedData };
     }
 
+    private void Edit(string definitionId)
+    {
+        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
+    }
+    
+    private void Edit()
+    {
+        var definitionId = Guid.NewGuid().ToString("N");
+        Edit(definitionId);
+    }
+
+    private void RowClick(TableRowClickEventArgs<WorkflowDefinition> e)
+    {
+        Edit(e.Item.DefinitionId);
+    }
+    
     private void OnSearch(string text)
     {
         _searchString = text;
         _table.ReloadServerData();
-    }
-
-    private void Edit()
-    {
-        NavigationManager.NavigateTo("/workflows/definitions/edit");
-    }
-
-    public void RowClick(TableRowClickEventArgs<WorkflowDefinition> e)
-    {
-        NavigationManager.NavigateTo("/workflows/definitions/edit");
     }
 
 }

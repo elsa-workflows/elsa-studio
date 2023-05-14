@@ -1,3 +1,0 @@
-﻿.full-height {
-    height: calc(100vh - var(--mud-appbar-height)); /* Subtract the height of the app bar (adjust the value if needed) */
-}

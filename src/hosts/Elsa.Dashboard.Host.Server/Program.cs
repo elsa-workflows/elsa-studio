@@ -1,17 +1,15 @@
 using Elsa.Dashboard.Counter.Extensions;
 using Elsa.Dashboard.Dashboard.Extensions;
-using Elsa.Dashboard.Designer.Components;
+using Elsa.Dashboard.Designer.Extensions;
 using Elsa.Dashboard.Extensions;
 using Elsa.Dashboard.Workflows.Extensions;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(options =>
 {
-    options.RootComponents.RegisterCustomElement<BlazorButton>("blazor-button");
-    options.RootComponents.RegisterCustomElement<BlazorActivity>("blazor-activity");
+    options.RootComponents.RegisterCustomElements();
 });
 builder.Services.AddMudServices();
 builder.Services.AddDashboardServices();

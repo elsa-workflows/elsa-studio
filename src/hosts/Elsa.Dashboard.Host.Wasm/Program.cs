@@ -1,6 +1,6 @@
 using Elsa.Dashboard.Counter.Extensions;
 using Elsa.Dashboard.Dashboard.Extensions;
-using Elsa.Dashboard.Designer.Components;
+using Elsa.Dashboard.Designer.Extensions;
 using Elsa.Dashboard.Extensions;
 using Elsa.Dashboard.Shell;
 using Elsa.Dashboard.Workflows.Extensions;
@@ -11,8 +11,7 @@ using MudBlazor.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-builder.RootComponents.RegisterCustomElement<BlazorButton>("blazor-button");
-builder.RootComponents.RegisterCustomElement<BlazorActivity>("blazor-activity");
+builder.RootComponents.RegisterCustomElements();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddMudServices();

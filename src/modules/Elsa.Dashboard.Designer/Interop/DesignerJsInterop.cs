@@ -2,13 +2,9 @@ using Microsoft.JSInterop;
 
 namespace Elsa.Dashboard.Designer.Interop;
 
-// This class provides an example of how JavaScript functionality can be wrapped
-// in a .NET class for easy consumption. The associated JavaScript module is
-// loaded on demand when first needed.
-//
-// This class can be registered as scoped DI service and then injected into Blazor
-// components for use.
-
+/// <summary>
+/// Provides access to the designer JavaScript module.
+/// </summary>
 public class DesignerJsInterop : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
@@ -19,10 +15,10 @@ public class DesignerJsInterop : IAsyncDisposable
             "import", "./_content/Elsa.Dashboard.Designer/designer.entry.js").AsTask());
     }
 
-    public async ValueTask<string> CreateGraph()
+    public async ValueTask<string> CreateGraph(string containerId)
     {
         var module = await _moduleTask.Value;
-         return await module.InvokeAsync<string>("createGraph");
+         return await module.InvokeAsync<string>("createGraph", containerId);
     }
 
     public async ValueTask DisposeAsync()

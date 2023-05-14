@@ -20,4 +20,12 @@
       <ProjectReference Include="..\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Edit\EditWorkflowDefinition.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Pages\WorkflowDefinition\Edit\EditWorkflowDefinition.razor" />
+    </ItemGroup>
+
 </Project>
