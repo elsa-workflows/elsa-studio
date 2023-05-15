@@ -11,8 +11,6 @@ debugger;
 export async function createGraph(containerId: string) {
     const containerElement = document.getElementById(containerId);
 
-    debugger;
-
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
@@ -28,7 +26,7 @@ export async function createGraph(containerId: string) {
         },
         magnetThreshold: 0,
         height: 1000,
-        width: 2000,
+        width: 1000,
         panning: {
             enabled: true,
             modifiers: ['ctrl', 'meta'],
@@ -125,10 +123,6 @@ export async function createGraph(containerId: string) {
     //         pannable: true
     //     }));
 
-    graph.centerContent({padding: 20});
-    graph.grid.update({color: '#f1f1f1'});
-    //graph.zoomToFit({padding: 60});
-
     // Change the edge's color and style when it is connected to a magnet.
     graph.on('edge:connected', ({edge}) => {
         edge.attr({
@@ -153,6 +147,10 @@ export async function createGraph(containerId: string) {
             cell.removeTool("button-remove");
         }
     });
+
+    graph.centerContent({padding: 20});
+    graph.grid.update({color: '#f1f1f1'});
+    //graph.zoomToFit({padding: 60});
 }
 
 function createActivityElement(activity): HTMLElement {

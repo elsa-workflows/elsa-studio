@@ -2,7 +2,6 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        prompt: './src/prompt.ts',
         designer: './src/designer.ts',
     },
     output: {
