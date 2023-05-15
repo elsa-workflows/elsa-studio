@@ -1,10 +1,11 @@
 @page "/workflows/definitions/{definitionId}/edit"
 @using Variant = MudBlazor.Variant
+@using Orientation = Radzen.Orientation
 
 <PageTitle>Workflow definition</PageTitle>
 
 <RadzenSplitter Style="height: calc(100vh - var(--mud-appbar-height));">
-    <RadzenSplitterPane Size="15%" Min="100px">
+    <RadzenSplitterPane Size="10%" Min="100px">
         <div class="ma-4">
             <MudText Typo="Typo.h6">Activities</MudText>
             <MudStack Spacing="3">
@@ -45,23 +46,46 @@
         </div>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="70%">
-        <MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
-                        Style="height: 100%"
-                        AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
-                        AddIconToolTip="Click to add a new tab" CloseIconToolTip="Close tab. All data will be lost"
-                        PanelClass="px-4 py-6 full-height" Elevation="4" Rounded ApplyEffectsToContainer>
-            @foreach (var tab in UserTabs)
-            {
-                <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
-                    <Designer></Designer>
-                </MudTabPanel>
-            }
-        </MudDynamicTabs>
+
+        <RadzenSplitter Orientation="Orientation.Vertical">
+            <RadzenSplitterPane Size="80%">
+                <MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
+                                Style="height: 100%"
+                                AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
+                                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                                Elevation="0" ApplyEffectsToContainer>
+                    @foreach (var tab in UserTabs)
+                    {
+                        <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
+                            <Designer></Designer>
+                        </MudTabPanel>
+                    }
+                </MudDynamicTabs>
+            </RadzenSplitterPane>
+            <RadzenSplitterPane Size="20%">
+                Activity properties
+            </RadzenSplitterPane>
+        </RadzenSplitter>
+
+
     </RadzenSplitterPane>
-    <RadzenSplitterPane Size="15%" Min="100px">
-        <MudPaper Class="pa-2" Style="height: 100%;">
-            Properties
-        </MudPaper>
+    <RadzenSplitterPane Size="20%" Min="100px">
+        
+          <MudTabs Elevation="0" ApplyEffectsToContainer="true">
+              <MudTabPanel Text="Properties">
+                  <MudText>Workflow properties</MudText>
+              </MudTabPanel>
+              <MudTabPanel Text="Variables">
+                  <MudText>Workflow variables</MudText>
+              </MudTabPanel>
+              <MudTabPanel Text="Settings">
+                  <MudText>Various settings</MudText>
+              </MudTabPanel>
+              <MudTabPanel Text="Input/output">
+                  <MudText>Version history</MudText>
+              </MudTabPanel>
+          </MudTabs>
+        
     </RadzenSplitterPane>
 </RadzenSplitter>
 
