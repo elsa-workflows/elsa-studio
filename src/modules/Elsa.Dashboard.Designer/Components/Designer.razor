@@ -3,9 +3,9 @@
 @inject DesignerJsInterop DesignerJsInterop
 
 <div style="width:100%; height:100%">
-    <MudPaper Elevation="0" Class="ma-2" >
+    <div class="ma-2" >
         <MudBreadcrumbs Items="_items" Style="padding: 6px;"></MudBreadcrumbs>
-    </MudPaper>
+    </div>
     <div id="@_containerId"></div>
 </div>
 
@@ -32,6 +32,4 @@
              await DesignerJsInterop.CreateGraph(_containerId);
         }
     }
-    
-
 }

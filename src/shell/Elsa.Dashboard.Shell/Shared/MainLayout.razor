@@ -3,33 +3,40 @@
 @implements IDisposable
 @inject IThemeService ThemeService
 
-<MudThemeProvider IsDarkMode="@_darkMode" Theme="ThemeService.CurrentTheme"/>
+<MudThemeProvider IsDarkMode="@_darkMode" Theme="CurrentTheme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 <MudLayout>
     <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"/>
     <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"/>
-    <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Default">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="@DrawerToggle"/>
+    <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Inherit">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
-        <div style="max-width: 300px;">
-            <MudSelect T="string" Label="Environment" Variant="Variant.Outlined" Dense="true" Class="elsa-environment-picker" FullWidth="false" Value="@("Development")">
-                <MudSelectItem T="string" Value="@("Development")"></MudSelectItem>
-                <MudSelectItem T="string" Value="@("Staging")"></MudSelectItem>
-                <MudSelectItem T="string" Value="@("Production")"></MudSelectItem>
-            </MudSelect>
-        </div>
-        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Default" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
+        <MudMenu 
+            Label="@_currentEnvironment" 
+            Variant="Variant.Text" 
+            EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+            IconColor="Color.Secondary" 
+            AnchorOrigin="Origin.BottomRight" 
+            TransformOrigin="Origin.BottomRight"
+            Color="Color.Inherit"
+            Dense="true" 
+            >
+            <MudMenuItem OnClick="@(() => ChangeEnvironment("Development"))">Development</MudMenuItem>
+            <MudMenuItem OnClick="@(() => ChangeEnvironment("Staging"))">Staging</MudMenuItem>
+            <MudMenuItem OnClick="@(() => ChangeEnvironment("Production"))">Production</MudMenuItem>
+        </MudMenu>
+        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 
         @if (_darkMode)
         {
-            <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
         else
         {
-            <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Default" @onclick="ToggleDarkMode"></MudToggleIconButton>
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="_themeManager.DrawerElevation" ClipMode="_themeManager.DrawerClipMode">
@@ -53,6 +60,9 @@
     private bool _darkMode = false;
     private ThemeManagerTheme _themeManager = new();
     private bool _themeManagerOpen;
+    private string _currentEnvironment = "Development";
+
+    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
 
     protected override void OnInitialized()
     {
@@ -63,6 +73,7 @@
         _themeManager.DefaultElevation = 0;
         _themeManager.AppBarElevation = 0;
         _themeManager.DrawerElevation = 0;
+        _themeManager.DrawerClipMode = DrawerClipMode.Always;
         StateHasChanged();
     }
 
@@ -92,6 +103,12 @@
     {
         _themeManager = value;
         ThemeService.CurrentTheme = value.Theme;
+        StateHasChanged();
+    }
+
+    private void ChangeEnvironment(string environment)
+    {
+        _currentEnvironment = environment;
         StateHasChanged();
     }
 

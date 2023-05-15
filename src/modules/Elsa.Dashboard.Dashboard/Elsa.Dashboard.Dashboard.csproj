@@ -26,6 +26,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Dashboard.Core\Elsa.Dashboard.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Dashboard.Shared\Elsa.Dashboard.Shared.csproj" />
     </ItemGroup>
 
 </Project>

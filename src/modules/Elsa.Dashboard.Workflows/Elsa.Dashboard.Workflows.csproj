@@ -18,14 +18,11 @@
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Dashboard.Core\Elsa.Dashboard.Core.csproj" />
       <ProjectReference Include="..\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj" />
+      <ProjectReference Include="..\Elsa.Dashboard.Shared\Elsa.Dashboard.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Pages\Edit\EditWorkflowDefinition.razor" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Pages\WorkflowDefinition\Edit\EditWorkflowDefinition.razor" />
     </ItemGroup>
 
 </Project>

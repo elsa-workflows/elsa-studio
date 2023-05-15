@@ -28,7 +28,8 @@ public class DefaultThemeService : IThemeService
             {
                 Primary = new MudColor("0ea5e9"),
                 DrawerBackground = new MudColor("#f8fafc"),
-                AppbarBackground = new MudColor("#ffffff"),
+                AppbarBackground = new MudColor("#0ea5e9"),
+                AppbarText = new MudColor("#ffffff"),
                 Background = new MudColor("#ffffff"),
                 Surface = new MudColor("#f8fafc")
             },

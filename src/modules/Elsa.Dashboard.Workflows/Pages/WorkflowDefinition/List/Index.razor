@@ -1,13 +1,17 @@
 @page "/workflows/definitions"
 @using Elsa.Dashboard.Workflows.Models
+@using Variant = MudBlazor.Variant
 @inject NavigationManager NavigationManager
 
 <PageTitle>Workflow definitions</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge">
-    <MudText Typo="Typo.h3" GutterBottom="true">Workflow definitions</MudText>
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="Workflow definitions"/>
 
     <MudTable ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinition>>>(ServerReload))" Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinition" OnRowClick="@RowClick" RowStyle="cursor: pointer;">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@New">Create workflow</MudButton>
+        </ToolBarContent>
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel SortLabel="id_field" T="WorkflowDefinition">ID</MudTableSortLabel>
@@ -29,8 +33,8 @@
             <MudTd DataLabel="Version" Style="text-align:right">@context.Version</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
-                <MudIcon Icon="@Icons.TwoTone.Edit" Size="Size.Small" @onclick="Edit" />
-                <MudIcon Icon="@Icons.TwoTone.Delete" Size="Size.Small" />
+                <MudIcon Icon="@Icons.TwoTone.Edit" Size="Size.Small" @onclick="Edit"/>
+                <MudIcon Icon="@Icons.TwoTone.Delete" Size="Size.Small"/>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -67,6 +71,11 @@
         _totalItems = data.Count();
         _pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
         return new TableData<WorkflowDefinition> { TotalItems = _totalItems, Items = _pagedData };
+    }
+
+    private void New()
+    {
+        Edit();
     }
 
     private void Edit(string definitionId)

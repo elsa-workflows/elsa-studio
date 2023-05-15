@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Dashboard", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Designer", "src\modules\Elsa.Dashboard.Designer\Elsa.Dashboard.Designer.csproj", "{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Dashboard.Shared", "src\modules\Elsa.Dashboard.Shared\Elsa.Dashboard.Shared.csproj", "{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -89,5 +95,6 @@ Global
 		{58DD1DD6-03E5-4057-AD49-A451783922D9} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{533225AD-CF26-4467-ACA4-8AB8B16B2FE3} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{435A9CC4-5F05-4210-AB5B-F42484A9D0BF} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{3CEA65CC-1CC6-4A09-8EC0-991603382D9C} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 EndGlobal
