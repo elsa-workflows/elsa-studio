@@ -4,15 +4,22 @@
 @inject IThemeService ThemeService
 
 <MudThemeProvider IsDarkMode="@_darkMode" Theme="ThemeService.CurrentTheme"/>
-<MudDialogProvider />
-<MudSnackbarProvider />
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
 <MudLayout>
-    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))" />
-    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" />
+    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"/>
+    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"/>
     <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Default">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
+        <div style="max-width: 300px;">
+            <MudSelect T="string" Label="Environment" Variant="Variant.Outlined" Dense="true" Class="elsa-environment-picker" FullWidth="false" Value="@("Development")">
+                <MudSelectItem T="string" Value="@("Development")"></MudSelectItem>
+                <MudSelectItem T="string" Value="@("Staging")"></MudSelectItem>
+                <MudSelectItem T="string" Value="@("Production")"></MudSelectItem>
+            </MudSelect>
+        </div>
         <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Default" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 
@@ -50,8 +57,8 @@
     protected override void OnInitialized()
     {
         ThemeService.CurrentThemeChanged += OnThemeChanged;
-        
-        // For theme manager.
+
+    // For theme manager.
         _themeManager.Theme = ThemeService.CurrentTheme;
         _themeManager.DefaultElevation = 0;
         _themeManager.AppBarElevation = 0;
@@ -75,7 +82,7 @@
     {
         _darkMode = !_darkMode;
     }
-    
+
     void OpenThemeManager(bool value)
     {
         _themeManagerOpen = value;
@@ -87,4 +94,5 @@
         ThemeService.CurrentTheme = value.Theme;
         StateHasChanged();
     }
+
 }
