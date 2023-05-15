@@ -1,91 +1,24 @@
 @page "/workflows/definitions/{definitionId}/edit"
-@using Variant = MudBlazor.Variant
 @using Orientation = Radzen.Orientation
 
 <PageTitle>Workflow definition</PageTitle>
 
 <RadzenSplitter Style="height: calc(100vh - var(--mud-appbar-height));">
     <RadzenSplitterPane Size="10%" Min="100px">
-        <div class="ma-4">
-            <MudText Typo="Typo.h6">Activities</MudText>
-            <MudStack Spacing="3">
-                <MudTextField @bind-Value="@_searchText"
-                              Placeholder="Search..."
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              Clearable="true">
-                </MudTextField>
-
-                <MudExpansionPanels Elevation="1">
-                    @foreach (var category in new[] { "Primitives", "Console", "HTTP" })
-                    {
-                        <MudExpansionPanel Text="@category">
-                            <MudStack>
-                                @for (var i = 0; i < 5; i++)
-                                {
-                                    <MudTooltip Text="Write a line of text to the console">
-                                        <MudPaper
-                                            Class="pa-3"
-                                            Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));"
-                                            Width="fit-content"
-                                            Outlined="true">
-                                            <MudStack Row="true">
-                                                <MudIcon Icon="@DashboardIcons.Tabler.PenTool"></MudIcon>
-                                                Write line
-                                            </MudStack>
-                                        </MudPaper>
-                                    </MudTooltip>
-                                }
-                            </MudStack>
-                        </MudExpansionPanel>
-                    }
-                </MudExpansionPanels>
-            </MudStack>
-        </div>
+        <ActivityPicker/>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="70%">
-
         <RadzenSplitter Orientation="Orientation.Vertical">
-            <RadzenSplitterPane Size="80%">
-                <MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
-                                Style="height: 100%"
-                                AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
-                                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
-                                Elevation="0" ApplyEffectsToContainer>
-                    @foreach (var tab in UserTabs)
-                    {
-                        <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
-                            <Designer></Designer>
-                        </MudTabPanel>
-                    }
-                </MudDynamicTabs>
+            <RadzenSplitterPane Size="70%">
+                <Workspace/>
             </RadzenSplitterPane>
-            <RadzenSplitterPane Size="20%">
-                Activity properties
+            <RadzenSplitterPane Size="30%">
+                <ActivityProperties/>
             </RadzenSplitterPane>
         </RadzenSplitter>
-
-
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="20%" Min="100px">
-        
-          <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-              <MudTabPanel Text="Properties">
-                  <MudText>Workflow properties</MudText>
-              </MudTabPanel>
-              <MudTabPanel Text="Variables">
-                  <MudText>Workflow variables</MudText>
-              </MudTabPanel>
-              <MudTabPanel Text="Settings">
-                  <MudText>Various settings</MudText>
-              </MudTabPanel>
-              <MudTabPanel Text="Input/output">
-                  <MudText>Version history</MudText>
-              </MudTabPanel>
-          </MudTabs>
-        
+        <WorkflowProperties/>
     </RadzenSplitterPane>
 </RadzenSplitter>
 
@@ -93,52 +26,4 @@
 {
     [Parameter]
     public string DefinitionId { get; set; } = default!;
-
-    private string _searchText = "";
-    public MudDynamicTabs DynamicTabs;
-    public List<TabView> UserTabs = new();
-    public int UserIndex;
-
-    public class TabView
-    {
-        public string Label { get; set; }
-        public Guid Id { get; set; }
-        public bool ShowCloseIcon { get; set; } = true;
-    }
-
-    void RestoreUserTabs()
-    {
-        UserTabs.Clear();
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 1" });
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 2", ShowCloseIcon = true });
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 3" });
-        UserIndex = 0;
-        StateHasChanged();
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        RestoreUserTabs();
-    }
-
-    public void AddTab(Guid id)
-    {
-        UserTabs.Add(new TabView { Id = id, Label = "dynamic tab" });
-        UserIndex = UserTabs.Count - 1; // Automatically switch to the new tab.
-        StateHasChanged();
-    }
-
-    public void RemoveTab(Guid id)
-    {
-        var tabView = UserTabs.SingleOrDefault((t) => Equals(t.Id, id));
-        if (tabView is not null)
-        {
-            UserTabs.Remove(tabView);
-            StateHasChanged();
-        }
-    }
-
-    void AddTabCallback() => AddTab(Guid.NewGuid());
-    void CloseTabCallback(MudTabPanel panel) => RemoveTab((Guid)panel.ID);
 }

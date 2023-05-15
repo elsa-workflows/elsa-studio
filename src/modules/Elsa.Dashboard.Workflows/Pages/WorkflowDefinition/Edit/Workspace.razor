@@ -1,0 +1,63 @@
+<MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
+                Style="height: 100%"
+                AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
+                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                Elevation="0" ApplyEffectsToContainer>
+    @foreach (var tab in UserTabs)
+    {
+        <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
+            <Designer></Designer>
+        </MudTabPanel>
+    }
+
+</MudDynamicTabs>
+
+@code
+{
+    public MudDynamicTabs DynamicTabs;
+    public List<TabView> UserTabs = new();
+    public int UserIndex;
+
+    public class TabView
+    {
+        public string Label { get; set; }
+        public Guid Id { get; set; }
+        public bool ShowCloseIcon { get; set; } = true;
+    }
+
+    void RestoreUserTabs()
+    {
+        UserTabs.Clear();
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 1" });
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 2", ShowCloseIcon = true });
+        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 3" });
+        UserIndex = 0;
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        RestoreUserTabs();
+    }
+
+    public void AddTab(Guid id)
+    {
+        UserTabs.Add(new TabView { Id = id, Label = "dynamic tab" });
+        UserIndex = UserTabs.Count - 1; // Automatically switch to the new tab.
+        StateHasChanged();
+    }
+
+    public void RemoveTab(Guid id)
+    {
+        var tabView = UserTabs.SingleOrDefault((t) => Equals(t.Id, id));
+        if (tabView is not null)
+        {
+            UserTabs.Remove(tabView);
+            StateHasChanged();
+        }
+    }
+
+    void AddTabCallback() => AddTab(Guid.NewGuid());
+    void CloseTabCallback(MudTabPanel panel) => RemoveTab((Guid)panel.ID);
+}

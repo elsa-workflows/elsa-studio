@@ -1,0 +1,20 @@
+@using Variant = MudBlazor.Variant
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="Input">
+        <div class="pa-4">
+            <MudForm>
+                <MudTextField T="string" Label="Text" Required="true" Variant="Variant.Outlined" HelperText="The text to write to the console."></MudTextField>
+            </MudForm>
+        </div>
+    </MudTabPanel>
+    <MudTabPanel Text="Output">
+        <MudText>Version history</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Settings">
+        <MudText>Common properties</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Advanced">
+        <MudText>Various settings</MudText>
+    </MudTabPanel>
+
+</MudTabs>

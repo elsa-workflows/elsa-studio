@@ -1,0 +1,44 @@
+@using Variant = MudBlazor.Variant
+<div class="ma-4">
+    <MudText Typo="Typo.h6">Activities</MudText>
+    <MudStack Spacing="3">
+        <MudTextField @bind-Value="@_searchText"
+                      Placeholder="Search..."
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Clearable="true">
+        </MudTextField>
+
+        <MudExpansionPanels Elevation="1">
+            @foreach (var category in new[] { "Primitives", "Console", "HTTP" })
+            {
+                <MudExpansionPanel Text="@category">
+                    <MudStack>
+                        @for (var i = 0; i < 5; i++)
+                        {
+                            <MudTooltip Text="Write a line of text to the console">
+                                <MudPaper
+                                    Class="pa-3"
+                                    Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));"
+                                    Width="fit-content"
+                                    Outlined="true">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@DashboardIcons.Tabler.PenTool"></MudIcon>
+                                        Write line
+                                    </MudStack>
+                                </MudPaper>
+                            </MudTooltip>
+                        }
+                    </MudStack>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    </MudStack>
+</div>
+
+@code
+{
+    private string _searchText = "";
+}
