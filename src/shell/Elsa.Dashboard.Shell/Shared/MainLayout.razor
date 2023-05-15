@@ -2,6 +2,7 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject IThemeService ThemeService
+@inject IAppBarService AppBarService
 
 <MudThemeProvider IsDarkMode="@_darkMode" Theme="CurrentTheme"/>
 <MudDialogProvider/>
@@ -13,20 +14,10 @@
     <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Inherit">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
-        <MudMenu 
-            Label="@_currentEnvironment" 
-            Variant="Variant.Text" 
-            EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
-            IconColor="Color.Secondary" 
-            AnchorOrigin="Origin.BottomRight" 
-            TransformOrigin="Origin.BottomRight"
-            Color="Color.Inherit"
-            Dense="true" 
-            >
-            <MudMenuItem OnClick="@(() => ChangeEnvironment("Development"))">Development</MudMenuItem>
-            <MudMenuItem OnClick="@(() => ChangeEnvironment("Staging"))">Staging</MudMenuItem>
-            <MudMenuItem OnClick="@(() => ChangeEnvironment("Production"))">Production</MudMenuItem>
-        </MudMenu>
+        @foreach(var appBarItem in AppBarService.AppBarItems)
+        {
+            @appBarItem
+        }
         <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 
@@ -67,8 +58,9 @@
     protected override void OnInitialized()
     {
         ThemeService.CurrentThemeChanged += OnThemeChanged;
+        AppBarService.AppBarItemsChanged += OnAppBarItemsChanged;
 
-    // For theme manager.
+        // For theme manager.
         _themeManager.Theme = ThemeService.CurrentTheme;
         _themeManager.DefaultElevation = 0;
         _themeManager.AppBarElevation = 0;
@@ -83,6 +75,7 @@
     }
 
     private void OnThemeChanged() => StateHasChanged();
+    private void OnAppBarItemsChanged() => InvokeAsync(StateHasChanged);
 
     void DrawerToggle()
     {

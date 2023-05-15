@@ -11,6 +11,9 @@ public static class Core
         return services
             .AddSingleton<IMenuService, DefaultMenuService>()
             .AddSingleton<IMenuGroupProvider, DefaultMenuGroupProvider>()
-            .AddSingleton<IThemeService, DefaultThemeService>();
+            .AddSingleton<IThemeService, DefaultThemeService>()
+            .AddSingleton<IAppBarService, DefaultAppBarService>()
+            .AddSingleton<IModuleService, DefaultModuleService>()
+            ;
     }
 }

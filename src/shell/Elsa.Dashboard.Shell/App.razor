@@ -1,7 +1,8 @@
 ﻿@using Elsa.Dashboard.Shell.Shared
 @using System.Reflection
 @using Elsa.Dashboard.Contracts
-@inject IMenuService MenuService;
+@inject IMenuService MenuService
+
 @code {
 
     private IEnumerable<Assembly> _additionalAssemblies = default!;
@@ -10,6 +11,7 @@
     {
         _additionalAssemblies = MenuService.GetMenuAssemblies();
     }
+
 }
 
 <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
