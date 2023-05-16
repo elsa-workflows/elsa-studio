@@ -2,6 +2,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
 using Elsa.Studio.Environments.Options;
 using Elsa.Studio.Environments.Services;
+using Elsa.Studio.Environments.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Refit;
@@ -33,6 +34,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IEnvironmentService, DefaultEnvironmentService>();
+        services.AddSingleton<IStartupTask, LoadEnvironmentsStartupTask>();
         services.AddSingleton<IModule, Module>();
         return services;
     }

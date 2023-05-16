@@ -13,6 +13,6 @@ public interface IPrimaryServerClient
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of environments.</returns>
-    [Get("/workflows-environments")]
+    [Get("/environments")]
     Task<IEnumerable<WorkflowsEnvironment>> ListEnvironmentsAsync(CancellationToken cancellationToken = default);
 }
