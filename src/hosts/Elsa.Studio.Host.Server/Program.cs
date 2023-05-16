@@ -1,3 +1,4 @@
+using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Host.Server.HostedServices;
@@ -19,7 +20,8 @@ builder.Services.AddServerSideBlazor(options =>
 });
 
 builder.Services.AddShell();
-builder.Services.AddEnvironments(options => configuration.GetSection("Environments").Bind(options));
+builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddEnvironments();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();

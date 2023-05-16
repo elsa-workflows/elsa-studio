@@ -5,7 +5,7 @@
 @inject IEnvironmentService EnvironmentService;
 
 <MudMenu
-    Label="@(_currentEnvironment?.Name)"
+    Label="@(EnvironmentService.CurrentEnvironment?.Name)"
     Variant="Variant.Text"
     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
     IconColor="Color.Secondary"
@@ -13,7 +13,7 @@
     TransformOrigin="Origin.BottomRight"
     Color="Color.Inherit"
     Dense="true">
-    @foreach (var environment in _environments)
+    @foreach (var environment in EnvironmentService.Environments)
     {
         <MudMenuItem OnClick="@(() => ChangeEnvironment(environment))">@environment.Name</MudMenuItem>
     }
@@ -21,10 +21,7 @@
 
 @code
 {
-    private ICollection<WorkflowsEnvironment> _environments = new List<WorkflowsEnvironment>();
-    private WorkflowsEnvironment? _currentEnvironment;
-    
-    private void ChangeEnvironment(WorkflowsEnvironment environment)
+    private void ChangeEnvironment(ServerEnvironment environment)
     {
         EnvironmentService.SetCurrentEnvironment(environment.Name);
         StateHasChanged();
@@ -32,14 +29,20 @@
 
     protected override void OnInitialized()
     {
-        var environments = EnvironmentService.Environments;
-        _environments = environments.ToList();
+        EnvironmentService.EnvironmentsChanged += OnEnvironmentsChanged;
+        EnvironmentService.CurrentEnvironmentChanged += OnCurrentEnvironmentChanged;
     }
 
     public void Dispose()
     {
+        EnvironmentService.EnvironmentsChanged -= OnEnvironmentsChanged;
         EnvironmentService.CurrentEnvironmentChanged -= OnCurrentEnvironmentChanged;
     }
 
+    private void OnEnvironmentsChanged()
+    {
+        StateHasChanged();
+    }
+    
     private void OnCurrentEnvironmentChanged() => StateHasChanged();
 }

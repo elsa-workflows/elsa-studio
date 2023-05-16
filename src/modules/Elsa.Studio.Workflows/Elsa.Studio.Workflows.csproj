@@ -23,6 +23,8 @@
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Pages\Edit\EditWorkflowDefinition.razor" />
+      <_ContentIncludedByDefault Remove="wwwroot\background.png" />
+      <_ContentIncludedByDefault Remove="wwwroot\exampleJsInterop.js" />
     </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
 using Elsa.Studio.Shell.Extensions;
@@ -19,9 +20,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.RootComponents.RegisterCustomElements();
 
 // Register the services.
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddShell();
-builder.Services.AddEnvironments(options => configuration.GetSection("Environments").Bind(options));
+builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddEnvironments();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();

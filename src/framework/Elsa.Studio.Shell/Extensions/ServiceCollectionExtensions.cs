@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddMudServices()
-            .AddDashboardServices()
+            .AddCore()
             .AddSingleton<IStartupTask, InitializeModulesStartupTask>();
     }
 }

@@ -8,6 +8,11 @@ namespace Elsa.Studio.Environments.Contracts;
 public interface IEnvironmentService
 {
     /// <summary>
+    /// Raised when the list of environments changed.
+    /// </summary>
+    event Action? EnvironmentsChanged;
+    
+    /// <summary>
     /// Raised when the current environment changed.
     /// </summary>
     event Action CurrentEnvironmentChanged;
@@ -15,12 +20,19 @@ public interface IEnvironmentService
     /// <summary>
     /// The current environment.
     /// </summary>
-    WorkflowsEnvironment? CurrentEnvironment { get; }
+    ServerEnvironment? CurrentEnvironment { get; }
     
     /// <summary>
     /// Gets or sets a list of environments.
     /// </summary>
-    IEnumerable<WorkflowsEnvironment> Environments { get; set; }
+    IEnumerable<ServerEnvironment> Environments { get; }
+
+    /// <summary>
+    /// Sets the list of environments.
+    /// </summary>
+    /// <param name="environments">The environments to set.</param>
+    /// <param name="defaultEnvironmentName">The name of the default environment.</param>
+    void SetEnvironments(IEnumerable<ServerEnvironment> environments, string? defaultEnvironmentName = null);
 
     /// <summary>
     /// Sets the current environment.

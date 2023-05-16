@@ -6,7 +6,7 @@ namespace Elsa.Studio.Extensions;
 
 public static class Core
 {
-    public static IServiceCollection AddDashboardServices(this IServiceCollection services)
+    public static IServiceCollection AddCore(this IServiceCollection services)
     {
         return services
             .AddSingleton<IMenuService, DefaultMenuService>()

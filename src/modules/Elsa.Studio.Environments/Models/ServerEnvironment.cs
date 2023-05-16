@@ -3,7 +3,7 @@ namespace Elsa.Studio.Environments.Models;
 /// <summary>
 /// Represents the environment in which the workflow engine is running.
 /// </summary>
-public class WorkflowsEnvironment
+public class ServerEnvironment
 {
     /// <summary>
     /// The name of the environment.
@@ -13,7 +13,7 @@ public class WorkflowsEnvironment
     /// <summary>
     /// The URL of the server hosting the workflow engine.
     /// </summary>
-    public Uri ServerUrl { get; set; } = default!;
+    public Uri Url { get; set; } = default!;
 
     /// <summary>
     /// A dictionary of custom properties.

@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
     </ItemGroup>
 
 </Project>

@@ -5,18 +5,18 @@ namespace Elsa.Studio.Environments.Tasks;
 
 public class LoadEnvironmentsStartupTask : IStartupTask
 {
-    private readonly IPrimaryServerClient _primaryServerClient;
+    private readonly IEnvironmentsClient _environmentsClient;
     private readonly IEnvironmentService _environmentService;
 
-    public LoadEnvironmentsStartupTask(IPrimaryServerClient primaryServerClient, IEnvironmentService environmentService)
+    public LoadEnvironmentsStartupTask(IEnvironmentsClient environmentsClient, IEnvironmentService environmentService)
     {
-        _primaryServerClient = primaryServerClient;
+        _environmentsClient = environmentsClient;
         _environmentService = environmentService;
     }
 
     public async ValueTask ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var environments = (await _primaryServerClient.ListEnvironmentsAsync(cancellationToken)).ToList();
-        _environmentService.Environments = environments;
+        var response = await _environmentsClient.ListEnvironmentsAsync(cancellationToken);
+        _environmentService.SetEnvironments(response.Environments, response.DefaultEnvironmentName);
     }
 }
