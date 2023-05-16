@@ -1,0 +1,35 @@
+﻿@using Elsa.Studio.Designer.Interop
+@inject PromptJsInterop PromptInterop
+@inject DesignerJsInterop DesignerJsInterop
+
+<div style="width:100%; height:100%">
+    <div class="ma-2" >
+        <MudBreadcrumbs Items="_items" Style="padding: 6px;"></MudBreadcrumbs>
+    </div>
+    <div id="@_containerId"></div>
+</div>
+
+@code {
+
+    private readonly string _containerId = $"container-{Guid.NewGuid():N}";
+    
+    private List<BreadcrumbItem> _items = new()
+    {
+        new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
+        new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
+    };
+
+    private async Task ButtonClick()
+    {
+        await PromptInterop.Prompt("Hello from C#!");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+             await DesignerJsInterop.CreateGraph(_containerId);
+        }
+    }
+}

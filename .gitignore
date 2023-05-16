@@ -147,4 +147,4 @@ OpenCover/
 
 # Local History for Visual Studio
 .localhistory/
-src/modules/Elsa.Dashboard.Designer/wwwroot/
+src/modules/**/wwwroot/

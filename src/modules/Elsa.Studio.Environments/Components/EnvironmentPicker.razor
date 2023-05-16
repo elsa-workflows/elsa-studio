@@ -1,0 +1,45 @@
+@using MudBlazor
+@using Elsa.Studio.Environments.Contracts
+@using Elsa.Studio.Environments.Models
+@implements IDisposable
+@inject IEnvironmentService EnvironmentService;
+
+<MudMenu
+    Label="@(_currentEnvironment?.Name)"
+    Variant="Variant.Text"
+    EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+    IconColor="Color.Secondary"
+    AnchorOrigin="Origin.BottomRight"
+    TransformOrigin="Origin.BottomRight"
+    Color="Color.Inherit"
+    Dense="true">
+    @foreach (var environment in _environments)
+    {
+        <MudMenuItem OnClick="@(() => ChangeEnvironment(environment))">@environment.Name</MudMenuItem>
+    }
+</MudMenu>
+
+@code
+{
+    private ICollection<WorkflowsEnvironment> _environments = new List<WorkflowsEnvironment>();
+    private WorkflowsEnvironment? _currentEnvironment;
+    
+    private void ChangeEnvironment(WorkflowsEnvironment environment)
+    {
+        EnvironmentService.SetCurrentEnvironment(environment.Name);
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        var environments = EnvironmentService.Environments;
+        _environments = environments.ToList();
+    }
+
+    public void Dispose()
+    {
+        EnvironmentService.CurrentEnvironmentChanged -= OnCurrentEnvironmentChanged;
+    }
+
+    private void OnCurrentEnvironmentChanged() => StateHasChanged();
+}

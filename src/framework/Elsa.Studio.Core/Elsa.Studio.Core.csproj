@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Elsa.Studio</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
+        <PackageReference Include="MudBlazor" Version="6.2.3" />
+        <PackageReference Include="Radzen.Blazor" Version="4.10.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Components" />
+    </ItemGroup>
+
+</Project>

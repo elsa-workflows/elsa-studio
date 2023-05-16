@@ -1,0 +1,108 @@
+﻿@inherits LayoutComponentBase
+@using Elsa.Studio.Contracts
+@implements IDisposable
+@inject IThemeService ThemeService
+@inject IAppBarService AppBarService
+
+<MudThemeProvider IsDarkMode="@_darkMode" Theme="CurrentTheme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"/>
+    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"/>
+    <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Inherit">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
+        <MudSpacer/>
+        @foreach(var appBarItem in AppBarService.AppBarItems)
+        {
+            @appBarItem
+        }
+        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
+
+        @if (_darkMode)
+        {
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
+        }
+        else
+        {
+            <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
+        }
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="_themeManager.DrawerElevation" ClipMode="_themeManager.DrawerClipMode">
+        <MudDrawerHeader>
+            <div class="d-flex gap-2 align-center">
+                <MudImage Src="_content/Elsa.Studio.Shell/img/icon.png" ObjectFit="ObjectFit.ScaleDown" Fluid="true" Width="32" Height="32"></MudImage>
+                <MudText Typo="Typo.h6">ELSA 3.0</MudText>
+            </div>
+        </MudDrawerHeader>
+        <div class="mt-10">
+            <NavMenu/>
+        </div>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _darkMode = false;
+    private ThemeManagerTheme _themeManager = new();
+    private bool _themeManagerOpen;
+    private string _currentEnvironment = "Development";
+
+    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.CurrentThemeChanged += OnThemeChanged;
+        AppBarService.AppBarItemsChanged += OnAppBarItemsChanged;
+
+        // For theme manager.
+        _themeManager.Theme = ThemeService.CurrentTheme;
+        _themeManager.DefaultElevation = 0;
+        _themeManager.AppBarElevation = 0;
+        _themeManager.DrawerElevation = 0;
+        _themeManager.DrawerClipMode = DrawerClipMode.Always;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.CurrentThemeChanged -= OnThemeChanged;
+    }
+
+    private void OnThemeChanged() => StateHasChanged();
+    private void OnAppBarItemsChanged() => InvokeAsync(StateHasChanged);
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ToggleDarkMode()
+    {
+        _darkMode = !_darkMode;
+    }
+
+    void OpenThemeManager(bool value)
+    {
+        _themeManagerOpen = value;
+    }
+
+    void UpdateTheme(ThemeManagerTheme value)
+    {
+        _themeManager = value;
+        ThemeService.CurrentTheme = value.Theme;
+        StateHasChanged();
+    }
+
+    private void ChangeEnvironment(string environment)
+    {
+        _currentEnvironment = environment;
+        StateHasChanged();
+    }
+
+}
