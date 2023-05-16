@@ -24,6 +24,10 @@ public class DefaultThemeService : IThemeService
     {
         var theme = new MudTheme
         {
+            LayoutProperties =
+            {
+                DefaultBorderRadius = "4px"
+            },
             Palette =
             {
                 Primary = new MudColor("0ea5e9"),

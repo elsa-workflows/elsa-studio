@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
         {
             var backendAccessor = sp.GetRequiredService<IBackendAccessor>();
             client.BaseAddress = backendAccessor.Backend.Url;
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "TODO");
         });
 
         services.AddSingleton<IEnvironmentService, DefaultEnvironmentService>();
