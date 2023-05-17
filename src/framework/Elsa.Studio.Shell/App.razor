@@ -4,27 +4,24 @@
 @inject ILoginPageProvider LoginPageProvider
 @inject IEnumerable<IModule> Modules;
 
-@* <CascadingAuthenticationState> *@
-<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
-    <Found Context="routeData">
-        @* <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)"> *@
-        @*     <NotAuthorized> *@
-        @*         @LoginPageProvider.GetLoginPage() *@
-        @*     </NotAuthorized> *@
-        @* </AuthorizeRouteView> *@
-        <RouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
-         
-        </RouteView>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
-@* </CascadingAuthenticationState> *@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @LoginPageProvider.GetLoginPage()
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
 
 @code {
 

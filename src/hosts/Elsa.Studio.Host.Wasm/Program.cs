@@ -7,7 +7,9 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Host.Wasm;
 using Elsa.Studio.Login.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -30,8 +32,9 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
 
 // Register authorization.
-//builder.Services.AddOptions();
-//builder.Services.AddAuthorizationCore();
+builder.Services.AddOptions();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
 
 // Build the application.
 var app = builder.Build();

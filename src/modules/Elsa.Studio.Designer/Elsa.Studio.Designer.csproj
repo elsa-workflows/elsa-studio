@@ -13,11 +13,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
-        <PackageReference Include="MudBlazor" Version="6.2.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="wwwroot" />
+        <PackageReference Include="MudBlazor" Version="6.2.5" />
     </ItemGroup>
 
     <ItemGroup>

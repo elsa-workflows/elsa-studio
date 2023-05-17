@@ -25,8 +25,8 @@
                         <EditForm Model="@model" OnValidSubmit="TryLogin">
                             <div class="d-flex flex-column">
                                 <DataAnnotationsValidator/>
-                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => model.Username)" @bind-Value="model.Username"/>
-                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => model.Password)" @bind-Value="model.Password" InputType="InputType.Password"/>
+                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => model.Username)" @bind-Value="model.Username" autocomplete="username"/>
+                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => model.Password)" @bind-Value="model.Password" InputType="InputType.Password" autocomplete="current-password"/>
                                 <MudCheckBox @bind-Checked="model.RememberMe" Label="Remember me"/>
                                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
                             </div>

@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
-
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
@@ -22,12 +21,6 @@
       <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Designer\Elsa.Studio.Designer.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Pages\Edit\EditWorkflowDefinition.razor" />
-      <_ContentIncludedByDefault Remove="wwwroot\background.png" />
-      <_ContentIncludedByDefault Remove="wwwroot\exampleJsInterop.js" />
     </ItemGroup>
 
 </Project>

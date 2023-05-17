@@ -14,15 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="wwwroot" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Pages\_Host.cshtml" />
-      <_ContentIncludedByDefault Remove="Pages\Index.razor" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />

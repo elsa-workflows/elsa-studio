@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.5" PrivateAssets="all" />
         <PackageReference Include="MudBlazor" Version="6.2.5" />
     </ItemGroup>
@@ -16,6 +17,12 @@
     <ItemGroup>
       <Content Include="..\..\.dockerignore">
         <Link>.dockerignore</Link>
+      </Content>
+      <Content Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Update="wwwroot\appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
 
