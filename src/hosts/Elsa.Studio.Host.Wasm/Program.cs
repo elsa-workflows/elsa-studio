@@ -30,8 +30,8 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
 
 // Register authorization.
-builder.Services.AddOptions();
-builder.Services.AddAuthorizationCore();
+//builder.Services.AddOptions();
+//builder.Services.AddAuthorizationCore();
 
 // Build the application.
 var app = builder.Build();
