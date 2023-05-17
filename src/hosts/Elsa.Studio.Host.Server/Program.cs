@@ -1,5 +1,6 @@
-using System.Security.Claims;
+using Blazored.LocalStorage;
 using Elsa.Studio.Backend.Extensions;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Host.Server.HostedServices;
@@ -7,7 +8,9 @@ using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Host.Server.Services;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 
 // Build the host.
@@ -31,10 +34,16 @@ builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
 
+// Blazored.
+builder.Services.AddBlazoredLocalStorage();
+
 // Register authorization.
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
+builder.Services.AddSingleton<IJwtParser, ServerJwtParser>();
+builder.Services.AddScoped<IJwtAccessor, ServerJwtAccessor>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();
 
 // Register the hosted services.
 builder.Services.AddHostedService<RunStartupTasksHostedService>();
@@ -58,20 +67,3 @@ app.MapFallbackToPage("/_Host");
 
 // Run the application.
 app.Run();
-
-/// <summary>
-/// Temporary authentication state provider for testing purposes.
-/// </summary>
-public class TestAuthStateProvider : AuthenticationStateProvider
-{
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, "John Doe"),
-            new(ClaimTypes.Role, "Administrator")
-        };
-        var anonymous = new ClaimsIdentity(claims, "testAuthType");
-        return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(anonymous)));
-    }
-}

@@ -24,4 +24,8 @@
       <ProjectReference Include="..\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
+    </ItemGroup>
+
 </Project>

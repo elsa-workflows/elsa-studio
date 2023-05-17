@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
@@ -7,8 +8,9 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
-using Elsa.Studio.Host.Wasm;
+using Elsa.Studio.Host.Wasm.Services;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -22,7 +24,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.RootComponents.RegisterCustomElements();
 
-// Register the services.
+// Register the modules.
 builder.Services.AddShell();
 builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddLogin();
@@ -31,10 +33,15 @@ builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
 
+// Blazored.
+builder.Services.AddBlazoredLocalStorage();
+
 // Register authorization.
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
+builder.Services.AddSingleton<IJwtParser, ClientJwtParser>();
+builder.Services.AddScoped<IJwtAccessor, ClientJwtAccessor>();
+builder.Services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();
 
 // Build the application.
 var app = builder.Build();
