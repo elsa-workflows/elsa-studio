@@ -1,9 +1,10 @@
+using Elsa.Studio.Abstractions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Components;
 
 namespace Elsa.Studio.Environments;
 
-public class Module : IModule
+public class Module : ModuleBase
 {
     private readonly IAppBarService _appBarService;
 
@@ -12,7 +13,7 @@ public class Module : IModule
         _appBarService = appBarService;
     }
     
-    public ValueTask InitializeAsync(CancellationToken cancellationToken)
+    public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
         _appBarService.AddAppBarItem<EnvironmentPicker>();
         

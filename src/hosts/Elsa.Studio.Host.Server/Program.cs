@@ -6,6 +6,7 @@ using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Login.Extensions;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +20,10 @@ builder.Services.AddServerSideBlazor(options =>
     options.RootComponents.RegisterCustomElements();
 });
 
+// Add the shell and module services.
 builder.Services.AddShell();
 builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddLogin();
 builder.Services.AddEnvironments();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
@@ -42,6 +45,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthorization();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

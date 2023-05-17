@@ -4,10 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Dashboard.Extensions;
 
-public static class Module
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDashboardModule(this IServiceCollection services)
     {
-        return services.AddSingleton<IMenuProvider, DashboardMenu>();
+        return services
+            .AddSingleton<IModule, Module>()
+            .AddSingleton<IMenuProvider, DashboardMenu>();
     }
 }

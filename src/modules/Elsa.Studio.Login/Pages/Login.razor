@@ -1,0 +1,87 @@
+﻿@page "/login"
+@layout BasicLayout
+@using Elsa.Studio.Login.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using Elsa.Studio.Contracts
+@attribute [AllowAnonymous]
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IThemeService ThemeService
+
+<div class="d-flex justify-end flex-grow-1">
+    <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
+    <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudStack Spacing="10">
+        <h2 class="LoginTitle">Elsa 3.0</h2>
+        <MudPaper Elevation="1">
+            <MudGrid Spacing="0" Justify="Justify.Center">
+                <MudItem md="7" xs="5" Class="pa-4 mx-auto my-4">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.h5">Login</MudText>
+                        <EditForm Model="@model" OnValidSubmit="TryLogin">
+                            <div class="d-flex flex-column">
+                                <DataAnnotationsValidator/>
+                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => model.Username)" @bind-Value="model.Username"/>
+                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => model.Password)" @bind-Value="model.Password" InputType="InputType.Password"/>
+                                <MudCheckBox @bind-Checked="model.RememberMe" Label="Remember me"/>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
+                            </div>
+                        </EditForm>
+                    </MudStack>
+                </MudItem>
+                <MudItem md="5" xs="5">
+                    <MudImage Src="https://v3.elsaworkflows.io/_next/static/media/elsa-android.3c4de958.png"
+                              Style="@($"height: 100%; max-width: 100%; border-top-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}; border-bottom-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}")"
+                              ObjectFit="ObjectFit.Cover">
+                    </MudImage>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudStack>
+    <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mt-2">Elsa Studio v1.0.0</MudText>
+</MudContainer>
+
+
+@code {
+    LoginFormModel model = new();
+
+    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
+
+    async Task TryLogin()
+    {
+    // Add your own logic to validate the user's credentials. 
+    // If the validation fails, set showSnackbar to true and update snackbarMessage with the error message.
+        var isValid = await ValidateCredentials(model.Username, model.Password);
+        if (!isValid)
+        {
+            Snackbar.Add("Invalid credentials. Please try again", Severity.Error);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/");
+    }
+
+    Task<bool> ValidateCredentials(string username, string password)
+    {
+    // Add your own logic here to validate the credentials. 
+    // This is just a placeholder that always returns false.
+        return Task.FromResult(username == "admin" && password == "password");
+    }
+
+}
+
+
+@code
+{
+    public class LoginFormModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public bool RememberMe { get; set; }
+    }
+
+}

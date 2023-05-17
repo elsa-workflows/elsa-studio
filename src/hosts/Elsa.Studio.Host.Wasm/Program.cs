@@ -7,6 +7,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Login.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -22,10 +23,15 @@ builder.RootComponents.RegisterCustomElements();
 // Register the services.
 builder.Services.AddShell();
 builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddLogin();
 builder.Services.AddEnvironments();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
+
+// Register authorization.
+builder.Services.AddOptions();
+builder.Services.AddAuthorizationCore();
 
 // Build the application.
 var app = builder.Build();

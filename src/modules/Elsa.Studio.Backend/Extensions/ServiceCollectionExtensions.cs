@@ -1,6 +1,7 @@
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Options;
 using Elsa.Studio.Backend.Services;
+using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Backend.Extensions;
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddSingleton<IBackendAccessor, DefaultBackendAccessor>()
             .AddSingleton<IBackendConnectionProvider, DefaultBackendConnectionProvider>()
+            .AddSingleton<IModule, Module>()
             ;
     }
 }

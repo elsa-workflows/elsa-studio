@@ -1,0 +1,29 @@
+﻿@using Elsa.Studio.Contracts
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IThemeService ThemeService
+
+<MudThemeProvider Theme="CurrentTheme" IsDarkMode="@true"/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    @Body
+</MudLayout>
+
+@code {
+
+    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.CurrentThemeChanged += OnThemeChanged;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.CurrentThemeChanged -= OnThemeChanged;
+    }
+
+    private void OnThemeChanged() => StateHasChanged();
+}

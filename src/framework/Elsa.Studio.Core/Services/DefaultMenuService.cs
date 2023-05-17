@@ -1,4 +1,3 @@
-using System.Reflection;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 
@@ -40,6 +39,4 @@ public class DefaultMenuService : IMenuService
 
         return groups.DistinctBy(x => x.Name).OrderByDescending(x => x.Order).ToList();
     }
-
-    public IEnumerable<Assembly> GetMenuAssemblies() => _menuProviders.Select(x => x.GetType().Assembly).Distinct().ToList();
 }

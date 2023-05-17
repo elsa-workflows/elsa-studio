@@ -1,7 +1,27 @@
-﻿@using Elsa.Studio.Shell.Shared
-@using System.Reflection
+﻿@using System.Reflection
 @using Elsa.Studio.Contracts
-@inject IMenuService MenuService
+@using Elsa.Studio.Shell.Shared
+@inject ILoginPageProvider LoginPageProvider
+@inject IEnumerable<IModule> Modules;
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @LoginPageProvider.GetLoginPage()
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
 
 @code {
 
@@ -9,20 +29,7 @@
 
     protected override void OnInitialized()
     {
-        _additionalAssemblies = MenuService.GetMenuAssemblies();
+        _additionalAssemblies = Modules.Select(x => x.GetType().Assembly).Distinct().ToList();
     }
 
 }
-
-<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>

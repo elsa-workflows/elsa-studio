@@ -4,10 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Counter.Extensions;
 
-public static class Module
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCounterModule(this IServiceCollection services)
     {
-        return services.AddSingleton<IMenuProvider, CounterMenu>();
+        return services
+            .AddSingleton<IModule, Module>()
+            .AddSingleton<IMenuProvider, CounterMenu>();
     }
 }

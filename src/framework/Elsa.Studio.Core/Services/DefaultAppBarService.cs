@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Services;
@@ -13,12 +14,7 @@ public class DefaultAppBarService : IAppBarService
     
     public void AddAppBarItem<T>() where T : IComponent
     {
-        _appBarItems.Add(builder =>
-        {
-            builder.OpenComponent<T>(_appBarSequence++);
-            builder.CloseComponent();
-        });
-        
+        _appBarItems.Add(builder => builder.CreateComponent<T>(ref _appBarSequence));
         AppBarItemsChanged?.Invoke();
     }
 }
