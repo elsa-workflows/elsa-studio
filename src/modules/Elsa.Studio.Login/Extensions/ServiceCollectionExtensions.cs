@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,8 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddSingleton<IModule, Module>()
-            .AddSingleton<ILoginPageProvider, LoginPageProvider>();
+            .AddSingleton<ILoginPageProvider, LoginPageProvider>()
+            .AddSingleton<ICredentialsValidator, DefaultCredentialsValidator>()
+            ;
     }
 }

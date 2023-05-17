@@ -1,13 +1,15 @@
 ﻿@page "/login"
 @layout BasicLayout
 @using Elsa.Studio.Login.Shared
-@using Microsoft.AspNetCore.Components.Authorization
 @using Elsa.Studio.Contracts
+@using Elsa.Studio.Login.Contracts
+@using Microsoft.AspNetCore.Components.Authorization
 @attribute [AllowAnonymous]
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IThemeService ThemeService
+@inject ICredentialsValidator CredentialsValidator
+@inject IJwtAccessor JwtAccessor
 
 <div class="d-flex justify-end flex-grow-1">
     <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
@@ -22,12 +24,12 @@
                 <MudItem md="7" xs="5" Class="pa-4 mx-auto my-4">
                     <MudStack Spacing="1">
                         <MudText Typo="Typo.h5">Login</MudText>
-                        <EditForm Model="@model" OnValidSubmit="TryLogin">
+                        <EditForm Model="@_model" OnValidSubmit="TryLogin">
                             <div class="d-flex flex-column">
                                 <DataAnnotationsValidator/>
-                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => model.Username)" @bind-Value="model.Username" autocomplete="username"/>
-                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => model.Password)" @bind-Value="model.Password" InputType="InputType.Password" autocomplete="current-password"/>
-                                <MudCheckBox @bind-Checked="model.RememberMe" Label="Remember me"/>
+                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => _model.Username)" @bind-Value="_model.Username" autocomplete="username"/>
+                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => _model.Password)" @bind-Value="_model.Password" InputType="InputType.Password" autocomplete="current-password"/>
+                                <MudCheckBox @bind-Checked="_model.RememberMe" Label="Remember me"/>
                                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
                             </div>
                         </EditForm>
@@ -47,15 +49,25 @@
 
 
 @code {
-    LoginFormModel model = new();
-
+    private readonly LoginFormModel _model = new();
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
+    
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
 
-    async Task TryLogin()
+    protected override async Task OnInitializedAsync()
     {
-    // Add your own logic to validate the user's credentials. 
-    // If the validation fails, set showSnackbar to true and update snackbarMessage with the error message.
-        var isValid = await ValidateCredentials(model.Username, model.Password);
+        if (AuthenticationState == null)
+            return;
+        
+        var state = await AuthenticationState;
+        if(state.User.Identity?.IsAuthenticated == true)
+            NavigationManager.NavigateTo("/");
+    }
+
+    private async Task TryLogin()
+    {
+        var isValid = await ValidateCredentials(_model.Username, _model.Password);
         if (!isValid)
         {
             Snackbar.Add("Invalid credentials. Please try again", Severity.Error);
@@ -65,15 +77,19 @@
         NavigationManager.NavigateTo("/");
     }
 
-    Task<bool> ValidateCredentials(string username, string password)
+    private async Task<bool> ValidateCredentials(string username, string password)
     {
-    // Add your own logic here to validate the credentials. 
-    // This is just a placeholder that always returns false.
-        return Task.FromResult(username == "admin" && password == "password");
+        var result = await CredentialsValidator.ValidateCredentialsAsync(username, password);
+
+        if (!result.IsAuthenticated)
+            return false;
+
+        await JwtAccessor.WriteTokenAsync(TokenNames.AccessToken, result.AccessToken!);
+        await JwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, result.RefreshToken!);
+        return true;
     }
 
 }
-
 
 @code
 {

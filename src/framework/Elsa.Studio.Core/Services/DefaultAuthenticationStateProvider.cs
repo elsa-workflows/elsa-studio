@@ -1,4 +1,3 @@
-//using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -6,7 +5,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 namespace Elsa.Studio.Services;
 
 /// <summary>
-/// Temporary authentication state provider for testing purposes.
+/// Provides the authentication state for the current user.
 /// </summary>
 public class DefaultAuthenticationStateProvider : AuthenticationStateProvider
 {
@@ -21,7 +20,7 @@ public class DefaultAuthenticationStateProvider : AuthenticationStateProvider
     
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var authToken = await _jwtAccessor.ReadTokenAsync();
+        var authToken = await _jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
 
         if (string.IsNullOrEmpty(authToken))
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));

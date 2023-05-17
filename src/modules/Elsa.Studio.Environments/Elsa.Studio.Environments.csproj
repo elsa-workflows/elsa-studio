@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
-
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
@@ -15,11 +14,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
         <PackageReference Include="Refit" Version="6.3.2" />
         <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="wwwroot\background.png" />
-      <_ContentIncludedByDefault Remove="wwwroot\exampleJsInterop.js" />
     </ItemGroup>
 
     <ItemGroup>

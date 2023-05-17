@@ -12,8 +12,13 @@ public class ClientJwtAccessor : IJwtAccessor
         _localStorageService = localStorageService;
     }
     
-    public async ValueTask<string?> ReadTokenAsync()
+    public async ValueTask<string?> ReadTokenAsync(string name)
     {   
-        return await _localStorageService.GetItemAsync<string>("authToken");
+        return await _localStorageService.GetItemAsync<string>(name);
+    }
+
+    public async ValueTask WriteTokenAsync(string name, string token)
+    {
+        await _localStorageService.SetItemAsStringAsync(name, token);
     }
 }

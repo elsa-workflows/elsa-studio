@@ -5,5 +5,6 @@ namespace Elsa.Studio.Contracts;
 /// </summary>
 public interface IJwtAccessor
 {
-    ValueTask<string?> ReadTokenAsync();
+    ValueTask<string?> ReadTokenAsync(string name);
+    ValueTask WriteTokenAsync(string name, string token);
 }
