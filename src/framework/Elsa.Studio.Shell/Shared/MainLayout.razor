@@ -10,9 +10,7 @@
 <MudSnackbarProvider/>
 
 <MudLayout>
-    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"/>
-    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"/>
-    <MudAppBar Elevation="_themeManager.AppBarElevation" Color="Color.Inherit">
+    <MudAppBar Elevation="0" Color="Color.Inherit">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
         @foreach(var appBarItem in AppBarService.AppBarItems)
@@ -42,7 +40,7 @@
             <MudToggleIconButton Icon="@Icons.Material.Outlined.DarkMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="_themeManager.DrawerElevation" ClipMode="_themeManager.DrawerClipMode">
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
         <MudDrawerHeader>
             <div class="d-flex gap-2 align-center">
                 <MudImage Src="_content/Elsa.Studio.Shell/img/icon.png" ObjectFit="ObjectFit.ScaleDown" Fluid="true" Width="32" Height="32"></MudImage>
@@ -61,8 +59,6 @@
 @code {
     private bool _drawerOpen = true;
     private bool _darkMode;
-    private ThemeManagerTheme _themeManager = new();
-    private bool _themeManagerOpen;
 
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
 
@@ -70,14 +66,7 @@
     {
         ThemeService.CurrentThemeChanged += OnThemeChanged;
         AppBarService.AppBarItemsChanged += OnAppBarItemsChanged;
-
-        // For theme manager.
-        _themeManager.Theme = ThemeService.CurrentTheme;
-        _themeManager.DefaultElevation = 0;
-        _themeManager.AppBarElevation = 0;
-        _themeManager.DrawerElevation = 0;
-        _themeManager.DrawerClipMode = DrawerClipMode.Always;
-   
+        
         StateHasChanged();
     }
 
@@ -97,17 +86,5 @@
     void ToggleDarkMode()
     {
         _darkMode = !_darkMode;
-    }
-
-    void OpenThemeManager(bool value)
-    {
-        _themeManagerOpen = value;
-    }
-
-    void UpdateTheme(ThemeManagerTheme value)
-    {
-        _themeManager = value;
-        ThemeService.CurrentTheme = value.Theme;
-        StateHasChanged();
     }
 }

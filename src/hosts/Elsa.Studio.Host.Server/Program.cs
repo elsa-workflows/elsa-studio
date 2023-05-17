@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
@@ -7,6 +8,7 @@ using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Login.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +30,11 @@ builder.Services.AddEnvironments();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddCounterModule();
+
+// Register authorization.
+builder.Services.AddOptions();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
 
 // Register the hosted services.
 builder.Services.AddHostedService<RunStartupTasksHostedService>();
@@ -51,3 +58,20 @@ app.MapFallbackToPage("/_Host");
 
 // Run the application.
 app.Run();
+
+/// <summary>
+/// Temporary authentication state provider for testing purposes.
+/// </summary>
+public class TestAuthStateProvider : AuthenticationStateProvider
+{
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, "John Doe"),
+            new(ClaimTypes.Role, "Administrator")
+        };
+        var anonymous = new ClaimsIdentity(claims, "testAuthType");
+        return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(anonymous)));
+    }
+}

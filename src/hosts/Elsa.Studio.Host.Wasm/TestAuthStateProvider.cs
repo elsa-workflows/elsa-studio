@@ -10,7 +10,12 @@ public class TestAuthStateProvider : AuthenticationStateProvider
 {
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var anonymous = new ClaimsIdentity();
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, "John Doe"),
+            new(ClaimTypes.Role, "Administrator")
+        };
+        var anonymous = new ClaimsIdentity(claims, "testAuthType");
         return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(anonymous)));
     }
 }

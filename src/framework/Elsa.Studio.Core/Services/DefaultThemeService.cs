@@ -26,7 +26,8 @@ public class DefaultThemeService : IThemeService
         {
             LayoutProperties =
             {
-                DefaultBorderRadius = "4px"
+                DefaultBorderRadius = "4px",
+                
             },
             Palette =
             {
