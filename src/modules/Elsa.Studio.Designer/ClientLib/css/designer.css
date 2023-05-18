@@ -1,5 +1,5 @@
 .x6-graph-background {
-    background-color: #fff;
+    background-color: var(--mud-palette-background);
 }
 
 .x6-widget-selection-box {

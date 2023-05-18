@@ -10,7 +10,6 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddSingleton<IModule, Module>()
-            .AddScoped<DesignerJsInterop>()
-            .AddScoped<PromptJsInterop>();
+            .AddScoped<DesignerJsInterop>();
     }
 }

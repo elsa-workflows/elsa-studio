@@ -15,10 +15,21 @@ public class DesignerJsInterop : IAsyncDisposable
             "import", "./_content/Elsa.Studio.Designer/designer.entry.js").AsTask());
     }
 
-    public async ValueTask<string> CreateGraph(string containerId)
+    /// <summary>
+    /// Creates a new X6 graph object and returns its ID.
+    /// </summary>
+    /// <param name="containerId">The ID of the container element.</param>
+    /// <returns>The ID of the graph.</returns>
+    public async ValueTask<string> CreateGraphAsync(string containerId)
     {
         var module = await _moduleTask.Value;
-         return await module.InvokeAsync<string>("createGraph", containerId);
+        return await module.InvokeAsync<string>("createGraph", containerId);
+    }
+
+    public async ValueTask SetGridColorAsync(string graphId, string color)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("setGridColor", graphId, color);
     }
 
     public async ValueTask DisposeAsync()

@@ -5,7 +5,7 @@
 @inject IThemeService ThemeService
 @inject IAppBarService AppBarService
 
-<MudThemeProvider IsDarkMode="@_darkMode" Theme="CurrentTheme"/>
+<MudThemeProvider IsDarkMode="@IsDarkMode" Theme="CurrentTheme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
@@ -30,7 +30,7 @@
         <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 
-        @if (_darkMode)
+        @if (IsDarkMode)
         {
             <MudToggleIconButton Icon="@Icons.Material.Outlined.LightMode" Color="Color.Inherit" @onclick="ToggleDarkMode"></MudToggleIconButton>
         }
@@ -57,9 +57,9 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _darkMode;
 
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
+    private bool IsDarkMode => ThemeService.IsDarkMode;
 
     protected override void OnInitialized()
     {
@@ -84,6 +84,6 @@
 
     void ToggleDarkMode()
     {
-        _darkMode = !_darkMode;
+        ThemeService.IsDarkMode = !ThemeService.IsDarkMode;
     }
 }

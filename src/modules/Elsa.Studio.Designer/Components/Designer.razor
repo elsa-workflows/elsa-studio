@@ -1,10 +1,13 @@
 ﻿@using Elsa.Studio.Designer.Interop
-@inject PromptJsInterop PromptInterop
+@using Elsa.Studio.Contracts
+@using MudBlazor.Utilities
+@implements IDisposable
 @inject DesignerJsInterop DesignerJsInterop
+@inject IThemeService ThemeService
 
 <div style="width:100%; height:100%">
-    <div class="ma-2" >
-        <MudBreadcrumbs Items="_items" Style="padding: 6px;"></MudBreadcrumbs>
+    <div class="ma-2">
+        <MudBreadcrumbs Items="_activityPath" Style="padding: 6px;"></MudBreadcrumbs>
     </div>
     <div id="@_containerId"></div>
 </div>
@@ -12,16 +15,30 @@
 @code {
 
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
+    private string _graphId = default!;
+
+    /// <summary>
+    /// Sets the grid color.
+    /// </summary>
+    public async Task SetGridColorAsync(string color)
+    {
+        await DesignerJsInterop.SetGridColorAsync(_graphId, color);
+    }
     
-    private List<BreadcrumbItem> _items = new()
+    public void Dispose()
+    {
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
+    }
+
+    private List<BreadcrumbItem> _activityPath = new()
     {
         new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
         new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
     };
 
-    private async Task ButtonClick()
+    protected override void OnInitialized()
     {
-        await PromptInterop.Prompt("Hello from C#!");
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -29,7 +46,15 @@
         if (firstRender)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500));
-             await DesignerJsInterop.CreateGraph(_containerId);
+            _graphId = await DesignerJsInterop.CreateGraphAsync(_containerId);
         }
     }
+    
+    private async void OnDarkModeChanged()
+    {
+        var palette = ThemeService.CurrentPalette;
+        var gridColor = palette.BackgroundGrey;
+        await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
+    }
+
 }

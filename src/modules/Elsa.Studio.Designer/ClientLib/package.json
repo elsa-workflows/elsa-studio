@@ -9,7 +9,8 @@
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-plugin-selection": "^2.1.7",
     "@antv/x6-plugin-scroller": "^2.0.9",
-    "@antv/x6-plugin-transform": "^2.1.7"
+    "@antv/x6-plugin-transform": "^2.1.7",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "webpack": "^5.82.1",

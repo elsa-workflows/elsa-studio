@@ -7,19 +7,31 @@ namespace Elsa.Studio.Services;
 public class DefaultThemeService : IThemeService
 {
     private MudTheme _currentTheme = CreateDefaultTheme();
-    
+    private bool _isDarkMode = false;
+
     public event Action? CurrentThemeChanged;
+    public event Action? IsDarkModeChanged;
 
     public MudTheme CurrentTheme
     {
-        get => _currentTheme; 
-        set 
+        get => _currentTheme;
+        set
         {
             _currentTheme = value;
             CurrentThemeChanged?.Invoke();
         }
     }
-    
+
+    public bool IsDarkMode
+    {
+        get => _isDarkMode;
+        set
+        {
+            _isDarkMode = value;
+            IsDarkModeChanged?.Invoke();
+        }
+    }
+
     private static MudTheme CreateDefaultTheme()
     {
         var theme = new MudTheme
@@ -27,7 +39,6 @@ public class DefaultThemeService : IThemeService
             LayoutProperties =
             {
                 DefaultBorderRadius = "4px",
-                
             },
             Palette =
             {

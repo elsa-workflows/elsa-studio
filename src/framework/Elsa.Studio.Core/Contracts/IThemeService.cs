@@ -11,9 +11,24 @@ public interface IThemeService
     /// Raised when the current theme changes.
     /// </summary>
     event Action CurrentThemeChanged;
+    
+    /// <summary>
+    /// Raised when the dark mode changes.
+    /// </summary>
+    event Action IsDarkModeChanged;
 
     /// <summary>
     /// The current theme.
     /// </summary>
     MudTheme CurrentTheme { get; set; }
+    
+    /// <summary>
+    /// Returns the current palette, depending on whether the dashboard is in dark mode.
+    /// </summary>
+    Palette CurrentPalette => IsDarkMode ? CurrentTheme.PaletteDark : CurrentTheme.Palette;
+
+    /// <summary>
+    /// Whether the dashboard is in dark mode.
+    /// </summary>
+    public bool IsDarkMode { get; set; }
 }

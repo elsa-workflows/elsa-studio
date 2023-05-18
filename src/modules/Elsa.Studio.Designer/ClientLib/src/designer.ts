@@ -2,13 +2,13 @@ import {Graph, Shape} from '@antv/x6';
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Selection} from "@antv/x6-plugin-selection";
 import {Transform} from "@antv/x6-plugin-transform";
+import {v4 as uuid} from 'uuid';
 import "../css/designer.css";
 
 const activityTagName = "elsa-activity-wrapper";
+const graphs: { [key: string]: Graph } = {};
 
-debugger;
-
-export async function createGraph(containerId: string) {
+export async function createGraph(containerId: string): Promise<string> {
     const containerElement = document.getElementById(containerId);
 
     const graph = new Graph({
@@ -115,14 +115,6 @@ export async function createGraph(containerId: string) {
         })
     );
 
-    // graph.use(
-    //     new Scroller({
-    //         enabled: true,
-    //         modifiers: ['ctrl', 'meta'],
-    //         autoResize: true,
-    //         pannable: true
-    //     }));
-
     // Change the edge's color and style when it is connected to a magnet.
     graph.on('edge:connected', ({edge}) => {
         edge.attr({
@@ -149,8 +141,18 @@ export async function createGraph(containerId: string) {
     });
 
     graph.centerContent({padding: 20});
-    graph.grid.update({color: '#f1f1f1'});
     //graph.zoomToFit({padding: 60});
+
+    const graphId = uuid();
+    graphs[graphId] = graph;
+    
+    console.debug(`Graph instances: ${graphs.length}}`)
+    return graphId;
+}
+
+export function setGridColor(graphId: string, color: string) {
+    const graph = graphs[graphId];
+    graph.grid.update({color: color});
 }
 
 function createActivityElement(activity): HTMLElement {
