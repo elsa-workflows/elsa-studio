@@ -18,15 +18,14 @@
             @appBarItem
         }
         
-        <AuthorizeView>
-            <Authorized>
-                <p>Hello, @context.User.Identity.Name!</p>
-                <p><button >Authorized Only Button</button></p>
-            </Authorized>
-            <NotAuthorized>
-                <p>You're not authorized.</p>
-            </NotAuthorized>
-        </AuthorizeView>
+        @* <AuthorizeView> *@
+        @*     <Authorized> *@
+        @*         <p>Hello, @context.User.Identity.Name!</p> *@
+        @*     </Authorized> *@
+        @*     <NotAuthorized> *@
+        @*         <p>You're not authorized.</p> *@
+        @*     </NotAuthorized> *@
+        @* </AuthorizeView> *@
         
         <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>

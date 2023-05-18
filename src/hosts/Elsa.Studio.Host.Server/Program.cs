@@ -10,7 +10,10 @@ using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Host.Server.Services;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Security.Extensions;
 using Elsa.Studio.Services;
+using Elsa.Studio.Webhooks.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 
 // Build the host.
@@ -27,11 +30,14 @@ builder.Services.AddServerSideBlazor(options =>
 
 // Add the shell and module services.
 builder.Services.AddShell();
-builder.Services.AddBackend(options => configuration.GetSection("Backend").Bind(options));
-builder.Services.AddLogin();
-builder.Services.AddEnvironments();
+builder.Services.AddBackendModule(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddLoginModule();
+builder.Services.AddEnvironmentsModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
+builder.Services.AddSecurityModule();
+builder.Services.AddSecretsModule();
+builder.Services.AddWebhooksModule();
 builder.Services.AddCounterModule();
 
 // Blazored.

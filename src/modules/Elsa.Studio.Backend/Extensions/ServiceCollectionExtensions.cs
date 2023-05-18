@@ -8,7 +8,7 @@ namespace Elsa.Studio.Backend.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddBackend(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
+    public static IServiceCollection AddBackendModule(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
     {
         services.Configure(configureOptions ?? (_ => { }));
         

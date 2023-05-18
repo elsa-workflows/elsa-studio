@@ -7,7 +7,7 @@ namespace Elsa.Studio.Login.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddLogin(this IServiceCollection services)
+    public static IServiceCollection AddLoginModule(this IServiceCollection services)
     {
         return services
             .AddSingleton<IModule, Module>()

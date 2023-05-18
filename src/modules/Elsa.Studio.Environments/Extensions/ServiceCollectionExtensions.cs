@@ -17,7 +17,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection.</returns>
-    public static IServiceCollection AddEnvironments(this IServiceCollection services)
+    public static IServiceCollection AddEnvironmentsModule(this IServiceCollection services)
     {
         services.AddRefitClient<IEnvironmentsClient>().ConfigureHttpClient((sp, client) =>
         {
