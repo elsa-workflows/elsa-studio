@@ -19,7 +19,7 @@
       <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
-      <ProjectReference Include="..\Elsa.Studio.Designer\Elsa.Studio.Designer.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.WorkflowDesigner\Elsa.Studio.WorkflowDesigner.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
     </ItemGroup>
 

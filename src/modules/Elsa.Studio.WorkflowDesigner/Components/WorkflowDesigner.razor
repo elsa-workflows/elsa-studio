@@ -1,5 +1,5 @@
-﻿@using Elsa.Studio.Designer.Interop
-@using Elsa.Studio.Contracts
+﻿@using Elsa.Studio.Contracts
+@using Elsa.Studio.WorkflowDesigner.Interop
 @using MudBlazor.Utilities
 @implements IDisposable
 @inject DesignerJsInterop DesignerJsInterop
@@ -45,7 +45,6 @@
     {
         if (firstRender)
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
             _graphId = await DesignerJsInterop.CreateGraphAsync(_containerId);
         }
     }

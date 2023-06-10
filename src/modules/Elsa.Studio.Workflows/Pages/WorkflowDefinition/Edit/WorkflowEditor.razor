@@ -1,0 +1,75 @@
+@using Elsa.Studio.Workflows.Models
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using System.Text.Json
+<MudPaper Class="ma-2" Elevation="0" Outlined="true">
+    <MudToolBar Dense="true">
+        <MudTooltip Text="Zoom content to fit the screen">
+            <MudIconButton Icon="@Icons.Material.Outlined.FitScreen" Title="Zoom to fit"/>
+        </MudTooltip>
+        <MudTooltip Text="Auto layout">
+            <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesomeMosaic" Title="Auto layout"/>
+        </MudTooltip>
+    </MudToolBar>
+</MudPaper>
+<div @ondragover="@OnDragOver" @ondragover:preventDefault>
+    <WorkflowDesigner></WorkflowDesigner>
+</div>
+
+@code {
+
+    [CascadingParameter]
+    public DragDropManager DragDropManager { get; set; } = default!;
+
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var workflowDefinition = WorkflowDefinition;
+        
+        if(workflowDefinition == null)
+            return;
+        
+        // Convert the workflow definition to a workflow model for use with the designer.
+        var x6Model = Map(workflowDefinition.Root);
+    }
+
+    private object Map(JsonElement root)
+    {
+        var activitiesElement = root.GetProperty("activities");
+        var activityElements = activitiesElement.EnumerateArray().ToArray();
+
+        var model = new
+        {
+            nodes = activityElements.Select(MapActivity).ToArray(),
+        };
+
+        return model;
+    }
+
+    private object MapActivity(JsonElement activityElement)
+    {
+        var nodeModel = new
+        {
+            id = activityElement.GetProperty("id").GetString(),
+            shape = "elsa-activity",
+            x = activityElement.GetProperty("metadata").GetProperty("designer").GetProperty("position").GetProperty("x").GetDouble(),
+            y = activityElement.GetProperty("metadata").GetProperty("designer").GetProperty("position").GetProperty("y").GetDouble(),
+            
+        };
+        
+        return nodeModel;
+    }
+
+    void OnDragOver(DragEventArgs e)
+    {
+        if (DragDropManager.Payload is not ActivityDescriptor activityDescriptor)
+        {
+            e.DataTransfer.DropEffect = "none";
+            return;
+        }
+
+        e.DataTransfer.DropEffect = "move";
+    }
+
+}

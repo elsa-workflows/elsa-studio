@@ -10,4 +10,8 @@
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Refit" Version="6.3.2" />
+    </ItemGroup>
+
 </Project>

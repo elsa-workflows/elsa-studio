@@ -1,7 +1,7 @@
-using Elsa.Studio.Designer.Components;
+using Elsa.Studio.WorkflowDesigner.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace Elsa.Studio.Designer.Extensions;
+namespace Elsa.Studio.WorkflowDesigner.Extensions;
 
 public static class ComponentConfigurationExtensions
 {

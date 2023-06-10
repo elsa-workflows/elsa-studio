@@ -2,8 +2,8 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Workflows.Contracts;
-using Refit;
 
 namespace Elsa.Studio.Workflows.Services;
 
@@ -16,10 +16,17 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
         _backendConnectionProvider = backendConnectionProvider;
     }
 
-    public async Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions versionOptions, CancellationToken cancellationToken = default)
     {
-        var serverUrl = _backendConnectionProvider.Url.ToString();
-        var api = RestService.For<IWorkflowDefinitionsApi>(serverUrl);
-        return await api.ListAsync(request, versionOptions, cancellationToken);
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .ListAsync(request, versionOptions, cancellationToken);
+    }
+
+    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .GetAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
     }
 }

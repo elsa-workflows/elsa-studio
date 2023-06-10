@@ -1,22 +1,13 @@
-<MudDynamicTabs @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex"
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+<MudDynamicTabs @ref="@_dynamicTabs" @bind-ActivePanelIndex="@_userIndex"
                 Style="height: 100%"
                 AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
                 AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
                 Elevation="0" ApplyEffectsToContainer>
-    @foreach (var tab in UserTabs)
+    @foreach (var tab in _userTabs)
     {
         <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
-            <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-                <MudToolBar Dense="true">
-                    <MudTooltip Text="Zoom content to fit the screen">
-                        <MudIconButton Icon="@Icons.Material.Outlined.FitScreen" Title="Zoom to fit"/>
-                    </MudTooltip>
-                    <MudTooltip Text="Auto layout">
-                        <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesomeMosaic" Title="Auto layout"/>
-                    </MudTooltip>
-                </MudToolBar>
-            </MudPaper>
-            <Designer></Designer>
+            <WorkflowEditor></WorkflowEditor>
         </MudTabPanel>
     }
 
@@ -24,25 +15,18 @@
 
 @code
 {
-    public MudDynamicTabs DynamicTabs;
-    public List<TabView> UserTabs = new();
-    public int UserIndex;
+    private MudDynamicTabs _dynamicTabs = default!;
+    private readonly List<TabView> _userTabs = new();
+    private int _userIndex = 0;
+
+    [Parameter]
+    public ICollection<WorkflowDefinition> WorkflowDefinitions { get; set; } = new List<WorkflowDefinition>();
 
     public class TabView
     {
-        public string Label { get; set; }
+        public string Label { get; set; } = default!;
         public Guid Id { get; set; }
         public bool ShowCloseIcon { get; set; } = true;
-    }
-
-    void RestoreUserTabs()
-    {
-        UserTabs.Clear();
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 1" });
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 2", ShowCloseIcon = true });
-        UserTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 3" });
-        UserIndex = 0;
-        StateHasChanged();
     }
 
     protected override void OnInitialized()
@@ -51,21 +35,31 @@
         RestoreUserTabs();
     }
 
-    public void AddTab(Guid id)
+    void AddTab(Guid id)
     {
-        UserTabs.Add(new TabView { Id = id, Label = "dynamic tab" });
-        UserIndex = UserTabs.Count - 1; // Automatically switch to the new tab.
+        _userTabs.Add(new TabView { Id = id, Label = "dynamic tab" });
+        _userIndex = _userTabs.Count - 1; // Automatically switch to the new tab.
         StateHasChanged();
     }
 
-    public void RemoveTab(Guid id)
+    void RemoveTab(Guid id)
     {
-        var tabView = UserTabs.SingleOrDefault((t) => Equals(t.Id, id));
+        var tabView = _userTabs.SingleOrDefault((t) => Equals(t.Id, id));
         if (tabView is not null)
         {
-            UserTabs.Remove(tabView);
+            _userTabs.Remove(tabView);
             StateHasChanged();
         }
+    }
+
+    void RestoreUserTabs()
+    {
+        _userTabs.Clear();
+        _userTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 1" });
+        _userTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 2", ShowCloseIcon = true });
+        _userTabs.Add(new TabView { Id = Guid.NewGuid(), Label = "Workflow 3" });
+        _userIndex = 0;
+        StateHasChanged();
     }
 
     void AddTabCallback() => AddTab(Guid.NewGuid());

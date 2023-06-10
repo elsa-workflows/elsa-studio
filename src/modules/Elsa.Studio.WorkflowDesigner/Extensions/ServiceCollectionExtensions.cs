@@ -1,8 +1,8 @@
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Designer.Interop;
+using Elsa.Studio.WorkflowDesigner.Interop;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Designer.Extensions;
+namespace Elsa.Studio.WorkflowDesigner.Extensions;
 
 public static class ServiceCollectionExtensions
 {

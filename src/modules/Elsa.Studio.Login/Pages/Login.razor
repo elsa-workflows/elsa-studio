@@ -16,12 +16,12 @@
     <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 </div>
 
-<MudContainer MaxWidth="MaxWidth.Medium">
+<MudContainer MaxWidth="MaxWidth.Small">
     <MudStack Spacing="10">
         <h2 class="LoginTitle">Elsa 3.0</h2>
         <MudPaper Elevation="1">
             <MudGrid Spacing="0" Justify="Justify.Center">
-                <MudItem md="7" xs="5" Class="pa-4 mx-auto my-4">
+                <MudItem md="9" xs="7" Class="pa-4 mx-auto my-4">
                     <MudStack Spacing="1">
                         <MudText Typo="Typo.h5">Login</MudText>
                         <EditForm Model="@_model" OnValidSubmit="TryLogin">
@@ -35,12 +35,12 @@
                         </EditForm>
                     </MudStack>
                 </MudItem>
-                <MudItem md="5" xs="5">
-                    <MudImage Src="https://v3.elsaworkflows.io/_next/static/media/elsa-android.3c4de958.png"
-                              Style="@($"height: 100%; max-width: 100%; border-top-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}; border-bottom-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}")"
-                              ObjectFit="ObjectFit.Cover">
-                    </MudImage>
-                </MudItem>
+                @* <MudItem md="5" xs="5"> *@
+                @*     <MudImage Src="https://v3.elsaworkflows.io/_next/static/media/elsa-android.3c4de958.png" *@
+                @*               Style="@($"height: 100%; max-width: 100%; border-top-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}; border-bottom-right-radius: {CurrentTheme.LayoutProperties.DefaultBorderRadius}")" *@
+                @*               ObjectFit="ObjectFit.Cover"> *@
+                @*     </MudImage> *@
+                @* </MudItem> *@
             </MudGrid>
         </MudPaper>
     </MudStack>

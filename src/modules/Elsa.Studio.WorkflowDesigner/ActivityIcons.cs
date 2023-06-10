@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Designer;
+namespace Elsa.Studio.WorkflowDesigner;
 
 public static class ActivityIcons
 {

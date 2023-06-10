@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 
-namespace Elsa.Studio.Designer.Interop;
+namespace Elsa.Studio.WorkflowDesigner.Interop;
 
 /// <summary>
 /// Provides access to the designer JavaScript module.
@@ -12,7 +12,7 @@ public class DesignerJsInterop : IAsyncDisposable
     public DesignerJsInterop(IJSRuntime jsRuntime)
     {
         _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./_content/Elsa.Studio.Designer/designer.entry.js").AsTask());
+            "import", "./_content/Elsa.Studio.WorkflowDesigner/designer.entry.js").AsTask());
     }
 
     /// <summary>

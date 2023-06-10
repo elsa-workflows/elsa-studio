@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Core", "src\fra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Dashboard", "src\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj", "{533225AD-CF26-4467-ACA4-8AB8B16B2FE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Designer", "src\modules\Elsa.Studio.Designer\Elsa.Studio.Designer.csproj", "{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.WorkflowDesigner", "src\modules\Elsa.Studio.WorkflowDesigner\Elsa.Studio.WorkflowDesigner.csproj", "{435A9CC4-5F05-4210-AB5B-F42484A9D0BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Shared", "src\modules\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj", "{3CEA65CC-1CC6-4A09-8EC0-991603382D9C}"
 EndProject
