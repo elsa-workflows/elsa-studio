@@ -1,8 +1,7 @@
 using Elsa.Studio.Contracts;
-using Elsa.Studio.WorkflowDesigner.Extensions;
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.Core.Extensions;
 using Elsa.Studio.Workflows.Menu;
-using Elsa.Studio.Workflows.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
@@ -14,8 +13,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddSingleton<IModule, Module>()
             .AddSingleton<IMenuProvider, WorkflowsMenu>()
-            .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
-            .AddSingleton<IActivityDescriptorService, DefaultActivityDescriptorService>()
-            .AddDesigner();
+            .AddWorkflowsCore()
+            .AddWorkflowsDesigner();
     }
 }

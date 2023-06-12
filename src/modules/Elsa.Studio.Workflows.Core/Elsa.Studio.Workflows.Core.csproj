@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
+    </ItemGroup>
+
+</Project>

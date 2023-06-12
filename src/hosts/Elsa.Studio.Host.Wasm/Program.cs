@@ -13,7 +13,7 @@ using Elsa.Studio.Secrets.Extensions;
 using Elsa.Studio.Security.Extensions;
 using Elsa.Studio.Services;
 using Elsa.Studio.Webhooks.Extensions;
-using Elsa.Studio.WorkflowDesigner.Extensions;
+using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;

@@ -1,10 +1,10 @@
 @using Variant = MudBlazor.Variant
-@using Elsa.Studio.Workflows.Contracts
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using System.Text.Json.Nodes
 @using System.Text.Json
+@using Elsa.Studio.Workflows.Core.Contracts
 @using Elsa.Studio.Workflows.Models
-@inject IActivityDescriptorService ActivityDescriptorService
+@inject IActivityRegistry ActivityRegistry
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Activities">
@@ -70,7 +70,7 @@
 
     private async Task GetActivityDescriptorsAsync()
     {
-        var activities = await ActivityDescriptorService.ListAsync();
+        var activities = await ActivityRegistry.ListAsync();
         activities = activities.Where(x => x.IsBrowsable);
         _groupedActivityDescriptors = activities.GroupBy(x => x.Category).ToList();
     }

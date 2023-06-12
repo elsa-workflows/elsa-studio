@@ -1,0 +1,87 @@
+﻿@using Elsa.Studio.Contracts
+@using Elsa.Studio.Workflows.Designer.Interop
+@using MudBlazor.Utilities
+@using System.Text.Json
+@using Elsa.Studio.Workflows.Core.Contracts
+@using Elsa.Studio.Workflows.Designer.Contracts
+@using Elsa.Studio.Workflows.Designer.Services
+@implements IDisposable
+@implements IAsyncDisposable
+@inject DesignerJsInterop DesignerJsInterop
+@inject IThemeService ThemeService
+
+<div style="width:100%; height:100%">
+    <div class="ma-2">
+        <MudBreadcrumbs Items="_activityPath" Style="padding: 6px;"></MudBreadcrumbs>
+    </div>
+    <div id="@_containerId" class="graph-container"></div>
+</div>
+
+@code {
+
+    private readonly string _containerId = $"container-{Guid.NewGuid():N}";
+    //private string _graphId = default!;
+
+    [Parameter]
+    public JsonElement Flowchart { get; set; }
+
+    [Inject]
+    private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    
+    [Inject]
+    private IFlowchartMapper GraphMapper { get; set; } = default!;
+
+    /// <summary>
+    /// Sets the grid color.
+    /// </summary>
+    private async Task SetGridColorAsync(string color)
+    {
+        await DesignerJsInterop.SetGridColorAsync(_containerId, color);
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        await DesignerJsInterop.DisposeGraphAsync(_containerId); 
+    }
+
+    public void Dispose()
+    {
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
+    }
+    
+    private List<BreadcrumbItem> _activityPath = new()
+    {
+        new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
+        new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
+    };
+
+    protected override void OnInitialized()
+    {
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var activityDescriptors = (await ActivityRegistry.ListAsync()).ToDictionary(x => x.TypeName);
+            FlowchartContext.Setup(Flowchart, activityDescriptors);
+            
+            await DesignerJsInterop.CreateGraphAsync(_containerId);
+            //var data = await DesignerJsInterop.LoadDataAsync(_graphId);
+            //await DesignerJsInterop.LoadJsonAsync(_graphId, data);
+
+            var graph = await GraphMapper.MapAsync(Flowchart);
+            await DesignerJsInterop.LoadGraphAsync(_containerId, graph);
+        }
+    }
+
+    private async void OnDarkModeChanged()
+    {
+        var palette = ThemeService.CurrentPalette;
+        var gridColor = palette.BackgroundGrey;
+        await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
+    }
+
+}
