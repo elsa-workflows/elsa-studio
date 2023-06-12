@@ -37,6 +37,16 @@
         await DesignerJsInterop.AddActivityNodeAsync(_containerId, node);
     }
 
+    public async Task ZoomToFitAsync()
+    {
+        await DesignerJsInterop.ZoomToFitAsync(_containerId);
+    }
+    
+    public async Task CenterContentAsync()
+    {
+        await DesignerJsInterop.CenterContentAsync(_containerId);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _flowchartMapper = await FlowchartMapperFactory.CreateAsync();

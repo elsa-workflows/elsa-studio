@@ -65,6 +65,18 @@ internal class DesignerJsInterop : IAsyncDisposable
         await module.InvokeVoidAsync("loadGraph", containerId, graph);
     }
 
+    public async Task ZoomToFitAsync(string containerId)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("zoomToFit", containerId);
+    }
+    
+    public async Task CenterContentAsync(string containerId)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("centerContent", containerId);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_moduleTask.IsValueCreated)
