@@ -5,6 +5,7 @@ export * from './create-graph';
 export * from './dispose-graph';
 export * from './load-data';
 export * from './load-graph';
+export * from './read-graph';
 export * from './set-grid-color';
 export * from './update-activity-node';
 export * from './zoom-to-fit';

@@ -7,8 +7,6 @@
 @using Elsa.Studio.Workflows.Designer.Services
 @implements IDisposable
 @implements IAsyncDisposable
-@inject DesignerJsInterop DesignerJsInterop
-@inject IThemeService ThemeService
 
 <div style="width:100%; height:100%">
     <div class="ma-2">
@@ -20,32 +18,39 @@
 @code {
 
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
-    private IFlowchartMapper _flowchartMapper;
+    private IFlowchartMapper _flowchartMapper = default!;
+    private X6GraphApi _graphApi = default!;
 
     [Parameter]
     public JsonElement Flowchart { get; set; }
 
     [Inject]
+    private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
+
+    [Inject]
+    private IThemeService ThemeService { get; set; } = default!;
+
+    [Inject]
     private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    
+
     [Inject]
     private IFlowchartMapperFactory FlowchartMapperFactory { get; set; } = default!;
+
+    public async Task<JsonElement> ReadFlowchartAsync()
+    {
+        var cells = await _graphApi.ReadGraphAsync();
+
+        return Flowchart;
+    }
     
     public async Task AddActivityAsync(JsonElement activity)
     {
         var node = _flowchartMapper.MapActivity(activity);
-        await DesignerJsInterop.AddActivityNodeAsync(_containerId, node);
+        await _graphApi.AddActivityNodeAsync(node);
     }
 
-    public async Task ZoomToFitAsync()
-    {
-        await DesignerJsInterop.ZoomToFitAsync(_containerId);
-    }
-    
-    public async Task CenterContentAsync()
-    {
-        await DesignerJsInterop.CenterContentAsync(_containerId);
-    }
+    public async Task ZoomToFitAsync() => await _graphApi.ZoomToFitAsync();
+    public async Task CenterContentAsync() => await _graphApi.CenterContentAsync();
 
     protected override async Task OnInitializedAsync()
     {
@@ -55,22 +60,19 @@
     /// <summary>
     /// Sets the grid color.
     /// </summary>
-    private async Task SetGridColorAsync(string color)
-    {
-        await DesignerJsInterop.SetGridColorAsync(_containerId, color);
-    }
-    
+    private async Task SetGridColorAsync(string color) => await _graphApi.SetGridColorAsync(color);
+
     public async ValueTask DisposeAsync()
     {
         Dispose();
-        await DesignerJsInterop.DisposeGraphAsync(_containerId); 
+        await _graphApi.DisposeGraphAsync();
     }
 
     public void Dispose()
     {
         ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
     }
-    
+
     private List<BreadcrumbItem> _activityPath = new()
     {
         new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
@@ -86,9 +88,9 @@
     {
         if (firstRender)
         {
-            await DesignerJsInterop.CreateGraphAsync(_containerId);
+            _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId);
             var graph = _flowchartMapper.MapFlowchart(Flowchart);
-            await DesignerJsInterop.LoadGraphAsync(_containerId, graph);
+            await _graphApi.LoadGraphAsync(graph);
         }
     }
 

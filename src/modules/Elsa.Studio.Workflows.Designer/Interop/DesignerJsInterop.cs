@@ -1,6 +1,4 @@
-using System.Drawing;
 using System.Text.Json;
-using Elsa.Studio.Workflows.Designer.Models;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -23,59 +21,15 @@ internal class DesignerJsInterop : IAsyncDisposable
     /// </summary>
     /// <param name="containerId">The ID of the container element.</param>
     /// <returns>The ID of the graph.</returns>
-    public async ValueTask<string> CreateGraphAsync(string containerId)
+    public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId)
     {
         var module = await _moduleTask.Value;
-        return await module.InvokeAsync<string>("createGraph", containerId);
-    }
-    
-    public async Task DisposeGraphAsync(string containerId)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("disposeGraph", containerId);
+        await module.InvokeAsync<string>("createGraph", containerId);
+        return new X6GraphApi(_moduleTask, containerId);
     }
 
-    public async ValueTask SetGridColorAsync(string containerId, string color)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("setGridColor", containerId, color);
-    }
-    
-    public async ValueTask UpdateActivityNodeAsync(string elementId, JsonElement activity)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("updateActivityNode", elementId, activity);
-    }
-    
-    public async ValueTask AddActivityNodeAsync(string containerId, X6Node node)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("addActivityNode", containerId, node);
-    }
-
-    public async ValueTask<object> LoadDataAsync(string containerId)
-    {
-        var module = await _moduleTask.Value;
-        return await module.InvokeAsync<object>("loadData", containerId);
-    }
-
-    public async ValueTask LoadGraphAsync(string containerId, X6Graph graph)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("loadGraph", containerId, graph);
-    }
-
-    public async Task ZoomToFitAsync(string containerId)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("zoomToFit", containerId);
-    }
-    
-    public async Task CenterContentAsync(string containerId)
-    {
-        var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("centerContent", containerId);
-    }
+    public async Task UpdateActivityNodeAsync(string elementId, JsonElement activity) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("updateActivityNode", elementId, activity));
 
     public async ValueTask DisposeAsync()
     {
@@ -93,5 +47,11 @@ internal class DesignerJsInterop : IAsyncDisposable
                 // We can safely ignore it.
             }
         }
+    }
+
+    private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func)
+    {
+        var module = await _moduleTask.Value;
+        await func(module);
     }
 }
