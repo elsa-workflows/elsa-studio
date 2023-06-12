@@ -14,14 +14,17 @@
         </MudTooltip>
     </MudToolBar>
 </MudPaper>
-<div @ondragover="@OnDragOver" @ondragover:preventDefault>
+<div @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
     @if (WorkflowDefinition != null)
     {
-        <FlowchartDesigner Flowchart="@WorkflowDefinition.Root"></FlowchartDesigner>
+        <FlowchartDesigner @ref="_designer" Flowchart="@WorkflowDefinition.Root"></FlowchartDesigner>
     }
 </div>
 
 @code {
+
+    private int _seed = 3;
+    private FlowchartDesigner _designer = default!;
 
     [CascadingParameter]
     public DragDropManager DragDropManager { get; set; } = default!;
@@ -40,4 +43,39 @@
         e.DataTransfer.DropEffect = "move";
     }
 
+    async Task OnDrop(DragEventArgs e)
+    {
+        if (DragDropManager.Payload is not ActivityDescriptor activityDescriptor)
+        {
+            return;
+        }
+        
+        var x = e.PageX;
+        var y = e.PageY;
+        var newActivity = new
+        {
+            Id = activityDescriptor.TypeName + " " + _seed++,
+            Type = activityDescriptor.TypeName,
+            Metadata = new
+            {
+                Designer = new
+                {
+                    Position = new
+                    {
+                        X = x,
+                        Y = y
+                    }
+                }
+            }
+        };
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        var activityElement = JsonSerializer.SerializeToElement(newActivity, options);
+
+        await _designer.AddActivityAsync(activityElement);
+    }
 }

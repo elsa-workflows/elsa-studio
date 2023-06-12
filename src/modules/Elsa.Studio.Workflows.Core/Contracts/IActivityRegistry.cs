@@ -15,4 +15,12 @@ public interface IActivityRegistry
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of activity descriptors.</returns>
     Task<IEnumerable<ActivityDescriptor>> ListAsync(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Finds an activity descriptor by its type.
+    /// </summary>
+    /// <param name="activityType">The activity type.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The activity descriptor.</returns>
+    Task<ActivityDescriptor?> FindAsync(string activityType, CancellationToken cancellationToken = default);
 }

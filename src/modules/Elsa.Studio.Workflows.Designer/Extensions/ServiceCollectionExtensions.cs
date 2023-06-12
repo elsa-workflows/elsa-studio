@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddSingleton<IModule, Module>()
-            .AddScoped<IFlowchartMapper, DefaultFlowchartMapper>()
+            .AddScoped<IFlowchartMapperFactory, DefaultFlowchartMapperFactory>()
             .AddScoped<DesignerJsInterop>();
     }
 }

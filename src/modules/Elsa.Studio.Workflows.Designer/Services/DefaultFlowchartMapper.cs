@@ -1,79 +1,30 @@
 using System.Text.Json;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
-using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
 internal class DefaultFlowchartMapper : IFlowchartMapper
 {
-    private readonly DesignerJsInterop _designerJsInterop;
-    private readonly IActivityRegistry _activityRegistry;
+    private readonly IDictionary<string, ActivityDescriptor> _activityDescriptors;
 
-    public DefaultFlowchartMapper(DesignerJsInterop designerJsInterop, IActivityRegistry activityRegistry)
+    public DefaultFlowchartMapper(IDictionary<string, ActivityDescriptor> activityDescriptors)
     {
-        _designerJsInterop = designerJsInterop;
-        _activityRegistry = activityRegistry;
+        _activityDescriptors = activityDescriptors;
     }
-    
-    public async Task<X6Graph> MapAsync(JsonElement flowchartElement, CancellationToken cancellationToken = default)
+
+    public X6Graph MapFlowchart(JsonElement flowchartElement)
     {
         var graph = new X6Graph();
         var activityElements = flowchartElement.GetProperty("activities").EnumerateArray();
         var connectionElements = flowchartElement.GetProperty("connections").EnumerateArray();
-        var activityDescriptors = (await _activityRegistry.ListAsync(cancellationToken)).ToDictionary(x => x.TypeName);
+        var activityDescriptors = _activityDescriptors;
 
         foreach (var activityElement in activityElements)
         {
-            var activityId = activityElement.GetProperty("id").GetString()!;
             var activityType = activityElement.GetProperty("type").GetString()!;
-            var activityDescriptor = activityDescriptors[activityType];
-            var metadataElement = activityElement.GetProperty("metadata");
-            var designerElement = metadataElement.GetProperty("designer");
-            var positionElement = designerElement.GetProperty("position");
-            var x = positionElement.GetProperty("x").GetInt32();
-            var y = positionElement.GetProperty("y").GetInt32();
-            //var activitySize = await _designerJsInterop.CalculateActivitySizeAsync(activityElement);
-
-            var node = new X6Node
-            {
-                Id = activityId,
-                Data = activityId,
-                Width = 200,
-                Height = 50,
-                Shape = "elsa-activity",
-                X = x,
-                Y = y
-            };
-            
-            // Create default input port.
-            node.Ports.Add(new X6Port
-            {
-                Id = "In",
-                Group = "in",
-            });
-
-            // Create output ports.
-            foreach (var port in activityDescriptor.Ports)
-            {
-                node.Ports.Add(new X6Port
-                {
-                    Id = port.Name,
-                    Group = "out",
-                });
-            }
-            
-            // If there is no output port, create a default one.
-            if (node.Ports.All(port => port.Group != "out"))
-            {
-                node.Ports.Add(new X6Port
-                {
-                    Id = "Done",
-                    Group = "out",
-                });
-            }
-            
+            var node = MapActivity(activityElement);
             graph.Nodes.Add(node);
         }
 
@@ -102,5 +53,57 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         }
 
         return graph;
+    }
+
+    public X6Node MapActivity(JsonElement activityElement)
+    {
+        var activityType = activityElement.GetProperty("type").GetString()!;
+        var activityDescriptor = _activityDescriptors[activityType];
+        var activityId = activityElement.GetProperty("id").GetString()!;
+        var metadataElement = activityElement.GetProperty("metadata");
+        var designerElement = metadataElement.GetProperty("designer");
+        var positionElement = designerElement.GetProperty("position");
+        var x = positionElement.GetProperty("x").GetInt32();
+        var y = positionElement.GetProperty("y").GetInt32();
+
+        var node = new X6Node
+        {
+            Id = activityId,
+            Data = activityElement,
+            Width = 200,
+            Height = 50,
+            Shape = "elsa-activity",
+            X = x,
+            Y = y
+        };
+
+        // Create default input port.
+        node.Ports.Add(new X6Port
+        {
+            Id = "In",
+            Group = "in",
+        });
+
+        // Create output ports.
+        foreach (var port in activityDescriptor.Ports)
+        {
+            node.Ports.Add(new X6Port
+            {
+                Id = port.Name,
+                Group = "out",
+            });
+        }
+
+        // If there is no output port, create a default one.
+        if (node.Ports.All(port => port.Group != "out"))
+        {
+            node.Ports.Add(new X6Port
+            {
+                Id = "Done",
+                Group = "out",
+            });
+        }
+
+        return node;
     }
 }

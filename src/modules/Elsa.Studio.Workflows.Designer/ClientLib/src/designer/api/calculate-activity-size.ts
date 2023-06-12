@@ -1,9 +1,11 @@
 import {activityTagName, createActivityElement} from "../internal/create-activity-element";
 import {Activity, Size} from "../models";
 
-export function calculateActivitySize(activityId: string): Promise<Size> {
+export function calculateActivitySize(activity: Activity): Promise<Size> {
+    debugger;
+    const activityId = activity.id;
     const wrapper = document.createElement('div');
-    const dummyActivityElement = createActivityElement(activityId, true);
+    const dummyActivityElement = createActivityElement(activity, true);
     wrapper.style.position = 'absolute';
     wrapper.appendChild(dummyActivityElement);
 

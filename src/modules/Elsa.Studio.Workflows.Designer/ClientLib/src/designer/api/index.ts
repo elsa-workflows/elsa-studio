@@ -1,3 +1,4 @@
+export * from './add-activity-node';
 export * from './calculate-activity-size';
 export * from './create-graph';
 export * from './dispose-graph';

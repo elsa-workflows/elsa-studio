@@ -20,7 +20,7 @@
 @code {
 
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
-    //private string _graphId = default!;
+    private IFlowchartMapper _flowchartMapper;
 
     [Parameter]
     public JsonElement Flowchart { get; set; }
@@ -29,7 +29,18 @@
     private IActivityRegistry ActivityRegistry { get; set; } = default!;
     
     [Inject]
-    private IFlowchartMapper GraphMapper { get; set; } = default!;
+    private IFlowchartMapperFactory FlowchartMapperFactory { get; set; } = default!;
+    
+    public async Task AddActivityAsync(JsonElement activity)
+    {
+        var node = _flowchartMapper.MapActivity(activity);
+        await DesignerJsInterop.AddActivityNodeAsync(_containerId, node);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _flowchartMapper = await FlowchartMapperFactory.CreateAsync();
+    }
 
     /// <summary>
     /// Sets the grid color.
@@ -65,14 +76,8 @@
     {
         if (firstRender)
         {
-            var activityDescriptors = (await ActivityRegistry.ListAsync()).ToDictionary(x => x.TypeName);
-            FlowchartContext.Setup(Flowchart, activityDescriptors);
-            
             await DesignerJsInterop.CreateGraphAsync(_containerId);
-            //var data = await DesignerJsInterop.LoadDataAsync(_graphId);
-            //await DesignerJsInterop.LoadJsonAsync(_graphId, data);
-
-            var graph = await GraphMapper.MapAsync(Flowchart);
+            var graph = _flowchartMapper.MapFlowchart(Flowchart);
             await DesignerJsInterop.LoadGraphAsync(_containerId, graph);
         }
     }

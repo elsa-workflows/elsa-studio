@@ -1,5 +1,6 @@
 import {Graph, Shape} from '@antv/x6';
 import {createActivityElement} from "./create-activity-element";
+import {Activity} from "../models";
 
 export function initialize() {
 
@@ -7,8 +8,9 @@ export function initialize() {
         shape: "elsa-activity",
         effect: ["data"],
         html(cell) {
-            const activityId: string = cell.getData();
-            return createActivityElement(activityId, false);
+            const activity: Activity = cell.getData();
+            debugger;
+            return createActivityElement(activity);
         },
         ports: {
             groups: {

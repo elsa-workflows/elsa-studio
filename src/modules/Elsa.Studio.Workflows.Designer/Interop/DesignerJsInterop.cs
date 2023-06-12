@@ -29,34 +29,40 @@ internal class DesignerJsInterop : IAsyncDisposable
         return await module.InvokeAsync<string>("createGraph", containerId);
     }
     
-    public async Task DisposeGraphAsync(string graphId)
+    public async Task DisposeGraphAsync(string containerId)
     {
         var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("disposeGraph", graphId);
+        await module.InvokeVoidAsync("disposeGraph", containerId);
     }
 
-    public async ValueTask SetGridColorAsync(string graphId, string color)
+    public async ValueTask SetGridColorAsync(string containerId, string color)
     {
         var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("setGridColor", graphId, color);
+        await module.InvokeVoidAsync("setGridColor", containerId, color);
     }
     
-    public async ValueTask UpdateActivityNodeAsync(string elementId, string activityId)
+    public async ValueTask UpdateActivityNodeAsync(string elementId, JsonElement activity)
     {
         var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("updateActivityNode", elementId, activityId);
+        await module.InvokeVoidAsync("updateActivityNode", elementId, activity);
+    }
+    
+    public async ValueTask AddActivityNodeAsync(string containerId, X6Node node)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("addActivityNode", containerId, node);
     }
 
-    public async ValueTask<object> LoadDataAsync(string graphId)
+    public async ValueTask<object> LoadDataAsync(string containerId)
     {
         var module = await _moduleTask.Value;
-        return await module.InvokeAsync<object>("loadData", graphId);
+        return await module.InvokeAsync<object>("loadData", containerId);
     }
 
-    public async ValueTask LoadGraphAsync(string graphId, X6Graph graph)
+    public async ValueTask LoadGraphAsync(string containerId, X6Graph graph)
     {
         var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("loadGraph", graphId, graph);
+        await module.InvokeVoidAsync("loadGraph", containerId, graph);
     }
 
     public async ValueTask DisposeAsync()

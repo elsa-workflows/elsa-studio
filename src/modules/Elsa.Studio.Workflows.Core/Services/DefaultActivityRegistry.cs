@@ -25,7 +25,13 @@ public class DefaultActivityRegistry : IActivityRegistry
     {
         return _activityDescriptors ??= (await ListInternalAsync(cancellationToken)).ToList();
     }
-    
+
+    public async Task<ActivityDescriptor?> FindAsync(string activityType, CancellationToken cancellationToken = default)
+    {
+        var descriptors = await ListAsync(cancellationToken);
+        return descriptors.FirstOrDefault(x => x.TypeName == activityType);
+    }
+
     private async Task<IEnumerable<ActivityDescriptor>> ListInternalAsync(CancellationToken cancellationToken = default)
     {
         var response = await _backendConnectionProvider

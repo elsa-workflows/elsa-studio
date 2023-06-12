@@ -1,42 +1,43 @@
-@using System.Text.Json
 @using Elsa.Studio.Workflows.Designer.Interop
-@using Elsa.Studio.Workflows.Designer.Services
-@using Microsoft.JSInterop
+@using System.Text.Json
+@using Elsa.Studio.Workflows.Core.Contracts
 <MudPaper
     Class="pa-3"
     Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));"
     Outlined="true">
     <MudStack Row="true">
         <MudIcon Icon="@DashboardIcons.Tabler.PenTool"></MudIcon>
-        @Label
+        @_label
     </MudStack>
 
 </MudPaper>
 
 @code
 {
+    private string _label = default!;
+
     [Parameter]
-    public string? ElementId { get; set; } = default!;
-    
+    public string? ElementId { get; set; }
+
     [Parameter]
     public string ActivityId { get; set; } = default!;
 
     [Parameter]
-    public string Label { get; set; } = default!;
+    public JsonElement ActivityModel { get; set; }
 
     [Inject]
     DesignerJsInterop DesignerInterop { get; set; } = default!;
+    
+    [Inject]
+    IActivityRegistry ActivityRegistry { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        if (FlowchartContext.Current.Activities.TryGetValue(ActivityId, out var activity))
-        {
-            var activityType = activity.GetProperty("type").GetString()!;
-            var descriptor = FlowchartContext.Current.ActivityDescriptors[activityType];
-            Label = descriptor.DisplayName ?? descriptor.Name;
-        }
-        
-        if(!string.IsNullOrEmpty(ElementId))
-            await DesignerInterop.UpdateActivityNodeAsync(ElementId, ActivityId);
+        var activityType = ActivityModel.GetProperty("type").GetString()!;
+        var descriptor = await ActivityRegistry.FindAsync(activityType);
+        _label = descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+
+        if (!string.IsNullOrEmpty(ElementId))
+            await DesignerInterop.UpdateActivityNodeAsync(ElementId, ActivityModel);
     }
 }
