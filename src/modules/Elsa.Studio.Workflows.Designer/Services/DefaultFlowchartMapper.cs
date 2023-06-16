@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
+using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Designer.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
@@ -59,17 +60,23 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         var activityType = activityElement.GetProperty("type").GetString()!;
         var activityDescriptor = _activityDescriptors[activityType];
         var activityId = activityElement.GetProperty("id").GetString()!;
-        var metadataElement = activityElement.GetProperty("metadata");
-        var designerElement = metadataElement.GetProperty("designer");
-        var positionElement = designerElement.GetProperty("position");
-        var x = positionElement.GetProperty("x").GetDouble();
-        var y = positionElement.GetProperty("y").GetDouble();
+        var metadataElement = activityElement.TryGetPropertySafe("metadata", out var metadataProp) ? metadataProp : default;
+        var designerElement = metadataElement.TryGetPropertySafe("designer", out var designerProp) ? designerProp : default;
+        var positionElement = designerElement.TryGetPropertySafe("position", out var positionProp) ? positionProp : default;
+        var sizeElement = designerElement.TryGetPropertySafe("size", out var sizeProp) ? sizeProp : default;
+        var x = positionElement.TryGetDoubleSafe("x", out var xProp) ? xProp : 0;
+        var y = positionElement.TryGetDoubleSafe("y", out var yProp) ? yProp : 0;
+        var width = sizeElement.TryGetDoubleSafe("width", out var widthProp) ? widthProp : 0;
+        var height = sizeElement.TryGetDoubleSafe("height", out var heightProp) ? heightProp : 0;
+
+        if (width == 0) width = 200;
+        if (height == 0) height = 50;
 
         var node = new X6Node
         {
             Id = activityId,
             Data = activityElement,
-            Size = new X6Size(200, 50),
+            Size = new X6Size(width, height),
             Position = new X6Position(x, y),
             Shape = "elsa-activity"
         };
@@ -120,14 +127,20 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
                 ["x"] = node.Position.X,
                 ["y"] = node.Position.Y
             };
-            
+
+            designerElement["size"] = new JsonObject
+            {
+                ["width"] = node.Size.Width,
+                ["height"] = node.Size.Height
+            };
+
             metadataElement["designer"] = designerElement;
             activityElement["metadata"] = metadataElement;
-            
+
             activityElements.Add(activityElement);
         }
-        
-        foreach(var edge in graph.Edges)
+
+        foreach (var edge in graph.Edges)
         {
             var connectionElement = new JsonObject
             {
@@ -144,7 +157,7 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
             ["activities"] = activityElements,
             ["connections"] = connectionElements
         };
-        
+
         return JsonSerializer.SerializeToElement(flowchartElement);
     }
 }
