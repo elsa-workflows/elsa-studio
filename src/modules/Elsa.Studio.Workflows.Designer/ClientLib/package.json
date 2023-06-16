@@ -10,6 +10,8 @@
     "@antv/x6-plugin-selection": "^2.1.7",
     "@antv/x6-plugin-scroller": "^2.0.9",
     "@antv/x6-plugin-transform": "^2.1.7",
+    "@antv/x6-plugin-keyboard": "^2.2.1",
+    "@antv/x6-plugin-clipboard": "^2.1.6",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
