@@ -1,6 +1,6 @@
-import {graphs} from "../internal/graphs";
+import {graphBindings} from "./graph-bindings";
 
 export function setGridColor(graphId: string, color: string) {
-    const graph = graphs[graphId];
+    const {graph} = graphBindings[graphId];
     graph.grid.update({color: color});
 }

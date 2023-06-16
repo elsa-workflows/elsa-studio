@@ -1,6 +1,6 @@
-import {graphs} from "../internal/graphs";
 import {calculateActivitySize} from "./calculate-activity-size";
 import {Activity} from "../models";
+import {graphBindings} from "./graph-bindings";
 
 export async function updateActivityNode(elementId: string, activity: Activity) {
     // Get wrapper element.
@@ -13,8 +13,8 @@ export async function updateActivityNode(elementId: string, activity: Activity) 
     const graphId = container.id;
 
     // Get graph reference.
-    const graph = graphs[graphId];
-    
+    const {graph} = graphBindings[graphId];
+
     // Calculate the size of the activity.
     const rect = await calculateActivitySize(activity);
     const width = rect.width;

@@ -3,12 +3,13 @@ import {Selection} from "@antv/x6-plugin-selection";
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Transform} from "@antv/x6-plugin-transform";
 import {Keyboard} from "@antv/x6-plugin-keyboard";
-import { Clipboard } from '@antv/x6-plugin-clipboard'
-import {v4 as uuid} from 'uuid';
-import {graphs} from "../internal/graphs";
+import {Clipboard} from '@antv/x6-plugin-clipboard'
+import {DotNetComponentRef, graphBindings} from "./graph-bindings";
+import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 
-export async function createGraph(containerId: string): Promise<string> {
+export async function createGraph(containerId: string, componentRef: DotNetComponentRef): Promise<string> {
     const containerElement = document.getElementById(containerId);
+    const interop = new DotNetFlowchartDesigner(componentRef);
 
     const graph = new Graph({
         container: containerElement,
@@ -120,6 +121,11 @@ export async function createGraph(containerId: string): Promise<string> {
         })
     );
 
+    // Move the clicked node to the front. This helps when the user clicks on a node that is behind another node.
+    graph.on('node:mousedown', ({node}) => {
+        node.toFront();
+    });
+
     // Change the edge's color and style when it is connected to a magnet.
     graph.on('edge:connected', ({edge}) => {
         edge.attr({
@@ -144,6 +150,13 @@ export async function createGraph(containerId: string): Promise<string> {
             cell.removeTool("button-remove");
         }
     });
+    
+    graph.on('node:selected', async e => {
+        debugger;
+        const node = e.node;
+        const activity = node.data;
+        await interop.raiseActivitySelected(activity);
+    });
 
     // Delete node when pressing delete key on keyboard.
     graph.bindKey('del', () => {
@@ -165,7 +178,7 @@ export async function createGraph(containerId: string): Promise<string> {
     // Paste the cells in the clipboard onto the graph.
     graph.bindKey(['ctrl+v', 'meta+v'], () => {
         if (!graph.isClipboardEmpty()) {
-            const cells = graph.paste({ offset: 32 })
+            const cells = graph.paste({offset: 32})
             graph.cleanSelection()
             graph.select(cells)
         }
@@ -174,7 +187,12 @@ export async function createGraph(containerId: string): Promise<string> {
 
     // Register the graph.
     const graphId = containerId;
-    graphs[graphId] = graph;
+    
+    graphBindings[graphId] = {
+        graphId: graphId,
+        graph: graph,
+        interop: interop
+    };
 
     return graphId;
 }

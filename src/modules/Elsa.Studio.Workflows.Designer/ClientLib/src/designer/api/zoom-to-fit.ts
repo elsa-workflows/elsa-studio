@@ -1,8 +1,7 @@
-import {Model, Graph} from '@antv/x6';
-import {graphs} from "../internal/graphs";
+import {graphBindings} from "./graph-bindings";
 
 export function zoomToFit(graphId: string) {
-    const graph: Graph = graphs[graphId];
+    const {graph} = graphBindings[graphId];
     graph.zoomToFit({
         padding: 20,
         minScale: 0.5,

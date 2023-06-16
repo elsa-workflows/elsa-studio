@@ -1,7 +1,7 @@
-import {graphs} from "../internal/graphs";
+import {graphBindings} from "./graph-bindings";
 
 export function disposeGraph(graphId) {
-    const graph = graphs[graphId];
-    graph.dispose();
-    delete graphs[graphId];
+    const binding = graphBindings[graphId];
+    binding.graph.dispose();
+    delete graphBindings[graphId];
 }

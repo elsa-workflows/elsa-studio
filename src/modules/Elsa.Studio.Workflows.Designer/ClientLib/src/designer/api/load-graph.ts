@@ -1,8 +1,8 @@
 import {Model, Graph} from '@antv/x6';
-import {graphs} from "../internal/graphs";
+import {graphBindings} from "./graph-bindings";
 
 export function loadGraph(graphId: string, json: Model.FromJSONData) {
-    const graph : Graph = graphs[graphId];
+    const {graph} = graphBindings[graphId];
     graph.fromJSON(json);
     graph.centerContent({padding: 20});
 }
