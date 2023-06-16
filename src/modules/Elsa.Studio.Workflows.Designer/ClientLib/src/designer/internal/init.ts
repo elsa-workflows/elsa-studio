@@ -9,7 +9,6 @@ export function initialize() {
         effect: ["data"],
         html(cell) {
             const activity: Activity = cell.getData();
-            debugger;
             return createActivityElement(activity);
         },
         ports: {
