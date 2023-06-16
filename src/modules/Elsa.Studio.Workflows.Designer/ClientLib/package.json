@@ -5,7 +5,7 @@
   "license": "MIT",
   "version": "1.0.0",
   "dependencies": {
-    "@antv/x6": "^2.10.1",
+    "@antv/x6": "^2.11.1",
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-plugin-selection": "^2.1.7",
     "@antv/x6-plugin-scroller": "^2.0.9",
@@ -17,7 +17,6 @@
     "webpack-cli": "^5.1.1",
     "css-loader": "^6.7.3",
     "style-loader": "^3.3.2",
-    "sweetalert2": "^11.7.5",
     "typescript": "^5.0.4",
     "ts-loader": "^9.4.2"
   },
