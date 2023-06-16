@@ -2,8 +2,10 @@
 @using Elsa.Studio.Workflows.Designer.Interop
 @using MudBlazor.Utilities
 @using System.Text.Json
+@using System.Text.Json.Nodes
 @using Elsa.Studio.Workflows.Core.Contracts
 @using Elsa.Studio.Workflows.Designer.Contracts
+@using Elsa.Studio.Workflows.Designer.Models
 @using Elsa.Studio.Workflows.Designer.Services
 @implements IDisposable
 @implements IAsyncDisposable
@@ -18,7 +20,7 @@
 @code {
 
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
-    private IFlowchartMapper _flowchartMapper = default!;
+    private IFlowchartMapper? _flowchartMapper = default!;
     private X6GraphApi _graphApi = default!;
 
     [Parameter]
@@ -38,24 +40,39 @@
 
     public async Task<JsonElement> ReadFlowchartAsync()
     {
-        var cells = await _graphApi.ReadGraphAsync();
+        var serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        var data = await _graphApi.ReadGraphAsync();
+        var cells = data.GetProperty("cells").EnumerateArray();
+        var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6Node>(serializerOptions)!).ToList();
+        var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
+        var graph = new X6Graph(nodes, edges);
+        var flowchartMapper = await GetFlowchartMapperAsync();
+        var graphJson = flowchartMapper.MapX6Graph(graph);
+        var activities = graphJson.GetProperty("activities");
+        var connections = graphJson.GetProperty("connections");
 
-        return Flowchart;
+        var flowchart = JsonObject.Create(Flowchart)!;
+        flowchart["activities"] = JsonArray.Create(activities);
+        flowchart["connections"] = JsonArray.Create(connections);
+        
+        return JsonSerializer.SerializeToElement(flowchart);
     }
     
     public async Task AddActivityAsync(JsonElement activity)
     {
-        var node = _flowchartMapper.MapActivity(activity);
+        var flowchartMapper = await GetFlowchartMapperAsync();
+        var node = flowchartMapper.MapActivity(activity);
         await _graphApi.AddActivityNodeAsync(node);
     }
 
     public async Task ZoomToFitAsync() => await _graphApi.ZoomToFitAsync();
     public async Task CenterContentAsync() => await _graphApi.CenterContentAsync();
 
-    protected override async Task OnInitializedAsync()
-    {
-        _flowchartMapper = await FlowchartMapperFactory.CreateAsync();
-    }
+    private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await FlowchartMapperFactory.CreateAsync();
 
     /// <summary>
     /// Sets the grid color.
@@ -89,7 +106,8 @@
         if (firstRender)
         {
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId);
-            var graph = _flowchartMapper.MapFlowchart(Flowchart);
+            var flowchartMapper = await GetFlowchartMapperAsync();
+            var graph = flowchartMapper.MapFlowchart(Flowchart);
             await _graphApi.LoadGraphAsync(graph);
         }
     }

@@ -90,11 +90,11 @@ export async function createGraph(containerId: string): Promise<string> {
         new Selection({
             enabled: true,
             multiple: true,
-            rubberEdge: true,
+            rubberEdge: false,
             rubberNode: true,
             rubberband: true,
             movable: true,
-            showNodeSelectionBox: false
+            showNodeSelectionBox: true
         }),
     );
 

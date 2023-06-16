@@ -29,4 +29,11 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
             .GetApi<IWorkflowDefinitionsApi>()
             .GetAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
     }
+
+    public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .SaveAsync(request, cancellationToken);
+    }
 }

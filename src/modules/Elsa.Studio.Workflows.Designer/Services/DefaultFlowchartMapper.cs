@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
@@ -19,11 +20,9 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         var graph = new X6Graph();
         var activityElements = flowchartElement.GetProperty("activities").EnumerateArray();
         var connectionElements = flowchartElement.GetProperty("connections").EnumerateArray();
-        var activityDescriptors = _activityDescriptors;
 
         foreach (var activityElement in activityElements)
         {
-            var activityType = activityElement.GetProperty("type").GetString()!;
             var node = MapActivity(activityElement);
             graph.Nodes.Add(node);
         }
@@ -63,22 +62,20 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         var metadataElement = activityElement.GetProperty("metadata");
         var designerElement = metadataElement.GetProperty("designer");
         var positionElement = designerElement.GetProperty("position");
-        var x = positionElement.GetProperty("x").GetInt32();
-        var y = positionElement.GetProperty("y").GetInt32();
+        var x = positionElement.GetProperty("x").GetDouble();
+        var y = positionElement.GetProperty("y").GetDouble();
 
         var node = new X6Node
         {
             Id = activityId,
             Data = activityElement,
-            Width = 200,
-            Height = 50,
-            Shape = "elsa-activity",
-            X = x,
-            Y = y
+            Size = new X6Size(200, 50),
+            Position = new X6Position(x, y),
+            Shape = "elsa-activity"
         };
 
         // Create default input port.
-        node.Ports.Add(new X6Port
+        node.Ports.Items.Add(new X6Port
         {
             Id = "In",
             Group = "in",
@@ -87,7 +84,7 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         // Create output ports.
         foreach (var port in activityDescriptor.Ports)
         {
-            node.Ports.Add(new X6Port
+            node.Ports.Items.Add(new X6Port
             {
                 Id = port.Name,
                 Group = "out",
@@ -95,9 +92,9 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         }
 
         // If there is no output port, create a default one.
-        if (node.Ports.All(port => port.Group != "out"))
+        if (node.Ports.Items.All(port => port.Group != "out"))
         {
-            node.Ports.Add(new X6Port
+            node.Ports.Items.Add(new X6Port
             {
                 Id = "Done",
                 Group = "out",
@@ -105,5 +102,49 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         }
 
         return node;
+    }
+
+    public JsonElement MapX6Graph(X6Graph graph)
+    {
+        var activityElements = new JsonArray();
+        var connectionElements = new JsonArray();
+
+        foreach (var node in graph.Nodes)
+        {
+            var activityElement = JsonObject.Create(node.Data)!;
+            var metadataElement = activityElement["metadata"] ?? new JsonObject();
+            var designerElement = metadataElement["designer"] ?? new JsonObject();
+
+            designerElement["position"] = new JsonObject
+            {
+                ["x"] = node.Position.X,
+                ["y"] = node.Position.Y
+            };
+            
+            metadataElement["designer"] = designerElement;
+            activityElement["metadata"] = metadataElement;
+            
+            activityElements.Add(activityElement);
+        }
+        
+        foreach(var edge in graph.Edges)
+        {
+            var connectionElement = new JsonObject
+            {
+                ["source"] = edge.Source.Cell,
+                ["sourcePort"] = edge.Source.Port,
+                ["target"] = edge.Target.Cell,
+                ["targetPort"] = edge.Target.Port
+            };
+            connectionElements.Add(connectionElement);
+        }
+
+        var flowchartElement = new JsonObject
+        {
+            ["activities"] = activityElements,
+            ["connections"] = connectionElements
+        };
+        
+        return JsonSerializer.SerializeToElement(flowchartElement);
     }
 }

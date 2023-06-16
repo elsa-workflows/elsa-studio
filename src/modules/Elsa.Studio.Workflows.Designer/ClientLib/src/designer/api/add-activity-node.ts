@@ -6,11 +6,13 @@ export async function addActivityNode(graphId: string, node: Node.Properties) {
     const graph = graphs[graphId];
 
     // Convert the node coordinates from page to local.
-    const {x, y} = graph.pageToLocal(node.x, node.y);
-    
-    node.x = x;
-    node.y = y;
+    const {x, y} = graph.pageToLocal(node.position);
 
+    node.position = {x, y};
+    node.size = {width: 200, height: 50};
+
+    debugger;
+    
     // Add the node to the graph.
     graph.addNode(node);
 }

@@ -22,4 +22,11 @@ public interface IFlowchartMapper
     /// <returns>An X6Node.</returns>
     X6Node MapActivity(JsonElement activityElement);
     
+    /// <summary>
+    /// Maps an X6 graph to a Flowchart activity.
+    /// </summary>
+    /// <param name="graph">The X6 graph.</param>
+    /// <returns>A Flowchart activity.</returns>
+    JsonElement MapX6Graph(X6Graph graph);
+    
 }
