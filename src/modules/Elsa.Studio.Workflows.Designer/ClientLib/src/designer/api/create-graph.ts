@@ -22,8 +22,8 @@ export async function createGraph(containerId: string): Promise<string> {
             }
         },
         magnetThreshold: 0,
-        height: 1000,
-        width: 1000,
+        height: 2000,
+        width: 2000,
         panning: {
             enabled: true,
             modifiers: ['ctrl', 'meta'],
