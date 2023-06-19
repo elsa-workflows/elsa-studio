@@ -1,7 +1,6 @@
-using System.Text.Json;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -33,6 +32,6 @@ internal class DesignerJsInterop : JsInteropBase
         
     }
 
-    public async Task UpdateActivityNodeAsync(string elementId, JsonElement activity) =>
+    public async Task UpdateActivityNodeAsync(string elementId, Activity activity) =>
         await InvokeAsync(module => module.InvokeVoidAsync("updateActivityNode", elementId, activity));
 }

@@ -1,6 +1,7 @@
 @using System.Text.Json
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Core.Contracts
 @using Elsa.Studio.Workflows.Designer.Contracts
 @using Elsa.Studio.Workflows.Designer.Models
@@ -22,113 +23,12 @@
     </MudToolBar>
 </MudPaper>
 <div @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
-    @if (WorkflowDefinition != null)
-    {
-        <FlowchartDesigner @ref="_designer" Flowchart="@WorkflowDefinition.Root"></FlowchartDesigner>
+    @{
+        var rootActivity = WorkflowDefinition?.Root;
+
+        if (rootActivity is Flowchart flowchart)
+        {
+            <FlowchartDesigner @ref="@_designer" Flowchart="@flowchart"></FlowchartDesigner>
+        }
     }
 </div>
-
-@code {
-
-    private int _seed = 3;
-    private FlowchartDesigner _designer = default!;
-
-    [CascadingParameter]
-    public DragDropManager DragDropManager { get; set; } = default!;
-
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
-
-    [Inject]
-    private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-
-    void OnDragOver(DragEventArgs e)
-    {
-        if (DragDropManager.Payload is not ActivityDescriptor activityDescriptor)
-        {
-            e.DataTransfer.DropEffect = "none";
-            return;
-        }
-
-        e.DataTransfer.DropEffect = "move";
-    }
-
-    async Task OnDrop(DragEventArgs e)
-    {
-        if (DragDropManager.Payload is not ActivityDescriptor activityDescriptor)
-        {
-            return;
-        }
-
-        var x = e.PageX;
-        var y = e.PageY;
-        var newActivity = new
-        {
-            Id = activityDescriptor.TypeName + " " + _seed++,
-            Type = activityDescriptor.TypeName,
-            Metadata = new
-            {
-                Designer = new
-                {
-                    Position = new
-                    {
-                        X = x,
-                        Y = y
-                    }
-                }
-            }
-        };
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        var activityElement = JsonSerializer.SerializeToElement(newActivity, options);
-
-        await _designer.AddActivityAsync(activityElement);
-    }
-
-    private async Task OnZoomToFitClick() => await _designer.ZoomToFitAsync();
-    private async Task OnCenterContentClick() => await _designer.CenterContentAsync();
-
-    private async Task OnSaveClick()
-    {
-        var flowchart = await _designer.ReadFlowchartAsync();
-        var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
-
-        var saveRequest = new SaveWorkflowDefinitionRequest
-        {
-            Model = new WorkflowDefinitionModel
-            {
-                Id = workflowDefinition.Id,
-                Description = workflowDefinition.Description,
-                Name = workflowDefinition.Name,
-                Inputs = workflowDefinition.Inputs,
-                Options = workflowDefinition.Options,
-                Outcomes = workflowDefinition.Outcomes,
-                Outputs = workflowDefinition.Outputs,
-                Variables = workflowDefinition.Variables.Select(x => new VariableDefinition
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    TypeName = x.TypeName,
-                    Value = x.Value?.ToString(),
-                    IsArray = x.IsArray,
-                    StorageDriverTypeName = x.StorageDriverTypeName
-                }).ToList(),
-                Version = workflowDefinition.Version,
-                CreatedAt = workflowDefinition.CreatedAt,
-                CustomProperties = workflowDefinition.CustomProperties,
-                DefinitionId = workflowDefinition.DefinitionId,
-                IsLatest = workflowDefinition.IsLatest,
-                IsPublished = workflowDefinition.IsPublished,
-                Root = flowchart
-            },
-            Publish = false,
-        };
-
-        WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
-    }
-
-}

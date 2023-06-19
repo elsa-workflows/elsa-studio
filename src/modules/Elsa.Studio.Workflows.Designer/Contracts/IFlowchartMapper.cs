@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Contracts;
@@ -9,24 +9,24 @@ namespace Elsa.Studio.Workflows.Designer.Contracts;
 public interface IFlowchartMapper
 {
     /// <summary>
-    /// Maps a Flowchart activity to an X6Graph.
+    /// Maps a flowchart activity to an X6Graph.
     /// </summary>
-    /// <param name="flowchartElement">The Flowchart activity.</param>
+    /// <param name="flowchart">The flowchart activity.</param>
     /// <returns>An X6Graph.</returns>
-    X6Graph MapFlowchart(JsonElement flowchartElement);
+    X6Graph MapFlowchart(Flowchart flowchart);
     
     /// <summary>
     /// Maps an activity to an X6Node.
     /// </summary>
-    /// <param name="activityElement">The activity.</param>
+    /// <param name="activity">The activity.</param>
     /// <returns>An X6Node.</returns>
-    X6Node MapActivity(JsonElement activityElement);
+    X6Node MapActivity(Activity activity);
     
     /// <summary>
-    /// Maps an X6 graph to a Flowchart activity.
+    /// Maps an X6 graph to a flowchart activity.
     /// </summary>
     /// <param name="graph">The X6 graph.</param>
-    /// <returns>A Flowchart activity.</returns>
-    JsonElement MapX6Graph(X6Graph graph);
+    /// <returns>A flowchart activity.</returns>
+    Flowchart MapX6Graph(X6Graph graph);
     
 }

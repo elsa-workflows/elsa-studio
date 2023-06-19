@@ -1,8 +1,7 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
-using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Designer.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
@@ -16,24 +15,24 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         _activityDescriptors = activityDescriptors;
     }
 
-    public X6Graph MapFlowchart(JsonElement flowchartElement)
+    public X6Graph MapFlowchart(Flowchart flowchart)
     {
         var graph = new X6Graph();
-        var activityElements = flowchartElement.GetProperty("activities").EnumerateArray();
-        var connectionElements = flowchartElement.GetProperty("connections").EnumerateArray();
 
-        foreach (var activityElement in activityElements)
+        foreach (var activity in flowchart.Activities)
         {
-            var node = MapActivity(activityElement);
+            var node = MapActivity(activity);
             graph.Nodes.Add(node);
         }
 
-        foreach (var connectionElement in connectionElements)
+        foreach (var connection in flowchart.Connections)
         {
-            var sourceId = connectionElement.GetProperty("source").GetString()!;
-            var sourcePort = connectionElement.GetProperty("sourcePort").GetString()!;
-            var targetId = connectionElement.GetProperty("target").GetString()!;
-            var targetPort = connectionElement.GetProperty("targetPort").GetString()!;
+            var source = connection.Source;
+            var target = connection.Target;
+            var sourceId = source.ActivityId;
+            var sourcePort = source.Port ?? "Done";
+            var targetId = target.ActivityId;
+            var targetPort = target.Port ?? "In";
             var connector = new X6Edge
             {
                 Shape = "elsa-edge",
@@ -55,19 +54,18 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         return graph;
     }
 
-    public X6Node MapActivity(JsonElement activityElement)
+    public X6Node MapActivity(Activity activity)
     {
-        var activityType = activityElement.GetProperty("type").GetString()!;
+        var activityType = activity.Type;
         var activityDescriptor = _activityDescriptors[activityType];
-        var activityId = activityElement.GetProperty("id").GetString()!;
-        var metadataElement = activityElement.TryGetPropertySafe("metadata", out var metadataProp) ? metadataProp : default;
-        var designerElement = metadataElement.TryGetPropertySafe("designer", out var designerProp) ? designerProp : default;
-        var positionElement = designerElement.TryGetPropertySafe("position", out var positionProp) ? positionProp : default;
-        var sizeElement = designerElement.TryGetPropertySafe("size", out var sizeProp) ? sizeProp : default;
-        var x = positionElement.TryGetDoubleSafe("x", out var xProp) ? xProp : 0;
-        var y = positionElement.TryGetDoubleSafe("y", out var yProp) ? yProp : 0;
-        var width = sizeElement.TryGetDoubleSafe("width", out var widthProp) ? widthProp : 0;
-        var height = sizeElement.TryGetDoubleSafe("height", out var heightProp) ? heightProp : 0;
+        var activityId = activity.Id;
+        var designerMetadata = activity.GetDesignerMetadata();
+        var position = designerMetadata?.Position;
+        var size = designerMetadata?.Size;
+        var x = position?.X ?? 0;
+        var y = position?.Y ?? 0;
+        var width = size?.Width ?? 0;
+        var height = size?.Height ?? 0;
 
         if (width == 0) width = 200;
         if (height == 0) height = 50;
@@ -75,7 +73,7 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         var node = new X6Node
         {
             Id = activityId,
-            Data = activityElement,
+            Data = activity,
             Size = new X6Size(width, height),
             Position = new X6Position(x, y),
             Shape = "elsa-activity"
@@ -111,53 +109,48 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         return node;
     }
 
-    public JsonElement MapX6Graph(X6Graph graph)
+    public Flowchart MapX6Graph(X6Graph graph)
     {
-        var activityElements = new JsonArray();
-        var connectionElements = new JsonArray();
+        var activities = new List<Activity>();
+        var connections = new List<Connection>();
 
         foreach (var node in graph.Nodes)
         {
-            var activityElement = JsonObject.Create(node.Data)!;
-            var metadataElement = activityElement["metadata"] ?? new JsonObject();
-            var designerElement = metadataElement["designer"] ?? new JsonObject();
+            var activity = node.Data;
+            var designerMetadata = activity.GetDesignerMetadata();
 
-            designerElement["position"] = new JsonObject
+            designerMetadata.Position = new Position
             {
-                ["x"] = node.Position.X,
-                ["y"] = node.Position.Y
+                X = node.Position.X,
+                Y = node.Position.Y
             };
-
-            designerElement["size"] = new JsonObject
+            
+            designerMetadata.Size = new Size
             {
-                ["width"] = node.Size.Width,
-                ["height"] = node.Size.Height
+                Width = node.Size.Width,
+                Height = node.Size.Height
             };
-
-            metadataElement["designer"] = designerElement;
-            activityElement["metadata"] = metadataElement;
-
-            activityElements.Add(activityElement);
+            
+            activity.SetDesignerMetadata(designerMetadata);
+            activities.Add(activity);
         }
 
         foreach (var edge in graph.Edges)
         {
-            var connectionElement = new JsonObject
+            var connection = new Connection
             {
-                ["source"] = edge.Source.Cell,
-                ["sourcePort"] = edge.Source.Port,
-                ["target"] = edge.Target.Cell,
-                ["targetPort"] = edge.Target.Port
+                Source = new Endpoint(edge.Source.Cell, edge.Source.Port),
+                Target = new Endpoint(edge.Target.Cell, edge.Target.Port)
             };
-            connectionElements.Add(connectionElement);
+            connections.Add(connection);
         }
 
-        var flowchartElement = new JsonObject
+        var flowchart = new Flowchart
         {
-            ["activities"] = activityElements,
-            ["connections"] = connectionElements
+            Activities = activities,
+            Connections = connections
         };
 
-        return JsonSerializer.SerializeToElement(flowchartElement);
+        return flowchart;
     }
 }

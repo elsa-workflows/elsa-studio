@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Contracts;
@@ -26,7 +27,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
     };
 
-    [Parameter] public JsonElement Flowchart { get; set; }
+    [Parameter] public Flowchart Flowchart { get; set; } = default!;
 
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
@@ -39,7 +40,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         StateHasChanged();
     }
 
-    public async Task<JsonElement> ReadFlowchartAsync()
+    public async Task<Flowchart> ReadFlowchartAsync()
     {
         var serializerOptions = new JsonSerializerOptions
         {
@@ -52,18 +53,18 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
         var graph = new X6Graph(nodes, edges);
         var flowchartMapper = await GetFlowchartMapperAsync();
-        var graphJson = flowchartMapper.MapX6Graph(graph);
-        var activities = graphJson.GetProperty("activities");
-        var connections = graphJson.GetProperty("connections");
+        var exportedFlowchart = flowchartMapper.MapX6Graph(graph);
+        var activities = exportedFlowchart.Activities;
+        var connections = exportedFlowchart.Connections;
 
-        var flowchart = JsonObject.Create(Flowchart)!;
-        flowchart["activities"] = JsonArray.Create(activities);
-        flowchart["connections"] = JsonArray.Create(connections);
+        var flowchart = Flowchart;
+        flowchart.Activities = activities;
+        flowchart.Connections = connections;
 
-        return JsonSerializer.SerializeToElement(flowchart);
+        return flowchart;
     }
 
-    public async Task AddActivityAsync(JsonElement activity)
+    public async Task AddActivityAsync(Activity activity)
     {
         var flowchartMapper = await GetFlowchartMapperAsync();
         var node = flowchartMapper.MapActivity(activity);
@@ -76,7 +77,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         Dispose();
-        await _graphApi.DisposeGraphAsync();
+        
+        if(_graphApi != null!)
+            await _graphApi.DisposeGraphAsync();
     }
 
     public void Dispose()

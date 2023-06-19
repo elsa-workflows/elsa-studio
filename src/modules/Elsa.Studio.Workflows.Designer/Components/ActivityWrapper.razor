@@ -1,7 +1,3 @@
-@using Elsa.Studio.Workflows.Designer.Interop
-@using System.Text.Json
-@using Elsa.Studio.Workflows.Core.Contracts
-@using Elsa.Studio.Workflows.Designer.Extensions
 <MudPaper
     Class="pa-3"
     Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06)); height: 100%;"
@@ -12,45 +8,3 @@
     </MudStack>
 
 </MudPaper>
-
-@code
-{
-    private string _label = default!;
-
-    [Parameter]
-    public string? ElementId { get; set; }
-
-    [Parameter]
-    public string ActivityId { get; set; } = default!;
-
-    [Parameter]
-    public JsonElement ActivityModel { get; set; }
-
-    [Inject]
-    DesignerJsInterop DesignerInterop { get; set; } = default!;
-
-    [Inject]
-    IActivityRegistry ActivityRegistry { get; set; } = default!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var activityType = ActivityModel.GetProperty("type").GetString()!;
-        var descriptor = await ActivityRegistry.FindAsync(activityType);
-        
-        _label = descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
-        
-        // If the activity has a size, don't update it.
-        if (ActivityModel.TryGetPropertySafe(new[] { "metadata", "designer", "size" }, out var sizeProp))
-        {
-            if (sizeProp.TryGetDoubleSafe("width", out var width) && sizeProp.TryGetDoubleSafe("height", out var height))
-            {
-                if (width > 0 || height > 0)
-                    return;
-            }
-        }
-        
-        // Otherwise, update the activity node.
-        if (!string.IsNullOrEmpty(ElementId))
-            await DesignerInterop.UpdateActivityNodeAsync(ElementId, ActivityModel);
-    }
-}
