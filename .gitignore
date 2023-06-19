@@ -148,3 +148,5 @@ OpenCover/
 # Local History for Visual Studio
 .localhistory/
 src/modules/**/wwwroot/
+
+src/modules/Elsa.Studio.Workflows.Designer/ClientLib/package-lock.json

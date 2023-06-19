@@ -21,8 +21,4 @@
       <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="wwwroot\sample-data\weather.json" />
-    </ItemGroup>
-
 </Project>

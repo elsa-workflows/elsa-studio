@@ -6,7 +6,6 @@ using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Host.Server.HostedServices;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Designer.Extensions;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Host.Server.Services;
 using Elsa.Studio.Login.Extensions;
@@ -14,6 +13,7 @@ using Elsa.Studio.Secrets.Extensions;
 using Elsa.Studio.Security.Extensions;
 using Elsa.Studio.Services;
 using Elsa.Studio.Webhooks.Extensions;
+using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 
 // Build the host.

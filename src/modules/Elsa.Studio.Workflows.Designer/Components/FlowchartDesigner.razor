@@ -1,0 +1,16 @@
+﻿@using Elsa.Studio.Contracts
+@using Elsa.Studio.Workflows.Designer.Interop
+@using MudBlazor.Utilities
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using Elsa.Studio.Workflows.Core.Contracts
+@using Elsa.Studio.Workflows.Designer.Contracts
+@using Elsa.Studio.Workflows.Designer.Models
+@using Elsa.Studio.Workflows.Designer.Services
+
+<div style="width:100%; height:1000px;">
+    <div class="ma-2">
+        <MudBreadcrumbs Items="_activityPath" Style="padding: 6px;"></MudBreadcrumbs>
+    </div>
+    <div id="@_containerId" class="graph-container"></div>
+</div>
