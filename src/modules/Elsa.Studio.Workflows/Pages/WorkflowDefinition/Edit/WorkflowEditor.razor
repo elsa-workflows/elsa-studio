@@ -4,29 +4,13 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical">
     <RadzenSplitterPane Size="60%">
-        <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-            <MudToolBar Dense="true">
-                <MudTooltip Text="Zoom to fit the screen">
-                    <MudIconButton Icon="@Icons.Material.Outlined.FitScreen" Title="Zoom to fit" OnClick="OnZoomToFitClick"/>
-                </MudTooltip>
-                <MudTooltip Text="Center">
-                    <MudIconButton Icon="@Icons.Material.Filled.FilterCenterFocus" Title="Center" OnClick="OnCenterContentClick"/>
-                </MudTooltip>
-                <MudTooltip Text="Auto layout">
-                    <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesomeMosaic" Title="Auto layout"/>
-                </MudTooltip>
-                <MudTooltip Text="Save">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
-                </MudTooltip>
-            </MudToolBar>
-        </MudPaper>
-        <div @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
+        <div>
             @{
                 var rootActivity = WorkflowDefinition?.Root;
 
                 if (rootActivity is Flowchart flowchart)
                 {
-                    <FlowchartDesigner @ref="@_designer" Flowchart="@flowchart" OnActivitySelected="OnActivitySelected"></FlowchartDesigner>
+                    <FlowchartEditor @ref="FlowchartEditor" Flowchart="@flowchart" OnActivitySelected="@OnActivitySelected" OnSaveRequested="@OnSaveRequested"></FlowchartEditor>
                 }
             }
         </div>

@@ -2,8 +2,6 @@ import {Activity} from "../models";
 import {graphBindings} from "./graph-bindings";
 
 export async function updateActivity(graphId: string, activity: Activity) {
-    debugger;
-    
     // Get graph reference.
     const {graph} = graphBindings[graphId];
 

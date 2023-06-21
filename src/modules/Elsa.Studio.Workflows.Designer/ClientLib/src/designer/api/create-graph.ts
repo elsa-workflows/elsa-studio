@@ -6,6 +6,7 @@ import {Keyboard} from "@antv/x6-plugin-keyboard";
 import {Clipboard} from '@antv/x6-plugin-clipboard'
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
+import {Activity} from "../models";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef): Promise<string> {
     const containerElement = document.getElementById(containerId);
@@ -121,6 +122,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         })
     );
 
+    graph.on('blank:click', async () => await interop.raiseCanvasSelected());
+
     // Move the clicked node to the front. This helps when the user clicks on a node that is behind another node.
     graph.on('node:mousedown', ({node}) => {
         node.toFront();
@@ -153,7 +156,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     
     graph.on('node:selected', async e => {
         const node = e.node;
-        const activity = node.data;
+        const activity: Activity = node.data;
         await interop.raiseActivitySelected(activity);
     });
 

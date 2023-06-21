@@ -29,6 +29,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
     [Parameter] public EventCallback<Activity> OnActivitySelected { get; set; }
+    [Parameter] public EventCallback OnCanvasSelected { get; set; }
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -39,6 +40,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (OnActivitySelected.HasDelegate)
             await OnActivitySelected.InvokeAsync(activity);
+    }
+
+    [JSInvokable]
+    public async Task HandleCanvasSelected()
+    {
+        if (OnCanvasSelected.HasDelegate)
+            await OnCanvasSelected.InvokeAsync();
     }
 
     public async Task<Flowchart> ReadFlowchartAsync()
@@ -80,7 +88,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
-        
+
         Dispose();
     }
 

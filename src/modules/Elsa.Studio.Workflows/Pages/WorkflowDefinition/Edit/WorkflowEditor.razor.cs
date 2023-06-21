@@ -1,14 +1,10 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
-using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Models;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
 
@@ -16,58 +12,28 @@ using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.Workf
 
 public partial class WorkflowEditor
 {
-    private int _seed = 3;
-    private FlowchartDesigner _designer = default!;
+    private FlowchartEditor _flowchartEditor = default!;
+    private IDiagramEditor _diagramEditor = default!;
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
 
+    private FlowchartEditor FlowchartEditor
+    {
+        get => _flowchartEditor;
+        set
+        {
+            _flowchartEditor = value;
+            _diagramEditor = value;
+        }
+    }
+
     private Activity? SelectedActivity { get; set; }
 
-    void OnDragOver(DragEventArgs e)
+    private async Task SaveAsync(Activity root)
     {
-        if (DragDropManager.Payload is not ActivityDescriptor)
-        {
-            e.DataTransfer.DropEffect = "none";
-            return;
-        }
-
-        e.DataTransfer.DropEffect = "move";
-    }
-
-    async Task OnDrop(DragEventArgs e)
-    {
-        if (DragDropManager.Payload is not ActivityDescriptor activityDescriptor)
-        {
-            return;
-        }
-
-        var newActivityType = ActivityTypeService.ResolveType(activityDescriptor.TypeName);
-        var newActivity = (Activity)Activator.CreateInstance(newActivityType)!;
-
-        var x = e.PageX;
-        var y = e.PageY;
-
-        newActivity.Id = activityDescriptor.TypeName + " " + _seed++;
-        newActivity.Type = activityDescriptor.TypeName;
-        newActivity.Version = activityDescriptor.Version;
-
-        newActivity.SetDesignerMetadata(new ActivityDesignerMetadata
-        {
-            Position = new Position(x, y)
-        });
-
-        await _designer.AddActivityAsync(newActivity);
-    }
-
-    private async Task OnZoomToFitClick() => await _designer.ZoomToFitAsync();
-    private async Task OnCenterContentClick() => await _designer.CenterContentAsync();
-
-    private async Task OnSaveClick()
-    {
-        var flowchart = await _designer.ReadFlowchartAsync();
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
 
         var saveRequest = new SaveWorkflowDefinitionRequest
@@ -96,7 +62,7 @@ public partial class WorkflowEditor
                 DefinitionId = workflowDefinition.DefinitionId,
                 IsLatest = workflowDefinition.IsLatest,
                 IsPublished = workflowDefinition.IsPublished,
-                Root = flowchart
+                Root = root
             },
             Publish = false,
         };
@@ -111,6 +77,12 @@ public partial class WorkflowEditor
 
     private async Task OnSelectedActivityUpdated(Activity activity)
     {
-        await _designer.UpdateActivityAsync(activity);
+        await _diagramEditor.UpdateActivityAsync(activity);
+    }
+
+    private async Task OnSaveRequested()
+    {
+        var root = await _diagramEditor.ReadRootActivityAsync();
+        await SaveAsync(root);
     }
 }
