@@ -10,7 +10,7 @@ using Elsa.Studio.Workflows.Core.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties.Tabs;
 
 public partial class InputsTab
 {

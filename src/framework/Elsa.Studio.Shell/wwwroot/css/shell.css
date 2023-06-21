@@ -2,7 +2,37 @@
     height: 100%
 }
 
+/*****************************************************
+* Environment Picker
+******************************************************/
 .elsa-environment-picker .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
     padding-top: 11px;
     padding-bottom: 11px;
+}
+
+/*****************************************************
+* Expression Editor
+******************************************************/
+.studio-expression-input-menu-item .mud-list-item-icon {
+    min-width: 33px;
+}
+
+.studio-expression-input-monaco-editor {
+    height: 200px;
+}
+
+/*****************************************************
+* Monaco Editor
+******************************************************/
+.monaco-editor {
+    border-radius: 0.25rem;
+}
+
+.monaco-editor .overflow-guard {
+    border-radius: 0.25rem;
+}
+
+.monaco-editor .suggest-widget div.tree {
+    white-space: unset;
+    padding-bottom: 0;
 }

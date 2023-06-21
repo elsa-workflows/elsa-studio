@@ -1,0 +1,26 @@
+@using MudBlazor
+<div class="d-flex flex-grow-1 gap-4 align-content-start">
+    <div class="flex-1">
+        @if (ShowMonacoEditor)
+        {
+            <MudField Variant="Variant.Outlined" Label="Text" HelperText="The text to write" Margin="Margin.Dense">
+                <StandaloneCodeEditor Id="@MonacoEditorId" ConstructionOptions="ConfigureMonacoEditor" CssClass="studio-expression-input-monaco-editor" />
+            </MudField>
+        }
+        else
+        {
+            @ChildContent
+        }
+        
+    </div>
+    <div class="flex-none pt-1">
+        <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">
+            @foreach (var item in Syntaxes)
+            {
+                var isChecked = item == _selectedSyntax;
+                var iconColor = isChecked ? Color.Secondary : Color.Transparent;
+                <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelected(item))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item</MudMenuItem>
+            }
+        </MudMenu>
+    </div>
+</div>

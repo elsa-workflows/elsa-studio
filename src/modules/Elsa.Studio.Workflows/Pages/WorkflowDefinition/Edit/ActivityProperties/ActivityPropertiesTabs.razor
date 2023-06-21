@@ -1,4 +1,6 @@
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties.Tabs
 @using Variant = MudBlazor.Variant
+
 <div>
     @* <MudPaper Class="pa-4"> *@
     @*     <MudText Typo="Typo.subtitle1">@Activity?.Id</MudText> *@
@@ -10,16 +12,13 @@
         </MudTabPanel>
         <MudTabPanel Text="Output">
             <div class="pa-4">
-                <MudForm>
-                    <MudTextField T="string" Label="Text" Required="true" Variant="Variant.Outlined" HelperText="The text to write to the console."></MudTextField>
-                </MudForm>
+                <MudText>Output</MudText>
             </div>
         </MudTabPanel>
-        <MudTabPanel Text="Settings">
-            <MudText>Common properties</MudText>
-        </MudTabPanel>
-        <MudTabPanel Text="Advanced">
-            <MudText>Various settings</MudText>
+        <MudTabPanel Text="Common">
+            <div class="pa-4">
+                <MudText>Common</MudText>
+            </div>
         </MudTabPanel>
 
     </MudTabs>

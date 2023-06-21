@@ -2,22 +2,28 @@
 @using Elsa.Studio.Models
 @using Elsa.Api.Client.Expressions
 @using Elsa.Api.Client.Models
+@using Humanizer
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
     var description = inputDescriptor.Description;
     var inputValue = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString() ?? string.Empty;
+    var inputId = $"{EditorContext.Activity.Id}-{inputDescriptor.Name.Camelize()}";
 }
 
-<MudTextField
-    T="string"
-    Label="@displayName"
-    Variant="Variant.Outlined"
-    HelperText="@description"
-    Margin="Margin.Dense"
-    Value="@inputValue"
-    ValueChanged="HandleValueChanged"/>
+<ExpressionInput InputId="@inputId">
+    <ChildContent>
+        <MudTextField
+            T="string"
+            Label="@displayName"
+            Variant="Variant.Outlined"
+            HelperText="@description"
+            Margin="Margin.Dense"
+            Value="@inputValue"
+            ValueChanged="HandleValueChanged"/>
+    </ChildContent>
+</ExpressionInput>
 
 @code {
 
