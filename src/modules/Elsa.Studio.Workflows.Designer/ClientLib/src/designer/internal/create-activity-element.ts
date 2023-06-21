@@ -12,8 +12,6 @@ export function createActivityElement(activity: Activity, detached?: boolean): H
         activityElement.setAttribute("element-id", elementId);
     }
 
-    debugger;
-    
     (activityElement as any).activity = activity;
     activityElement.setAttribute("activity-id", activityId);
     

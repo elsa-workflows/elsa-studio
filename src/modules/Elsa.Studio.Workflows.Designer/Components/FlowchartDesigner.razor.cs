@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Activities;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Contracts;
@@ -20,7 +20,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private DotNetObjectReference<FlowchartDesigner>? _componentRef;
     private IFlowchartMapper? _flowchartMapper = default!;
     private X6GraphApi _graphApi = default!;
-    
+
     private List<BreadcrumbItem> _activityPath = new()
     {
         new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
@@ -28,16 +28,17 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     };
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
-
+    [Parameter] public EventCallback<Activity> OnActivitySelected { get; set; }
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IFlowchartMapperFactory FlowchartMapperFactory { get; set; } = default!;
-    
+
     [JSInvokable]
-    public void OnActivitySelected(JsonElement activity)
+    public async Task HandleActivitySelected(Activity activity)
     {
-        StateHasChanged();
+        if (OnActivitySelected.HasDelegate)
+            await OnActivitySelected.InvokeAsync(activity);
     }
 
     public async Task<Flowchart> ReadFlowchartAsync()
@@ -73,13 +74,14 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     public async Task ZoomToFitAsync() => await _graphApi.ZoomToFitAsync();
     public async Task CenterContentAsync() => await _graphApi.CenterContentAsync();
+    public async Task UpdateActivityAsync(Activity activity) => await _graphApi.UpdateActivityAsync(activity);
 
     public async ValueTask DisposeAsync()
     {
-        Dispose();
-        
-        if(_graphApi != null!)
+        if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
+        
+        Dispose();
     }
 
     public void Dispose()
@@ -105,7 +107,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             await _graphApi.LoadGraphAsync(graph);
         }
     }
-    
+
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await FlowchartMapperFactory.CreateAsync();
 
     /// <summary>

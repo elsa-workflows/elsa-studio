@@ -25,7 +25,9 @@ public interface IThemeService
     /// <summary>
     /// Returns the current palette, depending on whether the dashboard is in dark mode.
     /// </summary>
+#pragma warning disable CS0618
     Palette CurrentPalette => IsDarkMode ? CurrentTheme.PaletteDark : CurrentTheme.Palette;
+#pragma warning restore CS0618
 
     /// <summary>
     /// Whether the dashboard is in dark mode.

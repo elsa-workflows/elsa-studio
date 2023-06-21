@@ -1,5 +1,5 @@
+using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Shared.Models;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.List;

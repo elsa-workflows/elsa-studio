@@ -152,7 +152,6 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
     
     graph.on('node:selected', async e => {
-        debugger;
         const node = e.node;
         const activity = node.data;
         await interop.raiseActivitySelected(activity);

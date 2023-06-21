@@ -1,5 +1,7 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Services;
+using Elsa.Studio.UIHintHandlers.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Core.Extensions;
 using Elsa.Studio.Workflows.Menu;
@@ -14,6 +16,8 @@ public static class ServiceCollectionExtensions
         return services
             .AddSingleton<IModule, Module>()
             .AddSingleton<IMenuProvider, WorkflowsMenu>()
+            .AddSingleton<IUIHintService, DefaultUIHintService>()
+            .AddDefaultUIHintHandlers()
             .AddActivityTypeService()
             .AddWorkflowsCore()
             .AddWorkflowsDesigner();

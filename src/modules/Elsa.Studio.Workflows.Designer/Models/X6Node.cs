@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Activities;
 
 namespace Elsa.Studio.Workflows.Designer.Models;
 

@@ -1,5 +1,6 @@
+using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Models;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Microsoft.AspNetCore.Components;

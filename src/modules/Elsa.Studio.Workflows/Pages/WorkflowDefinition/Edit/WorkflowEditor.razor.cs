@@ -1,18 +1,14 @@
-using System.Text.Json;
+using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
-using Elsa.Studio.Workflows.Designer.Contracts;
-using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
 
@@ -24,11 +20,11 @@ public partial class WorkflowEditor
     private FlowchartDesigner _designer = default!;
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
-
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+
+    private Activity? SelectedActivity { get; set; }
 
     void OnDragOver(DragEventArgs e)
     {
@@ -106,5 +102,15 @@ public partial class WorkflowEditor
         };
 
         WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
+    }
+
+    private void OnActivitySelected(Activity activity)
+    {
+        SelectedActivity = activity;
+    }
+
+    private async Task OnSelectedActivityUpdated(Activity activity)
+    {
+        await _designer.UpdateActivityAsync(activity);
     }
 }

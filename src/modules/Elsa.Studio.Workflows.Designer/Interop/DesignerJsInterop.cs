@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Activities;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Services;
 using Microsoft.JSInterop;
@@ -10,8 +10,11 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// </summary>
 internal class DesignerJsInterop : JsInteropBase
 {
-    public DesignerJsInterop(IJSRuntime jsRuntime) : base(jsRuntime)
+    private readonly IServiceProvider _serviceProvider;
+
+    public DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : base(jsRuntime)
     {
+        _serviceProvider = serviceProvider;
     }
 
     protected override string ModuleName => "designer";
@@ -27,7 +30,7 @@ internal class DesignerJsInterop : JsInteropBase
         return await InvokeAsync(async module =>
         {
             await module.InvokeAsync<string>("createGraph", containerId, componentRef);
-            return new X6GraphApi(module, containerId);
+            return new X6GraphApi(module, _serviceProvider, containerId);
         });
         
     }

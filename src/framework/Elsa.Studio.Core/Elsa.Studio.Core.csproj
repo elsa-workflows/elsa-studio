@@ -21,4 +21,8 @@
       </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj" />
+    </ItemGroup>
+
 </Project>

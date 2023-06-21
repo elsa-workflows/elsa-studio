@@ -1,0 +1,14 @@
+@using Variant = MudBlazor.Variant
+<div class="pa-4">
+    <MudForm>
+        @{
+            var activity = Activity;
+            var activityDescriptor = ActivityDescriptor;
+            var inputDisplayModels = activity != null && activityDescriptor != null ? BuildInputEditorModels(activity, activityDescriptor, InputDescriptors).ToList() : new List<ActivityInputDisplayModel>();
+        }
+        @foreach (var inputModel in inputDisplayModels)
+        {
+            @inputModel.Editor
+        }
+    </MudForm>
+</div>

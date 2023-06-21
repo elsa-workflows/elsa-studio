@@ -8,7 +8,6 @@ export class DotNetFlowchartDesigner {
     /// Raises the <see cref="ActivitySelected"/> event.
     /// </summary>
     async raiseActivitySelected(activity: any) : Promise<void> {
-        debugger;
-        await this.componentRef.invokeMethodAsync('OnActivitySelected', activity);
+        await this.componentRef.invokeMethodAsync('HandleActivitySelected', activity);
     }
 }
