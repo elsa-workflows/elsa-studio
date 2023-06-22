@@ -23,7 +23,7 @@ public partial class ExpressionInput
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
     private IEnumerable<string> SupportedSyntaxes => SyntaxService.ListSyntaxes();
-    private string? SelectedSyntax => EditorContext.SyntaxProvider?.SyntaxName;
+    private string? SelectedSyntax => EditorContext.SyntaxProvider?.SyntaxName ?? DefaultSyntax;
     private string? SelectedLanguage => (EditorContext.SyntaxProvider as IMonacoSyntaxProvider)?.Language;
     private string? ButtonIcon => _selectedSyntax == DefaultSyntax ? Icons.Material.Filled.MoreVert : default;
     private string? ButtonLabel => _selectedSyntax == DefaultSyntax ? default : _selectedSyntax;
@@ -40,19 +40,14 @@ public partial class ExpressionInput
     {
         _selectedSyntax = SelectedSyntax ?? DefaultSyntax;
         _monacoLanguage = SelectedLanguage ?? "javascript";
-        
+
         if (_isMonacoInitialized)
         {
-            if (!_isInternalContentChange)
-            {
-                _isInternalContentChange = true;
-                var model = await _monacoEditor!.GetModel();
-                
-                await model.SetValue(InputValue);
-                _isInternalContentChange = false;
-                
-                await Global.SetModelLanguage(model, _monacoLanguage);
-            }
+            _isInternalContentChange = true;
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(InputValue);
+            _isInternalContentChange = false;
+            await Global.SetModelLanguage(model, _monacoLanguage);
         }
     }
 
