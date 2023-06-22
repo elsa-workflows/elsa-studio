@@ -11,4 +11,4 @@ public record DisplayInputEditorContext(Activity Activity,
     InputDescriptor InputDescriptor,
     ActivityInput? Value,
     ISyntaxProvider? SyntaxProvider,
-    EventCallback<ActivityInput> OnValueChanged);
+    Action<ActivityInput>? OnValueChanged);

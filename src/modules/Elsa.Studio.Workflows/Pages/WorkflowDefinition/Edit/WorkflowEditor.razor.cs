@@ -3,6 +3,7 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
 using Microsoft.AspNetCore.Components;
 
@@ -30,7 +31,8 @@ public partial class WorkflowEditor
         }
     }
 
-    private Activity? SelectedActivity { get; set; }
+    //private Activity? SelectedActivity { get; set; }
+    private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
 
     private async Task SaveAsync(Activity root)
     {
@@ -72,10 +74,11 @@ public partial class WorkflowEditor
 
     private void OnActivitySelected(Activity activity)
     {
-        SelectedActivity = activity;
+        //SelectedActivity = activity;
+        ActivityPropertiesTab?.SetActivity(activity);
     }
 
-    private async Task OnSelectedActivityUpdated(Activity activity)
+    private async void OnSelectedActivityUpdated(Activity activity)
     {
         await _diagramEditor.UpdateActivityAsync(activity);
     }

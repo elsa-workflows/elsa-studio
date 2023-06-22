@@ -1,9 +1,7 @@
 <div class="pa-4">
     <MudForm>
         @{
-            var activity = Activity;
-            var activityDescriptor = ActivityDescriptor;
-            var inputDisplayModels = activity != null && activityDescriptor != null ? BuildInputEditorModels(activity, activityDescriptor, InputDescriptors).ToList() : new List<ActivityInputDisplayModel>();
+            var inputDisplayModels = InputDisplayModels;
         }
         @foreach (var inputModel in inputDisplayModels)
         {

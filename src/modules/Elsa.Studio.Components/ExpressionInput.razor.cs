@@ -58,27 +58,6 @@ public partial class ExpressionInput
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // if (_isMonacoInitialized)
-        // {
-        //     if(_monacoEditor!.Id == MonacoEditorId)
-        //     {
-        //         if (!_isInternalContentChange)
-        //         {
-        //             _isInternalContentChange = true;
-        //             var model = await _monacoEditor.GetModel();
-        //             await model.SetValue(InputValue);
-        //             _isInternalContentChange = false;
-        //         }
-        //     }
-        //     else
-        //     {
-        //         StateHasChanged();
-        //     }
-        // }
-    }
-
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
         return new StandaloneEditorConstructionOptions
@@ -129,11 +108,11 @@ public partial class ExpressionInput
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var value = await _monacoEditor!.GetValue();
 
-        if (EditorContext.OnValueChanged.HasDelegate)
+        if (EditorContext.OnValueChanged !=null)
         {
             var input = EditorContext.Value ?? new ActivityInput();
             input.Expression = syntaxProvider.CreateExpression(value);
-            await EditorContext.OnValueChanged.InvokeAsync(input);
+            EditorContext.OnValueChanged(input);
         }
     }
 

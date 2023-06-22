@@ -8,7 +8,7 @@
     @* </MudPaper> *@
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
         <MudTabPanel Text="Input">
-            <InputsTab Activity="Activity" OnActivityUpdated="OnActivityUpdated"></InputsTab>
+            <InputsTab @ref="@InputsTab" OnActivityUpdated="OnActivityUpdated"></InputsTab>
         </MudTabPanel>
         <MudTabPanel Text="Output">
             <div class="pa-4">
