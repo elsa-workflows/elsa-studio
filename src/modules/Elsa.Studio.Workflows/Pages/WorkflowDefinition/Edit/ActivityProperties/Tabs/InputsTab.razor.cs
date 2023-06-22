@@ -14,9 +14,8 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties
 
 public partial class InputsTab
 {
-    //[Parameter] public Activity? Activity { get; set; }
+    [Parameter] public Activity? Activity { get; set; }
     [Parameter] public Action<Activity>? OnActivityUpdated { get; set; }
-    private Activity? Activity { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
@@ -26,32 +25,19 @@ public partial class InputsTab
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
-    public async Task SetActivity(Activity activity)
+    protected override async Task OnParametersSetAsync()
     {
-        Activity = activity;
-        ActivityDescriptor = await ActivityRegistry.FindAsync(Activity.Type);
-
-        if (ActivityDescriptor == null)
+        if (Activity == null)
             return;
 
+        ActivityDescriptor = await ActivityRegistry.FindAsync(Activity.Type);
+        
+        if (ActivityDescriptor == null)
+            return;
+        
         InputDescriptors = ActivityDescriptor.Inputs;
         OutputDescriptors = ActivityDescriptor.Outputs;
         InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
-    }
-    
-    protected override async Task OnParametersSetAsync()
-    {
-        // if (Activity == null)
-        //     return;
-
-        // ActivityDescriptor = await ActivityRegistry.FindAsync(Activity.Type);
-        //
-        // if (ActivityDescriptor == null)
-        //     return;
-        //
-        // InputDescriptors = ActivityDescriptor.Inputs;
-        // OutputDescriptors = ActivityDescriptor.Outputs;
-        // InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
     }
 
     private IEnumerable<ActivityInputDisplayModel> BuildInputEditorModels(Activity activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
@@ -64,7 +50,6 @@ public partial class InputsTab
             var value = activity.TryGetValue(inputName);
             var activityInput = ToActivityInput(value);
             var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
-            //var valueChangedCallback = EventCallback.Factory.Create<ActivityInput>(this, v => HandleValueChangedAsync(activity, inputDescriptor, v));
             var context = new DisplayInputEditorContext(activity, activityDescriptor, inputDescriptor, activityInput, syntaxProvider, v => HandleValueChangedAsync(activity, inputDescriptor, v));
             var editor = UIHintService.DisplayInputEditor(context);
             models.Add(new ActivityInputDisplayModel(editor));

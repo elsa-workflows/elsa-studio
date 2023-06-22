@@ -16,6 +16,6 @@
         </div>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="40%">
-        <ActivityPropertiesTabs @ref="ActivityPropertiesTab" OnActivityUpdated="OnSelectedActivityUpdated"/>
+        <ActivityPropertiesTabs @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

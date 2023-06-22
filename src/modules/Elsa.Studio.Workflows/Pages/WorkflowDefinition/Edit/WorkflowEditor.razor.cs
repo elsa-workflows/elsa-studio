@@ -31,7 +31,7 @@ public partial class WorkflowEditor
         }
     }
 
-    //private Activity? SelectedActivity { get; set; }
+    private Activity? SelectedActivity { get; set; }
     private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
 
     private async Task SaveAsync(Activity root)
@@ -74,8 +74,7 @@ public partial class WorkflowEditor
 
     private void OnActivitySelected(Activity activity)
     {
-        //SelectedActivity = activity;
-        ActivityPropertiesTab?.SetActivity(activity);
+        SelectedActivity = activity;
     }
 
     private async void OnSelectedActivityUpdated(Activity activity)
