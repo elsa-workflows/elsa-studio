@@ -32,8 +32,6 @@ public partial class ExpressionInput
     private string? ButtonEndIcon => _selectedSyntax == DefaultSyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => _selectedSyntax == DefaultSyntax ? default : Color.Secondary;
     private bool ShowMonacoEditor => _selectedSyntax != DefaultSyntax;
-    private string InputId => $"{EditorContext.Activity.Id.Camelize()}-{EditorContext.InputDescriptor.Name.Camelize()}";
-    private string MonacoEditorId => $"{InputId}-monaco-editor";
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.Value?.Expression.ToString() ?? string.Empty;
@@ -108,27 +106,13 @@ public partial class ExpressionInput
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var value = await _monacoEditor!.GetValue();
 
-        if (EditorContext.OnValueChanged !=null)
-        {
-            var input = EditorContext.Value ?? new ActivityInput();
-            input.Expression = syntaxProvider.CreateExpression(value);
-            EditorContext.OnValueChanged(input);
-        }
+        var input = EditorContext.Value ?? new ActivityInput();
+        input.Expression = syntaxProvider.CreateExpression(value);
+        await EditorContext.OnValueChanged(input);
     }
 
     private void OnMonacoInitialized()
     {
         _isMonacoInitialized = true;
-    }
-
-    private async Task OnMonacoConfigChanged(ConfigurationChangedEvent arg)
-    {
-        // _isInternalContentChange = true;
-        // await _monacoEditor!.SetValue(InputValue);
-        // _isInternalContentChange = false;
-    }
-
-    private async Task OnMonacoModelChanged(ModelChangedEvent arg)
-    {
     }
 }

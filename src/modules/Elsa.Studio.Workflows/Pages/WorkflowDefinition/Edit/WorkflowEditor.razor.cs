@@ -77,7 +77,7 @@ public partial class WorkflowEditor
         SelectedActivity = activity;
     }
 
-    private async void OnSelectedActivityUpdated(Activity activity)
+    private async Task OnSelectedActivityUpdated(Activity activity)
     {
         await _diagramEditor.UpdateActivityAsync(activity);
     }

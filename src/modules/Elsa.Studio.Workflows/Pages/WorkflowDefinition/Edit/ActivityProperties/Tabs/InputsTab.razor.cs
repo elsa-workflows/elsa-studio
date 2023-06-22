@@ -15,7 +15,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties
 public partial class InputsTab
 {
     [Parameter] public Activity? Activity { get; set; }
-    [Parameter] public Action<Activity>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
@@ -69,10 +69,11 @@ public partial class InputsTab
         return value.ConvertTo<ActivityInput>(converterOptions);
     }
 
-    private async void HandleValueChangedAsync(Activity activity, InputDescriptor inputDescriptor, ActivityInput activityInput)
+    private async Task HandleValueChangedAsync(Activity activity, InputDescriptor inputDescriptor, ActivityInput activityInput)
     {
         activity[inputDescriptor.Name.Camelize()] = activityInput;
 
-        OnActivityUpdated?.Invoke(activity);
+        if(OnActivityUpdated != null)
+            await OnActivityUpdated(activity);
     }
 }

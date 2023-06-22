@@ -7,7 +7,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties
 public partial class ActivityPropertiesTabs
 {
     [Parameter] public Activity? Activity { get; set; }
-    [Parameter] public Action<Activity>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
     
     private InputsTab? InputsTab { get; set; }
 }

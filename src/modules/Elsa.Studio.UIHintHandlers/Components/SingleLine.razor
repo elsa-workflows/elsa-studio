@@ -32,7 +32,8 @@
     {
         var input = EditorContext.Value ?? new ActivityInput();
         input.Expression = new LiteralExpression(newValue);
-        EditorContext.OnValueChanged?.Invoke(input);
+        
+        await EditorContext.OnValueChanged(input);
     }
 
 }
