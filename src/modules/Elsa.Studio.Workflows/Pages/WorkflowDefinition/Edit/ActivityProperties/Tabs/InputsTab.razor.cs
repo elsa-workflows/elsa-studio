@@ -18,6 +18,7 @@ public partial class InputsTab
     [Parameter] public EventCallback<Activity> OnActivityUpdated { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
+    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
@@ -48,8 +49,9 @@ public partial class InputsTab
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.TryGetValue(inputName);
             var activityInput = ToActivityInput(value);
+            var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
             var valueChangedCallback = EventCallback.Factory.Create<ActivityInput>(this, v => HandleValueChangedAsync(activity, inputDescriptor, v));
-            var context = new DisplayInputEditorContext(activity, activityDescriptor, inputDescriptor, activityInput, valueChangedCallback);
+            var context = new DisplayInputEditorContext(activity, activityDescriptor, inputDescriptor, activityInput, syntaxProvider, valueChangedCallback);
             var editor = UIHintService.DisplayInputEditor(context);
             models.Add(new ActivityInputDisplayModel(editor));
         }

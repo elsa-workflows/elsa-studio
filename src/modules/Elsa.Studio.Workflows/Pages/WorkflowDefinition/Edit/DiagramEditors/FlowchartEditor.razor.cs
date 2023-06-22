@@ -40,7 +40,7 @@ public partial class FlowchartEditor
     {
         while (true)
         {
-            var nextId = $"{activityTypeName} {GetNextNumber(activityTypeName)}";
+            var nextId = $"{activityTypeName}{GetNextNumber(activityTypeName)}";
             if (!GetIdExists(nextId))
                 return nextId;
         }
@@ -51,7 +51,7 @@ public partial class FlowchartEditor
         var newActivityType = ActivityTypeService.ResolveType(activityDescriptor.TypeName);
         var newActivity = (Activity)Activator.CreateInstance(newActivityType)!;
 
-        newActivity.Id = GenerateNextId(activityDescriptor.TypeName);
+        newActivity.Id = GenerateNextId(activityDescriptor.Name);
         newActivity.Type = activityDescriptor.TypeName;
         newActivity.Version = activityDescriptor.Version;
 

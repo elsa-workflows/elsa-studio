@@ -3,8 +3,15 @@
     <div class="flex-1">
         @if (ShowMonacoEditor)
         {
-            <MudField Variant="Variant.Outlined" Label="Text" HelperText="The text to write" Margin="Margin.Dense">
-                <StandaloneCodeEditor Id="@MonacoEditorId" ConstructionOptions="ConfigureMonacoEditor" CssClass="studio-expression-input-monaco-editor" />
+            <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense">
+                <StandaloneCodeEditor 
+                    @ref="_monacoEditor"
+                    ConstructionOptions="ConfigureMonacoEditor" 
+                    CssClass="studio-expression-input-monaco-editor"
+                    OnDidInit="OnMonacoInitialized"
+                    OnDidChangeModel="OnMonacoModelChanged"
+                    OnDidChangeConfiguration="OnMonacoConfigChanged"
+                    OnDidChangeModelContent="OnMonacoContentChanged" />
             </MudField>
         }
         else
@@ -15,7 +22,7 @@
     </div>
     <div class="flex-none pt-1">
         <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">
-            @foreach (var item in Syntaxes)
+            @foreach (var item in SupportedSyntaxes)
             {
                 var isChecked = item == _selectedSyntax;
                 var iconColor = isChecked ? Color.Secondary : Color.Transparent;
