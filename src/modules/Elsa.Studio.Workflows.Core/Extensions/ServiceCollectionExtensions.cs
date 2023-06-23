@@ -8,8 +8,18 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
-        return services
+        services
             .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
-            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>();
+            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
+            .AddSingleton<IDiagramEditorService, DefaultDiagramEditorService>()
+            ;
+        
+        return services;
+    }
+    
+    public static IServiceCollection AddDiagramEditorProvider<T>(this IServiceCollection services) where T : class, IDiagramEditorProvider
+    {
+        services.AddSingleton<IDiagramEditorProvider, T>();
+        return services;
     }
 }

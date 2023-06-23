@@ -3,19 +3,18 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
+namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
 
-public partial class FlowchartEditor : IDiagramEditor
+public partial class FlowchartEditor // : IDiagramEditor, IDiagramEditorToolboxProvider
 {
     private FlowchartDesigner _designer = default!;
 
-    [Parameter] public Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public Api.Client.Activities.Flowchart Flowchart { get; set; } = default!;
     [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
     [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;

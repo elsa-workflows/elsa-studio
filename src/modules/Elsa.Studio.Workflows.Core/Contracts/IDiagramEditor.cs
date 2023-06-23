@@ -6,10 +6,10 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 /// <summary>
 /// Represents a diagram editor.
 /// </summary>
-public interface IDiagramEditor : IComponent
+public interface IDiagramEditor
 {
     /// <summary>
-    /// Updates the specified activity in the diagram.
+    /// Updates the specified activity in the diagram. This is used to update the diagram when an activity is updated in the activity editor.
     /// </summary>
     /// <param name="activity">The activity to update.</param>
     Task UpdateActivityAsync(Activity activity);
@@ -18,4 +18,11 @@ public interface IDiagramEditor : IComponent
     /// Reads the root activity from the diagram.
     /// </summary>
     Task<Activity> ReadRootActivityAsync();
+    
+    /// <summary>
+    /// Display the editor.
+    /// </summary>
+    RenderFragment Display(DisplayContext context);
 }
+
+public record DisplayContext(Activity Activity, Func<Activity, Task> ActivitySelectedCallback, Func<Task> GraphUpdatedCallback);

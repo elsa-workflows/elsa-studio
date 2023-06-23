@@ -5,7 +5,6 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using ThrottleDebounce;
@@ -17,8 +16,7 @@ using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.Workf
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
-    private FlowchartEditor _flowchartEditor = default!;
-    private IDiagramEditor _diagramEditor = default!;
+    private IDiagramEditor? _diagramEditor;
     private bool _autoSave = true;
     private bool _isSaving;
 
@@ -31,20 +29,19 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    [Inject] private IDiagramEditorService DiagramEditorService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-
-    private FlowchartEditor FlowchartEditor
-    {
-        get => _flowchartEditor;
-        set
-        {
-            _flowchartEditor = value;
-            _diagramEditor = value;
-        }
-    }
-
+    
     private Activity? SelectedActivity { get; set; }
     private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if(WorkflowDefinition?.Root == null)
+            return;
+
+        _diagramEditor = DiagramEditorService.GetDiagramEditor(WorkflowDefinition.Root);
+    }
 
     private async Task SaveAsync(Activity root)
     {
@@ -93,7 +90,7 @@ public partial class WorkflowEditor
 
     private async Task OnSelectedActivityUpdated(Activity activity)
     {
-        await _diagramEditor.UpdateActivityAsync(activity);
+        await _diagramEditor!.UpdateActivityAsync(activity);
     }
 
     private async Task OnSaveClick()
@@ -117,7 +114,7 @@ public partial class WorkflowEditor
             _isSaving = true;
             StateHasChanged();
 
-            var root = await _diagramEditor.ReadRootActivityAsync();
+            var root = await _diagramEditor!.ReadRootActivityAsync();
             await SaveAsync(root);
 
             _isSaving = false;

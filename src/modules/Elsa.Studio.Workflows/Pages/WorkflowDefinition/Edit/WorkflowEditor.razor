@@ -1,21 +1,21 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 @using Orientation = Radzen.Orientation
-@using Elsa.Api.Client.Activities
+@using Elsa.Studio.Workflows.Core.Contracts
 
 <RadzenSplitter Orientation="Orientation.Vertical">
     <RadzenSplitterPane Size="60%">
         <div>
             <MudPaper Class="ma-2" Elevation="0" Outlined="true">
                 <MudToolBar Dense="true">
-                    <MudTooltip Text="Zoom to fit the screen">
-                        <MudIconButton Icon="@Icons.Material.Outlined.FitScreen" Title="Zoom to fit" />
-                    </MudTooltip>
-                    <MudTooltip Text="Center">
-                        <MudIconButton Icon="@Icons.Material.Filled.FilterCenterFocus" Title="Center" />
-                    </MudTooltip>
-                    <MudTooltip Text="Auto layout">
-                        <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesomeMosaic" Title="Auto layout"/>
-                    </MudTooltip>
+                    @{
+                        if (_diagramEditor is IDiagramEditorToolboxProvider toolboxProvider)
+                        {
+                            foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                            {
+                                @toolboxComponent
+                            }
+                        }
+                    }
                     <MudSpacer></MudSpacer>
                     <MudSwitch @bind-Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start"/>
                     <MudTooltip Text="Save">
@@ -24,14 +24,7 @@
                 </MudToolBar>
             </MudPaper>
             <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
-            @{
-                var rootActivity = WorkflowDefinition?.Root;
-
-                if (rootActivity is Flowchart flowchart)
-                {
-                    <FlowchartEditor @ref="FlowchartEditor" Flowchart="@flowchart" OnActivitySelected="@OnActivitySelected" OnGraphUpdated="@OnGraphUpdated"></FlowchartEditor>
-                }
-            }
+            @_diagramEditor?.Display(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated));
         </div>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="40%">
