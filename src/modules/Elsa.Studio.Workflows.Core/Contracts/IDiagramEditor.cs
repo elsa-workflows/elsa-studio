@@ -9,11 +9,6 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 public interface IDiagramEditor : IComponent
 {
     /// <summary>
-    /// Invoked when the user requests to save the workflow.
-    /// </summary>
-    EventCallback OnSaveRequested { get; set; }
-    
-    /// <summary>
     /// Updates the specified activity in the diagram.
     /// </summary>
     /// <param name="activity">The activity to update.</param>

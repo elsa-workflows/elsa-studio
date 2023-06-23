@@ -1,28 +1,3 @@
-@using Elsa.Api.Client.Activities
-@using Elsa.Api.Client.Contracts
-@using Elsa.Api.Client.Extensions
-@using Elsa.Api.Client.Models
-@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
-@using Elsa.Studio.Workflows.Core.Contracts;
-@using Elsa.Studio.Workflows.Models
-@implements IDiagramEditor
-
-<MudPaper Class="ma-2" Elevation="0" Outlined="true">
-    <MudToolBar Dense="true">
-        <MudTooltip Text="Zoom to fit the screen">
-            <MudIconButton Icon="@Icons.Material.Outlined.FitScreen" Title="Zoom to fit" OnClick="OnZoomToFitClick"/>
-        </MudTooltip>
-        <MudTooltip Text="Center">
-            <MudIconButton Icon="@Icons.Material.Filled.FilterCenterFocus" Title="Center" OnClick="OnCenterContentClick"/>
-        </MudTooltip>
-        <MudTooltip Text="Auto layout">
-            <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesomeMosaic" Title="Auto layout"/>
-        </MudTooltip>
-        <MudTooltip Text="Save">
-            <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
-        </MudTooltip>
-    </MudToolBar>
-</MudPaper>
 <div @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
-    <FlowchartDesigner @ref="@_designer" Flowchart="@Flowchart" OnActivitySelected="@OnActivitySelected" OnCanvasSelected="@OnCanvasSelected"></FlowchartDesigner>
+    <FlowchartDesigner @ref="@_designer" Flowchart="@Flowchart" OnActivitySelected="@OnActivitySelected" OnCanvasSelected="@OnCanvasSelected" OnGraphUpdated="@OnGraphUpdated"></FlowchartDesigner>
 </div>

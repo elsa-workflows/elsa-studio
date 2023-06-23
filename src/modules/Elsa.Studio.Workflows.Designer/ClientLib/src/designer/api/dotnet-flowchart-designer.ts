@@ -18,4 +18,11 @@ export class DotNetFlowchartDesigner {
     async raiseCanvasSelected() : Promise<void> {
         await this.componentRef.invokeMethodAsync('HandleCanvasSelected');
     }
+
+    /// <summary>
+    /// Raises the <see cref="GraphUpdated"/> event.
+    /// </summary>
+    async raiseGraphUpdated() : Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandleGraphUpdated');
+    }
 }

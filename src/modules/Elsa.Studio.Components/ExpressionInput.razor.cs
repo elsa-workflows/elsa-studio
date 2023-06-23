@@ -2,6 +2,7 @@ using BlazorMonaco.Editor;
 using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -123,31 +124,11 @@ public partial class ExpressionInput : IDisposable
         await ThrottleValueChangedCallback(input);
     }
 
-    private async Task ThrottleValueChangedCallback(ActivityInput input)
-    {
-        var task = _throttledValueChanged.Invoke(input);
+    private async Task ThrottleValueChangedCallback(ActivityInput input) => await _throttledValueChanged.InvokeAsync(input);
+    private async Task InvokeValueChangedCallback(ActivityInput input) => await EditorContext.OnValueChanged(input);
 
-        if (task != null)
-            await task;
-    }
+    private void OnMonacoInitialized() => _isMonacoInitialized = true;
+    private void OnMonacoDisposed() => _isMonacoInitialized = false;
 
-    private async Task InvokeValueChangedCallback(ActivityInput input)
-    {
-        await EditorContext.OnValueChanged(input);
-    }
-
-    private void OnMonacoInitialized()
-    {
-        _isMonacoInitialized = true;
-    }
-    
-    private void OnMonacoDisposed()
-    {
-        _isMonacoInitialized = false;
-    }
-
-    public void Dispose()
-    {
-        _throttledValueChanged.Dispose();
-    }
+    public void Dispose() => _throttledValueChanged.Dispose();
 }

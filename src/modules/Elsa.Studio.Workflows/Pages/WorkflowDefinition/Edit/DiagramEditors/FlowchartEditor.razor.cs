@@ -3,6 +3,7 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
@@ -10,13 +11,13 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
 
-public partial class FlowchartEditor
+public partial class FlowchartEditor : IDiagramEditor
 {
     private FlowchartDesigner _designer = default!;
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
-    [Parameter] public EventCallback OnSaveRequested { get; set; }
-    [Parameter] public EventCallback<Activity> OnActivitySelected { get; set; }
+    [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
+    [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
 
@@ -40,7 +41,7 @@ public partial class FlowchartEditor
     {
         var max = 100;
         var count = 0;
-        
+
         while (count++ < max)
         {
             var nextId = $"{activityDescriptor}{GetNextNumber(activityDescriptor)}";
@@ -95,18 +96,12 @@ public partial class FlowchartEditor
         await _designer.UpdateActivityAsync(activity);
     }
 
-    private void OnCanvasSelected()
+    private async Task OnCanvasSelected()
     {
-        if (OnActivitySelected.HasDelegate)
-            OnActivitySelected.InvokeAsync(Flowchart);
+        if (OnActivitySelected != null)
+            await OnActivitySelected(Flowchart);
     }
 
     private async Task OnZoomToFitClick() => await _designer.ZoomToFitAsync();
     private async Task OnCenterContentClick() => await _designer.CenterContentAsync();
-
-    private async Task OnSaveClick()
-    {
-        if (OnSaveRequested.HasDelegate)
-            await OnSaveRequested.InvokeAsync();
-    }
 }

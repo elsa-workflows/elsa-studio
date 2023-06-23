@@ -28,8 +28,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     };
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
-    [Parameter] public EventCallback<Activity> OnActivitySelected { get; set; }
-    [Parameter] public EventCallback OnCanvasSelected { get; set; }
+    [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
+    [Parameter] public Func<Task>? OnCanvasSelected { get; set; }
+    [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -38,15 +39,29 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [JSInvokable]
     public async Task HandleActivitySelected(Activity activity)
     {
-        if (OnActivitySelected.HasDelegate)
-            await OnActivitySelected.InvokeAsync(activity);
+        if (OnActivitySelected == null)
+            return;
+        
+        await InvokeAsync(async () => await OnActivitySelected(activity));
+
     }
 
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
-        if (OnCanvasSelected.HasDelegate)
-            await OnCanvasSelected.InvokeAsync();
+        if (OnCanvasSelected == null)
+            return;
+        
+        await InvokeAsync(async () => await OnCanvasSelected());
+    }
+    
+    [JSInvokable]
+    public async Task HandleGraphUpdated()
+    {
+        if (OnGraphUpdated == null)
+            return;
+
+        await InvokeAsync(async () => await OnGraphUpdated());
     }
 
     public async Task<Flowchart> ReadFlowchartAsync()

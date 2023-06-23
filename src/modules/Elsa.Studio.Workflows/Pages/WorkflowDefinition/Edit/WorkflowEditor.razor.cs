@@ -1,11 +1,14 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.DiagramEditors;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
 
@@ -13,13 +16,22 @@ using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.Workf
 
 public partial class WorkflowEditor
 {
+    private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
     private FlowchartEditor _flowchartEditor = default!;
     private IDiagramEditor _diagramEditor = default!;
+    private bool _autoSave = true;
+    private bool _isSaving;
+
+    public WorkflowEditor()
+    {
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce(SaveChangesAsync, TimeSpan.FromMilliseconds(500));
+    }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private FlowchartEditor FlowchartEditor
     {
@@ -72,9 +84,11 @@ public partial class WorkflowEditor
         WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
     }
 
-    private void OnActivitySelected(Activity activity)
+    private Task OnActivitySelected(Activity activity)
     {
         SelectedActivity = activity;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task OnSelectedActivityUpdated(Activity activity)
@@ -82,9 +96,32 @@ public partial class WorkflowEditor
         await _diagramEditor.UpdateActivityAsync(activity);
     }
 
-    private async Task OnSaveRequested()
+    private async Task OnSaveClick()
     {
-        var root = await _diagramEditor.ReadRootActivityAsync();
-        await SaveAsync(root);
+        await SaveChangesAsync();
+        Snackbar.Add("Workflow saved", Severity.Success);
+    }
+
+    private async Task OnGraphUpdated()
+    {
+        if (_autoSave)
+            await SaveChangesRateLimitedAsync();
+    }
+
+    private async Task SaveChangesRateLimitedAsync() => await _rateLimitedSaveChangesAsync.InvokeAsync();
+
+    private async Task SaveChangesAsync()
+    {
+        await InvokeAsync(async () =>
+        {
+            _isSaving = true;
+            StateHasChanged();
+
+            var root = await _diagramEditor.ReadRootActivityAsync();
+            await SaveAsync(root);
+
+            _isSaving = false;
+            StateHasChanged();
+        });
     }
 }

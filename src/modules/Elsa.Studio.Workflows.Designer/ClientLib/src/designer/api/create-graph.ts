@@ -175,7 +175,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             graph.copy(cells)
         }
         return false
-    })
+    });
 
     // Paste the cells in the clipboard onto the graph.
     graph.bindKey(['ctrl+v', 'meta+v'], () => {
@@ -185,7 +185,33 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             graph.select(cells)
         }
         return false
-    })
+    });
+
+    const onGraphUpdated = async (e: any) => {
+        await interop.raiseGraphUpdated();
+    }
+
+    const onNodeRemoved = async (e: any) => {
+        const activity = e.node.data as Activity;
+        await onGraphUpdated(e);
+    };
+
+    const onNodeAdded = async (e: any) => {
+        const node = e.node as any;
+
+        if (!node.isClone) {
+            const activity = {...node.getData()} as Activity;
+        }
+
+        await onGraphUpdated(e);
+    };
+
+    graph.on('node:moved', onGraphUpdated);
+    graph.on('node:added', onNodeAdded);
+    graph.on('node:removed', onNodeRemoved);
+    graph.on('edge:added', onGraphUpdated);
+    graph.on('edge:removed', onGraphUpdated);
+    graph.on('edge:connected', onGraphUpdated);
 
     // Register the graph.
     const graphId = containerId;
