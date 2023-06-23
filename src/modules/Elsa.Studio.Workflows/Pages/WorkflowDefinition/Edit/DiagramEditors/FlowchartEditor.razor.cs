@@ -28,22 +28,27 @@ public partial class FlowchartEditor
 
     public async Task<Activity> ReadRootActivityAsync() => await _designer.ReadFlowchartAsync();
 
-    private int GetNextNumber(string activityTypeName)
+    private int GetNextNumber(ActivityDescriptor activityDescriptor)
     {
-        var count = Flowchart.Activities.Count(x => x.Type == activityTypeName);
+        var count = Flowchart.Activities.Count(x => x.Type == activityDescriptor.TypeName);
         return count + 1;
     }
 
     private bool GetIdExists(string id) => Flowchart.Activities.Any(x => x.Id == id);
 
-    private string GenerateNextId(string activityTypeName)
+    private string GenerateNextId(ActivityDescriptor activityDescriptor)
     {
-        while (true)
+        var max = 100;
+        var count = 0;
+        
+        while (count++ < max)
         {
-            var nextId = $"{activityTypeName}{GetNextNumber(activityTypeName)}";
+            var nextId = $"{activityDescriptor}{GetNextNumber(activityDescriptor)}";
             if (!GetIdExists(nextId))
                 return nextId;
         }
+
+        throw new Exception("Could not generate a unique ID.");
     }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
@@ -51,7 +56,7 @@ public partial class FlowchartEditor
         var newActivityType = ActivityTypeService.ResolveType(activityDescriptor.TypeName);
         var newActivity = (Activity)Activator.CreateInstance(newActivityType)!;
 
-        newActivity.Id = GenerateNextId(activityDescriptor.Name);
+        newActivity.Id = GenerateNextId(activityDescriptor);
         newActivity.Type = activityDescriptor.TypeName;
         newActivity.Version = activityDescriptor.Version;
 

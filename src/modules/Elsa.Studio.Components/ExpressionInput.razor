@@ -4,19 +4,21 @@
         @if (ShowMonacoEditor)
         {
             <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense">
-                <StandaloneCodeEditor 
+                <StandaloneCodeEditor
                     @ref="_monacoEditor"
-                    ConstructionOptions="ConfigureMonacoEditor" 
+                    Id="@_monacoEditorId"
+                    ConstructionOptions="ConfigureMonacoEditor"
                     CssClass="studio-expression-input-monaco-editor"
                     OnDidInit="OnMonacoInitialized"
-                    OnDidChangeModelContent="OnMonacoContentChanged" />
+                    OnDidChangeModelContent="OnMonacoContentChanged"
+                    OnDidDispose="OnMonacoDisposed"/>
             </MudField>
         }
         else
         {
             @ChildContent
         }
-        
+
     </div>
     <div class="flex-none pt-1">
         <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">

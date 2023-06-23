@@ -31,10 +31,10 @@ public partial class InputsTab
             return;
 
         ActivityDescriptor = await ActivityRegistry.FindAsync(Activity.Type);
-        
+
         if (ActivityDescriptor == null)
             return;
-        
+
         InputDescriptors = ActivityDescriptor.Inputs;
         OutputDescriptors = ActivityDescriptor.Outputs;
         InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
@@ -50,7 +50,18 @@ public partial class InputsTab
             var value = activity.TryGetValue(inputName);
             var activityInput = ToActivityInput(value);
             var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
-            var context = new DisplayInputEditorContext(activity, activityDescriptor, inputDescriptor, activityInput, syntaxProvider, v => HandleValueChangedAsync(activity, inputDescriptor, v));
+
+            var context = new DisplayInputEditorContext
+            {
+                Activity = activity,
+                ActivityDescriptor = activityDescriptor,
+                InputDescriptor = inputDescriptor,
+                Value = activityInput,
+                SyntaxProvider = syntaxProvider,
+            };
+
+            context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
+
             var editor = UIHintService.DisplayInputEditor(context);
             models.Add(new ActivityInputDisplayModel(editor));
         }
@@ -69,11 +80,16 @@ public partial class InputsTab
         return value.ConvertTo<ActivityInput>(converterOptions);
     }
 
-    private async Task HandleValueChangedAsync(Activity activity, InputDescriptor inputDescriptor, ActivityInput activityInput)
+    private async Task HandleValueChangedAsync(DisplayInputEditorContext context, ActivityInput activityInput)
     {
-        activity[inputDescriptor.Name.Camelize()] = activityInput;
+        var activity = context.Activity;
+        var inputDescriptor = context.InputDescriptor;
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType());
 
-        if(OnActivityUpdated != null)
+        activity[inputDescriptor.Name.Camelize()] = activityInput;
+        context.SyntaxProvider = syntaxProvider;
+
+        if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
     }
 }

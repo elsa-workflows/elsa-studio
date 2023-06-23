@@ -6,25 +6,31 @@ using Elsa.Studio.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Components;
 
-public partial class ExpressionInput
+public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
     private string _selectedSyntax = DefaultSyntax;
-    private string _monacoLanguage = "javascript";
+    private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
     private bool _isInternalContentChange;
     private bool _isMonacoInitialized;
+    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private RateLimitedFunc<ActivityInput, Task> _throttledValueChanged;
+
+    public ExpressionInput()
+    {
+        _throttledValueChanged = Debouncer.Debounce<ActivityInput, Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+    }
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
     private IEnumerable<string> SupportedSyntaxes => SyntaxService.ListSyntaxes();
-    private string? SelectedSyntax => EditorContext.SyntaxProvider?.SyntaxName ?? DefaultSyntax;
-    private string? SelectedLanguage => (EditorContext.SyntaxProvider as IMonacoSyntaxProvider)?.Language;
     private string? ButtonIcon => _selectedSyntax == DefaultSyntax ? Icons.Material.Filled.MoreVert : default;
     private string? ButtonLabel => _selectedSyntax == DefaultSyntax ? default : _selectedSyntax;
     private Variant ButtonVariant => _selectedSyntax == DefaultSyntax ? default : Variant.Filled;
@@ -35,11 +41,26 @@ public partial class ExpressionInput
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.Value?.Expression.ToString() ?? string.Empty;
+    
+    private async Task UpdateMonacoLanguageAsync(string syntax)
+    {
+        if (_monacoEditor == null || !_isMonacoInitialized)
+            return;
+
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(syntax) as IMonacoSyntaxProvider;
+
+        if (syntaxProvider == null)
+            return;
+
+        var model = await _monacoEditor.GetModel();
+        await Global.SetModelLanguage(model, syntaxProvider.Language);
+    }
+
 
     protected override async Task OnParametersSetAsync()
     {
-        _selectedSyntax = SelectedSyntax ?? DefaultSyntax;
-        _monacoLanguage = SelectedLanguage ?? "javascript";
+        _selectedSyntax = EditorContext.SyntaxProvider?.SyntaxName ?? DefaultSyntax;
+        _monacoLanguage = (EditorContext.SyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
 
         if (_isMonacoInitialized)
         {
@@ -80,19 +101,15 @@ public partial class ExpressionInput
     private async Task OnSyntaxSelected(string syntax)
     {
         _selectedSyntax = syntax;
-
-        if (_monacoEditor == null)
-            return;
-
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(syntax) as IMonacoSyntaxProvider;
-
-        if (syntaxProvider == null)
-            return;
-
-        var model = await _monacoEditor.GetModel();
-        await Global.SetModelLanguage(model, syntaxProvider.Language);
+        
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
+        var value = InputValue;
+        var input = EditorContext.Value ?? new ActivityInput();
+        input.Expression = syntaxProvider.CreateExpression(value);
+        await InvokeValueChangedCallback(input);
+        await UpdateMonacoLanguageAsync(syntax);
     }
-
+    
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
     {
         if (_isInternalContentChange)
@@ -103,11 +120,34 @@ public partial class ExpressionInput
 
         var input = EditorContext.Value ?? new ActivityInput();
         input.Expression = syntaxProvider.CreateExpression(value);
+        await ThrottleValueChangedCallback(input);
+    }
+
+    private async Task ThrottleValueChangedCallback(ActivityInput input)
+    {
+        var task = _throttledValueChanged.Invoke(input);
+
+        if (task != null)
+            await task;
+    }
+
+    private async Task InvokeValueChangedCallback(ActivityInput input)
+    {
         await EditorContext.OnValueChanged(input);
     }
 
     private void OnMonacoInitialized()
     {
         _isMonacoInitialized = true;
+    }
+    
+    private void OnMonacoDisposed()
+    {
+        _isMonacoInitialized = false;
+    }
+
+    public void Dispose()
+    {
+        _throttledValueChanged.Dispose();
     }
 }

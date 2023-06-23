@@ -14,6 +14,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
         <PackageReference Include="MudBlazor" Version="6.4.1" />
         <PackageReference Include="Radzen.Blazor" Version="4.13.3" />
+        <PackageReference Include="ThrottleDebounce" Version="2.0.0" />
     </ItemGroup>
 
     <ItemGroup>
