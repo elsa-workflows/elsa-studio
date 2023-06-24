@@ -5,10 +5,10 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 /// <summary>
 /// A service for managing diagram editors.
 /// </summary>
-public interface IDiagramEditorService
+public interface IDiagramDesignerService
 {
     /// <summary>
-    /// Gets the diagram editor for the specified activity.
+    /// Gets the diagram designer for the specified activity.
     /// </summary>
-    IDiagramEditor GetDiagramEditor(Activity activity);
+    IDiagramDesigner GetDiagramDesigner(Activity activity);
 }

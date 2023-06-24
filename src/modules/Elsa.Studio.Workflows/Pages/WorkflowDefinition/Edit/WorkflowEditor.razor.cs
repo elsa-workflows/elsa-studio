@@ -16,7 +16,7 @@ using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.Workf
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
-    private IDiagramEditor? _diagramEditor;
+    private IDiagramDesigner? _diagramEditor;
     private bool _autoSave = true;
     private bool _isSaving;
 
@@ -29,7 +29,7 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
-    [Inject] private IDiagramEditorService DiagramEditorService { get; set; } = default!;
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     
     private Activity? SelectedActivity { get; set; }
@@ -40,7 +40,7 @@ public partial class WorkflowEditor
         if(WorkflowDefinition?.Root == null)
             return;
 
-        _diagramEditor = DiagramEditorService.GetDiagramEditor(WorkflowDefinition.Root);
+        _diagramEditor = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(Activity root)

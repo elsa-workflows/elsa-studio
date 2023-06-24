@@ -11,15 +11,16 @@ public static class ServiceCollectionExtensions
         services
             .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
             .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
-            .AddSingleton<IDiagramEditorService, DefaultDiagramEditorService>()
+            .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
+            .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             ;
         
         return services;
     }
     
-    public static IServiceCollection AddDiagramEditorProvider<T>(this IServiceCollection services) where T : class, IDiagramEditorProvider
+    public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
-        services.AddSingleton<IDiagramEditorProvider, T>();
+        services.AddSingleton<IDiagramDesignerProvider, T>();
         return services;
     }
 }

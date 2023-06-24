@@ -10,23 +10,22 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
 
-public partial class FlowchartEditor // : IDiagramEditor, IDiagramEditorToolboxProvider
+public partial class FlowchartDesignerWrapper
 {
-    private FlowchartDesigner _designer = default!;
-
-    [Parameter] public Api.Client.Activities.Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public Flowchart Flowchart { get; set; } = default!;
     [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
     [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
+    internal FlowchartDesigner Designer { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
 
     public async Task UpdateActivityAsync(Activity activity)
     {
         if (activity != Flowchart)
-            await _designer.UpdateActivityAsync(activity);
+            await Designer.UpdateActivityAsync(activity);
     }
 
-    public async Task<Activity> ReadRootActivityAsync() => await _designer.ReadFlowchartAsync();
+    public async Task<Activity> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
 
     private int GetNextNumber(ActivityDescriptor activityDescriptor)
     {
@@ -65,7 +64,7 @@ public partial class FlowchartEditor // : IDiagramEditor, IDiagramEditorToolboxP
             Position = new Position(x, y)
         });
 
-        await _designer.AddActivityAsync(newActivity);
+        await Designer.AddActivityAsync(newActivity);
     }
 
     private void OnDragOver(DragEventArgs e)
@@ -92,7 +91,7 @@ public partial class FlowchartEditor // : IDiagramEditor, IDiagramEditorToolboxP
 
     private async Task OnSelectedActivityUpdated(Activity activity)
     {
-        await _designer.UpdateActivityAsync(activity);
+        await Designer.UpdateActivityAsync(activity);
     }
 
     private async Task OnCanvasSelected()
@@ -101,6 +100,6 @@ public partial class FlowchartEditor // : IDiagramEditor, IDiagramEditorToolboxP
             await OnActivitySelected(Flowchart);
     }
 
-    private async Task OnZoomToFitClick() => await _designer.ZoomToFitAsync();
-    private async Task OnCenterContentClick() => await _designer.CenterContentAsync();
+    private async Task OnZoomToFitClick() => await Designer.ZoomToFitAsync();
+    private async Task OnCenterContentClick() => await Designer.CenterContentAsync();
 }

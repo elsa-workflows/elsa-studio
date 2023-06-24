@@ -1,38 +1,37 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Designer.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
 
-public class FlowchartDiagramEditor : IDiagramEditorToolboxProvider
+public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
-    private FlowchartDesigner? _designer;
+    private FlowchartDesignerWrapper? _designerWrapper;
 
     public async Task UpdateActivityAsync(Activity activity)
     {
-        await _designer!.UpdateActivityAsync(activity);
+        await _designerWrapper!.UpdateActivityAsync(activity);
     }
 
     public async Task<Activity> ReadRootActivityAsync()
     {
-        return await _designer!.ReadFlowchartAsync();
+        return await _designerWrapper!.Designer.ReadFlowchartAsync();
     }
 
-    public RenderFragment Display(DisplayContext context)
+    public RenderFragment DisplayDesigner(DisplayContext context)
     {
         var flowchart = (Flowchart)context.Activity;
         var sequence = 0;
 
         return builder =>
         {
-            builder.OpenComponent<FlowchartDesigner>(sequence++);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesigner.Flowchart), flowchart);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesigner.OnActivitySelected), context.ActivitySelectedCallback);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesigner.OnGraphUpdated), context.GraphUpdatedCallback);
-            builder.AddComponentReferenceCapture(sequence++, @ref => _designer = (FlowchartDesigner)@ref);
+            builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnActivitySelected), context.ActivitySelectedCallback);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnGraphUpdated), context.GraphUpdatedCallback);
+            builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (FlowchartDesignerWrapper)@ref);
 
             builder.CloseComponent();
         };
@@ -64,8 +63,8 @@ public class FlowchartDiagramEditor : IDiagramEditorToolboxProvider
         };
     }
 
-    private async Task OnZoomToFitClicked() => await _designer!.ZoomToFitAsync();
-    private async Task OnCenterClicked() => await _designer!.CenterContentAsync();
+    private async Task OnZoomToFitClicked() => await _designerWrapper!.Designer.ZoomToFitAsync();
+    private async Task OnCenterClicked() => await _designerWrapper!.Designer.CenterContentAsync();
 
     private async Task OnAutoLayoutClicked()
     {

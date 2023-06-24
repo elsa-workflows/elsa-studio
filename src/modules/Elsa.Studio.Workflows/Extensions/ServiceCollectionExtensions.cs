@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
             .AddWorkflowsCore()
             .AddWorkflowsDesigner();
 
-        services.AddDiagramEditorProvider<FlowchartDiagramEditorProvider>();
+        services.AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();
         
         return services;
     }

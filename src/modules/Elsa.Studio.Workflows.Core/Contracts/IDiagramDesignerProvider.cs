@@ -5,8 +5,8 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 /// <summary>
 /// Implement this interface to provide a diagram editor for a given workflow definition's root activity.
 /// </summary>
-public interface IDiagramEditorProvider
+public interface IDiagramDesignerProvider
 {
     bool GetSupportsActivity(Activity activity);
-    IDiagramEditor GetEditor();
+    IDiagramDesigner GetEditor();
 }

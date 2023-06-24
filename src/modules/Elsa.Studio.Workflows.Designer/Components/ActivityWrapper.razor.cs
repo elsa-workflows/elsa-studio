@@ -10,6 +10,8 @@ namespace Elsa.Studio.Workflows.Designer.Components;
 public partial class ActivityWrapper
 {
     private string _label = default!;
+    private string _color = default!;
+    private string? _icon;
 
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = default!;
@@ -17,15 +19,24 @@ public partial class ActivityWrapper
 
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         var activityType = Activity.Type;
         var descriptor = await ActivityRegistry.FindAsync(activityType);
+        var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
         _label = descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _color = displaySettings.Color;
+        _icon = displaySettings.Icon;
 
-        // If the activity has a size, don't update it.
+        await UpdateSizeAsync();
+    }
+
+    private async Task UpdateSizeAsync()
+    {
+        // If the activity has a size specified, don't attempt to calculate it.
         var size = Activity.Metadata.TryGetValue<ActivityDesignerMetadata>("metadata")?.Size;
 
         if (size != null)
@@ -37,5 +48,5 @@ public partial class ActivityWrapper
         // Otherwise, update the activity node.
         if (!string.IsNullOrEmpty(ElementId))
             await DesignerInterop.UpdateActivityNodeAsync(ElementId, Activity);
-    }
+    } 
 }

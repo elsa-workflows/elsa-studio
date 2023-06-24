@@ -4,7 +4,6 @@
 @using System.Text.Json
 @using Elsa.Studio.Workflows.Core.Contracts
 @using Elsa.Studio.Workflows.Models
-@inject IActivityRegistry ActivityRegistry
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Activities">
@@ -30,16 +29,23 @@
                                 <MudStack>
                                     @foreach (var activityDescriptor in activityDescriptors)
                                     {
+                                        var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityDescriptor.TypeName);
+                                        var icon = displaySettings.Icon;
+                                        var color = displaySettings.Color;
+
                                         <MudTooltip Text="@activityDescriptor.Description">
                                             <MudPaper
                                                 Class="pa-3 cursor-grab"
-                                                Style="border-left: solid 6px var(--mud-palette-primary); filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));"
+                                                Style="@($"border-left: solid 6px {color}; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));")"
                                                 Width="fit-content"
                                                 Outlined="true"
                                                 draggable="true"
                                                 @ondragstart="@(() => OnDragStart(activityDescriptor))">
                                                 <MudStack Row="true">
-                                                    <MudIcon Icon="@DashboardIcons.Tabler.PenTool"></MudIcon>
+                                                    @if (icon != null)
+                                                    {
+                                                        <MudIcon Icon="@icon"></MudIcon>
+                                                    }
                                                     @(activityDescriptor.DisplayName ?? activityDescriptor.Name)
                                                 </MudStack>
                                             </MudPaper>
@@ -62,6 +68,12 @@
 
     [CascadingParameter]
     public DragDropManager DragDropManager { get; set; } = default!;
+
+    [Inject]
+    private IActivityRegistry ActivityRegistry { get; set; } = default!;
+
+    [Inject]
+    private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
