@@ -22,7 +22,7 @@ public partial class WorkflowEditor
 
     public WorkflowEditor()
     {
-        _rateLimitedSaveChangesAsync = Debouncer.Debounce(SaveChangesAsync, TimeSpan.FromMilliseconds(500));
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce(SaveChangesAsync, TimeSpan.FromSeconds(3));
     }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
