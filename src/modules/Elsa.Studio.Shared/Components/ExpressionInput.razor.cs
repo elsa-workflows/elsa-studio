@@ -70,7 +70,7 @@ public partial class ExpressionInput : IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        _selectedSyntax = UISyntax;
+        _selectedSyntax = EditorContext.SelectedSyntaxProvider?.SyntaxName ?? UISyntax;
         _monacoLanguage = (EditorContext.SelectedSyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
 
         if (_isMonacoInitialized)
