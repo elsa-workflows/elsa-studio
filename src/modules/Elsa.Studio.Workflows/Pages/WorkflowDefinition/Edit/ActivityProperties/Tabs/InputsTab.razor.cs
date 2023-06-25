@@ -50,19 +50,20 @@ public partial class InputsTab
             var value = activity.TryGetValue(inputName);
             var activityInput = ToActivityInput(value);
             var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
-
+            var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
+            
             var context = new DisplayInputEditorContext
             {
                 Activity = activity,
                 ActivityDescriptor = activityDescriptor,
                 InputDescriptor = inputDescriptor,
                 Value = activityInput,
-                SyntaxProvider = syntaxProvider,
+                SelectedSyntaxProvider = syntaxProvider,
+                UIHintHandler = uiHintHandler,
             };
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
-
-            var editor = UIHintService.DisplayInputEditor(context);
+            var editor = uiHintHandler.DisplayInputEditor(context);
             models.Add(new ActivityInputDisplayModel(editor));
         }
 
@@ -87,7 +88,7 @@ public partial class InputsTab
         var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType());
 
         activity[inputDescriptor.Name.Camelize()] = activityInput;
-        context.SyntaxProvider = syntaxProvider;
+        context.SelectedSyntaxProvider = syntaxProvider;
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);

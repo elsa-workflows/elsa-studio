@@ -5,5 +5,6 @@ namespace Elsa.Studio.Contracts;
 
 public interface IUIHintService
 {
-    RenderFragment DisplayInputEditor(DisplayInputEditorContext context);
+    IUIHintHandler GetHandler(string uiHint);
+    //RenderFragment DisplayInputEditor(DisplayInputEditorContext context);
 }

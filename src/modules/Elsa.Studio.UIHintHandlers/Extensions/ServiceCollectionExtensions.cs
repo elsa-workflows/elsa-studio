@@ -8,6 +8,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDefaultUIHintHandlers(this IServiceCollection services)
     {
-        return services.AddUIHintHandler<SingleLineHandler>();
+        return services
+            .AddUIHintHandler<SingleLineHandler>()
+            .AddUIHintHandler<CheckListHandler>()
+            ;
     }
 }

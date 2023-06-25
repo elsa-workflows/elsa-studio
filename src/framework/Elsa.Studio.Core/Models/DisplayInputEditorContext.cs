@@ -11,6 +11,7 @@ public class DisplayInputEditorContext
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     public InputDescriptor InputDescriptor { get; set; } = default!;
     public ActivityInput? Value { get; set; }
-    public ISyntaxProvider? SyntaxProvider { get; set; }
+    public IUIHintHandler UIHintHandler { get; set; } = default!;
+    public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<ActivityInput, Task> OnValueChanged { get; set; } = default!;
 }

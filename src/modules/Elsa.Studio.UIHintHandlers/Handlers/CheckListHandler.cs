@@ -6,17 +6,17 @@ using MudBlazor;
 
 namespace Elsa.Studio.UIHintHandlers.Handlers;
 
-public class SingleLineHandler : IUIHintHandler
+public class CheckListHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "single-line";
-    public string UISyntax => WellKnownSyntaxNames.Literal;
+    public bool GetSupportsUIHint(string uiHint) => uiHint == "check-list";
+    public string UISyntax => WellKnownSyntaxNames.Object;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>
         {
-            builder.OpenComponent(0, typeof(SingleLine));
-            builder.AddAttribute(1, nameof(SingleLine.EditorContext), context);
+            builder.OpenComponent(0, typeof(CheckList));
+            builder.AddAttribute(1, nameof(CheckList.EditorContext), context);
             builder.CloseComponent();
         };
     }

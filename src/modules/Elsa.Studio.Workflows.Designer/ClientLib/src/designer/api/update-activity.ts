@@ -3,7 +3,7 @@ import {graphBindings} from "./graph-bindings";
 
 export async function updateActivity(graphId: string, activity: Activity) {
     // Get graph reference.
-    const {graph} = graphBindings[graphId];
+    const {graph, interop} = graphBindings[graphId];
 
     // Get the node from the graph.
     const activityId = activity.id;
@@ -14,5 +14,8 @@ export async function updateActivity(graphId: string, activity: Activity) {
 
         // Update the node's data with the activity.
         node.setData(activity, {overwrite: true});
+        
+        // Publish changed event.
+        await interop.raiseGraphUpdated();
     }
 }

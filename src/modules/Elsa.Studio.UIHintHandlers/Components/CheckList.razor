@@ -1,0 +1,18 @@
+@using MudBlazor
+
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+}
+
+<ExpressionInput EditorContext="@EditorContext">
+    <ChildContent>
+        <MudField Label="@displayName" Variant="Variant.Outlined" HelperText="@description" Margin="Margin.Dense">
+            @foreach (var item in _checkListItems)
+            {
+                <MudCheckBox T="bool" Label="@item.Text" Checked="@item.IsChecked" CheckedChanged="@(state => OnCheckedChanged(item, state))"></MudCheckBox>
+            }
+        </MudField>
+    </ChildContent>
+</ExpressionInput>

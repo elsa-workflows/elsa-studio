@@ -14,6 +14,8 @@ namespace Elsa.Studio.Components;
 public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
+    private readonly string[] _uiSyntaxes = { "Literal", "Object" };
+    //private string _defaultSyntax = "Literal";
     private string _selectedSyntax = DefaultSyntax;
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
@@ -30,27 +32,35 @@ public partial class ExpressionInput : IDisposable
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
-
-    private IEnumerable<string> SupportedSyntaxes => SyntaxService.ListSyntaxes();
-    private string? ButtonIcon => _selectedSyntax == DefaultSyntax ? Icons.Material.Filled.MoreVert : default;
-    private string? ButtonLabel => _selectedSyntax == DefaultSyntax ? default : _selectedSyntax;
-    private Variant ButtonVariant => _selectedSyntax == DefaultSyntax ? default : Variant.Filled;
-    private Color ButtonColor => _selectedSyntax == DefaultSyntax ? default : Color.Primary;
-    private string? ButtonEndIcon => _selectedSyntax == DefaultSyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
-    private Color ButtonEndColor => _selectedSyntax == DefaultSyntax ? default : Color.Secondary;
-    private bool ShowMonacoEditor => _selectedSyntax != DefaultSyntax;
+    
+    private string UISyntax => EditorContext.UIHintHandler.UISyntax;
+    private bool IsUISyntax => _selectedSyntax == UISyntax;
+    private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
+    private string? ButtonLabel => IsUISyntax ? default : _selectedSyntax;
+    private Variant ButtonVariant => IsUISyntax ? default : Variant.Filled;
+    private Color ButtonColor => IsUISyntax ? default : Color.Primary;
+    private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
+    private Color ButtonEndColor => IsUISyntax ? default : Color.Secondary;
+    private bool ShowMonacoEditor => !IsUISyntax;
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.Value?.Expression.ToString() ?? string.Empty;
     
+    private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
+    {
+        yield return new SyntaxDescriptor(UISyntax, "Default");
+        var syntaxes = SyntaxService.ListSyntaxes().Except(_uiSyntaxes);
+        
+        foreach (var syntax in syntaxes)
+            yield return new SyntaxDescriptor(syntax, syntax);
+    }
+
     private async Task UpdateMonacoLanguageAsync(string syntax)
     {
         if (_monacoEditor == null || !_isMonacoInitialized)
             return;
 
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(syntax) as IMonacoSyntaxProvider;
-
-        if (syntaxProvider == null)
+        if (SyntaxService.GetSyntaxProviderByName(syntax) is not IMonacoSyntaxProvider syntaxProvider)
             return;
 
         var model = await _monacoEditor.GetModel();
@@ -60,8 +70,8 @@ public partial class ExpressionInput : IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        _selectedSyntax = EditorContext.SyntaxProvider?.SyntaxName ?? DefaultSyntax;
-        _monacoLanguage = (EditorContext.SyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
+        _selectedSyntax = UISyntax;
+        _monacoLanguage = (EditorContext.SelectedSyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
 
         if (_isMonacoInitialized)
         {
@@ -102,7 +112,7 @@ public partial class ExpressionInput : IDisposable
     private async Task OnSyntaxSelected(string syntax)
     {
         _selectedSyntax = syntax;
-        
+
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var value = InputValue;
         var input = EditorContext.Value ?? new ActivityInput();
@@ -110,7 +120,7 @@ public partial class ExpressionInput : IDisposable
         await InvokeValueChangedCallback(input);
         await UpdateMonacoLanguageAsync(syntax);
     }
-    
+
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
     {
         if (_isInternalContentChange)
@@ -132,3 +142,5 @@ public partial class ExpressionInput : IDisposable
 
     public void Dispose() => _throttledValueChanged.Dispose();
 }
+
+public record SyntaxDescriptor(string Syntax, string DisplayName);
