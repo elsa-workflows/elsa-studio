@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<CheckboxHandler>()
             .AddUIHintHandler<CheckListHandler>()
             .AddUIHintHandler<MultiTextHandler>()
+            .AddUIHintHandler<MultiLineHandler>()
             ;
     }
 }

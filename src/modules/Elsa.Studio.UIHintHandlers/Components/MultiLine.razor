@@ -1,0 +1,37 @@
+@using Elsa.Studio.Models
+@using Elsa.Api.Client.Expressions
+
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+    var inputValue = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString() ?? string.Empty;
+}
+
+<ExpressionInput EditorContext="@EditorContext">
+    <ChildContent>
+        <MudTextField
+            T="string"
+            Lines="5"
+            Label="@displayName"
+            Variant="Variant.Outlined"
+            HelperText="@description"
+            Margin="Margin.Dense"
+            Value="@inputValue"
+            ValueChanged="OnValueChanged"/>
+    </ChildContent>
+</ExpressionInput>
+
+@code {
+
+    [Parameter]
+    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+
+    private async Task OnValueChanged(string newValue)
+    {
+        var expression = new LiteralExpression(newValue);
+        
+        await EditorContext.UpdateExpressionAsync(expression);
+    }
+
+}
