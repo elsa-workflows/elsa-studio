@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Elsa.Api.Client.Expressions;
-using Elsa.Api.Client.Models;
 using Elsa.Studio.Models;
+using Elsa.Studio.UIHintHandlers.Helpers;
 using Elsa.Studio.UIHintHandlers.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -75,17 +75,7 @@ public partial class CheckList
 
     private ICollection<string> ParseJson(string? json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-            return new List<string>();
-
-        try
-        {
-            return JsonSerializer.Deserialize<ICollection<string>>(json) ?? new List<string>();
-        }
-        catch (JsonException)
-        {
-            return new List<string>();
-        }
+        return JsonParser.ParseJson<ICollection<string>>(json, () => new List<string>());
     }
 
     private async Task OnCheckedChanged(CheckListItem item, bool? state)
@@ -96,13 +86,12 @@ public partial class CheckList
         // Get selected values.
         var selectedValues = _checkListItems.Where(x => x.IsChecked).Select(x => x.Value).ToList();
         
-        // Update input.
-        var input = EditorContext.Value ?? new ActivityInput();
+        // Serialize to JSON.
         var json = JsonSerializer.Serialize(selectedValues);
-        input.Expression = new ObjectExpression(json);
         
-        // Notify that the input has changed.
-        await EditorContext.OnValueChanged(input);
+        // Update expression.
+        var expression = new ObjectExpression(json);
+        await EditorContext.UpdateExpressionAsync(expression);
     }
 }
 

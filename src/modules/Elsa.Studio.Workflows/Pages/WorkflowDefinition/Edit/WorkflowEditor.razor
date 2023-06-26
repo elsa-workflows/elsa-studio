@@ -8,7 +8,7 @@
             <MudPaper Class="ma-2" Elevation="0" Outlined="true">
                 <MudToolBar Dense="true">
                     @{
-                        if (_diagramEditor is IDiagramDesignerToolboxProvider toolboxProvider)
+                        if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
                         {
                             foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
                             {
@@ -24,7 +24,7 @@
                 </MudToolBar>
             </MudPaper>
             <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
-            @_diagramEditor?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated));
+            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated));
         </div>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="40%" @ref="ActivityPropertiesPane">

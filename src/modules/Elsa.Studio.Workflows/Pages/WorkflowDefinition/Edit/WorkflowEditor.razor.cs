@@ -20,7 +20,7 @@ using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.Workf
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
-    private IDiagramDesigner? _diagramEditor;
+    private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isSaving;
     private RadzenSplitterPane _activityPropertiesPane = default!;
@@ -28,7 +28,7 @@ public partial class WorkflowEditor
 
     public WorkflowEditor()
     {
-        _rateLimitedSaveChangesAsync = Debouncer.Debounce(SaveChangesAsync, TimeSpan.FromSeconds(3));
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce(() => SaveChangesAsync(false), TimeSpan.FromMilliseconds(500));
     }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
@@ -60,7 +60,7 @@ public partial class WorkflowEditor
         if(WorkflowDefinition?.Root == null)
             return;
 
-        _diagramEditor = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(Activity root)
@@ -110,7 +110,7 @@ public partial class WorkflowEditor
 
     private async Task OnSelectedActivityUpdated(Activity activity)
     {
-        await _diagramEditor!.UpdateActivityAsync(activity);
+        await _diagramDesigner!.UpdateActivityAsync(activity);
     }
 
     private async Task OnSaveClick()
@@ -125,20 +125,36 @@ public partial class WorkflowEditor
             await SaveChangesRateLimitedAsync();
     }
 
-    private async Task SaveChangesRateLimitedAsync() => await _rateLimitedSaveChangesAsync.InvokeAsync();
+    private async Task SaveChangesRateLimitedAsync()
+    {
+        await _rateLimitedSaveChangesAsync.InvokeAsync();
+    }
 
-    private async Task SaveChangesAsync()
+    private async Task SaveChangesAsync(bool showLoader = true)
     {
         await InvokeAsync(async () =>
         {
-            _isSaving = true;
-            StateHasChanged();
+            if (showLoader)
+            {
+                _isSaving = true;
+                StateHasChanged();
+            }
 
-            var root = await _diagramEditor!.ReadRootActivityAsync();
-            await SaveAsync(root);
-
-            _isSaving = false;
-            StateHasChanged();
+            // Because this method is rate limited, it's possible that the designer has been disposed since the last invocation.
+            // Therefore, we need to wrap this in a try/catch block.
+            try
+            {
+                var root = await _diagramDesigner!.ReadRootActivityAsync();
+                await SaveAsync(root);
+            }
+            finally
+            {
+                if (showLoader)
+                {
+                    _isSaving = false;
+                    StateHasChanged();
+                }
+            }
         });
     }
 

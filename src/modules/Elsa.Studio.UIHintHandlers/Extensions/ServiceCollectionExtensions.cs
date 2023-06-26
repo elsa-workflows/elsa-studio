@@ -10,7 +10,9 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddUIHintHandler<SingleLineHandler>()
+            .AddUIHintHandler<CheckboxHandler>()
             .AddUIHintHandler<CheckListHandler>()
+            .AddUIHintHandler<MultiTextHandler>()
             ;
     }
 }

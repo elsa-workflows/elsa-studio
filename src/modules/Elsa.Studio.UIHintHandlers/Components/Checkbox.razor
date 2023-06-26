@@ -1,0 +1,38 @@
+@using Elsa.Studio.Models
+@using Elsa.Api.Client.Expressions
+
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+    var inputValue = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString();
+    var isChecked = !string.IsNullOrWhiteSpace(inputValue) && bool.TryParse(inputValue, out var b) && b;
+}
+
+<ExpressionInput EditorContext="@EditorContext">
+    <ChildContent>
+        <MudField Variant="Variant.Text" HelperText="@description" Margin="Margin.Dense" DisableUnderLine="true">
+            @* ReSharper disable once ConvertClosureToMethodGroup *@
+            <MudCheckBox
+                T="bool"
+                Label="@displayName"
+                Checked="@isChecked"
+                CheckedChanged="b1 => OnCheckChanged(b1)"/>
+        </MudField>
+    </ChildContent>
+</ExpressionInput>
+
+@code {
+
+    [Parameter]
+    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+
+    private async Task OnCheckChanged(bool? isChecked)
+    {
+        var newValue = isChecked == true ? "True" : "False";
+        var expression = new LiteralExpression(newValue);
+    
+        await EditorContext.UpdateExpressionAsync(expression);
+    }
+
+}

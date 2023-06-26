@@ -1,7 +1,5 @@
-@using MudBlazor
 @using Elsa.Studio.Models
 @using Elsa.Api.Client.Expressions
-@using Elsa.Api.Client.Models
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -19,7 +17,7 @@
             HelperText="@description"
             Margin="Margin.Dense"
             Value="@inputValue"
-            ValueChanged="HandleValueChanged"/>
+            ValueChanged="OnValueChanged"/>
     </ChildContent>
 </ExpressionInput>
 
@@ -28,12 +26,11 @@
     [Parameter]
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
-    private async Task HandleValueChanged(string newValue)
+    private async Task OnValueChanged(string newValue)
     {
-        var input = EditorContext.Value ?? new ActivityInput();
-        input.Expression = new LiteralExpression(newValue);
+        var expression = new LiteralExpression(newValue);
         
-        await EditorContext.OnValueChanged(input);
+        await EditorContext.UpdateExpressionAsync(expression);
     }
 
 }

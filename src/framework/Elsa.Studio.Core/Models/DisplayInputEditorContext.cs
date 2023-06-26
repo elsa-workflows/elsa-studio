@@ -1,4 +1,7 @@
+using System.Text.Json;
 using Elsa.Api.Client.Activities;
+using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
@@ -14,4 +17,16 @@ public class DisplayInputEditorContext
     public IUIHintHandler UIHintHandler { get; set; } = default!;
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<ActivityInput, Task> OnValueChanged { get; set; } = default!;
+
+    public async Task UpdateExpressionAsync(IExpression expression)
+    {
+        // Update input.
+        var input = Value ?? new ActivityInput();
+        input.Expression = expression;
+        
+        Value = input;
+        
+        // Notify that the input has changed.
+        await OnValueChanged(input);
+    }
 }
