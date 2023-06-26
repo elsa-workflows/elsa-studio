@@ -24,6 +24,5 @@ export function readGraph(graphId: string): {
         return false;
     });
     
-    debugger;
     return model;
 }
