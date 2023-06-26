@@ -15,7 +15,7 @@ public partial class Dropdown
     protected override async Task OnInitializedAsync()
     {
         var selectList = await EditorContext.InputDescriptor.GetSelectListAsync();
-        _items = selectList.Items;
+        _items = selectList.Items.OrderBy(x => x.Text).ToList();
     }
 
     private SelectListItem? GetSelectedValue()
