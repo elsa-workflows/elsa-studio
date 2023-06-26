@@ -22,6 +22,7 @@ public partial class ExpressionInput : IDisposable
     private bool _isInternalContentChange;
     private bool _isMonacoInitialized;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private string? _lastMonacoEditorContent;
     private RateLimitedFunc<ActivityInput, Task> _throttledValueChanged;
 
     public ExpressionInput()
@@ -77,6 +78,7 @@ public partial class ExpressionInput : IDisposable
         {
             _isInternalContentChange = true;
             var model = await _monacoEditor!.GetModel();
+            _lastMonacoEditorContent = InputValue;
             await model.SetValue(InputValue);
             _isInternalContentChange = false;
             await Global.SetModelLanguage(model, _monacoLanguage);
@@ -126,12 +128,22 @@ public partial class ExpressionInput : IDisposable
         if (_isInternalContentChange)
             return;
 
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var value = await _monacoEditor!.GetValue();
 
+        // This event gets fired even when the content hasn't changed, but or example when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper), so we can't prevent it from happening.
+        if (value == _lastMonacoEditorContent)
+            return;
+        
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var input = EditorContext.Value ?? new ActivityInput();
         input.Expression = syntaxProvider.CreateExpression(value);
         await ThrottleValueChangedCallback(input);
+    }
+    
+    private Task OnMonacoModelChanged(ModelChangedEvent arg)
+    {
+        return Task.CompletedTask;
     }
 
     private async Task ThrottleValueChangedCallback(ActivityInput input) => await _throttledValueChanged.InvokeAsync(input);

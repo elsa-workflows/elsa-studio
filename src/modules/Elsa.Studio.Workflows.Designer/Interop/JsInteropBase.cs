@@ -5,7 +5,7 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Provides access to the designer JavaScript module.
 /// </summary>
-internal abstract class JsInteropBase : IAsyncDisposable
+public abstract class JsInteropBase : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
 

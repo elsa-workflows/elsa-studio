@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.UIHintHandlers.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Core.Extensions;
@@ -19,7 +20,8 @@ public static class ServiceCollectionExtensions
             .AddDefaultUIHintHandlers()
             .AddActivityTypeService()
             .AddWorkflowsCore()
-            .AddWorkflowsDesigner();
+            .AddWorkflowsDesigner()
+            .AddDomInterop();
 
         services.AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();
         

@@ -1,12 +1,17 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
+using Radzen;
+using Radzen.Blazor;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
@@ -19,6 +24,8 @@ public partial class WorkflowEditor
     private IDiagramDesigner? _diagramEditor;
     private bool _autoSave = true;
     private bool _isSaving;
+    private RadzenSplitterPane _activityPropertiesPane = default!;
+    private int _activityPropertiesPaneHeight = 300;
 
     public WorkflowEditor()
     {
@@ -31,9 +38,23 @@ public partial class WorkflowEditor
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     
     private Activity? SelectedActivity { get; set; }
     private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
+
+    public RadzenSplitterPane ActivityPropertiesPane
+    {
+        get => _activityPropertiesPane;
+        set
+        {
+            _activityPropertiesPane = value;
+            
+            // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
+            _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -120,5 +141,12 @@ public partial class WorkflowEditor
             _isSaving = false;
             StateHasChanged();
         });
+    }
+
+    private async Task OnResize(RadzenSplitterResizeEventArgs arg)
+    {
+        var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
+        var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
+        _activityPropertiesPaneHeight = (int)visibleHeight;
     }
 }

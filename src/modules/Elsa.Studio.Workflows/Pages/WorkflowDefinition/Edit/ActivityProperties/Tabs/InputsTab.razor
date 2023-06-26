@@ -1,11 +1,12 @@
-<div class="pa-4">
-    <MudForm>
-        @{
-            var inputDisplayModels = InputDisplayModels;
-        }
-        @foreach (var inputModel in inputDisplayModels)
-        {
-            @inputModel.Editor
-        }
-    </MudForm>
-</div>
+
+    <div class="pa-4">
+        <MudForm>
+            @{
+                var inputDisplayModels = InputDisplayModels;
+            }
+            @foreach (var inputModel in inputDisplayModels)
+            {
+                @inputModel.Editor
+            }
+        </MudForm>
+    </div>

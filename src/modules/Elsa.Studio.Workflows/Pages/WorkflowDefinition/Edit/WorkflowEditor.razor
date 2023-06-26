@@ -2,7 +2,7 @@
 @using Orientation = Radzen.Orientation
 @using Elsa.Studio.Workflows.Core.Contracts
 
-<RadzenSplitter Orientation="Orientation.Vertical">
+<RadzenSplitter Orientation="Orientation.Vertical" Resize="@OnResize">
     <RadzenSplitterPane Size="60%">
         <div>
             <MudPaper Class="ma-2" Elevation="0" Outlined="true">
@@ -27,7 +27,7 @@
             @_diagramEditor?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated));
         </div>
     </RadzenSplitterPane>
-    <RadzenSplitterPane Size="40%">
-        <ActivityPropertiesTabs @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated"/>
+    <RadzenSplitterPane Size="40%" @ref="ActivityPropertiesPane">
+        <ActivityPropertiesTabs @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

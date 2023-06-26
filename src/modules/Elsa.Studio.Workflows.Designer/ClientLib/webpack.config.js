@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        designer: './src/designer.ts',
+        designer: './src/designer.ts'
     },
     output: {
         filename: '[name].entry.js',
