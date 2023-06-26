@@ -26,7 +26,7 @@ public partial class CheckList
     private ICollection<string> GetSelectedValues(bool isFlagsEnum)
     {
         var inputDescriptor = EditorContext.InputDescriptor;
-        var input = (EditorContext.Value?.Expression as ObjectExpression)?.Value ?? string.Empty;
+        var input = EditorContext.GetObjectValueOrDefault();
         var defaultValue = inputDescriptor.DefaultValue;
         var json = !string.IsNullOrWhiteSpace(input) ? input : defaultValue as string;
 

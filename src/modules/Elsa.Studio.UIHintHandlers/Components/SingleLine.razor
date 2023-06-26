@@ -5,7 +5,7 @@
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
     var description = inputDescriptor.Description;
-    var inputValue = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString() ?? inputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+    var inputValue = EditorContext.GetLiteralValueOrDefault();
 }
 
 <ExpressionInput EditorContext="@EditorContext">

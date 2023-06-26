@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<MultiTextHandler>()
             .AddUIHintHandler<MultiLineHandler>()
             .AddUIHintHandler<DropdownHandler>()
+            .AddUIHintHandler<CodeEditorHandler>()
             ;
     }
 }

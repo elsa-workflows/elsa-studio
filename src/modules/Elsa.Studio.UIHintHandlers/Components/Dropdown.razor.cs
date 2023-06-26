@@ -21,7 +21,7 @@ public partial class Dropdown
     private SelectListItem? GetSelectedValue()
     {
         var inputDescriptor = EditorContext.InputDescriptor;
-        var value = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString() ?? string.Empty;
+        var value = EditorContext.GetLiteralValueOrDefault();
         var defaultValue = inputDescriptor.DefaultValue?.ToString();
         var selectedValue = string.IsNullOrWhiteSpace(value) ? defaultValue : value;
         return _items.FirstOrDefault(x => x.Value == selectedValue);

@@ -5,7 +5,7 @@
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
     var description = inputDescriptor.Description;
-    var inputValue = (EditorContext.Value?.Expression as LiteralExpression)?.Value?.ToString();
+    var inputValue = EditorContext.GetLiteralValueOrDefault();
     var isChecked = !string.IsNullOrWhiteSpace(inputValue) && bool.TryParse(inputValue, out var b) && b;
 }
 

@@ -18,14 +18,27 @@ public class DisplayInputEditorContext
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<ActivityInput, Task> OnValueChanged { get; set; } = default!;
 
+    public string GetLiteralValueOrDefault() => GetExpressionValueOrDefault<LiteralExpression, object?>(x => x.Value);
+    public string GetObjectValueOrDefault() => GetExpressionValueOrDefault<ObjectExpression, object?>(x => x.Value);
+
+    public string GetExpressionValueOrDefault<TExpression, TValue>(Func<TExpression, TValue> valueAccessor) where TExpression : class, IExpression
+    {
+        if (Value?.Expression is not TExpression expression)
+            return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+
+        var value = valueAccessor(expression);
+
+        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+    }
+
     public async Task UpdateExpressionAsync(IExpression expression)
     {
         // Update input.
         var input = Value ?? new ActivityInput();
         input.Expression = expression;
-        
+
         Value = input;
-        
+
         // Notify that the input has changed.
         await OnValueChanged(input);
     }

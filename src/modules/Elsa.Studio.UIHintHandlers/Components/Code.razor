@@ -1,0 +1,16 @@
+@using BlazorMonaco.Editor
+
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+}
+
+<MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
+    <StandaloneCodeEditor
+        @ref="_monacoEditor"
+        Id="@_monacoEditorId"
+        ConstructionOptions="ConfigureMonacoEditor"
+        CssClass="studio-expression-input-monaco-editor"
+        OnDidChangeModelContent="OnMonacoContentChanged"/>
+</MudField>

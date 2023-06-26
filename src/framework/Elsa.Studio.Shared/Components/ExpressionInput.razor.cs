@@ -15,7 +15,6 @@ public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
     private readonly string[] _uiSyntaxes = { "Literal", "Object" };
-    //private string _defaultSyntax = "Literal";
     private string _selectedSyntax = DefaultSyntax;
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
@@ -45,7 +44,7 @@ public partial class ExpressionInput : IDisposable
     private bool ShowMonacoEditor => !IsUISyntax;
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
-    private string InputValue => EditorContext.Value?.Expression.ToString() ?? string.Empty;
+    private string InputValue => EditorContext.GetLiteralValueOrDefault();
     
     private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
     {
@@ -130,20 +129,16 @@ public partial class ExpressionInput : IDisposable
 
         var value = await _monacoEditor!.GetValue();
 
-        // This event gets fired even when the content hasn't changed, but or example when the containing pane is resized.
-        // This happens from within the monaco editor itself (or the Blazor wrapper), so we can't prevent it from happening.
+        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
         if (value == _lastMonacoEditorContent)
             return;
         
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var input = EditorContext.Value ?? new ActivityInput();
         input.Expression = syntaxProvider.CreateExpression(value);
+        _lastMonacoEditorContent = value;
         await ThrottleValueChangedCallback(input);
-    }
-    
-    private Task OnMonacoModelChanged(ModelChangedEvent arg)
-    {
-        return Task.CompletedTask;
     }
 
     private async Task ThrottleValueChangedCallback(ActivityInput input) => await _throttledValueChanged.InvokeAsync(input);
