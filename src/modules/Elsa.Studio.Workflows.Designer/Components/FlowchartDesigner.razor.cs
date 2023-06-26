@@ -41,9 +41,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (OnActivitySelected == null)
             return;
-        
-        await InvokeAsync(async () => await OnActivitySelected(activity));
 
+        await InvokeAsync(async () => await OnActivitySelected(activity));
     }
 
     [JSInvokable]
@@ -51,10 +50,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (OnCanvasSelected == null)
             return;
-        
+
         await InvokeAsync(async () => await OnCanvasSelected());
     }
-    
+
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {

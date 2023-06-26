@@ -39,7 +39,7 @@ public partial class WorkflowEditor
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    
+
     private Activity? SelectedActivity { get; set; }
     private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
 
@@ -49,7 +49,7 @@ public partial class WorkflowEditor
         set
         {
             _activityPropertiesPane = value;
-            
+
             // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
@@ -57,7 +57,7 @@ public partial class WorkflowEditor
 
     protected override void OnInitialized()
     {
-        if(WorkflowDefinition?.Root == null)
+        if (WorkflowDefinition?.Root == null)
             return;
 
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
