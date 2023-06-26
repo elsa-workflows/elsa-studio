@@ -4,7 +4,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 using Microsoft.AspNetCore.Components;

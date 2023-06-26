@@ -1,5 +1,4 @@
 using Elsa.Studio.DomInterop.Models;
-using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.DomInterop.Contracts;
 

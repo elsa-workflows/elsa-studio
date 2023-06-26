@@ -4,7 +4,6 @@ using Elsa.Api.Client.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHintHandlers.Models;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace Elsa.Studio.UIHintHandlers.Components;
 
