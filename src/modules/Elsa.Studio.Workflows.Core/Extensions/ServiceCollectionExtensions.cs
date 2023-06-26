@@ -1,3 +1,4 @@
+using Elsa.Studio.Workflows.Core.ActivityDisplaySettingsProviders;
 using Elsa.Studio.Workflows.Core.Contracts;
 using Elsa.Studio.Workflows.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,8 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             ;
+
+        services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
         
         return services;
     }
@@ -21,6 +24,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
         services.AddSingleton<IDiagramDesignerProvider, T>();
+        return services;
+    }
+    
+    public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
+    {
+        services.AddSingleton<IActivityDisplaySettingsProvider, T>();
         return services;
     }
 }

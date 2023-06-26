@@ -1,15 +1,12 @@
+using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Core.Models;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Core.Models;
+namespace Elsa.Studio.Workflows.Core.ActivityDisplaySettingsProviders;
 
-/// <summary>
-/// A static class with default activity display settings.
-/// </summary>
-public class DefaultActivityDisplaySettings
+public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
-    public static ActivityDisplaySettings DefaultSettings { get; set; } = new(DefaultActivityColors.Default);
-    
-    public static readonly IDictionary<string, ActivityDisplaySettings> Settings = new Dictionary<string, ActivityDisplaySettings>
+    public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
         // Branching
         ["Elsa.If"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Heroicons.Question),

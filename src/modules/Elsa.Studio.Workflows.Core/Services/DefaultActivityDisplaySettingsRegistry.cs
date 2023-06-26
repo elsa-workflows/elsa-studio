@@ -5,16 +5,38 @@ namespace Elsa.Studio.Workflows.Core.Services;
 
 public class DefaultActivityDisplaySettingsRegistry : IActivityDisplaySettingsRegistry
 {
-    private readonly IDictionary<string, ActivityDisplaySettings> _settings = new Dictionary<string, ActivityDisplaySettings>(DefaultActivityDisplaySettings.Settings);
+    private readonly IEnumerable<IActivityDisplaySettingsProvider> _providers;
+    private IDictionary<string, ActivityDisplaySettings>? _settings;
 
-    public DefaultActivityDisplaySettingsRegistry()
+    public DefaultActivityDisplaySettingsRegistry(IEnumerable<IActivityDisplaySettingsProvider> providers)
     {
-        DefaultSettings = DefaultActivityDisplaySettings.DefaultSettings;
+        _providers = providers;
     }
 
-    public ActivityDisplaySettings DefaultSettings { get; set; }
-    
-    public void ConfigureActivitySettings(string activityType, ActivityDisplaySettings settings) => _settings[activityType] = settings;
+    public static ActivityDisplaySettings DefaultSettings { get; set; } = new(DefaultActivityColors.Default);
 
-    public ActivityDisplaySettings GetSettings(string activityType) => _settings.TryGetValue(activityType, out var settings) ? settings : DefaultSettings;
+    public ActivityDisplaySettings GetSettings(string activityType)
+    {
+        var dictionary = GetSettingsDictionary();
+        return dictionary.TryGetValue(activityType, out var settings) ? settings : DefaultSettings;
+    }
+
+    private IDictionary<string, ActivityDisplaySettings> GetSettingsDictionary()
+    {
+        if(_settings != null)
+            return _settings;
+        
+        var settings = new Dictionary<string, ActivityDisplaySettings>();
+
+        foreach (var provider in _providers)
+        {
+            var providerSettings = provider.GetSettings();
+            
+            foreach (var (activityType, activityDisplaySettings) in providerSettings)
+                settings[activityType] = activityDisplaySettings;
+        }
+        
+        _settings = settings;
+        return _settings;
+    }
 }

@@ -7,7 +7,5 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 /// </summary>
 public interface IActivityDisplaySettingsRegistry
 {
-    ActivityDisplaySettings DefaultSettings { get; set; }
-    void ConfigureActivitySettings(string activityType, ActivityDisplaySettings settings);
     ActivityDisplaySettings GetSettings(string activityType);
 }
