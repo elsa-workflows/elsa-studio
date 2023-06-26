@@ -8,22 +8,26 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
-        <PackageReference Include="MudBlazor" Version="6.4.1" />
-        <PackageReference Include="Radzen.Blazor" Version="4.13.3" />
-        <PackageReference Include="ThrottleDebounce" Version="2.0.0" />
+        <PackageReference Include="Blazored.LocalStorage" Version="4.3.0"/>
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.5.2"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.8"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.8"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.JSInterop" Version="7.0.8" />
+        <PackageReference Include="MudBlazor" Version="6.5.0"/>
+        <PackageReference Include="Radzen.Blazor" Version="4.13.4"/>
+        <PackageReference Include="ThrottleDebounce" Version="2.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Http.Abstractions">
-      </Reference>
+        <Reference Include="Microsoft.AspNetCore.Http.Abstractions">
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj" />
+        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>
     </ItemGroup>
 
 </Project>

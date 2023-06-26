@@ -11,11 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj" />
     </ItemGroup>

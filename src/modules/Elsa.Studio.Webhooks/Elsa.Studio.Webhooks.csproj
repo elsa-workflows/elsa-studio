@@ -12,15 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="wwwroot\background.png" />
-      <_ContentIncludedByDefault Remove="wwwroot\exampleJsInterop.js" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
     </ItemGroup>
