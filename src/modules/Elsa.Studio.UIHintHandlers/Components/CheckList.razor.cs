@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Elsa.Api.Client.Expressions;
 using Elsa.Studio.Models;
+using Elsa.Studio.UIHintHandlers.Extensions;
 using Elsa.Studio.UIHintHandlers.Helpers;
-using Elsa.Studio.UIHintHandlers.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHintHandlers.Components;
@@ -15,40 +15,12 @@ public partial class CheckList
 
     protected override async Task OnInitializedAsync()
     {
-        var selectList = await GetSelectListAsync();
+        var selectList = await EditorContext.InputDescriptor.GetSelectListAsync();
         var selectedValues = GetSelectedValues(selectList.IsFlagsEnum);
 
         _checkListItems = selectList.Items
             .Select(i => new CheckListItem(i.Value, i.Text, selectedValues.Contains(i.Value)))
             .ToList();
-    }
-
-    private async Task<SelectList> GetSelectListAsync()
-    {
-        var descriptor = EditorContext.InputDescriptor;
-        var options = (JsonElement?)descriptor.Options;
-
-        if (options == null || options.Value.ValueKind == JsonValueKind.Null)
-            return new SelectList(new List<SelectListItem>(), false);
-
-        // if (options is IRuntimeListProviderSettings runtimeListProviderSettings)
-        // {
-        //     return new SelectList(new List<SelectListItem>(), false);
-        // }
-
-        if (options.Value.ValueKind == JsonValueKind.Array)
-        {
-            var items = options.Value.Deserialize<string[]>()!;
-            var selectListItems = items.Select(s => new SelectListItem(s, s)).ToList();
-            return new SelectList(selectListItems, false);
-        }
-
-        // if (options is SelectList selectList)
-        // {
-        //     return new SelectList(new List<SelectListItem>(), false);
-        // }
-
-        return new SelectList(new List<SelectListItem>(), false);
     }
 
     private ICollection<string> GetSelectedValues(bool isFlagsEnum)

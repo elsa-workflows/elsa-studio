@@ -4,6 +4,7 @@ using Elsa.Studio.Shell.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
+using MudExtensions.Services;
 
 namespace Elsa.Studio.Shell.Extensions;
 
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
                 config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
                 config.SnackbarConfiguration.MaxDisplayedSnackbars = 3;
             })
+            .AddMudExtensions()
             .AddCore()
             .AddSingleton<IStartupTask, InitializeModulesStartupTask>();
     }

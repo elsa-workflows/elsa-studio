@@ -34,20 +34,23 @@ public class SelectListJsonConverter : JsonConverter<SelectList>
                 {
                     if (reader.TokenType == JsonTokenType.StartArray)
                     {
-                        reader.Read(); // Read the first element of the array
-
-                        switch (reader.TokenType)
-                        {
-                            case JsonTokenType.StartObject:
-                                items = JsonSerializer.Deserialize<List<SelectListItem>>(ref reader, options)!;
-                                break;
-                            case JsonTokenType.String:
-                            {
-                                var stringItems = JsonSerializer.Deserialize<List<string>>(ref reader, options)!;
-                                items = stringItems.Select(s => new SelectListItem(s, s)).ToList();
-                                break;
-                            }
-                        }
+                        var serializerOptions = new JsonSerializerOptions(options);
+                        serializerOptions.Converters.Add(new SelectListItemJsonConverter());
+                        items = JsonSerializer.Deserialize<List<SelectListItem>>(ref reader, serializerOptions)!;
+                        // reader.Read(); // Read the first element of the array
+                        //
+                        // switch (reader.TokenType)
+                        // {
+                        //     case JsonTokenType.StartObject:
+                        //         items = JsonSerializer.Deserialize<List<SelectListItem>>(ref reader, options)!;
+                        //         break;
+                        //     case JsonTokenType.String:
+                        //     {
+                        //         var stringItems = JsonSerializer.Deserialize<List<string>>(ref reader, options)!;
+                        //         items = stringItems.Select(s => new SelectListItem(s, s)).ToList();
+                        //         break;
+                        //     }
+                        // }
                     }
 
                     break;
