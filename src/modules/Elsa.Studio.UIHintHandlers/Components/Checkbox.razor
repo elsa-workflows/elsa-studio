@@ -11,7 +11,7 @@
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
-        <MudField Variant="Variant.Text" HelperText="@description" Margin="Margin.Dense" DisableUnderLine="true">
+        <MudField Variant="Variant.Outlined" Margin="Margin.Dense" DisableUnderLine="false" Label="@displayName" HelperText="@description">
             @* ReSharper disable once ConvertClosureToMethodGroup *@
             <MudCheckBox
                 T="bool"
