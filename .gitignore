@@ -150,3 +150,5 @@ OpenCover/
 src/modules/**/wwwroot/
 
 src/modules/Elsa.Studio.Workflows.Designer/ClientLib/package-lock.json
+
+src/modules/Elsa.Studio.DomInterop/ClientLib/package-lock.json

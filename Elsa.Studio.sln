@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Workflows.Core"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.UIHintHandlers", "src\modules\Elsa.Studio.UIHintHandlers\Elsa.Studio.UIHintHandlers.csproj", "{437093C2-B821-4BB2-8FD8-1165671D10BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.DomInterop", "src\modules\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj", "{064CD170-0085-4AD4-AC67-30DB2FAE5B50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,10 @@ Global
 		{437093C2-B821-4BB2-8FD8-1165671D10BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{437093C2-B821-4BB2-8FD8-1165671D10BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{437093C2-B821-4BB2-8FD8-1165671D10BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{064CD170-0085-4AD4-AC67-30DB2FAE5B50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{064CD170-0085-4AD4-AC67-30DB2FAE5B50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{064CD170-0085-4AD4-AC67-30DB2FAE5B50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{064CD170-0085-4AD4-AC67-30DB2FAE5B50}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -156,5 +162,6 @@ Global
 		{936730BE-D1ED-468D-A569-ABC4CD339FEF} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{33647BD7-6DB2-40BD-992D-82A58F21550E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{437093C2-B821-4BB2-8FD8-1165671D10BF} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{064CD170-0085-4AD4-AC67-30DB2FAE5B50} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 EndGlobal

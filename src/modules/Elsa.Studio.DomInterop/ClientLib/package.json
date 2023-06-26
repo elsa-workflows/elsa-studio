@@ -1,0 +1,19 @@
+{
+  "name": "elsa-studio-dom-interop",
+  "description": "Bundle DOM interop functions.",
+  "repository": "https://github.com/elsa-workflows/elsa-dashboard",
+  "license": "MIT",
+  "version": "1.0.0",
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1",
+    "typescript": "^5.0.4",
+    "ts-loader": "^9.4.2"
+  },
+  "scripts": {
+    "build": "webpack"
+  }
+}
