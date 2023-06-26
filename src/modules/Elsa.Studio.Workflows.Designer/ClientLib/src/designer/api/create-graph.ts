@@ -209,7 +209,6 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     graph.on('node:moved', onGraphUpdated);
     graph.on('node:added', onNodeAdded);
     graph.on('node:removed', onNodeRemoved);
-    graph.on('edge:added', onGraphUpdated);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
 
