@@ -7,6 +7,7 @@ namespace Elsa.Studio.Workflows.Core.Contracts;
 /// </summary>
 public interface IDiagramDesignerProvider
 {
+    double Priority { get; }
     bool GetSupportsActivity(Activity activity);
     IDiagramDesigner GetEditor();
 }

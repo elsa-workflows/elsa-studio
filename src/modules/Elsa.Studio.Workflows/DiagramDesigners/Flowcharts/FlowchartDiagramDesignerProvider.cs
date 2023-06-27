@@ -5,6 +5,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
 public class FlowchartDiagramDesignerProvider : IDiagramDesignerProvider
 {
+    public double Priority => 0;
     public bool GetSupportsActivity(Activity activity) => activity is Flowchart;
 
     public IDiagramDesigner GetEditor()

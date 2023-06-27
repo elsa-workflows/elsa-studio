@@ -1,0 +1,17 @@
+@using Elsa.Api.Client.Activities
+
+<MudPaper Width="100%" Class="pa-16">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        @if (Activity != null)
+        {
+            <ActivityWrapper Activity="@Activity" ActivityId="@Activity.Id"></ActivityWrapper>
+        }
+    </MudContainer>
+</MudPaper>
+
+@code {
+
+    [Parameter]
+    public Activity? Activity { get; set; }
+
+}

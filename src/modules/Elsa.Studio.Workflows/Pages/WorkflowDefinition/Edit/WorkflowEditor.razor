@@ -24,7 +24,7 @@
                 </MudToolBar>
             </MudPaper>
             <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
-            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated));
+            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
         </div>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="40%" @ref="ActivityPropertiesPane">

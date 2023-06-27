@@ -14,7 +14,9 @@ public class DefaultDiagramDesignerService : IDiagramDesignerService
     
     public IDiagramDesigner GetDiagramDesigner(Activity activity)
     {
-        var provider = _providers.FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.Type}.");
+        var provider = _providers
+            .OrderByDescending(x => x.Priority)
+            .FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.Type}.");
         return provider.GetEditor();
     }
 }
