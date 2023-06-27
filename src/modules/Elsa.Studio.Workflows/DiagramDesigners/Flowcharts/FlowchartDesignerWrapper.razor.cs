@@ -8,7 +8,7 @@ using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
+namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
 public partial class FlowchartDesignerWrapper
 {
@@ -42,7 +42,7 @@ public partial class FlowchartDesignerWrapper
 
         while (count++ < max)
         {
-            var nextId = $"{activityDescriptor}{GetNextNumber(activityDescriptor)}";
+            var nextId = $"{activityDescriptor.Name}{GetNextNumber(activityDescriptor)}";
             if (!GetIdExists(nextId))
                 return nextId;
         }

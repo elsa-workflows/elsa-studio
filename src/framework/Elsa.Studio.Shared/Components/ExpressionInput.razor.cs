@@ -22,11 +22,11 @@ public partial class ExpressionInput : IDisposable
     private bool _isMonacoInitialized;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
     private string? _lastMonacoEditorContent;
-    private RateLimitedFunc<ActivityInput, Task> _throttledValueChanged;
+    private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
 
     public ExpressionInput()
     {
-        _throttledValueChanged = Debouncer.Debounce<ActivityInput, Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+        _throttledValueChanged = Debouncer.Debounce<WrappedInput, Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
     }
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
@@ -41,7 +41,7 @@ public partial class ExpressionInput : IDisposable
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
     private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => IsUISyntax ? default : Color.Secondary;
-    private bool ShowMonacoEditor => !IsUISyntax;
+    private bool ShowMonacoEditor => !IsUISyntax && EditorContext.InputDescriptor.IsWrapped;
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
@@ -116,7 +116,7 @@ public partial class ExpressionInput : IDisposable
 
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var value = InputValue;
-        var input = EditorContext.Value ?? new ActivityInput();
+        var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
         input.Expression = syntaxProvider.CreateExpression(value);
         await InvokeValueChangedCallback(input);
         await UpdateMonacoLanguageAsync(syntax);
@@ -135,14 +135,14 @@ public partial class ExpressionInput : IDisposable
             return;
         
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
-        var input = EditorContext.Value ?? new ActivityInput();
+        var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
         input.Expression = syntaxProvider.CreateExpression(value);
         _lastMonacoEditorContent = value;
         await ThrottleValueChangedCallback(input);
     }
 
-    private async Task ThrottleValueChangedCallback(ActivityInput input) => await _throttledValueChanged.InvokeAsync(input);
-    private async Task InvokeValueChangedCallback(ActivityInput input) => await EditorContext.OnValueChanged(input);
+    private async Task ThrottleValueChangedCallback(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
+    private async Task InvokeValueChangedCallback(WrappedInput input) => await EditorContext.OnValueChanged(input);
 
     private void OnMonacoInitialized() => _isMonacoInitialized = true;
     private void OnMonacoDisposed() => _isMonacoInitialized = false;

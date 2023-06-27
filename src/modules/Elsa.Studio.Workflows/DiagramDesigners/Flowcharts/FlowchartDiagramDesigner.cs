@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
+namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
 public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {

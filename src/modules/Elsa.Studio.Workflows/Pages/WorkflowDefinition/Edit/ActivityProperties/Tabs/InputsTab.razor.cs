@@ -48,7 +48,7 @@ public partial class InputsTab
         {
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.TryGetValue(inputName);
-            var activityInput = ToActivityInput(value);
+            var activityInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
             var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             
@@ -70,7 +70,7 @@ public partial class InputsTab
         return models;
     }
 
-    private ActivityInput? ToActivityInput(object? value)
+    private WrappedInput? ToWrappedInput(object? value)
     {
         var converterOptions = new ObjectConverterOptions(serializerOptions =>
         {
@@ -78,16 +78,16 @@ public partial class InputsTab
             serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         });
 
-        return value.ConvertTo<ActivityInput>(converterOptions);
+        return value.ConvertTo<WrappedInput>(converterOptions);
     }
 
-    private async Task HandleValueChangedAsync(DisplayInputEditorContext context, ActivityInput activityInput)
+    private async Task HandleValueChangedAsync(DisplayInputEditorContext context, WrappedInput wrappedInput)
     {
         var activity = context.Activity;
         var inputDescriptor = context.InputDescriptor;
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType());
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
 
-        activity[inputDescriptor.Name.Camelize()] = activityInput;
+        activity[inputDescriptor.Name.Camelize()] = wrappedInput;
         context.SelectedSyntaxProvider = syntaxProvider;
 
         if (OnActivityUpdated != null)

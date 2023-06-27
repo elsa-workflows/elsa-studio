@@ -20,11 +20,8 @@ public partial class Dropdown
 
     private SelectListItem? GetSelectedValue()
     {
-        var inputDescriptor = EditorContext.InputDescriptor;
         var value = EditorContext.GetLiteralValueOrDefault();
-        var defaultValue = inputDescriptor.DefaultValue?.ToString();
-        var selectedValue = string.IsNullOrWhiteSpace(value) ? defaultValue : value;
-        return _items.FirstOrDefault(x => x.Value == selectedValue);
+        return _items.FirstOrDefault(x => x.Value == value);
     }
     
     private async Task OnValueChanged(SelectListItem? value)

@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Studio.Workflows.Core.Contracts;
 
-namespace Elsa.Studio.Workflows.DiagramEditors.Flowcharts;
+namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
 public class FlowchartDiagramDesignerProvider : IDiagramDesignerProvider
 {

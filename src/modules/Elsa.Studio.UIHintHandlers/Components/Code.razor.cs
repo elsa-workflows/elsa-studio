@@ -17,15 +17,14 @@ public partial class Code
 
     public Code()
     {
-        _throttledValueChanged = Debouncer.Debounce<Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+        _throttledValueChanged = Debouncer.Debounce(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
     }
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
-    private string InputValue => EditorContext.Value?.Expression.ToString() ?? string.Empty;
-
+    private string InputValue => EditorContext.GetLiteralValueOrDefault();
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
