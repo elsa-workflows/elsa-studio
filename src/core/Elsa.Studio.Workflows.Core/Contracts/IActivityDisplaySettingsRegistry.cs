@@ -1,6 +1,6 @@
-using Elsa.Studio.Workflows.Core.Models;
+using Elsa.Studio.Workflows.Models;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 /// <summary>
 /// Provides mappings between activity types and icons.

@@ -1,6 +1,6 @@
-using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Core.Extensions;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 

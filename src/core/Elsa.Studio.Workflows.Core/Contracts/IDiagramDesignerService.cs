@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Activities;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 /// <summary>
 /// A service for managing diagram editors.

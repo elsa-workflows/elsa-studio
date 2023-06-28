@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Workflows.Core.Models;
+namespace Elsa.Studio.Workflows.Models;
 
 public class ActivityDisplaySettings
 {

@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 public interface IWorkflowDefinitionService
 {

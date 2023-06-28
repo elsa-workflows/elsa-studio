@@ -3,9 +3,9 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Extensions;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 
-namespace Elsa.Studio.Workflows.Core.Services;
+namespace Elsa.Studio.Workflows.Services;
 
 public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
 {

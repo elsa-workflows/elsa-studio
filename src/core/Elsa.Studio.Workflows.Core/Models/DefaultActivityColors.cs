@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Workflows.Core.Models;
+namespace Elsa.Studio.Workflows.Models;
 
 /// <summary>
 /// A static class with default activity colors.

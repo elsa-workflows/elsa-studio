@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 
-namespace Elsa.Studio.Workflows.Core.Extensions;
+namespace Elsa.Studio.Workflows.Extensions;
 
 public static class ActivityRegistryExtensions
 {

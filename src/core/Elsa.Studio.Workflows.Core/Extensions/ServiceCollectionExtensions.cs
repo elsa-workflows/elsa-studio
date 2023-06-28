@@ -1,9 +1,9 @@
-using Elsa.Studio.Workflows.Core.ActivityDisplaySettingsProviders;
-using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Core.Services;
+using Elsa.Studio.Workflows.ActivityDisplaySettingsProviders;
+using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Workflows.Core.Extensions;
+namespace Elsa.Studio.Workflows.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
-            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
+            .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             ;

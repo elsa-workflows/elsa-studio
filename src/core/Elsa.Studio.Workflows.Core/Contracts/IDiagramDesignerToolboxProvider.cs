@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 /// <summary>
 /// Implement this interface to provide toolbox items for the diagram editor.

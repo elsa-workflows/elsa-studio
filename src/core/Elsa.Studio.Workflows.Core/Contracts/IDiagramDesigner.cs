@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Activities;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 /// <summary>
 /// Represents a diagram editor.

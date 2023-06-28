@@ -3,7 +3,6 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.UIHintHandlers.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Elsa.Studio.Workflows.Core.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.Menu;

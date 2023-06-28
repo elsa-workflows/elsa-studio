@@ -37,7 +37,7 @@ public partial class Cases
         return caseRecords;
     }
 
-    private ICollection<Case> ParseJson(string? json)
+    private IEnumerable<Case> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {

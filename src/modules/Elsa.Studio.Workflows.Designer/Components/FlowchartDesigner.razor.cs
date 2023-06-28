@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Activities;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;

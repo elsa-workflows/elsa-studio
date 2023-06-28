@@ -1,7 +1,7 @@
-using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Core.Models;
+using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Models;
 
-namespace Elsa.Studio.Workflows.Core.Services;
+namespace Elsa.Studio.Workflows.Services;
 
 public class DefaultActivityDisplaySettingsRegistry : IActivityDisplaySettingsRegistry
 {

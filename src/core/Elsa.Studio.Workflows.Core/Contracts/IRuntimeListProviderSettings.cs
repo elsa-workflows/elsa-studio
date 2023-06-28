@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 public interface IRuntimeListProviderSettings
 {

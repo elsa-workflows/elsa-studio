@@ -1,5 +1,5 @@
 using Elsa.Api.Client.Activities;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 

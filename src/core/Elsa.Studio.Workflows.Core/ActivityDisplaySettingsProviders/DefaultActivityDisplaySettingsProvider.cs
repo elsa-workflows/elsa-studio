@@ -1,8 +1,8 @@
-using Elsa.Studio.Workflows.Core.Contracts;
-using Elsa.Studio.Workflows.Core.Models;
+using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Models;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Core.ActivityDisplaySettingsProviders;
+namespace Elsa.Studio.Workflows.ActivityDisplaySettingsProviders;
 
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {

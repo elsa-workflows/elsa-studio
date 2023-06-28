@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Activities;
 
-namespace Elsa.Studio.Workflows.Core.Contracts;
+namespace Elsa.Studio.Workflows.Contracts;
 
 /// <summary>
 /// Implement this interface to provide a diagram editor for a given workflow definition's root activity.

@@ -6,7 +6,7 @@ using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Core.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
