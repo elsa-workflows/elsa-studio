@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<MultiLineHandler>()
             .AddUIHintHandler<DropdownHandler>()
             .AddUIHintHandler<CodeEditorHandler>()
+            .AddUIHintHandler<FlowSwitchEditorHandler>()
             ;
     }
 }

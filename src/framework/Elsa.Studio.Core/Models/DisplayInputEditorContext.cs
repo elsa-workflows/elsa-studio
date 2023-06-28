@@ -15,7 +15,7 @@ public class DisplayInputEditorContext
     public object? Value { get; set; }
     public IUIHintHandler UIHintHandler { get; set; } = default!;
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
-    public Func<WrappedInput, Task> OnValueChanged { get; set; } = default!;
+    public Func<object?, Task> OnValueChanged { get; set; } = default!;
 
     public string GetLiteralValueOrDefault() => GetExpressionValueOrDefault<LiteralExpression, object?>(x => x.Value);
     public string GetObjectValueOrDefault() => GetExpressionValueOrDefault<ObjectExpression, object?>(x => x.Value);
@@ -33,6 +33,11 @@ public class DisplayInputEditorContext
         var value = valueAccessor(expression);
 
         return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+    }
+
+    public async Task UpdateValueAsync(object? value)
+    {
+        await OnValueChanged(value);
     }
 
     public async Task UpdateExpressionAsync(IExpression expression)

@@ -1,14 +1,10 @@
-
-    <div class="pa-4">
-        <MudForm>
-            @{
-                var inputDisplayModels = InputDisplayModels;
-            }
-            @foreach (var inputModel in inputDisplayModels)
+<div class="pa-4">
+    <MudForm>
+        <MudStack Spacing="6">
+            @foreach (var inputModel in InputDisplayModels)
             {
-                <div class="my-3">
-                    @inputModel.Editor
-                </div>
+                @inputModel.Editor
             }
-        </MudForm>
-    </div>
+        </MudStack>
+    </MudForm>
+</div>

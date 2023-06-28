@@ -1,0 +1,60 @@
+<MudStack>
+    <MudTable
+        @ref="_table"
+        Items="@Items"
+        Dense="true"
+        Elevation="0"
+        FixedHeader="true"
+        Striped="true"
+        EditTrigger="TableEditTrigger.EditButton"
+        EditButtonPosition="TableEditButtonPosition.Start"
+        ApplyButtonPosition="TableApplyButtonPosition.Start"
+        Outlined="true"
+        CanCancelEdit="true"
+        RowEditPreview="OnRowEditPreview"
+        RowEditCancel="OnRowEditCancel"
+        RowEditCommit="OnRowEditCommitted"
+    >
+        <HeaderContent>
+            <MudTh Style="width: 25%">Label</MudTh>
+            <MudTh Style="width: 50%;">Condition</MudTh>
+            <MudTh Style="width: 15%;">Syntax</MudTh>
+            <MudTh Style="width: 40px;"></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Label">@context.Label</MudTd>
+            <MudTd DataLabel="Condition">@context.Condition</MudTd>
+            <MudTd DataLabel="Syntax">@context.Syntax</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => OnDeleteClicked(context))"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="Label">
+                <MudTextField @bind-Value="@context.Label" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudTd>
+            <MudTd DataLabel="Condition">
+                <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudTd>
+            <MudTd DataLabel="Syntax">
+                <MudSelect @bind-Value="@context.Syntax" Variant="Variant.Outlined">
+                    @foreach (var syntaxDescriptor in GetSupportedSyntaxes())
+                    {
+                        <MudSelectItem Value="@syntaxDescriptor.Syntax">@syntaxDescriptor.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudTd>
+        </RowEditingTemplate>
+        <NoRecordsContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="OnAddClicked">
+                Add case
+            </MudButton>
+        </NoRecordsContent>
+    </MudTable>
+    @if (Items.Any())
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton)" OnClick="OnAddClicked" >
+            Add case
+        </MudButton>
+    }
+</MudStack>

@@ -1,6 +1,5 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Expressions;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
@@ -21,8 +20,6 @@ public partial class Code
     }
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
-    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
 

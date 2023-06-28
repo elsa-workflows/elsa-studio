@@ -9,16 +9,22 @@ public static class JsonParser
     /// </summary>
     /// <param name="json">The JSON string to parse.</param>
     /// <param name="defaultValueFactory">A factory function that returns a default value of type <typeparamref name="T"/>.</param>
+    /// <param name="options">The <see cref="JsonSerializerOptions"/> to use when parsing the JSON string.</param>
     /// <typeparam name="T">The type of the object to parse the JSON string into.</typeparam>
     /// <returns>An object of type <typeparamref name="T"/>.</returns>
-    public static T ParseJson<T>(string? json, Func<T> defaultValueFactory)
+    public static T ParseJson<T>(string? json, Func<T> defaultValueFactory, JsonSerializerOptions? options = default)
     {
         if (string.IsNullOrWhiteSpace(json))
             return defaultValueFactory();
 
         try
         {
-            return JsonSerializer.Deserialize<T>(json) ?? defaultValueFactory();
+            options ??= new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            return JsonSerializer.Deserialize<T>(json, options) ?? defaultValueFactory();
         }
         catch (JsonException)
         {

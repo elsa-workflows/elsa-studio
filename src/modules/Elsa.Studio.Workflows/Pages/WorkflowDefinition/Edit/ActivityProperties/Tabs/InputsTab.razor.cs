@@ -48,16 +48,17 @@ public partial class InputsTab
         {
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.TryGetValue(inputName);
-            var activityInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
-            var syntaxProvider = activityInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(activityInput.Expression.GetType()) : default;
+            var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
+            var syntaxProvider = wrappedInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            
+            var input = inputDescriptor.IsWrapped ? wrappedInput : value;
+
             var context = new DisplayInputEditorContext
             {
                 Activity = activity,
                 ActivityDescriptor = activityDescriptor,
                 InputDescriptor = inputDescriptor,
-                Value = activityInput,
+                Value = input,
                 SelectedSyntaxProvider = syntaxProvider,
                 UIHintHandler = uiHintHandler,
             };
@@ -81,14 +82,19 @@ public partial class InputsTab
         return value.ConvertTo<WrappedInput>(converterOptions);
     }
 
-    private async Task HandleValueChangedAsync(DisplayInputEditorContext context, WrappedInput wrappedInput)
+    private async Task HandleValueChangedAsync(DisplayInputEditorContext context, object? value)
     {
         var activity = context.Activity;
         var inputDescriptor = context.InputDescriptor;
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
 
-        activity[inputDescriptor.Name.Camelize()] = wrappedInput;
-        context.SelectedSyntaxProvider = syntaxProvider;
+        if (inputDescriptor.IsWrapped)
+        {
+            var wrappedInput = (WrappedInput)value!;
+            var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
+            context.SelectedSyntaxProvider = syntaxProvider;
+        }
+
+        activity[inputDescriptor.Name.Camelize()] = value!;
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);

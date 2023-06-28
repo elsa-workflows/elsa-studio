@@ -23,16 +23,8 @@ public partial class MultiText
 
     private List<string> GetCurrentItems()
     {
-        var inputDescriptor = EditorContext.InputDescriptor;
         var input = EditorContext.GetObjectValueOrDefault();
-        var defaultValue = inputDescriptor.DefaultValue;
-        var json = !string.IsNullOrWhiteSpace(input) ? input : defaultValue as string;
-        var items = ParseJson(json);
-
-        if (!items.Any())
-            items = ParseJson(defaultValue as string);
-
-        return items;
+        return ParseJson(input);
     }
     
     private List<string> ParseJson(string? json)
