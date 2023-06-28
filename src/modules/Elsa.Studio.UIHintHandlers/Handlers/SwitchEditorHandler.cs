@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHintHandlers.Handlers;
 
-public class FlowSwitchEditorHandler : IUIHintHandler
+public class SwitchEditorHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "flow-switch-editor";
+    public bool GetSupportsUIHint(string uiHint) => uiHint is "flow-switch-editor" or "switch-editor";
     public string UISyntax => WellKnownSyntaxNames.Object;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)

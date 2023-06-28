@@ -24,7 +24,7 @@ public partial class Cases
     
     private bool DisableAddButton => _caseBeingEdited != null || _caseBeingAdded != null;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         Items = GetItems();
     }
