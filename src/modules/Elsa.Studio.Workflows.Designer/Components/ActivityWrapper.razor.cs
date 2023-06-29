@@ -47,6 +47,6 @@ public partial class ActivityWrapper
 
         // Otherwise, update the activity node.
         if (!string.IsNullOrEmpty(ElementId))
-            await DesignerInterop.UpdateActivityNodeAsync(ElementId, Activity);
+            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity);
     } 
 }

@@ -67,7 +67,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             },
             validateConnection({targetMagnet}) {
                 return !!targetMagnet
-            }
+            },
         },
         highlighting: {
             magnetAdsorbed: {

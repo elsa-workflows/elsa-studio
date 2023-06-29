@@ -2,7 +2,7 @@ import {calculateActivitySize} from "./calculate-activity-size";
 import {Activity} from "../models";
 import {graphBindings} from "./graph-bindings";
 
-export async function updateActivityNode(elementId: string, activity: Activity) {
+export async function updateActivitySize(elementId: string, activity: Activity) {
     // Get wrapper element.
     const wrapper = document.getElementById(elementId);
 

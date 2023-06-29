@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;

@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -18,8 +20,23 @@ public class DisplayInputEditorContext
     public Func<object?, Task> OnValueChanged { get; set; } = default!;
 
     public string GetLiteralValueOrDefault() => GetExpressionValueOrDefault<LiteralExpression, object?>(x => x.Value);
-    public string GetObjectValueOrDefault() => GetExpressionValueOrDefault<ObjectExpression, object?>(x => x.Value);
+    
+    public string GetObjectValueOrDefault()
+    {
+        
+        if (!InputDescriptor.IsWrapped)
+            return Serialize(Value ?? InputDescriptor.DefaultValue);
 
+        var wrappedInput = Value as WrappedInput;
+        
+        if (wrappedInput?.Expression is not ObjectExpression expression)
+            return Serialize(InputDescriptor.DefaultValue);
+
+        var value = expression.Value;
+
+        return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+    }
+    
     public string GetExpressionValueOrDefault<TExpression, TValue>(Func<TExpression, TValue> valueAccessor) where TExpression : class, IExpression
     {
         if (!InputDescriptor.IsWrapped)
@@ -52,5 +69,17 @@ public class DisplayInputEditorContext
 
         // Notify that the input has changed.
         await OnValueChanged(wrappedInput);
+    }
+    
+    private static string Serialize(object? value)
+    {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        options.Converters.Add(new ExpressionJsonConverterFactory());
+
+        return value != null ? JsonSerializer.Serialize(value, options) : string.Empty;
     }
 }

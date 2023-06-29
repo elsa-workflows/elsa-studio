@@ -5,7 +5,7 @@ using Humanizer;
 
 namespace Elsa.Studio.Workflows.PortProviders;
 
-public class DefaultPortProvider : IPortProvider
+public class DefaultActivityPortProvider : IActivityPortProvider
 {
     public double Priority => -1000; 
 

@@ -8,6 +8,6 @@ export * from './load-graph';
 export * from './read-graph';
 export * from './set-grid-color';
 export * from './update-activity';
-export * from './update-activity-node';
+export * from './update-activity-size';
 export * from './zoom-to-fit';
 export {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";

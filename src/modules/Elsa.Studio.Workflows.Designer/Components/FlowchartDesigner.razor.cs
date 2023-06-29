@@ -19,6 +19,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
     private DotNetObjectReference<FlowchartDesigner>? _componentRef;
     private IFlowchartMapper? _flowchartMapper = default!;
+    private IActivityMapper? _activityMapper = default!;
     private X6GraphApi _graphApi = default!;
 
     private List<BreadcrumbItem> _activityPath = new()
@@ -34,7 +35,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IFlowchartMapperFactory FlowchartMapperFactory { get; set; } = default!;
+    [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
 
     [JSInvokable]
     public async Task HandleActivitySelected(Activity activity)
@@ -76,7 +77,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
         var graph = new X6Graph(nodes, edges);
         var flowchartMapper = await GetFlowchartMapperAsync();
-        var exportedFlowchart = flowchartMapper.MapX6Graph(graph);
+        var exportedFlowchart = flowchartMapper.Map(graph);
         var activities = exportedFlowchart.Activities;
         var connections = exportedFlowchart.Connections;
 
@@ -89,8 +90,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     public async Task AddActivityAsync(Activity activity)
     {
-        var flowchartMapper = await GetFlowchartMapperAsync();
-        var node = flowchartMapper.MapActivity(activity);
+        var mapper = await GetActivityMapperAsync();
+        var node = mapper.MapActivity(activity);
         await _graphApi.AddActivityNodeAsync(node);
     }
 
@@ -125,12 +126,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef);
 
             var flowchartMapper = await GetFlowchartMapperAsync();
-            var graph = flowchartMapper.MapFlowchart(Flowchart);
+            var graph = flowchartMapper.Map(Flowchart);
             await _graphApi.LoadGraphAsync(graph);
         }
     }
 
-    private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await FlowchartMapperFactory.CreateAsync();
+    private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();
+    private async Task<IActivityMapper> GetActivityMapperAsync() => _activityMapper ??= await MapperFactory.CreateActivityMapperAsync();
 
     /// <summary>
     /// Sets the grid color.

@@ -7,16 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <SupportedPlatform Include="browser"/>
+        <SupportedPlatform Include="browser" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\core\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj"/>
-        <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
+        <ProjectReference Include="..\..\core\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
+        <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="wwwroot\"/>
+        <Folder Include="wwwroot\" />
     </ItemGroup>
 
 </Project>

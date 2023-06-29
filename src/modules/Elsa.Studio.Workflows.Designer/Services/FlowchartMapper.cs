@@ -2,27 +2,29 @@ using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-internal class DefaultFlowchartMapper : IFlowchartMapper
+internal class FlowchartMapper : IFlowchartMapper
 {
-    private readonly IDictionary<string, ActivityDescriptor> _activityDescriptors;
+    private readonly IActivityMapper _activityMapper;
 
-    public DefaultFlowchartMapper(IDictionary<string, ActivityDescriptor> activityDescriptors)
+    public FlowchartMapper(IActivityMapper activityMapper)
     {
-        _activityDescriptors = activityDescriptors;
+        _activityMapper = activityMapper;
     }
 
-    public X6Graph MapFlowchart(Flowchart flowchart)
+    public X6Graph Map(Flowchart flowchart)
     {
         var graph = new X6Graph();
 
         foreach (var activity in flowchart.Activities)
         {
-            var node = MapActivity(activity);
+            var node = _activityMapper.MapActivity(activity);
             graph.Nodes.Add(node);
         }
 
@@ -55,62 +57,7 @@ internal class DefaultFlowchartMapper : IFlowchartMapper
         return graph;
     }
 
-    public X6Node MapActivity(Activity activity)
-    {
-        var activityType = activity.Type;
-        var activityDescriptor = _activityDescriptors[activityType];
-        var activityId = activity.Id;
-        var designerMetadata = activity.GetDesignerMetadata();
-        var position = designerMetadata?.Position;
-        var size = designerMetadata?.Size;
-        var x = position?.X ?? 0;
-        var y = position?.Y ?? 0;
-        var width = size?.Width ?? 0;
-        var height = size?.Height ?? 0;
-
-        if (width == 0) width = 200;
-        if (height == 0) height = 50;
-
-        var node = new X6Node
-        {
-            Id = activityId,
-            Data = activity,
-            Size = new X6Size(width, height),
-            Position = new X6Position(x, y),
-            Shape = "elsa-activity"
-        };
-
-        // Create default input port.
-        node.Ports.Items.Add(new X6Port
-        {
-            Id = "In",
-            Group = "in",
-        });
-
-        // Create output ports.
-        foreach (var port in activityDescriptor.Ports)
-        {
-            node.Ports.Items.Add(new X6Port
-            {
-                Id = port.Name,
-                Group = "out",
-            });
-        }
-
-        // If there is no output port, create a default one.
-        if (node.Ports.Items.All(port => port.Group != "out"))
-        {
-            node.Ports.Items.Add(new X6Port
-            {
-                Id = "Done",
-                Group = "out",
-            });
-        }
-
-        return node;
-    }
-
-    public Flowchart MapX6Graph(X6Graph graph)
+    public Flowchart Map(X6Graph graph)
     {
         var activities = new List<Activity>();
         var connections = new List<Connection>();

@@ -6,7 +6,7 @@ namespace Elsa.Studio.Workflows.Contracts;
 /// <summary>
 /// Provides ports for activities.
 /// </summary>
-public interface IPortProvider
+public interface IActivityPortProvider
 {
     /// <summary>
     /// Gets the priority of the provider.

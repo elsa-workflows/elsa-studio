@@ -1,5 +1,6 @@
 using Elsa.Studio.Workflows.ActivityDisplaySettingsProviders;
 using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.PortProviders;
 using Elsa.Studio.Workflows.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,9 +15,12 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
+            .AddSingleton<IActivityPortService, DefaultActivityPortService>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
+        services.AddActivityPortProvider<DefaultActivityPortProvider>();
+        services.AddActivityPortProvider<FlowSwitchPortProvider>();
         
         return services;
     }
@@ -30,6 +34,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
     {
         services.AddSingleton<IActivityDisplaySettingsProvider, T>();
+        return services;
+    }
+    
+    public static IServiceCollection AddActivityPortProvider<T>(this IServiceCollection services) where T : class, IActivityPortProvider
+    {
+        services.AddSingleton<IActivityPortProvider, T>();
         return services;
     }
 }

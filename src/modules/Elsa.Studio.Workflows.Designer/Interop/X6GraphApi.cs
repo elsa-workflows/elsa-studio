@@ -2,7 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Converters;
+using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -38,8 +40,11 @@ public class X6GraphApi
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
 
+        var mapperFactory = _serviceProvider.GetRequiredService<IMapperFactory>();
+        var activityMapper = await mapperFactory.CreateActivityMapperAsync();
+        var ports = activityMapper.GetPorts(activity);
         var activityElement = JsonSerializer.SerializeToElement(activity, serializerOptions);
-        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, activityElement));
+        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, activityElement, ports));
     }
 
     private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func) => await func(_module);
