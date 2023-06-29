@@ -1,6 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Services;
-using Elsa.Studio.SyntaxProviders;
+using Elsa.Studio.SyntaxProviders;  
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Extensions;

@@ -1,5 +1,7 @@
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Workflows.Contracts;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.List;
@@ -7,9 +9,12 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.List;
 public partial class Index
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
-
     private int _totalCount;
     private string? _searchString;
+
+    [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -53,9 +58,31 @@ public partial class Index
         return new TableData<WorkflowDefinitionRow> { TotalItems = _totalCount, Items = latestWorkflowDefinitions };
     }
 
-    private void New()
+    private async Task OnCreateWorkflowClicked()
     {
-        Edit();
+        var workflowName = await WorkflowDefinitionService.GenerateUniqueNameAsync();
+        
+        var parameters = new DialogParameters<CreateWorkflowDialog>
+        {
+            { x => x.WorkflowName, workflowName }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            CloseButton = true,
+        };
+        
+        var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>("New workflow", parameters, options);
+        var dialogResult = await dialogInstance.Result;
+
+        if (!dialogResult.Canceled)
+        {
+            var newWorkflowModel = (NewWorkflowModel)dialogResult.Data;
+            var workflowDefinition = await WorkflowDefinitionService.CreateNewWorkflowDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
+            Edit(workflowDefinition.DefinitionId);
+        }
     }
 
     private void Edit(string definitionId)

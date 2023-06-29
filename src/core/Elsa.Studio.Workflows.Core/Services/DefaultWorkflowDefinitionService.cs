@@ -1,3 +1,4 @@
+using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -35,5 +36,54 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .SaveAsync(request, cancellationToken);
+    }
+
+    public async Task<bool> GetIsNameUniqueAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .GetIsNameUniqueAsync(name, cancellationToken);
+        
+        return response.IsUnique;
+    }
+
+    public async Task<string> GenerateUniqueNameAsync(CancellationToken cancellationToken = default)
+    {
+        const int maxAttempts = 100;
+        var attempt = 0;
+        
+        while(attempt < maxAttempts)
+        {
+            var name = $"Workflow {++attempt}";
+            var isUnique = await GetIsNameUniqueAsync(name, cancellationToken);
+            
+            if(isUnique)
+                return name;
+        }
+        
+        throw new Exception($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
+    }
+
+    public async Task<WorkflowDefinition> CreateNewWorkflowDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
+    {
+        var saveRequest = new SaveWorkflowDefinitionRequest
+        {
+            Model = new WorkflowDefinitionModel
+            {
+                Name = name,
+                Description = description,
+                Version = 1,
+                IsLatest = true,
+                IsPublished = false,
+                Root = new Activity
+                {
+                    Type = "Elsa.Flowchart",
+                    Id = "Flowchart1",
+                    Version = 1
+                }
+            }
+        };
+        
+        return await SaveAsync(saveRequest, cancellationToken);
     }
 }
