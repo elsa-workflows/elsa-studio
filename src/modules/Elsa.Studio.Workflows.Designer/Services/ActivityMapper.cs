@@ -66,7 +66,7 @@ internal class ActivityMapper : IActivityMapper
     {
         var activityType = activity.Type;
         var activityDescriptor = _activityDescriptors[activityType];
-        var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity));
+        var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
 
         var ports = sourcePorts.Select(sourcePort => new X6Port
         {
