@@ -5,7 +5,7 @@ using Elsa.Api.Client.Converters;
 using Elsa.Studio.Workflows.Designer.Models;
 using Microsoft.JSInterop;
 
-namespace Elsa.Studio.Workflows.Designer.Services;
+namespace Elsa.Studio.Workflows.Designer.Interop;
 
 public class X6GraphApi
 {

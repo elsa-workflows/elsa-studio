@@ -1,4 +1,4 @@
-namespace Elsa.Studio.DomInterop.Models;
+namespace Elsa.Studio.Models;
 
 public class Union<T1, T2>
 {

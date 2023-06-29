@@ -1,3 +1,4 @@
+using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.DomInterop.Models;

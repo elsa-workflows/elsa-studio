@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
     </ItemGroup>
 
 

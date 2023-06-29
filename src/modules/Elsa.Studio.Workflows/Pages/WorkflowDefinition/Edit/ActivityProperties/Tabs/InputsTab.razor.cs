@@ -35,8 +35,8 @@ public partial class InputsTab
         if (ActivityDescriptor == null)
             return;
 
-        InputDescriptors = ActivityDescriptor.Inputs;
-        OutputDescriptors = ActivityDescriptor.Outputs;
+        InputDescriptors = ActivityDescriptor.Inputs.ToList();
+        OutputDescriptors = ActivityDescriptor.Outputs.ToList();
         InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
     }
 

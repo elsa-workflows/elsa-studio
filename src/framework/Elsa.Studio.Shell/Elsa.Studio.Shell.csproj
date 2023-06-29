@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <SupportedPlatform Include="browser" />
+        <SupportedPlatform Include="browser"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj" />
+        <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj"/>
     </ItemGroup>
 
 </Project>
