@@ -19,11 +19,23 @@ public class DisplayInputEditorContext
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<object?, Task> OnValueChanged { get; set; } = default!;
 
-    public string GetLiteralValueOrDefault() => GetExpressionValueOrDefault<LiteralExpression, object?>(x => x.Value);
-    
+    public string GetLiteralValueOrDefault()
+    {
+        if (!InputDescriptor.IsWrapped)
+            return Value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+        
+        var wrappedInput = Value as WrappedInput;
+        
+        if (wrappedInput?.Expression is not LiteralExpression expression)
+            return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+
+        var value = expression.Value;
+
+        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+    }
+
     public string GetObjectValueOrDefault()
     {
-        
         if (!InputDescriptor.IsWrapped)
             return Serialize(Value ?? InputDescriptor.DefaultValue);
 
@@ -37,19 +49,15 @@ public class DisplayInputEditorContext
         return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
     
-    public string GetExpressionValueOrDefault<TExpression, TValue>(Func<TExpression, TValue> valueAccessor) where TExpression : class, IExpression
+    public string GetExpressionValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
             return Value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
         
         var wrappedInput = Value as WrappedInput;
-        
-        if (wrappedInput?.Expression is not TExpression expression)
-            return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
-
-        var value = valueAccessor(expression);
-
-        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+        var expression = wrappedInput?.Expression;
+        var value = expression?.ToString();
+        return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
 
     public async Task UpdateValueAsync(object? value)

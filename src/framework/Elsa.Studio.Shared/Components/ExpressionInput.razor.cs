@@ -44,7 +44,7 @@ public partial class ExpressionInput : IDisposable
     private bool ShowMonacoEditor => !IsUISyntax && EditorContext.InputDescriptor.IsWrapped;
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
-    private string InputValue => EditorContext.GetLiteralValueOrDefault();
+    private string InputValue => EditorContext.GetExpressionValueOrDefault();
     
     private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
     {
