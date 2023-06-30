@@ -10,14 +10,11 @@
 
 <CascadingValue Value="_dragDropManager">
     <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
-        <RadzenSplitterPane Size="15%" Min="100px">
+        <RadzenSplitterPane Size="20%" Min="100px">
             <ActivityPicker/>
         </RadzenSplitterPane>
-        <RadzenSplitterPane Size="60%">
+        <RadzenSplitterPane Size="80%">
             <Workspace WorkflowDefinitions="@_workflowDefinitions"/>
-        </RadzenSplitterPane>
-        <RadzenSplitterPane Size="25%" Min="100px">
-            <WorkflowProperties/>
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>

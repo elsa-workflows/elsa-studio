@@ -43,7 +43,7 @@ public partial class WorkflowEditor
 
     private Activity? SelectedActivity { get; set; }
     public string? SelectedActivityId { get; set; }
-    private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
+    private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
     public RadzenSplitterPane ActivityPropertiesPane
     {

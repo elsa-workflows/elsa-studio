@@ -1,35 +1,47 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.WorkflowProperties;
 @using Orientation = Radzen.Orientation
 @using Elsa.Studio.Workflows.Contracts
 
-<RadzenSplitter Orientation="Orientation.Vertical" Resize="@OnResize">
+<RadzenSplitter Orientation="Orientation.Horizontal">
     <RadzenSplitterPane Size="60%">
-        <div>
-            <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-                <MudToolBar Dense="true">
-                    @{
-                        if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
-                        {
-                            foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
-                            {
-                                @toolboxComponent
+
+        @* Designer *@
+        <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
+            <RadzenSplitterPane Size="70%">
+                <div class="height:100%">
+                    <MudPaper Class="ma-2" Elevation="0" Outlined="true">
+                        <MudToolBar Dense="true">
+                            @{
+                                if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
+                                {
+                                    foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                                    {
+                                        @toolboxComponent
+                                    }
+                                }
                             }
-                        }
-                    }
-                    <MudSpacer></MudSpacer>
-                    <MudSwitch @bind-Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start"/>
-                    <MudTooltip Text="Save">
-                        <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
-                            <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
-                        </MudBadge>
-                    </MudTooltip>
-                </MudToolBar>
-            </MudPaper>
-            <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
-            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
-        </div>
+                            <MudSpacer></MudSpacer>
+                            <MudSwitch @bind-Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start"/>
+                            <MudTooltip Text="Save">
+                                <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
+                                </MudBadge>
+                            </MudTooltip>
+                        </MudToolBar>
+                    </MudPaper>
+                    <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
+                    @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
+                </div>
+            </RadzenSplitterPane>
+            <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
+                <ActivityProperties @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"
+                />
+            </RadzenSplitterPane>
+        </RadzenSplitter>
     </RadzenSplitterPane>
-    <RadzenSplitterPane Size="40%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesTabs @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="_activityPropertiesPaneHeight"/>
+    <RadzenSplitterPane Size="40%" Min="100px">
+        <WorkflowProperties/>
     </RadzenSplitterPane>
+
 </RadzenSplitter>

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 
-public partial class ActivityPropertiesTabs
+public partial class ActivityProperties
 {
     [Parameter] public Activity? Activity { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
