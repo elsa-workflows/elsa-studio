@@ -1,10 +1,12 @@
-@using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
-@using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.WorkflowProperties;
+ @* ReSharper disable RedundantUsingDirective *@
+ @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
+ @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
+ @* ReSharper restore RedundantUsingDirective *@
 @using Orientation = Radzen.Orientation
 @using Elsa.Studio.Workflows.Contracts
 
 <RadzenSplitter Orientation="Orientation.Horizontal">
-    <RadzenSplitterPane Size="60%">
+    <RadzenSplitterPane Size="65%">
 
         @* Designer *@
         <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
@@ -40,8 +42,8 @@
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>
-    <RadzenSplitterPane Size="40%" Min="100px">
-        <WorkflowProperties/>
+    <RadzenSplitterPane Size="35%" Min="100px">
+        <WorkflowProperties WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </RadzenSplitterPane>
 
 </RadzenSplitter>

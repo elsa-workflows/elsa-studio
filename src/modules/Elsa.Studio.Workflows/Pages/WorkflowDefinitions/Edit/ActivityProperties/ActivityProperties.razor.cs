@@ -1,8 +1,7 @@
 using Elsa.Api.Client.Activities;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties.Tabs;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
 
 public partial class ActivityProperties
 {

@@ -2,7 +2,7 @@ using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Extensions;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties.Tabs;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs;
 
 public partial class CommonTab
 {

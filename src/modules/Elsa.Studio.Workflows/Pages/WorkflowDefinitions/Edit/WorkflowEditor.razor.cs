@@ -5,7 +5,6 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.ActivityProperties;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -13,13 +12,11 @@ using Radzen;
 using Radzen.Blazor;
 using ThrottleDebounce;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
-
-using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.WorkflowDefinition;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
 public partial class WorkflowEditor
 {
-    private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
+    private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isDirty;
@@ -29,7 +26,7 @@ public partial class WorkflowEditor
 
     public WorkflowEditor()
     {
-        _rateLimitedSaveChangesAsync = Debouncer.Debounce(() => SaveChangesAsync(false), TimeSpan.FromMilliseconds(500));
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(async readDiagram => await SaveChangesAsync(readDiagram, false), TimeSpan.FromMilliseconds(500));
     }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
@@ -56,6 +53,15 @@ public partial class WorkflowEditor
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
+    
+    private async Task HandleChangesAsync(bool readDiagram)
+    {
+        _isDirty = true;
+        StateHasChanged();
+
+        if (_autoSave)
+            await SaveChangesRateLimitedAsync(readDiagram);
+    }
 
     protected override void OnInitialized()
     {
@@ -65,9 +71,15 @@ public partial class WorkflowEditor
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
     }
 
-    private async Task SaveAsync(Activity root)
+    private async Task SaveAsync(bool readDiagram)
     {
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
+        
+        if (readDiagram)
+        {
+            var root = await _diagramDesigner!.ReadRootActivityAsync();
+            workflowDefinition.Root = root;
+        }
 
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
@@ -95,7 +107,7 @@ public partial class WorkflowEditor
                 DefinitionId = workflowDefinition.DefinitionId,
                 IsLatest = workflowDefinition.IsLatest,
                 IsPublished = workflowDefinition.IsPublished,
-                Root = root
+                Root = workflowDefinition.Root
             },
             Publish = false,
         };
@@ -120,28 +132,22 @@ public partial class WorkflowEditor
         await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
         SelectedActivityId = activity.Id;
     }
-
+    
     private async Task OnSaveClick()
     {
-        await SaveChangesAsync();
+        await SaveChangesAsync(true, true);
         Snackbar.Add("Workflow saved", Severity.Success);
     }
 
-    private async Task OnGraphUpdated()
+    private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
+    private async Task OnGraphUpdated() => await HandleChangesAsync(true);
+
+    private async Task SaveChangesRateLimitedAsync(bool readDiagram)
     {
-        _isDirty = true;
-        StateHasChanged();
-        
-        if (_autoSave)
-            await SaveChangesRateLimitedAsync();
+        await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesRateLimitedAsync()
-    {
-        await _rateLimitedSaveChangesAsync.InvokeAsync();
-    }
-
-    private async Task SaveChangesAsync(bool showLoader = true)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader)
     {
         await InvokeAsync(async () =>
         {
@@ -155,8 +161,7 @@ public partial class WorkflowEditor
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
-                var root = await _diagramDesigner!.ReadRootActivityAsync();
-                await SaveAsync(root);
+                await SaveAsync(readDiagram);
             }
             finally
             {

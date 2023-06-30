@@ -1,7 +1,8 @@
-@using Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit.WorkflowProperties.Tabs
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs
+
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Properties">
-        <PropertiesTab/>
+        <PropertiesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Variables">
         <MudText>Workflow variables</MudText>

@@ -4,8 +4,8 @@
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
-                <MudTextField Label="Name" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="The name of the new workflow." Variant="Variant.Outlined"/>
-                <MudTextField Label="Description" @bind-Value="_model.Description" For="@(() => _model.Description)" HelperText="A brief description of the workflow." Lines="3" Variant="Variant.Outlined"/>
+                <MudTextField Label="Name" @bind-Value="_propertiesModel.Name" For="@(() => _propertiesModel.Name)" HelperText="The name of the new workflow." Variant="Variant.Outlined"/>
+                <MudTextField Label="Description" @bind-Value="_propertiesModel.Description" For="@(() => _propertiesModel.Description)" HelperText="A brief description of the workflow." Lines="3" Variant="Variant.Outlined"/>
             </MudStack>
         </EditForm>
     </DialogContent>

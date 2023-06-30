@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.Edit;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
 using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.WorkflowDefinition;
 

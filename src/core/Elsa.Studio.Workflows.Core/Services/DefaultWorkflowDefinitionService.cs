@@ -48,11 +48,11 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
         return response.Deleted;
     }
 
-    public async Task<bool> GetIsNameUniqueAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default)
     {
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
-            .GetIsNameUniqueAsync(name, cancellationToken);
+            .GetIsNameUniqueAsync(name, definitionId, cancellationToken);
 
         return response.IsUnique;
     }
@@ -65,7 +65,7 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
         while (attempt < maxAttempts)
         {
             var name = $"Workflow {++attempt}";
-            var isUnique = await GetIsNameUniqueAsync(name, cancellationToken);
+            var isUnique = await GetIsNameUniqueAsync(name, null, cancellationToken);
 
             if (isUnique)
                 return name;

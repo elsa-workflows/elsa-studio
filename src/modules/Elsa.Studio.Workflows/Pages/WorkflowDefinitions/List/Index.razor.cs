@@ -1,10 +1,11 @@
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.List;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 
 public partial class Index
 {
@@ -82,7 +83,7 @@ public partial class Index
 
         if (!dialogResult.Canceled)
         {
-            var newWorkflowModel = (NewWorkflowModel)dialogResult.Data;
+            var newWorkflowModel = (WorkflowPropertiesModel)dialogResult.Data;
             var workflowDefinition = await WorkflowDefinitionService.CreateNewWorkflowDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
             Edit(workflowDefinition.DefinitionId);
         }
