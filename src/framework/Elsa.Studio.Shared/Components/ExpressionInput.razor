@@ -1,20 +1,18 @@
 @using MudBlazor
 <div class="d-flex flex-grow-1 gap-4 align-content-start">
     <div class="flex-1">
-        @if (ShowMonacoEditor)
-        {
-            <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense">
-                <StandaloneCodeEditor
-                    @ref="_monacoEditor"
-                    Id="@_monacoEditorId"
-                    ConstructionOptions="ConfigureMonacoEditor"
-                    CssClass="studio-expression-input-monaco-editor"
-                    OnDidInit="OnMonacoInitialized"
-                    OnDidChangeModelContent="OnMonacoContentChanged"
-                    OnDidDispose="OnMonacoDisposed"/>
-            </MudField>
-        }
-        else
+
+        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")">
+            <StandaloneCodeEditor
+                @ref="_monacoEditor"
+                Id="@_monacoEditorId"
+                ConstructionOptions="ConfigureMonacoEditor"
+                CssClass="studio-expression-input-monaco-editor"
+                OnDidInit="OnMonacoInitialized"
+                OnDidChangeModelContent="OnMonacoContentChanged"/>
+        </MudField>
+
+        @if (!ShowMonacoEditor)
         {
             @ChildContent
         }

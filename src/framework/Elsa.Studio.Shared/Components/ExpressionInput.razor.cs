@@ -19,7 +19,6 @@ public partial class ExpressionInput : IDisposable
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
     private bool _isInternalContentChange;
-    private bool _isMonacoInitialized;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
@@ -57,7 +56,7 @@ public partial class ExpressionInput : IDisposable
 
     private async Task UpdateMonacoLanguageAsync(string syntax)
     {
-        if (_monacoEditor == null || !_isMonacoInitialized)
+        if (_monacoEditor == null)
             return;
 
         if (SyntaxService.GetSyntaxProviderByName(syntax) is not IMonacoSyntaxProvider syntaxProvider)
@@ -68,20 +67,11 @@ public partial class ExpressionInput : IDisposable
     }
 
 
-    protected override async Task OnParametersSetAsync()
+    protected override Task OnParametersSetAsync()
     {
         _selectedSyntax = EditorContext.SelectedSyntaxProvider?.SyntaxName ?? UISyntax;
         _monacoLanguage = (EditorContext.SelectedSyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
-
-        if (_isMonacoInitialized)
-        {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            _lastMonacoEditorContent = InputValue;
-            await model.SetValue(InputValue);
-            _isInternalContentChange = false;
-            await Global.SetModelLanguage(model, _monacoLanguage);
-        }
+        return base.OnParametersSetAsync();
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
@@ -142,10 +132,20 @@ public partial class ExpressionInput : IDisposable
     }
 
     private async Task ThrottleValueChangedCallback(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
-    private async Task InvokeValueChangedCallback(WrappedInput input) => await EditorContext.OnValueChanged(input);
+    private async Task InvokeValueChangedCallback(WrappedInput input)
+    {
+        await InvokeAsync(async () => await EditorContext.OnValueChanged(input));
+    }
 
-    private void OnMonacoInitialized() => _isMonacoInitialized = true;
-    private void OnMonacoDisposed() => _isMonacoInitialized = false;
+    private async Task OnMonacoInitialized()
+    {   
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        _lastMonacoEditorContent = InputValue;
+        await model.SetValue(InputValue);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(model, _monacoLanguage);
+    }
 
     public void Dispose() => _throttledValueChanged.Dispose();
 }
