@@ -19,7 +19,9 @@
                     <MudSpacer></MudSpacer>
                     <MudSwitch @bind-Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start"/>
                     <MudTooltip Text="Save">
-                        <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick" Disabled="_autoSave"/>
+                        <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
+                        </MudBadge>
                     </MudTooltip>
                 </MudToolBar>
             </MudPaper>

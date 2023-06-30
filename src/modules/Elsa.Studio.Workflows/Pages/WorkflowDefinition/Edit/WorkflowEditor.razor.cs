@@ -22,6 +22,7 @@ public partial class WorkflowEditor
     private readonly RateLimitedFunc<Task> _rateLimitedSaveChangesAsync;
     private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
+    private bool _isDirty;
     private bool _isSaving;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
@@ -99,6 +100,8 @@ public partial class WorkflowEditor
         };
 
         WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
+        _isDirty = false;
+        StateHasChanged();
     }
 
     private Task OnActivitySelected(Activity activity)
@@ -110,6 +113,8 @@ public partial class WorkflowEditor
 
     private async Task OnSelectedActivityUpdated(Activity activity)
     {
+        _isDirty = true;
+        StateHasChanged();
         await _diagramDesigner!.UpdateActivityAsync(activity);
     }
 
@@ -121,6 +126,9 @@ public partial class WorkflowEditor
 
     private async Task OnGraphUpdated()
     {
+        _isDirty = true;
+        StateHasChanged();
+        
         if (_autoSave)
             await SaveChangesRateLimitedAsync();
     }

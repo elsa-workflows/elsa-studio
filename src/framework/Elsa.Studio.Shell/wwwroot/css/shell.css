@@ -36,3 +36,11 @@
     white-space: unset;
     padding-bottom: 0;
 }
+
+/*****************************************************
+* Badge overlap for small icons
+******************************************************/
+.elsa-toolbar-icon .mud-badge.mud-badge-bottom.right.mud-badge-overlap
+{
+    inset: calc(100% - 20px) auto auto calc(100% - 20px)
+}
