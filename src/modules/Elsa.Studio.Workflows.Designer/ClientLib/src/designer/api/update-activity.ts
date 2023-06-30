@@ -28,7 +28,6 @@ export async function updateActivity(graphId: string, activity: Activity, ports?
 }
 
 const updatePorts = (node: Node<Node.Properties>, ports: Ports) => {
-    debugger;
     const desiredPorts = ports.items;
     const actualPorts = node.ports.items;
     const addedPorts = desiredPorts.filter(x => !actualPorts.some(y => y.id == x.id));

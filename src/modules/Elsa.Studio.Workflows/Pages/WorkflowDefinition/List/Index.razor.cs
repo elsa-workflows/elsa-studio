@@ -9,6 +9,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinition.List;
 public partial class Index
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
+    private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private int _totalCount;
     private string? _searchString;
 
@@ -72,6 +73,8 @@ public partial class Index
             CloseOnEscapeKey = true,
             Position = DialogPosition.Center,
             CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
         };
         
         var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>("New workflow", parameters, options);
@@ -90,20 +93,35 @@ public partial class Index
         NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
     }
 
-    private void Edit()
-    {
-        var definitionId = Guid.NewGuid().ToString("N");
-        Edit(definitionId);
-    }
-
-    private void RowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
+    private void OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
     {
         Edit(e.Item.DefinitionId);
+    }
+    
+    private async Task OnBulkDeleteClicked()
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Delete selected workflows?", 
+            "Are you sure you want to delete the selected workflows?", 
+            yesText:"Delete", 
+            cancelText:"Cancel");
+        
+        if(result != true)
+            return;
+        
+        var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
+        await WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds);
+        Reload();
     }
 
     private void OnSearch(string text)
     {
         _searchString = text;
+        Reload();
+    }
+    
+    private void Reload()
+    {
         _table.ReloadServerData();
     }
 

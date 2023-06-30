@@ -8,8 +8,17 @@
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow definitions"/>
 
-    <MudTable ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinitionRow>>>(ServerReload))" Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinitionRow" OnRowClick="@RowClick" RowStyle="cursor: pointer;">
+    <MudTable 
+        ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinitionRow>>>(ServerReload))" 
+        Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinitionRow" OnRowClick="@OnRowClick" RowStyle="cursor: pointer;"
+        MultiSelection="true" @bind-SelectedItems="@_selectedRows">
         <ToolBarContent>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
+                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem>Publish</MudMenuItem>
+                <MudMenuItem>Unpublish</MudMenuItem>
+            </MudMenu>
+            <MudSpacer/>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
         </ToolBarContent>
         <HeaderContent>
@@ -33,7 +42,7 @@
             <MudTd DataLabel="Version" Style="text-align:right">@context.Version</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
-                <MudIcon Icon="@Icons.TwoTone.Edit" Size="Size.Small" @onclick="Edit"/>
+                <MudIcon Icon="@Icons.TwoTone.Edit" Size="Size.Small" @onclick="@(() => Edit(context.DefinitionId))"/>
                 <MudIcon Icon="@Icons.TwoTone.Delete" Size="Size.Small"/>
             </MudTd>
         </RowTemplate>

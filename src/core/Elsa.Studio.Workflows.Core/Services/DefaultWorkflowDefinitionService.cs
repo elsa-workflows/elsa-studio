@@ -38,12 +38,22 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
             .SaveAsync(request, cancellationToken);
     }
 
+    public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
+    {
+        var request = new DeleteManyWorkflowDefinitionsRequest(definitionIds);
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .DeleteManyAsync(request, cancellationToken);
+
+        return response.Deleted;
+    }
+
     public async Task<bool> GetIsNameUniqueAsync(string name, CancellationToken cancellationToken = default)
     {
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .GetIsNameUniqueAsync(name, cancellationToken);
-        
+
         return response.IsUnique;
     }
 
@@ -51,16 +61,16 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
     {
         const int maxAttempts = 100;
         var attempt = 0;
-        
-        while(attempt < maxAttempts)
+
+        while (attempt < maxAttempts)
         {
             var name = $"Workflow {++attempt}";
             var isUnique = await GetIsNameUniqueAsync(name, cancellationToken);
-            
-            if(isUnique)
+
+            if (isUnique)
                 return name;
         }
-        
+
         throw new Exception($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
     }
 
@@ -83,7 +93,7 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
                 }
             }
         };
-        
+
         return await SaveAsync(saveRequest, cancellationToken);
     }
 }
