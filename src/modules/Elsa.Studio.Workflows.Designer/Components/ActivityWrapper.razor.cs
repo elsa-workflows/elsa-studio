@@ -10,6 +10,8 @@ namespace Elsa.Studio.Workflows.Designer.Components;
 public partial class ActivityWrapper
 {
     private string _label = default!;
+    private string _description = default!;
+    private bool _showDescription;
     private string _color = default!;
     private string? _icon;
 
@@ -23,11 +25,16 @@ public partial class ActivityWrapper
 
     protected override async Task OnInitializedAsync()
     {
-        var activityType = Activity.Type;
+        var activity = Activity;
+        var activityDisplayText = activity.GetDisplayText()?.Trim();
+        var activityDescription = activity.GetDescription()?.Trim();
+        var activityType = activity.Type;
         var descriptor = await ActivityRegistry.FindAsync(activityType);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        _label = descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
+        _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
 

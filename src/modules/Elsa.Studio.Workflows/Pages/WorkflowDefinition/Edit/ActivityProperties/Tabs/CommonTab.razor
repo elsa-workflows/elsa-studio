@@ -1,4 +1,5 @@
 @using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Extensions
 <div class="pa-4">
     @if (Activity != null)
     {
@@ -7,11 +8,41 @@
                 <MudTextField
                     T="string"
                     Label="ID"
-                    HelperText="The ID of the activity"
+                    HelperText="The ID of the activity."
                     Value="@Activity.Id"
                     Variant="Variant.Outlined"
-                    Required="true"
-                    ValueChanged="OnActivityIdChanged"/>
+                    ReadOnly="true"/>
+
+                <MudTextField
+                    T="string"
+                    Label="Display text"
+                    HelperText="The text to display in the designer."
+                    Value="@Activity.GetDisplayText()"
+                    Variant="Variant.Outlined"
+                    ValueChanged="OnActivityDisplayTextChanged"/>
+
+                <MudTextField
+                    T="string"
+                    Label="Description"
+                    HelperText="A description of this activity to be displayed in the designer."
+                    Value="@Activity.GetDescription()"
+                    Variant="Variant.Outlined"
+                    Lines="3"
+                    ValueChanged="OnActivityDescriptionChanged"/>
+
+                <MudField
+                    Variant="Variant.Outlined"
+                    HelperText="Whether to show the description in the designer."
+                    Label="Show description"
+                >
+                    <MudCheckBox
+                        T="bool"
+                        Label="Show description"
+                        Checked="@(Activity.GetShowDescription() == true)"
+                        CheckedChanged="OnShowDescriptionChanged"
+                        />
+                </MudField>
+
             </MudStack>
         </MudForm>
     }
