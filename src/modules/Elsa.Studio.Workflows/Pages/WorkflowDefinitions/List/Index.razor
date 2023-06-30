@@ -8,8 +8,8 @@
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow definitions"/>
 
-    <MudTable 
-        ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinitionRow>>>(ServerReload))" 
+    <MudTable
+        ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinitionRow>>>(ServerReload))"
         Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinitionRow" OnRowClick="@OnRowClick" RowStyle="cursor: pointer;"
         MultiSelection="true" @bind-SelectedItems="@_selectedRows">
         <ToolBarContent>
@@ -23,13 +23,16 @@
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="id_field" T="WorkflowDefinitionSummary">ID</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionSummary">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="name_field" T="WorkflowDefinitionSummary">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionSummary">Name</MudTableSortLabel>
             </MudTh>
             <MudTh Style="text-align:right">
-                <MudTableSortLabel SortLabel="version_field" T="WorkflowDefinitionSummary">Version</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionSummary" Style="text-align: right;">Latest version</MudTableSortLabel>
+            </MudTh>
+            <MudTh Style="text-align:right">
+                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionSummary" Style="text-align: right;">Published version</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 Description
@@ -39,11 +42,18 @@
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Version" Style="text-align:right">@context.Version</MudTd>
+            <MudTd DataLabel="Latest version" Style="text-align:right">@context.LatestVersion</MudTd>
+            <MudTd DataLabel="Published version" Style="text-align:right">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
-                <MudIcon Icon="@Icons.TwoTone.Edit" Size="Size.Small" @onclick="@(() => Edit(context.DefinitionId))"/>
-                <MudIcon Icon="@Icons.TwoTone.Delete" Size="Size.Small"/>
+                <MudStack Row="true" Spacing="3">
+                    <a href="#" @onclick="@(() => OnEditClicked(context.DefinitionId))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
+                        <MudIcon Icon="@Icons.TwoTone.Edit" Color="Color.Primary" Size="Size.Medium" />
+                    </a>
+                    <a href="#" @onclick="@(async () => await OnDeleteClicked(context))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
+                        <MudIcon Icon="@Icons.TwoTone.Delete" Color="Color.Warning" Size="Size.Medium"/>
+                    </a>
+                </MudStack>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>

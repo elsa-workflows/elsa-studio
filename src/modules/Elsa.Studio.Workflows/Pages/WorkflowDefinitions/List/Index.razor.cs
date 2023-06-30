@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
@@ -46,14 +47,14 @@ public partial class Index
         var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
             .Select(definition =>
             {
-                var latestVersionNumber = definition.Version;
+                var latestVersionNumber = definition.Version ?? 0;
                 var isPublished = definition.IsPublished;
                 var publishedVersion = isPublished
                     ? definition
                     : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
-                var publishedVersionNumber = publishedVersion?.Version?.ToString() ?? "-";
+                var publishedVersionNumber = publishedVersion?.Version;
 
-                return new WorkflowDefinitionRow(definition.DefinitionId, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
+                return new WorkflowDefinitionRow(definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
             })
             .ToList();
 
@@ -63,7 +64,7 @@ public partial class Index
     private async Task OnCreateWorkflowClicked()
     {
         var workflowName = await WorkflowDefinitionService.GenerateUniqueNameAsync();
-        
+
         var parameters = new DialogParameters<CreateWorkflowDialog>
         {
             { x => x.WorkflowName, workflowName }
@@ -77,7 +78,7 @@ public partial class Index
             FullWidth = true,
             MaxWidth = MaxWidth.Small
         };
-        
+
         var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>("New workflow", parameters, options);
         var dialogResult = await dialogInstance.Result;
 
@@ -93,23 +94,37 @@ public partial class Index
     {
         NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
     }
+    
+    private Task OnEditClicked(string definitionId)
+    {
+        Edit(definitionId);
+        return Task.CompletedTask;
+    }
 
     private void OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
     {
         Edit(e.Item.DefinitionId);
     }
-    
+
+    private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var result = await DialogService.ShowMessageBox("Delete workflow?", "Are you sure you want to delete this workflow?", yesText: "Delete", cancelText: "Cancel");
+
+        if (result != true)
+            return;
+
+        var definitionId = workflowDefinitionRow.DefinitionId;
+        await WorkflowDefinitionService.DeleteAsync(definitionId);
+        Reload();
+    }
+
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox(
-            "Delete selected workflows?", 
-            "Are you sure you want to delete the selected workflows?", 
-            yesText:"Delete", 
-            cancelText:"Cancel");
-        
-        if(result != true)
+        var result = await DialogService.ShowMessageBox("Delete selected workflows?", "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
+
+        if (result != true)
             return;
-        
+
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
         await WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds);
         Reload();
@@ -120,11 +135,11 @@ public partial class Index
         _searchString = text;
         Reload();
     }
-    
+
     private void Reload()
     {
         _table.ReloadServerData();
     }
 
-    private record WorkflowDefinitionRow(string DefinitionId, string Version, string? Name, string? Description, bool IsPublished);
+    private record WorkflowDefinitionRow(string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
 }

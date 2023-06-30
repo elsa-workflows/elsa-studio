@@ -1,3 +1,4 @@
+using System.Net;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
@@ -5,6 +6,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Workflows.Contracts;
+using Refit;
 
 namespace Elsa.Studio.Workflows.Services;
 
@@ -36,6 +38,22 @@ public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .SaveAsync(request, cancellationToken);
+    }
+
+    public async Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _backendConnectionProvider
+                .GetApi<IWorkflowDefinitionsApi>()
+                .DeleteAsync(definitionId, cancellationToken);
+
+            return true;
+        }
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 
     public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
