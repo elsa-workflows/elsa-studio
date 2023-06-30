@@ -97,7 +97,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     public async Task ZoomToFitAsync() => await _graphApi.ZoomToFitAsync();
     public async Task CenterContentAsync() => await _graphApi.CenterContentAsync();
-    public async Task UpdateActivityAsync(Activity activity) => await _graphApi.UpdateActivityAsync(activity);
+    public async Task UpdateActivityAsync(string id, Activity activity) => await _graphApi.UpdateActivityAsync(id, activity);
 
     public async ValueTask DisposeAsync()
     {

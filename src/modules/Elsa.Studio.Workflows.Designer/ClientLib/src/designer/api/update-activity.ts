@@ -1,15 +1,14 @@
-import {Node, } from "@antv/x6";
+import {Node} from "@antv/x6";
 import {Activity} from "../models";
 import {graphBindings} from "./graph-bindings";
 import {Ports} from "../models/x6";
 
-export async function updateActivity(graphId: string, activity: Activity, ports?: Ports) {
+export async function updateActivity(graphId: string, activityId: string, activity: Activity, ports?: Ports) {
     // Get graph reference.
     const {graph, interop} = graphBindings[graphId];
 
     // Get the node from the graph.
-    const activityId = activity.id;
-    const node = graph.getNodes().find(x => x.id == activityId);
+    let node = graph.getNodes().find(x => x.id == activityId);
 
     // Update the node data.
     if (!!node) {
@@ -17,6 +16,11 @@ export async function updateActivity(graphId: string, activity: Activity, ports?
         // Update the node's data with the activity.
         node.setData(activity, {overwrite: true});
 
+        // If the ID of the activity changed, we need to update the graph model.
+        if (activityId !== activity.id) {
+            graph.model.updateCellId(node, activity.id);
+        }
+        
         // Update ports.
         if (!!ports) {
             updatePorts(node, ports);

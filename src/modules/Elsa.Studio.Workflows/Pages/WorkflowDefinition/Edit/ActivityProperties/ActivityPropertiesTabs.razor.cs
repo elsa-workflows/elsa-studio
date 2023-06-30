@@ -9,6 +9,4 @@ public partial class ActivityPropertiesTabs
     [Parameter] public Activity? Activity { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
     [Parameter] public int VisiblePaneHeight { get; set; }
-    
-    private InputsTab? InputsTab { get; set; }
 }

@@ -11,8 +11,9 @@ public interface IDiagramDesigner
     /// <summary>
     /// Updates the specified activity in the diagram. This is used to update the diagram when an activity is updated in the activity editor.
     /// </summary>
+    /// <param name="id">The ID of the activity to update.</param>
     /// <param name="activity">The activity to update.</param>
-    Task UpdateActivityAsync(Activity activity);
+    Task UpdateActivityAsync(string id, Activity activity);
     
     /// <summary>
     /// Reads the root activity from the diagram.

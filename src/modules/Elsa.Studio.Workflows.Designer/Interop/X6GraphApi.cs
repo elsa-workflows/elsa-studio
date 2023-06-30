@@ -30,7 +30,7 @@ public class X6GraphApi
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
     
-    public async Task UpdateActivityAsync(Activity activity)
+    public async Task UpdateActivityAsync(string id, Activity activity)
     {
         var serializerOptions = new JsonSerializerOptions
         {
@@ -44,7 +44,7 @@ public class X6GraphApi
         var activityMapper = await mapperFactory.CreateActivityMapperAsync();
         var ports = activityMapper.GetPorts(activity);
         var activityElement = JsonSerializer.SerializeToElement(activity, serializerOptions);
-        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, activityElement, ports));
+        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, id, activityElement, ports));
     }
 
     private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func) => await func(_module);

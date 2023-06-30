@@ -10,9 +10,9 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
 
-    public async Task UpdateActivityAsync(Activity activity)
+    public async Task UpdateActivityAsync(string id, Activity activity)
     {
-        await _designerWrapper!.UpdateActivityAsync(activity);
+        await _designerWrapper!.UpdateActivityAsync(id, activity);
     }
 
     public async Task<Activity> ReadRootActivityAsync()

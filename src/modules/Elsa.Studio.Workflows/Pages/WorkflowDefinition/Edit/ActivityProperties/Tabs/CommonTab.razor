@@ -1,0 +1,18 @@
+@using Variant = MudBlazor.Variant
+<div class="pa-4">
+    @if (Activity != null)
+    {
+        <MudForm>
+            <MudStack Spacing="6">
+                <MudTextField
+                    T="string"
+                    Label="ID"
+                    HelperText="The ID of the activity"
+                    Value="@Activity.Id"
+                    Variant="Variant.Outlined"
+                    Required="true"
+                    ValueChanged="OnActivityIdChanged"/>
+            </MudStack>
+        </MudForm>
+    }
+</div>

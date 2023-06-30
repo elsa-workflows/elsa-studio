@@ -8,7 +8,7 @@ public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private Activity _activity = default!;
     
-    public Task UpdateActivityAsync(Activity activity)
+    public Task UpdateActivityAsync(string id, Activity activity)
     {
         return Task.CompletedTask;
     }

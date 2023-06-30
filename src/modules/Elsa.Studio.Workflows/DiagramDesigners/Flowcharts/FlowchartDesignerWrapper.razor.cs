@@ -19,10 +19,10 @@ public partial class FlowchartDesignerWrapper
     internal FlowchartDesigner Designer { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
 
-    public async Task UpdateActivityAsync(Activity activity)
+    public async Task UpdateActivityAsync(string id, Activity activity)
     {
         if (activity != Flowchart)
-            await Designer.UpdateActivityAsync(activity);
+            await Designer.UpdateActivityAsync(id, activity);
     }
 
     public async Task<Activity> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
@@ -87,11 +87,6 @@ public partial class FlowchartDesignerWrapper
         var y = e.PageY;
 
         await AddNewActivityAsync(activityDescriptor, x, y);
-    }
-
-    private async Task OnSelectedActivityUpdated(Activity activity)
-    {
-        await Designer.UpdateActivityAsync(activity);
     }
 
     private async Task OnCanvasSelected()

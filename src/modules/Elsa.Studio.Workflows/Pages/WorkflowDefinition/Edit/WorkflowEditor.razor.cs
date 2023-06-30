@@ -42,6 +42,7 @@ public partial class WorkflowEditor
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private Activity? SelectedActivity { get; set; }
+    public string? SelectedActivityId { get; set; }
     private ActivityPropertiesTabs? ActivityPropertiesTab { get; set; }
 
     public RadzenSplitterPane ActivityPropertiesPane
@@ -107,6 +108,7 @@ public partial class WorkflowEditor
     private Task OnActivitySelected(Activity activity)
     {
         SelectedActivity = activity;
+        SelectedActivityId = activity.Id;
         StateHasChanged();
         return Task.CompletedTask;
     }
@@ -115,7 +117,8 @@ public partial class WorkflowEditor
     {
         _isDirty = true;
         StateHasChanged();
-        await _diagramDesigner!.UpdateActivityAsync(activity);
+        await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
+        SelectedActivityId = activity.Id;
     }
 
     private async Task OnSaveClick()
