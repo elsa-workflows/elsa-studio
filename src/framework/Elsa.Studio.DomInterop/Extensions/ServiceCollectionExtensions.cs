@@ -9,9 +9,15 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDomInterop(this IServiceCollection services)
     {
-        services.TryAddScoped<DomJsInterop>();
         services.TryAddScoped<IDomAccessor, DomJsInterop>();
-        
+
+        return services;
+    }
+
+    public static IServiceCollection AddClipboardInterop(this IServiceCollection services)
+    {
+        services.TryAddScoped<IClipboard, ClipboardJsInterop>();
+
         return services;
     }
 }

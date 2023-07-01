@@ -9,6 +9,4 @@ public interface IDomAccessor
 {
     Task<DomRect> GetBoundingClientRectAsync(ElementRef elementRef, CancellationToken cancellationToken = default);
     Task<double> GetVisibleHeightAsync(ElementRef elementRef, CancellationToken cancellationToken = default);
-    //Task<DomRect> GetBoundingClientRectAsync(string querySelector, CancellationToken cancellationToken = default);
-    //Task<DomRect> GetBoundingClientRectAsync(ElementReference elementRef, CancellationToken cancellationToken = default);
 }

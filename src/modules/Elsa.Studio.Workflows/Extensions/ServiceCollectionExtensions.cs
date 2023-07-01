@@ -21,7 +21,8 @@ public static class ServiceCollectionExtensions
             .AddActivityTypeService()
             .AddWorkflowsCore()
             .AddWorkflowsDesigner()
-            .AddDomInterop();
+            .AddDomInterop()
+            .AddClipboardInterop();
 
         services.AddDiagramDesignerProvider<FallbackDesignerProvider>();
         services.AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();

@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
     </ItemGroup>
 
 

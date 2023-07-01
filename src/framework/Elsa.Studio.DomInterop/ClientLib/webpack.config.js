@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
     entry: {
         dom: './src/dom.ts',
+        clipboard: './src/clipboard.ts',
     },
     output: {
         filename: '[name].entry.js',

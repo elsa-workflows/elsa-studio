@@ -24,14 +24,4 @@ public class DomJsInterop : JsInteropBase, IDomAccessor
     {     
         return await InvokeAsync(async module => await module.InvokeAsync<double>("getVisibleHeight", cancellationToken, elementRef.Match()));
     }
-
-    // public async Task<DomRect> GetBoundingClientRectAsync(Union<string, ElementReference> element, CancellationToken cancellationToken = default)
-    // {
-    //     return await InvokeAsync(async module => await module.InvokeAsync<DomRect>("getBoundingClientRect", cancellationToken, element.Match<object>(value => value, value => value)));
-    // }
-
-    // public async Task<DomRect> GetBoundingClientRectAsync(ElementReference elementRef, CancellationToken cancellationToken = default)
-    // {
-    //     return await InvokeAsync(async module => await module.InvokeAsync<DomRect>("getBoundingClientRect", cancellationToken, elementRef));
-    // }
 }

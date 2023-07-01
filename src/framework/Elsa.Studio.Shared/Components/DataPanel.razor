@@ -1,10 +1,13 @@
+@using Elsa.Studio.DomInterop.Contracts
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
-    @foreach(var item in Data)
+    @foreach (var item in Data)
     {
         <tr>
             <td>@item.Key</td>
-            <td style="width: 50px;"><MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy"/></td>
+            <td style="width: 50px;">
+                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value))"/>
+            </td>
             <td>@item.Value</td>
         </tr>
     }
@@ -15,4 +18,13 @@
 
     [Parameter]
     public IDictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+
+    [Inject]
+    private IClipboard Clipboard { get; set; } = default!;
+
+    private async Task OnCopyClicked(string value)
+    {
+        await Clipboard.CopyText(value);
+    }
+
 }
