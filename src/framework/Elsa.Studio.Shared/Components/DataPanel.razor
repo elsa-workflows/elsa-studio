@@ -1,0 +1,18 @@
+<MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
+    <tbody>
+    @foreach(var item in Data)
+    {
+        <tr>
+            <td>@item.Key</td>
+            <td style="width: 50px;"><MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy"/></td>
+            <td>@item.Value</td>
+        </tr>
+    }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+
+    [Parameter]
+    public IDictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+}

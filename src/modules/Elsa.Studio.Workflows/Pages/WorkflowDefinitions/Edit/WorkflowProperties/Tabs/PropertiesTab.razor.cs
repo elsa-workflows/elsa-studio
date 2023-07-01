@@ -14,6 +14,7 @@ public partial class PropertiesTab
     private FluentValidationValidator _fluentValidationValidator = default!;
     private WorkflowPropertiesModelValidator _validator = default!;
     private EditContext _editContext = default!;
+    private IDictionary<string, string> _workflowInfo = new Dictionary<string, string>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
@@ -24,6 +25,12 @@ public partial class PropertiesTab
         _propertiesModel.Description = WorkflowDefinition.Description;
         _propertiesModel.Name = WorkflowDefinition.Name;
         _editContext = new EditContext(_propertiesModel);
+        
+        _workflowInfo.Add("Definition ID", WorkflowDefinition.DefinitionId);
+        _workflowInfo.Add("Version ID", WorkflowDefinition.Id);
+        _workflowInfo.Add("Version", WorkflowDefinition.Version.ToString());
+        _workflowInfo.Add("Status", WorkflowDefinition.IsPublished ? "Published" : "Draft");
+        _workflowInfo.Add("Readonly", WorkflowDefinition.IsReadonly ? "Yes" : "No");
     }
 
     private async Task ValidateForm()

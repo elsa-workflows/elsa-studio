@@ -5,6 +5,11 @@
         <MudStack Spacing="3">
             <MudTextField T="string" Label="Name" Required="true" Variant="Variant.Outlined" HelperText="The name of the workflow." @bind-Value="@_propertiesModel.Name" For="@(() => _propertiesModel.Name)" OnBlur="ValidateForm"></MudTextField>
             <MudTextField T="string" Label="Description" Variant="Variant.Outlined" HelperText="A brief description of the workflow." Lines="4" @bind-Value="@_propertiesModel.Description" For="@(() => _propertiesModel.Description)" OnBlur="ValidateForm"></MudTextField>
+
+            <div>
+                <MudText Typo="Typo.caption" GutterBottom="true" Align="Align.Left">Information</MudText>
+                <DataPanel Data="_workflowInfo"/>
+            </div>
         </MudStack>
     </EditForm>
 </div>
