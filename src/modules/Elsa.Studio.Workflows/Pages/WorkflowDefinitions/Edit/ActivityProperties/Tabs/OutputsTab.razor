@@ -1,0 +1,30 @@
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Models
+
+<div class="pa-4">
+    <MudForm>
+        <MudStack Spacing="6">
+            @foreach (var outputDescriptor in OutputDescriptors)
+            {
+                var activity = Activity;
+                var displayName = string.IsNullOrWhiteSpace(outputDescriptor.DisplayName) ? outputDescriptor.Name : outputDescriptor.DisplayName;
+                var propertyName = outputDescriptor.Name.Camelize();
+                var propertyValue = activity.TryGetValue<ActivityOutput>(propertyName);
+                var selectedValue = _bindingTargetOptions.FirstOrDefault(x => x.Value == propertyValue?.MemoryReference?.Id);
+                
+                <MudSelectExtended T="BindingTargetOption" Label="@displayName" Variant="Variant.Outlined" HelperText="@outputDescriptor.Description" Value="@selectedValue">
+                    @foreach(var bindingTargetGroup in _bindingTargetGroups)
+                    {
+                        <MudSelectItemGroupExtended T="string" Text="@bindingTargetGroup.Text">
+                            @foreach(var bindingTargetOption in bindingTargetGroup.Options)
+                            {
+                                <MudSelectItem T="BindingTargetOption" Value="@bindingTargetOption">@bindingTargetOption.Text</MudSelectItem>
+                            }
+                        </MudSelectItemGroupExtended>
+                    }
+                </MudSelectExtended>
+            }
+        </MudStack>
+    </MudForm>
+</div>

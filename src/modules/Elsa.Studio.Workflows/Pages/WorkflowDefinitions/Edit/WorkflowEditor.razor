@@ -50,12 +50,12 @@
                 </div>
             </RadzenSplitterPane>
             <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-                <ActivityProperties @ref="ActivityPropertiesTab" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
+                <ActivityProperties @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="35%" Min="100px">
-        <WorkflowProperties WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <WorkflowProperties WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </RadzenSplitterPane>
 
 </RadzenSplitter>
