@@ -4,7 +4,7 @@ using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties;
 
 using WorkflowDefinition = Api.Client.Resources.WorkflowDefinitions.Models.WorkflowDefinition;
 
@@ -19,18 +19,21 @@ public partial class PropertiesTab
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         _propertiesModel.DefinitionId = WorkflowDefinition.DefinitionId;
         _propertiesModel.Description = WorkflowDefinition.Description;
         _propertiesModel.Name = WorkflowDefinition.Name;
         _editContext = new EditContext(_propertiesModel);
-        
-        _workflowInfo.Add("Definition ID", WorkflowDefinition.DefinitionId);
-        _workflowInfo.Add("Version ID", WorkflowDefinition.Id);
-        _workflowInfo.Add("Version", WorkflowDefinition.Version.ToString());
-        _workflowInfo.Add("Status", WorkflowDefinition.IsPublished ? "Published" : "Draft");
-        _workflowInfo.Add("Readonly", WorkflowDefinition.IsReadonly ? "Yes" : "No");
+
+        _workflowInfo = new Dictionary<string, string>
+        {
+            ["Definition ID"] = WorkflowDefinition.DefinitionId,
+            ["Version ID"] = WorkflowDefinition.Id, 
+            ["Version"] = WorkflowDefinition.Version.ToString(),
+            ["Status"] = WorkflowDefinition.IsPublished ? "Published" : "Draft", 
+            ["Readonly"] = WorkflowDefinition.IsReadonly ? "Yes" : "No"
+        };
     }
 
     private async Task ValidateForm()

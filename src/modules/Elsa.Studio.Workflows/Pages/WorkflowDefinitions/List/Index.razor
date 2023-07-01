@@ -46,14 +46,10 @@
             <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
-                <MudStack Row="true" Spacing="6">
-                    <a href="#" @onclick="@(() => OnEditClicked(context.DefinitionId))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
-                        <MudIcon Icon="@Icons.TwoTone.Edit" Color="Color.Primary" Size="Size.Medium" />
-                    </a>
-                    <a href="#" @onclick="@(async () => await OnDeleteClicked(context))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
-                        <MudIcon Icon="@Icons.TwoTone.Delete" Color="Color.Secondary" Size="Size.Medium"/>
-                    </a>
-                </MudStack>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -67,5 +63,3 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
-
-<CreateWorkflowDialog/>

@@ -1,0 +1,53 @@
+@using Variant = MudBlazor.Variant
+<div class="pa-4">
+
+    <MudStack>
+
+        <MudButton
+            StartIcon="@Icons.Material.Outlined.Add"
+            Variant="Variant.Filled"
+            Color="Color.Primary"
+            Class="align-self-end"
+            OnClick="OnAddVariableClicked">
+            Add variable
+        </MudButton>
+
+        @if (!Variables.Any())
+        {
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Filled" Icon="@Icons.Material.Outlined.Info">There are currently no variables defined.</MudAlert>
+        }
+        else
+        {
+            <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Storage</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+
+                @foreach (var variable in Variables)
+                {
+                    var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : default;
+                    var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                    <tr>
+                        <td>@variable.Name</td>
+                        <td>@variable.GetTypeDisplayName()</td>
+                        <td>@storageDriverName</td>
+                        <td style="text-align: right;">
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">Edit</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">Delete</MudMenuItem>
+                            </MudMenu>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </MudSimpleTable>
+        }
+    </MudStack>
+
+</div>

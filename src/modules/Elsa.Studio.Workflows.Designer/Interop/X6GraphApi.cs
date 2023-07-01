@@ -23,7 +23,7 @@ public class X6GraphApi
     }
     
     public async Task<JsonElement> ReadGraphAsync() => await InvokeAsync(module => module.InvokeAsync<JsonElement>("readGraph", _containerId));
-    public async Task DisposeGraphAsync() => await InvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
+    public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
     public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
     public async Task AddActivityNodeAsync(X6Node node) => await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, node));
     public async Task LoadGraphAsync(X6Graph graph) => await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
@@ -48,5 +48,18 @@ public class X6GraphApi
     }
 
     private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func) => await func(_module);
+    
+    private async Task TryInvokeAsync(Func<IJSObjectReference, ValueTask> func)
+    {
+        try
+        {
+            await func(_module);
+        }
+        catch (JSDisconnectedException)
+        {
+            // Ignore.
+        }
+    }
+
     private async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func) => await func(_module);
 }

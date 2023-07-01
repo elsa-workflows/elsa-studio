@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
         services
             .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
             .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
+            .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
+            .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddSingleton<IActivityPortService, DefaultActivityPortService>()
