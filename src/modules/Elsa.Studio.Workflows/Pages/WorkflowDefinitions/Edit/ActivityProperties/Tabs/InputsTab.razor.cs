@@ -15,24 +15,18 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityPropertie
 public partial class InputsTab
 {
     [Parameter] public Activity? Activity { get; set; }
+    [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
-    private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        if (Activity == null)
-            return;
-
-        ActivityDescriptor = await ActivityRegistry.FindAsync(Activity.Type);
-
-        if (ActivityDescriptor == null)
+        if (Activity == null || ActivityDescriptor == null)
             return;
 
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
@@ -71,7 +65,7 @@ public partial class InputsTab
         return models;
     }
 
-    private WrappedInput? ToWrappedInput(object? value)
+    private static WrappedInput? ToWrappedInput(object? value)
     {
         var converterOptions = new ObjectConverterOptions(serializerOptions =>
         {

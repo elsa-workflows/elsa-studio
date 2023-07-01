@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs;
@@ -7,7 +8,10 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityPropertie
 public partial class CommonTab
 {
     [Parameter] public Activity? Activity { get; set; }
+    [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
+    
+    private bool IsTrigger => ActivityDescriptor?.Kind == ActivityKind.Trigger;
     
     private async Task OnActivityIdChanged(string value)
     {
@@ -33,9 +37,15 @@ public partial class CommonTab
         await RaiseActivityUpdated();
     }
     
-    private async Task OnShowDescriptionChanged(bool value)
+    private async Task OnShowDescriptionChanged(bool? value)
     {
-        Activity!.SetShowDescription(value);
+        Activity!.SetShowDescription(value == true);
+        await RaiseActivityUpdated();
+    }
+    
+    private async Task OnCanStartWorkflowChanged(bool? value)
+    {
+        Activity!.SetCanStartWorkflow(value == true);
         await RaiseActivityUpdated();
     }
 }

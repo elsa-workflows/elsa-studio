@@ -63,6 +63,10 @@ public partial class FlowchartDesignerWrapper
         {
             Position = new Position(x, y)
         });
+        
+        // If the activity is a trigger and it's the first trigger on the flowchart, set the trigger property to true.
+        if (activityDescriptor.Kind == ActivityKind.Trigger && Flowchart.Activities.All(activity => activity.GetCanStartWorkflow() != true))
+            newActivity.SetCanStartWorkflow(true);
 
         await Designer.AddActivityAsync(newActivity);
     }

@@ -1,17 +1,21 @@
+@{
+    const string white = "#ffffff";
+    var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
+}
 <MudPaper
     Class="pa-3"
-    Style="@($"border-left: solid 6px {_color}; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06)); height: 100%;")"
+    Style="@($"border-left: solid 6px {_color}; {(CanStartWorkflow ? $"background-color: {_color}" : "")}; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06)); height: 100%;")"
     Outlined="true">
     <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
         @if (_icon != null)
         {
-            <MudIcon Icon="@_icon"></MudIcon>
+            <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
         }
         <MudStack Style="height:100%" Justify="Justify.Center">
-            <MudText Typo="Typo.body1">@_label</MudText>
+            <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
             @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
             {
-                <MudText Typo="Typo.caption">@_description</MudText>
+                <MudText Typo="Typo.caption" Style="@colorStyle">@_description</MudText>
             }
         </MudStack>
     </MudStack>

@@ -28,10 +28,10 @@
             <MudTh>
                 <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionSummary">Name</MudTableSortLabel>
             </MudTh>
-            <MudTh Style="text-align:right">
+            <MudTh Style="text-align:left">
                 <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionSummary" Style="text-align: right;">Latest version</MudTableSortLabel>
             </MudTh>
-            <MudTh Style="text-align:right">
+            <MudTh Style="text-align:left">
                 <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionSummary" Style="text-align: right;">Published version</MudTableSortLabel>
             </MudTh>
             <MudTh>
@@ -42,16 +42,16 @@
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Latest version" Style="text-align:right">@context.LatestVersion</MudTd>
-            <MudTd DataLabel="Published version" Style="text-align:right">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
+            <MudTd DataLabel="Latest version" Style="text-align:left">@context.LatestVersion</MudTd>
+            <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
-                <MudStack Row="true" Spacing="3">
+                <MudStack Row="true" Spacing="6">
                     <a href="#" @onclick="@(() => OnEditClicked(context.DefinitionId))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
                         <MudIcon Icon="@Icons.TwoTone.Edit" Color="Color.Primary" Size="Size.Medium" />
                     </a>
                     <a href="#" @onclick="@(async () => await OnDeleteClicked(context))" @onclick:preventDefault="true" @onclick:stopPropagation="true">
-                        <MudIcon Icon="@Icons.TwoTone.Delete" Color="Color.Warning" Size="Size.Medium"/>
+                        <MudIcon Icon="@Icons.TwoTone.Delete" Color="Color.Secondary" Size="Size.Medium"/>
                     </a>
                 </MudStack>
             </MudTd>

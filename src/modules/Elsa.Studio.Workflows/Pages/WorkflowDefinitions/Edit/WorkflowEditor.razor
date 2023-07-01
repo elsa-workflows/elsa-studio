@@ -2,8 +2,9 @@
  @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
  @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
  @* ReSharper restore RedundantUsingDirective *@
+ @using Elsa.Studio.Workflows.Contracts
 @using Orientation = Radzen.Orientation
-@using Elsa.Studio.Workflows.Contracts
+ @using Variant = MudBlazor.Variant
 
 <RadzenSplitter Orientation="Orientation.Horizontal">
     <RadzenSplitterPane Size="65%">
@@ -24,21 +25,32 @@
                                 }
                             }
                             <MudSpacer></MudSpacer>
-                            <MudSwitch @bind-Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start"/>
+                            <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="OnAutoSaveChanged"/>
                             <MudTooltip Text="Save">
                                 <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                                     <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
                                 </MudBadge>
                             </MudTooltip>
+                            <MudTooltip Text="Publish">
+                                <MudButtonGroup Color="Color.Default" Variant="Variant.Filled" DisableElevation="true">
+                                    <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Title="Publish" OnClick="OnPublishClicked"/>
+                                    <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload">Unpublish</MudMenuItem>
+                                        <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                                        <MudMenuItem Icon="@Icons.Material.Filled.FileDownload">Export</MudMenuItem>
+                                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload">Import</MudMenuItem>
+                                    </MudMenu>
+                                </MudButtonGroup>
+                                
+                            </MudTooltip>
                         </MudToolBar>
                     </MudPaper>
-                    <MudProgressLinear Color="@(_isSaving ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
+                    <MudProgressLinear Color="@(_isProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
                     @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
                 </div>
             </RadzenSplitterPane>
             <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-                <ActivityProperties @ref="ActivityPropertiesTab" Activity="@SelectedActivity" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"
-                />
+                <ActivityProperties @ref="ActivityPropertiesTab" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>

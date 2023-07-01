@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -20,25 +21,27 @@ public partial class WorkflowEditor
     private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isDirty;
-    private bool _isSaving;
+    private bool _isProgressing;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
 
     public WorkflowEditor()
     {
-        _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(async readDiagram => await SaveChangesAsync(readDiagram, false), TimeSpan.FromMilliseconds(500));
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(async readDiagram => await SaveChangesAsync(readDiagram, false, false), TimeSpan.FromMilliseconds(500));
     }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private Activity? SelectedActivity { get; set; }
+    private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
@@ -53,7 +56,7 @@ public partial class WorkflowEditor
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
-    
+
     private async Task HandleChangesAsync(bool readDiagram)
     {
         _isDirty = true;
@@ -71,10 +74,10 @@ public partial class WorkflowEditor
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
     }
 
-    private async Task SaveAsync(bool readDiagram)
+    private async Task SaveAsync(bool readDiagram, bool publish)
     {
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
-        
+
         if (readDiagram)
         {
             var root = await _diagramDesigner!.ReadRootActivityAsync();
@@ -109,7 +112,7 @@ public partial class WorkflowEditor
                 IsPublished = workflowDefinition.IsPublished,
                 Root = workflowDefinition.Root
             },
-            Publish = false,
+            Publish = publish,
         };
 
         WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
@@ -117,12 +120,17 @@ public partial class WorkflowEditor
         StateHasChanged();
     }
 
-    private Task OnActivitySelected(Activity activity)
+    private async Task PublishAsync()
+    {
+        await SaveChangesAsync(true, true, true);
+    }
+
+    private async Task OnActivitySelected(Activity activity)
     {
         SelectedActivity = activity;
         SelectedActivityId = activity.Id;
+        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     private async Task OnSelectedActivityUpdated(Activity activity)
@@ -132,11 +140,17 @@ public partial class WorkflowEditor
         await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
         SelectedActivityId = activity.Id;
     }
-    
+
     private async Task OnSaveClick()
     {
-        await SaveChangesAsync(true, true);
+        await SaveChangesAsync(true, true, false);
         Snackbar.Add("Workflow saved", Severity.Success);
+    }
+
+    private async Task OnPublishClicked()
+    {
+        await PublishAsync();
+        Snackbar.Add("Workflow published", Severity.Success);
     }
 
     private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
@@ -147,13 +161,13 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish)
     {
         await InvokeAsync(async () =>
         {
             if (showLoader)
             {
-                _isSaving = true;
+                _isProgressing = true;
                 StateHasChanged();
             }
 
@@ -161,13 +175,13 @@ public partial class WorkflowEditor
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
-                await SaveAsync(readDiagram);
+                await SaveAsync(readDiagram, publish);
             }
             finally
             {
                 if (showLoader)
                 {
-                    _isSaving = false;
+                    _isProgressing = false;
                     StateHasChanged();
                 }
             }
@@ -179,5 +193,13 @@ public partial class WorkflowEditor
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
         _activityPropertiesPaneHeight = (int)visibleHeight;
+    }
+
+    private async Task OnAutoSaveChanged(bool? value)
+    {
+        _autoSave = value ?? false;
+
+        if (_autoSave)
+            await SaveChangesAsync(true, false, false);
     }
 }

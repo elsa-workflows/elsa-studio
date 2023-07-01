@@ -4,7 +4,7 @@
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Input">
         <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-            <InputsTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"></InputsTab>
+            <InputsTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"></InputsTab>
         </div>
     </MudTabPanel>
     <MudTabPanel Text="Output">
@@ -14,7 +14,7 @@
     </MudTabPanel>
     <MudTabPanel Text="Common">
         <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-            <CommonTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"></CommonTab>
+            <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"></CommonTab>
         </div>
     </MudTabPanel>
 

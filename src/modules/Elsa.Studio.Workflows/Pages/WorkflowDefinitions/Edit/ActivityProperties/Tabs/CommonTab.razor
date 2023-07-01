@@ -1,7 +1,7 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 <div class="pa-4">
-    @if (Activity != null)
+    @if (Activity != null && ActivityDescriptor != null)
     {
         <MudForm>
             <MudStack Spacing="6">
@@ -36,12 +36,28 @@
                     Label="Show description"
                 >
                     <MudCheckBox
-                        T="bool"
+                        T="bool?"
                         Label="Show description"
                         Checked="@(Activity.GetShowDescription() == true)"
                         CheckedChanged="OnShowDescriptionChanged"
-                        />
+                    />
                 </MudField>
+                
+                @if (IsTrigger)
+                {
+                    <MudField
+                        Variant="Variant.Outlined"
+                        HelperText="When checked, this activity can trigger this workflow."
+                        Label="Trigger workflow"
+                    >
+                        <MudCheckBox
+                            T="bool?"
+                            Label="Trigger workflow"
+                            Checked="@(Activity.GetCanStartWorkflow() == true)"
+                            CheckedChanged="OnCanStartWorkflowChanged"
+                        />
+                    </MudField>
+                }
 
             </MudStack>
         </MudForm>

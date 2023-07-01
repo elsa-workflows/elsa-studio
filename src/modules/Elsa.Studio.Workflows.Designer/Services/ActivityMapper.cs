@@ -12,19 +12,21 @@ internal class ActivityMapper : IActivityMapper
 {
     private readonly IDictionary<string, ActivityDescriptor> _activityDescriptors;
     private readonly IActivityPortService _activityPortService;
+    private readonly IActivityDisplaySettingsRegistry _activityDisplaySettingsRegistry;
 
-    public ActivityMapper(IDictionary<string, ActivityDescriptor> activityDescriptors, IActivityPortService activityPortService)
+    public ActivityMapper(IDictionary<string, ActivityDescriptor> activityDescriptors, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
     {
         _activityDescriptors = activityDescriptors;
         _activityPortService = activityPortService;
+        _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
     }
 
     public X6Node MapActivity(Activity activity)
     {
         var activityId = activity.Id;
         var designerMetadata = activity.GetDesignerMetadata();
-        var position = designerMetadata?.Position;
-        var size = designerMetadata?.Size;
+        var position = designerMetadata.Position;
+        var size = designerMetadata.Size;
         var x = position?.X ?? 0;
         var y = position?.Y ?? 0;
         var width = size?.Width ?? 0;
@@ -67,6 +69,7 @@ internal class ActivityMapper : IActivityMapper
         var activityType = activity.Type;
         var activityDescriptor = _activityDescriptors[activityType];
         var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
 
         var ports = sourcePorts.Select(sourcePort => new X6Port
         {
@@ -91,6 +94,10 @@ internal class ActivityMapper : IActivityMapper
                     ["text"] = new X6Attrs
                     {
                         ["text"] = "Done"
+                    },
+                    ["circle"] = new X6Attrs
+                    {
+                        ["fill"] = displaySettings.Color,
                     }
                 }
             });
@@ -100,11 +107,20 @@ internal class ActivityMapper : IActivityMapper
 
     public IEnumerable<X6Port> GetInPorts(Activity activity)
     {
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
+
         // Create default input port.
         yield return new X6Port
         {
             Id = "In",
-            Group = "in"
+            Group = "in",
+            Attrs = new X6Attrs
+            {
+                ["circle"] = new X6Attrs
+                {
+                    ["stroke"] = displaySettings.Color,
+                }
+            }
         };
     }
 }
