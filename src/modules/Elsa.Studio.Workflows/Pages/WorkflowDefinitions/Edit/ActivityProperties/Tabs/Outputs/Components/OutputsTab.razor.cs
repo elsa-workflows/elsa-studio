@@ -1,7 +1,9 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs.Outputs.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -12,15 +14,23 @@ public partial class OutputsTab
 {
     private ICollection<BindingTargetGroup> _bindingTargetGroups = new List<BindingTargetGroup>();
     private ICollection<BindingTargetOption> _bindingTargetOptions = new List<BindingTargetOption>();
+    private IDictionary<string, VariableTypeDescriptor> _variableTypes = new Dictionary<string, VariableTypeDescriptor>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Activity Activity { get; set; } = default!;
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
     
+    [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
+    
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
 
     protected override bool ShouldRender() => WorkflowDefinition != null! && Activity != null! && ActivityDescriptor != null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToDictionary(x => x.TypeName);
+    }
 
     protected override Task OnParametersSetAsync()
     {

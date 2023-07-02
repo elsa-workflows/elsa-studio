@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
         <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.5.2" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.5.3" />
         <PackageReference Include="FluentValidation" Version="11.5.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.8" />
@@ -18,7 +18,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.8" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
         <PackageReference Include="Microsoft.JSInterop" Version="7.0.8" />
-        <PackageReference Include="MudBlazor" Version="6.5.0" />
+        <PackageReference Include="MudBlazor" Version="6.6.0" />
         <PackageReference Include="Radzen.Blazor" Version="4.13.4" />
         <PackageReference Include="ThrottleDebounce" Version="2.0.0" />
     </ItemGroup>
