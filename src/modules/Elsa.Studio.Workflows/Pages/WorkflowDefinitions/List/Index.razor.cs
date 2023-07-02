@@ -84,7 +84,7 @@ public partial class Index
 
         if (!dialogResult.Canceled)
         {
-            var newWorkflowModel = (WorkflowPropertiesModel)dialogResult.Data;
+            var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
             var workflowDefinition = await WorkflowDefinitionService.CreateNewWorkflowDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
             Edit(workflowDefinition.DefinitionId);
         }

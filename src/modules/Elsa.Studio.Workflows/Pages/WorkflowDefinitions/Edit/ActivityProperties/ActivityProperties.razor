@@ -19,10 +19,13 @@
             </div>
         </MudTabPanel>
     }
-    <MudTabPanel Text="Common">
-        <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-            <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-        </div>
-    </MudTabPanel>
+    @if (Activity != null && ActivityDescriptor != null)
+    {
+        <MudTabPanel Text="Common">
+            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+                <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+            </div>
+        </MudTabPanel>
+    }
 
 </MudTabs>

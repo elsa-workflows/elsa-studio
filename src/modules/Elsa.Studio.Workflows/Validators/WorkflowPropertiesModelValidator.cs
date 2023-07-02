@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace Elsa.Studio.Workflows.Validators;
 
-public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowPropertiesModel>
+public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowMetadataModel>
 {
     public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService)
     {

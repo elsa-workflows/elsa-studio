@@ -10,7 +10,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 
 public partial class CreateWorkflowDialog
 {
-    private WorkflowPropertiesModel _propertiesModel = new();
+    private WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = default!;
     private WorkflowPropertiesModelValidator _validator = default!;
     private FluentValidationValidator _fluentValidationValidator = default!;
@@ -23,8 +23,8 @@ public partial class CreateWorkflowDialog
 
     protected override void OnParametersSet()
     {
-        _propertiesModel.Name = WorkflowName;
-        _editContext = new EditContext(_propertiesModel);
+        _metadataModel.Name = WorkflowName;
+        _editContext = new EditContext(_metadataModel);
         _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService);
     }
 
@@ -44,7 +44,7 @@ public partial class CreateWorkflowDialog
 
     private Task OnValidSubmit()
     {
-        MudDialog.Close(_propertiesModel);
+        MudDialog.Close(_metadataModel);
         return Task.CompletedTask;
     }
 }

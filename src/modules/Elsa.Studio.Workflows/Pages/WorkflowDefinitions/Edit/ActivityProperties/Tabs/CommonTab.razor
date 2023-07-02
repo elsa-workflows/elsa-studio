@@ -4,7 +4,7 @@
     @if (Activity != null && ActivityDescriptor != null)
     {
         <MudForm>
-            <MudStack Spacing="6">
+            <MudStack Spacing="5">
                 <MudTextField
                     T="string"
                     Label="ID"
@@ -31,13 +31,15 @@
                     ValueChanged="OnActivityDescriptionChanged"/>
 
                 <MudField
-                    Variant="Variant.Outlined"
+                    Variant="Variant.Text"
                     HelperText="Whether to show the description in the designer."
-                    Label="Show description"
+                    Margin="Margin.None"
+                    DisableUnderLine="@false"
                 >
                     <MudCheckBox
                         T="bool?"
                         Label="Show description"
+                        Dense="@true"
                         Checked="@(Activity.GetShowDescription() == true)"
                         CheckedChanged="OnShowDescriptionChanged"
                     />
@@ -46,13 +48,16 @@
                 @if (IsTrigger)
                 {
                     <MudField
-                        Variant="Variant.Outlined"
+                        Variant="Variant.Text"
+                        DisableUnderLine="@false"
+                        Margin="Margin.None"
                         HelperText="When checked, this activity can trigger this workflow."
                         Label="Trigger workflow"
                     >
                         <MudCheckBox
                             T="bool?"
                             Label="Trigger workflow"
+                            Dense="@true"
                             Checked="@(Activity.GetCanStartWorkflow() == true)"
                             CheckedChanged="OnCanStartWorkflowChanged"
                         />

@@ -11,14 +11,13 @@
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
-        <MudField Variant="Variant.Outlined" Margin="Margin.Dense" DisableUnderLine="false" Label="@displayName" HelperText="@description">
-            @* ReSharper disable once ConvertClosureToMethodGroup *@
+        <MudField Variant="Variant.Text" Margin="Margin.None" DisableUnderLine="@false" HelperText="@description">
             <MudCheckBox
-                T="bool"
+                T="bool?"
                 Label="@displayName"
                 Checked="@isChecked"
                 Dense="true"
-                CheckedChanged="b1 => OnCheckChanged(b1)"/>
+                CheckedChanged="OnCheckChanged"/>
         </MudField>
     </ChildContent>
 </ExpressionInput>
