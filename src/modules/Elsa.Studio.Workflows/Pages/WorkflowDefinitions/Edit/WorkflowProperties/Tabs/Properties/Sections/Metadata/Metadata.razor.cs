@@ -5,9 +5,9 @@ using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties.Sections.Metadata;
 
-public partial class MetadataEditor
+public partial class Metadata
 {
     private readonly WorkflowMetadataModel _model = new();
     private FluentValidationValidator _fluentValidationValidator = default!;

@@ -1,6 +1,6 @@
 @using Variant = MudBlazor.Variant
 
-<MudText Typo="Typo.caption">Metadata</MudText>
+<MudText Typo="Typo.overline">Metadata</MudText>
 <EditForm EditContext="@_editContext" OnValidSubmit="OnValidSubmit">
     <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator"/>
     <MudStack Spacing="3">

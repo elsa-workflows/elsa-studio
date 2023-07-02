@@ -1,7 +1,11 @@
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties.Sections.Metadata
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties.Sections.Info
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties.Sections.Settings
 @using Variant = MudBlazor.Variant
 <div class="pa-4">
     <MudStack>
-        <MetadataEditor WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
-        <InfoPanel WorkflowDefinition="WorkflowDefinition"/>
+        <Metadata WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <Settings WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <Info WorkflowDefinition="WorkflowDefinition"/>
     </MudStack>
 </div>

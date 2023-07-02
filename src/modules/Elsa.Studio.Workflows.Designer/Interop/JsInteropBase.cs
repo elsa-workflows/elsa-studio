@@ -40,10 +40,38 @@ public abstract class JsInteropBase : IAsyncDisposable
         var module = await _moduleTask.Value;
         await func(module);
     }
+
+    protected async Task TryInvokeAsync(Func<IJSObjectReference, ValueTask> func)
+    {
+        try
+        {
+            var module = await _moduleTask.Value;
+            await func(module);
+        }
+        catch (JSException )
+        {
+            // Ignore.
+        }
+    }
     
     protected async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
     {
         var module = await _moduleTask.Value;
         return await func(module);
+    }
+    
+    protected async Task<T> TryInvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
+    {
+        try
+        {
+            var module = await _moduleTask.Value;
+            return await func(module);
+        }
+        catch (JSException )
+        {
+            // Ignore.
+        }
+
+        return default!;
     }
 }

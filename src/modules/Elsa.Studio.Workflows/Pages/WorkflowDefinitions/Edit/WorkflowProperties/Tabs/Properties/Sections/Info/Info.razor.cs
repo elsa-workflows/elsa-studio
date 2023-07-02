@@ -1,9 +1,9 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties.Sections.Info;
 
-public partial class InfoPanel
+public partial class Info
 {
     private IDictionary<string, string> _workflowInfo = new Dictionary<string, string>();
 
