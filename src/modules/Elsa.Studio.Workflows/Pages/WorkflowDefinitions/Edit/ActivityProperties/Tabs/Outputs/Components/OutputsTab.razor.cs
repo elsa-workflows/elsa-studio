@@ -1,9 +1,12 @@
 using Elsa.Api.Client.Activities;
+using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs.Outputs.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs.Outputs.Components;
 
 public partial class OutputsTab
 {
@@ -40,13 +43,22 @@ public partial class OutputsTab
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();
         return Task.CompletedTask;
     }
-}
 
-public record BindingTargetGroup(string Text, BindingKind Kind, ICollection<BindingTargetOption> Options);
-public record BindingTargetOption(string Text, string Value);
+    private async Task OnBindingChanged(BindingTargetOption bindingTargetOption, OutputDescriptor outputDescriptor)
+    {
+        var activity = Activity;
+        var propertyName = outputDescriptor.Name.Camelize();
 
-public enum BindingKind
-{
-    Variable,
-    Output
+        activity[propertyName] = new ActivityOutput
+        {
+            TypeName = outputDescriptor.TypeName,
+            MemoryReference = new MemoryReference
+            {
+                Id = bindingTargetOption.Value
+            }
+        };
+        
+        if(OnActivityUpdated != null)
+            await OnActivityUpdated(activity);
+    }
 }

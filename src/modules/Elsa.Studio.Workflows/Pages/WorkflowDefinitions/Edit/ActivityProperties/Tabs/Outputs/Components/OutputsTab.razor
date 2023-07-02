@@ -1,6 +1,7 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 @using Elsa.Api.Client.Models
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs.Outputs.Models
 
 <div class="pa-4">
     <MudForm>
@@ -13,13 +14,22 @@
                 var propertyValue = activity.TryGetValue<ActivityOutput>(propertyName);
                 var selectedValue = _bindingTargetOptions.FirstOrDefault(x => x.Value == propertyValue?.MemoryReference?.Id);
                 
-                <MudSelectExtended T="BindingTargetOption" Label="@displayName" Variant="Variant.Outlined" HelperText="@outputDescriptor.Description" Value="@selectedValue">
+                <MudSelectExtended 
+                    T="BindingTargetOption" 
+                    Label="@displayName" 
+                    Variant="Variant.Outlined" 
+                    HelperText="@outputDescriptor.Description" 
+                    Value="@selectedValue" 
+                    Dense="false" 
+                    Margin="Margin.Normal"
+                    ToStringFunc="@(x => x?.Text)"
+                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))">
                     @foreach(var bindingTargetGroup in _bindingTargetGroups)
                     {
                         <MudSelectItemGroupExtended T="string" Text="@bindingTargetGroup.Text">
                             @foreach(var bindingTargetOption in bindingTargetGroup.Options)
                             {
-                                <MudSelectItem T="BindingTargetOption" Value="@bindingTargetOption">@bindingTargetOption.Text</MudSelectItem>
+                                <MudSelectItemExtended T="BindingTargetOption" Value="@bindingTargetOption">@bindingTargetOption.Text</MudSelectItemExtended>
                             }
                         </MudSelectItemGroupExtended>
                     }
