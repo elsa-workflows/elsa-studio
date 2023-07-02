@@ -20,9 +20,9 @@ public partial class OutputsTab
     [Parameter] public Activity Activity { get; set; } = default!;
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
-    
+
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
-    
+
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
 
     protected override bool ShouldRender() => WorkflowDefinition != null! && Activity != null! && ActivityDescriptor != null!;
@@ -45,30 +45,34 @@ public partial class OutputsTab
         var outputBindingTargets = outputDefinitions
             .Select(outputDefinition => new BindingTargetOption(outputDefinition.DisplayName, outputDefinition.Name))
             .ToList();
-        
-        if(variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
-        if(outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
-        
+
+        if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
+        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
+
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();
         return Task.CompletedTask;
     }
 
-    private async Task OnBindingChanged(BindingTargetOption bindingTargetOption, OutputDescriptor outputDescriptor)
+    private async Task OnBindingChanged(BindingTargetOption? bindingTargetOption, OutputDescriptor outputDescriptor)
     {
         var activity = Activity;
         var propertyName = outputDescriptor.Name.Camelize();
 
-        activity[propertyName] = new ActivityOutput
-        {
-            TypeName = outputDescriptor.TypeName,
-            MemoryReference = new MemoryReference
+        var activityOutput = bindingTargetOption == null
+            ? default
+            : new ActivityOutput
             {
-                Id = bindingTargetOption.Value
-            }
-        };
-        
-        if(OnActivityUpdated != null)
+                TypeName = outputDescriptor.TypeName,
+                MemoryReference = new MemoryReference
+                {
+                    Id = bindingTargetOption.Value
+                }
+            };
+
+        activity[propertyName] = activityOutput!;
+
+        if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
     }
 }
