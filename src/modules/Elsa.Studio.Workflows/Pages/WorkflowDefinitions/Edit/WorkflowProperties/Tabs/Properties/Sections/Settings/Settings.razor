@@ -10,6 +10,7 @@
             Label="Activation strategy"
             Variant="@Variant.Outlined"
             Value="@_selectedActivationStrategy"
+            ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
             ValueChanged="@OnActivationStrategyChanged"
             HelperText="@(_selectedActivationStrategy?.Description)">
             @foreach (var strategy in _activationStrategies)
