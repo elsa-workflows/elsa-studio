@@ -10,8 +10,8 @@
 
     <MudTable
         ServerData="@(new Func<TableState, Task<TableData<WorkflowDefinitionRow>>>(ServerReload))"
-        Dense="false" Hover="true" @ref="_table" Elevation="0" T="WorkflowDefinitionRow" OnRowClick="@OnRowClick" RowStyle="cursor: pointer;"
-        MultiSelection="true" @bind-SelectedItems="@_selectedRows">
+        Dense="@true" Hover="@true" @ref="_table" Elevation="0" T="WorkflowDefinitionRow" OnRowClick="@OnRowClick" RowStyle="cursor: pointer;"
+        MultiSelection="@true" @bind-SelectedItems="@_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
                 <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>

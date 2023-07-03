@@ -28,8 +28,8 @@ public partial class Index
 
         var request = new ListWorkflowDefinitionsRequest
         {
-            Page = 0,
-            PageSize = 15,
+            Page = state.Page,
+            PageSize = state.PageSize,
             MaterializerName = materializerName
         };
 
