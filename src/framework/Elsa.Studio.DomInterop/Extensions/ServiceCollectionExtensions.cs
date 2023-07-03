@@ -20,4 +20,11 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+    
+    public static IServiceCollection AddDownloadInterop(this IServiceCollection services)
+    {
+        services.TryAddScoped<IDownload, DownloadJsInterop>();
+
+        return services;
+    }
 }

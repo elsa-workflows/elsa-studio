@@ -1,11 +1,13 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -38,6 +40,7 @@ public partial class WorkflowEditor
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private IDownload Download { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private Activity? SelectedActivity { get; set; }
@@ -201,5 +204,12 @@ public partial class WorkflowEditor
 
         if (_autoSave)
             await SaveChangesAsync(true, false, false);
+    }
+
+    private async Task OnDownloadClicked()
+    {
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
+        var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
+        await Download.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 }

@@ -1,7 +1,9 @@
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
@@ -18,6 +20,7 @@ public partial class Index
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] public IDownload Download { get; set; } = default!;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -85,7 +88,7 @@ public partial class Index
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var workflowDefinition = await WorkflowDefinitionService.CreateNewWorkflowDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
+            var workflowDefinition = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
             Edit(workflowDefinition.DefinitionId);
         }
     }
@@ -94,7 +97,7 @@ public partial class Index
     {
         NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
     }
-    
+
     private Task OnEditClicked(string definitionId)
     {
         Edit(definitionId);
@@ -116,6 +119,13 @@ public partial class Index
         var definitionId = workflowDefinitionRow.DefinitionId;
         await WorkflowDefinitionService.DeleteAsync(definitionId);
         Reload();
+    }
+
+    private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
+        var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
+        await Download.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnBulkDeleteClicked()

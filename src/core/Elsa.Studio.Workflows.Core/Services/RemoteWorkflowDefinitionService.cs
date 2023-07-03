@@ -92,7 +92,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         throw new Exception($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
     }
 
-    public async Task<WorkflowDefinition> CreateNewWorkflowDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
@@ -114,4 +114,25 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 
         return await SaveAsync(saveRequest, cancellationToken);
     }
+
+    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    {
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .ExportAsync(definitionId, versionOptions, cancellationToken);
+
+        var fileName = $"workflow-definition-{definitionId}.json";
+        
+        if (response.Headers.TryGetValues("content-disposition", out var contentDispositionHeader)) // Only available if the Elsa Server exposes the "Content-Disposition" header.
+        {
+            var values = contentDispositionHeader?.ToList() ?? new List<string>();
+            
+            if(values.Count >= 2)
+                fileName = values[1].Split('=')[1];    
+        }
+        
+        return new FileDownload(fileName, response.Content!);
+    }
 }
+
+public record FileDownload(string? FileName, Stream Content);
