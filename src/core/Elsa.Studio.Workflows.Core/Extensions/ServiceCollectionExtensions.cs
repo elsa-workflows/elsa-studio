@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddSingleton<IWorkflowDefinitionService, DefaultWorkflowDefinitionService>()
+            .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
             .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
             .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()
@@ -23,7 +23,6 @@ public static class ServiceCollectionExtensions
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
         services.AddActivityPortProvider<DefaultActivityPortProvider>();
-        services.AddActivityPortProvider<FlowSwitchPortProvider>();
         
         return services;
     }

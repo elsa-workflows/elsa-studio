@@ -25,7 +25,22 @@ public class X6GraphApi
     public async Task<JsonElement> ReadGraphAsync() => await InvokeAsync(module => module.InvokeAsync<JsonElement>("readGraph", _containerId));
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
     public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
-    public async Task AddActivityNodeAsync(X6Node node) => await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, node));
+    
+    public async Task AddActivityNodeAsync(X6Node node)
+    {
+        var serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
+        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
+        serializerOptions.Converters.Add(new JsonStringEnumConverter());
+        
+        var nodeElement = JsonSerializer.SerializeToElement(node, serializerOptions);
+        
+        await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
+    }
+
     public async Task LoadGraphAsync(X6Graph graph) => await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));

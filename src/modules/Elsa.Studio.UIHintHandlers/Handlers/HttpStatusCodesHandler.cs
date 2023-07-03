@@ -5,17 +5,17 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHintHandlers.Handlers;
 
-public class MultiTextHandler : IUIHintHandler
+public class HttpStatusCodesHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint is "multi-text";
+    public bool GetSupportsUIHint(string uiHint) => uiHint is "http-status-codes";
     public string UISyntax => WellKnownSyntaxNames.Object;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>
         {
-            builder.OpenComponent(0, typeof(MultiText));
-            builder.AddAttribute(1, nameof(MultiText.EditorContext), context);
+            builder.OpenComponent(0, typeof(HttpStatusCodes));
+            builder.AddAttribute(1, nameof(HttpStatusCodes.EditorContext), context);
             builder.CloseComponent();
         };
     }

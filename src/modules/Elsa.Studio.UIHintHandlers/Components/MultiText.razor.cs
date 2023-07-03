@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Elsa.Api.Client.Expressions;
+using Elsa.Studio.Converters;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHintHandlers.Helpers;
 using Microsoft.AspNetCore.Components;
@@ -29,23 +30,29 @@ public partial class MultiText
     
     private List<string> ParseJson(string? json)
     {
-        return JsonParser.ParseJson(json, () => new List<string>());
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        options.Converters.Add(new JsonPrimitiveToStringConverter());
+        return JsonParser.ParseJson(json, () => new List<string>(), options);
     }
 
     private async Task OnValuesChanges(List<string> arg)
-    { var json = JsonSerializer.Serialize(_items);
+    { 
+        var json = JsonSerializer.Serialize(_items);
         var expression = new ObjectExpression(json);
         await EditorContext.UpdateExpressionAsync(expression);
     }
 
-    private async Task OnKeyDown(KeyboardEventArgs arg)
+    private void OnKeyDown(KeyboardEventArgs arg)
     {
         // TODO: This is a hack to get the chips to update when the user presses enter.
         // Ideally, we can configure this on MudChipField, but this is not currently supported. 
-        if (arg.Key is "Enter" or "Tab")
-        {
-            var setChipsMethod = _chipField.GetType().GetMethod("SetChips", BindingFlags.Instance | BindingFlags.NonPublic);
-            setChipsMethod!.Invoke(_chipField, null);
-        }
+        if (arg.Key is not ("Enter" or "Tab")) return;
+        
+        var setChipsMethod = _chipField.GetType().GetMethod("SetChips", BindingFlags.Instance | BindingFlags.NonPublic);
+        setChipsMethod!.Invoke(_chipField, null);
     }
 }

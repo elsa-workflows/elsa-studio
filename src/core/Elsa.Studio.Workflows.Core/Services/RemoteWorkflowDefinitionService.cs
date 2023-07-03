@@ -10,11 +10,11 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Services;
 
-public class DefaultWorkflowDefinitionService : IWorkflowDefinitionService
+public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
 
-    public DefaultWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider)
+    public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider)
     {
         _backendConnectionProvider = backendConnectionProvider;
     }

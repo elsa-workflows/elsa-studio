@@ -1,3 +1,4 @@
+using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Models;
 
@@ -30,13 +31,13 @@ public interface IActivityPortProvider
     /// </summary>
     /// <param name="portName">The name of the port.</param>
     /// <param name="context">The context.</param>
-    Activities? ResolvePort(string portName, PortProviderContext context);
+    Activity? ResolvePort(string portName, PortProviderContext context);
     
     /// <summary>
     /// Assigns the specified activity to the specified port.
     /// </summary>
     /// <param name="portName">The name of the port.</param>
-    /// <param name="activities">The activity to assign.</param>
+    /// <param name="activity">The activity to assign.</param>
     /// <param name="context">The context.</param>
-    void AssignPort(string portName, Activities? activities, PortProviderContext context);
+    void AssignPort(string portName, Activity? activity, PortProviderContext context);
 }

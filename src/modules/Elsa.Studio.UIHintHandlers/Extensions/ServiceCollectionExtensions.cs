@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<DropdownHandler>()
             .AddUIHintHandler<CodeEditorHandler>()
             .AddUIHintHandler<SwitchEditorHandler>()
+            .AddUIHintHandler<HttpStatusCodesHandler>()
             ;
     }
 }

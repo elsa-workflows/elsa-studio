@@ -3,6 +3,7 @@ using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
@@ -19,6 +20,11 @@ public class DisplayInputEditorContext
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<object?, Task> OnValueChanged { get; set; } = default!;
 
+    public T? GetValueOrDefault<T>()
+    {
+        return (Value ?? InputDescriptor.DefaultValue).ConvertTo<T>();
+    }
+    
     public string GetLiteralValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
