@@ -37,13 +37,13 @@ public partial class InputsSection
     {
         var isNew = inputDefinition == null;
 
-        var parameters = new DialogParameters<Outputs.EditOutputDialog>
+        var parameters = new DialogParameters<EditInputDialog>
         {
-            [nameof(Outputs.EditOutputDialog.WorkflowDefinition)] = WorkflowDefinition
+            [nameof(EditInputDialog.WorkflowDefinition)] = WorkflowDefinition
         };
 
         if (!isNew)
-            parameters[nameof(Outputs.EditOutputDialog.Output)] = inputDefinition;
+            parameters[nameof(EditInputDialog.Input)] = inputDefinition;
 
         var options = new DialogOptions
         {
@@ -54,7 +54,7 @@ public partial class InputsSection
         };
 
         var title = inputDefinition == null ? "Create input" : "Edit input";
-        var dialog = await DialogService.ShowAsync<Outputs.EditOutputDialog>(title, parameters, options);
+        var dialog = await DialogService.ShowAsync<EditInputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
         if (result.Canceled)

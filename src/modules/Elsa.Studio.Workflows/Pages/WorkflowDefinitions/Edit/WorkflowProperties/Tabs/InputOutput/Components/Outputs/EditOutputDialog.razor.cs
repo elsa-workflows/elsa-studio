@@ -51,6 +51,7 @@ public partial class EditOutputDialog
             _model.IsArray = Output.IsArray;
             _model.Description = Output.Description;
             _model.Category = Output.Category;
+            _model.DisplayName = Output.DisplayName;
         }
     }
 

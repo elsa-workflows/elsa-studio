@@ -57,6 +57,7 @@ public partial class EditInputDialog
             _model.UIHint = _uiHints.FirstOrDefault(x => x.Name == Input.UIHint) ?? _uiHints.First();
             _model.Description = Input.Description;
             _model.Category = Input.Category;
+            _model.DisplayName = Input.DisplayName;
         }
     }
 
