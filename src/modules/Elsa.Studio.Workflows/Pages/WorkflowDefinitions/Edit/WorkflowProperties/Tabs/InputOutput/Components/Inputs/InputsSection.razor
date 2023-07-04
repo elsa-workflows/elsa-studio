@@ -1,0 +1,51 @@
+@using Variant = MudBlazor.Variant
+
+<MudText Typo="Typo.overline">Inputs</MudText>
+<MudStack>
+
+    <MudButton
+        StartIcon="@Icons.Material.Outlined.Add"
+        Variant="Variant.Filled"
+        Color="Color.Primary"
+        Class="align-self-end"
+        OnClick="OnAddInputClicked">
+        Add input
+    </MudButton>
+
+    @if (!Inputs.Any())
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Info">There are currently no inputs defined.</MudAlert>
+    }
+    else
+    {
+        <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Storage</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            @foreach (var input in Inputs)
+            {
+                var storageDescriptor = input.StorageDriverType != null ? GetStorageDriverDescriptor(input.StorageDriverType) : default;
+                var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                <tr>
+                    <td>@input.Name</td>
+                    <td>@input.GetTypeDisplayName()</td>
+                    <td>@storageDriverName</td>
+                    <td style="text-align: right;">
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(input))">Edit</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(input))">Delete</MudMenuItem>
+                        </MudMenu>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </MudSimpleTable>
+    }
+</MudStack>

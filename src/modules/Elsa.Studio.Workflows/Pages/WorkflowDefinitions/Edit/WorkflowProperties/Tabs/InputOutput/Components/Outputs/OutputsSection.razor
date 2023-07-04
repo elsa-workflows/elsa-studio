@@ -1,0 +1,47 @@
+@using Variant = MudBlazor.Variant
+
+<MudText Typo="Typo.overline">Outputs</MudText>
+<MudStack>
+
+    <MudButton
+        StartIcon="@Icons.Material.Outlined.Add"
+        Variant="Variant.Filled"
+        Color="Color.Primary"
+        Class="align-self-end"
+        OnClick="OnAddOutputClicked">
+        Add output
+    </MudButton>
+
+    @if (!Outputs.Any())
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Info">There are currently no outputs defined.</MudAlert>
+    }
+    else
+    {
+        <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            @foreach (var output in Outputs)
+            {
+                <tr>
+                    <td>@output.Name</td>
+                    <td>@output.GetTypeDisplayName()</td>
+                    <td style="text-align: right;">
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">Edit</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">Delete</MudMenuItem>
+                        </MudMenu>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </MudSimpleTable>
+    }
+</MudStack>

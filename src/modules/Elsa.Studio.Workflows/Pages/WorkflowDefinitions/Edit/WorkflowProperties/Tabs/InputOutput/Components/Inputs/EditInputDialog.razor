@@ -1,0 +1,47 @@
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Resources.StorageDrivers.Models
+@using Elsa.Api.Client.Resources.VariableTypes.Models
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+<MudDialog>
+    <DialogContent>
+        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
+            <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
+            <MudStack>
+                <MudTextField Label="Name" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="The technical name of the input." Variant="Variant.Outlined"/>
+                <MudSelectExtended T="VariableTypeDescriptor" @bind-Value="_model.Type" ToStringFunc="@(x => x?.DisplayName)" Variant="Variant.Outlined" Label="Type" Dense="false" Margin="Margin.Normal">
+                    @foreach (var grouping in _groupedVariableTypes)
+                    {
+                        <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
+                            @foreach (var variableType in grouping)
+                            {
+                                <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType">@variableType.DisplayName</MudSelectItemExtended>
+                            }
+                        </MudSelectItemGroupExtended>
+                    }
+                </MudSelectExtended>
+                <MudField Variant="Variant.Text" HelperText="Check this option if the variable holds an array of the selected type." Margin="Margin.None">
+                    <MudCheckBox T="bool" @bind-Checked="_model.IsArray" Label="This input is an array" Dense="true"></MudCheckBox>
+                </MudField>
+                <MudTextField Label="Display name" @bind-Value="_model.DisplayName" HelperText="The user-friendly name of this input." Variant="Variant.Outlined" />
+                <MudTextField Label="Description" @bind-Value="_model.Description" HelperText="A brief description of this input." Variant="Variant.Outlined" Lines="3" />
+                <MudTextField Label="Category" @bind-Value="_model.Category" HelperText="A custom category by which to group this input." Variant="Variant.Outlined" />
+                <MudSelect T="UIHintDescriptor" @bind-Value="_model.UIHint" Variant="Variant.Outlined" Dense="false" Label="UI Hint" HelperText="@(_model.UIHint?.Description)" ToStringFunc="@(x => x?.DisplayName)">
+                    @foreach(var uiHint in _uiHints)
+                    {
+                        <MudSelectItem T="UIHintDescriptor" Value="@uiHint">@uiHint.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect T="StorageDriverDescriptor" @bind-Value="_model.StorageDriver" ToStringFunc="@(x => x?.DisplayName)" Variant="Variant.Outlined" Dense="false" Label="Storage">
+                    @foreach (var storageDriver in _storageDriverDescriptors)
+                    {
+                        <MudSelectItem T="StorageDriverDescriptor" Value="@storageDriver">@storageDriver.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnCancelClicked">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">Ok</MudButton>
+    </DialogActions>
+</MudDialog>

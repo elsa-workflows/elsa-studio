@@ -20,4 +20,9 @@
         <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\EditVariableDialog.razor" />
+      <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\InputOutputTab.razor" />
+    </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Properties
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Variables.Components
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.InputOutput.Components
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Properties">
@@ -9,7 +10,7 @@
         <VariablesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Input/output">
-        <MudText>IO</MudText>
+        <InputOutputTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Version history">
         <MudText>Version history</MudText>

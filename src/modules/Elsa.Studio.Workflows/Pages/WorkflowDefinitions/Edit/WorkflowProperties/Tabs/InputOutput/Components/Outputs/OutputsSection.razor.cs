@@ -1,14 +1,12 @@
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Contracts;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.InputOutput.Components.Inputs;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.Variables.Components;
+namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 
-public partial class VariablesTab
+public partial class OutputsSection
 {
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
 
@@ -17,7 +15,7 @@ public partial class VariablesTab
     [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
 
-    private ICollection<Variable> Variables => WorkflowDefinition.Variables;
+    private ICollection<OutputDefinition> Outputs => WorkflowDefinition.Outputs;
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,17 +33,17 @@ public partial class VariablesTab
             await OnWorkflowDefinitionUpdated();
     }
 
-    private async Task OpenVariableEditorDialog(Variable? variable)
+    private async Task OpenOutputEditorDialog(OutputDefinition? outputDefinition)
     {
-        var isNew = variable == null;
+        var isNew = outputDefinition == null;
 
         var parameters = new DialogParameters<EditOutputDialog>
         {
-            [nameof(EditVariableDialog.WorkflowDefinition)] = WorkflowDefinition
+            [nameof(EditOutputDialog.WorkflowDefinition)] = WorkflowDefinition
         };
 
         if (!isNew)
-            parameters[nameof(EditVariableDialog.Variable)] = variable;
+            parameters[nameof(EditOutputDialog.Output)] = outputDefinition;
 
         var options = new DialogOptions
         {
@@ -55,8 +53,8 @@ public partial class VariablesTab
             CloseOnEscapeKey = true
         };
 
-        var title = variable == null ? "Create variable" : "Edit variable";
-        var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
+        var title = outputDefinition == null ? "Create output" : "Edit output";
+        var dialog = await DialogService.ShowAsync<EditOutputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
         if (result.Canceled)
@@ -64,32 +62,32 @@ public partial class VariablesTab
 
         if (isNew)
         {
-            variable = (Variable)result.Data;
-            WorkflowDefinition.Variables.Add(variable);
+            outputDefinition = (OutputDefinition)result.Data;
+            WorkflowDefinition.Outputs.Add(outputDefinition);
         }
 
         await RaiseWorkflowDefinitionUpdatedAsync();
     }
 
-    private async Task OnEditClicked(Variable variable)
+    private async Task OnEditClicked(OutputDefinition input)
     {
-        await OpenVariableEditorDialog(variable);
+        await OpenOutputEditorDialog(input);
     }
 
-    private async Task OnDeleteClicked(Variable variable)
+    private async Task OnDeleteClicked(OutputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox("Delete selected variable?", "Are you sure you want to delete the selected variable?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Delete selected output?", "Are you sure you want to delete the selected output?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
 
-        WorkflowDefinition.Variables.Remove(variable);
+        WorkflowDefinition.Outputs.Remove(input);
 
         await RaiseWorkflowDefinitionUpdatedAsync();
     }
 
-    private async Task OnAddVariableClicked()
+    private async Task OnAddOutputClicked()
     {
-        await OpenVariableEditorDialog(null);
+        await OpenOutputEditorDialog(null);
     }
 }
