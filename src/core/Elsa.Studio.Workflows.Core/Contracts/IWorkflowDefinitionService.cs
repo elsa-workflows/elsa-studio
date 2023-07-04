@@ -10,7 +10,11 @@ public interface IWorkflowDefinitionService
     Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
+    Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
+    Task<BulkRetractWorkflowDefinitionsResponse> BulkRetractAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
     Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default);
     Task<string> GenerateUniqueNameAsync(CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default);

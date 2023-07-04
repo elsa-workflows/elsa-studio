@@ -55,15 +55,49 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             return false;
         }
     }
+    
+    public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .PublishAsync(definitionId, cancellationToken);
+    }
+
+    public async Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .RetractAsync(definitionId, cancellationToken);
+    }
 
     public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
-        var request = new DeleteManyWorkflowDefinitionsRequest(definitionIds);
+        var request = new BulkDeleteWorkflowDefinitionsRequest(definitionIds);
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
-            .DeleteManyAsync(request, cancellationToken);
+            .BulkDeleteAsync(request, cancellationToken);
 
         return response.Deleted;
+    }
+
+    public async Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
+    {
+        var request = new BulkPublishWorkflowDefinitionsRequest(definitionIds);
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .BulkPublishAsync(request, cancellationToken);
+        
+        return response;
+    }
+
+    public async Task<BulkRetractWorkflowDefinitionsResponse> BulkRetractAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
+    {
+        var request = new BulkRetractWorkflowDefinitionsRequest(definitionIds);
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .BulkRetractAsync(request, cancellationToken);
+        
+        return response;
     }
 
     public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default)

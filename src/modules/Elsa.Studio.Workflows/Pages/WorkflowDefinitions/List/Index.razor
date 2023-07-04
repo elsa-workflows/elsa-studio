@@ -15,8 +15,8 @@
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
                 <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem>Publish</MudMenuItem>
-                <MudMenuItem>Unpublish</MudMenuItem>
+                <MudMenuItem OnClick="OnBulkPublishClicked">Publish</MudMenuItem>
+                <MudMenuItem OnClick="OnBulkRetractClicked">Unpublish</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
@@ -48,8 +48,13 @@
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))">Publish</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))">Unpublish</MudMenuItem>
+                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
+                    
                 </MudMenu>
             </MudTd>
         </RowTemplate>

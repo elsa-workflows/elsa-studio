@@ -1,3 +1,4 @@
+using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.DomInterop.Contracts;
@@ -5,7 +6,6 @@ using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
@@ -19,6 +19,7 @@ public partial class Index
 
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] public IDownload Download { get; set; } = default!;
 
@@ -97,6 +98,11 @@ public partial class Index
     {
         NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
     }
+    
+    private void Reload()
+    {
+        _table.ReloadServerData();
+    }
 
     private Task OnEditClicked(string definitionId)
     {
@@ -140,16 +146,85 @@ public partial class Index
         Reload();
     }
 
+    private async Task OnBulkPublishClicked()
+    {
+        var result = await DialogService.ShowMessageBox("Publish selected workflows?", "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
+
+        if (result != true)
+            return;
+
+        var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
+        var response = await WorkflowDefinitionService.BulkPublishAsync(workflowDefinitionIds);
+
+        if (response.Published.Count > 0)
+        {
+            var message = response.Published.Count == 1 ? "One workflow is published" : $"{response.Published.Count} workflows are published";
+            Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.AlreadyPublished.Count > 0)
+        {
+            var message = response.AlreadyPublished.Count == 1 ? "One workflow is already published" : $"{response.AlreadyPublished.Count} workflows are already published";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.NotFound.Count > 0)
+        {
+            var message = response.NotFound.Count == 1 ? "One workflow is not found" : $"{response.NotFound.Count} workflows are not found";
+            Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        Reload();
+    }
+    
+    private async Task OnBulkRetractClicked()
+    {
+        var result = await DialogService.ShowMessageBox("Unpublish selected workflows?", "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
+
+        if (result != true)
+            return;
+
+        var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
+        var response = await WorkflowDefinitionService.BulkRetractAsync(workflowDefinitionIds);
+
+        if (response.Retracted.Count > 0)
+        {
+            var message = response.Retracted.Count == 1 ? "One workflow is unpublished" : $"{response.Retracted.Count} workflows are unpublished";
+            Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.AlreadyRetracted.Count > 0)
+        {
+            var message = response.AlreadyRetracted.Count == 1 ? "One workflow is already unpublished" : $"{response.AlreadyRetracted.Count} workflows are already unpublished";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.NotFound.Count > 0)
+        {
+            var message = response.NotFound.Count == 1 ? "One workflow is not found" : $"{response.NotFound.Count} workflows are not found";
+            Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        Reload();
+    }
+
     private void OnSearch(string text)
     {
         _searchString = text;
         Reload();
     }
 
-    private void Reload()
+    private async Task OnPublishClicked(string definitionId)
     {
-        _table.ReloadServerData();
+        await WorkflowDefinitionService.PublishAsync(definitionId);
+        Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 
+    private async Task OnRetractClicked(string definitionId)
+    {
+        await WorkflowDefinitionService.RetractAsync(definitionId);
+        Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+    }
+    
     private record WorkflowDefinitionRow(string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
 }
