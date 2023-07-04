@@ -19,6 +19,12 @@ public partial class FlowchartDesignerWrapper
     internal FlowchartDesigner Designer { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
 
+    public async Task LoadFlowchartAsync(Flowchart flowchart)
+    {
+        Flowchart = flowchart;
+        await Designer.LoadFlowchartAsync(flowchart);
+    }
+    
     public async Task UpdateActivityAsync(string id, Activity activity)
     {
         if (activity != Flowchart)

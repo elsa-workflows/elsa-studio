@@ -1,10 +1,10 @@
- @* ReSharper disable RedundantUsingDirective *@
- @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
- @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
- @* ReSharper restore RedundantUsingDirective *@
- @using Elsa.Studio.Workflows.Contracts
+@* ReSharper disable RedundantUsingDirective *@
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
+@* ReSharper restore RedundantUsingDirective *@
+@using Elsa.Studio.Workflows.Contracts
 @using Orientation = Radzen.Orientation
- @using Variant = MudBlazor.Variant
+@using Variant = MudBlazor.Variant
 
 <RadzenSplitter Orientation="Orientation.Horizontal">
     <RadzenSplitterPane Size="65%">
@@ -31,23 +31,31 @@
                                     <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
                                 </MudBadge>
                             </MudTooltip>
+
+                            <div id="workflow-file-upload-button-wrapper" class="d-none">
+                                <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected"/>
+                            </div>
+
                             <MudTooltip Text="Publish the current workflow.">
                                 <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
                                     <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
                                     <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
-                                        <MudTooltip Text="Unpublish the current workflow." Inline="false">
-                                            <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload">Unpublish</MudMenuItem>
-                                        </MudTooltip>
-                                        <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                                        @if (WorkflowDefinition?.IsPublished == true)
+                                        {
+                                            <MudTooltip Text="Unpublish the current workflow." Inline="false">
+                                                <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="OnRetractClicked">Unpublish</MudMenuItem>
+                                            </MudTooltip>
+                                            <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                                        }
                                         <MudTooltip Text="Download the current workflow as a JSON file." Inline="false">
                                             <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
                                         </MudTooltip>
                                         <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false">
-                                            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload">Upload</MudMenuItem>
+                                            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="OnUploadClicked">Upload</MudMenuItem>
                                         </MudTooltip>
                                     </MudMenu>
                                 </MudButtonGroup>
-                                
+
                             </MudTooltip>
                         </MudToolBar>
                     </MudPaper>

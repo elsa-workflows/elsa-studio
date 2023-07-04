@@ -3,9 +3,9 @@ using Microsoft.JSInterop;
 
 namespace Elsa.Studio.DomInterop.Interop;
 
-public class DownloadJsInterop : JsInteropBase, IDownload
+public class FilesJsInterop : JsInteropBase, IFiles
 {
-    public DownloadJsInterop(IJSRuntime jsRuntime) : base(jsRuntime)
+    public FilesJsInterop(IJSRuntime jsRuntime) : base(jsRuntime)
     {
     }
 

@@ -7,7 +7,13 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private Activity _activity = default!;
-    
+
+    public Task LoadRootActivity(Activity activity)
+    {
+        _activity = activity;
+        return Task.CompletedTask;
+    }
+
     public Task UpdateActivityAsync(string id, Activity activity)
     {
         return Task.CompletedTask;

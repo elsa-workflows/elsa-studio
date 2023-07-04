@@ -4,7 +4,7 @@ module.exports = {
     entry: {
         dom: './src/dom.ts',
         clipboard: './src/clipboard.ts',
-        download: './src/download.ts',
+        files: './src/files.ts',
     },
     output: {
         filename: '[name].entry.js',

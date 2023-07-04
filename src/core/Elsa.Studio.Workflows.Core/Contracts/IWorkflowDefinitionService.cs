@@ -19,4 +19,5 @@ public interface IWorkflowDefinitionService
     Task<string> GenerateUniqueNameAsync(CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default);
     Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default);
 }

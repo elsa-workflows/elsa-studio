@@ -67,7 +67,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     {
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
-            .RetractAsync(definitionId, cancellationToken);
+            .RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
     }
 
     public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
@@ -166,6 +166,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         }
         
         return new FileDownload(fileName, response.Content!);
+    }
+
+    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .ImportAsync(definition, cancellationToken);
     }
 }
 

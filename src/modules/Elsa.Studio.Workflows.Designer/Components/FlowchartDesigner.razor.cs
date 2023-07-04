@@ -88,6 +88,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         return flowchart;
     }
 
+    public async Task LoadFlowchartAsync(Flowchart flowchart)
+    {
+        var flowchartMapper = await GetFlowchartMapperAsync();
+        var graph = flowchartMapper.Map(flowchart);
+        await _graphApi.LoadGraphAsync(graph);
+    }
+
     public async Task AddActivityAsync(Activity activity)
     {
         var mapper = await GetActivityMapperAsync();
@@ -125,9 +132,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef);
 
-            var flowchartMapper = await GetFlowchartMapperAsync();
-            var graph = flowchartMapper.Map(Flowchart);
-            await _graphApi.LoadGraphAsync(graph);
+            await LoadFlowchartAsync(Flowchart);
         }
     }
 

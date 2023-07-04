@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
     
     public static IServiceCollection AddDownloadInterop(this IServiceCollection services)
     {
-        services.TryAddScoped<IDownload, DownloadJsInterop>();
+        services.TryAddScoped<IFiles, FilesJsInterop>();
 
         return services;
     }

@@ -21,7 +21,7 @@ public partial class Index
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] public IDownload Download { get; set; } = default!;
+    [Inject] public IFiles Files { get; set; } = default!;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -131,7 +131,7 @@ public partial class Index
     {
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
         var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
-        await Download.DownloadFileFromStreamAsync(fileName, download.Content);
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnBulkDeleteClicked()
