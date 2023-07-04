@@ -6,12 +6,14 @@ using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Models;
 
 public class DisplayInputEditorContext
 {
+    public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     public Activity Activity { get; set; } = default!;
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     public InputDescriptor InputDescriptor { get; set; } = default!;

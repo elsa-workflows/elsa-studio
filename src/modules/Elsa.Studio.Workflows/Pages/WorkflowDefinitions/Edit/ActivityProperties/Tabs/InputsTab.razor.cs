@@ -4,6 +4,7 @@ using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
@@ -14,6 +15,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityPropertie
 
 public partial class InputsTab
 {
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public Activity? Activity { get; set; }
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
@@ -49,6 +51,7 @@ public partial class InputsTab
 
             var context = new DisplayInputEditorContext
             {
+                WorkflowDefinition = WorkflowDefinition!,
                 Activity = activity,
                 ActivityDescriptor = activityDescriptor,
                 InputDescriptor = inputDescriptor,

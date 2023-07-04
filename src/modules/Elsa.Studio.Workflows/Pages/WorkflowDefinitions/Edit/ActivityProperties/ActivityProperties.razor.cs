@@ -2,6 +2,7 @@ using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
 

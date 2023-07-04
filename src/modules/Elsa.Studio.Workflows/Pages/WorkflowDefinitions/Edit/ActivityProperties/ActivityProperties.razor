@@ -7,7 +7,7 @@
     {
         <MudTabPanel Text="Input">
             <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-                <InputsTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+                <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
             </div>
         </MudTabPanel>
     }
