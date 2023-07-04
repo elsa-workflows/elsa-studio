@@ -14,7 +14,7 @@ public partial class VariablesTab
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
     [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
-    
+
     private ICollection<Variable> Variables => WorkflowDefinition.Variables;
 
     protected override async Task OnInitializedAsync()
@@ -26,23 +26,23 @@ public partial class VariablesTab
     {
         return _storageDriverDescriptors.FirstOrDefault(x => x.TypeName == typeName);
     }
-    
+
     private async Task RaiseWorkflowDefinitionUpdatedAsync()
     {
-        if(OnWorkflowDefinitionUpdated != null)
+        if (OnWorkflowDefinitionUpdated != null)
             await OnWorkflowDefinitionUpdated();
     }
 
     private async Task OpenVariableEditorDialog(Variable? variable)
     {
         var isNew = variable == null;
-        
+
         var parameters = new DialogParameters<EditVariableDialog>
         {
             [nameof(EditVariableDialog.WorkflowDefinition)] = WorkflowDefinition
         };
-        
-        if(!isNew)
+
+        if (!isNew)
             parameters[nameof(EditVariableDialog.Variable)] = variable;
 
         var options = new DialogOptions
@@ -52,15 +52,15 @@ public partial class VariablesTab
             CloseButton = true,
             CloseOnEscapeKey = true
         };
-        
+
         var title = variable == null ? "Create variable" : "Edit variable";
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
-        
-        if(result.Canceled)
+
+        if (result.Canceled)
             return;
-        
-        if(isNew)
+
+        if (isNew)
         {
             variable = (Variable)result.Data;
             WorkflowDefinition.Variables.Add(variable);
@@ -80,9 +80,9 @@ public partial class VariablesTab
 
         if (result != true)
             return;
-        
+
         WorkflowDefinition.Variables.Remove(variable);
-        
+
         await RaiseWorkflowDefinitionUpdatedAsync();
     }
 

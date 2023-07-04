@@ -19,22 +19,23 @@
             }
         </MudSelect>
         <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
-            <MudCheckBox 
-                T="bool?" 
-                Label="Usable as activity" 
-                Variant="@Variant.Outlined" 
-                Checked="@(WorkflowDefinition.Options.UsableAsActivity == true)" 
-                CheckedChanged="@OnUsableAsActivityCheckChanged" 
+            <MudCheckBox
+                T="bool?"
+                Label="Usable as activity"
+                Checked="@(WorkflowDefinition.Options.UsableAsActivity == true)"
+                CheckedChanged="@OnUsableAsActivityCheckChanged"
                 Dense="@true"/>
         </MudField>
-        <MudField Variant="Variant.Text" HelperText="When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow." Margin="Margin.None">
-            <MudCheckBox 
-                T="bool?" 
-                Label="Auto-update consuming workflows" 
-                Variant="@Variant.Outlined" 
-                Dense="@true" 
-                Checked="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)" 
-                CheckedChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"/>
-        </MudField>
+        @if (WorkflowDefinition.Options.UsableAsActivity == true)
+        {
+            <MudField Variant="Variant.Text" HelperText="When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow." Margin="Margin.None">
+                <MudCheckBox
+                    T="bool?"
+                    Label="Auto-update consuming workflows"
+                    Dense="@true"
+                    Checked="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
+                    CheckedChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"/>
+            </MudField>
+        }
     </MudStack>
 }
