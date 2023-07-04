@@ -30,9 +30,12 @@
 
             @foreach (var output in Outputs)
             {
+                var typeDescriptor = output.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == output.Type) : default;
+                var typeName = typeDescriptor?.DisplayName ?? output.Type;
+                if (output.IsArray) typeName += "[]";
                 <tr>
                     <td>@output.Name</td>
-                    <td>@output.GetTypeDisplayName()</td>
+                    <td>@typeName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                             <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">Edit</MudMenuItem>

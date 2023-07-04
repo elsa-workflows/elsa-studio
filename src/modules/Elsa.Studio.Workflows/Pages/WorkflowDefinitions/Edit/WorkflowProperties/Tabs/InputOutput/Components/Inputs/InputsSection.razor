@@ -33,9 +33,12 @@
             {
                 var storageDescriptor = input.StorageDriverType != null ? GetStorageDriverDescriptor(input.StorageDriverType) : default;
                 var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                var typeDescriptor = input.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == input.Type) : default;
+                var typeName = typeDescriptor?.DisplayName ?? input.Type;
+                if(input.IsArray) typeName += "[]";
                 <tr>
                     <td>@input.Name</td>
-                    <td>@input.GetTypeDisplayName()</td>
+                    <td>@typeName</td>
                     <td>@storageDriverName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">

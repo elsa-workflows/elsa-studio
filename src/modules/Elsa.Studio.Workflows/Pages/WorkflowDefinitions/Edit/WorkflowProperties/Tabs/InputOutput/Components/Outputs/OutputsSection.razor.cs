@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
+using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -8,12 +9,14 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowPropertie
 
 public partial class OutputsSection
 {
+    private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
-    [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
-    [Inject] IDialogService DialogService { get; set; } = default!;
+    [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
     private ICollection<OutputDefinition> Outputs => WorkflowDefinition.Outputs;
 

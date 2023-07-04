@@ -29,17 +29,20 @@ public partial class EditInputDialog
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        // Instantiate the edit context first, so that it is available when rendering (which happens as soon as we call an async method on the next line). 
         _editContext = new EditContext(_model);
-        _validator = new InputModelValidator(WorkflowDefinition);
-
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _uiHints = (await GetUIHitsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
+    }
 
+    protected override void OnParametersSet()
+    {
+        _editContext = new EditContext(_model);
+        _validator = new InputModelValidator(WorkflowDefinition);
+        
         if (Input == null)
         {
             _model.Name = GetNewInputName(WorkflowDefinition.Inputs);
