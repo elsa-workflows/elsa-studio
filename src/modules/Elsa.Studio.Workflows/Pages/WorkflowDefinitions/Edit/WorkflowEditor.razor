@@ -31,14 +31,20 @@
                                     <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
                                 </MudBadge>
                             </MudTooltip>
-                            <MudTooltip Text="Publish">
+                            <MudTooltip Text="Publish the current workflow.">
                                 <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
                                     <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
                                     <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
-                                        <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload">Unpublish</MudMenuItem>
+                                        <MudTooltip Text="Unpublish the current workflow." Inline="false">
+                                            <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload">Unpublish</MudMenuItem>
+                                        </MudTooltip>
                                         <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                                        <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
-                                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload">Upload</MudMenuItem>
+                                        <MudTooltip Text="Download the current workflow as a JSON file." Inline="false">
+                                            <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
+                                        </MudTooltip>
+                                        <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false">
+                                            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload">Upload</MudMenuItem>
+                                        </MudTooltip>
                                     </MudMenu>
                                 </MudButtonGroup>
                                 
