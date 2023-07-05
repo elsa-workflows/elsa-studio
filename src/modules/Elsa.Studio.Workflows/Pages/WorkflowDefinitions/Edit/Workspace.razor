@@ -2,32 +2,34 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
 @using Orientation = Radzen.Orientation
 
-<RadzenSplitter Orientation="Orientation.Horizontal">
-    <RadzenSplitterPane Size="65%">
+<CascadingValue Value="this">
+    <RadzenSplitter Orientation="Orientation.Horizontal">
+        <RadzenSplitterPane Size="65%">
 
-        <MudDynamicTabs @ref="@_dynamicTabs"
-                        Style="height: 100%"
-                        AddTab="@AddTabCallback"
-                        CloseTab="@CloseTabCallback"
-                        bind-ActivePanelIndex="@ActiveTabIndex"
-                        AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
-                        Elevation="0"
-                        ApplyEffectsToContainer>
-            @foreach (var workflowDefinition in WorkflowDefinitions)
+            <MudDynamicTabs @ref="@_dynamicTabs"
+                            Style="height: 100%"
+                            AddTab="@AddTabCallback"
+                            CloseTab="@CloseTabCallback"
+                            bind-ActivePanelIndex="@ActiveTabIndex"
+                            AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                            Elevation="0"
+                            ApplyEffectsToContainer>
+                @foreach (var workflowDefinition in WorkflowDefinitions)
+                {
+                    <MudTabPanel Text="@workflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
+                        <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="_workflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"></WorkflowEditor>
+                    </MudTabPanel>
+                }
+
+            </MudDynamicTabs>
+
+        </RadzenSplitterPane>
+        <RadzenSplitterPane Size="35%" Min="100px">
+            @if (SelectedWorkflowDefinition != null)
             {
-                <MudTabPanel Text="@workflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
-                    <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="_workflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"></WorkflowEditor>
-                </MudTabPanel>
+                <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
             }
+        </RadzenSplitterPane>
 
-        </MudDynamicTabs>
-
-    </RadzenSplitterPane>
-    <RadzenSplitterPane Size="35%" Min="100px">
-        @if (SelectedWorkflowDefinition != null)
-        {
-            <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
-        }
-    </RadzenSplitterPane>
-
-</RadzenSplitter>
+    </RadzenSplitter>
+</CascadingValue>

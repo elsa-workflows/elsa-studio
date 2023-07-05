@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.DomInterop.Contracts;

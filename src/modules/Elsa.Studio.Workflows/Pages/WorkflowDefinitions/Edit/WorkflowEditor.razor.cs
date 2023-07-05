@@ -39,7 +39,7 @@ public partial class WorkflowEditor
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; } = default!;
+    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;

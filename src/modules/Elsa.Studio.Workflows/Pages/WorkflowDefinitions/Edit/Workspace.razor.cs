@@ -10,6 +10,7 @@ public partial class Workspace
     private MudDynamicTabs _dynamicTabs = default!;
 
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
+    public event Func<Task>? WorkflowDefinitionUpdated;
     
     private int ActiveTabIndex { get; } = 0;
     private WorkflowDefinition? SelectedWorkflowDefinition => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowDefinitions.Count ? WorkflowDefinitions.ElementAtOrDefault(ActiveTabIndex) : default;
@@ -30,12 +31,14 @@ public partial class Workspace
         await workflowEditor.NotifyWorkflowChangedAsync();
     }
     
-    private Task OnWorkflowDefinitionUpdated()
+    private async Task OnWorkflowDefinitionUpdated()
     {
         var definitionId = SelectedWorkflowDefinition!.DefinitionId;
         var workflowEditor = _workflowEditors[definitionId];
         WorkflowDefinitions[ActiveTabIndex] = workflowEditor.WorkflowDefinition!;
         StateHasChanged();
-        return Task.CompletedTask;
+        
+        if (WorkflowDefinitionUpdated != null)
+            await WorkflowDefinitionUpdated();
     }
 }
