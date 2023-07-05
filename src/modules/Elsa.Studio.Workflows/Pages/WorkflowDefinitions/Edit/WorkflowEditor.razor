@@ -6,70 +6,61 @@
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
 
-<RadzenSplitter Orientation="Orientation.Horizontal">
-    <RadzenSplitterPane Size="65%">
-
-        @* Designer *@
-        <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
-            <RadzenSplitterPane Size="70%">
-                <div class="height:100%">
-                    <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-                        <MudToolBar Dense="true">
-                            @{
-                                if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
-                                {
-                                    foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
-                                    {
-                                        @toolboxComponent
-                                    }
-                                }
+@* Designer *@
+<RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
+    <RadzenSplitterPane Size="70%">
+        <div class="height:100%">
+            <MudPaper Class="ma-2" Elevation="0" Outlined="true">
+                <MudToolBar Dense="true">
+                    @{
+                        if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
+                        {
+                            foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                            {
+                                @toolboxComponent
                             }
-                            <MudSpacer></MudSpacer>
-                            <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="OnAutoSaveChanged"/>
-                            <MudTooltip Text="Save">
-                                <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
-                                    <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
-                                </MudBadge>
-                            </MudTooltip>
+                        }
+                    }
+                    <MudSpacer></MudSpacer>
+                    <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="OnAutoSaveChanged"/>
+                    <MudTooltip Text="Save">
+                        <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
+                        </MudBadge>
+                    </MudTooltip>
 
-                            <div id="workflow-file-upload-button-wrapper" class="d-none">
-                                <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected"/>
-                            </div>
+                    <div id="workflow-file-upload-button-wrapper" class="d-none">
+                        <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected"/>
+                    </div>
 
-                            <MudTooltip Text="Publish the current workflow.">
-                                <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
-                                    <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
-                                    <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
-                                        @if (WorkflowDefinition?.IsPublished == true)
-                                        {
-                                            <MudTooltip Text="Unpublish the current workflow." Inline="false">
-                                                <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="OnRetractClicked">Unpublish</MudMenuItem>
-                                            </MudTooltip>
-                                            <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                                        }
-                                        <MudTooltip Text="Download the current workflow as a JSON file." Inline="false">
-                                            <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
-                                        </MudTooltip>
-                                        <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false">
-                                            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="OnUploadClicked">Upload</MudMenuItem>
-                                        </MudTooltip>
-                                    </MudMenu>
-                                </MudButtonGroup>
+                    <MudTooltip Text="Publish the current workflow.">
+                        <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
+                            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+                                @if (WorkflowDefinition?.IsPublished == true)
+                                {
+                                    <MudTooltip Text="Unpublish the current workflow." Inline="false">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="OnRetractClicked">Unpublish</MudMenuItem>
+                                    </MudTooltip>
+                                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                                }
+                                <MudTooltip Text="Download the current workflow as a JSON file." Inline="false">
+                                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
+                                </MudTooltip>
+                                <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false">
+                                    <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="OnUploadClicked">Upload</MudMenuItem>
+                                </MudTooltip>
+                            </MudMenu>
+                        </MudButtonGroup>
 
-                            </MudTooltip>
-                        </MudToolBar>
-                    </MudPaper>
-                    <MudProgressLinear Color="@(_isProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
-                    @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
-                </div>
-            </RadzenSplitterPane>
-            <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-                <ActivityProperties @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
-            </RadzenSplitterPane>
-        </RadzenSplitter>
+                    </MudTooltip>
+                </MudToolBar>
+            </MudPaper>
+            <MudProgressLinear Color="@(_isProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
+            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, OnGraphUpdated))
+        </div>
     </RadzenSplitterPane>
-    <RadzenSplitterPane Size="35%" Min="100px">
-        <WorkflowProperties WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+    <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
+        <ActivityProperties @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
-
 </RadzenSplitter>

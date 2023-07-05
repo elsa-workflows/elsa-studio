@@ -22,7 +22,7 @@
 @code
 {
     private readonly DragDropManager _dragDropManager = new();
-    private ICollection<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
+    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
 
     [Parameter]
     public string DefinitionId { get; set; } = default!;

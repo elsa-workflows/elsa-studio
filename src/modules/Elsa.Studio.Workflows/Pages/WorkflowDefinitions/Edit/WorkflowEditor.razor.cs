@@ -39,6 +39,7 @@ public partial class WorkflowEditor
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -66,6 +67,11 @@ public partial class WorkflowEditor
         }
     }
 
+    public async Task NotifyWorkflowChangedAsync()
+    {
+        await HandleChangesAsync(false);
+    }
+
     private async Task HandleChangesAsync(bool readDiagram)
     {
         _isDirty = true;
@@ -75,12 +81,13 @@ public partial class WorkflowEditor
             await SaveChangesRateLimitedAsync(readDiagram);
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (WorkflowDefinition?.Root == null)
             return;
 
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        await SelectActivity(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(bool readDiagram, bool publish)
@@ -124,7 +131,9 @@ public partial class WorkflowEditor
             Publish = publish,
         };
 
-        WorkflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
+        workflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
+        await SetWorkflowDefinitionAsync(workflowDefinition);
+        
         _isDirty = false;
         StateHasChanged();
     }
@@ -138,7 +147,8 @@ public partial class WorkflowEditor
     {
         try
         {
-            WorkflowDefinition = await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+            var workflowDefinition = await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+            await SetWorkflowDefinitionAsync(workflowDefinition);
             return null;
         }
         catch (ValidationApiException e)
@@ -178,7 +188,7 @@ public partial class WorkflowEditor
             }
         });
     }
-    
+
     private async Task ProgressAsync(Func<Task> action)
     {
         _isProgressing = true;
@@ -187,7 +197,7 @@ public partial class WorkflowEditor
         _isProgressing = false;
         StateHasChanged();
     }
-    
+
     private async Task<T> ProgressAsync<T>(Func<Task<T>> action)
     {
         _isProgressing = true;
@@ -199,12 +209,25 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task OnActivitySelected(Activity activity)
+    private async Task SelectActivity(Activity activity)
     {
         SelectedActivity = activity;
         SelectedActivityId = activity.Id;
         ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
         StateHasChanged();
+    }
+    
+    private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
+    {
+        WorkflowDefinition = workflowDefinition;
+        
+        if(WorkflowDefinitionUpdated != null)
+            await WorkflowDefinitionUpdated();
+    }
+
+    private async Task OnActivitySelected(Activity activity)
+    {
+        await SelectActivity(activity);
     }
 
     private async Task OnSelectedActivityUpdated(Activity activity)
@@ -230,14 +253,14 @@ public partial class WorkflowEditor
     private async Task OnRetractClicked()
     {
         var problemDetails = await ProgressAsync(RetractAsync);
-        
-        if(problemDetails != null)
+
+        if (problemDetails != null)
         {
             var error = problemDetails.Errors.Values.First().First();
             Snackbar.Add(error, Severity.Error);
             return;
         }
-        
+
         Snackbar.Add("Workflow unpublished", Severity.Success);
     }
 
@@ -295,9 +318,12 @@ public partial class WorkflowEditor
             DefinitionId = WorkflowDefinition!.DefinitionId
         };
 
-        WorkflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
-        await _diagramDesigner!.LoadRootActivity(WorkflowDefinition.Root);
+        var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+        await _diagramDesigner!.LoadRootActivity(workflowDefinition.Root);
+        await SetWorkflowDefinitionAsync(workflowDefinition);
+        
         _isDirty = false;
+
         StateHasChanged();
     }
 }

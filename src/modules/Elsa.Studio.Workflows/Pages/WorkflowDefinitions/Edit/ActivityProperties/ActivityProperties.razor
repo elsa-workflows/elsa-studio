@@ -3,29 +3,50 @@
 @using Variant = MudBlazor.Variant
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    @if (ActivityDescriptor?.Inputs.Any() == true)
-    {
-        <MudTabPanel Text="Input">
+
+    <MudTabPanel Text="Input">
+        @if (ActivityDescriptor?.Inputs.Any() == true)
+        {
             <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
                 <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
             </div>
-        </MudTabPanel>
-    }
-    @if (ActivityDescriptor?.Outputs.Any() == true)
-    {
-        <MudTabPanel Text="Output">
+        }
+        else
+        {
+            <div class="pa-4">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any input properties.</MudAlert>
+            </div>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="Output">
+        @if (ActivityDescriptor?.Outputs.Any() == true)
+        {
             <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
                 <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
             </div>
-        </MudTabPanel>
-    }
-    @if (Activity != null && ActivityDescriptor != null)
-    {
-        <MudTabPanel Text="Common">
+        }
+        else
+        {
+            <div class="pa-4">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any output properties.</MudAlert>
+            </div>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="Common">
+        @if (Activity != null && ActivityDescriptor != null)
+        {
             <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
                 <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
             </div>
-        </MudTabPanel>
-    }
+        }
+        else
+        {
+            <div class="pa-4">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any common properties.</MudAlert>
+            </div>
+        }
+    </MudTabPanel>
 
 </MudTabs>

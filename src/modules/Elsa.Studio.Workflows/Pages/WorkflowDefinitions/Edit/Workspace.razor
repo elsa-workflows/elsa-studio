@@ -1,14 +1,33 @@
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
-<MudDynamicTabs @ref="@_dynamicTabs" @bind-ActivePanelIndex="@_tabIndex"
-                Style="height: 100%"
-                AddTab="@AddTabCallback" CloseTab="@CloseTabCallback"
-                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
-                Elevation="0" ApplyEffectsToContainer>
-    @foreach (var tab in _tabs)
-    {
-        <MudTabPanel ID="@tab.Id" Text="@tab.Label" ShowCloseIcon="@tab.ShowCloseIcon" Style="height: 100%">
-            @tab.ChildContent
-        </MudTabPanel>
-    }
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties
+@using Orientation = Radzen.Orientation
 
-</MudDynamicTabs>
+<RadzenSplitter Orientation="Orientation.Horizontal">
+    <RadzenSplitterPane Size="65%">
+
+        <MudDynamicTabs @ref="@_dynamicTabs"
+                        Style="height: 100%"
+                        AddTab="@AddTabCallback"
+                        CloseTab="@CloseTabCallback"
+                        bind-ActivePanelIndex="@ActiveTabIndex"
+                        AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                        Elevation="0"
+                        ApplyEffectsToContainer>
+            @foreach (var workflowDefinition in WorkflowDefinitions)
+            {
+                <MudTabPanel Text="@workflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
+                    <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="_workflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"></WorkflowEditor>
+                </MudTabPanel>
+            }
+
+        </MudDynamicTabs>
+
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="35%" Min="100px">
+        @if (SelectedWorkflowDefinition != null)
+        {
+            <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
+        }
+    </RadzenSplitterPane>
+
+</RadzenSplitter>
