@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()
             .AddUIHintHandler<VariablePickerHandler>()
+            .AddUIHintHandler<OutcomePickerHandler>()
             ;
     }
 }
