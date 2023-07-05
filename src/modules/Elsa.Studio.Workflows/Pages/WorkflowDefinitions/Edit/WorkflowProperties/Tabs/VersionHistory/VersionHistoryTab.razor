@@ -41,6 +41,7 @@
                     <MudTd style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                             <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context))">View</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Undo" OnClick="@(() => OnRollbackClicked(context))">Rollback to this version</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
                         </MudMenu>
                     </MudTd>

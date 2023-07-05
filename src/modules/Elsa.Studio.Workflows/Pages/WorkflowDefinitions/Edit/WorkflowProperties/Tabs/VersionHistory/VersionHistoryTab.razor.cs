@@ -71,4 +71,9 @@ public partial class VersionHistoryTab : IDisposable
     {
         return Task.CompletedTask;
     }
+
+    private Task OnRollbackClicked(WorkflowDefinitionSummary context)
+    {
+        return Task.CompletedTask;
+    }
 }
