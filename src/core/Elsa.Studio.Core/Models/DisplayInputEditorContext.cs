@@ -21,6 +21,7 @@ public class DisplayInputEditorContext
     public IUIHintHandler UIHintHandler { get; set; } = default!;
     public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
     public Func<object?, Task> OnValueChanged { get; set; } = default!;
+    public bool IsReadOnly { get; set; }
 
     public T? GetValueOrDefault<T>()
     {

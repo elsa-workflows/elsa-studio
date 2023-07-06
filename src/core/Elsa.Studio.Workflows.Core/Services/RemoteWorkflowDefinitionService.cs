@@ -30,7 +30,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     {
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
-            .GetAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+            .GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+    }
+
+    public async Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .GetByIdAsync(id, includeCompositeRoot, cancellationToken);
     }
 
     public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
@@ -55,7 +62,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             return false;
         }
     }
-    
+
     public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         return await _backendConnectionProvider
@@ -86,7 +93,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .BulkPublishAsync(request, cancellationToken);
-        
+
         return response;
     }
 
@@ -96,7 +103,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .BulkRetractAsync(request, cancellationToken);
-        
+
         return response;
     }
 
@@ -156,15 +163,15 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             .ExportAsync(definitionId, versionOptions, cancellationToken);
 
         var fileName = $"workflow-definition-{definitionId}.json";
-        
+
         if (response.Headers.TryGetValues("content-disposition", out var contentDispositionHeader)) // Only available if the Elsa Server exposes the "Content-Disposition" header.
         {
             var values = contentDispositionHeader?.ToList() ?? new List<string>();
-            
-            if(values.Count >= 2)
-                fileName = values[1].Split('=')[1];    
+
+            if (values.Count >= 2)
+                fileName = values[1].Split('=')[1];
         }
-        
+
         return new FileDownload(fileName, response.Content!);
     }
 

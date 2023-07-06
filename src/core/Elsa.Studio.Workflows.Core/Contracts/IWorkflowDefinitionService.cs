@@ -8,6 +8,7 @@ public interface IWorkflowDefinitionService
 {
     Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions versionOptions, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default);

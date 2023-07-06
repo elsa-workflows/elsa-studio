@@ -24,12 +24,13 @@ internal class DesignerJsInterop : JsInteropBase
     /// </summary>
     /// <param name="containerId">The ID of the container element.</param>
     /// <param name="componentRef">A reference to the <see cref="FlowchartDesigner"/> component.</param>
+    /// <param name="isReadOnly">Whether the graph is read-only.</param>
     /// <returns>The ID of the graph.</returns>
-    public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef)
+    public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef, bool isReadOnly = false)
     {
         return await InvokeAsync(async module =>
         {
-            await module.InvokeAsync<string>("createGraph", containerId, componentRef);
+            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
             return new X6GraphApi(module, _serviceProvider, containerId);
         });
         

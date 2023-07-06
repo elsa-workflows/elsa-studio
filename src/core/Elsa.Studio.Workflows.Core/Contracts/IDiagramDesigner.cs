@@ -8,6 +8,8 @@ namespace Elsa.Studio.Workflows.Contracts;
 /// </summary>
 public interface IDiagramDesigner
 {
+    bool IsInitialized { get; }
+    
     /// <summary>
     /// Loads the specified root activity int the designer.
     /// </summary>
@@ -32,4 +34,4 @@ public interface IDiagramDesigner
     RenderFragment DisplayDesigner(DisplayContext context);
 }
 
-public record DisplayContext(Activity Activity, Func<Activity, Task> ActivitySelectedCallback, Func<Task> GraphUpdatedCallback);
+public record DisplayContext(Activity Activity, Func<Activity, Task>? ActivitySelectedCallback = default, Func<Task>? GraphUpdatedCallback = default, bool IsReadOnly = false);

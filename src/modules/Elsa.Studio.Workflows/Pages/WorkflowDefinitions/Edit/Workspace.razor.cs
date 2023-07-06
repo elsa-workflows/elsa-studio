@@ -1,20 +1,34 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Workflows.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
-public partial class Workspace
+public partial class Workspace : IWorkspace
 {
-    private readonly IDictionary<string, WorkflowEditor> _workflowEditors = new Dictionary<string, WorkflowEditor>();
     private MudDynamicTabs _dynamicTabs = default!;
 
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
+    [Parameter] public WorkflowDefinition? SelectedWorkflowDefinitionVersion { get; set; }
     public event Func<Task>? WorkflowDefinitionUpdated;
-    
+
     private int ActiveTabIndex { get; } = 0;
+    private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
     private WorkflowDefinition? SelectedWorkflowDefinition => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowDefinitions.Count ? WorkflowDefinitions.ElementAtOrDefault(ActiveTabIndex) : default;
 
+    public void DisplayWorkflowDefinitionVersion(WorkflowDefinition workflowDefinition)
+    {
+        SelectedWorkflowDefinitionVersion = workflowDefinition;
+        StateHasChanged();
+    }
+
+    public void ResumeEditing()
+    {
+        SelectedWorkflowDefinitionVersion = default;
+        StateHasChanged();
+    }
+    
     private Task AddTabCallback()
     {
         return Task.CompletedTask;
@@ -27,17 +41,17 @@ public partial class Workspace
 
     private async Task OnWorkflowDefinitionPropsUpdated()
     {
-        var workflowEditor = _workflowEditors[SelectedWorkflowDefinition!.DefinitionId];
+        var workflowEditor = WorkflowEditors[SelectedWorkflowDefinition!.DefinitionId];
         await workflowEditor.NotifyWorkflowChangedAsync();
     }
-    
+
     private async Task OnWorkflowDefinitionUpdated()
     {
         var definitionId = SelectedWorkflowDefinition!.DefinitionId;
-        var workflowEditor = _workflowEditors[definitionId];
+        var workflowEditor = WorkflowEditors[definitionId];
         WorkflowDefinitions[ActiveTabIndex] = workflowEditor.WorkflowDefinition!;
         StateHasChanged();
-        
+
         if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
     }

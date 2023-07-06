@@ -8,7 +8,7 @@ import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 
-export async function createGraph(containerId: string, componentRef: DotNetComponentRef): Promise<string> {
+export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
 
@@ -38,6 +38,18 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             modifiers: ['ctrl', 'meta'],
             minScale: 0.5,
             maxScale: 3,
+        },
+        interacting: {
+            nodeMovable: () => !readOnly,
+            arrowheadMovable: () => !readOnly,
+            edgeMovable: () => !readOnly,
+            vertexMovable: () => !readOnly,
+            vertexAddable: () => !readOnly,
+            vertexDeletable: () => !readOnly,
+            edgeLabelMovable: () => !readOnly,
+            magnetConnectable: () => !readOnly,
+            toolsAddable: () => !readOnly,
+            useEdgeTools: () => !readOnly,
         },
         connecting: {
             router: 'manhattan',
@@ -91,36 +103,66 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     graph.use(
         new Selection({
             enabled: true,
-            multiple: true,
+            multiple: !readOnly,
             rubberEdge: false,
             rubberNode: true,
             rubberband: true,
-            movable: true,
+            movable: !readOnly,
             showNodeSelectionBox: true
         }),
     );
+    
+    if(!readOnly) {
+        
 
-    graph.use(
-        new Keyboard({
-            enabled: true
-        })
-    );
+        graph.use(
+            new Keyboard({
+                enabled: true
+            })
+        );
 
-    graph.use(
-        new Clipboard({
-            enabled: true,
-        }),
-    )
-
-    // We could enable this, but then we also need to update the Blazor activity component to support resizing.
-    graph.use(
-        new Transform({
-            resizing: {
+        graph.use(
+            new Clipboard({
                 enabled: true,
+            }),
+        )
 
+        graph.use(
+            new Transform({
+                resizing: {
+                    enabled: true,
+
+                }
+            })
+        );
+
+        // Delete node when pressing delete key on keyboard.
+        graph.bindKey('del', () => {
+            const cells = graph.getSelectedCells()
+            if (cells.length) {
+                graph.removeCells(cells)
             }
-        })
-    );
+        });
+
+        // Copy the cells in the graph to the internal clipboard with Ctrl+C.
+        graph.bindKey(['ctrl+c', 'meta+c'], () => {
+            const cells = graph.getSelectedCells()
+            if (cells.length) {
+                graph.copy(cells)
+            }
+            return false
+        });
+
+        // Paste the cells in the clipboard onto the graph.
+        graph.bindKey(['ctrl+v', 'meta+v'], () => {
+            if (!graph.isClipboardEmpty()) {
+                const cells = graph.paste({offset: 32})
+                graph.cleanSelection()
+                graph.select(cells)
+            }
+            return false
+        });
+    }
 
     graph.on('blank:click', async () => await interop.raiseCanvasSelected());
 
@@ -153,38 +195,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             cell.removeTool("button-remove");
         }
     });
-    
+
     graph.on('node:selected', async e => {
         const node = e.node;
         const activity: Activity = node.data;
         await interop.raiseActivitySelected(activity);
-    });
-
-    // Delete node when pressing delete key on keyboard.
-    graph.bindKey('del', () => {
-        const cells = graph.getSelectedCells()
-        if (cells.length) {
-            graph.removeCells(cells)
-        }
-    });
-
-    // Copy the cells in the graph to the internal clipboard with Ctrl+C.
-    graph.bindKey(['ctrl+c', 'meta+c'], () => {
-        const cells = graph.getSelectedCells()
-        if (cells.length) {
-            graph.copy(cells)
-        }
-        return false
-    });
-
-    // Paste the cells in the clipboard onto the graph.
-    graph.bindKey(['ctrl+v', 'meta+v'], () => {
-        if (!graph.isClipboardEmpty()) {
-            const cells = graph.paste({offset: 32})
-            graph.cleanSelection()
-            graph.select(cells)
-        }
-        return false
     });
 
     const onGraphUpdated = async (e: any) => {
@@ -214,7 +229,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
     // Register the graph.
     const graphId = containerId;
-    
+
     graphBindings[graphId] = {
         graphId: graphId,
         graph: graph,

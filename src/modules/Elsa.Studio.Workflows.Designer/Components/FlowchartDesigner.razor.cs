@@ -29,6 +29,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     };
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
     [Parameter] public Func<Task>? OnCanvasSelected { get; set; }
     [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
@@ -130,7 +131,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         if (firstRender)
         {
             _componentRef = DotNetObjectReference.Create(this);
-            _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef);
+            _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
 
             await LoadFlowchartAsync(Flowchart);
         }

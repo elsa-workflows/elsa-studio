@@ -47,7 +47,6 @@ public partial class WorkflowEditor
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
     private Activity? SelectedActivity { get; set; }

@@ -9,6 +9,8 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
+    
+    public bool IsInitialized => _designerWrapper != null;
 
     public async Task LoadRootActivity(Activity activity)
     {
@@ -34,6 +36,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         {
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.IsReadOnly), context.IsReadOnly);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnActivitySelected), context.ActivitySelectedCallback);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnGraphUpdated), context.GraphUpdatedCallback);
             builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (FlowchartDesignerWrapper)@ref);

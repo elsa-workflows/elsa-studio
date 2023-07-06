@@ -13,11 +13,12 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 public partial class FlowchartDesignerWrapper
 {
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
     [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
-    internal FlowchartDesigner Designer { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    internal FlowchartDesigner Designer { get; set; } = default!;
 
     public async Task LoadFlowchartAsync(Flowchart flowchart)
     {
@@ -27,6 +28,9 @@ public partial class FlowchartDesignerWrapper
     
     public async Task UpdateActivityAsync(string id, Activity activity)
     {
+        if (IsReadOnly)
+            throw new InvalidOperationException("Cannot update activity because the designer is read-only.");
+        
         if (activity != Flowchart)
             await Designer.UpdateActivityAsync(id, activity);
     }

@@ -13,4 +13,5 @@ public partial class ActivityProperties
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
     [Parameter] public int VisiblePaneHeight { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 }

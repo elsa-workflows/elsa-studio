@@ -46,25 +46,39 @@ public partial class VersionHistoryTab : IDisposable
             TotalItems = response.TotalCount
         };
     }
+    
+    private async Task ViewVersion(WorkflowDefinitionSummary workflowDefinitionSummary)
+    {
+        var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
+
+        if (workflowDefinition.IsLatest)
+        {
+            Workspace.ResumeEditing();
+        }
+        else
+        {
+            Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
+        }
+    }
 
     private async Task OnWorkflowDefinitionUpdated()
     {
         await Table.ReloadServerData();
     }
 
-    private Task OnViewClicked(WorkflowDefinitionSummary workflowDefinition)
+    private async Task OnViewClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
+    {
+        await ViewVersion(workflowDefinitionSummary);
+    }
+
+    private Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         return Task.CompletedTask;
     }
 
-    private Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinition)
+    private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)
     {
-        return Task.CompletedTask;
-    }
-
-    private Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)
-    {
-        return Task.CompletedTask;
+        await ViewVersion(arg.Item);
     }
 
     private Task OnBulkDeleteClicked()

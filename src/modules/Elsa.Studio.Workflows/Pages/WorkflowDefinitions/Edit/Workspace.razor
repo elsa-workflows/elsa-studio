@@ -17,7 +17,15 @@
                 @foreach (var workflowDefinition in WorkflowDefinitions)
                 {
                     <MudTabPanel Text="@workflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
-                        <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="_workflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"></WorkflowEditor>
+                        @if (SelectedWorkflowDefinitionVersion == null || SelectedWorkflowDefinitionVersion.DefinitionId != workflowDefinition.DefinitionId)
+                        {
+                            <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="WorkflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+                        }
+                        else
+                        {
+                            <WorkflowViewer WorkflowDefinition="SelectedWorkflowDefinitionVersion" />
+                        }
+                        
                     </MudTabPanel>
                 }
 
@@ -25,9 +33,13 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            @if (SelectedWorkflowDefinition != null)
+            @{
+                var workflowDefinition = SelectedWorkflowDefinitionVersion ?? SelectedWorkflowDefinition;
+                var isReadOnly = SelectedWorkflowDefinitionVersion != null;
+            }
+            @if (workflowDefinition != null)
             {
-                <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
+                <WorkflowProperties WorkflowDefinition="@workflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated" IsReadOnly="isReadOnly"/>
             }
         </RadzenSplitterPane>
 

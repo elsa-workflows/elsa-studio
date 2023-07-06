@@ -8,6 +8,8 @@ public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private Activity _activity = default!;
 
+    public bool IsInitialized => true;
+
     public Task LoadRootActivity(Activity activity)
     {
         _activity = activity;

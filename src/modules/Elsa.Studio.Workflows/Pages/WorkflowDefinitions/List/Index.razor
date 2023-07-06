@@ -8,15 +8,16 @@
     <PageHeading Text="Workflow definitions"/>
 
     <MudTable
+        @ref="_table"
+        T="WorkflowDefinitionRow"
         ServerData="ServerReload"
-        Dense="@true" 
-        Hover="@true" 
-        @ref="_table" 
-        Elevation="0" 
-        T="WorkflowDefinitionRow" 
+        Dense="true" 
+        Hover="true"
+        Elevation="0"
         OnRowClick="@OnRowClick" 
         RowStyle="cursor: pointer;"
-        MultiSelection="@true" 
+        MultiSelection="true" 
+        SelectOnRowClick="false"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
