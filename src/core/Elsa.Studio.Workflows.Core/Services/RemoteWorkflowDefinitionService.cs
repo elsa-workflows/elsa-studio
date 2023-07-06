@@ -142,6 +142,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 Name = name,
                 Description = description,
                 Version = 1,
+                ToolVersion = ToolVersion.Version,
                 IsLatest = true,
                 IsPublished = false,
                 Root = new Activity

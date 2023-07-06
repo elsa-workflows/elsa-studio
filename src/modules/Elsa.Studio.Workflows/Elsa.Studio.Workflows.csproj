@@ -25,4 +25,8 @@
       <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\InputOutputTab.razor" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="ShortGuid" Version="2.0.1" />
+    </ItemGroup>
+
 </Project>

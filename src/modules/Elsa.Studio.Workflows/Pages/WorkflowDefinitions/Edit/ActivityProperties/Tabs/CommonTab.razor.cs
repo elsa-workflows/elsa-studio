@@ -27,6 +27,12 @@ public partial class CommonTab
         if (OnActivityUpdated != null)
             await OnActivityUpdated(Activity!);
     }
+    
+    private async Task OnActivityNameChanged(string value)
+    {
+        Activity!.Name = value;
+        await RaiseActivityUpdated();
+    }
 
     private async Task OnActivityDisplayTextChanged(string value)
     {

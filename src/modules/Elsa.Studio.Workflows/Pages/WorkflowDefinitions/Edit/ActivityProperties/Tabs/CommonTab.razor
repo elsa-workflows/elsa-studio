@@ -5,13 +5,21 @@
     {
         <MudForm ReadOnly="IsReadOnly">
             <MudStack Spacing="5">
-                <MudTextField
+                <MudField
                     T="string"
                     Label="ID"
                     HelperText="The ID of the activity."
-                    Value="@Activity.Id"
+                    Variant="Variant.Outlined">
+                    <MudText Typo="Typo.body1">@Activity.Id</MudText>
+                </MudField>
+                
+                <MudTextField
+                    T="string"
+                    Label="Name"
+                    HelperText="The name of the activity. Named activities can be referenced by other activities."
+                    Value="@Activity.Name"
                     Variant="Variant.Outlined"
-                    ReadOnly="true"/>
+                    ValueChanged="OnActivityNameChanged"/>
 
                 <MudTextField
                     T="string"

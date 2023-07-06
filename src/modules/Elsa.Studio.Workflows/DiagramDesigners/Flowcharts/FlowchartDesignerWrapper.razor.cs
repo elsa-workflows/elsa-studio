@@ -1,3 +1,4 @@
+using DEDrake;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
@@ -43,9 +44,9 @@ public partial class FlowchartDesignerWrapper
         return count + 1;
     }
 
-    private bool GetIdExists(string id) => Flowchart.Activities.Any(x => x.Id == id);
+    private bool GetNameExists(string name) => Flowchart.Activities.Any(x => x.Id == name);
 
-    private string GenerateNextId(ActivityDescriptor activityDescriptor)
+    private string GenerateNextName(ActivityDescriptor activityDescriptor)
     {
         var max = 100;
         var count = 0;
@@ -53,11 +54,11 @@ public partial class FlowchartDesignerWrapper
         while (count++ < max)
         {
             var nextId = $"{activityDescriptor.Name}{GetNextNumber(activityDescriptor)}";
-            if (!GetIdExists(nextId))
+            if (!GetNameExists(nextId))
                 return nextId;
         }
 
-        throw new Exception("Could not generate a unique ID.");
+        throw new Exception("Could not generate a unique name.");
     }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
@@ -65,7 +66,8 @@ public partial class FlowchartDesignerWrapper
         var newActivityType = ActivityTypeService.ResolveType(activityDescriptor.TypeName);
         var newActivity = (Activity)Activator.CreateInstance(newActivityType)!;
 
-        newActivity.Id = GenerateNextId(activityDescriptor);
+        newActivity.Id = ShortGuid.NewGuid().ToString();
+        newActivity.Name = GenerateNextName(activityDescriptor);
         newActivity.Type = activityDescriptor.TypeName;
         newActivity.Version = activityDescriptor.Version;
 
