@@ -96,7 +96,8 @@ public partial class ExpressionInput : IDisposable
             OverviewRulerBorder = false,
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
-            GlyphMargin = false
+            GlyphMargin = false,
+            DomReadOnly = EditorContext.IsReadOnly
         };
     }
 

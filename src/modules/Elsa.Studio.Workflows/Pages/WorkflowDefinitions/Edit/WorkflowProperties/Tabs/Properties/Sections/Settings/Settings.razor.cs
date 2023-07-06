@@ -9,8 +9,10 @@ public partial class Settings
 {
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = default!;
 
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
     private ICollection<WorkflowActivationStrategyDescriptor> _activationStrategies = new List<WorkflowActivationStrategyDescriptor>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     

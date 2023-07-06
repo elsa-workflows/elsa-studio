@@ -20,10 +20,12 @@ public partial class OutputsTab
     [Parameter] public Activity Activity { get; set; } = default!;
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
 
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
+    private bool IsReadOnly => Workspace?.IsReadOnly == true;
 
     protected override bool ShouldRender() => WorkflowDefinition != null! && Activity != null! && ActivityDescriptor != null!;
 

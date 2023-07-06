@@ -11,5 +11,8 @@ public partial class InputOutputTab
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
+    
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? true;
     
 }

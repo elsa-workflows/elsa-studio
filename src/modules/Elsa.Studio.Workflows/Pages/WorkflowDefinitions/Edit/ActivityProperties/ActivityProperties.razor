@@ -8,7 +8,7 @@
         @if (ActivityDescriptor?.Inputs.Any() == true)
         {
             <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-                <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" IsReadOnly="IsReadOnly"/>
+                <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
             </div>
         }
         else

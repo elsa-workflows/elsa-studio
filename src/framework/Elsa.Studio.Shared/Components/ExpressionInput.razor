@@ -16,7 +16,7 @@
         {
             @ChildContent
         }
-
+        
     </div>
     @if (EditorContext.InputDescriptor.IsWrapped)
     {
@@ -31,4 +31,6 @@
             </MudMenu>
         </div>
     }
+
+    <MudOverlay Visible="EditorContext.IsReadOnly" Absolute="true"/>
 </div>

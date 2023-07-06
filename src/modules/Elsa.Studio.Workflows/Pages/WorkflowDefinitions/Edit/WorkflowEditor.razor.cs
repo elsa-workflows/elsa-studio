@@ -270,7 +270,7 @@ public partial class WorkflowEditor
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _activityPropertiesPaneHeight = (int)visibleHeight;
+        _activityPropertiesPaneHeight = (int)visibleHeight - 60;
     }
 
     private async Task OnAutoSaveChanged(bool? value)

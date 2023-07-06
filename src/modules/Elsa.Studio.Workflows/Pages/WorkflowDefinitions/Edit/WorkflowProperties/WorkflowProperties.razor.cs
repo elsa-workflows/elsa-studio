@@ -7,5 +7,4 @@ public partial class WorkflowProperties
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
-    [Parameter] public bool IsReadOnly { get; set; }
 }

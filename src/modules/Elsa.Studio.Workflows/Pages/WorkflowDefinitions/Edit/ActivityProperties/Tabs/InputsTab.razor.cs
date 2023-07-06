@@ -19,7 +19,7 @@ public partial class InputsTab
     [Parameter] public Activity? Activity { get; set; }
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
     [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
-    [Parameter] public bool IsReadOnly { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
@@ -59,7 +59,7 @@ public partial class InputsTab
                 Value = input,
                 SelectedSyntaxProvider = syntaxProvider,
                 UIHintHandler = uiHintHandler,
-                IsReadOnly = IsReadOnly
+                IsReadOnly = Workspace?.IsReadOnly ?? false
             };
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);

@@ -4,7 +4,7 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties.Tabs.Outputs.Models
 
 <div class="pa-4">
-    <MudForm>
+    <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
             @foreach (var outputDescriptor in OutputDescriptors)
             {
@@ -43,4 +43,6 @@
             }
         </MudStack>
     </MudForm>
+    
+    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>

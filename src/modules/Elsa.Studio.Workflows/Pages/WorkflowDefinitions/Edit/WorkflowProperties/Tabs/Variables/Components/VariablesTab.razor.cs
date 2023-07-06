@@ -14,9 +14,11 @@ public partial class VariablesTab
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
 
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? true;
     private ICollection<Variable> Variables => WorkflowDefinition.Variables;
 
     protected override async Task OnInitializedAsync()

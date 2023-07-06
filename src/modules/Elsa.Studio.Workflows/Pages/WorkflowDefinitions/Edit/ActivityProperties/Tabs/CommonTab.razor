@@ -3,7 +3,7 @@
 <div class="pa-4">
     @if (Activity != null && ActivityDescriptor != null)
     {
-        <MudForm>
+        <MudForm ReadOnly="IsReadOnly">
             <MudStack Spacing="5">
                 <MudTextField
                     T="string"
@@ -67,4 +67,6 @@
             </MudStack>
         </MudForm>
     }
+    
+    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>

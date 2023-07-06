@@ -12,6 +12,7 @@ public partial class Workspace : IWorkspace
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
     [Parameter] public WorkflowDefinition? SelectedWorkflowDefinitionVersion { get; set; }
     public event Func<Task>? WorkflowDefinitionUpdated;
+    public bool IsReadOnly => SelectedWorkflowDefinitionVersion?.IsLatest == false;
 
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();

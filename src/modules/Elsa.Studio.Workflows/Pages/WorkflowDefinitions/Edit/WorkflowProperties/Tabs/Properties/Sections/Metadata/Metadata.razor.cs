@@ -1,5 +1,6 @@
 using Blazored.FluentValidation;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
@@ -16,6 +17,9 @@ public partial class Metadata
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [CascadingParameter] public IWorkspace? Workspace { get; set; }
+    
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
 
     protected override void OnParametersSet()
     {
