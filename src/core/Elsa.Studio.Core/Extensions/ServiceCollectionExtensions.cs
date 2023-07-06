@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IModuleService, DefaultModuleService>()
             .AddSingleton<IUIHintService, DefaultUIHintService>()
             .AddSingleton<ISyntaxService, DefaultSyntaxService>()
+            .AddSingleton<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
             ;
 
         // Syntax providers.

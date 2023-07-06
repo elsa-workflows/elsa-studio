@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Extensions;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Refit;
 
@@ -13,10 +14,12 @@ namespace Elsa.Studio.Workflows.Services;
 public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
+    private readonly IActivityIdGenerator _activityIdGenerator;
 
-    public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider)
+    public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider, IActivityIdGenerator activityIdGenerator)
     {
         _backendConnectionProvider = backendConnectionProvider;
+        _activityIdGenerator = activityIdGenerator;
     }
 
     public async Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions versionOptions, CancellationToken cancellationToken = default)
@@ -147,8 +150,9 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 IsPublished = false,
                 Root = new Activity
                 {
+                    Id = _activityIdGenerator.GenerateId(),
                     Type = "Elsa.Flowchart",
-                    Id = "Flowchart1",
+                    Name = "Flowchart1",
                     Version = 1
                 }
             }

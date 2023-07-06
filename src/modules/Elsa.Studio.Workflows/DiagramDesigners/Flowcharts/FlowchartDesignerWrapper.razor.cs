@@ -4,6 +4,7 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
@@ -19,6 +20,7 @@ public partial class FlowchartDesignerWrapper
     [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
     internal FlowchartDesigner Designer { get; set; } = default!;
 
     public async Task LoadFlowchartAsync(Flowchart flowchart)
@@ -66,7 +68,7 @@ public partial class FlowchartDesignerWrapper
         var newActivityType = ActivityTypeService.ResolveType(activityDescriptor.TypeName);
         var newActivity = (Activity)Activator.CreateInstance(newActivityType)!;
 
-        newActivity.Id = ShortGuid.NewGuid().ToString();
+        newActivity.Id = ActivityIdGenerator.GenerateId();
         newActivity.Name = GenerateNextName(activityDescriptor);
         newActivity.Type = activityDescriptor.TypeName;
         newActivity.Version = activityDescriptor.Version;
@@ -81,6 +83,8 @@ public partial class FlowchartDesignerWrapper
             newActivity.SetCanStartWorkflow(true);
 
         await Designer.AddActivityAsync(newActivity);
+        
+        OnActivitySelected?.Invoke(newActivity);
     }
 
     private void OnDragOver(DragEventArgs e)
