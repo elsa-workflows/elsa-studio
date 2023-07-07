@@ -1,13 +1,10 @@
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models;
-using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -24,6 +21,21 @@ public partial class Index
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    
+    private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+    private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkflowDefinitionsAsync();
+    }
+
+    private async Task LoadWorkflowDefinitionsAsync()
+    {
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.Published);
+
+        WorkflowDefinitions = workflowDefinitionsResponse.Items;
+    }
 
     private async Task<TableData<WorkflowInstanceRow>> ServerReload(TableState state)
     {
@@ -31,6 +43,7 @@ public partial class Index
         {
             Page = state.Page,
             PageSize = state.PageSize,
+            DefinitionIds = SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList(), 
         };
 
         var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request);
@@ -101,5 +114,11 @@ public partial class Index
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
         await WorkflowInstanceService.BulkDeleteAsync(workflowInstanceIds);
         Reload();
+    }
+
+    private async Task OnSelectedWorkflowDefinitionsChanged(IEnumerable<WorkflowDefinitionSummary> values)
+    {
+        SelectedWorkflowDefinitions = values.ToList();
+        await _table.ReloadServerData();
     }
 }

@@ -1,6 +1,6 @@
 @page "/workflows/instances"
 @using System.Globalization
-@using Elsa.Api.Client.Resources.WorkflowInstances.Enums
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models
 @using Variant = MudBlazor.Variant
 
@@ -27,6 +27,13 @@
                 <MudMenuItem>Cancel</MudMenuItem>
                 <MudMenuItem>Retry</MudMenuItem>
             </MudMenu>
+            <MudSpacer/>
+            <MudSelect T="WorkflowDefinitionSummary" Label="Workflow" SelectedValues="SelectedWorkflowDefinitions" MultiSelection="true" ToStringFunc="@(definition => definition.Name)" SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged">
+                @foreach (var workflowDefinition in WorkflowDefinitions)
+                {
+                    <MudSelectItem Value="@workflowDefinition">@workflowDefinition.Name</MudSelectItem>
+                }
+            </MudSelect>
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
@@ -56,9 +63,6 @@
             <MudTh>
                 <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
             </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="FaultedAt" T="WorkflowInstanceRow">Faulted</MudTableSortLabel>
-            </MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -78,7 +82,6 @@
             <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="LastExecutedAt">@context.LastExecutedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="FaultedAt">@context.FaultedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
