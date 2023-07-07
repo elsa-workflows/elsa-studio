@@ -21,9 +21,11 @@ public partial class Index
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    
+
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+    public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
+    public ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,13 +39,17 @@ public partial class Index
         WorkflowDefinitions = workflowDefinitionsResponse.Items;
     }
 
-    private async Task<TableData<WorkflowInstanceRow>> ServerReload(TableState state)
+    private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state)
     {
         var request = new ListWorkflowInstancesRequest
         {
             Page = state.Page,
             PageSize = state.PageSize,
-            DefinitionIds = SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList(), 
+            DefinitionIds = SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList(),
+            Statuses = SelectedStatuses,
+            SubStatuses = SelectedSubStatuses,
+            OrderBy = GetOrderBy(state.SortLabel),
+            OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending
         };
 
         var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request);
@@ -72,7 +78,19 @@ public partial class Index
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }
-    
+
+    private OrderByWorkflowInstance? GetOrderBy(string sortLabel)
+    {
+        return sortLabel switch
+        {
+            "Name" => OrderByWorkflowInstance.Name,
+            "Finished" => OrderByWorkflowInstance.Finished,
+            "Created" => OrderByWorkflowInstance.Created,
+            "LastExecuted" => OrderByWorkflowInstance.LastExecuted,
+            _ => null
+        };
+    }
+
     private void View(string instanceId) => NavigationManager.NavigateTo($"/workflows/instances/{instanceId}/view");
     private void Reload() => _table.ReloadServerData();
 
@@ -103,7 +121,7 @@ public partial class Index
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
-    
+
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflow instances?", "Are you sure you want to delete the selected workflow instances?", yesText: "Delete", cancelText: "Cancel");
@@ -119,6 +137,18 @@ public partial class Index
     private async Task OnSelectedWorkflowDefinitionsChanged(IEnumerable<WorkflowDefinitionSummary> values)
     {
         SelectedWorkflowDefinitions = values.ToList();
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnSelectedStatusesChanged(IEnumerable<WorkflowStatus> values)
+    {
+        SelectedStatuses = values.ToList();
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnSelectedSubStatusesChanged(IEnumerable<WorkflowSubStatus> values)
+    {
+        SelectedSubStatuses = values.ToList();
         await _table.ReloadServerData();
     }
 }
