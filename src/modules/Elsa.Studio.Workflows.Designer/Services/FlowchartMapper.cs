@@ -1,11 +1,9 @@
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
-using Elsa.Studio.Workflows.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 

@@ -1,7 +1,9 @@
-using Elsa.Studio.Workflows.ActivityDisplaySettingsProviders;
-using Elsa.Studio.Workflows.Contracts;
-using Elsa.Studio.Workflows.PortProviders;
-using Elsa.Studio.Workflows.Services;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Providers;
+using Elsa.Studio.Workflows.Domain.Services;
+using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Providers;
+using Elsa.Studio.Workflows.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
@@ -12,6 +14,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
+            .AddSingleton<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
             .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
             .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()

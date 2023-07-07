@@ -2,12 +2,12 @@ using System.Text.Json;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 

@@ -17,5 +17,9 @@
       <ProjectReference Include="..\Elsa.Studio.Backend.Core\Elsa.Studio.Backend.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Domain\Models\" />
+    </ItemGroup>
 
 </Project>

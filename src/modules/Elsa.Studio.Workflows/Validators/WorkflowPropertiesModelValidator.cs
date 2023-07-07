@@ -1,4 +1,4 @@
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using FluentValidation;
 

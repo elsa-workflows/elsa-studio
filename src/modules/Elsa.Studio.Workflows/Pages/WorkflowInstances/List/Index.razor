@@ -1,0 +1,99 @@
+@page "/workflows/instances"
+@using System.Globalization
+@using Elsa.Api.Client.Resources.WorkflowInstances.Enums
+@using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models
+@using Variant = MudBlazor.Variant
+
+<PageTitle>Workflow instances</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="Workflow instances"/>
+
+    <MudTable
+        @ref="_table"
+        T="WorkflowInstanceRow"
+        ServerData="ServerReload"
+        Dense="true"
+        Hover="true"
+        Elevation="0"
+        OnRowClick="@OnRowClick"
+        RowStyle="cursor: pointer;"
+        MultiSelection="true"
+        SelectOnRowClick="false"
+        @bind-SelectedItems="_selectedRows">
+        <ToolBarContent>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
+                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem>Cancel</MudMenuItem>
+                <MudMenuItem>Retry</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortLabel="ID" T="WorkflowInstanceRow">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="CorrelationId" T="WorkflowInstanceRow">Correlation ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Workflow" T="WorkflowInstanceRow">Workflow</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Version" T="WorkflowInstanceRow">Version</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">Status</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow">Created</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="LastExecutedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="FaultedAt" T="WorkflowInstanceRow">Faulted</MudTableSortLabel>
+            </MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.WorkflowInstanceId</MudTd>
+            <MudTd DataLabel="Correlation ID">@context.CorrelationId</MudTd>
+            <MudTd DataLabel="Workflow">@context.WorkflowDefinition.Name</MudTd>
+            <MudTd DataLabel="Version">@context.Version</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="SubStatus">
+                @{
+                    var color = GetSubStatusColor(context.SubStatus);
+                }
+                <MudChip Color="@color" Variant="Variant.Text">
+                    @context.SubStatus
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="LastExecutedAt">@context.LastExecutedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="FaultedAt">@context.FaultedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="" Style="text-align:right">
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                </MudMenu>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No workflow instances found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudContainer>

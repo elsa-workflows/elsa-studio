@@ -1,5 +1,5 @@
 using System.Reflection;
-using Elsa.Api.Client.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHintHandlers.Helpers;
 using Microsoft.AspNetCore.Components;

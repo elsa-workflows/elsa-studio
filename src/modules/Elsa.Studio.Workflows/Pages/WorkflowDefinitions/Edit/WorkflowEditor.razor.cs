@@ -3,13 +3,15 @@ using System.Text.Json.Serialization;
 using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
-using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -312,10 +314,7 @@ public partial class WorkflowEditor
 
         // Overwrite the definition ID with the one currently loaded.
         // This will ensure that the imported definition will be saved as a new version of the current definition. 
-        model = model with
-        {
-            DefinitionId = WorkflowDefinition!.DefinitionId
-        };
+        model.DefinitionId = WorkflowDefinition!.DefinitionId;
 
         var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
         await _diagramDesigner!.LoadRootActivity(workflowDefinition.Root);

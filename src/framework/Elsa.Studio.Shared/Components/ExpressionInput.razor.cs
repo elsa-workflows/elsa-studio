@@ -1,6 +1,6 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Expressions;
-using Elsa.Api.Client.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;

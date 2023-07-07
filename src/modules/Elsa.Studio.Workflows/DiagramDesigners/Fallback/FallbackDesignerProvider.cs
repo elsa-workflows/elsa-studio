@@ -1,5 +1,5 @@
 using Elsa.Api.Client.Activities;
-using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 

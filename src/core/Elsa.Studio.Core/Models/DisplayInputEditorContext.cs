@@ -4,9 +4,9 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Models;

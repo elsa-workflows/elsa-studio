@@ -1,10 +1,11 @@
 using System.Text.Json;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Models;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.PortProviders;
+using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Workflows.Domain.Contexts;
+using Elsa.Studio.Workflows.Domain.Providers;
 
 namespace Elsa.Studio.ActivityPortProviders.Providers;
 

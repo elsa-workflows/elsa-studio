@@ -1,7 +1,7 @@
 using Blazored.FluentValidation;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
