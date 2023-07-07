@@ -19,7 +19,7 @@
                     }
                     <MudSpacer></MudSpacer>
                     <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="OnAutoSaveChanged"/>
-                    <MudTooltip Text="Save">
+                    <MudTooltip Text="Save" Delay="1000">
                         <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                             <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
                         </MudBadge>
@@ -29,21 +29,21 @@
                         <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected"/>
                     </div>
 
-                    <MudTooltip Text="Publish the current workflow.">
+                    <MudTooltip Text="Publish the current workflow." Delay="1000">
                         <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
                             <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
                             <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
                                 @if (WorkflowDefinition?.IsPublished == true)
                                 {
-                                    <MudTooltip Text="Unpublish the current workflow." Inline="false">
+                                    <MudTooltip Text="Unpublish the current workflow." Inline="false" Delay="1000">
                                         <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="OnRetractClicked">Unpublish</MudMenuItem>
                                     </MudTooltip>
                                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                                 }
-                                <MudTooltip Text="Download the current workflow as a JSON file." Inline="false">
+                                <MudTooltip Text="Download the current workflow as a JSON file." Inline="false" Delay="1000">
                                     <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudMenuItem>
                                 </MudTooltip>
-                                <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false">
+                                <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false" Delay="1000">
                                     <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="OnUploadClicked">Upload</MudMenuItem>
                                 </MudTooltip>
                             </MudMenu>
