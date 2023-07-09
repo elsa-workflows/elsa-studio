@@ -2,25 +2,25 @@ using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
+namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
-public partial class WorkflowViewer
+public partial class Viewer
 {
     private IDiagramDesigner? _diagramDesigner;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
-    
-    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+
+    [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -28,10 +28,11 @@ public partial class WorkflowViewer
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
+    private WorkflowDefinition? WorkflowDefinition { get; set; }
     private Activity? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
-    private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
+    private Pages.WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
     public RadzenSplitterPane ActivityPropertiesPane
     {
@@ -47,6 +48,8 @@ public partial class WorkflowViewer
     
     protected override async Task OnInitializedAsync()
     {
+        WorkflowDefinition = await WorkflowDefinitionService.FindByIdAsync(WorkflowInstance.DefinitionVersionId);
+        
         if (WorkflowDefinition?.Root == null)
             return;
     

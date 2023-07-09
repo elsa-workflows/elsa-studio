@@ -41,27 +41,26 @@ public partial class FlowchartDesignerWrapper
 
     public async Task<Activity> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
 
-    private int GetNextNumber(ActivityDescriptor activityDescriptor)
-    {
-        var count = Flowchart.Activities.Count(x => x.Type == activityDescriptor.TypeName);
-        return count + 1;
-    }
-
     private bool GetNameExists(string name) => Flowchart.Activities.Any(x => x.Id == name);
 
     private string GenerateNextName(ActivityDescriptor activityDescriptor)
     {
         var max = 100;
-        var count = 0;
+        var count = GetNextNumber(activityDescriptor);
 
         while (count++ < max)
         {
-            var nextId = $"{activityDescriptor.Name}{GetNextNumber(activityDescriptor)}";
+            var nextId = $"{activityDescriptor.Name}{count}";
             if (!GetNameExists(nextId))
                 return nextId;
         }
 
         throw new Exception("Could not generate a unique name.");
+    }
+    
+    private int GetNextNumber(ActivityDescriptor activityDescriptor)
+    {
+        return Flowchart.Activities.Count(x => x.Type == activityDescriptor.TypeName);
     }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)

@@ -21,12 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\EditVariableDialog.razor" />
       <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\InputOutputTab.razor" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Pages\WorkflowInstances\List\Components\" />
+      <Folder Include="Shared\Components\" />
     </ItemGroup>
 
 </Project>

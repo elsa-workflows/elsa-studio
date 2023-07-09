@@ -9,4 +9,6 @@ public interface IWorkflowInstanceService
     Task<PagedListResponse<WorkflowInstanceSummary>> ListAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken = default);
     Task DeleteAsync(string instanceId, CancellationToken cancellationToken = default);
     Task BulkDeleteAsync(IEnumerable<string> instanceIds, CancellationToken cancellationToken = default);
+    Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default);
+    Task<PagedListResponse<ExecutionLogRecord>> GetJournalAsync(string instanceId, int? page = default, int? pageSize = default, CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,14 @@
+@page "/workflows/instances/{id}/view"
+@using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components
+@using Orientation = Radzen.Orientation
+
+<PageTitle>Workflow instance</PageTitle>
+
+<RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
+    <RadzenSplitterPane Size="20%" Min="100px">
+        <Journal @ref="Journal"/>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="80%">
+        <Workspace WorkflowInstances="@_workflowInstances" SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged"/>
+    </RadzenSplitterPane>
+</RadzenSplitter>

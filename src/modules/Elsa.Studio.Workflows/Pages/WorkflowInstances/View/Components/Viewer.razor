@@ -1,0 +1,28 @@
+@using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
+@using Elsa.Studio.Workflows.UI.Contracts
+@using Orientation = Radzen.Orientation
+
+<RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
+    <RadzenSplitterPane Size="50%">
+        <div class="height:100%">
+            <MudPaper Class="ma-2" Elevation="0" Outlined="true">
+                <MudToolBar Dense="true">
+                    @{
+                        if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
+                        {
+                            foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                            {
+                                @toolboxComponent
+                            }
+                        }
+                    }
+                    <MudSpacer></MudSpacer>
+                </MudToolBar>
+            </MudPaper>
+            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, IsReadOnly: true))
+        </div>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
+        <ActivityProperties @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
+    </RadzenSplitterPane>
+</RadzenSplitter>

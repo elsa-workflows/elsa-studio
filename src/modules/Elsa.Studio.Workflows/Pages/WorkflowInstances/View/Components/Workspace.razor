@@ -1,0 +1,31 @@
+@using Orientation = Radzen.Orientation
+
+<CascadingValue Value="this">
+    <RadzenSplitter Orientation="Orientation.Horizontal">
+        <RadzenSplitterPane Size="65%">
+
+            <MudDynamicTabs @ref="@_dynamicTabs"
+                            Style="height: 100%"
+                            AddTab="@AddTabCallback"
+                            CloseTab="@CloseTabCallback"
+                            ActivePanelIndexChanged="OnActivePanelIndexChanged"
+                            bind-ActivePanelIndex="@ActiveTabIndex"
+                            AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                            Elevation="0"
+                            ApplyEffectsToContainer>
+                @foreach (var workflowInstance in WorkflowInstances)
+                {
+                    <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="true" Style="height: 100%">
+                        <Viewer WorkflowInstance="workflowInstance"/>
+                    </MudTabPanel>
+                }
+
+            </MudDynamicTabs>
+
+        </RadzenSplitterPane>
+        <RadzenSplitterPane Size="35%" Min="100px">
+            <Properties WorkflowInstance="@SelectedWorkflowInstance"/>
+        </RadzenSplitterPane>
+
+    </RadzenSplitter>
+</CascadingValue>
