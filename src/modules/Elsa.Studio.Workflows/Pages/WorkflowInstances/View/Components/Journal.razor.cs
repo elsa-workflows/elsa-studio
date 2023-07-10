@@ -11,16 +11,10 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
 public partial class Journal
 {
-    public Journal()
-    {
-        PendingActionsQueue = new PendingActionsQueue(() => new(VirtualizeComponent != null));
-    }
-
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-
-    private PendingActionsQueue PendingActionsQueue { get; }
+    
     private WorkflowInstance? WorkflowInstance { get; set; }
     private IDictionary<string, ActivityDescriptor>? ActivityDescriptors { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
@@ -30,7 +24,11 @@ public partial class Journal
     {
         WorkflowInstance = workflowInstance;
         await EnsureActivityDescriptorsAsync();
-        await PendingActionsQueue.EnqueueAsync(async () => await VirtualizeComponent!.RefreshDataAsync());
+        
+        if(VirtualizeComponent != null)
+            await VirtualizeComponent!.RefreshDataAsync();
+        
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
@@ -38,12 +36,10 @@ public partial class Journal
         await EnsureActivityDescriptorsAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-            await PendingActionsQueue.ProcessAsync();
-
             // A little hack to ensure the journal is refreshed.
             // Sometimes the journal doesn't update on first load, until a UI refresh is triggered.
             // We do it a few times, first quickly, but if that was too soon, try it again a few times, but slower.
