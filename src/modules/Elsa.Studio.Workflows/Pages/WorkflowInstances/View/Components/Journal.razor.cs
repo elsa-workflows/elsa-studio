@@ -14,20 +14,17 @@ public partial class Journal
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    
+
     private WorkflowInstance? WorkflowInstance { get; set; }
     private IDictionary<string, ActivityDescriptor>? ActivityDescriptors { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
-    private Virtualize<JournalEntry>? VirtualizeComponent { get; set; }
+    private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
 
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance)
     {
         WorkflowInstance = workflowInstance;
         await EnsureActivityDescriptorsAsync();
-        
-        if(VirtualizeComponent != null)
-            await VirtualizeComponent!.RefreshDataAsync();
-        
+        await RefreshJournalAsync();
         StateHasChanged();
     }
 
@@ -44,9 +41,7 @@ public partial class Journal
             // Sometimes the journal doesn't update on first load, until a UI refresh is triggered.
             // We do it a few times, first quickly, but if that was too soon, try it again a few times, but slower.
             foreach (var timeout in new[] { 10, 100, 500, 1000 })
-            {
                 _ = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, timeout, Timeout.Infinite);
-            }
         }
     }
 
@@ -57,6 +52,12 @@ public partial class Journal
 
         var activities = await ActivityRegistry.ListAsync();
         ActivityDescriptors = activities.ToDictionary(x => x.TypeName);
+    }
+
+    private async Task RefreshJournalAsync()
+    {
+        if (VirtualizeComponent != null!)
+            await VirtualizeComponent.RefreshDataAsync();
     }
 
     private TimeSpan GetTimeMetric(ExecutionLogRecord current, ExecutionLogRecord? previous)
@@ -71,9 +72,10 @@ public partial class Journal
 
     private TimeSpan SumExecutionTime(ExecutionLogRecord current) => current.Timestamp - WorkflowInstance!.CreatedAt;
 
-    private void OnTimeMetricButtonToggleChanged(bool value)
+    private async Task OnTimeMetricButtonToggleChanged(bool value)
     {
         TimeMetricMode = value ? TimeMetricMode.Absolute : TimeMetricMode.Relative;
+        await RefreshJournalAsync();
     }
 
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
