@@ -20,7 +20,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private DotNetObjectReference<FlowchartDesigner>? _componentRef;
     private IFlowchartMapper? _flowchartMapper = default!;
     private IActivityMapper? _activityMapper = default!;
-    private X6GraphApi? _graphApi;
+    private X6GraphApi _graphApi = default!;
 
     private List<BreadcrumbItem> _activityPath = new()
     {
@@ -28,7 +28,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
     };
 
-    private Queue<Func<X6GraphApi, Task>> _pendingGraphActions = new();
+    private readonly PendingActionsQueue _pendingGraphActions;
+
+    public FlowchartDesigner()
+    {
+        _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
+    }
 
     [Parameter] public Flowchart Flowchart { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
@@ -74,9 +79,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        return await ScheduleGraphActionAsync<Flowchart>(async graphApi =>
+        return await ScheduleGraphActionAsync(async () =>
         {
-            var data = await graphApi.ReadGraphAsync();
+            var data = await _graphApi.ReadGraphAsync();
             var cells = data.GetProperty("cells").EnumerateArray();
             var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6Node>(serializerOptions)!).ToList();
             var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
@@ -98,23 +103,23 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         var flowchartMapper = await GetFlowchartMapperAsync();
         var graph = flowchartMapper.Map(flowchart);
-        await ScheduleGraphActionAsync(graphApi => graphApi.LoadGraphAsync(graph));
+        await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
     public async Task AddActivityAsync(Activity activity)
     {
         var mapper = await GetActivityMapperAsync();
         var node = mapper.MapActivity(activity);
-        await ScheduleGraphActionAsync(graphApi => graphApi.AddActivityNodeAsync(node));
+        await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
 
-    public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(graphApi => graphApi.ZoomToFitAsync());
-    public async Task CenterContentAsync() => await ScheduleGraphActionAsync(graphApi => graphApi.CenterContentAsync());
-    public async Task UpdateActivityAsync(string id, Activity activity) => await ScheduleGraphActionAsync(graphApi => graphApi.UpdateActivityAsync(id, activity));
+    public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
+    public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
+    public async Task UpdateActivityAsync(string id, Activity activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
 
     public async ValueTask DisposeAsync()
     {
-        if (_graphApi != null)
+        if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
 
         Dispose();
@@ -139,49 +144,15 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
 
             await LoadFlowchartAsync(Flowchart);
-
-            while (_pendingGraphActions.Any())
-            {
-                var pendingAction = _pendingGraphActions.Dequeue();
-                await pendingAction(_graphApi);
-            }
+            await _pendingGraphActions.ProcessAsync();
         }
     }
 
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();
     private async Task<IActivityMapper> GetActivityMapperAsync() => _activityMapper ??= await MapperFactory.CreateActivityMapperAsync();
-    private async Task SetGridColorAsync(string color) => await ScheduleGraphActionAsync(graphApi => graphApi.SetGridColorAsync(color));
-    
-    private async Task ScheduleGraphActionAsync(Func<X6GraphApi, Task> action)
-    {
-        if (_graphApi != null!)
-        {
-            await action(_graphApi);
-            return;
-        }
-        
-        var tsc = new TaskCompletionSource();
-        _pendingGraphActions.Enqueue(async graphApi =>
-        {
-            await action(graphApi);
-            tsc.SetResult();
-        });
-        await tsc.Task;
-    }
-
-    private async Task<T> ScheduleGraphActionAsync<T>(Func<X6GraphApi, Task<T>> action)
-    {
-        if (_graphApi != null!)
-            return await action(_graphApi);
-        
-        var tsc = new TaskCompletionSource<T>();
-        _pendingGraphActions.Enqueue(async graphApi =>
-        {
-            var result = await action(graphApi);
-            tsc.SetResult(result);
-        });
-        return await tsc.Task;
-    }
+    private async Task SetGridColorAsync(string color) => await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(color));
+    private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);
+    private async Task<T> ScheduleGraphActionAsync<T>(Func<Task<T>> action) => await _pendingGraphActions.EnqueueAsync(action);
 
     private async void OnDarkModeChanged()
     {

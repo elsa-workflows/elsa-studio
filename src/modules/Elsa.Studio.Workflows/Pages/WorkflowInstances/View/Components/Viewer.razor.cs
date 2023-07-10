@@ -56,19 +56,7 @@ public partial class Viewer
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
         await SelectActivity(WorkflowDefinition.Root);
     }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (WorkflowDefinition?.Root == null)
-            return;
-
-        if(_diagramDesigner?.IsInitialized == false)
-            return;
-        
-        await _diagramDesigner!.LoadRootActivity(WorkflowDefinition.Root);
-        await SelectActivity(WorkflowDefinition.Root);
-    }
-
+    
     private async Task SelectActivity(Activity activity)
     {
         SelectedActivity = activity;

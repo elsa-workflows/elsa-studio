@@ -9,27 +9,20 @@
                 <MudToggleIconButton Icon="@Icons.Material.Outlined.Timer" ToggledIcon="@Icons.Material.Outlined.AccessTime" Toggled="@(TimeMetricMode == TimeMetricMode.Absolute)" ToggledChanged="OnTimeMetricButtonToggleChanged"></MudToggleIconButton>
             </MudToolBar>
         </MudPaper>
-        <div class="pa-4" style="overflow-y: scroll; max-height: calc(100vh - var(--mud-appbar-height) - 120px);">
-            <MudTimeline>
+        <MudTimeline class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
+            <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
                 @{
-                    var index = 0;
-                    var previousRecord = default(ExecutionLogRecord);
-                }
-                @foreach (var record in ExecutionLogRecords)
-                {
-                    var activityTypeName = record.ActivityType;
-                    var activityDescriptor = ActivityDescriptors![activityTypeName];
-                    var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityDescriptor.TypeName);
+                    var journalEntry = context;
+                    var record = journalEntry.Record;
+                    var activityDescriptor = context.ActivityDescriptor;
+                    var displaySettings = context.ActivityDisplaySettings;
                     var activityIcon = displaySettings.Icon;
-                    var activityColor = displaySettings.Color;
-                    var eventName = record.EventName;
-                    var isEven = index++ % 2 == 0;
-                    var timelineAlign = isEven ? TimelineAlign.Default : TimelineAlign.End;
-                    var previousRecordCopy = previousRecord;
-                    var timeMetric = GetTimeMetric(record, previousRecordCopy);
+                    var isEven = journalEntry.IsEven;
+                    var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
+                    var timeMetric = context.TimeMetric;
 
                     var statusColor =
-                        eventName switch
+                        record.EventName switch
                         {
                             "Started" => Color.Primary,
                             "Completed" => Color.Success,
@@ -38,30 +31,26 @@
                             "Resumed" => Color.Warning,
                             _ => Color.Default
                             };
-
-                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign">
-                        <ItemDot>
-                            <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
-                        </ItemDot>
-                        <ItemContent>
-                            <MudText Typo="Typo.button">@activityDescriptor.DisplayName</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.EventName</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
-                        </ItemContent>
-                        <ItemOpposite>
-                            
-                                <div class="d-flex justify-end gap-4">
-                                    <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>
-                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@timeMetric.ToString("hh\\:mm\\:ss\\.fff")</MudText>
-                                </div>
-                            
-                        </ItemOpposite>
-                    </MudTimelineItem>
-
-                    previousRecord = record;
                 }
-            </MudTimeline>
+                <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign">
+                    <ItemDot>
+                        <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
+                    </ItemDot>
+                    <ItemContent>
+                        <MudText Typo="Typo.button">@activityDescriptor.DisplayName</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.EventName</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
+                    </ItemContent>
+                    <ItemOpposite>
 
-        </div>
+                        <div class="d-flex justify-end gap-4">
+                            <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@timeMetric.ToString("hh\\:mm\\:ss\\.fff")</MudText>
+                        </div>
+
+                    </ItemOpposite>
+                </MudTimelineItem>
+            </Virtualize>
+        </MudTimeline>
     </MudTabPanel>
 </MudTabs>
