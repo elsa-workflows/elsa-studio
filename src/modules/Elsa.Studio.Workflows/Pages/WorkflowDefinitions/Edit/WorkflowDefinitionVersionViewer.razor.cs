@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -15,10 +16,10 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
 public partial class WorkflowDefinitionVersionViewer
 {
-    private IDiagramDesigner? _diagramDesigner;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
-    
+    private DiagramDesignerWrapper? _diagramDesigner;
+
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
@@ -48,8 +49,7 @@ public partial class WorkflowDefinitionVersionViewer
     {
         if (WorkflowDefinition?.Root == null)
             return;
-    
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        
         await SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -58,11 +58,19 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
-        if(_diagramDesigner?.IsInitialized == false)
+        if(_diagramDesigner != null)
+            await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
+        
+        await SelectActivity(WorkflowDefinition.Root);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (WorkflowDefinition?.Root == null)
             return;
         
-        await _diagramDesigner!.LoadRootActivity(WorkflowDefinition.Root);
-        await SelectActivity(WorkflowDefinition.Root);
+        if(firstRender)
+            await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
     }
 
     private async Task SelectActivity(Activity activity)

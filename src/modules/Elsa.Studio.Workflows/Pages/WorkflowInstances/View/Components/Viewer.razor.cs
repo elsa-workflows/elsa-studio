@@ -16,7 +16,6 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
 public partial class Viewer
 {
-    //private IDiagramDesigner? _diagramDesigner;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
 
@@ -51,8 +50,7 @@ public partial class Viewer
         
         if (WorkflowDefinition?.Root == null)
             return;
-    
-        //_diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        
         await SelectActivity(WorkflowDefinition.Root);
     }
     

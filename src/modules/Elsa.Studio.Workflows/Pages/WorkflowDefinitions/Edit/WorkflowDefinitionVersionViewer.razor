@@ -4,27 +4,14 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <div class="height:100%">
-            <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-                <MudToolBar Dense="true">
-                    @{
-                        if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
-                        {
-                            foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
-                            {
-                                @toolboxComponent
-                            }
-                        }
-                    }
-                    <MudSpacer></MudSpacer>
-                    <MudTooltip Text="Download this version as a JSON file." Inline="false">
-                        <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudIconButton>
-                    </MudTooltip>
-                    <MudText Typo="Typo.body1">@($"Version {WorkflowDefinition?.Version ?? 0}")</MudText>
-                </MudToolBar>
-            </MudPaper>
-            @_diagramDesigner?.DisplayDesigner(new DisplayContext(WorkflowDefinition!.Root, OnActivitySelected, IsReadOnly: true))
-        </div>
+        <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition!.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true">
+            <CustomToolbarItems>
+                <MudTooltip Text="Download this version as a JSON file." Inline="false">
+                    <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudIconButton>
+                </MudTooltip>
+                <MudText Typo="Typo.body1">@($"Version {WorkflowDefinition?.Version ?? 0}")</MudText>
+            </CustomToolbarItems>
+        </DiagramDesignerWrapper>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
         <ActivityProperties @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>

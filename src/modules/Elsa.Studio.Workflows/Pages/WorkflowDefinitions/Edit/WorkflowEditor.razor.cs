@@ -28,7 +28,6 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    //private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
