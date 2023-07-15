@@ -11,8 +11,7 @@ public partial class DiagramDesignerWrapper
 {
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
-    private bool _isProgressing;
-    
+
     private List<BreadcrumbItem> _activityPath = new()
     {
         new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
@@ -22,6 +21,7 @@ public partial class DiagramDesignerWrapper
     [Parameter]public Activity Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public RenderFragment CustomToolbarItems { get; set; } = default!;
+    [Parameter] public bool IsProgressing { get; set; }
     [Parameter] public Func<Activity, Task>? ActivitySelected { get; set; }
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
