@@ -1,21 +1,68 @@
-import {Graph, Shape,} from '@antv/x6';
+import {Graph, Shape, Node} from '@antv/x6';
 import {Selection} from "@antv/x6-plugin-selection";
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Transform} from "@antv/x6-plugin-transform";
 import {Keyboard} from "@antv/x6-plugin-keyboard";
 import {Clipboard} from '@antv/x6-plugin-clipboard'
+import camelCase from 'lodash.camelcase';
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
+import {updateActivity} from "./update-activity";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
+    let silent = false;
+    let lastSelectedNode: Node.Properties = null;
 
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
+        embedding: {
+            enabled: false,
+            findParent(arg: any) {
+                const sourceNode = arg.node as Node.Properties;
+                const sourceBox = sourceNode.getBBox();
+                return this.getNodes().filter((targetNode) => {
+                    const targetBBox = targetNode.getBBox()
 
+                    // Does the source activity node intersect with the target activity node?
+                    if (!sourceBox.isIntersectWithRect(targetBBox))
+                        return false;
+
+                    const targetNodeId = targetNode.id;
+                    const targetActivityElementId = `activity-${targetNodeId}`;
+                    const targetNodeElement = document.getElementById(targetActivityElementId);
+
+                    // Does the target activity element exist?
+                    if (!targetNodeElement)
+                        return false;
+
+                    // Does the target activity contains embedded ports?
+                    const embeddedPortElements = targetNodeElement.querySelectorAll('.embedded-port');
+
+                    if (embeddedPortElements.length == 0)
+                        return false;
+
+                    // Check which of the embedded ports intersect with the source activity node.
+                    for (let i = 0; i < embeddedPortElements.length; i++) {
+                        const embeddedPortElement = embeddedPortElements[i];
+                        const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
+                        const embeddedPortElementBBox = graph.pageToLocal(embeddedPortElementRect);
+
+                        if (!sourceBox.isIntersectWithRect(embeddedPortElementBBox))
+                            continue;
+
+                        const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
+                        sourceNode.setProp(`embeddedPortName`, embeddedPortName);
+                        return true;
+                    }
+
+                    return false
+                })
+            },
+        },
         grid: {
             type: 'mesh',
             visible: true,
@@ -92,6 +139,15 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                     },
                 },
             },
+            embedding: {
+                name: 'stroke',
+                args: {
+                    padding: -1,
+                    attrs: {
+                        stroke: '#73d13d',
+                    },
+                },
+            },
         }
     });
 
@@ -111,10 +167,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             showNodeSelectionBox: true
         }),
     );
-    
-    if(!readOnly) {
-        
 
+    if (!readOnly) {
         graph.use(
             new Keyboard({
                 enabled: true
@@ -164,7 +218,12 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         });
     }
 
-    graph.on('blank:click', async () => await interop.raiseCanvasSelected());
+    graph.on('blank:click', async () => {
+        if(!!lastSelectedNode) {
+            lastSelectedNode.setProp('selected-port', null);
+        }
+        await interop.raiseCanvasSelected();
+    });
 
     // Move the clicked node to the front. This helps when the user clicks on a node that is behind another node.
     graph.on('node:mousedown', ({node}) => {
@@ -196,11 +255,78 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         }
     });
 
-    graph.on('node:selected', async e => {
-        const node = e.node;
+    graph.on('node:click', async args => {
+        const {e, node} = args;
         const activity: Activity = node.data;
+        const activityId = activity.id;
+        const activityElementId = `activity-${activityId}`;
+        const activityElement = document.getElementById(activityElementId);
+        const embeddedPortElements = activityElement.querySelectorAll('.embedded-port-occupied');
+        const mousePosition = graph.clientToLocal(e.clientX, e.clientY);
+
+        // Check which of the embedded ports intersect with the source activity node.
+        for (let i = 0; i < embeddedPortElements.length; i++) {
+            const embeddedPortElement = embeddedPortElements[i];
+            const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
+            const embeddedPortElementBBox = graph.pageToLocal(embeddedPortElementRect);
+
+            if (!embeddedPortElementBBox.containsPoint(mousePosition))
+                continue;
+
+            const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
+            const propName = camelCase(embeddedPortName);
+            const childActivity = activity[propName];
+            
+            if(graph.isSelected(node)) {
+                graph.unselect(node);
+            }
+            
+            node.setProp('selected-port', embeddedPortName);
+            lastSelectedNode = node;
+            await interop.raiseActivitySelected(childActivity);
+            return;
+        }
+
+        if(!graph.isSelected(node)) {
+            silent = true;
+            graph.select(node);
+            silent = false;
+        }
+
+        node.setProp('selected-port', null);
         await interop.raiseActivitySelected(activity);
     });
+
+    graph.on('node:selected', async args => {
+        const {node} = args;
+        
+        if(!silent)
+            graph.unselect(node);
+    });
+
+    graph.on('node:change:parent', e => {
+        const node: Node.Properties = e.node;
+        const parent = node.parent as any as Node.Properties;
+
+        if (!parent)
+            return;
+
+        const childActivity: Activity = {...node.data};
+        const parentActivity: Activity = {...parent.data};
+
+        // Assign the child activity to the parent activity in the specified port property.
+        const portName = node.getProp('embeddedPortName');
+        const propName = camelCase(portName);
+        parentActivity[propName] = childActivity;
+
+        requestAnimationFrame(async () => {
+            // // Delete the node itself during the next animation frame. Doing it immediately doesn't cause X6 to update the graph.
+            // node.remove({deep: true});
+
+            // Trigger a repaint of the parent node.
+            parent.setData(parentActivity, {overwrite: true});
+        });
+    })
 
     const onGraphUpdated = async (e: any) => {
         await interop.raiseGraphUpdated();

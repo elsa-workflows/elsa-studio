@@ -21,13 +21,6 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private IFlowchartMapper? _flowchartMapper = default!;
     private IActivityMapper? _activityMapper = default!;
     private X6GraphApi _graphApi = default!;
-
-    private List<BreadcrumbItem> _activityPath = new()
-    {
-        new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
-        new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
-    };
-
     private readonly PendingActionsQueue _pendingGraphActions;
 
     public FlowchartDesigner()

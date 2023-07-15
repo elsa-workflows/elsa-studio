@@ -11,6 +11,7 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -27,12 +28,13 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    private IDiagramDesigner? _diagramDesigner;
+    //private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
+    private DiagramDesignerWrapper _diagramDesigner = default!;
 
     public WorkflowEditor()
     {
@@ -87,7 +89,7 @@ public partial class WorkflowEditor
         if (WorkflowDefinition?.Root == null)
             return;
 
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        //_diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
         await SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -97,7 +99,7 @@ public partial class WorkflowEditor
 
         if (readDiagram)
         {
-            var root = await _diagramDesigner!.ReadRootActivityAsync();
+            var root = await _diagramDesigner.ReadActivityAsync();
             workflowDefinition.Root = root;
         }
 
@@ -235,7 +237,7 @@ public partial class WorkflowEditor
     {
         _isDirty = true;
         StateHasChanged();
-        await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
+        await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
         SelectedActivityId = activity.Id;
     }
 
@@ -317,7 +319,7 @@ public partial class WorkflowEditor
         model.DefinitionId = WorkflowDefinition!.DefinitionId;
 
         var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
-        await _diagramDesigner!.LoadRootActivity(workflowDefinition.Root);
+        await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
         await SetWorkflowDefinitionAsync(workflowDefinition);
         
         _isDirty = false;

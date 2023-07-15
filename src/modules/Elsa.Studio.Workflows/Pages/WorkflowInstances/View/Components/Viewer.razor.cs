@@ -16,7 +16,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
 public partial class Viewer
 {
-    private IDiagramDesigner? _diagramDesigner;
+    //private IDiagramDesigner? _diagramDesigner;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
 
@@ -26,13 +26,12 @@ public partial class Viewer
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
 
     private WorkflowDefinition? WorkflowDefinition { get; set; }
     private Activity? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
-    private Pages.WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
+    private WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
     public RadzenSplitterPane ActivityPropertiesPane
     {
@@ -53,7 +52,7 @@ public partial class Viewer
         if (WorkflowDefinition?.Root == null)
             return;
     
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        //_diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
         await SelectActivity(WorkflowDefinition.Root);
     }
     
@@ -68,13 +67,6 @@ public partial class Viewer
     private async Task OnActivitySelected(Activity activity)
     {
         await SelectActivity(activity);
-    }
-    
-    private async Task OnDownloadClicked()
-    {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(WorkflowDefinition.Version));
-        var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
     
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)

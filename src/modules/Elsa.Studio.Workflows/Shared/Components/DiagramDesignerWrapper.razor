@@ -1,0 +1,21 @@
+@using Elsa.Studio.Workflows.UI.Contracts
+<MudPaper Class="ma-2" Elevation="0" Outlined="true">
+    <MudToolBar Dense="true">
+        @{
+            if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
+            {
+                foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                {
+                    @toolboxComponent
+                }
+            }
+        }
+        <MudSpacer></MudSpacer>
+        @CustomToolbarItems
+    </MudToolBar>
+</MudPaper>
+<MudProgressLinear Color="@(_isProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
+<div class="ma-2">
+    <MudBreadcrumbs Items="_activityPath" Style="padding: 6px;"></MudBreadcrumbs>
+</div>
+@_diagramDesigner?.DisplayDesigner(new DisplayContext(Activity, ActivitySelected, GraphUpdated, IsReadOnly))

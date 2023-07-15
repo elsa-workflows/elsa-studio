@@ -6,6 +6,7 @@ export * from './dispose-graph';
 export * from './graph-bindings';
 export * from './load-graph';
 export * from './read-graph';
+export * from './raise-activity-selected';
 export * from './set-grid-color';
 export * from './update-activity';
 export * from './update-activity-size';

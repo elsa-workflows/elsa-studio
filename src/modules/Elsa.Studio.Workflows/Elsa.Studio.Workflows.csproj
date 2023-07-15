@@ -24,8 +24,4 @@
       <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\InputOutputTab.razor" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Shared\Components\" />
-    </ItemGroup>
-
 </Project>

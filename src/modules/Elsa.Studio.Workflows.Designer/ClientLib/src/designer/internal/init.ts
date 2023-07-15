@@ -6,10 +6,11 @@ export function initialize() {
 
     Shape.HTML.register({
         shape: "elsa-activity",
-        effect: ["data"],
+        effect: ["data", "selected-port"],
         html(cell) {
             const activity: Activity = cell.getData();
-            return createActivityElement(activity);
+            const selectedPort = cell.prop('selected-port');
+            return createActivityElement(activity, false, selectedPort);
         },
         ports: {
             groups: {

@@ -1,0 +1,25 @@
+@{
+    var colorStyle = IsSelected ? $"color: {_color};" : "";
+}
+<MudPaper
+    Class="elsa-activity-embedded pa-3"
+    Elevation="0"
+    Outlined="false"
+    Style="@($"border: 1px dashed {(IsSelected ? _color : "transparent")}")"
+>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
+        @if (_icon != null)
+        {
+            <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
+        }
+        <MudStack Style="height:100%" Justify="Justify.Center">
+            <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
+
+            @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
+            {
+                <MudText Typo="Typo.caption" Style="@colorStyle">@_description</MudText>
+            }
+        </MudStack>
+    </MudStack>
+
+</MudPaper>

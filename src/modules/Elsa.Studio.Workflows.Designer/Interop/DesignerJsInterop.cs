@@ -38,4 +38,7 @@ internal class DesignerJsInterop : JsInteropBase
 
     public async Task UpdateActivitySizeAsync(string elementId, Activity activity) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity));
+    
+    public async Task RaiseActivitySelectedAsync(string elementId, Activity activity) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activity));
 }
