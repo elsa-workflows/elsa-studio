@@ -1,5 +1,4 @@
 using Elsa.Api.Client.Expressions;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHintHandlers.Models;
 using Microsoft.AspNetCore.Components;

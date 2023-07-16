@@ -1,5 +1,4 @@
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
-using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.WorkflowProperties.Tabs.InputOutput.Models;

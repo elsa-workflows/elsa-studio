@@ -5,7 +5,6 @@ using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHintHandlers.Helpers;
-using Elsa.Studio.UIHintHandlers.Models;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
