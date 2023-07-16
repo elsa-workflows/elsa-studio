@@ -10,14 +10,14 @@
                     Label="ID"
                     HelperText="The ID of the activity."
                     Variant="Variant.Outlined">
-                    <MudText Typo="Typo.body1">@Activity.Id</MudText>
+                    <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
                 
                 <MudTextField
                     T="string"
                     Label="Name"
                     HelperText="The name of the activity. Named activities can be referenced by other activities."
-                    Value="@Activity.Name"
+                    Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
                     ValueChanged="OnActivityNameChanged"/>
 

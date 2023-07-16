@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Activities;
+using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Workflows.Args;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
@@ -28,44 +30,55 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
     }
 
-    [Parameter] public Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
-    [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
-    [Parameter] public Func<Task>? OnCanvasSelected { get; set; }
-    [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    [Parameter] public Func<Task>? CanvasSelected { get; set; }
+    [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
 
     [JSInvokable]
-    public async Task HandleActivitySelected(Activity activity)
+    public async Task HandleActivitySelected(JsonObject activity)
     {
-        if (OnActivitySelected == null)
+        if (ActivitySelected == null)
             return;
 
-        await InvokeAsync(async () => await OnActivitySelected(activity));
+        await InvokeAsync(async () => await ActivitySelected(activity));
+    }
+
+    [JSInvokable]
+    public async Task HandleActivityEmbeddedPortSelected(JsonObject activity, string portName)
+    {
+        if (ActivityEmbeddedPortSelected == null)
+            return;
+
+        var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
+        await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
     }
 
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
-        if (OnCanvasSelected == null)
+        if (CanvasSelected == null)
             return;
 
-        await InvokeAsync(async () => await OnCanvasSelected());
+        await InvokeAsync(async () => await CanvasSelected());
     }
 
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {
-        if (OnGraphUpdated == null)
+        if (GraphUpdated == null)
             return;
 
-        await InvokeAsync(async () => await OnGraphUpdated());
+        await InvokeAsync(async () => await GraphUpdated());
     }
 
-    public async Task<Flowchart> ReadFlowchartAsync()
+    public async Task<JsonObject> ReadFlowchartAsync()
     {
         var serializerOptions = new JsonSerializerOptions
         {
@@ -81,25 +94,25 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var graph = new X6Graph(nodes, edges);
             var flowchartMapper = await GetFlowchartMapperAsync();
             var exportedFlowchart = flowchartMapper.Map(graph);
-            var activities = exportedFlowchart.Activities;
-            var connections = exportedFlowchart.Connections;
+            var activities = exportedFlowchart.GetActivities();
+            var connections = exportedFlowchart.GetConnections();
 
             var flowchart = Flowchart;
-            flowchart.Activities = activities;
-            flowchart.Connections = connections;
+            flowchart.SetProperty(activities, "activities");
+            flowchart.SetProperty(connections.SerializeToNode(), "connections");
 
             return flowchart;
         });
     }
 
-    public async Task LoadFlowchartAsync(Flowchart flowchart)
+    public async Task LoadFlowchartAsync(JsonObject flowchart)
     {
         var flowchartMapper = await GetFlowchartMapperAsync();
         var graph = flowchartMapper.Map(flowchart);
         await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
-    public async Task AddActivityAsync(Activity activity)
+    public async Task AddActivityAsync(JsonObject activity)
     {
         var mapper = await GetActivityMapperAsync();
         var node = mapper.MapActivity(activity);
@@ -108,7 +121,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
-    public async Task UpdateActivityAsync(string id, Activity activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
 
     public async ValueTask DisposeAsync()
     {

@@ -23,5 +23,12 @@ export async function updateActivitySize(elementId: string, activity: Activity) 
     // Get the node from the graph and update its size.
     const activityId = activity.id;
     const node = graph.getNodes().find(x => x.id == activityId);
+    
+    if(node == null)
+    {
+        console.warn(`Could not find node with ID ${activityId} in graph ${graphId}`);
+        return;
+    }
+    
     node.size(width, height);
 }

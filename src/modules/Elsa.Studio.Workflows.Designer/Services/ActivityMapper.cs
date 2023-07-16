@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -23,9 +23,9 @@ internal class ActivityMapper : IActivityMapper
         _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
     }
 
-    public X6Node MapActivity(Activity activity)
+    public X6Node MapActivity(JsonObject activity)
     {
-        var activityId = activity.Id;
+        var activityId = activity.GetId();
         var designerMetadata = activity.GetDesignerMetadata();
         var position = designerMetadata.Position;
         var size = designerMetadata.Size;
@@ -51,7 +51,7 @@ internal class ActivityMapper : IActivityMapper
         return node;
     }
 
-    public X6Ports GetPorts(Activity activity)
+    public X6Ports GetPorts(JsonObject activity)
     {
         // Create input ports.
         var inPorts = GetInPorts(activity);
@@ -66,12 +66,12 @@ internal class ActivityMapper : IActivityMapper
         };
     }
 
-    public IEnumerable<X6Port> GetOutPorts(Activity activity)
+    public IEnumerable<X6Port> GetOutPorts(JsonObject activity)
     {
-        var activityType = activity.Type;
+        var activityType = activity.GetTypeName();
         var activityDescriptor = _activityDescriptors[activityType];
         var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 
         var ports = sourcePorts.Select(sourcePort => new X6Port
         {
@@ -107,9 +107,9 @@ internal class ActivityMapper : IActivityMapper
         return ports;
     }
 
-    public IEnumerable<X6Port> GetInPorts(Activity activity)
+    public IEnumerable<X6Port> GetInPorts(JsonObject activity)
     {
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 
         // Create default input port.
         yield return new X6Port

@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 
@@ -31,7 +31,7 @@ public interface IActivityPortProvider
     /// </summary>
     /// <param name="portName">The name of the port.</param>
     /// <param name="context">The context.</param>
-    Activity? ResolvePort(string portName, PortProviderContext context);
+    JsonObject? ResolvePort(string portName, PortProviderContext context);
     
     /// <summary>
     /// Assigns the specified activity to the specified port.
@@ -39,5 +39,5 @@ public interface IActivityPortProvider
     /// <param name="portName">The name of the port.</param>
     /// <param name="activity">The activity to assign.</param>
     /// <param name="context">The context.</param>
-    void AssignPort(string portName, Activity? activity, PortProviderContext context);
+    void AssignPort(string portName, JsonObject? activity, PortProviderContext context);
 }

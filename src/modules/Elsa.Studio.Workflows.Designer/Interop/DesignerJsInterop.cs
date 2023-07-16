@@ -1,6 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Components;
-using Elsa.Studio.Workflows.Designer.Services;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -36,9 +35,12 @@ internal class DesignerJsInterop : JsInteropBase
         
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, Activity activity) =>
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity));
     
-    public async Task RaiseActivitySelectedAsync(string elementId, Activity activity) =>
+    public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activity));
+    
+    public async Task RaiseActivityEmbeddedPortSelectedAsync(string elementId, JsonObject activity, string portName) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivityEmbeddedPortSelected", elementId, activity, portName));
 }

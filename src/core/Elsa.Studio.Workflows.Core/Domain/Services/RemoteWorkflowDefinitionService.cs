@@ -1,5 +1,5 @@
 using System.Net;
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -150,13 +150,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 ToolVersion = ToolVersion.Version,
                 IsLatest = true,
                 IsPublished = false,
-                Root = new Activity
+                Root = new JsonObject(new Dictionary<string, JsonNode?>
                 {
-                    Id = _activityIdGenerator.GenerateId(),
-                    Type = "Elsa.Flowchart",
-                    Name = "Flowchart1",
-                    Version = 1
-                }
+                    ["id"] = _activityIdGenerator.GenerateId(),
+                    ["type"] = "Elsa.Flowchart",
+                    ["version"] = 1,
+                    ["name"] = "Flowchart1"
+                })
             }
         };
 

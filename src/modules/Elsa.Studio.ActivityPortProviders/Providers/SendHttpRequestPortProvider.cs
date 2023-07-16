@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
@@ -42,7 +42,7 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
         };
     }
 
-    private static ICollection<int> GetExpectedStatusCodes(Activity activity)
+    private static ICollection<int> GetExpectedStatusCodes(JsonObject activity)
     {
         var options = new JsonSerializerOptions
         {
@@ -52,20 +52,15 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
         options.Converters.Add(new ExpressionJsonConverterFactory());
         options.Converters.Add(new JsonStringToIntConverter());
 
-        var wrappedInput = activity.TryGetValue("expectedStatusCodes", () =>
+        var wrappedInput = activity.GetProperty<WrappedInput>(options, "expectedStatusCodes") ?? new WrappedInput
         {
-            var defaultStatusCodes = new[] { (int)HttpStatusCode.OK };
-            var input = new WrappedInput
+            TypeName = typeof(int[]).Name,
+            Expression = new ObjectExpression
             {
-                TypeName = typeof(int[]).Name,
-                Expression = new ObjectExpression
-                {
-                    Value = JsonSerializer.Serialize(defaultStatusCodes, options)
-                }
-            };
-            return input;
-        }, options)!;
-
+                Value = JsonSerializer.Serialize(new[] { (int)HttpStatusCode.OK }, options)
+            }
+        };
+        
         var objectExpression = (ObjectExpression)wrappedInput.Expression;
         return JsonSerializer.Deserialize<ICollection<int>>(objectExpression.Value!, options)!;
     }

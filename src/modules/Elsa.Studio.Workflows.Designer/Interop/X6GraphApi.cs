@@ -1,6 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Converters;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
@@ -32,7 +32,7 @@ public class X6GraphApi
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
+        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         
@@ -45,13 +45,13 @@ public class X6GraphApi
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
     
-    public async Task UpdateActivityAsync(string id, Activity activity)
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         var serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
+        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
 

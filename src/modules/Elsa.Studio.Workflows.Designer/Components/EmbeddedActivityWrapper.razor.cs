@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -21,7 +21,7 @@ public partial class EmbeddedActivityWrapper
 
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = default!;
-    [Parameter] public Activity Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsSelected { get; set; }
 
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
@@ -36,7 +36,7 @@ public partial class EmbeddedActivityWrapper
         var activity = Activity;
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
-        var activityType = activity.Type;
+        var activityType = activity.GetTypeName();
         var descriptor = await ActivityRegistry.FindAsync(activityType);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 

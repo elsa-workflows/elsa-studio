@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -9,9 +9,9 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityPropertie
 
 public partial class CommonTab
 {
-    [Parameter] public Activity? Activity { get; set; }
+    [Parameter] public JsonObject? Activity { get; set; }
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
-    [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     private bool IsTrigger => ActivityDescriptor?.Kind == ActivityKind.Trigger;
@@ -19,7 +19,7 @@ public partial class CommonTab
 
     private async Task OnActivityIdChanged(string value)
     {
-        Activity!.Id = value;
+        Activity!.SetId(value);
         await RaiseActivityUpdated();
     }
 
@@ -31,7 +31,7 @@ public partial class CommonTab
     
     private async Task OnActivityNameChanged(string value)
     {
-        Activity!.Name = value;
+        Activity!.SetName(value);
         await RaiseActivityUpdated();
     }
 

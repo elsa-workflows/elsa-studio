@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -18,9 +19,9 @@ public partial class OutputsTab
     private IDictionary<string, VariableTypeDescriptor> _variableTypes = new Dictionary<string, VariableTypeDescriptor>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public Activity Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
-    [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
@@ -73,7 +74,7 @@ public partial class OutputsTab
                 }
             };
 
-        activity[propertyName] = activityOutput!;
+        activity.SetProperty(activityOutput!.SerializeToNode(), propertyName);
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);

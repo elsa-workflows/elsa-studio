@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Contexts;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
@@ -14,24 +15,22 @@ public interface IDiagramDesigner
     /// Loads the specified root activity int the designer.
     /// </summary>
     /// <param name="activity">The root activity to load.</param>
-    Task LoadRootActivity(Activity activity);
+    Task LoadRootActivity(JsonObject activity);
     
     /// <summary>
     /// Updates the specified activity in the diagram. This is used to update the diagram when an activity is updated in the activity editor.
     /// </summary>
     /// <param name="id">The ID of the activity to update.</param>
     /// <param name="activity">The activity to update.</param>
-    Task UpdateActivityAsync(string id, Activity activity);
+    Task UpdateActivityAsync(string id, JsonObject activity);
     
     /// <summary>
     /// Reads the root activity from the diagram.
     /// </summary>
-    Task<Activity> ReadRootActivityAsync();
+    Task<JsonObject> ReadRootActivityAsync();
     
     /// <summary>
     /// Display the designer.
     /// </summary>
     RenderFragment DisplayDesigner(DisplayContext context);
 }
-
-public record DisplayContext(Activity Activity, Func<Activity, Task>? ActivitySelectedCallback = default, Func<Task>? GraphUpdatedCallback = default, bool IsReadOnly = false);

@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -22,22 +23,22 @@ public partial class ActivityWrapper
 
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = default!;
-    [Parameter] public Activity Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public string? SelectedPortName { get; set; }
 
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
-    
+
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
-    
+
     protected override async Task OnInitializedAsync()
     {
         var activity = Activity;
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
-        var activityType = activity.Type;
+        var activityType = activity.GetTypeName();
         var descriptor = await ActivityRegistry.FindAsync(activityType);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
@@ -54,36 +55,31 @@ public partial class ActivityWrapper
     private async Task UpdateSizeAsync()
     {
         // If the activity has a size specified, don't attempt to calculate it.
-        var size = Activity.Metadata.TryGetValue<ActivityDesignerMetadata>("metadata")?.Size;
+        var size = Activity.GetDesignerMetadata().Size;
 
-        if (size != null)
-        {
-            if (size.Width > 0 || size.Height > 0)
-                return;
-        }
+        if (size.Width > 0 || size.Height > 0)
+            return;
 
-        // Otherwise, update the activity node.
+            // Otherwise, update the activity node.
         if (!string.IsNullOrEmpty(ElementId))
             await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity);
     }
 
-    private async Task OnEmbeddedActivityClicked(Activity childActivity)
+    private async Task OnEmbeddedActivityClicked(JsonObject childActivity)
     {
-        var elementId = $"activity-{childActivity.Id}";
-        //await DesignerInterop.RaiseActivitySelectedAsync(elementId, childActivity);
+        var elementId = $"activity-{childActivity.GetId()}";
+        await DesignerInterop.RaiseActivitySelectedAsync(elementId, childActivity);
+    }
+
+    private async Task OnEmptyPortClicked(Port port)
+    {
+        var activity = Activity;
+        var elementId = $"activity-{activity.GetId()}";
+        await DesignerInterop.RaiseActivityEmbeddedPortSelectedAsync(elementId, activity, port.Name);
     }
 
     private Task OnChildActivityDragStart()
     {
-        return Task.CompletedTask;
-    }
-
-    private Task OnEmptyPortClicked(Port port)
-    {
-        // var currentActivity = GetCurrentActivity();
-        // //var segment = new ActivityPathSegment(currentActivity.Id, port.Name);
-        // _pathSegments.Push(segment);
-        // StateHasChanged();
         return Task.CompletedTask;
     }
 }

@@ -1,6 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
@@ -16,17 +15,19 @@ internal class FlowchartMapper : IFlowchartMapper
         _activityMapper = activityMapper;
     }
 
-    public X6Graph Map(Flowchart flowchart)
+    public X6Graph Map(JsonObject flowchart)
     {
         var graph = new X6Graph();
+        var activities = flowchart.GetActivities();
+        var connections = flowchart.GetConnections();
 
-        foreach (var activity in flowchart.Activities)
+        foreach (var activity in activities)
         {
-            var node = _activityMapper.MapActivity(activity);
+            var node = _activityMapper.MapActivity(activity!.AsObject());
             graph.Nodes.Add(node);
         }
 
-        foreach (var connection in flowchart.Connections)
+        foreach (var connection in connections)
         {
             var source = connection.Source;
             var target = connection.Target;
@@ -55,9 +56,9 @@ internal class FlowchartMapper : IFlowchartMapper
         return graph;
     }
 
-    public Flowchart Map(X6Graph graph)
+    public JsonObject Map(X6Graph graph)
     {
-        var activities = new List<Activity>();
+        var activities = new List<JsonObject>();
         var connections = new List<Connection>();
 
         foreach (var node in graph.Nodes)
@@ -70,13 +71,13 @@ internal class FlowchartMapper : IFlowchartMapper
                 X = node.Position.X,
                 Y = node.Position.Y
             };
-            
+
             designerMetadata.Size = new Size
             {
                 Width = node.Size.Width,
                 Height = node.Size.Height
             };
-            
+
             activity.SetDesignerMetadata(designerMetadata);
             activities.Add(activity);
         }
@@ -91,11 +92,11 @@ internal class FlowchartMapper : IFlowchartMapper
             connections.Add(connection);
         }
 
-        var flowchart = new Flowchart
+        var flowchart = new JsonObject(new Dictionary<string, JsonNode?>
         {
-            Activities = activities,
-            Connections = connections
-        };
+            ["activities"] = activities.SerializeToArray(),
+            ["connections"] = connections.SerializeToArray()
+        });
 
         return flowchart;
     }

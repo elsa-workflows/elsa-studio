@@ -261,10 +261,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         const activityId = activity.id;
         const activityElementId = `activity-${activityId}`;
         const activityElement = document.getElementById(activityElementId);
-        const embeddedPortElements = activityElement.querySelectorAll('.embedded-port-occupied');
+        const embeddedPortElements = activityElement.querySelectorAll('.embedded-port');
         const mousePosition = graph.clientToLocal(e.clientX, e.clientY);
 
-        // Check which of the embedded ports intersect with the source activity node.
+        // Check which of the embedded ports intersect with the selected node.
         for (let i = 0; i < embeddedPortElements.length; i++) {
             const embeddedPortElement = embeddedPortElements[i];
             const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
@@ -273,17 +273,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             if (!embeddedPortElementBBox.containsPoint(mousePosition))
                 continue;
 
-            const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
-            const propName = camelCase(embeddedPortName);
-            const childActivity = activity[propName];
-            
+            // Mark the noe as unselected as to focus on the embedded port.
             if(graph.isSelected(node)) {
                 graph.unselect(node);
             }
             
+            const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
             node.setProp('selected-port', embeddedPortName);
             lastSelectedNode = node;
-            await interop.raiseActivitySelected(childActivity);
+            
+            await interop.raiseActivityEmbeddedPortSelected(activity, embeddedPortName);
             return;
         }
 
@@ -324,6 +323,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             // node.remove({deep: true});
 
             // Trigger a repaint of the parent node.
+            debugger;
             parent.setData(parentActivity, {overwrite: true});
         });
     })

@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -12,24 +13,24 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     
     public bool IsInitialized => _designerWrapper != null;
 
-    public async Task LoadRootActivity(Activity activity)
+    public async Task LoadRootActivity(JsonObject activity)
     {
-        await _designerWrapper!.LoadFlowchartAsync((Flowchart)activity);
+        await _designerWrapper!.LoadFlowchartAsync(activity);
     }
 
-    public async Task UpdateActivityAsync(string id, Activity activity)
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         await _designerWrapper!.UpdateActivityAsync(id, activity);
     }
 
-    public async Task<Activity> ReadRootActivityAsync()
+    public async Task<JsonObject> ReadRootActivityAsync()
     {
         return await _designerWrapper!.Designer.ReadFlowchartAsync();
     }
 
     public RenderFragment DisplayDesigner(DisplayContext context)
     {
-        var flowchart = (Flowchart)context.Activity;
+        var flowchart = context.Activity;
         var sequence = 0;
 
         return builder =>
@@ -37,8 +38,9 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.IsReadOnly), context.IsReadOnly);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnActivitySelected), context.ActivitySelectedCallback);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.OnGraphUpdated), context.GraphUpdatedCallback);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivityEmbeddedPortSelected), context.ActivityEmbeddedPortSelectedCallback);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.GraphUpdated), context.GraphUpdatedCallback);
             builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (FlowchartDesignerWrapper)@ref);
 
             builder.CloseComponent();

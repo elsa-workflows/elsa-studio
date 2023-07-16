@@ -25,8 +25,8 @@ public class FlowSwitchPortProvider : ActivityPortProviderBase
         
         options.Converters.Add(new ExpressionJsonConverterFactory());
         
-        var cases = context.Activity.TryGetValue("cases", () => new List<Case>(), options)!;
-        
+        var cases = context.Activity.GetProperty<List<Case>>("cases") ?? new List<Case>();
+
         return cases.Select(x => new Port
         {
             Name = x.Label,

@@ -1,6 +1,5 @@
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Enums
 @using Humanizer
-@using Elsa.Api.Client.Activities
 @using Elsa.Api.Client.Extensions
 @using System.Text.Json
 @using Elsa.Api.Client.Converters
@@ -31,16 +30,17 @@
                             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                         };
 
-                        options.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
+                        //options.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
                         options.Converters.Add(new ExpressionJsonConverterFactory());
 
-                        var childActivity = Activity.TryGetValue(propName, out var value) ? value.ConvertTo<Activity>(new ObjectConverterOptions(options)) : null;
+                        var childActivity = Activity.GetProperty(propName)?.AsObject();
+                        //var childActivity = Activity.TryGetValue(propName, out var value) ? value.ConvertTo<Activity>(new ObjectConverterOptions(options)) : null;
 
                         @if (childActivity != null)
                         {
                             <MudField Label="@port.DisplayName" Variant="Variant.Outlined">
-                                <div id="@($"activity-{childActivity.Id}")" class="embedded-port-occupied" data-port-name="@port.Name" @onclick="@(async () => await OnEmbeddedActivityClicked(childActivity))" draggable="true" @ondragstart="@(() => OnChildActivityDragStart())">
-                                    <EmbeddedActivityWrapper ActivityId="@childActivity.Id" Activity="childActivity" IsSelected="@(SelectedPortName == port.Name)"/>
+                                <div id="@($"activity-{childActivity.GetId()}")" class="embedded-port embedded-port-occupied" data-port-name="@port.Name" @onclick="@(async () => await OnEmbeddedActivityClicked(childActivity))" draggable="true" @ondragstart="@(OnChildActivityDragStart)">
+                                    <EmbeddedActivityWrapper ActivityId="@childActivity.GetId()" Activity="childActivity" IsSelected="@(SelectedPortName == port.Name)"/>
                                 </div>
                             </MudField>
                         }

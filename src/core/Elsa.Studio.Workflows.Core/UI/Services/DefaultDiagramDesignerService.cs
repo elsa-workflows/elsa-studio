@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.UI.Services;
@@ -12,11 +13,11 @@ public class DefaultDiagramDesignerService : IDiagramDesignerService
         _providers = providers;
     }
     
-    public IDiagramDesigner GetDiagramDesigner(Activity activity)
+    public IDiagramDesigner GetDiagramDesigner(JsonObject activity)
     {
         var provider = _providers
             .OrderByDescending(x => x.Priority)
-            .FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.Type}.");
+            .FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.GetTypeName()}.");
         return provider.GetEditor();
     }
 }

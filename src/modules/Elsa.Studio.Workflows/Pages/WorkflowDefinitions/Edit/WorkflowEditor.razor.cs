@@ -1,8 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -44,7 +45,7 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -52,7 +53,7 @@ public partial class WorkflowEditor
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
-    private Activity? SelectedActivity { get; set; }
+    private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
@@ -211,11 +212,11 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task SelectActivity(Activity activity)
+    private async Task SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
-        SelectedActivityId = activity.Id;
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
+        SelectedActivityId = activity.GetId();
+        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.GetTypeName());
         StateHasChanged();
     }
     
@@ -227,17 +228,17 @@ public partial class WorkflowEditor
             await WorkflowDefinitionUpdated();
     }
 
-    private async Task OnActivitySelected(Activity activity)
+    private async Task OnActivitySelected(JsonObject activity)
     {
         await SelectActivity(activity);
     }
 
-    private async Task OnSelectedActivityUpdated(Activity activity)
+    private async Task OnSelectedActivityUpdated(JsonObject activity)
     {
         _isDirty = true;
         StateHasChanged();
         await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
-        SelectedActivityId = activity.Id;
+        SelectedActivityId = activity.GetId();
     }
 
     private async Task OnSaveClick()
@@ -308,7 +309,7 @@ public partial class WorkflowEditor
 
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-        serializerOptions.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
+        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
 
         var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;

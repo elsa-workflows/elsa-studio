@@ -1,4 +1,5 @@
 @using Elsa.Studio.Workflows.UI.Contracts
+@using Elsa.Studio.Workflows.Contexts
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
     <MudToolBar Dense="true">
         @{
@@ -16,6 +17,11 @@
 </MudPaper>
 <MudProgressLinear Color="@(IsProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
 <div class="ma-2">
-    <MudBreadcrumbs Items="_activityPath" Style="padding: 6px;"></MudBreadcrumbs>
+    <MudBreadcrumbs Items="GetBreadcrumbItems()" Style="padding: 6px;">
+        <ItemTemplate>
+            <MudIcon Icon="@context.Icon"/>
+            <MudLink OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">@context.Text</MudLink>
+        </ItemTemplate>
+    </MudBreadcrumbs>
 </div>
-@_diagramDesigner?.DisplayDesigner(new DisplayContext(Activity, ActivitySelected, GraphUpdated, IsReadOnly))
+@_diagramDesigner?.DisplayDesigner(new DisplayContext(GetCurrentContainerActivity(), ActivitySelected, OnActivityEmbeddedPortSelected, OnGraphUpdated, IsReadOnly))

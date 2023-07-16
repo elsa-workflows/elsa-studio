@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
 
@@ -10,5 +10,5 @@ public interface IDiagramDesignerService
     /// <summary>
     /// Gets the diagram designer for the specified activity.
     /// </summary>
-    IDiagramDesigner GetDiagramDesigner(Activity activity);
+    IDiagramDesigner GetDiagramDesigner(JsonObject activity);
 }

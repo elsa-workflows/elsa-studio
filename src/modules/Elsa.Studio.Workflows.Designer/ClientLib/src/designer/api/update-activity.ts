@@ -4,6 +4,7 @@ import {graphBindings} from "./graph-bindings";
 import {Ports} from "../models/x6";
 
 export async function updateActivity(graphId: string, activityId: string, activity: Activity, ports?: Ports) {
+    debugger;
     // Get graph reference.
     const {graph, interop} = graphBindings[graphId];
 

@@ -1,5 +1,6 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -22,13 +23,13 @@ public partial class WorkflowDefinitionVersionViewer
 
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
+    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
-    private Activity? SelectedActivity { get; set; }
+    private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
     private Pages.WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
@@ -73,15 +74,15 @@ public partial class WorkflowDefinitionVersionViewer
             await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
     }
 
-    private async Task SelectActivity(Activity activity)
+    private async Task SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
-        SelectedActivityId = activity.Id;
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
+        SelectedActivityId = activity.GetId();
+        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.GetTypeName());
         StateHasChanged();
     }
     
-    private async Task OnActivitySelected(Activity activity)
+    private async Task OnActivitySelected(JsonObject activity)
     {
         await SelectActivity(activity);
     }
