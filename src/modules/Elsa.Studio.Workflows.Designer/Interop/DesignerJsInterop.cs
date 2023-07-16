@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Microsoft.JSInterop;
 
@@ -35,8 +36,8 @@ internal class DesignerJsInterop : JsInteropBase
         
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity) =>
-        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity));
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity, size));
     
     public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activity));

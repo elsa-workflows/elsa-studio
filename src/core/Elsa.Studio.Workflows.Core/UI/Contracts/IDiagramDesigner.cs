@@ -15,7 +15,7 @@ public interface IDiagramDesigner
     /// Loads the specified root activity int the designer.
     /// </summary>
     /// <param name="activity">The root activity to load.</param>
-    Task LoadRootActivity(JsonObject activity);
+    Task LoadRootActivityAsync(JsonObject activity);
     
     /// <summary>
     /// Updates the specified activity in the diagram. This is used to update the diagram when an activity is updated in the activity editor.

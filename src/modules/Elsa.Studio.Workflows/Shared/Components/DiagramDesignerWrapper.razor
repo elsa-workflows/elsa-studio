@@ -17,11 +17,21 @@
 </MudPaper>
 <MudProgressLinear Color="@(IsProgressing ? Color.Primary : Color.Transparent)" Indeterminate="true"/>
 <div class="ma-2">
-    <MudBreadcrumbs Items="GetBreadcrumbItems()" Style="padding: 6px;">
+    <MudBreadcrumbs Items="_breadcrumbItems" Style="padding: 6px;">
         <ItemTemplate>
-            <MudIcon Icon="@context.Icon"/>
-            <MudLink OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">@context.Text</MudLink>
+            <MudLink OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">
+                @if (context.Icon != null)
+                {
+                    <MudIcon Icon="@context.Icon"/>
+                }
+                @context.Text
+            </MudLink>
         </ItemTemplate>
+        <SeparatorTemplate>
+            <div class="d-flex align-content-center">
+                <MudIcon Icon="@Icons.Material.Outlined.NavigateNext"></MudIcon>
+            </div>
+        </SeparatorTemplate>
     </MudBreadcrumbs>
 </div>
 @_diagramDesigner?.DisplayDesigner(new DisplayContext(GetCurrentContainerActivity(), ActivitySelected, OnActivityEmbeddedPortSelected, OnGraphUpdated, IsReadOnly))

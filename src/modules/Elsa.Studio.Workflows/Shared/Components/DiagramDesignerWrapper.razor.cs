@@ -1,8 +1,10 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Args;
 using Elsa.Studio.Workflows.Designer;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -15,6 +17,7 @@ public partial class DiagramDesignerWrapper
 {
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
+    private List<BreadcrumbItem> _breadcrumbItems = new();
 
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
@@ -24,6 +27,7 @@ public partial class DiagramDesignerWrapper
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
@@ -33,11 +37,10 @@ public partial class DiagramDesignerWrapper
         return Task.FromResult(Activity);
     }
 
-    public Task LoadActivityAsync(JsonObject activity)
+    public async Task LoadActivityAsync(JsonObject activity)
     {
-        _pathSegments.Clear();
-        StateHasChanged();
-        return _diagramDesigner!.LoadRootActivity(activity);
+        await _diagramDesigner!.LoadRootActivityAsync(activity);
+        await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
 
     public Task UpdateActivityAsync(string activityId, JsonObject activity)
@@ -45,57 +48,93 @@ public partial class DiagramDesignerWrapper
         return _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
+        await UpdatePathSegmentsAsync(segments => segments.Clear());
+    }
 
-        return base.OnInitializedAsync();
+    private IEnumerable<GraphSegment> ResolvePath()
+    {
+        var currentContainer = Activity;
+
+        foreach (var pathSegment in _pathSegments.Reverse())
+        {
+            var flowchart = currentContainer;
+            var activities = flowchart.GetActivities();
+            var currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
+            var propName = pathSegment.PortName.Camelize();
+            currentContainer = currentActivity.GetProperty(propName)!.AsObject();
+
+            yield return new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
+        }
+    }
+
+    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
+    {
+        action(_pathSegments);
+        await UpdateBreadcrumbItemsAsync();
+    }
+
+    private async Task UpdateBreadcrumbItemsAsync()
+    {
+        _breadcrumbItems = (await GetBreadcrumbItems()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<BreadcrumbItem>> GetBreadcrumbItems()
+    {
+        var breadcrumbItems = new List<BreadcrumbItem>();
+
+        if (_pathSegments.Any())
+            breadcrumbItems.Add(new BreadcrumbItem("Root", "#_root_", false, Icons.Material.Outlined.Home));
+
+        var resolvedPath = ResolvePath().ToList();
+
+        foreach (var segment in resolvedPath)
+        {
+            var currentActivity = segment.Activity;
+            var activityTypeName = currentActivity.GetTypeName();
+            var activityDescriptor = (await ActivityRegistry.FindAsync(activityTypeName))!;
+            var embeddedPortCount = activityDescriptor.Ports.Count(x => x.Type == PortType.Embedded);
+            var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
+            var disabled = segment == resolvedPath.Last();
+            var displayText = currentActivity.GetName() ?? activityDescriptor.DisplayName;
+            var activityBreadcrumbItem = new BreadcrumbItem(displayText, $"#{currentActivity.GetId()}", disabled, displaySettings.Icon);
+
+            breadcrumbItems.Add(activityBreadcrumbItem);
+
+            if (embeddedPortCount <= 1)
+                continue;
+
+            var embeddedPort = activityDescriptor.Ports.First(x => x.Name == segment.PortName);
+            var embeddedPortBreadcrumbItem = new BreadcrumbItem(embeddedPort.DisplayName, "#", true);
+            breadcrumbItems.Add(embeddedPortBreadcrumbItem);
+        }
+
+        return breadcrumbItems;
     }
 
     private JsonObject? GetCurrentActivity()
     {
-        var currentContainer = Activity;
-        var currentActivity = default(JsonObject);
-
-        foreach (var pathSegment in _pathSegments)
-        {
-            var flowchart = currentContainer;
-            var activities = flowchart.GetActivities();
-            currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
-            var propName = pathSegment.PortName.Camelize();
-            currentContainer = currentActivity.GetProperty(propName)!.AsObject();
-        }
-
-        return currentActivity;
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.Activity;
     }
-    
+
     private JsonObject GetCurrentContainerActivity()
     {
-        var currentActivity = Activity;
-
-        foreach (var pathSegment in _pathSegments)
-        {
-            var flowchart = currentActivity;
-            var activities = flowchart.GetActivities();
-            var childActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
-            var propName = pathSegment.PortName.Camelize();
-            var activity = childActivity.GetProperty(propName)!.AsObject();
-
-            currentActivity = activity;
-        }
-
-        return currentActivity;
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.EmbeddedActivity ?? Activity;
     }
 
-    private List<BreadcrumbItem> GetBreadcrumbItems()
+    private async Task DisplayCurrentSegmentAsync()
     {
-        return _pathSegments.Select((segment, index) =>
-        {
-            var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(segment.ActivityType);
-            var disabled = index == _pathSegments.Count - 1;
-            var item = new BreadcrumbItem(segment.ActivityId, $"#{segment.ActivityId}", disabled, displaySettings.Icon);
-            return item;
-        }).ToList();
+        var currentContainerActivity = GetCurrentContainerActivity();
+
+        if (_diagramDesigner == null)
+            return;
+
+        await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity);
     }
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
@@ -124,20 +163,16 @@ public partial class DiagramDesignerWrapper
             });
             var propName = args.PortName.Camelize();
             activity[propName] = embeddedActivity;
-            
+
             // Update the graph in the designer.
             await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
         }
-        
+
         // Create a new path segment of the container activity and push it onto the stack.
         var segment = new ActivityPathSegment(activity.GetId(), activity.GetTypeName(), args.PortName);
-        _pathSegments.Push(segment);
-        
-        // Display the current segment in the designer.
-        var currentActivity = GetCurrentContainerActivity();
-        await _diagramDesigner!.LoadRootActivity(currentActivity);
 
-        StateHasChanged();
+        await UpdatePathSegmentsAsync(segments => segments.Push(segment));
+        await DisplayCurrentSegmentAsync();
     }
 
     private async Task OnGraphUpdated()
@@ -153,22 +188,31 @@ public partial class DiagramDesignerWrapper
             var propName = currentSegment.PortName.Camelize();
             currentActivity[propName] = rootActivity;
         }
-        
+
         if (GraphUpdated != null)
             await GraphUpdated();
     }
 
-    private Task OnBreadcrumbItemClicked(BreadcrumbItem item)
+    private async Task OnBreadcrumbItemClicked(BreadcrumbItem item)
     {
-        var activityId = item.Href[1..];
-
-        while (_pathSegments.TryPop(out var segment))
+        if (item.Href == "#_root_")
         {
-            if (segment.ActivityId == activityId)
-                break;
+            await UpdatePathSegmentsAsync(segments => segments.Clear());
+            await DisplayCurrentSegmentAsync();
+            return;
         }
 
-        StateHasChanged();
-        return Task.CompletedTask;
+        var activityId = item.Href[1..];
+
+        await UpdatePathSegmentsAsync(segments =>
+        {
+            while (segments.TryPeek(out var segment))
+                if (segment.ActivityId == activityId)
+                    break;
+                else
+                    segments.Pop();
+        });
+
+        await DisplayCurrentSegmentAsync();
     }
 }

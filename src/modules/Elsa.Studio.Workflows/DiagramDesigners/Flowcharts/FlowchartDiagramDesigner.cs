@@ -13,7 +13,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     
     public bool IsInitialized => _designerWrapper != null;
 
-    public async Task LoadRootActivity(JsonObject activity)
+    public async Task LoadRootActivityAsync(JsonObject activity)
     {
         await _designerWrapper!.LoadFlowchartAsync(activity);
     }

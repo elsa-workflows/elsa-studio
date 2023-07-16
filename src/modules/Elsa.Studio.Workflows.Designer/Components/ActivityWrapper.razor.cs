@@ -48,21 +48,17 @@ public partial class ActivityWrapper
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
-
+        
         await UpdateSizeAsync();
     }
 
     private async Task UpdateSizeAsync()
     {
-        // If the activity has a size specified, don't attempt to calculate it.
-        var size = Activity.GetDesignerMetadata().Size;
-
-        if (size.Width > 0 || size.Height > 0)
-            return;
-
-            // Otherwise, update the activity node.
         if (!string.IsNullOrEmpty(ElementId))
-            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity);
+        {
+            var size = Activity.GetDesignerMetadata().Size;
+            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
+        }
     }
 
     private async Task OnEmbeddedActivityClicked(JsonObject childActivity)
@@ -76,10 +72,5 @@ public partial class ActivityWrapper
         var activity = Activity;
         var elementId = $"activity-{activity.GetId()}";
         await DesignerInterop.RaiseActivityEmbeddedPortSelectedAsync(elementId, activity, port.Name);
-    }
-
-    private Task OnChildActivityDragStart()
-    {
-        return Task.CompletedTask;
     }
 }

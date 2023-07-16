@@ -11,7 +11,7 @@ public class FallbackDiagramDesigner : IDiagramDesigner
 
     public bool IsInitialized => true;
 
-    public Task LoadRootActivity(JsonObject activity)
+    public Task LoadRootActivityAsync(JsonObject activity)
     {
         _activity = activity;
         return Task.CompletedTask;
