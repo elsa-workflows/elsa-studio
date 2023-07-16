@@ -41,7 +41,18 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
     }
 
-    public async Task LoadGraphAsync(X6Graph graph) => await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
+    public async Task LoadGraphAsync(X6Graph graph)
+    {
+        // Manual serialization to prevent reaching max depth when letting JS interop serialize the graph.
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            MaxDepth = 128
+        };
+        var json = JsonSerializer.Serialize(graph, options);
+        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, json));
+    }
+
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
     
