@@ -21,7 +21,6 @@ public partial class FlowchartDesignerWrapper
     [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
-    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
     internal FlowchartDesigner Designer { get; set; } = default!;
 

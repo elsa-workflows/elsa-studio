@@ -34,10 +34,10 @@ public partial class EmbeddedActivityWrapper
     protected override async Task OnInitializedAsync()
     {
         var activity = Activity;
-        var activityDisplayText = activity.GetDisplayText()?.Trim();
-        var activityDescription = activity.GetDescription()?.Trim();
         var activityType = activity.GetTypeName();
-        var descriptor = await ActivityRegistry.FindAsync(activityType);
+        var descriptor = (await ActivityRegistry.FindAsync(activityType))!;
+        var activityDisplayText = activity.GetDisplayText()?.Trim() ?? activity.GetName() ?? descriptor.DisplayName;
+        var activityDescription = activity.GetDescription()?.Trim();
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
         _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
@@ -45,6 +45,6 @@ public partial class EmbeddedActivityWrapper
         _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
-        _activityDescriptor = descriptor!;
+        _activityDescriptor = descriptor;
     }
 }

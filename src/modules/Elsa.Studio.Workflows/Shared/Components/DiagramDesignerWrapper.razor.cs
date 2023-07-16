@@ -43,9 +43,19 @@ public partial class DiagramDesignerWrapper
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
 
-    public Task UpdateActivityAsync(string activityId, JsonObject activity)
+    public async Task UpdateActivityAsync(string activityId, JsonObject activity)
     {
-        return _diagramDesigner!.UpdateActivityAsync(activityId, activity);
+        var currentContainer = GetCurrentContainerActivity();
+
+        if (currentContainer == activity)
+        {
+            if(GraphUpdated != null)
+                await GraphUpdated();
+            
+            return;
+        }
+        
+        await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
     protected override async Task OnInitializedAsync()

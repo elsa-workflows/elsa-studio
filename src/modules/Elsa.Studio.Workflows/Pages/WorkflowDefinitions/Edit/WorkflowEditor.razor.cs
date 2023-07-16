@@ -45,7 +45,6 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -88,8 +87,7 @@ public partial class WorkflowEditor
     {
         if (WorkflowDefinition?.Root == null)
             return;
-
-        //_diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
+        
         await SelectActivity(WorkflowDefinition.Root);
     }
 

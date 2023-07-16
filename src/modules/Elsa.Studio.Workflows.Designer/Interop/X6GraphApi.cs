@@ -32,7 +32,6 @@ public class X6GraphApi
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         
@@ -43,14 +42,7 @@ public class X6GraphApi
 
     public async Task LoadGraphAsync(X6Graph graph)
     {
-        // Manual serialization to prevent reaching max depth when letting JS interop serialize the graph.
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            MaxDepth = 128
-        };
-        var json = JsonSerializer.Serialize(graph, options);
-        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, json));
+        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
     }
 
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
@@ -62,7 +54,7 @@ public class X6GraphApi
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(_serviceProvider));
+        
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
 
