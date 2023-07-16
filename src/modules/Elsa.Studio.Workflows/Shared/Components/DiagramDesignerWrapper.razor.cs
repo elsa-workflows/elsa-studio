@@ -96,20 +96,14 @@ public partial class DiagramDesignerWrapper
             var currentActivity = segment.Activity;
             var activityTypeName = currentActivity.GetTypeName();
             var activityDescriptor = (await ActivityRegistry.FindAsync(activityTypeName))!;
-            var embeddedPortCount = activityDescriptor.Ports.Count(x => x.Type == PortType.Embedded);
+            var embeddedPort = activityDescriptor.Ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
             var disabled = segment == resolvedPath.Last();
-            var displayText = currentActivity.GetName() ?? activityDescriptor.DisplayName;
-            var activityBreadcrumbItem = new BreadcrumbItem(displayText, $"#{currentActivity.GetId()}", disabled, displaySettings.Icon);
+            var activityDisplayText = currentActivity.GetName() ?? activityDescriptor.DisplayName;
+            var breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
+            var activityBreadcrumbItem = new BreadcrumbItem(breadcrumbDisplayText, $"#{currentActivity.GetId()}", disabled, displaySettings.Icon);
 
             breadcrumbItems.Add(activityBreadcrumbItem);
-
-            if (embeddedPortCount <= 1)
-                continue;
-
-            var embeddedPort = activityDescriptor.Ports.First(x => x.Name == segment.PortName);
-            var embeddedPortBreadcrumbItem = new BreadcrumbItem(embeddedPort.DisplayName, "#", true);
-            breadcrumbItems.Add(embeddedPortBreadcrumbItem);
         }
 
         return breadcrumbItems;
