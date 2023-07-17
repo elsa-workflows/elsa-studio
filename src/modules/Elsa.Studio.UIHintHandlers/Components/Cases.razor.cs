@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
@@ -14,14 +16,14 @@ public partial class Cases
 {
     private readonly string[] _uiSyntaxes = { "Literal", "Object" };
     
-    private CaseRecord? _caseBeingEdited;
-    private CaseRecord? _caseBeingAdded;
-    private MudTable<CaseRecord> _table = default!;
+    private SwitchCaseRecord? _caseBeingEdited;
+    private SwitchCaseRecord? _caseBeingAdded;
+    private MudTable<SwitchCaseRecord> _table = default!;
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
     
-    private ICollection<CaseRecord> Items { get; set; } = new List<CaseRecord>();
+    private ICollection<SwitchCaseRecord> Items { get; set; } = new List<SwitchCaseRecord>();
     private bool DisableAddButton => _caseBeingEdited != null || _caseBeingAdded != null;
 
     protected override void OnParametersSet()
@@ -29,7 +31,7 @@ public partial class Cases
         Items = GetItems();
     }
 
-    private ICollection<CaseRecord> GetItems()
+    private ICollection<SwitchCaseRecord> GetItems()
     {
         var input = EditorContext.GetObjectValueOrDefault();
         var cases = ParseJson(input);
@@ -37,7 +39,7 @@ public partial class Cases
         return caseRecords;
     }
 
-    private IEnumerable<FlowSwitchCase> ParseJson(string? json)
+    private IEnumerable<SwitchCase> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {
@@ -45,7 +47,7 @@ public partial class Cases
         };
 
         options.Converters.Add(new ExpressionJsonConverterFactory());
-        return JsonParser.ParseJson(json, () => new List<FlowSwitchCase>(), options);
+        return JsonParser.ParseJson(json, () => new List<SwitchCase>(), options);
     }
     
     private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
@@ -56,27 +58,29 @@ public partial class Cases
             yield return new SyntaxDescriptor(syntax, syntax);
     }
 
-    private CaseRecord Map(FlowSwitchCase @case)
+    private SwitchCaseRecord Map(SwitchCase @case)
     {
         var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(@case.Condition.GetType());
 
-        return new CaseRecord
+        return new SwitchCaseRecord
         {
             Label = @case.Label,
             Condition = @case.Condition.ToString() ?? string.Empty,
-            Syntax = syntaxProvider.SyntaxName
+            Syntax = syntaxProvider.SyntaxName,
+            Activity = @case.Activity
         };
     }
     
-    private FlowSwitchCase Map(CaseRecord @case)
+    private SwitchCase Map(SwitchCaseRecord switchCase)
     {
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(@case.Syntax);
-        var expression = syntaxProvider.CreateExpression(@case.Condition);
+        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(switchCase.Syntax);
+        var expression = syntaxProvider.CreateExpression(switchCase.Condition);
         
-        return new FlowSwitchCase
+        return new SwitchCase
         {
-            Label = @case.Label,
-            Condition = expression
+            Label = switchCase.Label,
+            Condition = expression,
+            Activity = switchCase.Activity
         };
     }
 
@@ -85,17 +89,6 @@ public partial class Cases
         var cases = Items.Select(Map).ToList();
         
         await EditorContext.UpdateValueAsync(cases);
-    }
-    
-    private Task<TableData<CaseRecord>> LoadItems(TableState arg)
-    {
-        var data = new TableData<CaseRecord>
-        {
-            Items = Items,
-            TotalItems = Items.Count
-        };
-
-        return Task.FromResult(data);
     }
 
     private async void OnRowEditCommitted(object data)
@@ -108,8 +101,8 @@ public partial class Cases
 
     private void OnRowEditPreview(object obj)
     {
-        var @case = (CaseRecord)obj;
-        _caseBeingEdited = new CaseRecord
+        var @case = (SwitchCaseRecord)obj;
+        _caseBeingEdited = new SwitchCaseRecord
         {
             Label = @case.Label,
             Condition = @case.Condition,
@@ -130,7 +123,7 @@ public partial class Cases
             return;
         }
         
-        var @case = (CaseRecord)obj;
+        var @case = (SwitchCaseRecord)obj;
         @case.Condition = _caseBeingEdited?.Condition ?? "";
         @case.Label = _caseBeingEdited?.Label ?? "";
         @case.Syntax = _caseBeingEdited?.Syntax ?? "";
@@ -138,15 +131,15 @@ public partial class Cases
         StateHasChanged();
     }
 
-    private async Task OnDeleteClicked(CaseRecord @case)
+    private async Task OnDeleteClicked(SwitchCaseRecord switchCase)
     {
-        Items.Remove(@case);
+        Items.Remove(switchCase);
         await SaveChangesAsync();
     }
 
-    private async Task OnAddClicked()
+    private void OnAddClicked()
     {
-        var @case = new CaseRecord
+        var @case = new SwitchCaseRecord
         {
             Label = $"Case {Items.Count + 1}",
             Condition = "",
@@ -157,7 +150,7 @@ public partial class Cases
         _caseBeingAdded = @case;
 
         // Need to do it this way, otherwise MudTable doesn't show the item in edit mode.
-        _ = Task.Delay(10).ContinueWith(_ =>
+        _ = Task.Delay(1).ContinueWith(_ =>
         {
             InvokeAsync(() =>
             {
@@ -168,9 +161,14 @@ public partial class Cases
     }
 }
 
-public class CaseRecord
+public class SwitchCaseRecord
 {
     public string Label { get; set; } = string.Empty;
     public string Condition { get; set; } = string.Empty;
     public string Syntax { get; set; } = "JavaScript";
+    
+    /// <summary>
+    /// When used in a <see cref="Switch"/> activity, specifies the activity to schedule when the condition evaluates to true.
+    /// </summary>
+    public JsonObject? Activity { get; set; }
 }
