@@ -19,9 +19,9 @@ public partial class Cases
     private MudTable<CaseRecord> _table = default!;
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    [Parameter] public ICollection<CaseRecord> Items { get; set; } = new List<CaseRecord>();
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
     
+    private ICollection<CaseRecord> Items { get; set; } = new List<CaseRecord>();
     private bool DisableAddButton => _caseBeingEdited != null || _caseBeingAdded != null;
 
     protected override void OnParametersSet()
@@ -86,6 +86,17 @@ public partial class Cases
         
         await EditorContext.UpdateValueAsync(cases);
     }
+    
+    private Task<TableData<CaseRecord>> LoadItems(TableState arg)
+    {
+        var data = new TableData<CaseRecord>
+        {
+            Items = Items,
+            TotalItems = Items.Count
+        };
+
+        return Task.FromResult(data);
+    }
 
     private async void OnRowEditCommitted(object data)
     {
@@ -143,11 +154,17 @@ public partial class Cases
         };
 
         Items.Add(@case);
-        await SaveChangesAsync();
         _caseBeingAdded = @case;
-        _table.SetEditingItem(@case);
-        StateHasChanged();
 
+        // Need to do it this way, otherwise MudTable doesn't show the item in edit mode.
+        _ = Task.Delay(10).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                _table.SetEditingItem(@case);
+                StateHasChanged();
+            });
+        });
     }
 }
 
