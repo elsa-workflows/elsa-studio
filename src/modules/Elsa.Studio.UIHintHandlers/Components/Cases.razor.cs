@@ -37,7 +37,7 @@ public partial class Cases
         return caseRecords;
     }
 
-    private IEnumerable<Case> ParseJson(string? json)
+    private IEnumerable<FlowSwitchCase> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {
@@ -45,7 +45,7 @@ public partial class Cases
         };
 
         options.Converters.Add(new ExpressionJsonConverterFactory());
-        return JsonParser.ParseJson(json, () => new List<Case>(), options);
+        return JsonParser.ParseJson(json, () => new List<FlowSwitchCase>(), options);
     }
     
     private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
@@ -56,7 +56,7 @@ public partial class Cases
             yield return new SyntaxDescriptor(syntax, syntax);
     }
 
-    private CaseRecord Map(Case @case)
+    private CaseRecord Map(FlowSwitchCase @case)
     {
         var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(@case.Condition.GetType());
 
@@ -68,12 +68,12 @@ public partial class Cases
         };
     }
     
-    private Case Map(CaseRecord @case)
+    private FlowSwitchCase Map(CaseRecord @case)
     {
         var syntaxProvider = SyntaxService.GetSyntaxProviderByName(@case.Syntax);
         var expression = syntaxProvider.CreateExpression(@case.Condition);
         
-        return new Case
+        return new FlowSwitchCase
         {
             Label = @case.Label,
             Condition = expression

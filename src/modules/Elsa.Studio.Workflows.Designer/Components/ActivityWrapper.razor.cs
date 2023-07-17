@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -20,6 +21,7 @@ public partial class ActivityWrapper
     private string _color = default!;
     private string? _icon;
     private ActivityDescriptor _activityDescriptor = default!;
+    private ICollection<Port> _ports = new List<Port>();
 
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = default!;
@@ -29,6 +31,7 @@ public partial class ActivityWrapper
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
+    [Inject] IActivityPortService ActivityPortService { get; set; } = default!;
     [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
@@ -48,6 +51,7 @@ public partial class ActivityWrapper
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
+        _ports = ActivityPortService.GetPorts(new PortProviderContext(descriptor!, activity)).ToList();
         
         await UpdateSizeAsync();
     }

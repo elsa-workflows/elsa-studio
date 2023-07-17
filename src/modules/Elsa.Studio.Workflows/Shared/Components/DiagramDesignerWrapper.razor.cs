@@ -1,9 +1,12 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Args;
 using Elsa.Studio.Workflows.Designer;
+using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -18,6 +21,7 @@ public partial class DiagramDesignerWrapper
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private List<BreadcrumbItem> _breadcrumbItems = new();
+    private IDictionary<string, ActivityDescriptor> _activityDescriptors = new Dictionary<string, ActivityDescriptor>();
 
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
@@ -27,6 +31,7 @@ public partial class DiagramDesignerWrapper
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
+    [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
 
@@ -49,17 +54,18 @@ public partial class DiagramDesignerWrapper
 
         if (currentContainer == activity)
         {
-            if(GraphUpdated != null)
+            if (GraphUpdated != null)
                 await GraphUpdated();
-            
+
             return;
         }
-        
+
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
     protected override async Task OnInitializedAsync()
     {
+        _activityDescriptors = (await ActivityRegistry.ListAsync()).ToDictionary(x => x.TypeName);
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
@@ -73,10 +79,15 @@ public partial class DiagramDesignerWrapper
             var flowchart = currentContainer;
             var activities = flowchart.GetActivities();
             var currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
-            var propName = pathSegment.PortName.Camelize();
-            currentContainer = currentActivity.GetProperty(propName)!.AsObject();
+            var portName = pathSegment.PortName;
+            var activityTypeName = currentActivity.GetTypeName();
+            var portProvider = ActivityPortService.GetProvider(activityTypeName);
+            var activityDescriptor = _activityDescriptors[activityTypeName];
 
-            yield return new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
+            currentContainer = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, currentActivity))!;
+
+            var segment = new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
+            yield return segment;
         }
     }
 
@@ -106,7 +117,9 @@ public partial class DiagramDesignerWrapper
             var currentActivity = segment.Activity;
             var activityTypeName = currentActivity.GetTypeName();
             var activityDescriptor = (await ActivityRegistry.FindAsync(activityTypeName))!;
-            var embeddedPort = activityDescriptor.Ports.First(x => x.Name == segment.PortName);
+            var portProvider = ActivityPortService.GetProvider(activityTypeName);
+            var ports = portProvider.GetPorts(new PortProviderContext(activityDescriptor, currentActivity));
+            var embeddedPort = ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
             var disabled = segment == resolvedPath.Last();
             var activityDisplayText = currentActivity.GetName() ?? activityDescriptor.DisplayName;
@@ -144,7 +157,10 @@ public partial class DiagramDesignerWrapper
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
         var activity = args.Activity;
-        var embeddedActivity = activity.GetProperty(args.PortName)?.AsObject();
+        var portName = args.PortName;
+        var activityDescriptor = _activityDescriptors[activity.GetTypeName()];
+        var portProvider = ActivityPortService.GetProvider(activity.GetTypeName());
+        var embeddedActivity = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, activity));
 
         if (embeddedActivity != null)
         {
@@ -165,8 +181,8 @@ public partial class DiagramDesignerWrapper
                 ["version"] = 1,
                 ["name"] = "Flowchart1",
             });
-            var propName = args.PortName.Camelize();
-            activity[propName] = embeddedActivity;
+
+            portProvider.AssignPort(args.PortName, embeddedActivity, new PortProviderContext(activityDescriptor, activity));
 
             // Update the graph in the designer.
             await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
@@ -189,8 +205,10 @@ public partial class DiagramDesignerWrapper
             Activity = rootActivity;
         else
         {
-            var propName = currentSegment.PortName.Camelize();
-            currentActivity[propName] = rootActivity;
+            var portName = currentSegment.PortName;
+            var portProvider = ActivityPortService.GetProvider(currentActivity.GetTypeName());
+            var activityDescriptor = _activityDescriptors[currentActivity.GetTypeName()];
+            portProvider.AssignPort(portName, rootActivity, new PortProviderContext(activityDescriptor, currentActivity));
         }
 
         if (GraphUpdated != null)

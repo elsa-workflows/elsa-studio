@@ -21,7 +21,7 @@ public abstract class ActivityPortProviderBase : IActivityPortProvider
         return activity.GetProperty(propName)?.AsObject();
     }
 
-    public virtual void AssignPort(string portName, JsonObject? activity, PortProviderContext context)
+    public virtual void AssignPort(string portName, JsonObject activity, PortProviderContext context)
     {
         var container = context.Activity;
         var propName = portName.Camelize();

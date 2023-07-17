@@ -3,6 +3,7 @@
 @using Elsa.Api.Client.Extensions
 @using System.Text.Json
 @using Elsa.Api.Client.Converters
+@using Elsa.Studio.Workflows.Domain.Contexts
 @{
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
@@ -19,20 +20,14 @@
         <MudStack Style="height:100%" Justify="Justify.Center">
             <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
 
-            @if (_activityDescriptor.Ports.Any(x => x.Type == PortType.Embedded))
+            @if (_ports.Any(x => x.Type == PortType.Embedded))
             {
                 <MudStack Row="true">
-                    @foreach (var port in _activityDescriptor.Ports.Where(x => x.Type == PortType.Embedded))
+                    @foreach (var port in _ports.Where(x => x.Type == PortType.Embedded))
                     {
-                        var propName = port.Name.Camelize();
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                        };
-                        
-                        options.Converters.Add(new ExpressionJsonConverterFactory());
-
-                        var childActivity = Activity.GetProperty(propName)?.AsObject();
+                        var portName = port.Name;
+                        var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
+                        var childActivity = portProvider.ResolvePort(portName, new PortProviderContext(_activityDescriptor, Activity));
 
                         @if (childActivity != null)
                         {
