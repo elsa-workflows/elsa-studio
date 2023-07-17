@@ -77,4 +77,12 @@ public partial class ActivityWrapper
         var elementId = $"activity-{activity.GetId()}";
         await DesignerInterop.RaiseActivityEmbeddedPortSelectedAsync(elementId, activity, port.Name);
     }
+
+    private async Task OnDeleteEmbeddedActivityClicked(string portName)
+    {
+        var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
+        var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+        portProvider.ClearPort(portName, providerContext);
+        await UpdateSizeAsync();
+    }
 }

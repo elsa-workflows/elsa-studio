@@ -31,19 +31,17 @@
 
                         @if (childActivity != null)
                         {
-                            <MudField Label="@port.DisplayName" Variant="Variant.Outlined">
-                                <div id="@($"activity-{childActivity.GetId()}")" class="embedded-port embedded-port-occupied" data-port-name="@port.Name" @onclick="@(async () => await OnEmbeddedActivityClicked(childActivity))">
+                            <MudField Label="@port.DisplayName" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                <div id="@($"activity-{childActivity.GetId()}")" class="embedded-port embedded-port-occupied cursor-pointer" data-port-name="@port.Name">
                                     <EmbeddedActivityWrapper ActivityId="@childActivity.GetId()" Activity="childActivity" IsSelected="@(SelectedPortName == port.Name)"/>
                                 </div>
                             </MudField>
                         }
                         else
                         {
-                            <a @onclick="@(() => OnEmptyPortClicked(port))" @onclick:preventDefault>
-                                <MudPaper Elevation="0" Class="embedded-port pa-4" data-port-name="@port.Name" Style="border: 1px dashed var(--mud-palette-lines-default)">
-                                    @port.DisplayName
-                                </MudPaper>
-                            </a>
+                            <MudPaper Elevation="0" Class="embedded-port pa-4 cursor-pointer" data-port-name="@port.Name" Style="border: 1px dashed var(--mud-palette-lines-default)">
+                                @port.DisplayName
+                            </MudPaper>
                         }
                     }
                 </MudStack>

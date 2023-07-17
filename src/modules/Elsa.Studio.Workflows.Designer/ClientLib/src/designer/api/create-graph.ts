@@ -20,48 +20,48 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         container: containerElement,
         autoResize: true,
         embedding: {
-            enabled: false,
-            findParent(arg: any) {
-                const sourceNode = arg.node as Node.Properties;
-                const sourceBox = sourceNode.getBBox();
-                return this.getNodes().filter((targetNode) => {
-                    const targetBBox = targetNode.getBBox()
-
-                    // Does the source activity node intersect with the target activity node?
-                    if (!sourceBox.isIntersectWithRect(targetBBox))
-                        return false;
-
-                    const targetNodeId = targetNode.id;
-                    const targetActivityElementId = `activity-${targetNodeId}`;
-                    const targetNodeElement = document.getElementById(targetActivityElementId);
-
-                    // Does the target activity element exist?
-                    if (!targetNodeElement)
-                        return false;
-
-                    // Does the target activity contains embedded ports?
-                    const embeddedPortElements = targetNodeElement.querySelectorAll('.embedded-port');
-
-                    if (embeddedPortElements.length == 0)
-                        return false;
-
-                    // Check which of the embedded ports intersect with the source activity node.
-                    for (let i = 0; i < embeddedPortElements.length; i++) {
-                        const embeddedPortElement = embeddedPortElements[i];
-                        const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
-                        const embeddedPortElementBBox = graph.pageToLocal(embeddedPortElementRect);
-
-                        if (!sourceBox.isIntersectWithRect(embeddedPortElementBBox))
-                            continue;
-
-                        const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
-                        sourceNode.setProp(`embeddedPortName`, embeddedPortName);
-                        return true;
-                    }
-
-                    return false
-                })
-            },
+            // enabled: true,
+            // findParent(arg: any) {
+            //     const sourceNode = arg.node as Node.Properties;
+            //     const sourceBox = sourceNode.getBBox();
+            //     return this.getNodes().filter((targetNode) => {
+            //         const targetBBox = targetNode.getBBox()
+            //
+            //         // Does the source activity node intersect with the target activity node?
+            //         if (!sourceBox.isIntersectWithRect(targetBBox))
+            //             return false;
+            //
+            //         const targetNodeId = targetNode.id;
+            //         const targetActivityElementId = `activity-${targetNodeId}`;
+            //         const targetNodeElement = document.getElementById(targetActivityElementId);
+            //
+            //         // Does the target activity element exist?
+            //         if (!targetNodeElement)
+            //             return false;
+            //
+            //         // Does the target activity contains embedded ports?
+            //         const embeddedPortElements = targetNodeElement.querySelectorAll('.embedded-port');
+            //
+            //         if (embeddedPortElements.length == 0)
+            //             return false;
+            //
+            //         // Check which of the embedded ports intersect with the source activity node.
+            //         for (let i = 0; i < embeddedPortElements.length; i++) {
+            //             const embeddedPortElement = embeddedPortElements[i];
+            //             const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
+            //             const embeddedPortElementBBox = graph.pageToLocal(embeddedPortElementRect);
+            //
+            //             if (!sourceBox.isIntersectWithRect(embeddedPortElementBBox))
+            //                 continue;
+            //
+            //             const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
+            //             sourceNode.setProp(`embeddedPortName`, embeddedPortName);
+            //             return true;
+            //         }
+            //
+            //         return false
+            //     })
+            // },
         },
         grid: {
             type: 'mesh',
@@ -273,11 +273,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             if (!embeddedPortElementBBox.containsPoint(mousePosition))
                 continue;
 
-            // Mark the noe as unselected as to focus on the embedded port.
+            // Mark the node as unselected.
             if(graph.isSelected(node)) {
                 graph.unselect(node);
             }
-            
+
             const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
             node.setProp('selected-port', embeddedPortName);
             lastSelectedNode = node;
@@ -298,9 +298,9 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
     graph.on('node:selected', async args => {
         const {node} = args;
-        
-        if(!silent)
-            graph.unselect(node);
+
+        // if(!silent)
+        //     graph.unselect(node);
     });
 
     graph.on('node:change:parent', e => {
@@ -319,18 +319,18 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         parentActivity[propName] = childActivity;
 
         requestAnimationFrame(async () => {
-            // // Delete the node itself during the next animation frame. Doing it immediately doesn't cause X6 to update the graph.
-            // node.remove({deep: true});
+            // Delete the node itself during the next animation frame. Doing it immediately doesn't cause X6 to update the graph.
+            node.remove({deep: true});
 
             // Trigger a repaint of the parent node.
             debugger;
             parent.setData(parentActivity, {overwrite: true});
         });
-    })
+    });
 
     const onGraphUpdated = async (e: any) => {
         await interop.raiseGraphUpdated();
-    }
+    };
 
     const onNodeRemoved = async (e: any) => {
         const activity = e.node.data as Activity;

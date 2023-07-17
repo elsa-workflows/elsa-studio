@@ -27,4 +27,11 @@ public abstract class ActivityPortProviderBase : IActivityPortProvider
         var propName = portName.Camelize();
         container.SetProperty(activity, propName);
     }
+
+    public virtual void ClearPort(string portName, PortProviderContext context)
+    {
+        var container = context.Activity;
+        var propName = portName.Camelize();
+        container.Remove(propName);
+    }
 }

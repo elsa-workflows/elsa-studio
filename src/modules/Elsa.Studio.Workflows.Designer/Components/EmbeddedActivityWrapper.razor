@@ -2,10 +2,9 @@
     var colorStyle = IsSelected ? $"color: {_color};" : "";
 }
 <MudPaper
-    Class="elsa-activity-embedded pa-3"
+    Class="elsa-activity-embedded pa-1"
     Elevation="0"
     Outlined="false"
-    Style="@($"border: 1px dashed {(IsSelected ? _color : "transparent")}")"
 >
     <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
         @if (_icon != null)

@@ -40,4 +40,11 @@ public interface IActivityPortProvider
     /// <param name="activity">The activity to assign.</param>
     /// <param name="context">The context.</param>
     void AssignPort(string portName, JsonObject activity, PortProviderContext context);
+
+    /// <summary>
+    /// Clears the specified port.
+    /// </summary>
+    /// <param name="portName">The name of the port.</param>
+    /// <param name="context">The context.</param>
+    void ClearPort(string portName, PortProviderContext context);
 }

@@ -19,13 +19,14 @@
 <div class="ma-2">
     <MudBreadcrumbs Items="_breadcrumbItems" Style="padding: 6px;">
         <ItemTemplate>
-            <MudLink OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">
+            <MudLink Color="Color.Default" OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">
                 @if (context.Icon != null)
                 {
                     <MudIcon Icon="@context.Icon"/>
                 }
                 @context.Text
             </MudLink>
+
         </ItemTemplate>
         <SeparatorTemplate>
             <div class="d-flex align-content-center">

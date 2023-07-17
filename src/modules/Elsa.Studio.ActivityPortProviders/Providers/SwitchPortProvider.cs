@@ -48,7 +48,18 @@ public class SwitchPortProvider : ActivityPortProviderBase
 
         SetActivity(@case, activity);
     }
-    
+
+    public override void ClearPort(string portName, PortProviderContext context)
+    {
+        var cases = GetCases(context.Activity).ToList();
+        var @case = cases.FirstOrDefault(x => GetLabel(x) == portName);
+        
+        if (@case == null)
+            return;
+
+        SetActivity(@case, null);
+    }
+
     private string GetLabel(JsonObject @case) => @case.GetProperty("label")?.GetValue<string>()!;
     private JsonObject? GetActivity(JsonObject @case) => @case.GetProperty("activity")?.AsObject();
     private void SetActivity(JsonObject @case, JsonObject? activity) => @case.SetProperty(activity, "activity");

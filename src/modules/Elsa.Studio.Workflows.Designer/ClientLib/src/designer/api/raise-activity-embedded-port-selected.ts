@@ -13,6 +13,6 @@ export async function raiseActivityEmbeddedPortSelected(elementId: string, activ
 
     // Get graph reference.
     const {interop} = graphBindings[graphId];
-
+    
     await interop.raiseActivityEmbeddedPortSelected(activity, portName);
 }

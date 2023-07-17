@@ -30,7 +30,6 @@ export class DotNetFlowchartDesigner {
     /// Raises the <see cref="GraphUpdated"/> event.
     /// </summary>
     async raiseGraphUpdated() : Promise<void> {
-        debugger;
         await this.componentRef.invokeMethodAsync('HandleGraphUpdated');
     }
 }
