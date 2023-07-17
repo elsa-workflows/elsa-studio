@@ -147,6 +147,7 @@ public partial class Cases
         _caseBeingAdded = @case;
         _table.SetEditingItem(@case);
         StateHasChanged();
+
     }
 }
 

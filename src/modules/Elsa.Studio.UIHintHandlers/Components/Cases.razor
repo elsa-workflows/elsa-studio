@@ -13,8 +13,7 @@
         CanCancelEdit="true"
         RowEditPreview="OnRowEditPreview"
         RowEditCancel="OnRowEditCancel"
-        RowEditCommit="OnRowEditCommitted"
-    >
+        RowEditCommit="OnRowEditCommitted">
         <HeaderContent>
             <MudTh Style="width: 25%">Label</MudTh>
             <MudTh Style="width: 50%;">Condition</MudTh>
@@ -53,7 +52,7 @@
     </MudTable>
     @if (Items.Any())
     {
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton)" OnClick="OnAddClicked" >
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton)" OnClick="OnAddClicked">
             Add case
         </MudButton>
     }
