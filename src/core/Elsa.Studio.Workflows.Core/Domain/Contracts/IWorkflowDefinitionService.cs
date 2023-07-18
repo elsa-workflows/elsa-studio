@@ -13,6 +13,7 @@ public interface IWorkflowDefinitionService
     Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);

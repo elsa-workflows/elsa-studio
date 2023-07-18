@@ -13,6 +13,7 @@ public partial class VersionHistoryTab : IDisposable
     [Parameter] public string DefinitionId { get; set; } = default!;
     [CascadingParameter] public Workspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
 
@@ -62,20 +63,28 @@ public partial class VersionHistoryTab : IDisposable
             Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
         }
     }
-
-    private async Task OnWorkflowDefinitionUpdated()
+    
+    private async Task ReloadTableAsync()
     {
         await Table.ReloadServerData();
     }
+
+    private async Task OnWorkflowDefinitionUpdated() => await ReloadTableAsync();
 
     private async Task OnViewClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         await ViewVersion(workflowDefinitionSummary);
     }
 
-    private Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
+    private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        return Task.CompletedTask;
+        var confirmed = await DialogService.ShowMessageBox("Delete version", "Are you sure you want to delete this version?");
+        
+        if(confirmed != true)
+            return;
+        
+        await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionSummary.Id);
+        await ReloadTableAsync();
     }
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)

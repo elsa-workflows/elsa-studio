@@ -77,6 +77,23 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         }
     }
 
+    public async Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _backendConnectionProvider
+                .GetApi<IWorkflowDefinitionsApi>()
+                .DeleteVersionAsync(id, cancellationToken);
+
+            await _mediator.NotifyAsync(new WorkflowDefinitionVersionDeleted(id), cancellationToken);
+            return true;
+        }
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var definition = await _backendConnectionProvider
