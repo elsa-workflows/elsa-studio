@@ -48,5 +48,14 @@
             </div>
         }
     </MudTabPanel>
+    
+    @if (IsWorkflowAsActivity)
+    {
+        <MudTabPanel Text="Version">
+            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+                <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated" />
+            </div>
+        </MudTabPanel>
+    }
 
 </MudTabs>
