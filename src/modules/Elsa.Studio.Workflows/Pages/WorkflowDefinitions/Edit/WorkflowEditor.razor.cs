@@ -85,10 +85,12 @@ public partial class WorkflowEditor
 
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         if (WorkflowDefinition?.Root == null)
             return;
         
-        await SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(bool readDiagram, bool publish)
@@ -210,11 +212,11 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task SelectActivity(JsonObject activity)
+    private void SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.GetTypeName());
+        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         StateHasChanged();
     }
     
@@ -226,9 +228,10 @@ public partial class WorkflowEditor
             await WorkflowDefinitionUpdated();
     }
 
-    private async Task OnActivitySelected(JsonObject activity)
+    private Task OnActivitySelected(JsonObject activity)
     {
-        await SelectActivity(activity);
+        SelectActivity(activity);
+        return Task.CompletedTask;
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -308,7 +311,6 @@ public partial class WorkflowEditor
 
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-        //serializerOptions.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
 
         var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;

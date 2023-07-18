@@ -21,7 +21,6 @@ public partial class DiagramDesignerWrapper
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private List<BreadcrumbItem> _breadcrumbItems = new();
-    private IDictionary<string, ActivityDescriptor> _activityDescriptors = new Dictionary<string, ActivityDescriptor>();
 
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
@@ -65,7 +64,7 @@ public partial class DiagramDesignerWrapper
 
     protected override async Task OnInitializedAsync()
     {
-        _activityDescriptors = (await ActivityRegistry.ListAsync()).ToDictionary(x => x.TypeName);
+        await ActivityRegistry.EnsureLoadedAsync();
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
@@ -81,8 +80,9 @@ public partial class DiagramDesignerWrapper
             var currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
             var portName = pathSegment.PortName;
             var activityTypeName = currentActivity.GetTypeName();
+            var activityVersion = currentActivity.GetVersion();
             var portProvider = ActivityPortService.GetProvider(activityTypeName);
-            var activityDescriptor = _activityDescriptors[activityTypeName];
+            var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
 
             currentContainer = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, currentActivity))!;
 
@@ -116,7 +116,8 @@ public partial class DiagramDesignerWrapper
         {
             var currentActivity = segment.Activity;
             var activityTypeName = currentActivity.GetTypeName();
-            var activityDescriptor = (await ActivityRegistry.FindAsync(activityTypeName))!;
+            var activityVersion = currentActivity.GetVersion();
+            var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
             var portProvider = ActivityPortService.GetProvider(activityTypeName);
             var ports = portProvider.GetPorts(new PortProviderContext(activityDescriptor, currentActivity));
             var embeddedPort = ports.First(x => x.Name == segment.PortName);
@@ -158,7 +159,9 @@ public partial class DiagramDesignerWrapper
     {
         var activity = args.Activity;
         var portName = args.PortName;
-        var activityDescriptor = _activityDescriptors[activity.GetTypeName()];
+        var activityTypeName = activity.GetTypeName();
+        var activityVersion = activity.GetVersion();
+        var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
         var portProvider = ActivityPortService.GetProvider(activity.GetTypeName());
         var embeddedActivity = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, activity));
 
@@ -207,7 +210,9 @@ public partial class DiagramDesignerWrapper
         {
             var portName = currentSegment.PortName;
             var portProvider = ActivityPortService.GetProvider(currentActivity.GetTypeName());
-            var activityDescriptor = _activityDescriptors[currentActivity.GetTypeName()];
+            var activityTypeName = currentActivity.GetTypeName();
+            var activityVersion = currentActivity.GetVersion();
+            var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
             portProvider.AssignPort(portName, rootActivity, new PortProviderContext(activityDescriptor, currentActivity));
         }
 
@@ -224,7 +229,7 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
-        var activityId = item.Href[1..];
+        var activityId = item.Href![1..];
 
         await UpdatePathSegmentsAsync(segments =>
         {

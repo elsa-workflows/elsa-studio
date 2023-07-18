@@ -15,7 +15,8 @@ public static class ServiceCollectionExtensions
         services
             .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddSingleton<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
-            .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
+            .AddSingleton<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
+            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
             .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
             .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()
             .AddSingleton<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()

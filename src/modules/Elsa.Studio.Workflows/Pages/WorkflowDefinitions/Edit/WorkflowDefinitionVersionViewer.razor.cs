@@ -23,7 +23,6 @@ public partial class WorkflowDefinitionVersionViewer
 
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
@@ -34,7 +33,7 @@ public partial class WorkflowDefinitionVersionViewer
     public string? SelectedActivityId { get; set; }
     private Pages.WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
-    public RadzenSplitterPane ActivityPropertiesPane
+    private RadzenSplitterPane ActivityPropertiesPane
     {
         get => _activityPropertiesPane;
         set
@@ -48,10 +47,12 @@ public partial class WorkflowDefinitionVersionViewer
     
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         if (WorkflowDefinition?.Root == null)
             return;
         
-        await SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(WorkflowDefinition.Root);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -62,7 +63,7 @@ public partial class WorkflowDefinitionVersionViewer
         if(_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
         
-        await SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(WorkflowDefinition.Root);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -74,19 +75,20 @@ public partial class WorkflowDefinitionVersionViewer
             await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
     }
 
-    private async Task SelectActivity(JsonObject activity)
+    private void SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.GetTypeName());
+        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName());
         StateHasChanged();
     }
     
-    private async Task OnActivitySelected(JsonObject activity)
+    private Task OnActivitySelected(JsonObject activity)
     {
-        await SelectActivity(activity);
+        SelectActivity(activity);
+        return Task.CompletedTask;
     }
-    
+
     private async Task OnDownloadClicked()
     {
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(WorkflowDefinition.Version));

@@ -9,6 +9,7 @@ using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
@@ -17,11 +18,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
     private readonly IActivityIdGenerator _activityIdGenerator;
+    private readonly IMediator _mediator;
 
-    public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider, IActivityIdGenerator activityIdGenerator)
+    public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider, IActivityIdGenerator activityIdGenerator, IMediator mediator)
     {
         _backendConnectionProvider = backendConnectionProvider;
         _activityIdGenerator = activityIdGenerator;
+        _mediator = mediator;
     }
 
     public async Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
@@ -47,9 +50,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 
     public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
+        var definition = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .SaveAsync(request, cancellationToken);
+
+        if (request.Publish == true)
+            await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
+
+        return definition;
     }
 
     public async Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default)
@@ -60,6 +68,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 .GetApi<IWorkflowDefinitionsApi>()
                 .DeleteAsync(definitionId, cancellationToken);
 
+            await _mediator.NotifyAsync(new WorkflowDefinitionDeleted(definitionId), cancellationToken);
             return true;
         }
         catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
@@ -70,25 +79,33 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 
     public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
+        var definition = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .PublishAsync(definitionId, cancellationToken);
+
+        await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
+        return definition;
     }
 
     public async Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
+        var definition = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
+
+        await _mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
+        return definition;
     }
 
     public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
-        var request = new BulkDeleteWorkflowDefinitionsRequest(definitionIds);
+        var definitionIdList = definitionIds.ToList();
+        var request = new BulkDeleteWorkflowDefinitionsRequest(definitionIdList);
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .BulkDeleteAsync(request, cancellationToken);
 
+        await _mediator.NotifyAsync(new WorkflowDefinitionsBulkDeleted(definitionIdList), cancellationToken);
         return response.Deleted;
     }
 
@@ -99,6 +116,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             .GetApi<IWorkflowDefinitionsApi>()
             .BulkPublishAsync(request, cancellationToken);
 
+        await _mediator.NotifyAsync(new WorkflowDefinitionsBulkPublished(response.Published), cancellationToken);
         return response;
     }
 
@@ -109,6 +127,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             .GetApi<IWorkflowDefinitionsApi>()
             .BulkRetractAsync(request, cancellationToken);
 
+        await _mediator.NotifyAsync(new WorkflowDefinitionsBulkPublished(response.Retracted), cancellationToken);
         return response;
     }
 

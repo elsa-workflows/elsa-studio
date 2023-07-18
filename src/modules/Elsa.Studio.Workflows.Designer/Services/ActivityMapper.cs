@@ -12,13 +12,13 @@ namespace Elsa.Studio.Workflows.Designer.Services;
 
 internal class ActivityMapper : IActivityMapper
 {
-    private readonly IDictionary<string, ActivityDescriptor> _activityDescriptors;
+    private readonly IActivityRegistry _activityRegistry;
     private readonly IActivityPortService _activityPortService;
     private readonly IActivityDisplaySettingsRegistry _activityDisplaySettingsRegistry;
 
-    public ActivityMapper(IDictionary<string, ActivityDescriptor> activityDescriptors, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
+    public ActivityMapper(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
     {
-        _activityDescriptors = activityDescriptors;
+        _activityRegistry = activityRegistry;
         _activityPortService = activityPortService;
         _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
     }
@@ -69,7 +69,8 @@ internal class ActivityMapper : IActivityMapper
     public IEnumerable<X6Port> GetOutPorts(JsonObject activity)
     {
         var activityType = activity.GetTypeName();
-        var activityDescriptor = _activityDescriptors[activityType];
+        var activityVersion = activity.GetVersion();
+        var activityDescriptor = _activityRegistry.Find(activityType, activityVersion)!;
         var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
         var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 

@@ -22,7 +22,6 @@ public partial class Viewer
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    //[Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
@@ -47,25 +46,27 @@ public partial class Viewer
     
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
         WorkflowDefinition = await WorkflowDefinitionService.FindByIdAsync(WorkflowInstance.DefinitionVersionId);
         
         if (WorkflowDefinition?.Root == null)
             return;
         
-        await SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(WorkflowDefinition.Root);
     }
     
-    private async Task SelectActivity(JsonObject activity)
+    private void SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.GetTypeName());
+        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         StateHasChanged();
     }
     
-    private async Task OnActivitySelected(JsonObject activity)
+    private Task OnActivitySelected(JsonObject activity)
     {
-        await SelectActivity(activity);
+        SelectActivity(activity);
+        return Task.CompletedTask;
     }
     
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)

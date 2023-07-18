@@ -1,10 +1,12 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Services;
-using Elsa.Studio.SyntaxProviders;  
+using Elsa.Studio.SyntaxProviders;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Extensions;
 
+[PublicAPI]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCore(this IServiceCollection services)
@@ -27,6 +29,9 @@ public static class ServiceCollectionExtensions
             .AddSyntaxProvider<LiquidSyntaxProvider>()
             .AddSyntaxProvider<ObjectSyntaxProvider>()
             ;
+        
+        // Mediator.
+        services.AddSingleton<IMediator, DefaultMediator>();
         
         return services;
     }

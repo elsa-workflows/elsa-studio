@@ -7,20 +7,24 @@ public interface IActivityRegistry
     /// <summary>
     /// Refreshes the list of activity descriptors.
     /// </summary>
-    void Refresh();
+    Task RefreshAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Returns a list of activity descriptors.
+    /// Ensures that the list of activity descriptors is loaded.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A list of activity descriptors.</returns>
-    Task<IEnumerable<ActivityDescriptor>> ListAsync(CancellationToken cancellationToken = default);
+    Task EnsureLoadedAsync(CancellationToken cancellationToken = default);
     
+    /// <summary>
+    /// Returns a list of the latest versions of activity descriptors.
+    /// </summary>
+    /// <returns>A list of activity descriptors.</returns>
+    IEnumerable<ActivityDescriptor> List();
+
     /// <summary>
     /// Finds an activity descriptor by its type.
     /// </summary>
     /// <param name="activityType">The activity type.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="version">The activity version.</param>
     /// <returns>The activity descriptor.</returns>
-    Task<ActivityDescriptor?> FindAsync(string activityType, CancellationToken cancellationToken = default);
+    ActivityDescriptor? Find(string activityType, int? version = default);
 }

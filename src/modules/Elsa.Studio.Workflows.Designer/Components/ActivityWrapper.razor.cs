@@ -38,11 +38,14 @@ public partial class ActivityWrapper
 
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         var activity = Activity;
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
         var activityType = activity.GetTypeName();
-        var descriptor = await ActivityRegistry.FindAsync(activityType);
+        var activityVersion = activity.GetVersion();
+        var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
         _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";

@@ -16,7 +16,6 @@ public partial class Journal
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
 
     private WorkflowInstance? WorkflowInstance { get; set; }
-    private IDictionary<string, ActivityDescriptor>? ActivityDescriptors { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
 
@@ -45,14 +44,7 @@ public partial class Journal
         }
     }
 
-    private async Task EnsureActivityDescriptorsAsync()
-    {
-        if (ActivityDescriptors != null)
-            return;
-
-        var activities = await ActivityRegistry.ListAsync();
-        ActivityDescriptors = activities.ToDictionary(x => x.TypeName);
-    }
+    private async Task EnsureActivityDescriptorsAsync() => await ActivityRegistry.EnsureLoadedAsync();
 
     private async Task RefreshJournalAsync()
     {
@@ -90,13 +82,12 @@ public partial class Journal
         var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, skip, take);
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
-        var activityDescriptors = ActivityDescriptors!;
         var localSkip = request.StartIndex > 0 ? 1 : 0;
         var entries = records.Skip(localSkip).Select((record, index) =>
         {
             var previousIndex = index - 1;
             var previousRecord = previousIndex >= 0 ? records[previousIndex] : default;
-            var activityDescriptor = activityDescriptors[record.ActivityType];
+            var activityDescriptor = ActivityRegistry.Find(record.ActivityType, record.ActivityTypeVersion);
             var activityDisplaySettings = ActivityDisplaySettingsRegistry.GetSettings(record.ActivityType);
             var isEven = index % 2 == 0;
             var timeMetric = GetTimeMetric(record, previousRecord);

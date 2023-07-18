@@ -33,14 +33,17 @@ public partial class EmbeddedActivityWrapper
     
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         var activity = Activity;
         var activityType = activity.GetTypeName();
-        var descriptor = (await ActivityRegistry.FindAsync(activityType))!;
-        var activityDisplayText = activity.GetDisplayText()?.Trim() ?? activity.GetName() ?? descriptor.DisplayName;
+        var activityVersion = activity.GetVersion();
+        var descriptor = (ActivityRegistry.Find(activityType, activityVersion) ?? ActivityRegistry.Find("Elsa.UnknownActivity"))!;
+        var activityDisplayText = activity.GetDisplayText()?.Trim() ?? activity.GetName() ?? descriptor.DisplayName ?? descriptor.Name;
         var activityDescription = activity.GetDescription()?.Trim();
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _label = activityDisplayText;
         _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
         _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
