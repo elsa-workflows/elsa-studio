@@ -19,11 +19,13 @@
         }
         <MudStack Style="height:100%" Justify="Justify.Center">
             <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
-
-            @if (_ports.Any(x => x.Type == PortType.Embedded))
+            @{
+                var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded,IsBrowsable: true }).ToList();
+            }
+            @if (visiblePorts.Any())
             {
                 <MudStack Row="true">
-                    @foreach (var port in _ports.Where(x => x.Type == PortType.Embedded))
+                    @foreach (var port in visiblePorts)
                     {
                         var portName = port.Name;
                         var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
