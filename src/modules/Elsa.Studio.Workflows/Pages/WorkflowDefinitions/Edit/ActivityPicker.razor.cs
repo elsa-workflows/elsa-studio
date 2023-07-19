@@ -10,10 +10,11 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
 public partial class ActivityPicker : IDisposable,
-    INotificationHandler<WorkflowDefinitionDeleted>, 
+    INotificationHandler<WorkflowDefinitionDeleted>,
     INotificationHandler<WorkflowDefinitionPublished>,
     INotificationHandler<WorkflowDefinitionRetracted>,
     INotificationHandler<WorkflowDefinitionsBulkDeleted>,
+    INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>,
     INotificationHandler<WorkflowDefinitionsBulkPublished>,
     INotificationHandler<WorkflowDefinitionsBulkRetracted>
 {
@@ -25,7 +26,7 @@ public partial class ActivityPicker : IDisposable,
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
-    
+
     protected override async Task OnInitializedAsync()
     {
         Mediator.Subscribe<WorkflowDefinitionPublished>(this);
@@ -51,15 +52,16 @@ public partial class ActivityPicker : IDisposable,
     async Task INotificationHandler<WorkflowDefinitionPublished>.HandleAsync(WorkflowDefinitionPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionRetracted>.HandleAsync(WorkflowDefinitionRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionsBulkDeleted>.HandleAsync(WorkflowDefinitionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>.HandleAsync(WorkflowDefinitionVersionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionsBulkPublished>.HandleAsync(WorkflowDefinitionsBulkPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionsBulkRetracted>.HandleAsync(WorkflowDefinitionsBulkRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    
+
     private async Task RefreshActivityRegistryAsync(CancellationToken cancellationToken = default)
     {
         await ActivityRegistry.RefreshAsync(cancellationToken);
         await LoadActivityDescriptorsAsync(cancellationToken);
     }
-    
+
     void IDisposable.Dispose()
     {
         Mediator.Unsubscribe(this);

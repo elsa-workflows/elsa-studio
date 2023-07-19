@@ -17,6 +17,7 @@ public interface IWorkflowDefinitionService
     Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default);
     Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
+    Task<long> BulkDeleteVersionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
     Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
     Task<BulkRetractWorkflowDefinitionsResponse> BulkRetractAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default);
     Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default);

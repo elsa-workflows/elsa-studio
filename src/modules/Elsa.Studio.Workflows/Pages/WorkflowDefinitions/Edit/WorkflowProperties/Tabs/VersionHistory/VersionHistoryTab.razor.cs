@@ -49,7 +49,7 @@ public partial class VersionHistoryTab : IDisposable
             TotalItems = response.TotalCount
         };
     }
-    
+
     private async Task ViewVersion(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
@@ -63,7 +63,7 @@ public partial class VersionHistoryTab : IDisposable
             Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
         }
     }
-    
+
     private async Task ReloadTableAsync()
     {
         await Table.ReloadServerData();
@@ -79,10 +79,10 @@ public partial class VersionHistoryTab : IDisposable
     private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         var confirmed = await DialogService.ShowMessageBox("Delete version", "Are you sure you want to delete this version?");
-        
-        if(confirmed != true)
+
+        if (confirmed != true)
             return;
-        
+
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionSummary.Id);
         await ReloadTableAsync();
     }
@@ -92,9 +92,16 @@ public partial class VersionHistoryTab : IDisposable
         await ViewVersion(arg.Item);
     }
 
-    private Task OnBulkDeleteClicked()
+    private async Task OnBulkDeleteClicked()
     {
-        return Task.CompletedTask;
+        var confirmed = await DialogService.ShowMessageBox("Delete selected versions", "Are you sure you want to delete the selected versions?");
+
+        if (confirmed != true)
+            return;
+
+        var ids = SelectedDefinitions.Select(x => x.Id).ToList();
+        await WorkflowDefinitionService.BulkDeleteVersionsAsync(ids);
+        await ReloadTableAsync();
     }
 
     private Task OnRollbackClicked(WorkflowDefinitionSummary context)

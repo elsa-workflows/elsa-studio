@@ -126,6 +126,18 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return response.Deleted;
     }
 
+    public async Task<long> BulkDeleteVersionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        var request = new BulkDeleteWorkflowDefinitionVersionsRequest(idList);
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .BulkDeleteVersionsAsync(request, cancellationToken);
+
+        await _mediator.NotifyAsync(new WorkflowDefinitionVersionsBulkDeleted(idList), cancellationToken);
+        return response.Deleted;
+    }
+
     public async Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
         var request = new BulkPublishWorkflowDefinitionsRequest(definitionIds);
