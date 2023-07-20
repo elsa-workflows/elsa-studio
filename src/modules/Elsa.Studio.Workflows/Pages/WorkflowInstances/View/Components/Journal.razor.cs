@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
@@ -17,11 +18,13 @@ public partial class Journal
 
     private WorkflowInstance? WorkflowInstance { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
+    private JournalFilter? JournalFilter { get; set; }
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
 
-    public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance)
+    public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
         WorkflowInstance = workflowInstance;
+        JournalFilter = filter;
         await EnsureActivityDescriptorsAsync();
         await RefreshJournalAsync();
         StateHasChanged();
@@ -79,7 +82,8 @@ public partial class Journal
 
         var take = request.Count == 0 ? 10 : request.Count;
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
-        var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, skip, take);
+        var filter = JournalFilter;
+        var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take);
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
         var localSkip = request.StartIndex > 0 ? 1 : 0;

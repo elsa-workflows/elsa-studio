@@ -27,7 +27,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         _mediator = mediator;
     }
 
-    public async Task<ListWorkflowDefinitionsResponse> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
     {
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
@@ -46,6 +46,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .GetByIdAsync(id, includeCompositeRoot, cancellationToken);
+    }
+
+    public async Task<ListResponse<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        return await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .GetManyByIdAsync(ids.ToList(), true, cancellationToken);
     }
 
     public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)

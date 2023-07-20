@@ -21,12 +21,11 @@ public partial class Viewer
     private int _activityPropertiesPaneHeight = 300;
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-
-    private WorkflowDefinition? WorkflowDefinition { get; set; }
+    
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
@@ -47,9 +46,8 @@ public partial class Viewer
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
-        WorkflowDefinition = await WorkflowDefinitionService.FindByIdAsync(WorkflowInstance.DefinitionVersionId);
-        
-        if (WorkflowDefinition?.Root == null)
+
+        if (WorkflowDefinition?.Root == null!)
             return;
         
         SelectActivity(WorkflowDefinition.Root);

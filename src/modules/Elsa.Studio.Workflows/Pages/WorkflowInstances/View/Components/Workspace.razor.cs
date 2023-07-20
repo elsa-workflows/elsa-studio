@@ -1,3 +1,4 @@
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -11,13 +12,14 @@ public partial class Workspace : IWorkspace
     private MudDynamicTabs _dynamicTabs = default!;
 
     [Parameter] public IList<WorkflowInstance> WorkflowInstances { get; set; } = default!;
+    [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
     [Parameter] public Func<WorkflowInstance, Task>? SelectedWorkflowInstanceChanged { get; set; }
 
     public bool IsReadOnly => true;
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
     public WorkflowInstance? SelectedWorkflowInstance => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex) : default;
-    
+
     private Task AddTabCallback()
     {
         return Task.CompletedTask;

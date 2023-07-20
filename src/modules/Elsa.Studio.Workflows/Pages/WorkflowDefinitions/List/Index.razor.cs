@@ -13,7 +13,7 @@ public partial class Index
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
-    private int _totalCount;
+    private long _totalCount;
     private string? _searchString;
 
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
@@ -61,7 +61,7 @@ public partial class Index
             })
             .ToList();
 
-        return new TableData<WorkflowDefinitionRow> { TotalItems = _totalCount, Items = latestWorkflowDefinitions };
+        return new TableData<WorkflowDefinitionRow> { TotalItems = (int)_totalCount, Items = latestWorkflowDefinitions };
     }
 
     private async Task OnCreateWorkflowClicked()

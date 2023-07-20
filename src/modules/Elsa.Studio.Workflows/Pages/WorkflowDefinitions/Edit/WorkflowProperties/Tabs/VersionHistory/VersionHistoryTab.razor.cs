@@ -46,7 +46,7 @@ public partial class VersionHistoryTab : IDisposable
         return new TableData<WorkflowDefinitionSummary>
         {
             Items = response.Items,
-            TotalItems = response.TotalCount
+            TotalItems = (int)response.TotalCount
         };
     }
 

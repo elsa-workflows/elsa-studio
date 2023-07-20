@@ -60,7 +60,7 @@ public partial class VersionTab
         return new TableData<WorkflowDefinitionSummary>
         {
             Items = response.Items,
-            TotalItems = response.TotalCount
+            TotalItems = (int)response.TotalCount
         };
     }
 

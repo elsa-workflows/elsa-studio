@@ -1,4 +1,7 @@
+using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 using Microsoft.AspNetCore.Components;
@@ -8,6 +11,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View;
 public partial class Index
 {
     private IList<WorkflowInstance> _workflowInstances = new List<WorkflowInstance>();
+    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
 
     [Parameter] public string Id { get; set; } = default!;
 
@@ -20,13 +24,23 @@ public partial class Index
     protected override async Task OnInitializedAsync()
     {
         var instance = await WorkflowInstanceService.GetAsync(Id) ?? throw new InvalidOperationException($"Workflow instance with ID {Id} not found.");
-        _workflowInstances = new List<WorkflowInstance> { instance! };
+        var definitionVersionIds = new[] { instance.DefinitionVersionId };
+        var definitions = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
+        _workflowInstances = new List<WorkflowInstance> { instance };
+        _workflowDefinitions = definitions.Items.ToList();
         await SelectWorkflowInstanceAsync(instance);
     }
 
-    private async Task SelectWorkflowInstanceAsync(WorkflowInstance workflowInstance)
+    private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
     {
-        await Journal.SetWorkflowInstanceAsync(workflowInstance);
+        // Select activity IDs that are direct children of the root.;
+        var definition = _workflowDefinitions.First(x => x.Id == instance.DefinitionVersionId);
+        var activityIds = definition.Root.GetActivities().Select(x => x.GetId()).ToList();
+        var filter = new JournalFilter
+        {
+            ActivityIds = activityIds
+        };
+        await Journal.SetWorkflowInstanceAsync(instance, filter);
     }
 
     private async Task OnSelectedWorkflowInstanceChanged(WorkflowInstance value)
