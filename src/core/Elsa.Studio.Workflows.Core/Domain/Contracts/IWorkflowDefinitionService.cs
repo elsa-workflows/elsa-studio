@@ -26,4 +26,5 @@ public interface IWorkflowDefinitionService
     Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default);
     Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default);
     Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task RevertVersionAsync(string definitionId, int  version, CancellationToken cancellationToken = default);
 }

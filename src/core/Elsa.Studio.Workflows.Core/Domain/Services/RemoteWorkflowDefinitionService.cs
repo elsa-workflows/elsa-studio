@@ -243,6 +243,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             .GetApi<IWorkflowDefinitionsApi>()
             .UpdateReferencesAsync(definitionId, new UpdateConsumingWorkflowReferencesRequest(), cancellationToken);
     }
+
+    public async Task RevertVersionAsync(string definitionId, int version, CancellationToken cancellationToken = default)
+    {
+        await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .RevertVersionAsync(definitionId, version, cancellationToken);
+    }
 }
 
 public record FileDownload(string? FileName, Stream Content);

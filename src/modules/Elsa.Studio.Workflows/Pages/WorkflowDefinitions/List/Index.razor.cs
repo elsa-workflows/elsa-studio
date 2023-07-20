@@ -50,7 +50,7 @@ public partial class Index
         var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
             .Select(definition =>
             {
-                var latestVersionNumber = definition.Version ?? 0;
+                var latestVersionNumber = definition.Version;
                 var isPublished = definition.IsPublished;
                 var publishedVersion = isPublished
                     ? definition

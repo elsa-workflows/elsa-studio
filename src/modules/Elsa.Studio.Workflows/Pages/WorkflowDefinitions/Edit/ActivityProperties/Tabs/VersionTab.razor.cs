@@ -66,7 +66,7 @@ public partial class VersionTab
 
     private async Task OnUseVersionClicked(WorkflowDefinitionSummary workflowDefinitionVersion)
     {
-        var version = workflowDefinitionVersion.Version!.Value;
+        var version = workflowDefinitionVersion.Version;
 
         if (version == CurrentVersionUsed)
             return;

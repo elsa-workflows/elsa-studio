@@ -1,4 +1,6 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -11,6 +13,7 @@ public partial class Workspace : IWorkspace
 
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
     [Parameter] public WorkflowDefinition? SelectedWorkflowDefinitionVersion { get; set; }
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     public event Func<Task>? WorkflowDefinitionUpdated;
     public bool IsReadOnly => SelectedWorkflowDefinitionVersion?.IsLatest == false;
 
@@ -27,6 +30,19 @@ public partial class Workspace : IWorkspace
     public void ResumeEditing()
     {
         SelectedWorkflowDefinitionVersion = default;
+        StateHasChanged();
+    }
+
+    public async Task RefreshActiveWorkflowAsync()
+    {
+        var selectedWorkflowDefinition = SelectedWorkflowDefinition;
+        
+        if(selectedWorkflowDefinition == null)
+            return;
+
+        var definitionId = selectedWorkflowDefinition.DefinitionId;
+        var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest);
+        WorkflowDefinitions[ActiveTabIndex] = definition!;
         StateHasChanged();
     }
     

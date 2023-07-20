@@ -104,8 +104,12 @@ public partial class VersionHistoryTab : IDisposable
         await ReloadTableAsync();
     }
 
-    private Task OnRollbackClicked(WorkflowDefinitionSummary context)
+    private async Task OnRollbackClicked(WorkflowDefinitionSummary workflowDefinition)
     {
-        return Task.CompletedTask;
+        var definitionId = workflowDefinition.DefinitionId;
+        var version = workflowDefinition.Version;
+        await WorkflowDefinitionService.RevertVersionAsync(definitionId, version);
+        await Workspace.RefreshActiveWorkflowAsync();
+        await ReloadTableAsync();
     }
 }
