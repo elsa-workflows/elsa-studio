@@ -28,7 +28,7 @@ public class DefaultActivityRegistry : IActivityRegistry
         {
             if (_activityDescriptors.Any())
                 return;
-        
+
             await RefreshAsync(cancellationToken);
         }
         finally
@@ -41,8 +41,9 @@ public class DefaultActivityRegistry : IActivityRegistry
     {
         // Return the latest version of each activity descriptor from _activityDescriptors.
         return _activityDescriptors.Values
-            .GroupBy(x => x.TypeName)
-            .Select(x => x.OrderByDescending(y => y.Version).First());
+            .Where(x => x.IsBrowsable)
+            .GroupBy(activityDescriptor => activityDescriptor.TypeName)
+            .Select(grouping => grouping.OrderByDescending(y => y.Version).First());
     }
 
     public ActivityDescriptor? Find(string activityType, int? version = default)
