@@ -146,6 +146,14 @@ public partial class WorkflowEditor
         await SaveChangesAsync(true, true, true);
     }
 
+    private bool ShouldUpdateReferences() => WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows;
+
+    private async Task<int> UpdateReferencesAsync()
+    {
+        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(WorkflowDefinition!.DefinitionId);
+        return updateReferencesResponse.AffectedWorkflows.Count;
+    }
+
     private async Task<ProblemDetails?> RetractAsync()
     {
         try
@@ -253,6 +261,12 @@ public partial class WorkflowEditor
     {
         await ProgressAsync(PublishAsync);
         Snackbar.Add("Workflow published", Severity.Success);
+
+        if (!ShouldUpdateReferences())
+            return;
+
+        var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
+        Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
     }
 
     private async Task OnRetractClicked()
