@@ -37,6 +37,7 @@
                         var isEven = journalEntry.IsEven;
                         var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
                         var timeMetric = context.TimeMetric;
+                        var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor.DisplayName : record.ActivityName;
 
                         var statusColor =
                             record.EventName switch
@@ -54,7 +55,7 @@
                             <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                         </ItemDot>
                         <ItemContent>
-                            <MudText Typo="Typo.button">@activityDescriptor.DisplayName</MudText>
+                            <MudText Typo="Typo.button">@displayName</MudText>
                             <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.EventName</MudText>
                             <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
                         </ItemContent>

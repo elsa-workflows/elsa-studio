@@ -95,7 +95,7 @@
                 <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow">Created</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="LastExecutedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
@@ -117,7 +117,7 @@
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="LastExecutedAt">@context.LastExecutedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">

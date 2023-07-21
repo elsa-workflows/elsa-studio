@@ -71,9 +71,8 @@ public partial class Index
             x.Status,
             x.SubStatus,
             x.CreatedAt,
-            x.LastExecutedAt,
-            x.FinishedAt,
-            x.FaultedAt));
+            x.UpdatedAt,
+            x.FinishedAt));
 
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };

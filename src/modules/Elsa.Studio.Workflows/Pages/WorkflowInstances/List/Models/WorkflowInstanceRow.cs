@@ -12,6 +12,5 @@ public record WorkflowInstanceRow(
     WorkflowStatus Status,
     WorkflowSubStatus SubStatus,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? LastExecutedAt,
-    DateTimeOffset? FinishedAt,
-    DateTimeOffset? FaultedAt);
+    DateTimeOffset? UpdatedAt,
+    DateTimeOffset? FinishedAt);
