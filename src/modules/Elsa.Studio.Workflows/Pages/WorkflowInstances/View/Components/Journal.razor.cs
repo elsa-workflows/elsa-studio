@@ -18,6 +18,7 @@ public partial class Journal
 
     private WorkflowInstance? WorkflowInstance { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
+    private bool ShowScopedEvents { get; set; } = true;
     private JournalFilter? JournalFilter { get; set; }
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
 
@@ -60,18 +61,12 @@ public partial class Journal
         return TimeMetricMode switch
         {
             TimeMetricMode.Relative => previous == null ? TimeSpan.Zero : current.Timestamp - previous.Timestamp,
-            TimeMetricMode.Absolute => SumExecutionTime(current),
+            TimeMetricMode.Accumulated => SumExecutionTime(current),
             _ => throw new ArgumentOutOfRangeException()
         };
     }
 
     private TimeSpan SumExecutionTime(ExecutionLogRecord current) => current.Timestamp - WorkflowInstance!.CreatedAt;
-
-    private async Task OnTimeMetricButtonToggleChanged(bool value)
-    {
-        TimeMetricMode = value ? TimeMetricMode.Absolute : TimeMetricMode.Relative;
-        await RefreshJournalAsync();
-    }
 
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
     {
@@ -82,7 +77,7 @@ public partial class Journal
 
         var take = request.Count == 0 ? 10 : request.Count;
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
-        var filter = JournalFilter;
+        var filter = ShowScopedEvents ? JournalFilter : default;
         var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take);
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
@@ -105,5 +100,17 @@ public partial class Journal
         }).ToList();
 
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
+    }
+
+    private async Task OnTimeMetricButtonToggleChanged(bool value)
+    {
+        TimeMetricMode = value ? TimeMetricMode.Accumulated : TimeMetricMode.Relative;
+        await RefreshJournalAsync();
+    }
+
+    private async Task OnScopeToggleChanged(bool value)
+    {
+        ShowScopedEvents = value;
+        await RefreshJournalAsync();
     }
 }

@@ -9,6 +9,7 @@ using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -28,6 +29,7 @@ public partial class DiagramDesignerWrapper
     [Parameter] public bool IsProgressing { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
+    [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
@@ -60,6 +62,18 @@ public partial class DiagramDesignerWrapper
         }
 
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
+    }
+    
+    public JsonObject? GetCurrentActivity()
+    {
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.Activity;
+    }
+    
+    public JsonObject GetCurrentContainerActivity()
+    {
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.EmbeddedActivity ?? Activity;
     }
 
     protected override async Task OnInitializedAsync()
@@ -100,10 +114,14 @@ public partial class DiagramDesignerWrapper
     private async Task UpdateBreadcrumbItemsAsync()
     {
         _breadcrumbItems = (await GetBreadcrumbItems()).ToList();
+        
+        if(PathChanged != null)
+            await PathChanged(new DesignerPathChangedArgs(GetCurrentContainerActivity()));
+        
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<BreadcrumbItem>> GetBreadcrumbItems()
+    private Task<IEnumerable<BreadcrumbItem>> GetBreadcrumbItems()
     {
         var breadcrumbItems = new List<BreadcrumbItem>();
 
@@ -130,19 +148,7 @@ public partial class DiagramDesignerWrapper
             breadcrumbItems.Add(activityBreadcrumbItem);
         }
 
-        return breadcrumbItems;
-    }
-
-    private JsonObject? GetCurrentActivity()
-    {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.Activity;
-    }
-
-    private JsonObject GetCurrentContainerActivity()
-    {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.EmbeddedActivity ?? Activity;
+        return Task.FromResult<IEnumerable<BreadcrumbItem>>(breadcrumbItems);
     }
 
     private async Task DisplayCurrentSegmentAsync()

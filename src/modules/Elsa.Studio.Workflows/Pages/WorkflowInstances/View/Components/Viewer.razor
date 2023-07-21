@@ -6,7 +6,7 @@
     <RadzenSplitterPane Size="50%">
         @if (WorkflowDefinition != null)
         {
-            <DiagramDesignerWrapper Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true"/>
+            <DiagramDesignerWrapper Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" PathChanged="PathChanged"/>
         }
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">

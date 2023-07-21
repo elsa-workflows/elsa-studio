@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View;
@@ -33,7 +34,7 @@ public partial class Index
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
     {
-        // Select activity IDs that are direct children of the root.;
+        // Select activity IDs that are direct children of the root.
         var definition = _workflowDefinitions.First(x => x.Id == instance.DefinitionVersionId);
         var activityIds = definition.Root.GetActivities().Select(x => x.GetId()).ToList();
         var filter = new JournalFilter
@@ -46,5 +47,16 @@ public partial class Index
     private async Task OnSelectedWorkflowInstanceChanged(WorkflowInstance value)
     {
         await SelectWorkflowInstanceAsync(value);
+    }
+
+    private async Task OnDesignerPathChanged(DesignerPathChangedArgs args)
+    {
+        var activityIds = args.ContainerActivity.GetActivities().Select(x => x.GetId()).ToList();
+        var filter = new JournalFilter
+        {
+            ActivityIds = activityIds
+        };
+        var instance = _workflowInstances.First();
+        await Journal.SetWorkflowInstanceAsync(instance, filter);
     }
 }

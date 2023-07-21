@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -22,6 +23,7 @@ public partial class Viewer
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;

@@ -6,7 +6,23 @@
     <MudTabPanel Text="Journal">
         <MudPaper Class="ma-2" Elevation="0" Outlined="true">
             <MudToolBar Dense="true">
-                <MudToggleIconButton Icon="@Icons.Material.Outlined.Timer" ToggledIcon="@Icons.Material.Outlined.AccessTime" Toggled="@(TimeMetricMode == TimeMetricMode.Absolute)" ToggledChanged="OnTimeMetricButtonToggleChanged"></MudToggleIconButton>
+                <MudToggleIconButton 
+                    Icon="@Icons.Material.Outlined.Timer" 
+                    ToggledIcon="@Icons.Material.Outlined.AccessTime"
+                    Title="Show relative time"
+                    ToggledTitle="Show accumulated time"
+                    Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)" 
+                    ToggledChanged="OnTimeMetricButtonToggleChanged"/>
+                
+                <MudToggleIconButton 
+                    Icon="@Icons.Material.Outlined.DataArray" 
+                    ToggledIcon="@Icons.Material.Outlined.DataArray"  
+                    Title="Show events scoped to current container" 
+                    ToggledTitle="Showing all events"
+                    Color="Color.Default" 
+                    ToggledColor="Color.Primary"
+                    Toggled="ShowScopedEvents" 
+                    ToggledChanged="OnScopeToggleChanged"></MudToggleIconButton>
             </MudToolBar>
         </MudPaper>
         <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">

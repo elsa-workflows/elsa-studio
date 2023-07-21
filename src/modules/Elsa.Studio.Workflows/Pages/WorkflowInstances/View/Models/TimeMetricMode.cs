@@ -8,7 +8,7 @@ public enum TimeMetricMode
     Relative,
     
     /// <summary>
-    /// Show the total time since the workflow instance started until the current log entry.
+    /// Show the accumulated time since the workflow instance started until the current log entry.
     /// </summary>
-    Absolute
+    Accumulated
 }
