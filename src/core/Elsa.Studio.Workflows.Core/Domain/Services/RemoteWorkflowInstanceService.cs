@@ -50,7 +50,7 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         }
     }
 
-    public async Task<PagedListResponse<ExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default)
+    public async Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default)
     {
         var request = new GetFilteredJournalRequest
         {

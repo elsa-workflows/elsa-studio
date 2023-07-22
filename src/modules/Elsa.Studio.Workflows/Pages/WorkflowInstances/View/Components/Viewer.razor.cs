@@ -8,6 +8,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
+using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -20,10 +21,11 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 public partial class Viewer
 {
     private RadzenSplitterPane _activityPropertiesPane = default!;
-    private int _activityPropertiesPaneHeight = 300;
+    private int _propertiesPaneHeight = 300;
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -74,6 +76,6 @@ public partial class Viewer
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _activityPropertiesPaneHeight = (int)visibleHeight;
+        _propertiesPaneHeight = (int)visibleHeight;
     }
 }

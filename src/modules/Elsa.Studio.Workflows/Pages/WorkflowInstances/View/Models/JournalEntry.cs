@@ -5,7 +5,7 @@ using Elsa.Studio.Workflows.UI.Models;
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 
 public record JournalEntry(
-    ExecutionLogRecord Record,
+    WorkflowExecutionLogRecord Record,
     ActivityDescriptor? ActivityDescriptor,
     ActivityDisplaySettings? ActivityDisplaySettings,
     bool IsEven,

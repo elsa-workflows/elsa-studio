@@ -1,17 +1,23 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
+using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
 public partial class Journal
 {
+    private MudTimeline _timeline = default!;
+    private IList<JournalEntry> _currentEntries = default!;
+
+    [Parameter] public Func<JournalEntry, Task>? WorkflowExecutionLogRecordSelected { get; set; }
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -56,7 +62,7 @@ public partial class Journal
             await VirtualizeComponent.RefreshDataAsync();
     }
 
-    private TimeSpan GetTimeMetric(ExecutionLogRecord current, ExecutionLogRecord? previous)
+    private TimeSpan GetTimeMetric(WorkflowExecutionLogRecord current, WorkflowExecutionLogRecord? previous)
     {
         return TimeMetricMode switch
         {
@@ -66,7 +72,7 @@ public partial class Journal
         };
     }
 
-    private TimeSpan SumExecutionTime(ExecutionLogRecord current) => current.Timestamp - WorkflowInstance!.CreatedAt;
+    private TimeSpan SumExecutionTime(WorkflowExecutionLogRecord current) => current.Timestamp - WorkflowInstance!.CreatedAt;
 
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
     {
@@ -98,6 +104,8 @@ public partial class Journal
                 isEven,
                 timeMetric);
         }).ToList();
+        
+        _currentEntries = entries;
 
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }
@@ -112,5 +120,13 @@ public partial class Journal
     {
         ShowScopedEvents = value;
         await RefreshJournalAsync();
+    }
+
+    private async Task OnWorkflowExecutionLogRecordSelected(int index)
+    {
+        var entry = _currentEntries[index];
+        
+        if(WorkflowExecutionLogRecordSelected != null)
+            await WorkflowExecutionLogRecordSelected(entry);
     }
 }

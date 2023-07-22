@@ -26,18 +26,18 @@
             </MudToolBar>
         </MudPaper>
         <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
-            <MudTimeline>
+            <MudTimeline @ref="_timeline" SelectedIndexChanged="OnWorkflowExecutionLogRecordSelected">
                 <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
                     @{
                         var journalEntry = context;
                         var record = journalEntry.Record;
-                        var activityDescriptor = context.ActivityDescriptor;
-                        var displaySettings = context.ActivityDisplaySettings;
-                        var activityIcon = displaySettings.Icon;
+                        var activityDescriptor = journalEntry.ActivityDescriptor;
+                        var displaySettings = journalEntry.ActivityDisplaySettings;
+                        var activityIcon = displaySettings?.Icon;
                         var isEven = journalEntry.IsEven;
                         var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
                         var timeMetric = context.TimeMetric;
-                        var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor.DisplayName : record.ActivityName;
+                        var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
 
                         var statusColor =
                             record.EventName switch
@@ -50,7 +50,7 @@
                                 _ => Color.Default
                                 };
                     }
-                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign">
+                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="cursor-pointer">
                         <ItemDot>
                             <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                         </ItemDot>

@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
@@ -13,6 +14,7 @@ public partial class Index
 {
     private IList<WorkflowInstance> _workflowInstances = new List<WorkflowInstance>();
     private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
+    private Workspace _workspace = default!;
 
     [Parameter] public string Id { get; set; } = default!;
 
@@ -21,6 +23,7 @@ public partial class Index
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
+    private JournalEntry? SelectedJournalEntry { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,5 +61,12 @@ public partial class Index
         };
         var instance = _workflowInstances.First();
         await Journal.SetWorkflowInstanceAsync(instance, filter);
+    }
+
+    private Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
+    {
+        SelectedJournalEntry = entry;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }

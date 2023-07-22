@@ -28,6 +28,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private X6GraphApi _graphApi = default!;
     private readonly PendingActionsQueue _pendingGraphActions;
     private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
+    private IDictionary<string, ActivityStats>? _activityStats;
 
     public FlowchartDesigner()
     {
@@ -160,13 +161,18 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         {
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
+            await LoadFlowchartAsync(Flowchart, ActivityStats);
             await _pendingGraphActions.ProcessAsync();
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await _rateLimitedLoadFlowchartAction.InvokeAsync();
+        if(!Equals(_activityStats, ActivityStats))
+        {
+            _activityStats = ActivityStats;
+            await _rateLimitedLoadFlowchartAction.InvokeAsync();
+        }
     }
 
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();

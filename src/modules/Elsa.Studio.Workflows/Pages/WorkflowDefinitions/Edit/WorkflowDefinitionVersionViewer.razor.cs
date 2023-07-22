@@ -31,7 +31,7 @@ public partial class WorkflowDefinitionVersionViewer
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
-    private Pages.WorkflowDefinitions.Edit.ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
+    private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
     {

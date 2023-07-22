@@ -1,0 +1,25 @@
+@using Variant = MudBlazor.Variant
+
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+
+    <MudTabPanel Text="Event details">
+        <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+            @if (JournalEntry != null!)
+            {
+                var record = JournalEntry.Record;
+                var activityDescriptor = JournalEntry.ActivityDescriptor;
+                var displaySettings = JournalEntry.ActivityDisplaySettings;
+                var activityIcon = displaySettings?.Icon;
+                var isEven = JournalEntry.IsEven;
+                var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
+                var timeMetric = JournalEntry.TimeMetric;
+                var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
+                
+                <MudAlert Severity="Severity.Normal" Icon="@activityIcon">
+                    @displayName
+                </MudAlert>
+            }
+        </div>
+    </MudTabPanel>
+
+</MudTabs>

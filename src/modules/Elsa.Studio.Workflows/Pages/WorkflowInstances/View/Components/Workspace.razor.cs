@@ -1,6 +1,7 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
+using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -14,6 +15,7 @@ public partial class Workspace : IWorkspace
 
     [Parameter] public IList<WorkflowInstance> WorkflowInstances { get; set; } = default!;
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
+    [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     [Parameter] public Func<WorkflowInstance, Task>? SelectedWorkflowInstanceChanged { get; set; }
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
 
