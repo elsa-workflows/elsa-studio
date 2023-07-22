@@ -3,16 +3,19 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Args;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Args;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Utilities;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
@@ -24,13 +27,20 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private IActivityMapper? _activityMapper = default!;
     private X6GraphApi _graphApi = default!;
     private readonly PendingActionsQueue _pendingGraphActions;
+    private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
 
     public FlowchartDesigner()
     {
         _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
+        
+        _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () =>
+        {
+            await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats));
+        }, TimeSpan.FromMilliseconds(100));
     }
 
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
@@ -89,7 +99,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         {
             var data = await _graphApi.ReadGraphAsync();
             var cells = data.GetProperty("cells").EnumerateArray();
-            var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6Node>(serializerOptions)!).ToList();
+            var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6ActivityNode>(serializerOptions)!).ToList();
             var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
             var graph = new X6Graph(nodes, edges);
             var flowchartMapper = await GetFlowchartMapperAsync();
@@ -105,10 +115,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         });
     }
 
-    public async Task LoadFlowchartAsync(JsonObject flowchart)
+    public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats)
     {
+        Flowchart = flowchart;
+        ActivityStats = activityStats;
         var flowchartMapper = await GetFlowchartMapperAsync();
-        var graph = flowchartMapper.Map(flowchart);
+        var graph = flowchartMapper.Map(flowchart, activityStats);
         await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
@@ -148,10 +160,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         {
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
-
-            await LoadFlowchartAsync(Flowchart);
             await _pendingGraphActions.ProcessAsync();
         }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await _rateLimitedLoadFlowchartAction.InvokeAsync();
     }
 
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();

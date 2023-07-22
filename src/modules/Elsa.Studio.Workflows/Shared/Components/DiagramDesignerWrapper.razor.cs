@@ -4,13 +4,15 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Args;
 using Elsa.Studio.Workflows.Designer;
+using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
+using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -22,9 +24,11 @@ public partial class DiagramDesignerWrapper
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private List<BreadcrumbItem> _breadcrumbItems = new();
+    private IDictionary<string, ActivityStats> _activityStats = new Dictionary<string, ActivityStats>();
 
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public string? WorkflowInstanceId { get; set; }
     [Parameter] public RenderFragment CustomToolbarItems { get; set; } = default!;
     [Parameter] public bool IsProgressing { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
@@ -35,6 +39,7 @@ public partial class DiagramDesignerWrapper
     [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
@@ -45,7 +50,7 @@ public partial class DiagramDesignerWrapper
 
     public async Task LoadActivityAsync(JsonObject activity)
     {
-        await _diagramDesigner!.LoadRootActivityAsync(activity);
+        await _diagramDesigner!.LoadRootActivityAsync(activity, _activityStats);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
 
@@ -63,13 +68,13 @@ public partial class DiagramDesignerWrapper
 
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
-    
+
     public JsonObject? GetCurrentActivity()
     {
         var resolvedPath = ResolvePath().LastOrDefault();
         return resolvedPath?.Activity;
     }
-    
+
     public JsonObject GetCurrentContainerActivity()
     {
         var resolvedPath = ResolvePath().LastOrDefault();
@@ -113,11 +118,24 @@ public partial class DiagramDesignerWrapper
 
     private async Task UpdateBreadcrumbItemsAsync()
     {
+        var currentContainerActivity = GetCurrentContainerActivity();
         _breadcrumbItems = (await GetBreadcrumbItems()).ToList();
-        
-        if(PathChanged != null)
-            await PathChanged(new DesignerPathChangedArgs(GetCurrentContainerActivity()));
-        
+
+        if (WorkflowInstanceId != null)
+        {
+            var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
+            _activityStats = report.Stats.ToDictionary(x => x.ActivityId, x => new ActivityStats
+            {
+                Blocked = x.IsBlocked,
+                Completed = x.CompletedCount,
+                Started = x.StartedCount,
+                Uncompleted = x.UncompletedCount
+            });
+        }
+
+        if (PathChanged != null)
+            await PathChanged(new DesignerPathChangedArgs(currentContainerActivity));
+
         StateHasChanged();
     }
 
@@ -158,7 +176,7 @@ public partial class DiagramDesignerWrapper
         if (_diagramDesigner == null)
             return;
 
-        await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity);
+        await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity, _activityStats);
     }
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)

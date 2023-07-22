@@ -1,12 +1,12 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
@@ -23,7 +23,7 @@ internal class ActivityMapper : IActivityMapper
         _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
     }
 
-    public X6Node MapActivity(JsonObject activity)
+    public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = default)
     {
         var activityId = activity.GetId();
         var designerMetadata = activity.GetDesignerMetadata();
@@ -38,7 +38,7 @@ internal class ActivityMapper : IActivityMapper
         if (height == 0) height = 50;
 
         // Create node.
-        var node = new X6Node
+        var node = new X6ActivityNode
         {
             Id = activityId,
             Data = activity,
@@ -47,6 +47,8 @@ internal class ActivityMapper : IActivityMapper
             Shape = "elsa-activity",
             Ports = GetPorts(activity)
         };
+
+        node.ActivityStats = activityStats;
 
         return node;
     }

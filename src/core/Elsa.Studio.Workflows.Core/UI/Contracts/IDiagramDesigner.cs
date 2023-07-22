@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
-using Elsa.Studio.Workflows.Contexts;
+using Elsa.Studio.Workflows.UI.Contexts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
@@ -10,12 +11,13 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 public interface IDiagramDesigner
 {
     bool IsInitialized { get; }
-    
+
     /// <summary>
     /// Loads the specified root activity int the designer.
     /// </summary>
     /// <param name="activity">The root activity to load.</param>
-    Task LoadRootActivityAsync(JsonObject activity);
+    /// <param name="activityStatsMap">A map of activity stats.</param>
+    Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap);
     
     /// <summary>
     /// Updates the specified activity in the diagram. This is used to update the diagram when an activity is updated in the activity editor.

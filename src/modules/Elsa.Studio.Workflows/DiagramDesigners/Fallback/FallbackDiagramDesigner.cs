@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
-using Elsa.Studio.Workflows.Contexts;
+using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -11,7 +12,7 @@ public class FallbackDiagramDesigner : IDiagramDesigner
 
     public bool IsInitialized => true;
 
-    public Task LoadRootActivityAsync(JsonObject activity)
+    public Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
     {
         _activity = activity;
         return Task.CompletedTask;

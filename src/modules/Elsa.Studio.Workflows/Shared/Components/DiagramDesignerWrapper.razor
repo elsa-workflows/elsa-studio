@@ -1,5 +1,5 @@
 @using Elsa.Studio.Workflows.UI.Contracts
-@using Elsa.Studio.Workflows.Contexts
+@using Elsa.Studio.Workflows.UI.Contexts
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
     <MudToolBar Dense="true">
         @{
@@ -35,4 +35,4 @@
         </SeparatorTemplate>
     </MudBreadcrumbs>
 </div>
-@_diagramDesigner?.DisplayDesigner(new DisplayContext(GetCurrentContainerActivity(), ActivitySelected, OnActivityEmbeddedPortSelected, OnGraphUpdated, IsReadOnly))
+@_diagramDesigner?.DisplayDesigner(new DisplayContext(GetCurrentContainerActivity(), ActivitySelected, OnActivityEmbeddedPortSelected, OnGraphUpdated, IsReadOnly, _activityStats))

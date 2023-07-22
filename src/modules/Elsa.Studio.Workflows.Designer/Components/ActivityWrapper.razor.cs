@@ -8,6 +8,7 @@ using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -27,6 +28,7 @@ public partial class ActivityWrapper
     [Parameter] public string ActivityId { get; set; } = default!;
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public string? SelectedPortName { get; set; }
+    [Parameter] public ActivityStats? Stats { get; set; }
 
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;

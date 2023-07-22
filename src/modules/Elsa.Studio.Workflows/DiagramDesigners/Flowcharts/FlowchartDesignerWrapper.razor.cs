@@ -4,9 +4,10 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Args;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.UI.Args;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -15,18 +16,20 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 public partial class FlowchartDesignerWrapper
 {
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
-    internal FlowchartDesigner Designer { get; set; } = default!;
+    private FlowchartDesigner Designer { get; set; } = default!;
 
-    public async Task LoadFlowchartAsync(JsonObject flowchart)
+    public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats = default)
     {
         Flowchart = flowchart;
-        await Designer.LoadFlowchartAsync(flowchart);
+        ActivityStats = activityStats;
+        await Designer.LoadFlowchartAsync(flowchart, activityStats);
     }
     
     public async Task UpdateActivityAsync(string id, JsonObject activity)
@@ -39,8 +42,10 @@ public partial class FlowchartDesignerWrapper
     }
 
     public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
+    public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
+    public async Task CenterContentAsync() => await Designer.CenterContentAsync();
 
-    private bool GetNameExists(string name) => Flowchart.GetActivities().Any(x => x.GetId() == name);
+    private bool GetNameExists(string name) => Flowchart.GetActivities().Any(x => x.GetName() == name);
 
     private string GenerateNextName(ActivityDescriptor activityDescriptor)
     {
@@ -49,9 +54,9 @@ public partial class FlowchartDesignerWrapper
 
         while (count++ < max)
         {
-            var nextId = $"{activityDescriptor.Name}{count}";
-            if (!GetNameExists(nextId))
-                return nextId;
+            var nextName = $"{activityDescriptor.Name}{count}";
+            if (!GetNameExists(nextName))
+                return nextName;
         }
 
         throw new Exception("Could not generate a unique name.");

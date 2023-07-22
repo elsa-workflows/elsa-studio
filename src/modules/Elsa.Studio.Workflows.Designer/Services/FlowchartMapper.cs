@@ -3,6 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
@@ -15,7 +16,7 @@ internal class FlowchartMapper : IFlowchartMapper
         _activityMapper = activityMapper;
     }
 
-    public X6Graph Map(JsonObject flowchart)
+    public X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = default)
     {
         var graph = new X6Graph();
         var activities = flowchart.GetActivities();
@@ -23,7 +24,9 @@ internal class FlowchartMapper : IFlowchartMapper
 
         foreach (var activity in activities)
         {
-            var node = _activityMapper.MapActivity(activity!.AsObject());
+            var activityId = activity.GetId();
+            var activityStats = activityStatsMap?.TryGetValue(activityId, out var stats) == true ? stats : null;
+            var node = _activityMapper.MapActivity(activity.AsObject(), activityStats);
             graph.Nodes.Add(node);
         }
 

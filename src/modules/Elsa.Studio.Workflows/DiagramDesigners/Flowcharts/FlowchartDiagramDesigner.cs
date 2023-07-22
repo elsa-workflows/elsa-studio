@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
-using Elsa.Studio.Workflows.Contexts;
+using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
@@ -13,20 +14,9 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     
     public bool IsInitialized => _designerWrapper != null;
 
-    public async Task LoadRootActivityAsync(JsonObject activity)
-    {
-        await _designerWrapper!.LoadFlowchartAsync(activity);
-    }
-
-    public async Task UpdateActivityAsync(string id, JsonObject activity)
-    {
-        await _designerWrapper!.UpdateActivityAsync(id, activity);
-    }
-
-    public async Task<JsonObject> ReadRootActivityAsync()
-    {
-        return await _designerWrapper!.Designer.ReadFlowchartAsync();
-    }
+    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await _designerWrapper!.LoadFlowchartAsync(activity, activityStatsMap);
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
+    public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
 
     public RenderFragment DisplayDesigner(DisplayContext context)
     {
@@ -38,6 +28,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.IsReadOnly), context.IsReadOnly);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivityEmbeddedPortSelected), context.ActivityEmbeddedPortSelectedCallback);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.GraphUpdated), context.GraphUpdatedCallback);
@@ -73,8 +64,8 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         };
     }
 
-    private async Task OnZoomToFitClicked() => await _designerWrapper!.Designer.ZoomToFitAsync();
-    private async Task OnCenterClicked() => await _designerWrapper!.Designer.CenterContentAsync();
+    private async Task OnZoomToFitClicked() => await _designerWrapper!.ZoomToFitAsync();
+    private async Task OnCenterClicked() => await _designerWrapper!.CenterContentAsync();
 
     private async Task OnAutoLayoutClicked()
     {

@@ -26,7 +26,7 @@ public class X6GraphApi
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
     public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
     
-    public async Task AddActivityNodeAsync(X6Node node)
+    public async Task AddActivityNodeAsync(X6ActivityNode node)
     {
         var serializerOptions = new JsonSerializerOptions
         {
