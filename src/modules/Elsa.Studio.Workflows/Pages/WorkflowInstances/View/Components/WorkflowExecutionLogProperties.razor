@@ -7,17 +7,47 @@
             @if (JournalEntry != null!)
             {
                 var record = JournalEntry.Record;
-                var activityDescriptor = JournalEntry.ActivityDescriptor;
-                var displaySettings = JournalEntry.ActivityDisplaySettings;
-                var activityIcon = displaySettings?.Icon;
-                var isEven = JournalEntry.IsEven;
-                var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
-                var timeMetric = JournalEntry.TimeMetric;
-                var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
-                
-                <MudAlert Severity="Severity.Normal" Icon="@activityIcon">
-                    @displayName
-                </MudAlert>
+                var activityId = record.ActivityId;
+                var activityName = record.ActivityName!;
+                var activityType = record.ActivityType;
+
+                var eventInfo = new Dictionary<string, string?>
+                {
+                    ["Name"] = record.EventName,
+                    ["Timestamp"] = record.Timestamp.ToString("s"),
+                    ["Message"] = record.Message,
+                };
+
+                var activityInfo = new Dictionary<string, string?>
+                {
+                    ["ID"] = activityId,
+                    ["Name"] = activityName,
+                    ["Type"] = activityType,
+                    ["Version"] = record.ActivityTypeVersion.ToString(),
+                    ["Instance ID"] = record.ActivityInstanceId,
+                    ["Source"] = record.Source,
+                };
+
+                var activityState = record.ActivityState!
+                    .Where(x => !x.Key.StartsWith("_"))
+                    .ToDictionary(x => x.Key, x => x.Value?.ToString());
+
+                <div class="pa-4">
+                    <MudStack>
+                        <div>
+                            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Event</MudText>
+                            <DataPanel Data="eventInfo" HideEmptyValues="true"/>
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Activity</MudText>
+                            <DataPanel Data="activityInfo" HideEmptyValues="true"/>
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
+                            <DataPanel Data="@activityState" HideEmptyValues="true"/>
+                        </div>
+                    </MudStack>
+                </div>
             }
         </div>
     </MudTabPanel>

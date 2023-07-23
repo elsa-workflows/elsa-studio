@@ -1,10 +1,13 @@
 @using Elsa.Studio.DomInterop.Contracts
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
-    @foreach (var item in Data)
+    @{
+        var data = HideEmptyValues ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value)) : Data;
+    }
+    @foreach (var item in data)
     {
         <tr>
-            <td>@item.Key</td>
+            <td style="width: 200px;">@item.Key</td>
             <td style="width: 50px;">
                 <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value))"/>
             </td>
@@ -18,6 +21,9 @@
 
     [Parameter]
     public IDictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+
+    [Parameter]
+    public bool HideEmptyValues { get; set; }
 
     [Inject]
     private IClipboard Clipboard { get; set; } = default!;

@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddSingleton<IActivityPortService, DefaultActivityPortService>()
+            .AddSingleton<IActivityVisitor, DefaultActivityVisitor>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();

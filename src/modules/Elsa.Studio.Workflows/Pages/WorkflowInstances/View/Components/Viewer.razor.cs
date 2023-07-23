@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -21,7 +22,8 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 public partial class Viewer
 {
     private RadzenSplitterPane _activityPropertiesPane = default!;
-    private int _propertiesPaneHeight = 300;
+    private int _propertiesPaneHeight = 600;
+    private IDictionary<string, JsonObject> _activityLookup = new Dictionary<string, JsonObject>();
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -30,6 +32,7 @@ public partial class Viewer
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
@@ -54,7 +57,8 @@ public partial class Viewer
 
         if (WorkflowDefinition?.Root == null!)
             return;
-        
+
+        _activityLookup = ActivityVisitor.VisitAndMap(WorkflowDefinition.Root);
         SelectActivity(WorkflowDefinition.Root);
     }
     
