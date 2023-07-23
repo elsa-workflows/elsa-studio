@@ -6,4 +6,5 @@ namespace Elsa.Studio.Workflows.Domain.Contracts;
 public interface IActivityExecutionService
 {
     Task<ActivityExecutionReport> GetReportAsync(string workflowInstanceId, JsonObject containerActivity, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityId, CancellationToken cancellationToken = default);
 }

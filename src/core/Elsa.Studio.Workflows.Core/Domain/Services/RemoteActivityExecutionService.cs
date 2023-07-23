@@ -28,4 +28,16 @@ public class RemoteActivityExecutionService : IActivityExecutionService
         };
         return await _backendConnectionProvider.GetApi<IActivityExecutionsApi>().GetReportAsync(request, cancellationToken);
     }
+
+    public async Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityId, CancellationToken cancellationToken = default)
+    {
+        var request = new ListActivityExecutionsRequest
+        {
+            WorkflowInstanceId = workflowInstanceId,
+            ActivityId = activityId
+        };
+        
+        var response = await _backendConnectionProvider.GetApi<IActivityExecutionsApi>().ListAsync(request, cancellationToken);
+        return response.Items;
+    }
 }
