@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
@@ -67,6 +68,12 @@ public partial class Index
     {
         SelectedJournalEntry = entry;
         StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnActivitySelected(JsonObject arg)
+    {
+        Journal.ClearSelection();
         return Task.CompletedTask;
     }
 }

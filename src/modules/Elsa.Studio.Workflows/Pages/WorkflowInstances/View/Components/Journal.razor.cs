@@ -17,7 +17,7 @@ public partial class Journal
     private MudTimeline _timeline = default!;
     private IList<JournalEntry> _currentEntries = default!;
 
-    [Parameter] public Func<JournalEntry, Task>? WorkflowExecutionLogRecordSelected { get; set; }
+    [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -25,8 +25,10 @@ public partial class Journal
     private WorkflowInstance? WorkflowInstance { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
+    private JournalEntry? SelectedEntry { get; set; }
     private JournalFilter? JournalFilter { get; set; }
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
+    private int SelectedIndex { get; set; } = -1;
 
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
@@ -34,6 +36,13 @@ public partial class Journal
         JournalFilter = filter;
         await EnsureActivityDescriptorsAsync();
         await RefreshJournalAsync();
+        StateHasChanged();
+    }
+    
+    public void ClearSelection()
+    {
+        SelectedEntry = null;
+        SelectedIndex = -1;
         StateHasChanged();
     }
 
@@ -122,11 +131,13 @@ public partial class Journal
         await RefreshJournalAsync();
     }
 
-    private async Task OnWorkflowExecutionLogRecordSelected(int index)
+    private async Task OnJournalEntrySelected(int index)
     {
         var entry = _currentEntries[index];
+        SelectedEntry = entry;
+        SelectedIndex = index;
         
-        if(WorkflowExecutionLogRecordSelected != null)
-            await WorkflowExecutionLogRecordSelected(entry);
+        if(JournalEntrySelected != null)
+            await JournalEntrySelected(entry);
     }
 }

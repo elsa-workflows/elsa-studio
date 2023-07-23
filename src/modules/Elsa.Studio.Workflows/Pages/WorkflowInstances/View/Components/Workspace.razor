@@ -17,7 +17,13 @@
                 {
                     var definition = WorkflowDefinitions.First(x => x.Id == workflowInstance.DefinitionVersionId);
                     <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="true" Style="height: 100%">
-                        <Viewer WorkflowInstance="workflowInstance" WorkflowDefinition="definition" PathChanged="PathChanged" SelectedWorkflowExecutionLogRecord="SelectedWorkflowExecutionLogRecord"/>
+                        <Viewer 
+                            WorkflowInstance="workflowInstance" 
+                            WorkflowDefinition="definition" 
+                            PathChanged="PathChanged" 
+                            ActivitySelected="ActivitySelected"
+                            SelectedWorkflowExecutionLogRecord="SelectedWorkflowExecutionLogRecord"
+                            />
                     </MudTabPanel>
                 }
 

@@ -6,9 +6,16 @@
 
 <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
     <RadzenSplitterPane Size="20%" Min="100px">
-        <Journal @ref="Journal" WorkflowExecutionLogRecordSelected="OnWorkflowExecutionLogRecordSelected"/>
+        <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected"/>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="80%">
-        <Workspace @ref="_workspace" WorkflowInstances="@_workflowInstances" WorkflowDefinitions="_workflowDefinitions" SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged" PathChanged="OnDesignerPathChanged" SelectedWorkflowExecutionLogRecord="SelectedJournalEntry"/>
+        <Workspace 
+            @ref="_workspace" 
+            WorkflowInstances="@_workflowInstances" 
+            WorkflowDefinitions="_workflowDefinitions" 
+            SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged" 
+            PathChanged="OnDesignerPathChanged" 
+            ActivitySelected="OnActivitySelected"
+            SelectedWorkflowExecutionLogRecord="SelectedJournalEntry"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

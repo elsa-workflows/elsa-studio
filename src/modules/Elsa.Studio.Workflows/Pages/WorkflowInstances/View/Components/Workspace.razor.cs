@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
@@ -18,6 +19,7 @@ public partial class Workspace : IWorkspace
     [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     [Parameter] public Func<WorkflowInstance, Task>? SelectedWorkflowInstanceChanged { get; set; }
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     public bool IsReadOnly => true;
     private int ActiveTabIndex { get; } = 0;

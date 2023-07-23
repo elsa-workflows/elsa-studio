@@ -2,7 +2,7 @@
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
 
-    <MudTabPanel Text="Event details">
+    <MudTabPanel Text="Event">
         <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
             @if (JournalEntry != null!)
             {
@@ -42,10 +42,14 @@
                             <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Activity</MudText>
                             <DataPanel Data="activityInfo" HideEmptyValues="true"/>
                         </div>
-                        <div>
-                            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
-                            <DataPanel Data="@activityState" HideEmptyValues="true"/>
-                        </div>
+
+                        @if (activityState.Any())
+                        {
+                            <div>
+                                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
+                                <DataPanel Data="@activityState" HideEmptyValues="true"/>
+                            </div>
+                        }
                     </MudStack>
                 </div>
             }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
-public partial class WorkflowExecutionLogProperties
+public partial class JournalEntryDetails
 {
     [Parameter] public JournalEntry JournalEntry { get; set; } = default!;
     [Parameter] public int VisiblePaneHeight { get; set; }

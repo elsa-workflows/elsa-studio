@@ -29,6 +29,7 @@ public partial class Viewer
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
@@ -37,7 +38,6 @@ public partial class Viewer
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
-    private ActivityProperties? ActivityPropertiesTab { get; set; }
 
     public RadzenSplitterPane ActivityPropertiesPane
     {
@@ -64,16 +64,20 @@ public partial class Viewer
     
     private void SelectActivity(JsonObject activity)
     {
+        SelectedWorkflowExecutionLogRecord = null;
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
+
         StateHasChanged();
     }
     
-    private Task OnActivitySelected(JsonObject activity)
+    private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        return Task.CompletedTask;
+        
+        if(ActivitySelected != null)
+            await ActivitySelected(activity);
     }
     
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)

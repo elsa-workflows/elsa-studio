@@ -26,7 +26,7 @@
             </MudToolBar>
         </MudPaper>
         <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
-            <MudTimeline @ref="_timeline" SelectedIndexChanged="OnWorkflowExecutionLogRecordSelected">
+            <MudTimeline @ref="_timeline" SelectedIndexChanged="OnJournalEntrySelected" SelectedIndex="SelectedIndex">
                 <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
                     @{
                         var journalEntry = context;
@@ -38,6 +38,7 @@
                         var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
                         var timeMetric = context.TimeMetric;
                         var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
+                        var bgClass = journalEntry == SelectedEntry ? "grey lighten-3 rounded" : "";
 
                         var statusColor =
                             record.EventName switch
@@ -50,7 +51,7 @@
                                 _ => Color.Default
                                 };
                     }
-                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="cursor-pointer">
+                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="@($"cursor-pointer pa-4 {bgClass}")">
                         <ItemDot>
                             <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                         </ItemDot>
