@@ -9,7 +9,7 @@
         <tr>
             <td style="width: 200px;">@item.Key</td>
             <td style="width: 50px;">
-                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value))"/>
+                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value))"/>
             </td>
             <td>@item.Value</td>
         </tr>
@@ -20,7 +20,7 @@
 @code {
 
     [Parameter]
-    public IDictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+    public IDictionary<string, string?> Data { get; set; } = new Dictionary<string, string?>();
 
     [Parameter]
     public bool HideEmptyValues { get; set; }

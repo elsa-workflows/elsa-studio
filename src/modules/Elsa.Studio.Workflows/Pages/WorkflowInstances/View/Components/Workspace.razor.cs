@@ -24,7 +24,16 @@ public partial class Workspace : IWorkspace
     public bool IsReadOnly => true;
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
-    public WorkflowInstance? SelectedWorkflowInstance => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex) : default;
+    private WorkflowInstance? SelectedWorkflowInstance => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex) : default;
+
+    private WorkflowDefinition? SelectedWorkflowDefinition
+    {
+        get
+        {
+            var instance = SelectedWorkflowInstance;
+            return instance == null ? default : WorkflowDefinitions.FirstOrDefault(x => x.Id == instance.DefinitionVersionId);
+        }
+    }
 
     private Task AddTabCallback()
     {
