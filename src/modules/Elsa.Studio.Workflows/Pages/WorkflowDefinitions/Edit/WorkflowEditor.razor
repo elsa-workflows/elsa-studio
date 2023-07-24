@@ -19,7 +19,7 @@
                 </div>
 
                 <MudTooltip Text="Publish the current workflow." Delay="1000">
-                    <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined" DisableElevation="true">
+                    <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DisableElevation="true">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
                             @if (WorkflowDefinition?.IsPublished == true)
@@ -37,8 +37,8 @@
                             </MudTooltip>
                         </MudMenu>
                     </MudButtonGroup>
-
                 </MudTooltip>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" Title="Run workflow" Class="ml-4" OnClick="OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>

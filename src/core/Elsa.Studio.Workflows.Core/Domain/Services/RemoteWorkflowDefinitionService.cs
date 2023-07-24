@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Extensions;
@@ -256,6 +257,15 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .RevertVersionAsync(definitionId, version, cancellationToken);
+    }
+
+    public async Task<WorkflowState> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
+    {
+        var response = await _backendConnectionProvider
+            .GetApi<IWorkflowDefinitionsApi>()
+            .ExecuteAsync(definitionId, request, cancellationToken);
+
+        return response.WorkflowState;
     }
 }
 

@@ -1,6 +1,7 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Services;
 
@@ -28,4 +29,5 @@ public interface IWorkflowDefinitionService
     Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default);
     Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default);
     Task RevertVersionAsync(string definitionId, int  version, CancellationToken cancellationToken = default);
+    Task<WorkflowState> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default);
 }

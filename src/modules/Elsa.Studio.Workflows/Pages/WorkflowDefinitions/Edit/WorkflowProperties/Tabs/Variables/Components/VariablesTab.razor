@@ -1,5 +1,5 @@
 @using Variant = MudBlazor.Variant
-<div class="pa-4">
+<Well>
 
     <MudText Typo="Typo.overline">Variables</MudText>
     <MudStack>
@@ -15,7 +15,7 @@
 
         @if (!Variables.Any())
         {
-            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Info">There are currently no variables defined.</MudAlert>
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">There are currently no variables defined.</MudAlert>
         }
         else
         {
@@ -51,4 +51,4 @@
         }
     </MudStack>
     <MudOverlay Visible="IsReadOnly" Absolute="true"/>
-</div>
+</Well>

@@ -341,4 +341,20 @@ public partial class WorkflowEditor
 
         StateHasChanged();
     }
+
+    private async Task OnRunWorkflowClicked()
+    {
+        var state = await ProgressAsync(async () =>
+        {
+            var request = new ExecuteWorkflowDefinitionRequest
+            {
+                VersionOptions = VersionOptions.Latest
+            };
+
+            var definitionId = WorkflowDefinition!.DefinitionId;
+            return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
+        });
+        
+        Snackbar.Add("Successfully started workflow", Severity.Success);
+    }
 }
