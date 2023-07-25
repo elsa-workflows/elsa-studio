@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Login.Services;
 
+/// <inheritdoc />
 public class LoginPageProvider : ILoginPageProvider
 {
+    /// <inheritdoc />
     public RenderFragment GetLoginPage()
     {
         return builder => builder.CreateComponent<RedirectToLogin>();

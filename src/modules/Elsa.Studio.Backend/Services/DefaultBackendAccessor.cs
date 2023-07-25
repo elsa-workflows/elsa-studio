@@ -11,10 +11,14 @@ public class DefaultBackendAccessor : IBackendAccessor
 {
     private readonly IOptions<BackendOptions> _options;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultBackendAccessor"/> class.
+    /// </summary>
     public DefaultBackendAccessor(IOptions<BackendOptions> options)
     {
         _options = options;
     }
-    
+
+    /// <inheritdoc />
     public Models.Backend Backend => new(_options.Value.Url);
 }

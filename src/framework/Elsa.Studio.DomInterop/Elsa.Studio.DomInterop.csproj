@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
+    
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Description>Elsa Studio DOM interop services.</Description>
+        <PackageTags>elsa studio framework</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

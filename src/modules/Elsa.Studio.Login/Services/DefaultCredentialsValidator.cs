@@ -14,11 +14,15 @@ public class DefaultCredentialsValidator : ICredentialsValidator
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultCredentialsValidator"/> class.
+    /// </summary>
     public DefaultCredentialsValidator(IBackendConnectionProvider backendConnectionProvider)
     {
         _backendConnectionProvider = backendConnectionProvider;
     }
-    
+
+    /// <inheritdoc />
     public async ValueTask<ValidateCredentialsResult> ValidateCredentialsAsync(string username, string password, CancellationToken cancellationToken = default)
     {
         var serverUrl = _backendConnectionProvider.Url.ToString();

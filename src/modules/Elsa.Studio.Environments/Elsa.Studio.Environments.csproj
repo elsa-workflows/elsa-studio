@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
+
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <Description>Adds support for connecting to different Elsa Workflows environments.</Description>
+        <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

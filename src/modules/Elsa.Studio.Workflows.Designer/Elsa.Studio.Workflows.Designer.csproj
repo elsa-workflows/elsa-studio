@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
+
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <Description>Adds workflow designer Blazor components powered by JS interop with X6.</Description>
+        <PackageTags>elsa studio module x6</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

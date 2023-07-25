@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
+    
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Description>Provides implementations for backend services.</Description>
+        <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

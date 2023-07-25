@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
+
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <Description>Adds workflow management to the studio.</Description>
+        <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,10 +21,6 @@
         <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
         <ProjectReference Include="..\Elsa.Studio.UIHintHandlers\Elsa.Studio.UIHintHandlers.csproj" />
         <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Pages\WorkflowDefinitions\Edit\WorkflowProperties\Tabs\InputOutput\Components\InputOutputTab.razor" />
     </ItemGroup>
 
     <ItemGroup>
