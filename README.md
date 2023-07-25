@@ -1,6 +1,6 @@
 # Elsa Studio
 
-<a href="https://elsa-workflows.github.io/elsa-studio/tree/main">
+<a href="https://v3.elsaworkflows.io/">
   <p align="center">
     <img src="./artwork/screenshot-1.png" alt="Elsa Studio workflow designer">
   </p>
