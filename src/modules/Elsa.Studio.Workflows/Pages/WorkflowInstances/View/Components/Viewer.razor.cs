@@ -1,28 +1,36 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.RealTime.Messages;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
 using Radzen;
 using Radzen.Blazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
-public partial class Viewer
+public partial class Viewer : IAsyncDisposable
 {
     private RadzenSplitterPane _activityPropertiesPane = default!;
+    private DiagramDesignerWrapper _designer = default!;
     private int _propertiesPaneHeight = 600;
     private IDictionary<string, JsonObject> _activityLookup = new Dictionary<string, JsonObject>();
     private IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
@@ -37,13 +45,16 @@ public partial class Viewer
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
+    private WorkflowState? WorkflowState { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    public string? SelectedActivityId { get; set; }
-    public ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    private string? SelectedActivityId { get; set; }
+    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
-    public RadzenSplitterPane ActivityPropertiesPane
+    private RadzenSplitterPane ActivityPropertiesPane
     {
         get => _activityPropertiesPane;
         set
@@ -64,6 +75,32 @@ public partial class Viewer
 
         _activityLookup = ActivityVisitor.VisitAndMap(WorkflowDefinition.Root);
         await SelectActivityAsync(WorkflowDefinition.Root);
+
+        // If the workflow instance is still running, observe it.
+        if (WorkflowInstance.Status == WorkflowStatus.Running)
+            await ObserveWorkflowInstanceAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (WorkflowState != WorkflowInstance.WorkflowState)
+            WorkflowState = WorkflowInstance.WorkflowState;
+    }
+
+    private async Task ObserveWorkflowInstanceAsync()
+    {
+        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance.Id);
+        WorkflowInstanceObserver.ActivityExecutionLogUpdated  += async message => await InvokeAsync(async () =>
+        {
+            foreach (var stats in message.Stats)
+            {
+                var activityId = stats.ActivityId;
+                _activityExecutionRecordsLookup.Remove(activityId);
+                await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
+            }
+            
+            StateHasChanged();
+        });
     }
 
     private async Task SelectActivityAsync(JsonObject activity)
@@ -88,6 +125,17 @@ public partial class Viewer
         return records;
     }
 
+    private static ActivityStats Map(ActivityExecutionStats source)
+    {
+        return new ActivityStats
+        {
+            Blocked = source.IsBlocked,
+            Completed = source.CompletedCount,
+            Started = source.StartedCount,
+            Uncompleted = source.UncompletedCount,
+        };
+    }
+
     private async Task OnActivitySelected(JsonObject activity)
     {
         await SelectActivityAsync(activity);
@@ -101,5 +149,11 @@ public partial class Viewer
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
         _propertiesPaneHeight = (int)visibleHeight;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (WorkflowInstanceObserver != null!)
+            await WorkflowInstanceObserver.DisposeAsync();
     }
 }

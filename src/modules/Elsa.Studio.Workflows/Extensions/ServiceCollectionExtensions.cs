@@ -3,10 +3,12 @@ using Elsa.Studio.ActivityPortProviders.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.UIHintHandlers.Extensions;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.Menu;
+using Elsa.Studio.Workflows.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
@@ -18,6 +20,7 @@ public static class ServiceCollectionExtensions
         services
             .AddSingleton<IModule, Module>()
             .AddSingleton<IMenuProvider, WorkflowsMenu>()
+            .AddSingleton<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
             .AddActivityTypeService()

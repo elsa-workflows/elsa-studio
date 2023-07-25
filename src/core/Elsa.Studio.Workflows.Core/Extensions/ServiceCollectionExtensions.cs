@@ -1,3 +1,4 @@
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
@@ -13,6 +14,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
+            .AddSingleton<IFeatureService, RemoteFeatureService>()
             .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddSingleton<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddSingleton<IActivityRegistryProvider, RemoteActivityRegistryProvider>()

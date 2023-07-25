@@ -135,20 +135,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
     public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_graphApi != null!)
-            await _graphApi.DisposeGraphAsync();
-
-        Dispose();
-    }
-
-    public void Dispose()
-    {
-        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
-        _componentRef?.Dispose();
-    }
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await ScheduleGraphActionAsync(() => DesignerJsInterop.UpdateActivityStatsAsync($"activity-{activityId}", activityId, stats));
 
     protected override void OnInitialized()
     {
@@ -186,5 +173,19 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var palette = ThemeService.CurrentPalette;
         var gridColor = palette.BackgroundGrey;
         await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
+    }
+    
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_graphApi != null!)
+            await _graphApi.DisposeGraphAsync();
+
+        ((IDisposable)this).Dispose();
+    }
+
+    void IDisposable.Dispose()
+    {
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
+        _componentRef?.Dispose();
     }
 }

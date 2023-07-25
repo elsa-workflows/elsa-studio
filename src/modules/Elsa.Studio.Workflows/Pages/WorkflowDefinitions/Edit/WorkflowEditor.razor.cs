@@ -48,6 +48,7 @@ public partial class WorkflowEditor
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
@@ -344,7 +345,7 @@ public partial class WorkflowEditor
 
     private async Task OnRunWorkflowClicked()
     {
-        var state = await ProgressAsync(async () =>
+        var workflowInstanceId = await ProgressAsync(async () =>
         {
             var request = new ExecuteWorkflowDefinitionRequest
             {
@@ -356,5 +357,7 @@ public partial class WorkflowEditor
         });
         
         Snackbar.Add("Successfully started workflow", Severity.Success);
+        
+        NavigationManager.NavigateTo($"/workflows/instances/{workflowInstanceId}/view");
     }
 }

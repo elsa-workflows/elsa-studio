@@ -1,5 +1,9 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -259,13 +263,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             .RevertVersionAsync(definitionId, version, cancellationToken);
     }
 
-    public async Task<WorkflowState> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
+    public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
         var response = await _backendConnectionProvider
             .GetApi<IWorkflowDefinitionsApi>()
             .ExecuteAsync(definitionId, request, cancellationToken);
 
-        return response.WorkflowState;
+        var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
+        return workflowInstanceId;
     }
 }
 

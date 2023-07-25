@@ -6,7 +6,7 @@ export function initialize() {
 
     Shape.HTML.register({
         shape: "elsa-activity",
-        effect: ["data"],
+        effect: ["data", "activityStats"],
         html(cell) {
             const activity: Activity = cell.getData();
             const selectedPort = cell.prop('selected-port');

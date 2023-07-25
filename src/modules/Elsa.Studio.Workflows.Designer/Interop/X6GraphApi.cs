@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Elsa.Api.Client.Converters;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 

@@ -10,8 +10,6 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 /// </summary>
 public interface IDiagramDesigner
 {
-    bool IsInitialized { get; }
-
     /// <summary>
     /// Loads the specified root activity int the designer.
     /// </summary>
@@ -25,6 +23,13 @@ public interface IDiagramDesigner
     /// <param name="id">The ID of the activity to update.</param>
     /// <param name="activity">The activity to update.</param>
     Task UpdateActivityAsync(string id, JsonObject activity);
+
+    /// <summary>
+    /// Updates the stats of the specified activity.
+    /// </summary>
+    /// <param name="id">The ID of the activity to update.</param>
+    /// <param name="stats">The stats to update.</param>
+    Task UpdateActivityStatsAsync(string id, ActivityStats stats);
     
     /// <summary>
     /// Reads the root activity from the diagram.

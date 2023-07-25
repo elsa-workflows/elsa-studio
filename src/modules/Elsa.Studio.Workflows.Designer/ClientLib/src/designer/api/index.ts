@@ -11,5 +11,6 @@ export * from './raise-activity-embedded-port-selected';
 export * from './set-grid-color';
 export * from './update-activity';
 export * from './update-activity-size';
+export * from './update-activity-stats';
 export * from './zoom-to-fit';
 export {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";

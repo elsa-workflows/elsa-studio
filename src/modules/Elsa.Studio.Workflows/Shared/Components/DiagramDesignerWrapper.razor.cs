@@ -69,6 +69,8 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await _diagramDesigner.UpdateActivityStatsAsync(activityId, stats);
+
     public JsonObject? GetCurrentActivity()
     {
         var resolvedPath = ResolvePath().LastOrDefault();

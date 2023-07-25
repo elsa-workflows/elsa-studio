@@ -41,6 +41,8 @@ public partial class FlowchartDesignerWrapper
             await Designer.UpdateActivityAsync(id, activity);
     }
 
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await Designer.UpdateActivityStatsAsync(id, stats);
+
     public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
     public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
     public async Task CenterContentAsync() => await Designer.CenterContentAsync();

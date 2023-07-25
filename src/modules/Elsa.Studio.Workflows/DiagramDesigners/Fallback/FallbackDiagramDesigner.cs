@@ -10,8 +10,6 @@ public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private JsonObject _activity = default!;
 
-    public bool IsInitialized => true;
-
     public Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
     {
         _activity = activity;
@@ -19,6 +17,11 @@ public class FallbackDiagramDesigner : IDiagramDesigner
     }
 
     public Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateActivityStatsAsync(string id, ActivityStats stats)
     {
         return Task.CompletedTask;
     }
