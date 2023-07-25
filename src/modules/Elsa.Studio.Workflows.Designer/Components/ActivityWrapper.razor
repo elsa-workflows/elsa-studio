@@ -7,9 +7,9 @@
 
 @if (Stats != null)
 {
-    var color = Stats.Blocked ? Color.Warning : Stats.Uncompleted > 0 ? Color.Default : Stats.Completed > 0 ? Color.Success : Color.Info;
+    var color = Stats.Blocked ? Color.Warning : Stats.Uncompleted > 0 ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
     var content = Stats.Blocked ? default : Stats.Uncompleted > 0 ? default : Stats.Completed > 1 ? Stats.Completed.ToString() : default;
-    var icon = content != null ? default : Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PendingActions : Stats.Completed > 0 ? Icons.Material.Outlined.Check : default;
+    var icon = content != null ? default : Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : Stats.Completed > 0 ? Icons.Material.Outlined.Check : default;
     <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon">
         @DisplayActivityWrapper()
     </MudBadge>
