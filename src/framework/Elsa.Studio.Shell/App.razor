@@ -5,7 +5,7 @@
 @inject IEnumerable<IModule> Modules;
 
 <CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies">
+    <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@_additionalAssemblies"> 
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>

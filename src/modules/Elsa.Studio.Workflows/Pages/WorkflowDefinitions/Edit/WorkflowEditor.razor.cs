@@ -1,8 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Activities;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -11,6 +12,7 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -27,12 +29,12 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    private IDiagramDesigner? _diagramDesigner;
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
+    private DiagramDesignerWrapper _diagramDesigner = default!;
 
     public WorkflowEditor()
     {
@@ -43,15 +45,15 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
-    private Activity? SelectedActivity { get; set; }
+    private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
@@ -84,11 +86,12 @@ public partial class WorkflowEditor
 
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         if (WorkflowDefinition?.Root == null)
             return;
-
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
-        await SelectActivity(WorkflowDefinition.Root);
+        
+        SelectActivity(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(bool readDiagram, bool publish)
@@ -97,7 +100,7 @@ public partial class WorkflowEditor
 
         if (readDiagram)
         {
-            var root = await _diagramDesigner!.ReadRootActivityAsync();
+            var root = await _diagramDesigner.ReadActivityAsync();
             workflowDefinition.Root = root;
         }
 
@@ -142,6 +145,14 @@ public partial class WorkflowEditor
     private async Task PublishAsync()
     {
         await SaveChangesAsync(true, true, true);
+    }
+
+    private bool ShouldUpdateReferences() => WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows;
+
+    private async Task<int> UpdateReferencesAsync()
+    {
+        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(WorkflowDefinition!.DefinitionId);
+        return updateReferencesResponse.AffectedWorkflows.Count;
     }
 
     private async Task<ProblemDetails?> RetractAsync()
@@ -210,11 +221,11 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task SelectActivity(Activity activity)
+    private void SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
-        SelectedActivityId = activity.Id;
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
+        SelectedActivityId = activity.GetId();
+        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         StateHasChanged();
     }
     
@@ -226,17 +237,19 @@ public partial class WorkflowEditor
             await WorkflowDefinitionUpdated();
     }
 
-    private async Task OnActivitySelected(Activity activity)
+    private Task OnActivitySelected(JsonObject activity)
     {
-        await SelectActivity(activity);
+        SelectActivity(activity);
+        return Task.CompletedTask;
     }
 
-    private async Task OnSelectedActivityUpdated(Activity activity)
+    private async Task OnSelectedActivityUpdated(JsonObject activity)
     {
         _isDirty = true;
         StateHasChanged();
-        await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
-        SelectedActivityId = activity.Id;
+        await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
+        
+        SelectedActivityId = activity.GetId();
     }
 
     private async Task OnSaveClick()
@@ -249,6 +262,12 @@ public partial class WorkflowEditor
     {
         await ProgressAsync(PublishAsync);
         Snackbar.Add("Workflow published", Severity.Success);
+
+        if (!ShouldUpdateReferences())
+            return;
+
+        var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
+        Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
     }
 
     private async Task OnRetractClicked()
@@ -307,7 +326,6 @@ public partial class WorkflowEditor
 
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-        serializerOptions.Converters.Add(new ActivityJsonConverterFactory(ServiceProvider));
         serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
 
         var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;
@@ -317,11 +335,29 @@ public partial class WorkflowEditor
         model.DefinitionId = WorkflowDefinition!.DefinitionId;
 
         var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
-        await _diagramDesigner!.LoadRootActivity(workflowDefinition.Root);
+        await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
         await SetWorkflowDefinitionAsync(workflowDefinition);
         
         _isDirty = false;
 
         StateHasChanged();
+    }
+
+    private async Task OnRunWorkflowClicked()
+    {
+        var workflowInstanceId = await ProgressAsync(async () =>
+        {
+            var request = new ExecuteWorkflowDefinitionRequest
+            {
+                VersionOptions = VersionOptions.Latest
+            };
+
+            var definitionId = WorkflowDefinition!.DefinitionId;
+            return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
+        });
+        
+        Snackbar.Add("Successfully started workflow", Severity.Success);
+        
+        NavigationManager.NavigateTo($"/workflows/instances/{workflowInstanceId}/view");
     }
 }

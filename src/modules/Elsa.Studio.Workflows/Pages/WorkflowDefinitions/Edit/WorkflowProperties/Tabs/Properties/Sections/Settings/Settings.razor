@@ -40,6 +40,14 @@
                         CheckedChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
                         ReadOnly="IsReadOnly"/>
                 </MudField>
+                <MudTextField 
+                    T="string" 
+                    Variant="Variant.Outlined" 
+                    Label="Category"
+                    HelperText="A custom activity category to assign this workflow-as-an-activity to."
+                    Value="@WorkflowDefinition.Options.ActivityCategory"
+                    ValueChanged="OnCategoryChanged"
+                    />
             }
         </MudStack>
         <MudOverlay Visible="IsReadOnly" Absolute="true"/>

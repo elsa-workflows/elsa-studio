@@ -1,6 +1,7 @@
 @page "/workflows/instances"
 @using System.Globalization
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using Elsa.Api.Client.Resources.WorkflowInstances.Enums
 @using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models
 @using Variant = MudBlazor.Variant
 
@@ -12,7 +13,7 @@
     <MudTable
         @ref="_table"
         T="WorkflowInstanceRow"
-        ServerData="ServerReload"
+        ServerData="LoadData"
         Dense="true"
         Hover="true"
         Elevation="0"
@@ -28,26 +29,62 @@
                 <MudMenuItem>Retry</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
-            <MudSelect T="WorkflowDefinitionSummary" Label="Workflow" SelectedValues="SelectedWorkflowDefinitions" MultiSelection="true" ToStringFunc="@(definition => definition.Name)" SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged">
-                @foreach (var workflowDefinition in WorkflowDefinitions)
-                {
-                    <MudSelectItem Value="@workflowDefinition">@workflowDefinition.Name</MudSelectItem>
-                }
-            </MudSelect>
+            <MudStack Row="true">
+                <MudSelect
+                    T="WorkflowDefinitionSummary"
+                    AdornmentIcon="@Icons.Material.Outlined.Window"
+                    Label="Workflow"
+                    SelectedValues="SelectedWorkflowDefinitions"
+                    MultiSelection="true"
+                    Dense="true"
+                    Clearable="true"
+                    AnchorOrigin="Origin.BottomLeft"
+                    Variant="Variant.Outlined"
+                    ToStringFunc="@(definition => definition.Name)"
+                    SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged">
+                    @foreach (var workflowDefinition in WorkflowDefinitions)
+                    {
+                        <MudSelectItem Value="@workflowDefinition">@workflowDefinition.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect 
+                    T="WorkflowStatus" 
+                    Label="Status" 
+                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow" 
+                    MultiSelection="true" 
+                    Variant="Variant.Outlined"
+                    AnchorOrigin="Origin.BottomLeft"
+                    Dense="true"
+                    Clearable="true"
+                    SelectedValues="SelectedStatuses" 
+                    SelectedValuesChanged="OnSelectedStatusesChanged">
+                    <MudSelectItem Value="WorkflowStatus.Running"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowStatus.Finished"></MudSelectItem>
+                </MudSelect>
+                <MudSelect 
+                    T="WorkflowSubStatus" 
+                    Label="Sub status" 
+                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow" 
+                    MultiSelection="true"
+                    Variant="Variant.Outlined"
+                    AnchorOrigin="Origin.BottomLeft"
+                    Dense="true"
+                    Clearable="true"
+                    SelectedValues="SelectedSubStatuses" 
+                    SelectedValuesChanged="OnSelectedSubStatusesChanged">
+                    <MudSelectItem Value="WorkflowSubStatus.Executing"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowSubStatus.Suspended"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowSubStatus.Finished"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowSubStatus.Faulted"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowSubStatus.Cancelled"></MudSelectItem>
+                </MudSelect>
+            </MudStack>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="WorkflowInstanceRow">ID</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="CorrelationId" T="WorkflowInstanceRow">Correlation ID</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="Workflow" T="WorkflowInstanceRow">Workflow</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="Version" T="WorkflowInstanceRow">Version</MudTableSortLabel>
-            </MudTh>
+            <MudTh>ID</MudTh>
+            <MudTh>Correlation ID</MudTh>
+            <MudTh>Workflow</MudTh>
+            <MudTh>Version</MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">Name</MudTableSortLabel>
             </MudTh>
@@ -55,10 +92,10 @@
                 <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">Status</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow">Created</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="LastExecutedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
@@ -80,7 +117,7 @@
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="LastExecutedAt">@context.LastExecutedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+            <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">

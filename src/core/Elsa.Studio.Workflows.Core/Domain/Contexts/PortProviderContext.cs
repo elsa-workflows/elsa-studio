@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Contexts;
@@ -8,4 +8,4 @@ namespace Elsa.Studio.Workflows.Domain.Contexts;
 /// </summary>
 /// <param name="ActivityDescriptor">The descriptor of te activity for which ports are being provided.</param> 
 /// <param name="Activity">The activity for which ports are being provided.</param>
-public record PortProviderContext(ActivityDescriptor ActivityDescriptor, Activity Activity);
+public record PortProviderContext(ActivityDescriptor ActivityDescriptor, JsonObject Activity);

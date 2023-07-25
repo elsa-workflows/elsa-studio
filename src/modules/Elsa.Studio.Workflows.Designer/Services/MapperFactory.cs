@@ -1,7 +1,5 @@
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Extensions;
-using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
@@ -27,7 +25,7 @@ internal class MapperFactory : IMapperFactory
 
     public async Task<IActivityMapper> CreateActivityMapperAsync(CancellationToken cancellationToken = default)
     {
-        var descriptors = await _activityRegistry.GetDictionaryAsync(cancellationToken);
-        return new ActivityMapper(descriptors, _activityPortService, _activityDisplaySettingsRegistry);
+        await _activityRegistry.EnsureLoadedAsync(cancellationToken);
+        return new ActivityMapper(_activityRegistry, _activityPortService, _activityDisplaySettingsRegistry);
     }
 }

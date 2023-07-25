@@ -1,5 +1,6 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Contracts;
 
@@ -12,12 +13,13 @@ public interface IFlowchartMapper
     /// Maps a flowchart activity to an X6Graph.
     /// </summary>
     /// <param name="flowchart">The flowchart activity.</param>
-    X6Graph Map(Flowchart flowchart);
+    /// <param name="activityStatsMap">A map of activity stats.</param>
+    X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = default);
     
     /// <summary>
     /// Maps an X6 graph to a flowchart activity.
     /// </summary>
     /// <param name="graph">The X6 graph.</param>
-    Flowchart Map(X6Graph graph);
+    JsonObject Map(X6Graph graph);
     
 }

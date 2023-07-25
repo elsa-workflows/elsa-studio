@@ -1,39 +1,39 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 
-public partial class WorkflowViewer
+public partial class WorkflowDefinitionVersionViewer
 {
-    private IDiagramDesigner? _diagramDesigner;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
-    
+    private DiagramDesignerWrapper? _diagramDesigner;
+
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IActivityTypeService ActivityTypeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
-    private Activity? SelectedActivity { get; set; }
+    private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     public string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
-    public RadzenSplitterPane ActivityPropertiesPane
+    private RadzenSplitterPane ActivityPropertiesPane
     {
         get => _activityPropertiesPane;
         set
@@ -47,11 +47,12 @@ public partial class WorkflowViewer
     
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         if (WorkflowDefinition?.Root == null)
             return;
-    
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(WorkflowDefinition.Root);
-        await SelectActivity(WorkflowDefinition.Root);
+        
+        SelectActivity(WorkflowDefinition.Root);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -59,26 +60,35 @@ public partial class WorkflowViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
-        if(_diagramDesigner?.IsInitialized == false)
-            return;
+        if(_diagramDesigner != null)
+            await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
         
-        await _diagramDesigner!.LoadRootActivity(WorkflowDefinition.Root);
-        await SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(WorkflowDefinition.Root);
     }
 
-    private async Task SelectActivity(Activity activity)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (WorkflowDefinition?.Root == null)
+            return;
+        
+        if(firstRender)
+            await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
+    }
+
+    private void SelectActivity(JsonObject activity)
     {
         SelectedActivity = activity;
-        SelectedActivityId = activity.Id;
-        ActivityDescriptor = await ActivityRegistry.FindAsync(activity.Type);
+        SelectedActivityId = activity.GetId();
+        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName());
         StateHasChanged();
     }
     
-    private async Task OnActivitySelected(Activity activity)
+    private Task OnActivitySelected(JsonObject activity)
     {
-        await SelectActivity(activity);
+        SelectActivity(activity);
+        return Task.CompletedTask;
     }
-    
+
     private async Task OnDownloadClicked()
     {
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(WorkflowDefinition.Version));

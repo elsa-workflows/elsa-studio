@@ -1,3 +1,4 @@
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
@@ -13,15 +14,19 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
+            .AddSingleton<IFeatureService, RemoteFeatureService>()
             .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddSingleton<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
-            .AddSingleton<IActivityRegistry, RemoteActivityRegistry>()
+            .AddSingleton<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
+            .AddSingleton<IActivityExecutionService, RemoteActivityExecutionService>()
+            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
             .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
             .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()
             .AddSingleton<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
             .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddSingleton<IActivityPortService, DefaultActivityPortService>()
+            .AddSingleton<IActivityVisitor, DefaultActivityVisitor>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();

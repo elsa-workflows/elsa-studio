@@ -1,27 +1,32 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 
 public class FallbackDiagramDesigner : IDiagramDesigner
 {
-    private Activity _activity = default!;
+    private JsonObject _activity = default!;
 
-    public bool IsInitialized => true;
-
-    public Task LoadRootActivity(Activity activity)
+    public Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
     {
         _activity = activity;
         return Task.CompletedTask;
     }
 
-    public Task UpdateActivityAsync(string id, Activity activity)
+    public Task UpdateActivityAsync(string id, JsonObject activity)
     {
         return Task.CompletedTask;
     }
 
-    public Task<Activity> ReadRootActivityAsync()
+    public Task UpdateActivityStatsAsync(string id, ActivityStats stats)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task<JsonObject> ReadRootActivityAsync()
     {
         return Task.FromResult(_activity);
     }

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Expressions;
@@ -14,7 +14,7 @@ namespace Elsa.Studio.Models;
 public class DisplayInputEditorContext
 {
     public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    public Activity Activity { get; set; } = default!;
+    public JsonObject Activity { get; set; } = default!;
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     public InputDescriptor InputDescriptor { get; set; } = default!;
     public object? Value { get; set; }

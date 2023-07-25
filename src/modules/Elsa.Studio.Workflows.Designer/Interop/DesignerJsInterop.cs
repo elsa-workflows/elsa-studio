@@ -1,6 +1,7 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
-using Elsa.Studio.Workflows.Designer.Services;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -36,6 +37,15 @@ internal class DesignerJsInterop : JsInteropBase
         
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, Activity activity) =>
-        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity));
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity, size));
+    
+    public async Task UpdateActivityStatsAsync(string elementId, string activityId, ActivityStats stats) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivityStats", elementId, activityId, stats));
+    
+    public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activity));
+    
+    public async Task RaiseActivityEmbeddedPortSelectedAsync(string elementId, JsonObject activity, string portName) =>
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivityEmbeddedPortSelected", elementId, activity, portName));
 }

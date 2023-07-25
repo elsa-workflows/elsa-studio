@@ -8,6 +8,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDefaultActivityPortProviders(this IServiceCollection services)
     {
+        services.AddActivityPortProvider<SwitchPortProvider>();
         services.AddActivityPortProvider<FlowSwitchPortProvider>();
         services.AddActivityPortProvider<SendHttpRequestPortProvider>();
         

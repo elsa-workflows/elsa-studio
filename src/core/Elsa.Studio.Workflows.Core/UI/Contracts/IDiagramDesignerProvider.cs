@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
 
@@ -8,6 +8,6 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 public interface IDiagramDesignerProvider
 {
     double Priority { get; }
-    bool GetSupportsActivity(Activity activity);
+    bool GetSupportsActivity(JsonObject activity);
     IDiagramDesigner GetEditor();
 }

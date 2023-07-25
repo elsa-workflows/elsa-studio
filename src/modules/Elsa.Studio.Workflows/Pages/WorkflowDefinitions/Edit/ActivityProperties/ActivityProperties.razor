@@ -14,7 +14,7 @@
         else
         {
             <div class="pa-4">
-                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any input properties.</MudAlert>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
             </div>
         }
     </MudTabPanel>
@@ -22,31 +22,40 @@
     <MudTabPanel Text="Output">
         @if (ActivityDescriptor?.Outputs.Any() == true)
         {
-            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+            <Well>
                 <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-            </div>
+            </Well>
         }
         else
         {
-            <div class="pa-4">
-                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any output properties.</MudAlert>
-            </div>
+            <Well>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+            </Well>
         }
     </MudTabPanel>
 
     <MudTabPanel Text="Common">
         @if (Activity != null && ActivityDescriptor != null)
         {
-            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+            <Well>
                 <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-            </div>
+            </Well>
         }
         else
         {
-            <div class="pa-4">
-                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">This activity does not have any common properties.</MudAlert>
-            </div>
+            <Well>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any common properties.</MudAlert>
+            </Well>
         }
     </MudTabPanel>
+    
+    @if (IsWorkflowAsActivity)
+    {
+        <MudTabPanel Text="Version">
+            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+                <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated" />
+            </div>
+        </MudTabPanel>
+    }
 
 </MudTabs>

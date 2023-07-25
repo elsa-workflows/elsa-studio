@@ -47,4 +47,10 @@ public partial class Settings
         WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows = value == true;
         await RaiseWorkflowUpdatedAsync();
     }
+
+    private async Task OnCategoryChanged(string value)
+    {
+        WorkflowDefinition!.Options.ActivityCategory = value;
+        await RaiseWorkflowUpdatedAsync();
+    }
 }

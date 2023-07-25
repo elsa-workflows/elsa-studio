@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -16,9 +16,9 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityPropertie
 public partial class InputsTab
 {
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    [Parameter] public Activity? Activity { get; set; }
+    [Parameter] public JsonObject? Activity { get; set; }
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
-    [Parameter] public Func<Activity, Task>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
@@ -37,18 +37,18 @@ public partial class InputsTab
         InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
     }
 
-    private IEnumerable<ActivityInputDisplayModel> BuildInputEditorModels(Activity activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
+    private IEnumerable<ActivityInputDisplayModel> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
 
         foreach (var inputDescriptor in inputDescriptors)
         {
             var inputName = inputDescriptor.Name.Camelize();
-            var value = activity.TryGetValue(inputName);
+            var value = activity.GetProperty(inputName);
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
             var syntaxProvider = wrappedInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            var input = inputDescriptor.IsWrapped ? wrappedInput : value;
+            object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
             var context = new DisplayInputEditorContext
             {
@@ -93,7 +93,15 @@ public partial class InputsTab
             context.SelectedSyntaxProvider = syntaxProvider;
         }
 
-        activity[inputDescriptor.Name.Camelize()] = value!;
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        options.Converters.Add(new ExpressionJsonConverterFactory());
+
+        var propName = inputDescriptor.Name.Camelize();
+        activity.SetProperty(value?.SerializeToNode(options), propName);
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);

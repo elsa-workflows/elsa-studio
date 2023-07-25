@@ -1,31 +1,31 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
 internal class ActivityMapper : IActivityMapper
 {
-    private readonly IDictionary<string, ActivityDescriptor> _activityDescriptors;
+    private readonly IActivityRegistry _activityRegistry;
     private readonly IActivityPortService _activityPortService;
     private readonly IActivityDisplaySettingsRegistry _activityDisplaySettingsRegistry;
 
-    public ActivityMapper(IDictionary<string, ActivityDescriptor> activityDescriptors, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
+    public ActivityMapper(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
     {
-        _activityDescriptors = activityDescriptors;
+        _activityRegistry = activityRegistry;
         _activityPortService = activityPortService;
         _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
     }
 
-    public X6Node MapActivity(Activity activity)
+    public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = default)
     {
-        var activityId = activity.Id;
+        var activityId = activity.GetId();
         var designerMetadata = activity.GetDesignerMetadata();
         var position = designerMetadata.Position;
         var size = designerMetadata.Size;
@@ -38,7 +38,7 @@ internal class ActivityMapper : IActivityMapper
         if (height == 0) height = 50;
 
         // Create node.
-        var node = new X6Node
+        var node = new X6ActivityNode
         {
             Id = activityId,
             Data = activity,
@@ -48,10 +48,12 @@ internal class ActivityMapper : IActivityMapper
             Ports = GetPorts(activity)
         };
 
+        node.ActivityStats = activityStats;
+
         return node;
     }
 
-    public X6Ports GetPorts(Activity activity)
+    public X6Ports GetPorts(JsonObject activity)
     {
         // Create input ports.
         var inPorts = GetInPorts(activity);
@@ -66,12 +68,13 @@ internal class ActivityMapper : IActivityMapper
         };
     }
 
-    public IEnumerable<X6Port> GetOutPorts(Activity activity)
+    public IEnumerable<X6Port> GetOutPorts(JsonObject activity)
     {
-        var activityType = activity.Type;
-        var activityDescriptor = _activityDescriptors[activityType];
+        var activityType = activity.GetTypeName();
+        var activityVersion = activity.GetVersion();
+        var activityDescriptor = _activityRegistry.Find(activityType, activityVersion)!;
         var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 
         var ports = sourcePorts.Select(sourcePort => new X6Port
         {
@@ -107,9 +110,9 @@ internal class ActivityMapper : IActivityMapper
         return ports;
     }
 
-    public IEnumerable<X6Port> GetInPorts(Activity activity)
+    public IEnumerable<X6Port> GetInPorts(JsonObject activity)
     {
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.Type);
+        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 
         // Create default input port.
         yield return new X6Port

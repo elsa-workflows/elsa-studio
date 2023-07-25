@@ -1,11 +1,16 @@
-using Elsa.Api.Client.Activities;
+using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Interop;
+using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
@@ -17,24 +22,32 @@ public partial class ActivityWrapper
     private string _color = default!;
     private string? _icon;
     private ActivityDescriptor _activityDescriptor = default!;
+    private ICollection<Port> _ports = new List<Port>();
 
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = default!;
-    [Parameter] public Activity Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
+    [Parameter] public string? SelectedPortName { get; set; }
+    [Parameter] public ActivityStats? Stats { get; set; }
 
     [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    
+    [Inject] IActivityPortService ActivityPortService { get; set; } = default!;
+    [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
+
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
-    
+
     protected override async Task OnInitializedAsync()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
         var activity = Activity;
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
-        var activityType = activity.Type;
-        var descriptor = await ActivityRegistry.FindAsync(activityType);
+        var activityType = activity.GetTypeName();
+        var activityVersion = activity.GetVersion();
+        var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
         _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
@@ -43,23 +56,38 @@ public partial class ActivityWrapper
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
-
+        _ports = ActivityPortService.GetPorts(new PortProviderContext(descriptor!, activity)).ToList();
+        
         await UpdateSizeAsync();
     }
 
     private async Task UpdateSizeAsync()
     {
-        // If the activity has a size specified, don't attempt to calculate it.
-        var size = Activity.Metadata.TryGetValue<ActivityDesignerMetadata>("metadata")?.Size;
-
-        if (size != null)
-        {
-            if (size.Width > 0 || size.Height > 0)
-                return;
-        }
-
-        // Otherwise, update the activity node.
         if (!string.IsNullOrEmpty(ElementId))
-            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity);
-    } 
+        {
+            var size = Activity.GetDesignerMetadata().Size;
+            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
+        }
+    }
+
+    private async Task OnEmbeddedActivityClicked(JsonObject childActivity)
+    {
+        var elementId = $"activity-{childActivity.GetId()}";
+        await DesignerInterop.RaiseActivitySelectedAsync(elementId, childActivity);
+    }
+
+    private async Task OnEmptyPortClicked(Port port)
+    {
+        var activity = Activity;
+        var elementId = $"activity-{activity.GetId()}";
+        await DesignerInterop.RaiseActivityEmbeddedPortSelectedAsync(elementId, activity, port.Name);
+    }
+
+    private async Task OnDeleteEmbeddedActivityClicked(string portName)
+    {
+        var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
+        var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+        portProvider.ClearPort(portName, providerContext);
+        await UpdateSizeAsync();
+    }
 }

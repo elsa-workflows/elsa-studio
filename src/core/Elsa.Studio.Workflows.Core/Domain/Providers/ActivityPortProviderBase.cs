@@ -1,4 +1,5 @@
-using Elsa.Api.Client.Activities;
+using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -13,17 +14,24 @@ public abstract class ActivityPortProviderBase : IActivityPortProvider
 
     public abstract IEnumerable<Port> GetPorts(PortProviderContext context);
 
-    public virtual Activity? ResolvePort(string portName, PortProviderContext context)
+    public virtual JsonObject? ResolvePort(string portName, PortProviderContext context)
     {
         var activity = context.Activity;
         var propName = portName.Camelize();
-        return (Activity?)activity.GetValueOrDefault(propName);
+        return activity.GetProperty(propName)?.AsObject();
     }
 
-    public virtual void AssignPort(string portName, Activity? activity, PortProviderContext context)
+    public virtual void AssignPort(string portName, JsonObject activity, PortProviderContext context)
     {
         var container = context.Activity;
         var propName = portName.Camelize();
-        container[propName] = activity!;
+        container.SetProperty(activity, propName);
+    }
+
+    public virtual void ClearPort(string portName, PortProviderContext context)
+    {
+        var container = context.Activity;
+        var propName = portName.Camelize();
+        container.Remove(propName);
     }
 }

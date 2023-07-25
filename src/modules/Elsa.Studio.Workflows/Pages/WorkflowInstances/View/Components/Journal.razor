@@ -1,0 +1,76 @@
+@using Variant = MudBlazor.Variant
+@using AlignItems = MudBlazor.AlignItems
+@using Elsa.Api.Client.Resources.WorkflowInstances.Models
+@using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="Journal">
+        <MudPaper Class="ma-2" Elevation="0" Outlined="true">
+            <MudToolBar Dense="true">
+                <MudToggleIconButton 
+                    Icon="@Icons.Material.Outlined.Timer" 
+                    ToggledIcon="@Icons.Material.Outlined.AccessTime"
+                    Title="Show relative time"
+                    ToggledTitle="Show accumulated time"
+                    Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)" 
+                    ToggledChanged="OnTimeMetricButtonToggleChanged"/>
+                
+                <MudToggleIconButton 
+                    Icon="@Icons.Material.Outlined.DataArray" 
+                    ToggledIcon="@Icons.Material.Outlined.DataArray"  
+                    Title="Show events scoped to current container" 
+                    ToggledTitle="Showing all events"
+                    Color="Color.Default" 
+                    ToggledColor="Color.Primary"
+                    Toggled="ShowScopedEvents" 
+                    ToggledChanged="OnScopeToggleChanged"></MudToggleIconButton>
+            </MudToolBar>
+        </MudPaper>
+        <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
+            <MudTimeline @ref="_timeline" SelectedIndexChanged="OnJournalEntrySelected" SelectedIndex="SelectedIndex">
+                <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
+                    @{
+                        var journalEntry = context;
+                        var record = journalEntry.Record;
+                        var activityDescriptor = journalEntry.ActivityDescriptor;
+                        var displaySettings = journalEntry.ActivityDisplaySettings;
+                        var activityIcon = displaySettings?.Icon;
+                        var isEven = journalEntry.IsEven;
+                        var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
+                        var timeMetric = context.TimeMetric;
+                        var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
+                        var bgClass = journalEntry == SelectedEntry ? "grey lighten-3 rounded" : "";
+
+                        var statusColor =
+                            record.EventName switch
+                            {
+                                "Started" => Color.Primary,
+                                "Completed" => Color.Success,
+                                "Faulted" => Color.Error,
+                                "Suspended" => Color.Warning,
+                                "Resumed" => Color.Warning,
+                                _ => Color.Default
+                                };
+                    }
+                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="@($"cursor-pointer pa-4 {bgClass}")">
+                        <ItemDot>
+                            <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
+                        </ItemDot>
+                        <ItemContent>
+                            <MudText Typo="Typo.body1">@displayName</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.EventName</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
+                        </ItemContent>
+                        <ItemOpposite>
+
+                            <div class="d-flex justify-end gap-4">
+                                <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@timeMetric.ToString("hh\\:mm\\:ss\\.fff")</MudText>
+                            </div>
+
+                        </ItemOpposite>
+                    </MudTimelineItem>
+                </Virtualize>
+            </MudTimeline>
+        </div>
+    </MudTabPanel>
+</MudTabs>

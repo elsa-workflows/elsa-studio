@@ -61,35 +61,3 @@
         </div>
     </MudTabPanel>
 </MudTabs>
-
-@code
-{
-    private string _searchText = "";
-    private IEnumerable<IGrouping<string, ActivityDescriptor>> _groupedActivityDescriptors = Enumerable.Empty<IGrouping<string, ActivityDescriptor>>();
-
-    [CascadingParameter]
-    public DragDropManager DragDropManager { get; set; } = default!;
-
-    [Inject]
-    private IActivityRegistry ActivityRegistry { get; set; } = default!;
-
-    [Inject]
-    private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await GetActivityDescriptorsAsync();
-    }
-
-    private async Task GetActivityDescriptorsAsync()
-    {
-        var activities = await ActivityRegistry.ListAsync();
-        activities = activities.Where(x => x.IsBrowsable);
-        _groupedActivityDescriptors = activities.GroupBy(x => x.Category).ToList();
-    }
-
-    private void OnDragStart(ActivityDescriptor activityDescriptor)
-    {
-        DragDropManager.Payload = activityDescriptor;
-    }
-}

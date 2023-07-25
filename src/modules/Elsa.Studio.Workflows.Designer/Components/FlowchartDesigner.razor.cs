@@ -1,16 +1,21 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Activities;
+using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Args;
+using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Utilities;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
@@ -21,105 +26,116 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private IFlowchartMapper? _flowchartMapper = default!;
     private IActivityMapper? _activityMapper = default!;
     private X6GraphApi _graphApi = default!;
+    private readonly PendingActionsQueue _pendingGraphActions;
+    private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
+    private IDictionary<string, ActivityStats>? _activityStats;
 
-    private List<BreadcrumbItem> _activityPath = new()
+    public FlowchartDesigner()
     {
-        new("Flowchart1", href: "#", icon: ActivityIcons.Flowchart),
-        new("ForEach1", href: "#", icon: @Icons.Material.Outlined.RepeatOne),
-    };
+        _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
+        
+        _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () =>
+        {
+            await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats));
+        }, TimeSpan.FromMilliseconds(100));
+    }
 
-    [Parameter] public Flowchart Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
-    [Parameter] public Func<Activity, Task>? OnActivitySelected { get; set; }
-    [Parameter] public Func<Task>? OnCanvasSelected { get; set; }
-    [Parameter] public Func<Task>? OnGraphUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    [Parameter] public Func<Task>? CanvasSelected { get; set; }
+    [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
 
     [JSInvokable]
-    public async Task HandleActivitySelected(Activity activity)
+    public async Task HandleActivitySelected(JsonObject activity)
     {
-        if (OnActivitySelected == null)
+        if (ActivitySelected == null)
             return;
 
-        await InvokeAsync(async () => await OnActivitySelected(activity));
+        await InvokeAsync(async () => await ActivitySelected(activity));
+    }
+
+    [JSInvokable]
+    public async Task HandleActivityEmbeddedPortSelected(JsonObject activity, string portName)
+    {
+        if (ActivityEmbeddedPortSelected == null)
+            return;
+
+        var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
+        await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
     }
 
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
-        if (OnCanvasSelected == null)
+        if (CanvasSelected == null)
             return;
 
-        await InvokeAsync(async () => await OnCanvasSelected());
+        await InvokeAsync(async () => await CanvasSelected());
     }
 
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {
-        if (OnGraphUpdated == null)
+        if (GraphUpdated == null)
             return;
 
-        await InvokeAsync(async () => await OnGraphUpdated());
+        await InvokeAsync(async () => await GraphUpdated());
     }
 
-    public async Task<Flowchart> ReadFlowchartAsync()
+    public async Task<JsonObject> ReadFlowchartAsync()
     {
         var serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        var data = await _graphApi.ReadGraphAsync();
-        var cells = data.GetProperty("cells").EnumerateArray();
-        var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6Node>(serializerOptions)!).ToList();
-        var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
-        var graph = new X6Graph(nodes, edges);
-        var flowchartMapper = await GetFlowchartMapperAsync();
-        var exportedFlowchart = flowchartMapper.Map(graph);
-        var activities = exportedFlowchart.Activities;
-        var connections = exportedFlowchart.Connections;
+        return await ScheduleGraphActionAsync(async () =>
+        {
+            var data = await _graphApi.ReadGraphAsync();
+            var cells = data.GetProperty("cells").EnumerateArray();
+            var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity").Select(x => x.Deserialize<X6ActivityNode>(serializerOptions)!).ToList();
+            var edges = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-edge").Select(x => x.Deserialize<X6Edge>(serializerOptions)!).ToList();
+            var graph = new X6Graph(nodes, edges);
+            var flowchartMapper = await GetFlowchartMapperAsync();
+            var exportedFlowchart = flowchartMapper.Map(graph);
+            var activities = exportedFlowchart.GetActivities();
+            var connections = exportedFlowchart.GetConnections();
 
-        var flowchart = Flowchart;
-        flowchart.Activities = activities;
-        flowchart.Connections = connections;
+            var flowchart = Flowchart;
+            flowchart.SetProperty(activities, "activities");
+            flowchart.SetProperty(connections.SerializeToNode(), "connections");
 
-        return flowchart;
+            return flowchart;
+        });
     }
 
-    public async Task LoadFlowchartAsync(Flowchart flowchart)
+    public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats)
     {
+        Flowchart = flowchart;
+        ActivityStats = activityStats;
         var flowchartMapper = await GetFlowchartMapperAsync();
-        var graph = flowchartMapper.Map(flowchart);
-        await _graphApi.LoadGraphAsync(graph);
+        var graph = flowchartMapper.Map(flowchart, activityStats);
+        await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
-    public async Task AddActivityAsync(Activity activity)
+    public async Task AddActivityAsync(JsonObject activity)
     {
         var mapper = await GetActivityMapperAsync();
         var node = mapper.MapActivity(activity);
-        await _graphApi.AddActivityNodeAsync(node);
+        await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
 
-    public async Task ZoomToFitAsync() => await _graphApi.ZoomToFitAsync();
-    public async Task CenterContentAsync() => await _graphApi.CenterContentAsync();
-    public async Task UpdateActivityAsync(string id, Activity activity) => await _graphApi.UpdateActivityAsync(id, activity);
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_graphApi != null!)
-            await _graphApi.DisposeGraphAsync();
-
-        Dispose();
-    }
-
-    public void Dispose()
-    {
-        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
-        _componentRef?.Dispose();
-    }
+    public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
+    public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await ScheduleGraphActionAsync(() => DesignerJsInterop.UpdateActivityStatsAsync($"activity-{activityId}", activityId, stats));
 
     protected override void OnInitialized()
     {
@@ -132,23 +148,44 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         {
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
+            await LoadFlowchartAsync(Flowchart, ActivityStats);
+            await _pendingGraphActions.ProcessAsync();
+        }
+    }
 
-            await LoadFlowchartAsync(Flowchart);
+    protected override async Task OnParametersSetAsync()
+    {
+        if(!Equals(_activityStats, ActivityStats))
+        {
+            _activityStats = ActivityStats;
+            await _rateLimitedLoadFlowchartAction.InvokeAsync();
         }
     }
 
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();
     private async Task<IActivityMapper> GetActivityMapperAsync() => _activityMapper ??= await MapperFactory.CreateActivityMapperAsync();
-
-    /// <summary>
-    /// Sets the grid color.
-    /// </summary>
-    private async Task SetGridColorAsync(string color) => await _graphApi.SetGridColorAsync(color);
+    private async Task SetGridColorAsync(string color) => await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(color));
+    private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);
+    private async Task<T> ScheduleGraphActionAsync<T>(Func<Task<T>> action) => await _pendingGraphActions.EnqueueAsync(action);
 
     private async void OnDarkModeChanged()
     {
         var palette = ThemeService.CurrentPalette;
         var gridColor = palette.BackgroundGrey;
         await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
+    }
+    
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_graphApi != null!)
+            await _graphApi.DisposeGraphAsync();
+
+        ((IDisposable)this).Dispose();
+    }
+
+    void IDisposable.Dispose()
+    {
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
+        _componentRef?.Dispose();
     }
 }

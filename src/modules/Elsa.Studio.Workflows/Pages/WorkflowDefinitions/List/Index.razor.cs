@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
@@ -14,7 +13,7 @@ public partial class Index
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
-    private int _totalCount;
+    private long _totalCount;
     private string? _searchString;
 
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
@@ -51,7 +50,7 @@ public partial class Index
         var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
             .Select(definition =>
             {
-                var latestVersionNumber = definition.Version ?? 0;
+                var latestVersionNumber = definition.Version;
                 var isPublished = definition.IsPublished;
                 var publishedVersion = isPublished
                     ? definition
@@ -62,7 +61,7 @@ public partial class Index
             })
             .ToList();
 
-        return new TableData<WorkflowDefinitionRow> { TotalItems = _totalCount, Items = latestWorkflowDefinitions };
+        return new TableData<WorkflowDefinitionRow> { TotalItems = (int)_totalCount, Items = latestWorkflowDefinitions };
     }
 
     private async Task OnCreateWorkflowClicked()
