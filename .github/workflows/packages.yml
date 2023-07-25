@@ -1,4 +1,4 @@
-name: Elsa 3 Prerelease
+name: Elsa Studio 3 Packages
 on:
   workflow_dispatch:
   push:
@@ -30,15 +30,15 @@ jobs:
           npm install --force
           npm run build
       - name: Build
-        run: dotnet build --configuration Release /p:Version=${VERSION}
+        run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
       - name: Test
-        run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+        run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
       - name: Pack
-        run: dotnet pack --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages
+        run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: elsa-nuget-packages
+          name: elsa-studio-nuget-packages
           path: packages/*nupkg
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
   
@@ -52,7 +52,7 @@ jobs:
       - name: Download Packages
         uses: actions/download-artifact@v3
         with:
-          name: elsa-nuget-packages
+          name: elsa-studio-nuget-packages
 
       - name: Publish to feedz.io
         run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.feedz_feed_source }} --skip-duplicate
@@ -67,7 +67,7 @@ jobs:
       - name: Download Packages
         uses: actions/download-artifact@v3
         with:
-          name: elsa-nuget-packages
+          name: elsa-studio-nuget-packages
 
       - name: Publish to nuget.org
         run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_source }} --skip-duplicate
