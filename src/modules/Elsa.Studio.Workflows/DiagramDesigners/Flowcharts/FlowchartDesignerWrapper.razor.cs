@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
@@ -8,6 +9,7 @@ using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -83,6 +85,14 @@ public partial class FlowchartDesignerWrapper
         {
             Position = new Position(x, y)
         });
+        
+        // Copy constructor values from the activity descriptor.
+        foreach (var property in activityDescriptor.ConstructionProperties)
+        {
+            var valueNode = JsonSerializer.SerializeToNode(property.Value);
+            var propertyName = property.Key.Camelize();
+            newActivity.SetProperty( valueNode, propertyName);
+        }
         
         // If the activity is a trigger and it's the first trigger on the flowchart, set the trigger property to true.
         if (activityDescriptor.Kind == ActivityKind.Trigger && Flowchart.GetActivities().All(activity => activity.GetCanStartWorkflow() != true))
