@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
       - main
   release:
     types: [ prereleased ]
@@ -19,10 +18,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Verify commit exists in origin/v3
+      - name: Verify commit exists in origin/main
         run: |
           git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-          git branch --remote --contains | grep origin/v3
+          git branch --remote --contains | grep origin/main
       - name: Set VERSION variable
         run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
       - name: Build designer client assets
