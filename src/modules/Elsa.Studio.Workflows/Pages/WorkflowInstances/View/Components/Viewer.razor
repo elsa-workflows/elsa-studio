@@ -1,12 +1,17 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties
 @using Elsa.Studio.Workflows.UI.Contracts
 @using Orientation = Radzen.Orientation
+@using Elsa.Api.Client.Resources.WorkflowInstances.Enums
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
         @if (WorkflowDefinition != null)
         {
-            <DiagramDesignerWrapper @ref="_designer" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged"/>
+            <DiagramDesignerWrapper @ref="_designer" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged">
+                <CustomToolbarItems>
+                    <ElapsedTime StartTime="WorkflowInstance.CreatedAt" EndTime="@(WorkflowInstance.Status == WorkflowStatus.Running ? DateTimeOffset.UtcNow : WorkflowInstance.FinishedAt!.Value)"/>
+                </CustomToolbarItems>
+            </DiagramDesignerWrapper>
         }
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">

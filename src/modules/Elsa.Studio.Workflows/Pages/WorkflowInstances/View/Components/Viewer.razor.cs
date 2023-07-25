@@ -29,11 +29,13 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
 public partial class Viewer : IAsyncDisposable
 {
+    private WorkflowInstance _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private DiagramDesignerWrapper _designer = default!;
-    private int _propertiesPaneHeight = 600;
+    private int _propertiesPaneHeight = 300;
     private IDictionary<string, JsonObject> _activityLookup = new Dictionary<string, JsonObject>();
     private IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
+    private Timer? _elapsedTimer;
 
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -46,8 +48,8 @@ public partial class Viewer : IAsyncDisposable
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
-    private WorkflowState? WorkflowState { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private string? SelectedActivityId { get; set; }
@@ -78,19 +80,23 @@ public partial class Viewer : IAsyncDisposable
 
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
+        {
             await ObserveWorkflowInstanceAsync();
+            StartElapsedTimer();
+        }
     }
 
     protected override void OnParametersSet()
     {
-        if (WorkflowState != WorkflowInstance.WorkflowState)
-            WorkflowState = WorkflowInstance.WorkflowState;
+        // ReSharper disable once RedundantCheckBeforeAssignment
+        if (_workflowInstance != WorkflowInstance)
+            _workflowInstance = WorkflowInstance;
     }
 
     private async Task ObserveWorkflowInstanceAsync()
     {
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance.Id);
-        WorkflowInstanceObserver.ActivityExecutionLogUpdated  += async message => await InvokeAsync(async () =>
+        WorkflowInstanceObserver.ActivityExecutionLogUpdated += async message => await InvokeAsync(async () =>
         {
             foreach (var stats in message.Stats)
             {
@@ -98,9 +104,32 @@ public partial class Viewer : IAsyncDisposable
                 _activityExecutionRecordsLookup.Remove(activityId);
                 await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
             }
-            
+
             StateHasChanged();
+
+            // If we received an update for the selected activity, refresh the activity details.
+            var selectedActivityId = SelectedActivity?.GetId();
+            var includesSelectedActivity = selectedActivityId != null && message.Stats.Any(x => x.ActivityId == selectedActivityId);
+            
+            if(includesSelectedActivity)
+                await SelectActivityAsync(SelectedActivity!);
         });
+
+        WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
+        {
+            _workflowInstance = (await WorkflowInstanceService.GetAsync(_workflowInstance.Id))!;
+
+            if (_workflowInstance.Status == WorkflowStatus.Finished)
+            {
+                if (_elapsedTimer != null)
+                    await _elapsedTimer.DisposeAsync();
+            }
+        });
+    }
+
+    private void StartElapsedTimer()
+    {
+        _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
     private async Task SelectActivityAsync(JsonObject activity)
@@ -155,5 +184,8 @@ public partial class Viewer : IAsyncDisposable
     {
         if (WorkflowInstanceObserver != null!)
             await WorkflowInstanceObserver.DisposeAsync();
+
+        if (_elapsedTimer != null!)
+            await _elapsedTimer.DisposeAsync();
     }
 }
