@@ -1,6 +1,6 @@
 # Elsa Studio
 
-<a href="https://v3.elsaworkflows.io/">
+<a href="./artwork/screenshot-1.png" target="_blank">
   <p align="center">
     <img src="./artwork/screenshot-1.png" alt="Elsa Studio workflow designer">
   </p>
