@@ -1,0 +1,46 @@
+.full-height {
+    height: 100%
+}
+
+/*****************************************************
+* Environment Picker
+******************************************************/
+.elsa-environment-picker .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+    padding-top: 11px;
+    padding-bottom: 11px;
+}
+
+/*****************************************************
+* Expression Editor
+******************************************************/
+.studio-expression-input-menu-item .mud-list-item-icon {
+    min-width: 33px;
+}
+
+.studio-expression-input-monaco-editor {
+    height: 120px;
+}
+
+/*****************************************************
+* Monaco Editor
+******************************************************/
+.monaco-editor {
+    border-radius: 0.25rem;
+}
+
+.monaco-editor .overflow-guard {
+    border-radius: 0.25rem;
+}
+
+.monaco-editor .suggest-widget div.tree {
+    white-space: unset;
+    padding-bottom: 0;
+}
+
+/*****************************************************
+* Badge overlap for small icons
+******************************************************/
+.elsa-toolbar-icon .mud-badge.mud-badge-bottom.right.mud-badge-overlap
+{
+    inset: calc(100% - 20px) auto auto calc(100% - 20px)
+}

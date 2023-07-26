@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-    <Import Project="..\..\..\common.props" />
-    <Import Project="..\..\..\configureawait.props" />
-    
+    <Import Project="..\..\..\common.props"/>
+    <Import Project="..\..\..\configureawait.props"/>
+
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <Description>Elsa Studio DOM interop services.</Description>
@@ -10,13 +10,24 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="wwwroot\" />
+        <Folder Include="wwwroot\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.9" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-      <PackageReference Include="Microsoft.JSInterop" Version="7.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.JSInterop" Version="7.0.9"/>
     </ItemGroup>
-    
+
+    <ItemGroup>
+        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+        <Content Remove="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json"/>
+        <!--        <None Include="ClientLib\package.json">-->
+        <!--            <CopyToOutputDirectory>Never</CopyToOutputDirectory>-->
+        <!--            <CopyToPublishDirectory>Never</CopyToPublishDirectory>-->
+        <!--        </None>-->
+    </ItemGroup>
+
 </Project>

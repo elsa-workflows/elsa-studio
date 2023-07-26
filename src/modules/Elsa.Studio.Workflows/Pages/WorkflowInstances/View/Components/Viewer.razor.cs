@@ -13,7 +13,6 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit.ActivityProperties;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.Shared.Components;

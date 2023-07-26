@@ -3,6 +3,8 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
+using Elsa.Studio.Workflows.Screens.EditWorkflowDefinition;
+using Elsa.Studio.Workflows.Screens.EditWorkflowDefinition.Components;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;

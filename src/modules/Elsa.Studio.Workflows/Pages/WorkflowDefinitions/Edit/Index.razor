@@ -1,35 +1,15 @@
 @page "/workflows/definitions/{definitionId}/edit"
-@using Orientation = Radzen.Orientation
-@using Elsa.Studio.Workflows.Models
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
-@using Elsa.Api.Client.Shared.Models
-@using Elsa.Studio.Workflows.Domain.Contracts
-@inject IWorkflowDefinitionService WorkflowDefinitionService
+@using Elsa.Studio.Workflows.Screens.EditWorkflowDefinition
 
 <PageTitle>Workflow definition</PageTitle>
 
-<CascadingValue Value="_dragDropManager">
-    <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
-        <RadzenSplitterPane Size="15%" Min="100px">
-            <ActivityPicker/>
-        </RadzenSplitterPane>
-        <RadzenSplitterPane Size="85%">
-            <Workspace WorkflowDefinitions="@_workflowDefinitions"/>
-        </RadzenSplitterPane>
-    </RadzenSplitter>
-</CascadingValue>
+<EditWorkflowDefinitionScreen DefinitionId="@DefinitionId"/>
 
 @code
 {
-    private readonly DragDropManager _dragDropManager = new();
-    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
-
+    /// <summary>
+    /// The ID of the workflow definition to edit.
+    /// </summary>
     [Parameter]
     public string DefinitionId { get; set; } = default!;
-
-    protected override async Task OnParametersSetAsync()
-    {
-        var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
-        _workflowDefinitions = new List<WorkflowDefinition> { definition! };
-    }
 }
