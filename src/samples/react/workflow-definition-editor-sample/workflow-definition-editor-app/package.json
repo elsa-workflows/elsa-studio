@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@elsa-workflows/elsa-studio-wasm": "^3.0.0-preview.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -16,7 +17,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "npm run copy:elsa-studio-wasm",
+    "copy:elsa-studio-wasm": "cp -r node_modules/@elsa-workflows/elsa-studio-wasm/_content public/ && cp -r node_modules/@elsa-workflows/elsa-studio-wasm/_framework public/ && cp -r node_modules/@elsa-workflows/elsa-studio-wasm/appsettings.json public/"
   },
   "eslintConfig": {
     "extends": [

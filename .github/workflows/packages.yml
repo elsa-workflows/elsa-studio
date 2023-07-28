@@ -41,6 +41,42 @@ jobs:
           name: elsa-studio-nuget-packages
           path: packages/*nupkg
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+        
+  build_npm:
+    name: Build Elsa Studio WASM NPM package
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Publish CustomElements
+        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
+
+      - name: Prepare npm package
+        run: |
+          cp -r ./src/hosts/Elsa.Studio.Host.CustomElements/_content npm/
+          cp -r path-to-elsa.studio.hosts.customelements/_framework npm/
+          cp path-to-package.json npm/
+
+      - name: Publish npm package
+        run: |
+          cd npm
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+          npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  
   
   publish_preview_feedz:
     name: Publish to feedz.io
