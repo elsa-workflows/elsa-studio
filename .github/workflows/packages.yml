@@ -26,7 +26,7 @@ jobs:
           git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
           git branch --remote --contains | grep origin/main
       - name: Set VERSION variable
-        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
+        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
       - name: Build workflow designer client assets
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
         run: |
@@ -45,6 +45,7 @@ jobs:
         run: |
           cp ./packages/wasm/npm/package.json ./packages/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
           cd ./packages/wasm/wwwroot
+          npm version $VERSION --allow-same-version
           npm pack
       - name: Upload nuget artifacts
         uses: actions/upload-artifact@v3
@@ -77,7 +78,12 @@ jobs:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
 
-      - run: npm publish ./elsa-studio-npm-packages/*.tgz
+      - name: Set VERSION variable
+        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
+
+      - run: |
+          npm version $VERSION --allow-same-version
+          npm publish ./elsa-studio-npm-packages/*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
 
