@@ -75,11 +75,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
-          registry-url: '${{ env.npm_feed_feedzio }}'
 
-      - run: npm publish *.tgz
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
+      - run: |
+          echo "${{ env.npm_feed_feedzio }}:_authToken=${{ secrets.FEEDZ_API_KEY }}" > .npmrc
+          npm publish *.tgz
 
 #  publish_nuget_preview_feedzio:
 #    name: Publish nuget packages to feedz.io
