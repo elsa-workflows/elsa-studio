@@ -79,7 +79,7 @@ jobs:
 #          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
 #
 #      - run: |
-#          npm publish *.tgz
+#          npm publish *.tgz --access=public
 #        env:
 #          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
           
@@ -101,7 +101,7 @@ jobs:
           registry-url: ${{ env.npm_feed_npm }}
 
       - run: |
-          npm publish *.tgz
+          npm publish *.tgz --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
