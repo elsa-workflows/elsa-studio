@@ -78,11 +78,7 @@ jobs:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
 
-      - name: Set VERSION variable
-        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
-
       - run: |
-          npm version $VERSION --allow-same-version
           npm publish ./elsa-studio-npm-packages/*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
