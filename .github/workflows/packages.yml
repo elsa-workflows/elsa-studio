@@ -32,57 +32,77 @@ jobs:
         run: |
           npm install --force
           npm run build
-      - name: Build packages
+      - name: Build nuget packages
         run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
       - name: Test
         run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
-      - name: Pack packages
+      - name: Pack nuget packages
         run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages/nuget
       - name: Publish Custom Elements packages # This generates client assets that we then package as an NPM package.
-        run: |
-          dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION}
-      - name: Prepare npm package
+        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION}
+      
+      # Pack npm wasm package
+      - name: Pack elsa-studio-wasm npm package
         run: |
           cp ./packages/wasm/npm/package.json ./packages/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
           cd ./packages/wasm/wwwroot
           npm version $VERSION --allow-same-version
           npm pack
-      - name: Upload nuget artifacts
+      
+      # Pack npm react wrapper package
+      - name: Pack elsa-studio-wasm-react npm package
+        run: |
+          cd ./src/wrappers/packages/react-wrapper
+          npm version $VERSION --allow-same-version
+          npm pack
+      
+      # Upload nuget packages
+      - name: Upload nuget packages
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-nuget-packages
-          path: ./packages/nuget/*nupkg      
+          path: ./packages/nuget/*nupkg
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-      - name: Upload npm artifacts
+      
+      # Upload npm wasm package
+      - name: Upload npm wasm package
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-npm-packages
-          path: ./packages/wasm/wwwroot/*.tgz      
+          path: ./packages/wasm/wwwroot/*.tgz
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-
-# Temporarily disabled until we figure out how to publish to feedz.io - currently it results in a 400.
-#  publish_npm_preview_feedzio:
-#    name: Publish npm packages to feedz.io
-#    needs: build
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-#    steps:
-#      - name: Download Packages
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: elsa-studio-npm-packages
-#
-#      - uses: actions/setup-node@v3
-#        with:
-#          node-version: 18.12.1
-#          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
-#
-#      - run: |
-#          npm publish *.tgz --access=public
-#        env:
-#          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
+      
+      # Upload npm react wrapper package
+      - name: Upload npm react wrapper package
+        uses: actions/upload-artifact@v3
+        with:
+          name: elsa-studio-npm-packages
+          path: ./src/wrappers/packages/react-wrapper/*.tgz
+        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
           
+          # Temporarily disabled until we figure out how to publish to feedz.io - currently it results in a 400.
+          #  publish_npm_preview_feedzio:
+          #    name: Publish npm packages to feedz.io
+          #    needs: build
+          #    runs-on: ubuntu-latest
+          #    timeout-minutes: 10
+          #    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+          #    steps:
+          #      - name: Download Packages
+          #        uses: actions/download-artifact@v3
+          #        with:
+          #          name: elsa-studio-npm-packages
+          #
+          #      - uses: actions/setup-node@v3
+          #        with:
+          #          node-version: 18.12.1
+          #          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
+          #
+          #      - run: |
+          #          npm publish *.tgz --access=public
+          #        env:
+          #          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
+  
   publish_npm_preview_npm:
     name: Publish npm packages to npmjs.com
     needs: build
