@@ -14,7 +14,7 @@ env:
   npm_feed_nuget: 'https://registry.npmjs.org/'
 
 jobs:
-  build_nuget_packages:
+  build:
     name: Build packages
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -46,71 +46,41 @@ jobs:
           cp ./packages/wasm/npm/package.json ./packages/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
           cd ./packages/wasm/wwwroot
           npm pack
-      - name: Upload artifacts
+      - name: Upload nuget artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: elsa-studio-packages
-          path: |
-            ./packages/nuget/*nupkg
-            ./packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
-            
+          name: elsa-studio-nuget-packages
+          path: ./packages/nuget/*nupkg      
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-        
-  
-#  build_npm_packages:
-#    name: Build npm packages
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#        
-#      - name: Set VERSION variable
-#        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
-#        
-#      - name: Publish CustomElements
-#        run: |
-#          dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
-#
-#      - name: Setup Node
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 18.12.1
-#
-#      - name: Prepare npm package
-#        run: |
-#          cp ./wasm/npm/package.json ./wasm/wwwroot/package.json
-#          cd ./wasm/wwwroot
-#          npm pack
-#
-#      - name: Upload npm packages
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: elsa-studio-npm-packages
-#          path: ./wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
-#        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-  
-#  publish_npm_preview_feedzio:
-#    name: Publish npm packages to feedz.io
-#    needs: build_npm_packages
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-#    steps:
-#      - name: Download Packages
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: elsa-studio-npm-packages
-#          path: elsa-studio-npm-packages
-#
-#      - uses: actions/setup-node@v3
-#        with:
-#          node-version: 18.12.1
-#          registry-url: '${{ env.npm_feed_feedzio }}'
-#
-#      - run: npm publish ./elsa-studio-npm-packages/*.tgz
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
-#  
+      - name: Upload npm artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: elsa-studio-npm-packages
+          path: ./packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz      
+        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+          
+  publish_npm_preview_feedzio:
+    name: Publish npm packages to feedz.io
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    steps:
+      - name: Download Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: elsa-studio-npm-packages
+          path: elsa-studio-npm-packages
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+          registry-url: '${{ env.npm_feed_feedzio }}'
+
+      - run: npm publish ./elsa-studio-npm-packages/*.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
+
 #  publish_nuget_preview_feedzio:
 #    name: Publish nuget packages to feedz.io
 #    needs: build_nuget_packages
