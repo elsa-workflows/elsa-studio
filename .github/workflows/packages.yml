@@ -60,27 +60,27 @@ jobs:
           path: ./packages/wasm/wwwroot/*.tgz      
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
           
-  publish_npm_preview_feedzio:
-    name: Publish npm packages to feedz.io
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-npm-packages
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
-
-      - run: |
-          npm publish *.tgz
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
+#  publish_npm_preview_feedzio:
+#    name: Publish npm packages to feedz.io
+#    needs: build
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+#    steps:
+#      - name: Download Packages
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: elsa-studio-npm-packages
+#
+#      - uses: actions/setup-node@v3
+#        with:
+#          node-version: 18.12.1
+#          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
+#
+#      - run: |
+#          npm publish *.tgz
+#        env:
+#          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
           
   publish_npm_preview_npm:
     name: Publish npm packages to npmjs.com
