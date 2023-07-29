@@ -14,68 +14,80 @@ env:
   npm_feed_nuget: 'https://registry.npmjs.org/'
 
 jobs:
-#  build_nuget_packages:
-#    name: Build packages
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 30
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#      - name: Verify commit exists in origin/main
-#        run: |
-#          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-#          git branch --remote --contains | grep origin/main
-#      - name: Set VERSION variable
-#        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
-#      - name: Build designer client assets
-#        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
-#        run: |
-#          npm install --force
-#          npm run build
-#      - name: Build
-#        run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
-#      - name: Test
-#        run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
-#      - name: Pack
-#        run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: elsa-studio-nuget-packages
-#          path: packages/*nupkg
-#        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-  
-  build_npm_packages:
-    name: Build npm packages
+  build_nuget_packages:
+    name: Build packages
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
-      - name: Set VERSION variable
-        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
-        
-      - name: Publish CustomElements
+      - name: Verify commit exists in origin/main
         run: |
-          dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+          git branch --remote --contains | grep origin/main
+      - name: Set VERSION variable
+        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
+      - name: Build workflow designer client assets
+        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
+        run: |
+          npm install --force
+          npm run build
+      - name: Build packages
+        run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
+      - name: Test
+        run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
+      - name: Pack packages
+        run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages/nuget
+      - name: Publish Custom Elements packages # This generates client assets that we then package as an NPM package.
+        run: |
+          dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o $(pwd)/packages/wasm /p:Version=${VERSION}
       - name: Prepare npm package
         run: |
-          cp ./wasm/npm/package.json ./wasm/wwwroot/package.json
-          cd ./wasm/wwwroot
+          cp $(pwd)/wasm/npm/package.json $(pwd)/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
+          cd $(pwd)/wasm/wwwroot
           npm pack
-
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: elsa-studio-npm-packages
-          path: ./wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
+          name: elsa-studio-packages
+          path: |
+            ./packages/nuget/*nupkg
+            ./packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
+            
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+        
+  
+#  build_npm_packages:
+#    name: Build npm packages
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        
+#      - name: Set VERSION variable
+#        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
+#        
+#      - name: Publish CustomElements
+#        run: |
+#          dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
+#
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 18.12.1
+#
+#      - name: Prepare npm package
+#        run: |
+#          cp ./wasm/npm/package.json ./wasm/wwwroot/package.json
+#          cd ./wasm/wwwroot
+#          npm pack
+#
+#      - name: Upload npm packages
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: elsa-studio-npm-packages
+#          path: ./wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
+#        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
   
 #  publish_npm_preview_feedzio:
 #    name: Publish npm packages to feedz.io
