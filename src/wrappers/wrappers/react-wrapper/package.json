@@ -2,6 +2,15 @@
   "name": "@elsa-workflows/elsa-studio-wasm-react",
   "version": "0.0.0",
   "type": "module",
+  "files": ["dist"],
+  "main": "./dist/elsa-studio-wasm-react.umd.cjs",
+  "module": "./dist/elsa-studio-wasm-react.js",
+  "exports": {
+    ".": {
+      "import": "./dist/elsa-studio-wasm-react.js",
+      "require": "./dist/elsa-studio-wasm-react.umd.cjs"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
