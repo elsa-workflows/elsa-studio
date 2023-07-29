@@ -79,6 +79,7 @@ jobs:
           registry-url: '${{ env.npm_feed_feedzio }}'
 
       - run: |
+          echo "https://f.feedz.io/elsa-workflows/elsa-3/npm/:_authToken=$NODE_AUTH_TOKEN" > .npmrc
           npm publish ./elsa-studio-npm-packages/*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
