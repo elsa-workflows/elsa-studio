@@ -76,8 +76,6 @@ jobs:
         with:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
-          scope: ''
-          always-auth: 'true'
 
       - run: npm publish *.tgz
         env:
