@@ -77,9 +77,11 @@ jobs:
           node-version: 18.12.1
 
       - run: |
-          echo "${{env.npm_feed_feedzio}}:_authToken=${{secrets.FEEDZ_API_KEY}}"
-          echo "${{env.npm_feed_feedzio}}:_authToken=${{secrets.FEEDZ_API_KEY}}" > .npmrc
+          echo "${{env.npm_feed_feedzio}}:_authToken=${{secrets.FEEDZ_API_KEY_TEST}}"
+          echo "${{env.npm_feed_feedzio}}:_authToken=${{secrets.FEEDZ_API_KEY_TEST}}" > .npmrc
           npm publish *.tgz --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_TEST}}
 
 #  publish_nuget_preview_feedzio:
 #    name: Publish nuget packages to feedz.io
