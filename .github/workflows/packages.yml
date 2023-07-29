@@ -43,16 +43,16 @@ jobs:
           dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o $(pwd)/packages/wasm /p:Version=${VERSION}
       - name: Prepare npm package
         run: |
-          cp $(pwd)/wasm/npm/package.json $(pwd)/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
-          cd $(pwd)/wasm/wwwroot
+          cp $(pwd)/packages/wasm/npm/package.json $(pwd)/packages/wasm/wwwroot/package.json # Copy the package.json file from the NPM package to the wwwroot folder.
+          cd $(pwd)/packages/wasm/wwwroot
           npm pack
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-packages
           path: |
-            ./packages/nuget/*nupkg
-            ./packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
+            $(pwd)/packages/nuget/*nupkg
+            $(pwd)/packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
             
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
         
