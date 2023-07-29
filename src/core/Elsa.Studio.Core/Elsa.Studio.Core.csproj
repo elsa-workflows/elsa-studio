@@ -15,7 +15,6 @@
         <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
         <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.5.5" />
         <PackageReference Include="FluentValidation" Version="11.6.0" />
-        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.9" />

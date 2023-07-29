@@ -35,4 +35,14 @@
         <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wasm\web.config" />
+      <_ContentIncludedByDefault Remove="wasm\appsettings.Development.json" />
+      <_ContentIncludedByDefault Remove="wasm\appsettings.json" />
+      <_ContentIncludedByDefault Remove="wasm\npm\package.json" />
+      <_ContentIncludedByDefault Remove="wasm\wwwroot\appsettings.json" />
+      <_ContentIncludedByDefault Remove="wasm\wwwroot\package.json" />
+      <_ContentIncludedByDefault Remove="wasm\wwwroot\_framework\blazor.boot.json" />
+    </ItemGroup>
+
 </Project>
