@@ -81,7 +81,7 @@ jobs:
       - run: |
           npm publish ./elsa-studio-npm-packages/*.tgz
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
+          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_IO_NPM }}
 
 #  publish_nuget_preview_feedzio:
 #    name: Publish nuget packages to feedz.io
