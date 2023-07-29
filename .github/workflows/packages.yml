@@ -13,7 +13,7 @@ env:
   npm_feed_nuget: 'https://registry.npmjs.org/'
 
 jobs:
-  build_packages:
+  build_nuget_packages:
     name: Build packages
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -76,7 +76,7 @@ jobs:
   
   publish_npm_preview_feedzio:
     name: Publish npm packages to feedz.io
-    needs: build
+    needs: build_npm_packages
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
@@ -98,7 +98,7 @@ jobs:
   
   publish_nuget_preview_feedzio:
     name: Publish nuget packages to feedz.io
-    needs: build
+    needs: build_nuget_packages
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
@@ -113,7 +113,7 @@ jobs:
 
   publish_nuget_preview_nuget:
     name: Publish to nuget.org
-    needs: build
+    needs: build_nuget_packages
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
