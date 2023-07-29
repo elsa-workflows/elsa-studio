@@ -107,7 +107,7 @@ jobs:
 
   publish_nuget_preview_feedzio:
     name: Publish nuget packages to feedz.io
-    needs: build_nuget_packages
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
@@ -122,7 +122,7 @@ jobs:
 
   publish_nuget_preview_nuget:
     name: Publish to nuget.org
-    needs: build_nuget_packages
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
