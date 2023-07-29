@@ -7,6 +7,7 @@ on:
   release:
     types: [ prereleased ]
 env:
+  package_version: 3.0.0-preview.${{ github.run_number }}
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
   npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
@@ -52,11 +53,10 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Set VERSION variable
-        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
+        run: echo "VERSION=${{env.package_version}}" >> $GITHUB_ENV
         
       - name: Publish CustomElements
         run: |
-          echo "VERSION=${{env.VERSION}}"
           dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
 
       - name: Setup Node
@@ -66,15 +66,15 @@ jobs:
 
       - name: Prepare npm package
         run: |
-          cp ./src/hosts/Elsa.Studio.Host.CustomElements/wasm/npm/package.json ./wasm/wwwroot/package.json
-          cd ./src/hosts/Elsa.Studio.Host.CustomElements/wasm/wwwroot
+          cp ./wasm/npm/package.json ./wasm/wwwroot/package.json
+          cd ./wasm/wwwroot
           npm pack
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-npm-packages
-          path: ./src/hosts/Elsa.Studio.Host.CustomElements/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
+          path: ./wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
   
 #  publish_npm_preview_feedzio:
