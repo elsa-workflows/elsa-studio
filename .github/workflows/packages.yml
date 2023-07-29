@@ -49,11 +49,12 @@ jobs:
           npm version $VERSION --allow-same-version
           npm pack
       
-      # Pack npm react wrapper package
+      # Build npm react wrapper package
       - name: Pack elsa-studio-wasm-react npm package
         run: |
-          cd ./src/wrappers/packages/react-wrapper
+          cd ./src/wrappers/wrappers/react-wrapper
           npm version $VERSION --allow-same-version
+          npm run build
           npm pack
       
       # Upload nuget packages
@@ -77,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-npm-packages
-          path: ./src/wrappers/packages/react-wrapper/*.tgz
+          path: ./src/wrappers/wrappers/react-wrapper/*.tgz
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
           
           # Temporarily disabled until we figure out how to publish to feedz.io - currently it results in a 400.
