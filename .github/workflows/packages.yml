@@ -10,7 +10,7 @@ env:
   package_version: 3.0.0-preview.${{ github.run_number }}
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
-  npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
+  npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/test/npm/'
   npm_feed_nuget: 'https://registry.npmjs.org/'
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
-          registry-url: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
+          registry-url: 'https://f.feedz.io/elsa-workflows/test/npm/'
 
       - run: |
           npm publish *.tgz

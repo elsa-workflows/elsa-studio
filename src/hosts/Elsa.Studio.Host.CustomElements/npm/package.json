@@ -12,6 +12,7 @@
   "author": "Sipke Schoorstra",
   "license": "MIT",
   "files": [
+    "_framework/*",
     "_content/*",
     "index.html",
     "appsettings.json",
