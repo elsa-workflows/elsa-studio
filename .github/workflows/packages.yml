@@ -90,7 +90,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
-          registry-url: '${{ npm_feed_feedzio }}'
+          registry-url: '${{ env.npm_feed_feedzio }}'
 
       - run: npm publish ./elsa-studio-npm-packages/*.tgz
         env:
