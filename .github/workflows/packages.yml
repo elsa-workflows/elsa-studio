@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: elsa-studio-npm-packages
-          path: ./packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz      
+          path: ./packages/wasm/wwwroot/*.tgz      
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
           
   publish_npm_preview_feedzio:
@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
-          scope: '@elsa-workflows'
+          scope: ''
           always-auth: 'true'
 
       - run: npm publish *.tgz
