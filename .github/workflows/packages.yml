@@ -13,36 +13,36 @@ env:
   npm_feed_nuget: 'https://registry.npmjs.org/'
 
 jobs:
-  build_nuget_packages:
-    name: Build packages
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Verify commit exists in origin/main
-        run: |
-          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-          git branch --remote --contains | grep origin/main
-      - name: Set VERSION variable
-        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
-      - name: Build designer client assets
-        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
-        run: |
-          npm install --force
-          npm run build
-      - name: Build
-        run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
-      - name: Test
-        run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
-      - name: Pack
-        run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: elsa-studio-nuget-packages
-          path: packages/*nupkg
-        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+#  build_nuget_packages:
+#    name: Build packages
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 30
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#      - name: Verify commit exists in origin/main
+#        run: |
+#          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+#          git branch --remote --contains | grep origin/main
+#      - name: Set VERSION variable
+#        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
+#      - name: Build designer client assets
+#        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
+#        run: |
+#          npm install --force
+#          npm run build
+#      - name: Build
+#        run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
+#      - name: Test
+#        run: dotnet test Elsa.Studio.sln --configuration Release /p:Version=${VERSION} --no-build
+#      - name: Pack
+#        run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: elsa-studio-nuget-packages
+#          path: packages/*nupkg
+#        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
   
   build_npm_packages:
     name: Build npm packages
@@ -51,9 +51,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         
+      - name: Set VERSION variable
+        run: echo "VERSION=3.0.0-preview.${{github.run_number}}" >> $GITHUB_ENV
+        
       - name: Publish CustomElements
         run: |
-          echo "VERSION=${VERSION}"
+          echo "VERSION=${{env.VERSION}}"
           dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
 
       - name: Setup Node
@@ -74,54 +77,54 @@ jobs:
           path: ./src/hosts/Elsa.Studio.Host.CustomElements/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-*.tgz
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
   
-  publish_npm_preview_feedzio:
-    name: Publish npm packages to feedz.io
-    needs: build_npm_packages
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-npm-packages
-          path: elsa-studio-npm-packages
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-          registry-url: '${{ env.npm_feed_feedzio }}'
-
-      - run: npm publish ./elsa-studio-npm-packages/*.tgz
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
-  
-  publish_nuget_preview_feedzio:
-    name: Publish nuget packages to feedz.io
-    needs: build_nuget_packages
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-nuget-packages
-
-      - name: Publish to feedz.io
-        run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.feedz_feed_source }} --skip-duplicate
-
-  publish_nuget_preview_nuget:
-    name: Publish to nuget.org
-    needs: build_nuget_packages
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-nuget-packages
-
-      - name: Publish to nuget.org
-        run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
+#  publish_npm_preview_feedzio:
+#    name: Publish npm packages to feedz.io
+#    needs: build_npm_packages
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+#    steps:
+#      - name: Download Packages
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: elsa-studio-npm-packages
+#          path: elsa-studio-npm-packages
+#
+#      - uses: actions/setup-node@v3
+#        with:
+#          node-version: 18.12.1
+#          registry-url: '${{ env.npm_feed_feedzio }}'
+#
+#      - run: npm publish ./elsa-studio-npm-packages/*.tgz
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
+#  
+#  publish_nuget_preview_feedzio:
+#    name: Publish nuget packages to feedz.io
+#    needs: build_nuget_packages
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+#    steps:
+#      - name: Download Packages
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: elsa-studio-nuget-packages
+#
+#      - name: Publish to feedz.io
+#        run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.feedz_feed_source }} --skip-duplicate
+#
+#  publish_nuget_preview_nuget:
+#    name: Publish to nuget.org
+#    needs: build_nuget_packages
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#    if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
+#    steps:
+#      - name: Download Packages
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: elsa-studio-nuget-packages
+#
+#      - name: Publish to nuget.org
+#        run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
