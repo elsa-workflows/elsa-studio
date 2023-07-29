@@ -71,16 +71,17 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: elsa-studio-npm-packages
-          path: elsa-studio-npm-packages
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
+          scope: @elsa-workflows
 
       - run: |
-          echo "https://f.feedz.io/elsa-workflows/elsa-3/npm/:_authToken=$NODE_AUTH_TOKEN" > .npmrc
-          npm publish ./elsa-studio-npm-packages/*.tgz
+#          echo "${{ env.npm_feed_feedzio }}:_authToken=${{ secrets.FEEDZ_API_KEY }}" > .npmrc
+#          npm adduser --registry ${{ env.npm_feed_feedzio }} --scope @elsa-workflows --always-auth
+          npm publish *.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
 
