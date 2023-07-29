@@ -56,7 +56,6 @@ jobs:
         with:
           node-version: 18.12.1
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
         
       - name: Publish CustomElements
         run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./wasm/ /p:Version=${VERSION}
