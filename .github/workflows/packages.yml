@@ -76,11 +76,9 @@ jobs:
         with:
           node-version: 18.12.1
           registry-url: '${{ env.npm_feed_feedzio }}'
-          scope: @elsa-workflows
+          scope: '@elsa-workflows'
 
       - run: |
-#          echo "${{ env.npm_feed_feedzio }}:_authToken=${{ secrets.FEEDZ_API_KEY }}" > .npmrc
-#          npm adduser --registry ${{ env.npm_feed_feedzio }} --scope @elsa-workflows --always-auth
           npm publish *.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FEEDZ_API_KEY }}
