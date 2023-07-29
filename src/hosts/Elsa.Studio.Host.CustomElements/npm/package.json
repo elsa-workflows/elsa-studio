@@ -1,5 +1,5 @@
 {
-  "name": "awesome-elsa",
+  "name": "@elsa-workflows/elsa-studio-wasm",
   "version": "3.0.0-preview.1",
   "description": "Provides Elsa Studio Blazor components wrapped as custom elements.",
   "scripts": {

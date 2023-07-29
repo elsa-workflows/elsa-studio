@@ -59,7 +59,8 @@ jobs:
           name: elsa-studio-npm-packages
           path: ./packages/wasm/wwwroot/*.tgz      
         if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-          
+
+# Temporarily disabled until we figure out how to publish to feedz.io - currently it results in a 400.
 #  publish_npm_preview_feedzio:
 #    name: Publish npm packages to feedz.io
 #    needs: build
@@ -97,39 +98,39 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: ${{ env.npm_feed_npm }}
 
       - run: |
           npm publish *.tgz
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_API_KEY}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
-#  publish_nuget_preview_feedzio:
-#    name: Publish nuget packages to feedz.io
-#    needs: build_nuget_packages
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-#    steps:
-#      - name: Download Packages
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: elsa-studio-nuget-packages
-#
-#      - name: Publish to feedz.io
-#        run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.feedz_feed_source }} --skip-duplicate
-#
-#  publish_nuget_preview_nuget:
-#    name: Publish to nuget.org
-#    needs: build_nuget_packages
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
-#    steps:
-#      - name: Download Packages
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: elsa-studio-nuget-packages
-#
-#      - name: Publish to nuget.org
-#        run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
+  publish_nuget_preview_feedzio:
+    name: Publish nuget packages to feedz.io
+    needs: build_nuget_packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    steps:
+      - name: Download Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: elsa-studio-nuget-packages
+
+      - name: Publish to feedz.io
+        run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.nuget_feed_feedzio }} --skip-duplicate
+
+  publish_nuget_preview_nuget:
+    name: Publish to nuget.org
+    needs: build_nuget_packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
+    steps:
+      - name: Download Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: elsa-studio-nuget-packages
+
+      - name: Publish to nuget.org
+        run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
