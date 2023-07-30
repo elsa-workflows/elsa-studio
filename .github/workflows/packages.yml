@@ -101,7 +101,10 @@ jobs:
           registry-url: ${{ env.npm_feed_feedzio }}
 
       - run: |
-          npm publish ./elsa-studio-npm-packages/*.tgz --access=public
+          for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
   
@@ -124,7 +127,10 @@ jobs:
           registry-url: ${{ env.npm_feed_npm }}
 
       - run: |
-          npm publish ./elsa-studio-npm-packages/*.tgz --access public
+          for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
