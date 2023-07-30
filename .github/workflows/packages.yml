@@ -63,7 +63,6 @@ jobs:
         with:
           name: elsa-studio-nuget-packages
           path: ./packages/nuget/*nupkg
-        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
       
       # Upload npm wasm package
       - name: Upload npm wasm package
@@ -71,7 +70,6 @@ jobs:
         with:
           name: elsa-studio-npm-packages
           path: ./packages/wasm/wwwroot/*.tgz
-        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
       
       # Upload npm react wrapper package
       - name: Upload npm react wrapper package
@@ -79,8 +77,6 @@ jobs:
         with:
           name: elsa-studio-npm-packages
           path: ./src/wrappers/wrappers/react-wrapper/*.tgz
-        if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
-    
 
   publish_npm_preview_feedzio:
     name: Publish npm packages to feedz.io
@@ -113,7 +109,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    if: ${{ github.event_name == 'release' }}
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v3
@@ -155,7 +151,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'prereleased' }}
+    if: ${{ github.event_name == 'release' }}
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v3
