@@ -93,6 +93,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: elsa-studio-npm-packages
+          path: elsa-studio-npm-packages
 
       - uses: actions/setup-node@v3
         with:
@@ -100,7 +101,7 @@ jobs:
           registry-url: ${{ env.npm_feed_feedzio }}
 
       - run: |
-          npm publish *.tgz --access=public
+          npm publish ./elsa-studio-npm-packages/*.tgz --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
   
@@ -115,6 +116,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: elsa-studio-npm-packages
+          path: elsa-studio-npm-packages
 
       - uses: actions/setup-node@v3
         with:
@@ -122,7 +124,7 @@ jobs:
           registry-url: ${{ env.npm_feed_npm }}
 
       - run: |
-          npm publish *.tgz --access public
+          npm publish ./elsa-studio-npm-packages/*.tgz --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
@@ -137,9 +139,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: elsa-studio-nuget-packages
+          path: elsa-studio-nuget-packages
 
       - name: Publish to feedz.io
-        run: dotnet nuget push *.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.nuget_feed_feedzio }} --skip-duplicate
+        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg -k ${{ secrets.FEEDZ_API_KEY }} -s ${{ env.nuget_feed_feedzio }} --skip-duplicate
 
   publish_nuget_preview_nuget:
     name: Publish to nuget.org
@@ -152,6 +155,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: elsa-studio-nuget-packages
+          path: elsa-studio-nuget-packages
 
       - name: Publish to nuget.org
-        run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
+        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
