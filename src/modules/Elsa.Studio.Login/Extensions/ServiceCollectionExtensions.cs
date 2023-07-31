@@ -5,14 +5,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Login.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the login module to the service collection.
+    /// </summary>
     public static IServiceCollection AddLoginModule(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<ILoginPageProvider, LoginPageProvider>()
-            .AddSingleton<ICredentialsValidator, DefaultCredentialsValidator>()
+            .AddScoped<IModule, Module>()
+            .AddScoped<ILoginPageProvider, LoginPageProvider>()
+            .AddScoped<ICredentialsValidator, DefaultCredentialsValidator>()
             ;
     }
 }

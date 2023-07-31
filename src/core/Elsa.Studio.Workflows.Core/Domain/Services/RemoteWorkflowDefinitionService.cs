@@ -19,12 +19,18 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
+/// <summary>
+/// A workflow definition service that uses a remote backend to retrieve workflow definitions.
+/// </summary>
 public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
     private readonly IActivityIdGenerator _activityIdGenerator;
     private readonly IMediator _mediator;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RemoteWorkflowDefinitionService"/> class.
+    /// </summary>
     public RemoteWorkflowDefinitionService(IBackendConnectionProvider backendConnectionProvider, IActivityIdGenerator activityIdGenerator, IMediator mediator)
     {
         _backendConnectionProvider = backendConnectionProvider;
@@ -32,39 +38,39 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         _mediator = mediator;
     }
 
+    /// <inheritdoc />
     public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .ListAsync(request, versionOptions, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.ListAsync(request, versionOptions, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .GetByIdAsync(id, includeCompositeRoot, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetByIdAsync(id, includeCompositeRoot, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ListResponse<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
     {
-        var definition = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .SaveAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var definition = await api.SaveAsync(request, cancellationToken);
 
         if (request.Publish == true)
             await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
@@ -72,14 +78,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return definition;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default)
     {
+        var api = await GetApiAsync(cancellationToken);
+        
         try
         {
-            await _backendConnectionProvider
-                .GetApi<IWorkflowDefinitionsApi>()
-                .DeleteAsync(definitionId, cancellationToken);
-
+            await api.DeleteAsync(definitionId, cancellationToken);
             await _mediator.NotifyAsync(new WorkflowDefinitionDeleted(definitionId), cancellationToken);
             return true;
         }
@@ -89,14 +95,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         }
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default)
     {
+        var api = await GetApiAsync(cancellationToken);
+        
         try
         {
-            await _backendConnectionProvider
-                .GetApi<IWorkflowDefinitionsApi>()
-                .DeleteVersionAsync(id, cancellationToken);
-
+            await api.DeleteVersionAsync(id, cancellationToken);
             await _mediator.NotifyAsync(new WorkflowDefinitionVersionDeleted(id), cancellationToken);
             return true;
         }
@@ -106,81 +112,81 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         }
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
-        var definition = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .PublishAsync(definitionId, cancellationToken);
-
+        var api = await GetApiAsync(cancellationToken);
+        var definition = await api.PublishAsync(definitionId, cancellationToken);
         await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
         return definition;
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default)
     {
-        var definition = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
         return definition;
     }
 
+    /// <inheritdoc />
     public async Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
         var definitionIdList = definitionIds.ToList();
         var request = new BulkDeleteWorkflowDefinitionsRequest(definitionIdList);
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .BulkDeleteAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.BulkDeleteAsync(request, cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionsBulkDeleted(definitionIdList), cancellationToken);
         return response.Deleted;
     }
 
+    /// <inheritdoc />
     public async Task<long> BulkDeleteVersionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();
         var request = new BulkDeleteWorkflowDefinitionVersionsRequest(idList);
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .BulkDeleteVersionsAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.BulkDeleteVersionsAsync(request, cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionVersionsBulkDeleted(idList), cancellationToken);
         return response.Deleted;
     }
 
+    /// <inheritdoc />
     public async Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
         var request = new BulkPublishWorkflowDefinitionsRequest(definitionIds);
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .BulkPublishAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.BulkPublishAsync(request, cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionsBulkPublished(response.Published), cancellationToken);
         return response;
     }
 
+    /// <inheritdoc />
     public async Task<BulkRetractWorkflowDefinitionsResponse> BulkRetractAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default)
     {
         var request = new BulkRetractWorkflowDefinitionsRequest(definitionIds);
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .BulkRetractAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.BulkRetractAsync(request, cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionsBulkPublished(response.Retracted), cancellationToken);
         return response;
     }
 
+    /// <inheritdoc />
     public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default)
     {
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .GetIsNameUniqueAsync(name, definitionId, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.GetIsNameUniqueAsync(name, definitionId, cancellationToken);
 
         return response.IsUnique;
     }
 
+    /// <inheritdoc />
     public async Task<string> GenerateUniqueNameAsync(CancellationToken cancellationToken = default)
     {
         const int maxAttempts = 100;
@@ -198,6 +204,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         throw new Exception($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
@@ -223,12 +230,11 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return await SaveAsync(saveRequest, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
     {
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .ExportAsync(definitionId, versionOptions, cancellationToken);
-
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.ExportAsync(definitionId, versionOptions, cancellationToken);
         var fileName = $"workflow-definition-{definitionId}.json";
 
         if (response.Headers.TryGetValues("content-disposition", out var contentDispositionHeader)) // Only available if the Elsa Server exposes the "Content-Disposition" header.
@@ -242,36 +248,38 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return new FileDownload(fileName, response.Content!);
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .ImportAsync(definition, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.ImportAsync(definition, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .UpdateReferencesAsync(definitionId, new UpdateConsumingWorkflowReferencesRequest(), cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.UpdateReferencesAsync(definitionId, new UpdateConsumingWorkflowReferencesRequest(), cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task RevertVersionAsync(string definitionId, int version, CancellationToken cancellationToken = default)
     {
-        await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .RevertVersionAsync(definitionId, version, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        await api.RevertVersionAsync(definitionId, version, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
-        var response = await _backendConnectionProvider
-            .GetApi<IWorkflowDefinitionsApi>()
-            .ExecuteAsync(definitionId, request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
 
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
     }
+    
+    private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default) => await _backendConnectionProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
 }
 
 public record FileDownload(string? FileName, Stream Content);

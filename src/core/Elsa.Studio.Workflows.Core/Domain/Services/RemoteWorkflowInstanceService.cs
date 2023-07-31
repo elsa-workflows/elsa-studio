@@ -4,45 +4,58 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
-using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
+/// <summary>
+/// A workflow instance service that uses a remote backend to retrieve workflow instances.
+/// </summary>
 public class RemoteWorkflowInstanceService : IWorkflowInstanceService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RemoteWorkflowInstanceService"/> class.
+    /// </summary>
     public RemoteWorkflowInstanceService(IBackendConnectionProvider backendConnectionProvider)
     {
         _backendConnectionProvider = backendConnectionProvider;
     }
 
+    /// <inheritdoc />
     public async Task<PagedListResponse<WorkflowInstanceSummary>> ListAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken = default)
     {
-        return await _backendConnectionProvider.GetApi<IWorkflowInstancesApi>().ListAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.ListAsync(request, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(string instanceId, CancellationToken cancellationToken = default)
     {
-        await _backendConnectionProvider.GetApi<IWorkflowInstancesApi>().DeleteAsync(instanceId, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        await api.DeleteAsync(instanceId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task BulkDeleteAsync(IEnumerable<string> instanceIds, CancellationToken cancellationToken = default)
     {
         var request = new BulkDeleteWorkflowInstancesRequest
         {
             Ids = instanceIds.ToList()
         };
-        await _backendConnectionProvider.GetApi<IWorkflowInstancesApi>().BulkDeleteAsync(request, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        await api.BulkDeleteAsync(request, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _backendConnectionProvider.GetApi<IWorkflowInstancesApi>().GetAsync(id, cancellationToken);
+            var api = await GetApiAsync(cancellationToken);
+            return await api.GetAsync(id, cancellationToken);
         }
         catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
@@ -50,12 +63,16 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         }
     }
 
+    /// <inheritdoc />
     public async Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default)
     {
         var request = new GetFilteredJournalRequest
         {
             Filter = filter
         };
-        return await _backendConnectionProvider.GetApi<IWorkflowInstancesApi>().GetFilteredJournalAsync(instanceId, request, skip, take, cancellationToken);
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetFilteredJournalAsync(instanceId, request, skip, take, cancellationToken);
     }
+    
+    private async Task<IWorkflowInstancesApi> GetApiAsync(CancellationToken cancellationToken = default) => await _backendConnectionProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
 }

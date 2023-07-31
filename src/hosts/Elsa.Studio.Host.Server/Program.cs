@@ -46,7 +46,7 @@ builder.Services.AddBlazoredLocalStorage();
 // Register authorization.
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddSingleton<IJwtParser, ServerJwtParser>();
+builder.Services.AddScoped<IJwtParser, ServerJwtParser>();
 builder.Services.AddScoped<IJwtAccessor, ServerJwtAccessor>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();

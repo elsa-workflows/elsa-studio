@@ -4,16 +4,19 @@ namespace Elsa.Studio.Host.Server.HostedServices;
 
 public class RunStartupTasksHostedService : IHostedService
 {
-    private readonly IEnumerable<IStartupTask> _startupTasks;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public RunStartupTasksHostedService(IEnumerable<IStartupTask> startupTasks)
+    public RunStartupTasksHostedService(IServiceScopeFactory serviceScopeFactory)
     {
-        _startupTasks = startupTasks;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        foreach (var startupTask in _startupTasks)
+        using var scope = _serviceScopeFactory.CreateScope();
+        var startupTasks = scope.ServiceProvider.GetServices<IStartupTask>();
+        
+        foreach (var startupTask in startupTasks)
             await startupTask.ExecuteAsync(cancellationToken);
     }
 

@@ -7,18 +7,25 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
+/// <summary>
+/// A feature service that uses a remote backend to retrieve feature flags.
+/// </summary>
 public class RemoteFeatureService : IFeatureService
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RemoteFeatureService"/> class.
+    /// </summary>
     public RemoteFeatureService(IBackendConnectionProvider backendConnectionProvider)
     {
         _backendConnectionProvider = backendConnectionProvider;
     }
-    
+
+    /// <inheritdoc />
     public async Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default)
     {
-        var api = _backendConnectionProvider.GetApi<IFeaturesApi>();
+        var api = await _backendConnectionProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
 
         try
         {

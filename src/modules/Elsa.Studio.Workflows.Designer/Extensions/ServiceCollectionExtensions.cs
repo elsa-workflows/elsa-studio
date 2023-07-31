@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsDesigner(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
+            .AddScoped<IModule, Module>()
             .AddScoped<IMapperFactory, MapperFactory>()
             .AddScoped<DesignerJsInterop>();
     }

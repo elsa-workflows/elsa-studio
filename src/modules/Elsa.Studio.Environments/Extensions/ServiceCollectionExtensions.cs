@@ -1,35 +1,26 @@
-using System.Net.Http.Headers;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
 using Elsa.Studio.Environments.Services;
-using Elsa.Studio.Environments.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Refit;
 
 namespace Elsa.Studio.Environments.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds the environments module.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <returns>The service collection.</returns>
     public static IServiceCollection AddEnvironmentsModule(this IServiceCollection services)
     {
-        services.AddRefitClient<IEnvironmentsClient>().ConfigureHttpClient((sp, client) =>
-        {
-            var backendAccessor = sp.GetRequiredService<IBackendAccessor>();
-            client.BaseAddress = backendAccessor.Backend.Url;
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "TODO");
-        });
-
-        services.AddSingleton<IEnvironmentService, DefaultEnvironmentService>();
-        services.Replace(ServiceDescriptor.Singleton<IBackendConnectionProvider, EnvironmentBackendConnectionProvider>());
-        services.AddSingleton<IStartupTask, LoadEnvironmentsStartupTask>();
-        services.AddSingleton<IModule, Module>();
+        services.AddScoped<IEnvironmentService, DefaultEnvironmentService>();
+        services.Replace(ServiceDescriptor.Scoped<IBackendConnectionProvider, EnvironmentBackendConnectionProvider>());
+        //services.AddSingleton<IStartupTask, LoadEnvironmentsStartupTask>();
+        services.AddScoped<IModule, Module>();
         return services;
     }
 }

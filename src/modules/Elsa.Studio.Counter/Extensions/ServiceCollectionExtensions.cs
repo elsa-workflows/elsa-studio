@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCounterModule(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<IMenuProvider, CounterMenu>();
+            .AddScoped<IModule, Module>()
+            .AddScoped<IMenuProvider, CounterMenu>();
     }
 }

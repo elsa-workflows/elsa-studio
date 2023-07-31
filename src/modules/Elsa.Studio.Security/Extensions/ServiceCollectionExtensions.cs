@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSecurityModule(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<IMenuProvider, SecurityMenu>();
+            .AddScoped<IModule, Module>()
+            .AddScoped<IMenuProvider, SecurityMenu>();
     }
 }

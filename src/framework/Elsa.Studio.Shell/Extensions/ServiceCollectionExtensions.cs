@@ -27,6 +27,6 @@ public static class ServiceCollectionExtensions
             })
             .AddMudExtensions()
             .AddCore()
-            .AddSingleton<IStartupTask, InitializeModulesStartupTask>();
+            .AddScoped<IStartupTask, InitializeModulesStartupTask>();
     }
 }

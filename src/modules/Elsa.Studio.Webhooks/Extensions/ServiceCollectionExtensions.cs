@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWebhooksModule(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<IMenuProvider, WebhooksMenu>();
+            .AddScoped<IModule, Module>()
+            .AddScoped<IMenuProvider, WebhooksMenu>();
     }
 }

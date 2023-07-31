@@ -5,17 +5,22 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Elsa.Studio.Workflows.Services;
 
+/// <inheritdoc />
 public class WorkflowInstanceObserverFactory : IWorkflowInstanceObserverFactory
 {
     private readonly IBackendConnectionProvider _backendConnectionProvider;
     private readonly IFeatureService _featureService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorkflowInstanceObserverFactory"/> class.
+    /// </summary>
     public WorkflowInstanceObserverFactory(IBackendConnectionProvider backendConnectionProvider, IFeatureService featureService)
     {
         _backendConnectionProvider = backendConnectionProvider;
         _featureService = featureService;
     }
-    
+
+    /// <inheritdoc />
     public async Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId, CancellationToken cancellationToken = default)
     {
         // Only observe the workflow instance if the feature is enabled.

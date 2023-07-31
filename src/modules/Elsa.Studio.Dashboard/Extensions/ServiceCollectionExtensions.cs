@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDashboardModule(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<IMenuProvider, DashboardMenu>();
+            .AddScoped<IModule, Module>()
+            .AddScoped<IMenuProvider, DashboardMenu>();
     }
 }

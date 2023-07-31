@@ -6,16 +6,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Backend.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the backend module to the service collection.
+    /// </summary>
     public static IServiceCollection AddBackendModule(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
     {
         services.Configure(configureOptions ?? (_ => { }));
         
         return services
-            .AddSingleton<IBackendAccessor, DefaultBackendAccessor>()
-            .AddSingleton<IBackendConnectionProvider, DefaultBackendConnectionProvider>()
-            .AddSingleton<IModule, Module>()
+            .AddScoped<IBackendAccessor, DefaultBackendAccessor>()
+            .AddScoped<IBackendConnectionProvider, DefaultBackendConnectionProvider>()
+            .AddScoped<IModule, Module>()
             ;
     }
 }

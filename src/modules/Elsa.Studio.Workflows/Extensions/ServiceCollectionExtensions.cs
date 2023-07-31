@@ -13,14 +13,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the workflows module.
+    /// </summary>
     public static IServiceCollection AddWorkflowsModule(this IServiceCollection services)
     {
         services
-            .AddSingleton<IModule, Module>()
-            .AddSingleton<IMenuProvider, WorkflowsMenu>()
-            .AddSingleton<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
+            .AddScoped<IModule, Module>()
+            .AddScoped<IMenuProvider, WorkflowsMenu>()
+            .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
             .AddActivityTypeService()

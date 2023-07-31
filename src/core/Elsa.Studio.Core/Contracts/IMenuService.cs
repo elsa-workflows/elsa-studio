@@ -2,6 +2,9 @@ using Elsa.Studio.Models;
 
 namespace Elsa.Studio.Contracts;
 
+/// <summary>
+/// A service that provides menu items and menu item groups.
+/// </summary>
 public interface IMenuService
 {
     /// <summary>

@@ -9,24 +9,30 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the workflows module.
+    /// </summary>
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddSingleton<IFeatureService, RemoteFeatureService>()
-            .AddSingleton<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
-            .AddSingleton<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
-            .AddSingleton<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
-            .AddSingleton<IActivityExecutionService, RemoteActivityExecutionService>()
-            .AddSingleton<IActivityRegistry, DefaultActivityRegistry>()
-            .AddSingleton<IStorageDriverService, RemoteStorageDriverService>()
-            .AddSingleton<IVariableTypeService, RemoteVariableTypeService>()
-            .AddSingleton<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
-            .AddSingleton<IDiagramDesignerService, DefaultDiagramDesignerService>()
-            .AddSingleton<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
-            .AddSingleton<IActivityPortService, DefaultActivityPortService>()
-            .AddSingleton<IActivityVisitor, DefaultActivityVisitor>()
+            .AddScoped<IFeatureService, RemoteFeatureService>()
+            .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
+            .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
+            .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
+            .AddScoped<IActivityExecutionService, RemoteActivityExecutionService>()
+            .AddScoped<IActivityRegistry, DefaultActivityRegistry>()
+            .AddScoped<IStorageDriverService, RemoteStorageDriverService>()
+            .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
+            .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
+            .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
+            .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
+            .AddScoped<IActivityPortService, DefaultActivityPortService>()
+            .AddScoped<IActivityVisitor, DefaultActivityVisitor>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
@@ -35,18 +41,27 @@ public static class ServiceCollectionExtensions
         return services;
     }
     
+    /// <summary>
+    /// Adds a <see cref="IDiagramDesignerProvider"/> to the service collection.
+    /// </summary>
     public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
         services.AddSingleton<IDiagramDesignerProvider, T>();
         return services;
     }
     
+    /// <summary>
+    /// Adds a <see cref="IActivityDisplaySettingsProvider"/> to the service collection.
+    /// </summary>
     public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
     {
         services.AddSingleton<IActivityDisplaySettingsProvider, T>();
         return services;
     }
     
+    /// <summary>
+    /// Adds a <see cref="IActivityPortProvider"/> to the service collection.
+    /// </summary>
     public static IServiceCollection AddActivityPortProvider<T>(this IServiceCollection services) where T : class, IActivityPortProvider
     {
         services.AddSingleton<IActivityPortProvider, T>();

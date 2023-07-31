@@ -12,14 +12,14 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
         services
-            .AddSingleton<IMenuService, DefaultMenuService>()
-            .AddSingleton<IMenuGroupProvider, DefaultMenuGroupProvider>()
-            .AddSingleton<IThemeService, DefaultThemeService>()
-            .AddSingleton<IAppBarService, DefaultAppBarService>()
-            .AddSingleton<IModuleService, DefaultModuleService>()
-            .AddSingleton<IUIHintService, DefaultUIHintService>()
-            .AddSingleton<ISyntaxService, DefaultSyntaxService>()
-            .AddSingleton<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
+            .AddScoped<IMenuService, DefaultMenuService>()
+            .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
+            .AddScoped<IThemeService, DefaultThemeService>()
+            .AddScoped<IAppBarService, DefaultAppBarService>()
+            .AddScoped<IModuleService, DefaultModuleService>()
+            .AddScoped<IUIHintService, DefaultUIHintService>()
+            .AddScoped<ISyntaxService, DefaultSyntaxService>()
+            .AddScoped<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
             ;
 
         // Syntax providers.
@@ -31,18 +31,18 @@ public static class ServiceCollectionExtensions
             ;
         
         // Mediator.
-        services.AddSingleton<IMediator, DefaultMediator>();
+        services.AddScoped<IMediator, DefaultMediator>();
         
         return services;
     }
     
     public static IServiceCollection AddUIHintHandler<T>(this IServiceCollection services) where T : class, IUIHintHandler
     {
-        return services.AddSingleton<IUIHintHandler, T>();
+        return services.AddScoped<IUIHintHandler, T>();
     }
     
     public static IServiceCollection AddSyntaxProvider<T>(this IServiceCollection services) where T : class, ISyntaxProvider
     {
-        return services.AddSingleton<ISyntaxProvider, T>();
+        return services.AddScoped<ISyntaxProvider, T>();
     }
 }
