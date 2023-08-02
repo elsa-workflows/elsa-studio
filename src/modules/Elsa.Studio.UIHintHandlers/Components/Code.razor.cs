@@ -7,18 +7,25 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.UIHintHandlers.Components;
 
-public partial class Code
+/// <summary>
+/// A component that renders a code editor.
+/// </summary>
+public partial class Code : IDisposable
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
     private StandaloneCodeEditor? _monacoEditor;
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
 
+    /// <inheritdoc />
     public Code()
     {
         _throttledValueChanged = Debouncer.Debounce(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
     }
 
+    /// <summary>
+    /// The context for the editor.
+    /// </summary>
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
@@ -65,8 +72,9 @@ public partial class Code
 
         _lastMonacoEditorContent = value;
         var expression = new LiteralExpression(value);
-        await EditorContext.UpdateExpressionAsync(expression);
+
+        await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
     }
 
-    public void Dispose() => _throttledValueChanged.Dispose();
+    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
 }

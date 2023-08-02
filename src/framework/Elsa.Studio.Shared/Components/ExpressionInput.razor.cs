@@ -11,6 +11,9 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.Components;
 
+/// <summary>
+/// A component that renders an input for an expression.
+/// </summary>
 public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
@@ -23,12 +26,20 @@ public partial class ExpressionInput : IDisposable
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
 
+    /// <inheritdoc />
     public ExpressionInput()
     {
         _throttledValueChanged = Debouncer.Debounce<WrappedInput, Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
     }
 
+    /// <summary>
+    /// The context for the editor.
+    /// </summary>
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    
+    /// <summary>
+    /// The content to render inside the editor.
+    /// </summary>
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
     
@@ -67,6 +78,7 @@ public partial class ExpressionInput : IDisposable
     }
 
 
+    /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
         _selectedSyntax = EditorContext.SelectedSyntaxProvider?.SyntaxName ?? UISyntax;
