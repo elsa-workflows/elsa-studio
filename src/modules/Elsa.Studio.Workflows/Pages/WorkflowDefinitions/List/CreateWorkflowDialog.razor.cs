@@ -8,19 +8,26 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 
+/// <summary>
+/// A dialog that allows the user to create a new workflow.
+/// </summary>
 public partial class CreateWorkflowDialog
 {
-    private WorkflowMetadataModel _metadataModel = new();
+    private readonly WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = default!;
     private WorkflowPropertiesModelValidator _validator = default!;
     private FluentValidationValidator _fluentValidationValidator = default!;
 
+    /// <summary>
+    /// The name of the workflow to create.
+    /// </summary>
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private string WorkflowDescription { get; set; } = "";
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _metadataModel.Name = WorkflowName;

@@ -24,6 +24,9 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Screens.EditWorkflowDefinition.Components;
 
+/// <summary>
+/// A component that allows the user to edit a workflow definition.
+/// </summary>
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
@@ -34,6 +37,7 @@ public partial class WorkflowEditor
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = default!;
 
+    /// <inheritdoc />
     public WorkflowEditor()
     {
         _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(async readDiagram => await SaveChangesAsync(readDiagram, false, false), TimeSpan.FromMilliseconds(500));
@@ -109,6 +113,7 @@ public partial class WorkflowEditor
                 Id = workflowDefinition.Id,
                 Description = workflowDefinition.Description,
                 Name = workflowDefinition.Name,
+                ToolVersion = workflowDefinition.ToolVersion,
                 Inputs = workflowDefinition.Inputs,
                 Options = workflowDefinition.Options,
                 Outcomes = workflowDefinition.Outcomes,
