@@ -10,12 +10,21 @@ using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 
+/// <summary>
+/// Provides a wrapper around the X6 graph API.
+/// </summary>
 public class X6GraphApi
 {
     private readonly IJSObjectReference _module;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _containerId;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="X6GraphApi"/> class.
+    /// </summary>
+    /// <param name="module">The JavaScript module reference.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="containerId">The ID of the container element.</param>
     public X6GraphApi(IJSObjectReference module, IServiceProvider serviceProvider, string containerId)
     {
         _module = module;
@@ -23,10 +32,28 @@ public class X6GraphApi
         _containerId = containerId;
     }
     
+    /// <summary>
+    /// Reads the flowchart from the graph.
+    /// </summary>
+    /// <returns>The flowchart.</returns>
     public async Task<JsonElement> ReadGraphAsync() => await InvokeAsync(module => module.InvokeAsync<JsonElement>("readGraph", _containerId));
+    
+    /// <summary>
+    /// Disposes the graph.
+    /// </summary>
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
+    
+    
+    /// <summary>
+    /// Sets the grid color.
+    /// </summary>
+    /// <param name="color">The color.</param>
     public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
     
+    /// <summary>
+    /// Adds a node to the graph.
+    /// </summary>
+    /// <param name="node">The node.</param>
     public async Task AddActivityNodeAsync(X6ActivityNode node)
     {
         var serializerOptions = new JsonSerializerOptions
@@ -41,14 +68,30 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
     }
 
+    /// <summary>
+    /// Loads the specified model into the graph.
+    /// </summary>
+    /// <param name="graph">The model.</param>
     public async Task LoadGraphAsync(X6Graph graph)
     {
         await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
     }
 
+    /// <summary>
+    /// Zoom the canvas to fit the content.
+    /// </summary>
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
+    
+    /// <summary>
+    /// Center the canvas content.
+    /// </summary>
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
     
+    /// <summary>
+    /// Updates the node with the specified activity. 
+    /// </summary>
+    /// <param name="id">The activity ID.</param>
+    /// <param name="activity">The activity.</param>
     public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         var serializerOptions = new JsonSerializerOptions

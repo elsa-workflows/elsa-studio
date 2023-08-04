@@ -26,13 +26,13 @@
         <PackageReference Include="ThrottleDebounce" Version="2.0.0"/>
     </ItemGroup>
 
-    <!--    <ItemGroup Label="Elsa">-->
-    <!--        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.589" />-->
-    <!--    </ItemGroup>-->
+        <ItemGroup Label="Elsa">
+            <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.613" />
+        </ItemGroup>
 
-    <ItemGroup Label="Elsa">
-        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>
-    </ItemGroup>
+<!--    <ItemGroup Label="Elsa">-->
+<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+<!--    </ItemGroup>-->
 
     <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Backend.Core\Elsa.Studio.Backend.Core.csproj"/>

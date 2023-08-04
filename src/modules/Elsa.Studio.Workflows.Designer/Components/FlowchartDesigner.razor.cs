@@ -19,6 +19,9 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
+/// <summary>
+/// A Blazor component that renders a flowchart designer.
+/// </summary>
 public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 {
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
@@ -30,6 +33,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
 
+    /// <inheritdoc />
     public FlowchartDesigner()
     {
         _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
@@ -40,18 +44,50 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         }, TimeSpan.FromMilliseconds(100));
     }
 
+    /// <summary>
+    /// The flowchart to render.
+    /// </summary>
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    
+    /// <summary>
+    /// The activity stats to render.
+    /// </summary>
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
+    
+    /// <summary>
+    /// Whether the flowchart is read-only.
+    /// </summary>
     [Parameter] public bool IsReadOnly { get; set; }
+    
+    /// <summary>
+    /// An event raised when an activity is selected.
+    /// </summary>
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    
+    /// <summary>
+    /// An event raised when an activity embedded port is selected.
+    /// </summary>
     [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    
+    /// <summary>
+    /// An event raised when the canvas is selected.
+    /// </summary>
     [Parameter] public Func<Task>? CanvasSelected { get; set; }
+    
+    /// <summary>
+    /// An event raised when the graph is updated.
+    /// </summary>
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
+    
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
 
+    /// <summary>
+    /// Invoked from JavaScript when an activity is selected.
+    /// </summary>
+    /// <param name="activity">The selected activity.</param>
     [JSInvokable]
     public async Task HandleActivitySelected(JsonObject activity)
     {
@@ -61,6 +97,11 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await InvokeAsync(async () => await ActivitySelected(activity));
     }
 
+    /// <summary>
+    /// Invoked from JavaScript when an activity embedded port is selected.
+    /// </summary>
+    /// <param name="activity">The selected activity.</param>
+    /// <param name="portName">The selected port name.</param>
     [JSInvokable]
     public async Task HandleActivityEmbeddedPortSelected(JsonObject activity, string portName)
     {
@@ -71,6 +112,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
     }
 
+    /// <summary>
+    /// Invoked from JavaScript when the canvas is selected.
+    /// </summary>
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
@@ -80,6 +124,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await InvokeAsync(async () => await CanvasSelected());
     }
 
+    /// <summary>
+    /// Invoked from JavaScript when the graph is updated.
+    /// </summary>
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {
@@ -89,6 +136,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await InvokeAsync(async () => await GraphUpdated());
     }
 
+    /// <summary>
+    /// Reads the flowchart from the graph.
+    /// </summary>
+    /// <returns>The flowchart.</returns>
     public async Task<JsonObject> ReadFlowchartAsync()
     {
         var serializerOptions = new JsonSerializerOptions
@@ -116,6 +167,11 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         });
     }
 
+    /// <summary>
+    /// Loads the flowchart into the graph.
+    /// </summary>
+    /// <param name="flowchart">The flowchart to load.</param>
+    /// <param name="activityStats">The activity stats to load.</param>
     public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats)
     {
         Flowchart = flowchart;
@@ -125,6 +181,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
+    /// <summary>
+    /// Adds an activity to the graph.
+    /// </summary>
+    /// <param name="activity">The activity to add.</param>
     public async Task AddActivityAsync(JsonObject activity)
     {
         var mapper = await GetActivityMapperAsync();
@@ -132,16 +192,37 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
 
+    /// <summary>
+    /// Zoom the canvas to fit all activities.
+    /// </summary>
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
+    /// <summary>
+    /// Center the canvas content.
+    /// </summary>
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
+    
+    /// <summary>
+    /// Update the specified activity on the graph.
+    /// </summary>
+    /// <param name="id">The activity ID.</param>
+    /// <param name="activity">The updated activity.</param>
     public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
+    
+    
+    /// <summary>
+    /// Update the specified activity stats on the graph.
+    /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="stats">The updated activity stats.</param>
     public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await ScheduleGraphActionAsync(() => DesignerJsInterop.UpdateActivityStatsAsync($"activity-{activityId}", activityId, stats));
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         ThemeService.IsDarkModeChanged += OnDarkModeChanged;
     }
 
+    /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -153,6 +234,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         }
     }
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         if(!Equals(_activityStats, ActivityStats))
