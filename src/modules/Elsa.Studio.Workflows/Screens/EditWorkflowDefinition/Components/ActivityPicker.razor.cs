@@ -19,13 +19,30 @@ public partial class ActivityPicker : IDisposable,
     INotificationHandler<WorkflowDefinitionsBulkRetracted>
 {
     private string _searchText = "";
-    private IEnumerable<IGrouping<string, ActivityDescriptor>> _groupedActivityDescriptors = Enumerable.Empty<IGrouping<string, ActivityDescriptor>>();
+
+    private IEnumerable<IGrouping<string, ActivityDescriptor>> _groupedActivityDescriptors
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_searchText))
+            {
+                return ActivityDescriptors.GroupBy(x => x.Category); // Return all items grouped by category
+            }
+            
+            var items = ActivityDescriptors.Where(item =>
+                item.Name.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase));
+            return items
+                .GroupBy(x => x.Category); 
+        }
+    }
 
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
+
+    private IEnumerable<ActivityDescriptor> ActivityDescriptors = new List<ActivityDescriptor>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,12 +51,15 @@ public partial class ActivityPicker : IDisposable,
         await LoadActivityDescriptorsAsync();
     }
 
-    private async Task LoadActivityDescriptorsAsync(CancellationToken cancellationToken = default)
+    private async Task<IEnumerable<ActivityDescriptor>> GetActivityDescriptors(CancellationToken cancellationToken = default)
     {
         await ActivityRegistry.RefreshAsync(cancellationToken);
         var activities = ActivityRegistry.List();
-        activities = activities.Where(x => x.IsBrowsable);
-        _groupedActivityDescriptors = activities.GroupBy(x => x.Category).ToList();
+        return activities.Where(x => x.IsBrowsable);
+    }
+    private async Task LoadActivityDescriptorsAsync(CancellationToken cancellationToken = default)
+    {
+        ActivityDescriptors = await  GetActivityDescriptors(cancellationToken);
         StateHasChanged();
     }
 
