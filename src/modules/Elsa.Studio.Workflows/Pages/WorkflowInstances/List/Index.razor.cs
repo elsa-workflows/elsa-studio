@@ -61,8 +61,14 @@ public partial class Index
         });
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
+        
+        // Select any workflow instances for which no corresponding workflow definition version was found.
+        // This can happen when a workflow definition is deleted.
+        
+        var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
+        var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
 
-        var rows = workflowInstancesResponse.Items.Select(x => new WorkflowInstanceRow(
+        var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
             x.Id,
             x.CorrelationId,
             workflowDefinitionVersionsLookup[x.DefinitionVersionId],
@@ -74,6 +80,8 @@ public partial class Index
             x.UpdatedAt,
             x.FinishedAt));
 
+        // TODO: display the workflow instances for which definition versions are missing.
+        
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }
