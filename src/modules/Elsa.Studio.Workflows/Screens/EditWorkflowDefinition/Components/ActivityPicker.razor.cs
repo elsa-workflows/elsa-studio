@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Screens.EditWorkflowDefinition.Components;
 
+/// <summary>
+/// A component that allows the user to pick an activity.
+/// </summary>
 public partial class ActivityPicker : IDisposable,
     INotificationHandler<WorkflowDefinitionDeleted>,
     INotificationHandler<WorkflowDefinitionPublished>,
@@ -20,30 +23,37 @@ public partial class ActivityPicker : IDisposable,
 {
     private string _searchText = "";
 
-    private IEnumerable<IGrouping<string, ActivityDescriptor>> _groupedActivityDescriptors
+    private IEnumerable<IGrouping<string, ActivityDescriptor>> GroupedActivityDescriptors
     {
         get
         {
             if (string.IsNullOrWhiteSpace(_searchText))
-            {
                 return ActivityDescriptors.GroupBy(x => x.Category); // Return all items grouped by category
-            }
-            
+
             var items = ActivityDescriptors.Where(item =>
-                item.Name.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase));
+                item.Name.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                item.TypeName.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                (item.DisplayName != null && item.DisplayName.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase)) ||
+                item.Category.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                (item.Description != null && item.Description.Contains(_searchText, StringComparison.InvariantCultureIgnoreCase))
+            );
             return items
-                .GroupBy(x => x.Category); 
+                .GroupBy(x => x.Category);
         }
     }
 
+    /// <summary>
+    /// The drag and drop manager.
+    /// </summary>
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
 
-    private IEnumerable<ActivityDescriptor> ActivityDescriptors = new List<ActivityDescriptor>();
+    private IEnumerable<ActivityDescriptor> ActivityDescriptors { get; set; } = new List<ActivityDescriptor>();
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         Mediator.Subscribe<WorkflowDefinitionPublished>(this);
@@ -57,9 +67,10 @@ public partial class ActivityPicker : IDisposable,
         var activities = ActivityRegistry.List();
         return activities.Where(x => x.IsBrowsable);
     }
+
     private async Task LoadActivityDescriptorsAsync(CancellationToken cancellationToken = default)
     {
-        ActivityDescriptors = await  GetActivityDescriptors(cancellationToken);
+        ActivityDescriptors = await GetActivityDescriptors(cancellationToken);
         StateHasChanged();
     }
 
