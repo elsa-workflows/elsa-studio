@@ -2,6 +2,9 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
 
+/// <summary>
+/// Represents a registry of activity descriptors.
+/// </summary>
 public interface IActivityRegistry
 {
     /// <summary>

@@ -2,6 +2,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -12,14 +13,7 @@ namespace Elsa.Studio.Workflows.Screens.EditWorkflowDefinition.Components;
 /// <summary>
 /// A component that allows the user to pick an activity.
 /// </summary>
-public partial class ActivityPicker : IDisposable,
-    INotificationHandler<WorkflowDefinitionDeleted>,
-    INotificationHandler<WorkflowDefinitionPublished>,
-    INotificationHandler<WorkflowDefinitionRetracted>,
-    INotificationHandler<WorkflowDefinitionsBulkDeleted>,
-    INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>,
-    INotificationHandler<WorkflowDefinitionsBulkPublished>,
-    INotificationHandler<WorkflowDefinitionsBulkRetracted>
+public partial class ActivityPicker : IDisposable, INotificationHandler<ActivityRegistryRefreshed>
 {
     private string _searchText = "";
 
@@ -54,23 +48,14 @@ public partial class ActivityPicker : IDisposable,
     private IEnumerable<ActivityDescriptor> ActivityDescriptors { get; set; } = new List<ActivityDescriptor>();
 
     /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Mediator.Subscribe<WorkflowDefinitionPublished>(this);
-        Mediator.Subscribe<WorkflowDefinitionDeleted>(this);
-        await LoadActivityDescriptorsAsync();
+        Mediator.Subscribe<ActivityRegistryRefreshed>(this);
     }
 
-    private async Task<IEnumerable<ActivityDescriptor>> GetActivityDescriptors(CancellationToken cancellationToken = default)
+    private void Refresh()
     {
-        await ActivityRegistry.RefreshAsync(cancellationToken);
-        var activities = ActivityRegistry.List();
-        return activities.Where(x => x.IsBrowsable);
-    }
-
-    private async Task LoadActivityDescriptorsAsync(CancellationToken cancellationToken = default)
-    {
-        ActivityDescriptors = await GetActivityDescriptors(cancellationToken);
+        ActivityDescriptors = ActivityRegistry.ListBrowsable();
         StateHasChanged();
     }
 
@@ -78,21 +63,13 @@ public partial class ActivityPicker : IDisposable,
     {
         DragDropManager.Payload = activityDescriptor;
     }
-
-    async Task INotificationHandler<WorkflowDefinitionDeleted>.HandleAsync(WorkflowDefinitionDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionPublished>.HandleAsync(WorkflowDefinitionPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionRetracted>.HandleAsync(WorkflowDefinitionRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkDeleted>.HandleAsync(WorkflowDefinitionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>.HandleAsync(WorkflowDefinitionVersionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkPublished>.HandleAsync(WorkflowDefinitionsBulkPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkRetracted>.HandleAsync(WorkflowDefinitionsBulkRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-
-    private async Task RefreshActivityRegistryAsync(CancellationToken cancellationToken = default)
+    
+    Task INotificationHandler<ActivityRegistryRefreshed>.HandleAsync(ActivityRegistryRefreshed notification, CancellationToken cancellationToken)
     {
-        await ActivityRegistry.RefreshAsync(cancellationToken);
-        await LoadActivityDescriptorsAsync(cancellationToken);
+        Refresh();
+        return Task.CompletedTask;
     }
-
+    
     void IDisposable.Dispose()
     {
         Mediator.Unsubscribe(this);

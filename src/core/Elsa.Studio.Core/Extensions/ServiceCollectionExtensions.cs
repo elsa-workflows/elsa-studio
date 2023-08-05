@@ -6,9 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Extensions;
 
+/// <summary>
+/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 [PublicAPI]
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the core services.
+    /// </summary>
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
         services
@@ -35,12 +41,26 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
+
+    /// <summary>
+    /// Adds the specified <see cref="INotificationHandler"/>.
+    /// </summary>
+    public static IServiceCollection AddNotificationHandler<T>(this IServiceCollection services) where T: class, INotificationHandler
+    {
+        return services.AddScoped<INotificationHandler, T>();
+    }
     
+    /// <summary>
+    /// Adds the specified <see cref="IUIHintHandler"/>.
+    /// </summary>
     public static IServiceCollection AddUIHintHandler<T>(this IServiceCollection services) where T : class, IUIHintHandler
     {
         return services.AddScoped<IUIHintHandler, T>();
     }
     
+    /// <summary>
+    /// Ads the specified <see cref="ISyntaxProvider"/>.
+    /// </summary>
     public static IServiceCollection AddSyntaxProvider<T>(this IServiceCollection services) where T : class, ISyntaxProvider
     {
         return services.AddScoped<ISyntaxProvider, T>();

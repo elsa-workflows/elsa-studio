@@ -2,11 +2,13 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Studio.ActivityPortProviders.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.UIHintHandlers.Extensions;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
+using Elsa.Studio.Workflows.Handlers;
 using Elsa.Studio.Workflows.Menu;
 using Elsa.Studio.Workflows.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,8 +39,11 @@ public static class ServiceCollectionExtensions
             .AddDownloadInterop()
             ;
 
-        services.AddDiagramDesignerProvider<FallbackDesignerProvider>();
-        services.AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();
+        services
+            .AddDiagramDesignerProvider<FallbackDesignerProvider>()
+            .AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();
+
+        services.AddNotificationHandler<RefreshActivityRegistry>();
         
         return services;
     }
