@@ -51,6 +51,7 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
     protected override void OnInitialized()
     {
         Mediator.Subscribe<ActivityRegistryRefreshed>(this);
+        Refresh();
     }
 
     private void Refresh()
