@@ -8,6 +8,7 @@ using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
@@ -96,7 +97,7 @@ public partial class DiagramDesignerWrapper
 
         foreach (var pathSegment in _pathSegments.Reverse())
         {
-            var flowchart = currentContainer;
+            var flowchart = currentContainer.GetFlowchart();
             var activities = flowchart.GetActivities();
             var currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
             var portName = pathSegment.PortName;
@@ -193,28 +194,39 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
+            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
+            
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
-            if (embeddedActivity.GetTypeName() != "Elsa.Flowchart")
+            if (embeddedActivityTypeName != "Elsa.Flowchart" && embeddedActivityTypeName != "Elsa.Workflow")
             {
                 ActivitySelected?.Invoke(embeddedActivity);
                 return;
             }
+            
+            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
         }
         else
         {
-            // Create a flowchart and embed it into the activity.
-            embeddedActivity = new JsonObject(new Dictionary<string, JsonNode?>
+            if (!IsReadOnly)
             {
-                ["id"] = ActivityIdGenerator.GenerateId(),
-                ["type"] = "Elsa.Flowchart",
-                ["version"] = 1,
-                ["name"] = "Flowchart1",
-            });
+                // Create a flowchart and embed it into the activity.
+                embeddedActivity = new JsonObject(new Dictionary<string, JsonNode?>
+                {
+                    ["id"] = ActivityIdGenerator.GenerateId(),
+                    ["type"] = "Elsa.Flowchart",
+                    ["version"] = 1,
+                    ["name"] = "Flowchart1",
+                });
 
-            portProvider.AssignPort(args.PortName, embeddedActivity, new PortProviderContext(activityDescriptor, activity));
+                portProvider.AssignPort(args.PortName, embeddedActivity, new PortProviderContext(activityDescriptor, activity));
 
-            // Update the graph in the designer.
-            await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
+                // Update the graph in the designer.
+                await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
+            }
+            else
+            {
+                return;
+            }
         }
 
         // Create a new path segment of the container activity and push it onto the stack.

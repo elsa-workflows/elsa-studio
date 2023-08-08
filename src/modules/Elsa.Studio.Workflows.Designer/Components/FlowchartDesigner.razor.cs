@@ -9,6 +9,7 @@ using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
@@ -170,13 +171,14 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <summary>
     /// Loads the flowchart into the graph.
     /// </summary>
-    /// <param name="flowchart">The flowchart to load.</param>
+    /// <param name="activity">The flowchart to load.</param>
     /// <param name="activityStats">The activity stats to load.</param>
-    public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats)
+    public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
-        Flowchart = flowchart;
+        Flowchart = activity;
         ActivityStats = activityStats;
         var flowchartMapper = await GetFlowchartMapperAsync();
+        var flowchart = activity.GetFlowchart();
         var graph = flowchartMapper.Map(flowchart, activityStats);
         await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }

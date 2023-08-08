@@ -15,6 +15,9 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
+/// <summary>
+/// A wrapper around the <see cref="FlowchartDesigner"/> component that provides interactivity such as drag and drop and displaying the designer in edit or read-only mode.
+/// </summary>
 public partial class FlowchartDesignerWrapper
 {
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
@@ -27,11 +30,11 @@ public partial class FlowchartDesignerWrapper
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
     private FlowchartDesigner Designer { get; set; } = default!;
 
-    public async Task LoadFlowchartAsync(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStats = default)
+    public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = default)
     {
-        Flowchart = flowchart;
+        Flowchart = activity;
         ActivityStats = activityStats;
-        await Designer.LoadFlowchartAsync(flowchart, activityStats);
+        await Designer.LoadFlowchartAsync(activity, activityStats);
     }
     
     public async Task UpdateActivityAsync(string id, JsonObject activity)
@@ -53,7 +56,7 @@ public partial class FlowchartDesignerWrapper
 
     private string GenerateNextName(ActivityDescriptor activityDescriptor)
     {
-        var max = 100;
+        var max = 10000;
         var count = GetNextNumber(activityDescriptor);
 
         while (count++ < max)
