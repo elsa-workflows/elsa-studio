@@ -83,7 +83,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             enabled: true,
             factor: 1.05,
             modifiers: ['ctrl', 'meta'],
-            minScale: 0.5,
+            minScale: 0.4,
             maxScale: 3,
         },
         interacting: {
