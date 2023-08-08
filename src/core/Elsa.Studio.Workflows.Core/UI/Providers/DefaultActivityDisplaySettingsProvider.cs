@@ -4,8 +4,12 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.UI.Providers;
 
+/// <summary>
+/// Provides default activity display settings.
+/// </summary>
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
+    /// <inheritdoc />
     public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
         // Branching
@@ -30,6 +34,8 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         // Flowchart
         ["Elsa.Flowchart"] = new(DefaultActivityColors.Flowchart, ElsaStudioIcons.Tabler.GitFork),
         ["Elsa.FlowNode"] = new(DefaultActivityColors.Flowchart, ElsaStudioIcons.Tabler.Hexagon),
+        ["Elsa.Start"] = new(DefaultActivityColors.Flowchart, Icons.Material.Outlined.Start),
+        ["Elsa.End"] = new(DefaultActivityColors.Flowchart, Icons.Material.Outlined.OutlinedFlag),
         
         // HTTP
         ["Elsa.HttpEndpoint"] = new(DefaultActivityColors.Http, ElsaStudioIcons.Tabler.Cloud),
@@ -44,7 +50,6 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.Break"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.Back1),
         
         // Primitives
-        ["Elsa.Start"] = new(DefaultActivityColors.Primitives, Icons.Material.Outlined.Start),
         ["Elsa.SetVariable"] = new(DefaultActivityColors.Primitives, ElsaStudioIcons.Tabler.Pencil),
         ["Elsa.SetName"] = new(DefaultActivityColors.Primitives, ElsaStudioIcons.Tabler.Italic),
         ["Elsa.Finish"] = new(DefaultActivityColors.Primitives, ElsaStudioIcons.Tabler.CheckShield),
