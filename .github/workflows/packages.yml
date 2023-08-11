@@ -32,6 +32,11 @@ jobs:
         run: |
           npm install --force
           npm run build
+      - name: Build DOM interop client assets
+        working-directory: ./src/framework/Elsa.Studio.DomInterop/ClientLib
+        run: |
+          npm install --force
+          npm run build
       - name: Build nuget packages
         run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
       - name: Test
