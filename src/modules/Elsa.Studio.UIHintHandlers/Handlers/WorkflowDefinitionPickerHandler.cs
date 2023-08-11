@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHintHandlers.Handlers;
 
 /// <summary>
-/// Provides a handler for the <c>variable-picker</c> UI hint.
+/// Provides a handler for the <c>workflow-definition-picker</c> UI hint.
 /// </summary>
-public class VariablePickerHandler : IUIHintHandler
+public class WorkflowDefinitionPickerHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "variable-picker";
+    public bool GetSupportsUIHint(string uiHint) => uiHint == "workflow-definition-picker";
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;
@@ -21,8 +21,8 @@ public class VariablePickerHandler : IUIHintHandler
     {
         return builder =>
         {
-            builder.OpenComponent(0, typeof(VariablePicker));
-            builder.AddAttribute(1, nameof(VariablePicker.EditorContext), context);
+            builder.OpenComponent(0, typeof(WorkflowDefinitionPicker));
+            builder.AddAttribute(1, nameof(WorkflowDefinitionPicker.EditorContext), context);
             builder.CloseComponent();
         };
     }

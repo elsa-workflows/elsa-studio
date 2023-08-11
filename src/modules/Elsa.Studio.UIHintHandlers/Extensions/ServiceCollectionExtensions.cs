@@ -4,8 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.UIHintHandlers.Extensions;
 
+/// <summary>
+/// Provides a set of extension methods for <see cref="IServiceCollection"/>.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the default UI hint handlers.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
     public static IServiceCollection AddDefaultUIHintHandlers(this IServiceCollection services)
     {
         return services
@@ -19,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()
             .AddUIHintHandler<VariablePickerHandler>()
+            .AddUIHintHandler<WorkflowDefinitionPickerHandler>()
             .AddUIHintHandler<OutputPickerHandler>()
             .AddUIHintHandler<OutcomePickerHandler>()
             ;
