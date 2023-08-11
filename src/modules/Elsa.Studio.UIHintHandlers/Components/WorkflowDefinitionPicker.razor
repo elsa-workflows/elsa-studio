@@ -1,0 +1,25 @@
+@using Elsa.Studio.UIHintHandlers.Models
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+    var selectedValue = GetSelectedValue();
+    var searchBox = _items.Count > 10;
+}
+
+<ExpressionInput EditorContext="@EditorContext">
+    <ChildContent>
+        <MudSelectExtended
+            T="SelectListItem"
+            Label="@displayName"
+            Variant="Variant.Outlined"
+            HelperText="@description"
+            Margin="Margin.Dense"
+            Value="@selectedValue"
+            SearchBox="@searchBox"
+            ItemCollection="@_items"
+            ToStringFunc="@(item => item?.Text ?? "")"
+            ValueChanged="OnValueChanged">
+        </MudSelectExtended>
+    </ChildContent>
+</ExpressionInput>
