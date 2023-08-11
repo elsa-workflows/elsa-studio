@@ -17,6 +17,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0D17508F-2117-49C0-B661-4F3118C8126C}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\packages.yml = .github\workflows\packages.yml
+		.github\workflows\pr-body-generator.yml = .github\workflows\pr-body-generator.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hosts", "hosts", "{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514}"
