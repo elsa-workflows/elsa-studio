@@ -7,24 +7,24 @@
     <MudTabPanel Text="Input">
         @if (ActivityDescriptor?.Inputs.Any() == true)
         {
-            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-            </div>
+            </ScrollableWell>
         }
         else
         {
-            <div class="pa-4">
+            <Well>
                 <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
-            </div>
+            </Well>
         }
     </MudTabPanel>
 
     <MudTabPanel Text="Output">
         @if (ActivityDescriptor?.Outputs.Any() == true)
         {
-            <Well>
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-            </Well>
+            </ScrollableWell>
         }
         else
         {
@@ -37,9 +37,9 @@
     <MudTabPanel Text="Common">
         @if (Activity != null && ActivityDescriptor != null)
         {
-            <Well>
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-            </Well>
+            </ScrollableWell>
         }
         else
         {
@@ -48,13 +48,13 @@
             </Well>
         }
     </MudTabPanel>
-    
+
     @if (IsWorkflowAsActivity)
     {
         <MudTabPanel Text="Version">
-            <div style="@($"max-height: {VisiblePaneHeight}px; overflow-y: scroll;")">
-                <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated" />
-            </div>
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated"/>
+            </ScrollableWell>
         </MudTabPanel>
     }
 
