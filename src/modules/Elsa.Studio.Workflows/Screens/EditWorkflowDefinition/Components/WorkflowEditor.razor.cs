@@ -43,9 +43,21 @@ public partial class WorkflowEditor
         _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(async readDiagram => await SaveChangesAsync(readDiagram, false, false), TimeSpan.FromMilliseconds(500));
     }
 
+    /// <summary>
+    /// Gets or sets the drag and drop manager via property injection.
+    /// </summary>
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets the workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a callback that is invoked when the workflow definition is updated.
+    /// </summary>
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+    
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -72,9 +84,30 @@ public partial class WorkflowEditor
         }
     }
 
+    /// <summary>
+    /// Gets or sets a flag indicating whether the workflow definition is dirty.
+    /// </summary>
     public async Task NotifyWorkflowChangedAsync()
     {
         await HandleChangesAsync(false);
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        await ActivityRegistry.EnsureLoadedAsync();
+        
+        if (WorkflowDefinition?.Root == null)
+            return;
+        
+        SelectActivity(WorkflowDefinition.Root);
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await UpdateActivityPropertiesVisibleHeightAsync();
     }
 
     private async Task HandleChangesAsync(bool readDiagram)
@@ -84,16 +117,6 @@ public partial class WorkflowEditor
 
         if (_autoSave)
             await SaveChangesRateLimitedAsync(readDiagram);
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await ActivityRegistry.EnsureLoadedAsync();
-        
-        if (WorkflowDefinition?.Root == null)
-            return;
-        
-        SelectActivity(WorkflowDefinition.Root);
     }
 
     private async Task SaveAsync(bool readDiagram, bool publish)
@@ -239,6 +262,13 @@ public partial class WorkflowEditor
         if(WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
     }
+    
+    private async Task UpdateActivityPropertiesVisibleHeightAsync()
+    {
+        var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
+        var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
+        _activityPropertiesPaneHeight = (int)visibleHeight - 50;
+    }
 
     private Task OnActivitySelected(JsonObject activity)
     {
@@ -292,9 +322,7 @@ public partial class WorkflowEditor
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
-        var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
-        var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _activityPropertiesPaneHeight = (int)visibleHeight - 60;
+        await UpdateActivityPropertiesVisibleHeightAsync();
     }
 
     private async Task OnAutoSaveChanged(bool? value)

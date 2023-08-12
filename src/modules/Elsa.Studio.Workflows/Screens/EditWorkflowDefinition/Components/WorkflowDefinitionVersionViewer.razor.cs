@@ -99,6 +99,6 @@ public partial class WorkflowDefinitionVersionViewer
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _activityPropertiesPaneHeight = (int)visibleHeight;
+        _activityPropertiesPaneHeight = (int)visibleHeight + 50;
     }
 }
