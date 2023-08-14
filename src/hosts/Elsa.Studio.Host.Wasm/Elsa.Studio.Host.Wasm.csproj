@@ -27,6 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
+        <ProjectReference Include="..\..\core\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj"/>

@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Host.Server.Services;
+namespace Elsa.Studio.Core.BlazorServer.Services;
 
 public class ServerJwtParser : IJwtParser
 {

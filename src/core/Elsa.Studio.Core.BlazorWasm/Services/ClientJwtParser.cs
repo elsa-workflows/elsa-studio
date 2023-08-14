@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Host.Wasm.Services;
+namespace Elsa.Studio.Core.BlazorWasm.Services;
 
 public class ClientJwtParser : IJwtParser
 {

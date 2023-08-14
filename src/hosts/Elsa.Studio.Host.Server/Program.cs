@@ -1,13 +1,13 @@
 using Blazored.LocalStorage;
 using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Core.BlazorServer.Services;
 using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Host.Server.HostedServices;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Environments.Extensions;
-using Elsa.Studio.Host.Server.Services;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Secrets.Extensions;
 using Elsa.Studio.Security.Extensions;

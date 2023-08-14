@@ -1,7 +1,8 @@
 using Blazored.LocalStorage;
 using Elsa.Studio.Contracts;
+using Microsoft.AspNetCore.Http;
 
-namespace Elsa.Studio.Host.Server.Services;
+namespace Elsa.Studio.Core.BlazorServer.Services;
 
 public class ServerJwtAccessor : IJwtAccessor
 {
