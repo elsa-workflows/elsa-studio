@@ -26,6 +26,9 @@ using Radzen.Blazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
+/// <summary>
+/// Displays the workflow instance.
+/// </summary>
 public partial class Viewer : IAsyncDisposable
 {
     private WorkflowInstance _workflowInstance = default!;
@@ -36,10 +39,29 @@ public partial class Viewer : IAsyncDisposable
     private IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
 
+    /// <summary>
+    /// The workflow instance.
+    /// </summary>
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
+    
+    /// <summary>
+    /// The workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
+    /// <summary>
+    /// The selected workflow execution log record.
+    /// </summary>
     [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
+    
+    /// <summary>
+    /// The path changed callback.
+    /// </summary>
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    
+    /// <summary>
+    /// The activity selected callback.
+    /// </summary>
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -67,6 +89,7 @@ public partial class Viewer : IAsyncDisposable
         }
     }
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
@@ -85,11 +108,21 @@ public partial class Viewer : IAsyncDisposable
         }
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         // ReSharper disable once RedundantCheckBeforeAssignment
         if (_workflowInstance != WorkflowInstance)
             _workflowInstance = WorkflowInstance;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdatePropertiesPaneHeightAsync();
+        }
     }
 
     private async Task ObserveWorkflowInstanceAsync()
@@ -152,6 +185,13 @@ public partial class Viewer : IAsyncDisposable
 
         return records;
     }
+    
+    private async Task UpdatePropertiesPaneHeightAsync()
+    {
+        var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
+        var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
+        _propertiesPaneHeight = (int)visibleHeight;
+    }
 
     private static ActivityStats Map(ActivityExecutionStats source)
     {
@@ -174,9 +214,7 @@ public partial class Viewer : IAsyncDisposable
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
-        var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
-        var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _propertiesPaneHeight = (int)visibleHeight;
+        await UpdatePropertiesPaneHeightAsync();
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
