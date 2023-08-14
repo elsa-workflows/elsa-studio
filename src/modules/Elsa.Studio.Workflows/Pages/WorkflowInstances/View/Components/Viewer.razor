@@ -1,6 +1,7 @@
 @using Elsa.Studio.Workflows.UI.Contracts
 @using Orientation = Radzen.Orientation
 @using Elsa.Api.Client.Resources.WorkflowInstances.Enums
+@using Variant = MudBlazor.Variant
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
@@ -8,6 +9,11 @@
         {
             <DiagramDesignerWrapper @ref="_designer" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged">
                 <CustomToolbarItems>
+                    <MudTooltip Text="Edit Workflow Definition">
+                    <MudIconButton
+                        Icon="@Icons.Material.Outlined.EditNote"
+                        OnClick="@(() => OnEditClicked(WorkflowDefinition.DefinitionId))"></MudIconButton>
+                    </MudTooltip>
                     <ElapsedTime StartTime="WorkflowInstance.CreatedAt" EndTime="@(WorkflowInstance.Status == WorkflowStatus.Running ? DateTimeOffset.UtcNow : WorkflowInstance.FinishedAt!.Value)"/>
                 </CustomToolbarItems>
             </DiagramDesignerWrapper>
@@ -17,11 +23,11 @@
         <CascadingValue Value="_activityLookup">
             @if (SelectedWorkflowExecutionLogRecord != null)
             {
-                <JournalEntryDetails VisiblePaneHeight="@_propertiesPaneHeight" JournalEntry="SelectedWorkflowExecutionLogRecord"/>
+                <JournalEntryDetails VisiblePaneHeight="@_propertiesPaneHeight" JournalEntry="SelectedWorkflowExecutionLogRecord" />
             }
             else if (SelectedActivity != null)
             {
-                <ActivityDetails Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                <ActivityDetails Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight" />
             }
         </CascadingValue>
     </RadzenSplitterPane>
