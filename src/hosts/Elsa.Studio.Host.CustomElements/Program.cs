@@ -4,7 +4,6 @@ using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Host.CustomElements.Services;
@@ -36,7 +35,6 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddSecurityModule();
 builder.Services.AddSecretsModule();
 builder.Services.AddWebhooksModule();
-builder.Services.AddCounterModule();
 
 // Blazored.
 builder.Services.AddBlazoredLocalStorage();

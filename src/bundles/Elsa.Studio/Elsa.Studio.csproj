@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\common.props"/>
+    <Import Project="..\..\..\configureawait.props"/>
+    
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Description>Elsa Studio bundle of commonly used packages.</Description>
+        <PackageTags>elsa studio framework bundle</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
+    </ItemGroup>
+
+</Project>

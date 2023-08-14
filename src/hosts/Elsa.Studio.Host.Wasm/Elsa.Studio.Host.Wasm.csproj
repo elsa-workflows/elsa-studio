@@ -8,33 +8,30 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.9" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.9" PrivateAssets="all"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-      <Content Update="appsettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Update="wwwroot\appsettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+        <Content Update="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Update="wwwroot\appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
-      <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj" />
+        <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj"/>
     </ItemGroup>
 
 </Project>
