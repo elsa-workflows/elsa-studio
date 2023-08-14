@@ -180,6 +180,12 @@ public partial class Viewer : IAsyncDisposable
         _propertiesPaneHeight = (int)visibleHeight;
     }
 
+    private Task OnEditClicked(string definitionId)
+    {
+        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
+        return Task.CompletedTask;
+    }
+
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         if (WorkflowInstanceObserver != null!)
@@ -189,9 +195,5 @@ public partial class Viewer : IAsyncDisposable
             await _elapsedTimer.DisposeAsync();
     }
 
-    private Task OnEditClicked(string definitionId)
-    {
-        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
-        return Task.CompletedTask;
-    }
+    
 }
