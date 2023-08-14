@@ -194,6 +194,4 @@ public partial class Viewer : IAsyncDisposable
         if (_elapsedTimer != null!)
             await _elapsedTimer.DisposeAsync();
     }
-
-    
 }
