@@ -26,13 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
-        <ProjectReference Include="..\..\core\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj"/>
+        <ProjectReference Include="..\..\bundles\Elsa.Studio.BlazorWasm\Elsa.Studio.BlazorWasm.csproj" />
     </ItemGroup>
 
 </Project>

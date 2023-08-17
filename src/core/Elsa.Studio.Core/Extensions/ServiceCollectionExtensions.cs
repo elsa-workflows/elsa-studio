@@ -2,6 +2,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Services;
 using Elsa.Studio.SyntaxProviders;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Extensions;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IUIHintService, DefaultUIHintService>()
             .AddScoped<ISyntaxService, DefaultSyntaxService>()
             .AddScoped<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
+            .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             ;
 
         // Syntax providers.
@@ -38,6 +40,18 @@ public static class ServiceCollectionExtensions
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the default authentication services.
+    /// </summary>
+    public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services)
+    {
+        services.AddOptions();
+        services.AddAuthorizationCore();
+        services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();
         
         return services;
     }

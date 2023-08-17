@@ -1,63 +1,37 @@
-using Blazored.LocalStorage;
 using Elsa.Studio.Backend.Extensions;
-using Elsa.Studio.Contracts;
-using Elsa.Studio.Core.BlazorServer.Services;
-using Elsa.Studio.Counter.Extensions;
+using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
-using Elsa.Studio.Host.Server.HostedServices;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.Extensions;
-using Elsa.Studio.Secrets.Extensions;
-using Elsa.Studio.Security.Extensions;
-using Elsa.Studio.Services;
-using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Microsoft.AspNetCore.Components.Authorization;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-// Register the services.
+// Register Razor services.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(options =>
 {
     // Register the root components.
-    options.RootComponents.RegisterCustomElements();
+    options.RootComponents.RegisterCustomElsaStudioElements();
 });
 
-// Add the shell and module services.
+// Register shell services and modules.
 builder.Services.AddShell();
+builder.Services.AddBlazorServerModule();
+builder.Services.AddDefaultAuthentication();
 builder.Services.AddBackendModule(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddLoginModule();
-builder.Services.AddEnvironmentsModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddSecurityModule();
-builder.Services.AddSecretsModule();
-builder.Services.AddWebhooksModule();
-builder.Services.AddCounterModule();
-
-// Blazored.
-builder.Services.AddBlazoredLocalStorage();
-
-// Register authorization.
-builder.Services.AddOptions();
-builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<IJwtParser, ServerJwtParser>();
-builder.Services.AddScoped<IJwtAccessor, ServerJwtAccessor>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();
-
-// Register the hosted services.
-builder.Services.AddHostedService<RunStartupTasksHostedService>();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
 {
-    // Set MaximumReceiveMessageSize to 512kb:
+    // Set MaximumReceiveMessageSize:
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
 });
 

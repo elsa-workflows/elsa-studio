@@ -22,7 +22,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 var configuration = builder.Configuration;
 
 // Register the custom elements.
-builder.RootComponents.RegisterCustomElements();
+builder.RootComponents.RegisterCustomElsaStudioElements();
 builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditor>("elsa-studio-workflow-definition-editor");
 
 // Register the modules.

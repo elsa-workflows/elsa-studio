@@ -11,7 +11,7 @@ public static class ComponentConfigurationExtensions
     /// <summary>
     /// Registers custom elements.
     /// </summary>
-    public static IJSComponentConfiguration RegisterCustomElements(this IJSComponentConfiguration configuration)
+    public static IJSComponentConfiguration RegisterCustomElsaStudioElements(this IJSComponentConfiguration configuration)
     {
         configuration.RegisterCustomElement<ActivityWrapper>("elsa-activity-wrapper");
 

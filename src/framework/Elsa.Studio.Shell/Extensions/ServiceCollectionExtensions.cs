@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Shell.Tasks;
@@ -8,8 +9,14 @@ using MudExtensions.Services;
 
 namespace Elsa.Studio.Shell.Extensions;
 
+/// <summary>
+/// Provides extension methods for the <see cref="IServiceCollection"/> interface.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the shell services.
+    /// </summary>
     public static IServiceCollection AddShell(this IServiceCollection services)
     {
         return services
@@ -26,6 +33,7 @@ public static class ServiceCollectionExtensions
                 config.SnackbarConfiguration.MaxDisplayedSnackbars = 3;
             })
             .AddMudExtensions()
+            .AddBlazoredLocalStorage()
             .AddCore()
             .AddScoped<IStartupTask, InitializeModulesStartupTask>();
     }

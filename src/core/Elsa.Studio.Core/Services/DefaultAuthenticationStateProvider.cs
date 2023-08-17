@@ -12,12 +12,14 @@ public class DefaultAuthenticationStateProvider : AuthenticationStateProvider
     private readonly IJwtAccessor _jwtAccessor;
     private readonly IJwtParser _jwtParser;
 
+    /// <inheritdoc />
     public DefaultAuthenticationStateProvider(IJwtAccessor jwtAccessor, IJwtParser jwtParser)
     {
         _jwtAccessor = jwtAccessor;
         _jwtParser = jwtParser;
     }
-    
+
+    /// <inheritdoc />
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var authToken = await _jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
