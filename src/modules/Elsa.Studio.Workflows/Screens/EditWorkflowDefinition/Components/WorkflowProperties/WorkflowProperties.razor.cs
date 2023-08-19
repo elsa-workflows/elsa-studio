@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Microsoft.AspNetCore.Components;
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Microsoft.AspNetCore.Components;
 

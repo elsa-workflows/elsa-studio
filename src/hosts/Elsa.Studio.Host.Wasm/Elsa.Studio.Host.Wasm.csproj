@@ -25,8 +25,14 @@
         </Content>
     </ItemGroup>
 
+
     <ItemGroup>
-        <ProjectReference Include="..\..\bundles\Elsa.Studio.BlazorWasm\Elsa.Studio.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
+      <ProjectReference Include="..\..\core\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
     </ItemGroup>
 
 </Project>

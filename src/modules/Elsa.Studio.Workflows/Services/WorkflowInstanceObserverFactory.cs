@@ -8,15 +8,15 @@ namespace Elsa.Studio.Workflows.Services;
 /// <inheritdoc />
 public class WorkflowInstanceObserverFactory : IWorkflowInstanceObserverFactory
 {
-    private readonly IBackendConnectionProvider _backendConnectionProvider;
+    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
     private readonly IFeatureService _featureService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WorkflowInstanceObserverFactory"/> class.
     /// </summary>
-    public WorkflowInstanceObserverFactory(IBackendConnectionProvider backendConnectionProvider, IFeatureService featureService)
+    public WorkflowInstanceObserverFactory(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IFeatureService featureService)
     {
-        _backendConnectionProvider = backendConnectionProvider;
+        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
         _featureService = featureService;
     }
 
@@ -28,7 +28,7 @@ public class WorkflowInstanceObserverFactory : IWorkflowInstanceObserverFactory
             return new DisconnectedWorkflowInstanceObserver();
 
         // Get the SignalR connection.
-        var baseUrl = _backendConnectionProvider.Url;
+        var baseUrl = _remoteBackendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl)

@@ -8,10 +8,10 @@
         <Description>Provides implementations for backend services.</Description>
         <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <ProjectReference Include="..\..\core\Elsa.Studio.Backend.Core\Elsa.Studio.Backend.Core.csproj" />
-        <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.Backend.Core\Elsa.Studio.Backend.Core.csproj" />
     </ItemGroup>
-
+    
 </Project>

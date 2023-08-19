@@ -24,15 +24,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj"/>
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj"/>
+        <ProjectReference Include="..\..\core\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
+        <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
         <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
     </ItemGroup>
 
 </Project>

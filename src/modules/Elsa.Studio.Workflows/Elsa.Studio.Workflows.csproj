@@ -14,17 +14,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\core\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
-        <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
-        <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
-        <ProjectReference Include="..\Elsa.Studio.ActivityPortProviders\Elsa.Studio.ActivityPortProviders.csproj" />
-        <ProjectReference Include="..\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
-        <ProjectReference Include="..\Elsa.Studio.UIHintHandlers\Elsa.Studio.UIHintHandlers.csproj" />
-        <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
+      <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.9" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.9" />
+      <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
+      <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.ActivityPortProviders\Elsa.Studio.ActivityPortProviders.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.UIHints\Elsa.Studio.UIHints.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Backend.Options;
 using Elsa.Studio.Backend.Services;
@@ -14,13 +15,16 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the backend module to the service collection.
     /// </summary>
-    public static IServiceCollection AddBackendModule(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
+    public static IServiceCollection AddRemoteBackendModule(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
     {
         services.Configure(configureOptions ?? (_ => { }));
+
+        // Add the Elsa API client.
+        services.AddElsaClient();
         
         return services
-            .AddScoped<IBackendAccessor, DefaultBackendAccessor>()
-            .AddScoped<IBackendConnectionProvider, DefaultBackendConnectionProvider>()
+            .AddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>()
+            .AddScoped<IRemoteBackendApiClientProvider, DefaultRemoteBackendApiClientProvider>()
             .AddScoped<IModule, Module>()
             ;
     }

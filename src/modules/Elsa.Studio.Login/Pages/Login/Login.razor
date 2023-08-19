@@ -1,0 +1,32 @@
+﻿@page "/login"
+@layout BasicLayout
+
+<div class="d-flex justify-end flex-grow-1">
+    <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
+    <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudStack Spacing="10">
+        <h2 class="LoginTitle">Elsa 3.0</h2>
+        <MudPaper Elevation="1">
+            <MudGrid Spacing="0" Justify="Justify.Center">
+                <MudItem md="9" xs="7" Class="pa-4 mx-auto my-4">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.h5">Login</MudText>
+                        <EditForm Model="@_model" OnValidSubmit="TryLogin">
+                            <div class="d-flex flex-column">
+                                <DataAnnotationsValidator/>
+                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => _model.Username)" @bind-Value="_model.Username" autocomplete="username"/>
+                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => _model.Password)" @bind-Value="_model.Password" InputType="InputType.Password" autocomplete="current-password"/>
+                                <MudCheckBox @bind-Checked="_model.RememberMe" Label="Remember me"/>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
+                            </div>
+                        </EditForm>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudStack>
+    <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mt-2">Elsa Studio v1.0.0</MudText>
+</MudContainer>

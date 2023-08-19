@@ -5,8 +5,7 @@ using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
-using Elsa.Studio.Extensions;
-using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -21,10 +20,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.RootComponents.RegisterCustomElsaStudioElements();
 
 // Register shell services and modules.
+builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddDefaultAuthentication();
-builder.Services.AddBlazorWasmModule();
-builder.Services.AddBackendModule(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackendModule(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();

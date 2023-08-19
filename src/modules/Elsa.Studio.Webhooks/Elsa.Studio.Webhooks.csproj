@@ -12,7 +12,7 @@
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
-
+    
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
     </ItemGroup>

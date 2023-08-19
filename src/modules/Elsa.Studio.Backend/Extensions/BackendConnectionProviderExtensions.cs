@@ -1,11 +1,9 @@
-using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Backend.Contracts;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Backend.Extensions;
 
 /// <summary>
-/// Provides extension methods for <see cref="IBackendConnectionProvider"/>.
+/// Provides extension methods for <see cref="IRemoteBackendApiClientProvider"/>.
 /// </summary>
 public static class BackendConnectionProviderExtensions
 {

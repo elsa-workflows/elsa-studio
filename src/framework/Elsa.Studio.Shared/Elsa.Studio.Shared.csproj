@@ -18,10 +18,12 @@
         <PackageReference Include="BlazorMonaco" Version="3.0.0" />
     </ItemGroup>
 
+
     <ItemGroup>
-      <ProjectReference Include="..\..\core\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+      <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
     </ItemGroup>
+
 
 
 </Project>
