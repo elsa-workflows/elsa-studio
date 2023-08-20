@@ -70,6 +70,7 @@ public partial class Viewer : IAsyncDisposable
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
@@ -215,6 +216,12 @@ public partial class Viewer : IAsyncDisposable
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
         await UpdatePropertiesPaneHeightAsync();
+    }
+
+    private Task OnEditClicked(string definitionId)
+    {
+        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
+        return Task.CompletedTask;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
