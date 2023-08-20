@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddEnvironmentsModule(this IServiceCollection services)
     {
         services.AddScoped<IEnvironmentService, DefaultEnvironmentService>();
-        services.Replace(ServiceDescriptor.Scoped<IBackendConnectionProvider, EnvironmentBackendConnectionProvider>());
+        services.Replace(ServiceDescriptor.Scoped<IRemoteBackendApiClientProvider, EnvironmentRemoteBackendApiClientProvider>());
         //services.AddSingleton<IStartupTask, LoadEnvironmentsStartupTask>();
         services.AddScoped<IModule, Module>();
         return services;

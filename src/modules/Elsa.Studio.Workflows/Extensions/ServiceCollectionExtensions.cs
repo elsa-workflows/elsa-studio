@@ -1,9 +1,8 @@
-using Elsa.Api.Client.Extensions;
 using Elsa.Studio.ActivityPortProviders.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.UIHintHandlers.Extensions;
+using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -31,7 +30,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
-            .AddActivityTypeService()
             .AddWorkflowsCore()
             .AddWorkflowsDesigner()
             .AddDomInterop()

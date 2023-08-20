@@ -1,19 +1,10 @@
-using Blazored.LocalStorage;
 using Elsa.Studio.Backend.Extensions;
-using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Environments.Extensions;
+using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
-using Elsa.Studio.Host.CustomElements.Services;
-using Elsa.Studio.Login.Extensions;
-using Elsa.Studio.Secrets.Extensions;
-using Elsa.Studio.Security.Extensions;
-using Elsa.Studio.Services;
-using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -26,25 +17,10 @@ builder.RootComponents.RegisterCustomElsaStudioElements();
 builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditor>("elsa-studio-workflow-definition-editor");
 
 // Register the modules.
+builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddBackendModule(options => configuration.GetSection("Backend").Bind(options));
-builder.Services.AddLoginModule();
-builder.Services.AddEnvironmentsModule();
-builder.Services.AddDashboardModule();
+builder.Services.AddRemoteBackendModule(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddWorkflowsModule();
-builder.Services.AddSecurityModule();
-builder.Services.AddSecretsModule();
-builder.Services.AddWebhooksModule();
-
-// Blazored.
-builder.Services.AddBlazoredLocalStorage();
-
-// Register authorization.
-builder.Services.AddOptions();
-builder.Services.AddAuthorizationCore();
-builder.Services.AddSingleton<IJwtParser, ClientJwtParser>();
-builder.Services.AddScoped<IJwtAccessor, ClientJwtAccessor>();
-builder.Services.AddScoped<AuthenticationStateProvider, DefaultAuthenticationStateProvider>();
 
 // Build the application.
 var app = builder.Build();

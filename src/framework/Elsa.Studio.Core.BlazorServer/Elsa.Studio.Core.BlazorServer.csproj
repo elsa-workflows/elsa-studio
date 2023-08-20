@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\common.props"/>
+    <Import Project="..\..\..\configureawait.props"/>
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Description>Blazor Server impementation for certain abstractions provided by Elsa.Studio.Core.</Description>
+        <PackageTags>elsa studio blazor server</PackageTags>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Blazored.LocalStorage" Version="4.4.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.App" Version="7.0.9"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
+    </ItemGroup>
+
+</Project>
