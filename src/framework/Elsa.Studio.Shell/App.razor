@@ -10,7 +10,7 @@
             <CascadingAuthenticationState>
                 <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
                     <NotAuthorized>
-                        @UnauthorizedComponentProvider.GetLoginPage()
+                        @UnauthorizedComponentProvider.GetUnauthorizedComponent()
                     </NotAuthorized>
                 </AuthorizeRouteView>
             </CascadingAuthenticationState>

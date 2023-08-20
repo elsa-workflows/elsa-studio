@@ -10,5 +10,5 @@ public interface IUnauthorizedComponentProvider
     /// <summary>
     /// Returns the <see cref="RenderFragment"/> to display the login page.
     /// </summary>
-    RenderFragment GetLoginPage();
+    RenderFragment GetUnauthorizedComponent();
 }

@@ -9,7 +9,7 @@ namespace Elsa.Studio.Login.ComponentProviders;
 public class RedirectToLoginUnauthorizedComponentProvider : IUnauthorizedComponentProvider
 {
     /// <inheritdoc />
-    public RenderFragment GetLoginPage()
+    public RenderFragment GetUnauthorizedComponent()
     {
         return builder => builder.CreateComponent<RedirectToLogin>();
     }

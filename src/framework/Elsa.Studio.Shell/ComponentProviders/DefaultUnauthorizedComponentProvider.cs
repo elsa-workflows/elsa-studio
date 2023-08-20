@@ -12,7 +12,7 @@ public class DefaultUnauthorizedComponentProvider : IUnauthorizedComponentProvid
     /// <summary>
     /// Returns a <see cref="RenderFragment"/> that displays nothing.
     /// </summary>
-    public RenderFragment GetLoginPage()
+    public RenderFragment GetUnauthorizedComponent()
     {
         return builder =>
         {
