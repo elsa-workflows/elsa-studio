@@ -4,6 +4,7 @@ using Elsa.Studio.Backend.Services;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.ComponentProviders;
 using Elsa.Studio.Login.Contracts;
+using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,8 @@ public static class ServiceCollectionExtensions
         return services
             .AddOptions()
             .AddAuthorizationCore()
-            .AddScoped<IApiHttpRequestConfigurator, AccessTokenHttpClientConfigurator>()
+            .AddScoped<AuthenticatingApiHttpMessageHandler>()
+            .AddScoped<IHttpMessageHandlerProvider, AuthenticatingHttpMessageHandlerProvider>()
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
             .AddScoped<IModule, Module>()
             .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
