@@ -24,6 +24,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Shared.Components;
 
+/// <summary>
+/// A wrapper around the diagram designer that provides a breadcrumb and a toolbar.
+/// </summary>
 public partial class DiagramDesignerWrapper
 {
     private IDiagramDesigner? _diagramDesigner;

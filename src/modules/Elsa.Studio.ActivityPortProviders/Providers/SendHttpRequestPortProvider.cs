@@ -1,13 +1,8 @@
 using System.Net;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
-using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Converters;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Providers;
 
@@ -18,50 +13,99 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// </summary>
 public class SendHttpRequestPortProvider : ActivityPortProviderBase
 {
-    public override bool GetSupportsActivityType(string activityType) => activityType == "Elsa.FlowSendHttpRequest";
+    private const string UnmatchedStatusCodePortName = "Unmatched status code";
 
+    /// <inheritdoc />
+    public override bool GetSupportsActivityType(string activityType) => activityType is "Elsa.SendHttpRequest";
+
+    /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)
     {
-        var expectedStatusCodes = GetExpectedStatusCodes(context.Activity);
+        var cases = GetExpectedStatusCodes(context.Activity);
 
-        foreach (var statusCode in expectedStatusCodes)
+        foreach (var @case in cases)
         {
+            var statusCode = GetStatusCode(@case);
+
             yield return new Port
             {
                 Name = statusCode.ToString(),
-                Type = PortType.Flow,
-                DisplayName = statusCode.ToString()
+                DisplayName = statusCode.ToString(),
+                Type = PortType.Embedded,
             };
         }
-        
+
         yield return new Port
         {
-            Name = "Unmatched status code",
-            Type = PortType.Flow,
-            DisplayName = "Unmatched status code"
+            Name = UnmatchedStatusCodePortName,
+            DisplayName = "Unmatched status code",
+            Type = PortType.Embedded,
         };
     }
 
-    private static ICollection<int> GetExpectedStatusCodes(JsonObject activity)
+    /// <inheritdoc />
+    public override JsonObject? ResolvePort(string portName, PortProviderContext context)
     {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        if (portName == UnmatchedStatusCodePortName)
+            return GetUnmatchedStatusCodeActivity(context.Activity);
 
-        options.Converters.Add(new ExpressionJsonConverterFactory());
-        options.Converters.Add(new JsonStringToIntConverter());
+        var cases = GetExpectedStatusCodes(context.Activity);
+        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
 
-        var wrappedInput = activity.GetProperty<WrappedInput>(options, "expectedStatusCodes") ?? new WrappedInput
-        {
-            TypeName = typeof(int[]).Name,
-            Expression = new ObjectExpression
-            {
-                Value = JsonSerializer.Serialize(new[] { (int)HttpStatusCode.OK }, options)
-            }
-        };
-        
-        var objectExpression = (ObjectExpression)wrappedInput.Expression;
-        return JsonSerializer.Deserialize<ICollection<int>>(objectExpression.Value!, options)!;
+        return GetActivity(@case);
     }
+
+    /// <inheritdoc />
+    public override void AssignPort(string portName, JsonObject activity, PortProviderContext context)
+    {
+        var switchActivity = context.Activity;
+
+        if (portName == UnmatchedStatusCodePortName)
+        {
+            SetUnmatchedStatusCodeActivity(switchActivity, activity);
+            return;
+        }
+
+        var cases = GetExpectedStatusCodes(switchActivity).ToList();
+        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
+
+        if (@case == null)
+            return;
+
+        SetActivity(@case, activity);
+    }
+
+    /// <inheritdoc />
+    public override void ClearPort(string portName, PortProviderContext context)
+    {
+        if (portName == UnmatchedStatusCodePortName)
+        {
+            SetUnmatchedStatusCodeActivity(context.Activity, null);
+            return;
+        }
+
+        var cases = GetExpectedStatusCodes(context.Activity).ToList();
+        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
+
+        if (@case == null)
+            return;
+
+        SetActivity(@case, null);
+    }
+
+    private static IEnumerable<JsonObject> GetExpectedStatusCodes(JsonObject switchActivity)
+    {
+        return switchActivity.GetProperty("expectedStatusCodes")?.AsArray().AsEnumerable().Cast<JsonObject>() ?? new List<JsonObject>();
+    }
+
+    private static void SetExpectedStatusCodes(JsonObject switchActivity, ICollection<JsonObject> cases)
+    {
+        switchActivity.SetProperty(cases, "expectedStatusCodes");
+    }
+
+    private int GetStatusCode(JsonObject @case) => @case.GetProperty("statusCode")!.GetValue<int>();
+    private JsonObject? GetActivity(JsonObject? @case) => @case?.GetProperty("activity")?.AsObject();
+    private void SetActivity(JsonObject @case, JsonObject? activity) => @case.SetProperty(activity, "activity");
+    private JsonObject? GetUnmatchedStatusCodeActivity(JsonObject httpRequestActivity) => httpRequestActivity.GetProperty("unmatchedStatusCode")?.AsObject();
+    private void SetUnmatchedStatusCodeActivity(JsonObject httpRequestActivity, JsonObject? activity) => httpRequestActivity.SetProperty(activity, "unmatchedStatusCode");
 }
