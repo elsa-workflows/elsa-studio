@@ -10,13 +10,16 @@
                 var activityId = record.ActivityId;
                 var activityName = record.ActivityName!;
                 var activityType = record.ActivityType;
+                var payload = ParsePayload(record.Payload);
 
                 var eventInfo = new Dictionary<string, string?>
                 {
                     ["Name"] = record.EventName,
                     ["Timestamp"] = record.Timestamp.ToString("s"),
-                    ["Message"] = record.Message,
+                    ["Message"] = record.Message
                 };
+                
+                Merge(eventInfo, payload);
 
                 var activityInfo = new Dictionary<string, string?>
                 {

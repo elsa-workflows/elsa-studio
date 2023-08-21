@@ -136,6 +136,7 @@ public partial class DiagramDesignerWrapper
             var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
             _activityStats = report.Stats.ToDictionary(x => x.ActivityId, x => new ActivityStats
             {
+                Faulted = x.IsFaulted,
                 Blocked = x.IsBlocked,
                 Completed = x.CompletedCount,
                 Started = x.StartedCount,

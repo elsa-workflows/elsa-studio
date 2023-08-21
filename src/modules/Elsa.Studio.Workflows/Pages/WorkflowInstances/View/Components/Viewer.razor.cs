@@ -196,13 +196,14 @@ public partial class Viewer : IAsyncDisposable
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
-        _propertiesPaneHeight = (int)visibleHeight;
+        _propertiesPaneHeight = (int)visibleHeight - 50;
     }
 
     private static ActivityStats Map(ActivityExecutionStats source)
     {
         return new ActivityStats
         {
+            Faulted = source.IsFaulted,
             Blocked = source.IsBlocked,
             Completed = source.CompletedCount,
             Started = source.StartedCount,
