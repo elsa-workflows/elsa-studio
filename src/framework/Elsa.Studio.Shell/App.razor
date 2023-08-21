@@ -9,6 +9,11 @@
         {
             <CascadingAuthenticationState>
                 <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)">
+                    <Authorizing>
+                        <Well>
+                            <MudText Typo="Typo.body2">Authorizing</MudText>
+                        </Well>
+                    </Authorizing>
                     <NotAuthorized>
                         @UnauthorizedComponentProvider.GetUnauthorizedComponent()
                     </NotAuthorized>

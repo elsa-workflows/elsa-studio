@@ -1,8 +1,4 @@
-﻿@using Elsa.Studio.Contracts
-@inherits LayoutComponentBase
-@implements IDisposable
-@inject IThemeService ThemeService
-@inject IAppBarService AppBarService
+﻿@inherits LayoutComponentBase
 
 <MudThemeProvider IsDarkMode="@IsDarkMode" Theme="CurrentTheme"/>
 <MudDialogProvider/>
@@ -12,20 +8,11 @@
     <MudAppBar Elevation="0" Color="Color.Inherit">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
-        @foreach(var appBarItem in AppBarService.AppBarItems)
+        @foreach (var appBarItem in AppBarService.AppBarItems)
         {
             @appBarItem
         }
-        
-        @* <AuthorizeView> *@
-        @*     <Authorized> *@
-        @*         <p>Hello, @context.User.Identity.Name!</p> *@
-        @*     </Authorized> *@
-        @*     <NotAuthorized> *@
-        @*         <p>You're not authorized.</p> *@
-        @*     </NotAuthorized> *@
-        @* </AuthorizeView> *@
-        
+
         <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Link="https://v3.elsaworkflows.io/" Target="_blank" Title="Documentation"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/elsa-workflows/elsa-core" Target="_blank" Title="Source code"/>
 
@@ -50,39 +37,25 @@
         </div>
     </MudDrawer>
     <MudMainContent>
-        @Body
+        <ErrorBoundary>
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent>
+                @if (context is UnauthorizedAccessException)
+                {
+                    @UnauthorizedComponent
+                }
+                else
+                {
+                    <Well>
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                            @context.GetType().Name: @context.Message
+                        </MudAlert>
+                    </Well>
+                }
+            </ErrorContent>
+        </ErrorBoundary>
+
     </MudMainContent>
 </MudLayout>
-
-@code {
-    private bool _drawerOpen = true;
-
-    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
-    private bool IsDarkMode => ThemeService.IsDarkMode;
-
-    protected override void OnInitialized()
-    {
-        ThemeService.CurrentThemeChanged += OnThemeChanged;
-        AppBarService.AppBarItemsChanged += OnAppBarItemsChanged;
-        
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        ThemeService.CurrentThemeChanged -= OnThemeChanged;
-    }
-
-    private void OnThemeChanged() => StateHasChanged();
-    private void OnAppBarItemsChanged() => InvokeAsync(StateHasChanged);
-
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
-
-    void ToggleDarkMode()
-    {
-        ThemeService.IsDarkMode = !ThemeService.IsDarkMode;
-    }
-}

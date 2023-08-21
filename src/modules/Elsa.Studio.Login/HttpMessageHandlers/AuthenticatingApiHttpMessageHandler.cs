@@ -44,7 +44,7 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
             response = await base.SendAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                throw new Exception("Unauthorized request after token refresh");
+                throw new UnauthorizedAccessException("Unauthorized request after token refresh");
         }
 
         return response;
@@ -65,7 +65,7 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
 
         // If the refresh token is invalid, we can't do anything.
         if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new Exception("Unauthorized request after token refresh.");
+            throw new UnauthorizedAccessException("Unauthorized request after token refresh.");
 
         // Parse response into tokens.
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;

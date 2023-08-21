@@ -22,17 +22,6 @@ public partial class Login
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
-    {
-        if (AuthenticationState == null)
-            return;
-
-        var state = await AuthenticationState;
-        if (state.User.Identity?.IsAuthenticated == true)
-            NavigationManager.NavigateTo("/");
-    }
-
     private async Task TryLogin()
     {
         var isValid = await ValidateCredentials(_model.Username, _model.Password);
