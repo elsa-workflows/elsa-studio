@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -11,11 +12,25 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
+/// <summary>
+/// Displays details about a workflow instance.
+/// </summary>
 public partial class WorkflowInstanceDetails
 {
     private WorkflowInstance? _workflowInstance;
-    [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
-    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the workflow instance to display.
+    /// </summary>
+    [Parameter]
+    public WorkflowInstance? WorkflowInstance { get; set; }
+
+    /// <summary>
+    /// Gets or sets the workflow definition associated with the workflow instance.
+    /// </summary>
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -45,12 +60,14 @@ public partial class WorkflowInstanceDetails
         }
     }
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         var drivers = await StorageDriverService.GetStorageDriversAsync();
         StorageDriverLookup = drivers.ToDictionary(x => x.TypeName);
     }
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         if (_workflowInstance != WorkflowInstance)
@@ -79,5 +96,20 @@ public partial class WorkflowInstanceDetails
             return "None";
 
         return !StorageDriverLookup.TryGetValue(storageDriverTypeName, out var descriptor) ? storageDriverTypeName : descriptor.DisplayName;
+    }
+
+    private string GetVariableValue(Variable variable)
+    {
+        // TODO: Implement a REST API that returns values from the various storage providers, instead of hardcoding it here with hardcoded support for workflow storage only.
+        
+        var workflowInstance = WorkflowInstance!;
+
+        if (!workflowInstance.WorkflowState.Properties.TryGetValue("PersistentVariablesDictionary", out var variablesDictionaryObject))
+            return string.Empty;
+
+        var dictionary = ((JsonElement)variablesDictionaryObject).Deserialize<IDictionary<string, object>>()!;
+        var workflowInstanceId = workflowInstance.Id;
+        var key = $"{workflowInstanceId}:Workflow1:{variable.Name}";
+        return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : string.Empty;
     }
 }
