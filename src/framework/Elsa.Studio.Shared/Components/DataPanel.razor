@@ -19,9 +19,15 @@
 
 @code {
 
+    /// <summary>
+    /// The data to display.
+    /// </summary>
     [Parameter]
     public IDictionary<string, string?> Data { get; set; } = new Dictionary<string, string?>();
 
+    /// <summary>
+    /// If true, empty values will be hidden.
+    /// </summary>
     [Parameter]
     public bool HideEmptyValues { get; set; }
 
