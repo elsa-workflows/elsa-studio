@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ISyntaxService, DefaultSyntaxService>()
             .AddScoped<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
+            .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             ;
 
         // Syntax providers.

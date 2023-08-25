@@ -1,3 +1,4 @@
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IActivityExecutionService, RemoteActivityExecutionService>()
             .AddScoped<IActivityRegistry, DefaultActivityRegistry>()
             .AddScoped<IStorageDriverService, RemoteStorageDriverService>()
+            .AddScoped<IServerInformationProvider, RemoteServerInformationProvider>()
             .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
             .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
             .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
