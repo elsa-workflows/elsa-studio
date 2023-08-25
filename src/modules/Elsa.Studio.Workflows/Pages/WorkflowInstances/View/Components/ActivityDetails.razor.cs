@@ -98,9 +98,14 @@ public partial class ActivityDetails
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
                     outcomesData["Outcomes"] = outcomes.ToString();
 
-            if (execution.Outputs != null)
-                foreach (var (key, value) in execution.Outputs)
-                    outputData[key] = value.ToString();
+            var outputDescriptors = activityDescriptor.Outputs;
+            var outputs = execution.Outputs;
+
+            foreach (var outputDescriptor in outputDescriptors)
+            {
+                var outputValue = outputs != null ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default : default;
+                outputData[outputDescriptor.Name] = outputValue?.ToString();
+            }
         }
 
         var exceptionData = new Dictionary<string, string?>();
@@ -123,7 +128,7 @@ public partial class ActivityDetails
                 activityStateData[inputDescriptor.Name] = inputValue?.ToString();
             }
         }
-        
+
         ActivityInfo = activityInfo;
         ActivityData = activityStateData;
         OutcomesData = outcomesData;
