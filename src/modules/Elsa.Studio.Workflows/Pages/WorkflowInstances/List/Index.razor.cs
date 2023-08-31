@@ -24,9 +24,18 @@ public partial class Index
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+    
+    /// <summary>
+    /// The selected statuses to filter by.
+    /// </summary>
     public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
+    
+    /// <summary>
+    /// The selected sub-statuses to filter by.
+    /// </summary>
     public ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
