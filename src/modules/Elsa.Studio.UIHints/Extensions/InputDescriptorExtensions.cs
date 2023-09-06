@@ -26,7 +26,7 @@ public static class InputDescriptorExtensions
         {
             if(options.Value.TryGetPropertySafe("items", out var items))
             {
-                return items.Deserialize<SelectList>(serializerOptions)!;
+                return new SelectList(items.Deserialize<List<SelectListItem>>(serializerOptions)!, false);
             }
 
             if (options.Value.TryGetPropertySafe("provider", out var provider))
