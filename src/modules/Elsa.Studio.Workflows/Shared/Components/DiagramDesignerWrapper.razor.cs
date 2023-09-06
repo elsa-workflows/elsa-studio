@@ -110,10 +110,11 @@ public partial class DiagramDesignerWrapper
             var portName = pathSegment.PortName;
             var activityTypeName = currentActivity.GetTypeName();
             var activityVersion = currentActivity.GetVersion();
-            var portProvider = ActivityPortService.GetProvider(activityTypeName);
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
+            var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
+            var portProvider = ActivityPortService.GetProvider(portProviderContext);
 
-            currentContainer = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, currentActivity))!;
+            currentContainer = portProvider.ResolvePort(portName, portProviderContext)!;
 
             var segment = new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
             yield return segment;
@@ -165,8 +166,9 @@ public partial class DiagramDesignerWrapper
             var activityTypeName = currentActivity.GetTypeName();
             var activityVersion = currentActivity.GetVersion();
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-            var portProvider = ActivityPortService.GetProvider(activityTypeName);
-            var ports = portProvider.GetPorts(new PortProviderContext(activityDescriptor, currentActivity));
+            var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
+            var portProvider = ActivityPortService.GetProvider(portProviderContext);
+            var ports = portProvider.GetPorts(portProviderContext);
             var embeddedPort = ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
             var disabled = segment == resolvedPath.Last();
@@ -197,20 +199,21 @@ public partial class DiagramDesignerWrapper
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
         var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-        var portProvider = ActivityPortService.GetProvider(activity.GetTypeName());
-        var embeddedActivity = portProvider.ResolvePort(portName, new PortProviderContext(activityDescriptor, activity));
+        var portProviderContext = new PortProviderContext(activityDescriptor, activity);
+        var portProvider = ActivityPortService.GetProvider(portProviderContext);
+        var embeddedActivity = portProvider.ResolvePort(portName, portProviderContext);
 
         if (embeddedActivity != null)
         {
             var embeddedActivityTypeName = embeddedActivity.GetTypeName();
-            
+
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
             if (embeddedActivityTypeName != "Elsa.Flowchart" && embeddedActivityTypeName != "Elsa.Workflow")
             {
                 ActivitySelected?.Invoke(embeddedActivity);
                 return;
             }
-            
+
             // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
         }
         else
@@ -255,11 +258,13 @@ public partial class DiagramDesignerWrapper
         else
         {
             var portName = currentSegment.PortName;
-            var portProvider = ActivityPortService.GetProvider(currentActivity.GetTypeName());
             var activityTypeName = currentActivity.GetTypeName();
             var activityVersion = currentActivity.GetVersion();
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-            portProvider.AssignPort(portName, rootActivity, new PortProviderContext(activityDescriptor, currentActivity));
+            var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
+            var portProvider = ActivityPortService.GetProvider(portProviderContext);
+
+            portProvider.AssignPort(portName, rootActivity, portProviderContext);
         }
 
         if (GraphUpdated != null)

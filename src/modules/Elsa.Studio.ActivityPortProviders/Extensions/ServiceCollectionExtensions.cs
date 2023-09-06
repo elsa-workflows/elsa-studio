@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddDefaultActivityPortProviders(this IServiceCollection services)
     {
+        services.AddActivityPortProvider<DynamicOutcomesPortProvider>();
         services.AddActivityPortProvider<SwitchPortProvider>();
         services.AddActivityPortProvider<FlowSwitchPortProvider>();
         services.AddActivityPortProvider<SendHttpRequestPortProvider>();

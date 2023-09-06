@@ -17,8 +17,7 @@ public interface IActivityPortProvider
     /// <summary>
     /// Returns true if the provider supports the specified activity type.
     /// </summary>
-    /// <param name="activityType">The type of the activity.</param>
-    bool GetSupportsActivityType(string activityType);
+    bool GetSupportsActivityType(PortProviderContext context);
     
     /// <summary>
     /// Returns the ports for the specified activity.

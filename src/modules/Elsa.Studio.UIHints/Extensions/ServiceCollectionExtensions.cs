@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<WorkflowDefinitionPickerHandler>()
             .AddUIHintHandler<OutputPickerHandler>()
             .AddUIHintHandler<OutcomePickerHandler>()
+            .AddUIHintHandler<DynamicOutcomesHandler>()
             ;
     }
 }

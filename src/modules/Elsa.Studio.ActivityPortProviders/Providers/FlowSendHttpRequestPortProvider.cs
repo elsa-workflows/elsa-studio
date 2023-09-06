@@ -19,7 +19,7 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 public class FlowSendHttpRequestPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />
-    public override bool GetSupportsActivityType(string activityType) => activityType is "Elsa.FlowSendHttpRequest";
+    public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName is "Elsa.FlowSendHttpRequest";
 
     /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)

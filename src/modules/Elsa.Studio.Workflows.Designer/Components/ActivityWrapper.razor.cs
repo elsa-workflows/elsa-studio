@@ -89,8 +89,8 @@ public partial class ActivityWrapper
 
     private async Task OnDeleteEmbeddedActivityClicked(string portName)
     {
-        var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
         var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+        var portProvider = ActivityPortService.GetProvider(providerContext);
         portProvider.ClearPort(portName, providerContext);
         await UpdateSizeAsync();
     }

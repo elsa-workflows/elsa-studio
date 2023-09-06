@@ -14,8 +14,10 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// </summary>
 public class FlowSwitchPortProvider : ActivityPortProviderBase
 {
-    public override bool GetSupportsActivityType(string activityType) => activityType == "Elsa.FlowSwitch";
+    /// <inheritdoc />
+    public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName is "Elsa.FlowSwitch";
 
+    /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)
     {
         var options = new JsonSerializerOptions
