@@ -16,16 +16,38 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Screens.EditWorkflowDefinition.Components.ActivityProperties.Tabs.Outputs.Components;
 
+/// <summary>
+/// Displays the outputs of an activity.
+/// </summary>
 public partial class OutputsTab
 {
     private ICollection<BindingTargetGroup> _bindingTargetGroups = new List<BindingTargetGroup>();
     private ICollection<BindingTargetOption> _bindingTargetOptions = new List<BindingTargetOption>();
     private IDictionary<string, VariableTypeDescriptor> _variableTypes = new Dictionary<string, VariableTypeDescriptor>();
 
+    /// <summary>
+    /// The workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    
+    /// <summary>
+    /// The activity.
+    /// </summary>
     [Parameter] public JsonObject Activity { get; set; } = default!;
+    
+    /// <summary>
+    /// The activity descriptor.
+    /// </summary>
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
+    
+    /// <summary>
+    /// An event raised when the activity is updated.
+    /// </summary>
     [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
+    
+    /// <summary>
+    /// The workspace.
+    /// </summary>
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
@@ -33,13 +55,16 @@ public partial class OutputsTab
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
 
+    /// <inheritdoc />
     protected override bool ShouldRender() => WorkflowDefinition != null! && Activity != null! && ActivityDescriptor != null!;
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToDictionary(x => x.TypeName);
     }
 
+    /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
         var bindingTargetGroups = new List<BindingTargetGroup>();
@@ -55,7 +80,9 @@ public partial class OutputsTab
             .ToList();
 
         if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
-        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
+        
+        // Disable this for now until we rework input/output handling at the engine level.
+        //if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
 
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();
