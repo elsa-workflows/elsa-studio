@@ -12,15 +12,12 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds default activity port providers.
     /// </summary>
-    /// <param name="services"></param>
-    /// <returns></returns>
     public static IServiceCollection AddDefaultActivityPortProviders(this IServiceCollection services)
     {
         services.AddActivityPortProvider<DynamicOutcomesPortProvider>();
         services.AddActivityPortProvider<SwitchPortProvider>();
         services.AddActivityPortProvider<FlowSwitchPortProvider>();
         services.AddActivityPortProvider<SendHttpRequestPortProvider>();
-        services.AddActivityPortProvider<FlowSendHttpRequestPortProvider>();
         
         return services;
     }
