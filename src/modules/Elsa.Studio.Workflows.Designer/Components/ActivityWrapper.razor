@@ -46,7 +46,8 @@ else
                                    @foreach (var port in visiblePorts)
                                    {
                                        var portName = port.Name;
-                                       var portProvider = ActivityPortService.GetProvider(_activityDescriptor.TypeName);
+                                       var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+                                       var portProvider = ActivityPortService.GetProvider(providerContext);
                                        var childActivity = portProvider.ResolvePort(portName, new PortProviderContext(_activityDescriptor, Activity));
 
                                        @if (childActivity != null)

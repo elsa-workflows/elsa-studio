@@ -12,8 +12,10 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// </summary>
 public class SwitchPortProvider : ActivityPortProviderBase
 {
-    public override bool GetSupportsActivityType(string activityType) => activityType == "Elsa.Switch";
+    /// <inheritdoc />
+    public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName == "Elsa.Switch";
 
+    /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)
     {
         var cases = GetCases(context.Activity);
@@ -30,6 +32,7 @@ public class SwitchPortProvider : ActivityPortProviderBase
         });
     }
 
+    /// <inheritdoc />
     public override JsonObject? ResolvePort(string portName, PortProviderContext context)
     {
         var cases = GetCases(context.Activity);
@@ -38,6 +41,7 @@ public class SwitchPortProvider : ActivityPortProviderBase
         return @case != null ? GetActivity(@case) : null;
     }
 
+    /// <inheritdoc />
     public override void AssignPort(string portName, JsonObject activity, PortProviderContext context)
     {
         var cases = GetCases(context.Activity).ToList();
@@ -49,6 +53,7 @@ public class SwitchPortProvider : ActivityPortProviderBase
         SetActivity(@case, activity);
     }
 
+    /// <inheritdoc />
     public override void ClearPort(string portName, PortProviderContext context)
     {
         var cases = GetCases(context.Activity).ToList();

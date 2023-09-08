@@ -16,7 +16,7 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
     private const string UnmatchedStatusCodePortName = "Unmatched status code";
 
     /// <inheritdoc />
-    public override bool GetSupportsActivityType(string activityType) => activityType is "Elsa.SendHttpRequest";
+    public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName is "Elsa.SendHttpRequest";
 
     /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)

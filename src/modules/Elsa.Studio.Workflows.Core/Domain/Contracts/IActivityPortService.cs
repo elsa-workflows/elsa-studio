@@ -5,6 +5,6 @@ namespace Elsa.Studio.Workflows.Domain.Contracts;
 
 public interface IActivityPortService
 {
-    IActivityPortProvider GetProvider(string activityType);
+    IActivityPortProvider GetProvider(PortProviderContext context);
     IEnumerable<Port> GetPorts(PortProviderContext context);
 }
