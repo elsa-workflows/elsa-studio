@@ -31,7 +31,7 @@
                     ["Source"] = record.Source,
                 };
 
-                var activityState = record.ActivityState!
+                var activityState = record.ActivityState?
                     .Where(x => !x.Key.StartsWith("_"))
                     .ToDictionary(x => x.Key, x => x.Value?.ToString());
 
@@ -46,11 +46,11 @@
                             <DataPanel Data="activityInfo" HideEmptyValues="true"/>
                         </div>
 
-                        @if (activityState.Any())
+                        @if (activityState?.Any() == true)
                         {
                             <div>
                                 <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
-                                <DataPanel Data="@activityState" HideEmptyValues="true"/>
+                                <DataPanel Data="@activityState" HideEmptyValues="false"/>
                             </div>
                         }
                     </MudStack>
