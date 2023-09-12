@@ -1,0 +1,14 @@
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="Properties">
+        <PropertiesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+    </MudTabPanel>
+    <MudTabPanel Text="Variables">
+        <VariablesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+    </MudTabPanel>
+    <MudTabPanel Text="Input/output">
+        <InputOutputTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+    </MudTabPanel>
+    <MudTabPanel Text="Version history">
+        <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId"/>
+    </MudTabPanel>
+</MudTabs>

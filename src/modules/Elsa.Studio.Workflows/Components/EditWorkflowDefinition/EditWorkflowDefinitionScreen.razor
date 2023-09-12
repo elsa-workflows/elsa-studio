@@ -1,0 +1,36 @@
+@using Orientation = Radzen.Orientation
+@using Elsa.Studio.Workflows.Models
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using Elsa.Api.Client.Shared.Models
+@using Elsa.Studio.Workflows.Domain.Contracts
+@inject IWorkflowDefinitionService WorkflowDefinitionService
+
+<CascadingValue Value="_dragDropManager">
+    <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
+        <RadzenSplitterPane Size="15%" Min="100px">
+            <ActivityPicker/>
+        </RadzenSplitterPane>
+        <RadzenSplitterPane Size="85%">
+            <Workspace WorkflowDefinitions="@_workflowDefinitions"/>
+        </RadzenSplitterPane>
+    </RadzenSplitter>
+</CascadingValue>
+
+@code
+{
+    private readonly DragDropManager _dragDropManager = new();
+    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
+
+    /// <summary>
+    /// The ID of the workflow definition to load.
+    /// </summary>
+    [Parameter]
+    public string DefinitionId { get; set; } = default!;
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
+        _workflowDefinitions = new List<WorkflowDefinition> { definition! };
+    }
+}

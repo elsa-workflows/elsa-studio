@@ -1,0 +1,10 @@
+@using Variant = MudBlazor.Variant
+<div class="pa-4">
+    <MudStack>
+        <InputsSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <OutputsSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <OutcomesSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+    </MudStack>
+    
+    <MudOverlay Visible="IsReadOnly" Absolute="true"/>
+</div>
