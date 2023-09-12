@@ -1,6 +1,8 @@
-@page "/workflows/definitions/{definitionId}/edit"
+@using Elsa.Studio.Contracts
+@inject IThemeService ThemeService
 
-<PageTitle>Workflow definition</PageTitle>
+<MudThemeProvider IsDarkMode="false" Theme="@ThemeService.CurrentTheme"/>
+<MudDialogProvider/>
 
 <WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
 
