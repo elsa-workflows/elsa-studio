@@ -26,13 +26,13 @@
                 Label="Incident handling strategy"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
-                ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
+                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
                 ValueChanged="@OnIncidentStrategyChanged"
                 HelperText="@(_selectedIncidentStrategy?.Description)"
                 ReadOnly="IsReadOnly">
                 @foreach (var strategy in _incidentStrategies)
                 {
-                    <MudSelectItem T="IncidentStrategyDescriptor" Value="@strategy">@strategy.DisplayName</MudSelectItem>
+                    <MudSelectItem T="IncidentStrategyDescriptor" Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
                 }
             </MudSelect>
             <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">

@@ -32,17 +32,25 @@ public partial class Settings
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
     private ICollection<WorkflowActivationStrategyDescriptor> _activationStrategies = new List<WorkflowActivationStrategyDescriptor>();
-    private ICollection<IncidentStrategyDescriptor> _incidentStrategies = new List<IncidentStrategyDescriptor>();
+    private ICollection<IncidentStrategyDescriptor?> _incidentStrategies = new List<IncidentStrategyDescriptor?>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        // Load activation strategies.
         _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
-        _incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
+        
+        // Load incident strategies.
+        var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
+        _incidentStrategies = new IncidentStrategyDescriptor?[] { default }.Concat(incidentStrategies).ToList();
+        
+        // Select the current activation strategy.
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
-        _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
+        
+        // Select the current incident strategy.
+        _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
     }
     
     private async Task RaiseWorkflowUpdatedAsync()
@@ -58,10 +66,10 @@ public partial class Settings
         await RaiseWorkflowUpdatedAsync();
     }
     
-    private async Task OnIncidentStrategyChanged(IncidentStrategyDescriptor value)
+    private async Task OnIncidentStrategyChanged(IncidentStrategyDescriptor? value)
     {
         _selectedIncidentStrategy = value;
-        WorkflowDefinition!.Options.IncidentStrategyType = value.TypeName;
+        WorkflowDefinition!.Options.IncidentStrategyType = value?.TypeName;
         await RaiseWorkflowUpdatedAsync();
     }
 
