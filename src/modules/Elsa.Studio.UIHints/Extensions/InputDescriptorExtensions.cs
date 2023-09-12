@@ -19,7 +19,7 @@ public static class InputDescriptorExtensions
     {
         var options = descriptor.Options;
 
-        var selectListOptions = options?.TryGetValue("Default", out var selectList) == true
+        var selectListOptions = options?.TryGetValue("items", out var selectList) == true
             ? selectList is JsonElement list
                 ? list
                 : default
