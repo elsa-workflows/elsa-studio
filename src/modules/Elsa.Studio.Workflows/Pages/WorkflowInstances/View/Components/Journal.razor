@@ -6,23 +6,35 @@
     <MudTabPanel Text="Journal">
         <MudPaper Class="ma-2" Elevation="0" Outlined="true">
             <MudToolBar Dense="true">
-                <MudToggleIconButton 
-                    Icon="@Icons.Material.Outlined.Timer" 
+                <MudToggleIconButton
+                    Icon="@Icons.Material.Outlined.Timer"
                     ToggledIcon="@Icons.Material.Outlined.AccessTime"
                     Title="Show relative time"
                     ToggledTitle="Show accumulated time"
-                    Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)" 
+                    Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)"
                     ToggledChanged="OnTimeMetricButtonToggleChanged"/>
-                
-                <MudToggleIconButton 
-                    Icon="@Icons.Material.Outlined.DataArray" 
-                    ToggledIcon="@Icons.Material.Outlined.DataArray"  
-                    Title="Show events scoped to current container" 
+
+                <MudToggleIconButton
+                    Icon="@Icons.Material.Outlined.DataArray"
+                    ToggledIcon="@Icons.Material.Outlined.DataArray"
+                    Title="Show events scoped to current container"
                     ToggledTitle="Showing all events"
-                    Color="Color.Default" 
+                    Color="Color.Default"
                     ToggledColor="Color.Primary"
-                    Toggled="ShowScopedEvents" 
-                    ToggledChanged="OnScopeToggleChanged"></MudToggleIconButton>
+                    Toggled="ShowScopedEvents"
+                    ToggledChanged="OnScopeToggleChanged">
+                </MudToggleIconButton>
+
+                <MudToggleIconButton
+                    Icon="@Icons.Material.Outlined.ErrorOutline"
+                    ToggledIcon="@Icons.Material.Outlined.ErrorOutline"
+                    Title="Show incidents"
+                    ToggledTitle="Showing incidents"
+                    Color="Color.Default"
+                    ToggledColor="Color.Error"
+                    Toggled="ShowIncidents"
+                    ToggledChanged="OnShowIncidentsToggleChanged">
+                </MudToggleIconButton>
             </MudToolBar>
         </MudPaper>
         <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
