@@ -1,0 +1,48 @@
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Shared.Models
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Models
+
+<div class="pa-4">
+    <MudForm ReadOnly="IsReadOnly">
+        <MudStack Spacing="6">
+            @foreach (var outputDescriptor in OutputDescriptors)
+            {
+                var activity = Activity;
+                var displayName = string.IsNullOrWhiteSpace(outputDescriptor.DisplayName) ? outputDescriptor.Name : outputDescriptor.DisplayName;
+                var propertyName = outputDescriptor.Name.Camelize();
+                var propertyValue = activity.GetProperty<ActivityOutput>(propertyName);
+                var propertyType = _variableTypes.TryGetValue(outputDescriptor.TypeName, out var type) ? type : default;
+                var propertyTypeName = propertyType?.DisplayName ?? outputDescriptor.TypeName;
+                var selectedValue = _bindingTargetOptions.FirstOrDefault(x => x.Value == propertyValue?.MemoryReference?.Id);
+
+                <MudSelect
+                    T="BindingTargetOption"
+                    Label="@displayName"
+                    HelperText="@outputDescriptor.Description"
+                    Value="@selectedValue"
+                    Dense="false"
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Normal"
+                    AdornmentText="@propertyTypeName"
+                    Adornment="Adornment.End"
+                    ToStringFunc="@(x => x?.Text!)"
+                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))">
+                    <MudSelectItem T="BindingTargetOption?" Value="@null">-</MudSelectItem>
+                    @foreach (var bindingTargetGroup in _bindingTargetGroups)
+                    {
+                        @* MudSelect doesn't support <optgroup> (yet?), while MudSelectExtended does. However, MudSelectExtended doesn't seem to support AdornmentText (even though the property is exposed, it doesn't display) 
+                        * So we're not currently using MudSelectExtended and not rendering <optgroup> *
+                        *@
+                        @foreach (var bindingTargetOption in bindingTargetGroup.Options)
+                        {
+                            <MudSelectItem T="BindingTargetOption" Value="@bindingTargetOption">@bindingTargetOption.Text</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            }
+        </MudStack>
+    </MudForm>
+    
+    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
+</div>

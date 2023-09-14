@@ -1,9 +1,8 @@
 @page "/workflows/definitions/{definitionId}/edit"
-@using Elsa.Studio.Workflows.Screens.EditWorkflowDefinition
 
 <PageTitle>Workflow definition</PageTitle>
 
-<EditWorkflowDefinitionScreen DefinitionId="@DefinitionId"/>
+<WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
 
 @code
 {

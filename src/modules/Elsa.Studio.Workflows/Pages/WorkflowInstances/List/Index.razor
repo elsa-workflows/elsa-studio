@@ -47,30 +47,30 @@
                         <MudSelectItem Value="@workflowDefinition">@workflowDefinition.Name</MudSelectItem>
                     }
                 </MudSelect>
-                <MudSelect 
-                    T="WorkflowStatus" 
-                    Label="Status" 
-                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow" 
-                    MultiSelection="true" 
-                    Variant="Variant.Outlined"
-                    AnchorOrigin="Origin.BottomLeft"
-                    Dense="true"
-                    Clearable="true"
-                    SelectedValues="SelectedStatuses" 
-                    SelectedValuesChanged="OnSelectedStatusesChanged">
-                    <MudSelectItem Value="WorkflowStatus.Running"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowStatus.Finished"></MudSelectItem>
-                </MudSelect>
-                <MudSelect 
-                    T="WorkflowSubStatus" 
-                    Label="Sub status" 
-                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow" 
+                <MudSelect
+                    T="WorkflowStatus"
+                    Label="Status"
+                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
                     MultiSelection="true"
                     Variant="Variant.Outlined"
                     AnchorOrigin="Origin.BottomLeft"
                     Dense="true"
                     Clearable="true"
-                    SelectedValues="SelectedSubStatuses" 
+                    SelectedValues="SelectedStatuses"
+                    SelectedValuesChanged="OnSelectedStatusesChanged">
+                    <MudSelectItem Value="WorkflowStatus.Running"></MudSelectItem>
+                    <MudSelectItem Value="WorkflowStatus.Finished"></MudSelectItem>
+                </MudSelect>
+                <MudSelect
+                    T="WorkflowSubStatus"
+                    Label="Sub status"
+                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+                    MultiSelection="true"
+                    Variant="Variant.Outlined"
+                    AnchorOrigin="Origin.BottomLeft"
+                    Dense="true"
+                    Clearable="true"
+                    SelectedValues="SelectedSubStatuses"
                     SelectedValuesChanged="OnSelectedSubStatusesChanged">
                     <MudSelectItem Value="WorkflowSubStatus.Executing"></MudSelectItem>
                     <MudSelectItem Value="WorkflowSubStatus.Suspended"></MudSelectItem>
@@ -92,6 +92,9 @@
                 <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">Status</MudTableSortLabel>
             </MudTh>
             <MudTh>
+                <MudTableSortLabel SortLabel="IncidentCount" T="WorkflowInstanceRow">Incidents</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
                 <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
             </MudTh>
             <MudTh>
@@ -109,12 +112,16 @@
             <MudTd DataLabel="Version">@context.Version</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="SubStatus">
-                @{
-                    var color = GetSubStatusColor(context.SubStatus);
-                }
-                <MudChip Color="@color" Variant="Variant.Text">
+                <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                     @context.SubStatus
                 </MudChip>
+            </MudTd>
+            <MudTd DataLabel="IncidentCount">
+                <MudChip 
+                    Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)" 
+                    Text="@context.IncidentCount.ToString()"
+                    Variant="Variant.Text"
+                    Size="Size.Small"/>
             </MudTd>
             <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
             <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>

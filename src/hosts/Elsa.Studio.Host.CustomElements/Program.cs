@@ -14,7 +14,7 @@ var configuration = builder.Configuration;
 
 // Register the custom elements.
 builder.RootComponents.RegisterCustomElsaStudioElements();
-builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditor>("elsa-studio-workflow-definition-editor");
+builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("elsa-studio-workflow-definition-editor");
 
 // Register the modules.
 builder.Services.AddCore();

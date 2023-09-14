@@ -11,12 +11,18 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View;
 
+/// <summary>
+/// The index page for viewing a workflow instance.
+/// </summary>
 public partial class Index
 {
     private IList<WorkflowInstance> _workflowInstances = new List<WorkflowInstance>();
     private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
-    private Workspace _workspace = default!;
+    private WorkflowInstanceWorkspace _workspace = default!;
 
+    /// <summary>
+    /// The ID of the workflow instance to view.
+    /// </summary>
     [Parameter] public string Id { get; set; } = default!;
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -26,6 +32,7 @@ public partial class Index
     private Journal Journal { get; set; } = default!;
     private JournalEntry? SelectedJournalEntry { get; set; }
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         var instance = await WorkflowInstanceService.GetAsync(Id) ?? throw new InvalidOperationException($"Workflow instance with ID {Id} not found.");

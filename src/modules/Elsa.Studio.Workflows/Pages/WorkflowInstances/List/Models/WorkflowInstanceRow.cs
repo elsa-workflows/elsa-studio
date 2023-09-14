@@ -3,7 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models;
 
-public record WorkflowInstanceRow(
+internal record WorkflowInstanceRow(
     string WorkflowInstanceId,
     string? CorrelationId,
     WorkflowDefinitionSummary WorkflowDefinition,
@@ -11,6 +11,7 @@ public record WorkflowInstanceRow(
     string? Name,
     WorkflowStatus Status,
     WorkflowSubStatus SubStatus,
+    int IncidentCount,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt,
     DateTimeOffset? FinishedAt);

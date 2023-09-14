@@ -24,12 +24,12 @@ public partial class Index
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
-    
+
     /// <summary>
     /// The selected statuses to filter by.
     /// </summary>
     public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
-    
+
     /// <summary>
     /// The selected sub-statuses to filter by.
     /// </summary>
@@ -70,10 +70,10 @@ public partial class Index
         });
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
-        
+
         // Select any workflow instances for which no corresponding workflow definition version was found.
         // This can happen when a workflow definition is deleted.
-        
+
         var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
         var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
 
@@ -85,12 +85,13 @@ public partial class Index
             x.Name,
             x.Status,
             x.SubStatus,
+            x.IncidentCount,
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
 
         // TODO: display the workflow instances for which definition versions are missing.
-        
+
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }

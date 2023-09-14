@@ -1,0 +1,61 @@
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
+@using Variant = MudBlazor.Variant
+
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+
+    <MudTabPanel Text="Input">
+        @if (ActivityDescriptor?.Inputs.Any() == true)
+        {
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+            </ScrollableWell>
+        }
+        else
+        {
+            <Well>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+            </Well>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="Output">
+        @if (ActivityDescriptor?.Outputs.Any() == true)
+        {
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+            </ScrollableWell>
+        }
+        else
+        {
+            <Well>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+            </Well>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="Common">
+        @if (Activity != null && ActivityDescriptor != null)
+        {
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <CommonTab Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+            </ScrollableWell>
+        }
+        else
+        {
+            <Well>
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any common properties.</MudAlert>
+            </Well>
+        }
+    </MudTabPanel>
+
+    @if (IsWorkflowAsActivity)
+    {
+        <MudTabPanel Text="Version">
+            <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated"/>
+            </ScrollableWell>
+        </MudTabPanel>
+    }
+
+</MudTabs>

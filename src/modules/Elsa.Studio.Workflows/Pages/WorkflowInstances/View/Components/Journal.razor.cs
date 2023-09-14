@@ -22,6 +22,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 
+/// <summary>
+/// Displays the journal for a workflow instance.
+/// </summary>
 public partial class Journal : IAsyncDisposable
 {
     private MudTimeline _timeline = default!;
@@ -29,7 +32,12 @@ public partial class Journal : IAsyncDisposable
     private HubConnection? _hubConnection;
     private WorkflowInstance? _workflowInstance;
 
-    [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
+    /// <summary>
+    /// Gets or sets a callback that is invoked when a journal entry is selected.
+    /// </summary>
+    [Parameter]
+    public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
+
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -39,11 +47,15 @@ public partial class Journal : IAsyncDisposable
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
+    private bool ShowIncidents { get; set; }
     private JournalEntry? SelectedEntry { get; set; }
     private JournalFilter? JournalFilter { get; set; }
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
     private int SelectedIndex { get; set; } = -1;
 
+    /// <summary>
+    /// Sets the workflow instance to display the journal for.
+    /// </summary>
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
         WorkflowInstance = workflowInstance;
@@ -53,6 +65,9 @@ public partial class Journal : IAsyncDisposable
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Clears the selection.
+    /// </summary>
     public void ClearSelection()
     {
         SelectedEntry = null;
@@ -60,11 +75,13 @@ public partial class Journal : IAsyncDisposable
         StateHasChanged();
     }
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await EnsureActivityDescriptorsAsync();
     }
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         if (_workflowInstance != WorkflowInstance)
@@ -77,6 +94,7 @@ public partial class Journal : IAsyncDisposable
         }
     }
 
+    /// <inheritdoc />
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
@@ -114,7 +132,14 @@ public partial class Journal : IAsyncDisposable
 
         var take = request.Count == 0 ? 10 : request.Count;
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
-        var filter = ShowScopedEvents ? JournalFilter : default;
+        var filter = new JournalFilter();
+
+        if (ShowScopedEvents)
+            filter.ActivityIds = JournalFilter?.ActivityIds;
+
+        if (ShowIncidents)
+            filter.EventNames = new[] { "Faulted" };
+
         var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take);
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
@@ -140,7 +165,7 @@ public partial class Journal : IAsyncDisposable
 
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }
-    
+
     private void UpdateJournalHack()
     {
         // A little hack to ensure the journal is refreshed.
@@ -169,6 +194,12 @@ public partial class Journal : IAsyncDisposable
     private async Task OnScopeToggleChanged(bool value)
     {
         ShowScopedEvents = value;
+        await RefreshJournalAsync();
+    }
+
+    private async Task OnShowIncidentsToggleChanged(bool value)
+    {
+        ShowIncidents = value;
         await RefreshJournalAsync();
     }
 

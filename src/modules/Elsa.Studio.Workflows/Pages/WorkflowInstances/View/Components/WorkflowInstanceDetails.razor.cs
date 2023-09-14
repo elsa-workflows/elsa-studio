@@ -8,6 +8,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
@@ -51,8 +52,10 @@ public partial class WorkflowInstanceDetails
                 ["Definition version"] = _workflowInstance.Version.ToString(),
                 ["Definition version ID"] = _workflowInstance.DefinitionVersionId,
                 ["Correlation ID"] = _workflowInstance.CorrelationId,
+                ["Incident Strategy"] = WorkflowDefinition?.Options.IncidentStrategyType?.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).First().Split(".", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last().Replace("Strategy", "").Humanize() ?? "Default",
                 ["Status"] = _workflowInstance.Status.ToString(),
                 ["Sub status"] = _workflowInstance.SubStatus.ToString(),
+                ["Incidents"] = _workflowInstance.IncidentCount.ToString(),
                 ["Created"] = _workflowInstance.CreatedAt.ToString("G"),
                 ["Updated"] = _workflowInstance.UpdatedAt.ToString("G"),
                 ["Finished"] = _workflowInstance.FinishedAt?.ToString("G"),
