@@ -40,6 +40,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         // HTTP
         ["Elsa.HttpEndpoint"] = new(DefaultActivityColors.Http, ElsaStudioIcons.Tabler.Cloud),
         ["Elsa.WriteHttpResponse"] = new(DefaultActivityColors.Http, ElsaStudioIcons.Heroicons.PencilPaper),
+        ["Elsa.WriteFileHttpResponse"] = new(DefaultActivityColors.Http, Icons.Material.Outlined.FileDownload),
         ["Elsa.SendHttpRequest"] = new(DefaultActivityColors.Http, ElsaStudioIcons.Tabler.World),
         ["Elsa.FlowSendHttpRequest"] = new(DefaultActivityColors.Http, ElsaStudioIcons.Tabler.World),
         
