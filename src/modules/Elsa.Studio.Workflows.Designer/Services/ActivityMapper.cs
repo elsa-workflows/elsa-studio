@@ -90,22 +90,30 @@ internal class ActivityMapper : IActivityMapper
         }).ToList();
 
         if (ports.All(port => port.Group != "out"))
-            ports.Add(new X6Port
+        {
+            // Create default output port, except for terminal nodes.
+            var isTerminalNode = activityDescriptor.IsTerminal;
+
+            if (!isTerminalNode)
             {
-                Id = "Done",
-                Group = "out",
-                Attrs = new X6Attrs
+                ports.Add(new X6Port
                 {
-                    ["text"] = new X6Attrs
+                    Id = "Done",
+                    Group = "out",
+                    Attrs = new X6Attrs
                     {
-                        ["text"] = "Done"
-                    },
-                    ["circle"] = new X6Attrs
-                    {
-                        ["fill"] = displaySettings.Color,
+                        ["text"] = new X6Attrs
+                        {
+                            ["text"] = "Done"
+                        },
+                        ["circle"] = new X6Attrs
+                        {
+                            ["fill"] = displaySettings.Color,
+                        }
                     }
-                }
-            });
+                });
+            }
+        }
 
         return ports;
     }
