@@ -103,6 +103,9 @@ public class DisplayInputEditorContext
         return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
     
+    /// <summary>
+    /// Returns the input expression value if this is a wrapped input (i.e. Input{T}) or naked value otherwise. If either value is null, the default value is returned.
+    /// </summary>
     public string GetExpressionValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
@@ -114,11 +117,18 @@ public class DisplayInputEditorContext
         return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
 
+    /// <summary>
+    /// Updates the naked input value.
+    /// </summary>
     public async Task UpdateValueAsync(object? value)
     {
         await OnValueChanged(value);
     }
 
+    /// <summary>
+    /// Updates the wrapped input expression.
+    /// </summary>
+    /// <param name="expression"></param>
     public async Task UpdateExpressionAsync(IExpression expression)
     {
         var wrappedInput = Value as WrappedInput;

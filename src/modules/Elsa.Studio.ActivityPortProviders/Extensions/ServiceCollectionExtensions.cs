@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddActivityPortProvider<DynamicOutcomesPortProvider>();
         services.AddActivityPortProvider<SwitchPortProvider>();
         services.AddActivityPortProvider<FlowSwitchPortProvider>();
+        services.AddActivityPortProvider<HttpEndpointPortProvider>();
         services.AddActivityPortProvider<SendHttpRequestPortProvider>();
         services.AddActivityPortProvider<FlowSendHttpRequestPortProvider>();
         

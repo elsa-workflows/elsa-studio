@@ -24,15 +24,25 @@
 
 @code {
 
+    /// <summary>
+    /// The editor context.
+    /// </summary>
     [Parameter]
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     private async Task OnCheckChanged(bool? isChecked)
     {
-        var newValue = isChecked == true ? "True" : "False";
-        var expression = new LiteralExpression(newValue);
-    
-        await EditorContext.UpdateExpressionAsync(expression);
+        if (EditorContext.InputDescriptor.IsWrapped)
+        {
+            var newValue = isChecked == true ? "True" : "False";
+            var expression = new LiteralExpression(newValue);
+
+            await EditorContext.UpdateExpressionAsync(expression);
+        }
+        else
+        {
+            await EditorContext.UpdateValueAsync(isChecked);
+        }
     }
 
 }
