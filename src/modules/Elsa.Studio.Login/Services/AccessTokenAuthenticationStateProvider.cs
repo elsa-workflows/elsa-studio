@@ -34,4 +34,12 @@ public class AccessTokenAuthenticationStateProvider : AuthenticationStateProvide
 
         return new AuthenticationState(user);
     }
+    
+    /// <summary>
+    /// Notifies the authentication state has changed.
+    /// </summary>
+    public void NotifyAuthenticationStateChanged()
+    {
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
 }

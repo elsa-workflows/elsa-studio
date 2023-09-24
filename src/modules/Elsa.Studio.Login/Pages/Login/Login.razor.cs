@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.JwtBearer.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Pages.Login.Models;
+using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -15,12 +16,12 @@ namespace Elsa.Studio.Login.Pages.Login;
 public partial class Login
 {
     private readonly LoginModel _model = new();
-
-    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
+    
     [Inject] private IJwtAccessor JwtAccessor { get; set; } = default!;
     [Inject] private ICredentialsValidator CredentialsValidator { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
     private async Task TryLogin()
     {
@@ -31,7 +32,8 @@ public partial class Login
             return;
         }
 
-        NavigationManager.NavigateTo("/");
+        ((AccessTokenAuthenticationStateProvider)AuthenticationStateProvider).NotifyAuthenticationStateChanged();
+        NavigationManager.NavigateTo("/", true);
     }
 
     private async Task<bool> ValidateCredentials(string username, string password)
