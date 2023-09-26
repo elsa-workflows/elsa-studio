@@ -6,6 +6,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
@@ -28,6 +29,7 @@ public partial class FlowchartDesignerWrapper
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
     private FlowchartDesigner Designer { get; set; } = default!;
 
     public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = default)
@@ -51,35 +53,15 @@ public partial class FlowchartDesignerWrapper
     public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
     public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
     public async Task CenterContentAsync() => await Designer.CenterContentAsync();
-
-    private bool GetNameExists(string name) => Flowchart.GetActivities().Any(x => x.GetName() == name);
-
-    private string GenerateNextName(ActivityDescriptor activityDescriptor)
-    {
-        var max = 10000;
-        var count = GetNextNumber(activityDescriptor);
-
-        while (count++ < max)
-        {
-            var nextName = $"{activityDescriptor.Name}{count}";
-            if (!GetNameExists(nextName))
-                return nextName;
-        }
-
-        throw new Exception("Could not generate a unique name.");
-    }
     
-    private int GetNextNumber(ActivityDescriptor activityDescriptor)
-    {
-        return Flowchart.GetActivities().Count(x => x.GetTypeName() == activityDescriptor.TypeName);
-    }
-
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {
+        var activities = Flowchart.GetActivities().ToList();
+        
         var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
         {
             ["id"] = ActivityIdGenerator.GenerateId(),
-            ["name"] = GenerateNextName(activityDescriptor),
+            ["name"] = ActivityNameGenerator.GenerateNextName(activities, activityDescriptor),
             ["type"] = activityDescriptor.TypeName,
             ["version"] = activityDescriptor.Version,
         });
@@ -98,7 +80,7 @@ public partial class FlowchartDesignerWrapper
         }
         
         // If the activity is a trigger and it's the first trigger on the flowchart, set the trigger property to true.
-        if (activityDescriptor.Kind == ActivityKind.Trigger && Flowchart.GetActivities().All(activity => activity.GetCanStartWorkflow() != true))
+        if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
             newActivity.SetCanStartWorkflow(true);
 
         await Designer.AddActivityAsync(newActivity);

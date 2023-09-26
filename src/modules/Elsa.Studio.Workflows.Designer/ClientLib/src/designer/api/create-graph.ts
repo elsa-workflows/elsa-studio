@@ -1,4 +1,4 @@
-import {Graph, Shape, Node} from '@antv/x6';
+import {Graph, Shape, Node, Edge} from '@antv/x6';
 import {Selection} from "@antv/x6-plugin-selection";
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Transform} from "@antv/x6-plugin-transform";
@@ -7,8 +7,7 @@ import {Clipboard} from '@antv/x6-plugin-clipboard'
 import camelCase from 'lodash.camelcase';
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
-import {Activity} from "../models";
-import {updateActivity} from "./update-activity";
+import {Activity, Connection} from "../models";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean): Promise<string> {
     const containerElement = document.getElementById(containerId);
@@ -210,11 +209,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         // Paste the cells in the clipboard onto the graph.
         graph.bindKey(['ctrl+v', 'meta+v'], () => {
             if (!graph.isClipboardEmpty()) {
-                const cells = graph.paste({offset: 32})
-                graph.cleanSelection()
-                graph.select(cells)
+                const cells = graph.getCellsInClipboard();
+                
+                if(cells.length == 0)
+                    return;
+                
+                const activityCells = cells.filter(x => x.shape == 'elsa-activity');
+                const edgeCells: Edge[] = cells.filter(x => x.shape == 'elsa-edge');
+                
+                interop.raisePasteCellsRequested(activityCells, edgeCells);
             }
-            return false
         });
     }
 

@@ -10,6 +10,7 @@ export async function addActivityNode(graphId: string, node: Node.Properties) {
 
     node.position = {x, y};
     node.size = {width: 200, height: 50};
+    node.id = node.id!;
 
     // Add the node to the graph.
     graph.addNode(node);

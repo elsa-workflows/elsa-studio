@@ -1,3 +1,4 @@
+import {Graph, Shape, Node} from '@antv/x6';
 import {DotNetComponentRef} from "./graph-bindings";
 import {Activity} from "../models";
 
@@ -31,5 +32,12 @@ export class DotNetFlowchartDesigner {
     /// </summary>
     async raiseGraphUpdated() : Promise<void> {
         await this.componentRef.invokeMethodAsync('HandleGraphUpdated');
+    }
+
+    /// <summary>
+    /// Raises the <see cref="GraphUpdated"/> event.
+    /// </summary>
+    async raisePasteCellsRequested(activityCells: any[], edgeCells: any[]) : Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandlePasteCellsRequested', activityCells, edgeCells);
     }
 }
