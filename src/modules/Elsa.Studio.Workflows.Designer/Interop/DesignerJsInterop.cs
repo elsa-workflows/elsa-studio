@@ -34,7 +34,6 @@ internal class DesignerJsInterop : JsInteropBase
             await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
             return new X6GraphApi(module, _serviceProvider, containerId);
         });
-        
     }
 
     public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default) =>

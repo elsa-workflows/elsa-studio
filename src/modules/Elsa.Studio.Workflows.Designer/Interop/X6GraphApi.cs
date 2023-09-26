@@ -55,16 +55,23 @@ public class X6GraphApi
     /// <param name="node">The node.</param>
     public async Task AddActivityNodeAsync(X6ActivityNode node)
     {
-        var serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
-        serializerOptions.Converters.Add(new JsonStringEnumConverter());
-        
+        var serializerOptions = GetSerializerOptions();
         var nodeElement = JsonSerializer.SerializeToElement(node, serializerOptions);
         
         await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
+    }
+    
+    /// <summary>
+    /// Adds the specified activity nodes and edges to the graph.
+    /// </summary>
+    /// <param name="activityNodes">The activity nodes.</param>
+    /// <param name="edges">The edges.</param>
+    public async Task PasteCellsAsync(IEnumerable<X6ActivityNode> activityNodes, X6Edge[] edges)
+    {
+        var serializerOptions = GetSerializerOptions();
+        var activityNodeElements = JsonSerializer.SerializeToElement(activityNodes, serializerOptions);
+        var edgeElements = JsonSerializer.SerializeToElement(edges, serializerOptions);
+        await InvokeAsync(module => module.InvokeVoidAsync("pasteCells", _containerId, activityNodeElements, edgeElements));
     }
 
     /// <summary>
@@ -93,14 +100,7 @@ public class X6GraphApi
     /// <param name="activity">The activity.</param>
     public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
-        var serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        
-        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
-        serializerOptions.Converters.Add(new JsonStringEnumConverter());
-
+        var serializerOptions = GetSerializerOptions();
         var mapperFactory = _serviceProvider.GetRequiredService<IMapperFactory>();
         var activityMapper = await mapperFactory.CreateActivityMapperAsync();
         var ports = activityMapper.GetPorts(activity);
@@ -123,4 +123,16 @@ public class X6GraphApi
     }
 
     private async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func) => await func(_module);
+    
+    private JsonSerializerOptions GetSerializerOptions()
+    {
+        var serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        
+        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
+        serializerOptions.Converters.Add(new JsonStringEnumConverter());
+        return serializerOptions;
+    }
 }

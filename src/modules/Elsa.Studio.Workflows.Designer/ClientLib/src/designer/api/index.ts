@@ -5,6 +5,7 @@ export * from './create-graph';
 export * from './dispose-graph';
 export * from './graph-bindings';
 export * from './load-graph';
+export * from './paste-cells';
 export * from './read-graph';
 export * from './raise-activity-selected';
 export * from './raise-activity-embedded-port-selected';

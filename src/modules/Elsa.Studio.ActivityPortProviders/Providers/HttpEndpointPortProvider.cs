@@ -30,11 +30,11 @@ public class HttpEndpointPortProvider : ActivityPortProviderBase
         if (ExposeInvalidFileMimeTypeOutcome(context.Activity)) yield return CreatePort(InvalidMimeType);
         yield return CreatePort(Done);
     }
-    
-    private bool ExposeFileTooLargeOutcome(JsonObject @case) => @case.GetProperty("exposeFileTooLargeOutcome")!.GetValue<bool>();
-    private bool ExposeRequestTooLargeOutcome(JsonObject @case) => @case.GetProperty("exposeRequestTooLargeOutcome")!.GetValue<bool>();
-    private bool ExposeInvalidFileExtensionOutcome(JsonObject @case) => @case.GetProperty("exposeInvalidFileExtensionOutcome")!.GetValue<bool>();
-    private bool ExposeInvalidFileMimeTypeOutcome(JsonObject @case) => @case.GetProperty("exposeInvalidFileMimeTypeOutcome")!.GetValue<bool>();
+
+    private bool ExposeFileTooLargeOutcome(JsonObject @case) => TryGetValue(@case, "exposeFileTooLargeOutcome", () => false);
+    private bool ExposeRequestTooLargeOutcome(JsonObject @case) => TryGetValue(@case, "exposeRequestTooLargeOutcome", () => false);
+    private bool ExposeInvalidFileExtensionOutcome(JsonObject @case) => TryGetValue(@case, "exposeInvalidFileExtensionOutcome", () => false);
+    private bool ExposeInvalidFileMimeTypeOutcome(JsonObject @case) => TryGetValue(@case, "exposeInvalidFileMimeTypeOutcome", () => false);
 
     private Port CreatePort(string name)
     {
@@ -46,4 +46,8 @@ public class HttpEndpointPortProvider : ActivityPortProviderBase
         };
     }
 
+    private static T TryGetValue<T>(JsonObject model, string propName, Func<T> defaultValue)
+    {
+        return model.TryGetPropertyValue(propName, out var node) ? node != null ? node.GetValue<T>() : defaultValue() : defaultValue();
+    }
 }
