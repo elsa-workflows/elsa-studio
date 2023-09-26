@@ -3,16 +3,15 @@ import {Selection} from "@antv/x6-plugin-selection";
 import {Snapline} from "@antv/x6-plugin-snapline";
 import {Transform} from "@antv/x6-plugin-transform";
 import {Keyboard} from "@antv/x6-plugin-keyboard";
-import {Clipboard} from '@antv/x6-plugin-clipboard'
-import camelCase from 'lodash.camelcase';
+import {Clipboard} from '@antv/x6-plugin-clipboard';
+import {History} from '@antv/x6-plugin-history';
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
-import {Activity, Connection} from "../models";
+import {Activity} from "../models";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
-    let silent = false;
     let lastSelectedNode: Node.Properties = null;
 
     const graph = new Graph({
@@ -150,6 +149,19 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         }
     });
 
+    graph.use(
+        new History({
+            enabled: true,
+            beforeAddCommand: (e: string, args: any) => {
+                if (args.key == 'tools')
+                    return false;
+
+                const supportedEvents = ['cell:added', 'cell:removed', 'cell:change:*'];
+                return supportedEvents.indexOf(e) >= 0;
+            },
+        }),
+    )
+
     graph.use(new Snapline({
         enabled: true,
         className: 'elsa-snapline',
@@ -189,21 +201,23 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             })
         );
 
-        // Delete node when pressing delete key on keyboard.
-        graph.bindKey('del', () => {
-            const cells = graph.getSelectedCells()
-            if (cells.length) {
-                graph.removeCells(cells)
-            }
-        });
-
         // Copy the cells in the graph to the internal clipboard with Ctrl+C.
         graph.bindKey(['ctrl+c', 'meta+c'], () => {
             const cells = graph.getSelectedCells()
             if (cells.length) {
                 graph.copy(cells)
             }
-            return false
+
+            return false;
+        });
+
+        graph.bindKey(['meta+x', 'ctrl+x'], () => {
+            const cells = graph.getSelectedCells()
+            if (cells.length) {
+                graph.cut(cells)
+            }
+
+            return false;
         });
 
         // Paste the cells in the clipboard onto the graph.
@@ -219,19 +233,76 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
                 interop.raisePasteCellsRequested(activityCells, edgeCells);
             }
+
+            return false;
+        });
+
+        // undo
+        graph.bindKey(['meta+z', 'ctrl+z'], () => {
+            if (graph.canUndo()) {
+                graph.undo()
+            }
+            return false
+        });
+
+        // redo
+        graph.bindKey(['meta+y', 'ctrl+y'], () => {
+            if (graph.canRedo()) {
+                graph.redo()
+            }
+            return false
+        });
+
+        // delete
+        graph.bindKey('del', () => {
+            const cells = graph.getSelectedCells()
+            if (cells.length) {
+                graph.removeCells(cells)
+            }
+
+            return false;
         });
     }
+
+    // select all
+    graph.bindKey(['meta+a', 'ctrl+a'], () => {
+        const nodes = graph.getNodes()
+        if (nodes) {
+            graph.select(nodes)
+        }
+
+        return false;
+    });
+
+    // zoom
+    graph.bindKey(['ctrl+1', 'meta+1'], () => {
+        const zoom = graph.zoom()
+        if (zoom < 1.5) {
+            graph.zoom(0.1)
+        }
+        return false;
+    });
+
+    graph.bindKey(['ctrl+2', 'meta+2'], () => {
+        const zoom = graph.zoom()
+        if (zoom > 0.5) {
+            graph.zoom(-0.1)
+        }
+        return false;
+    });
 
     graph.on('blank:click', async () => {
         if (!!lastSelectedNode) {
             lastSelectedNode.setProp('selected-port', null);
         }
         await interop.raiseCanvasSelected();
+        return false;
     });
 
     // Move the clicked node to the front. This helps when the user clicks on a node that is behind another node.
     graph.on('node:mousedown', ({node}) => {
         node.toFront();
+        return false;
     });
 
     // Change the edge's color and style when it is connected to a magnet.
@@ -240,7 +311,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             line: {
                 strokeDasharray: '',
             },
-        })
+        });
+        return false;
     });
 
     graph.on("edge:mouseenter", ({cell}) => {
@@ -251,12 +323,14 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 args: {distance: 20},
             },
         ]);
+        return false;
     });
 
     graph.on("edge:mouseleave", ({cell}) => {
         if (cell.hasTool("button-remove")) {
             cell.removeTool("button-remove");
         }
+        return false;
     });
 
     graph.on('node:click', async args => {
@@ -291,64 +365,27 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         }
 
         if (!graph.isSelected(node)) {
-            silent = true;
             graph.select(node);
-            silent = false;
         }
 
         node.setProp('selected-port', null);
         await interop.raiseActivitySelected(activity);
-    });
-
-    graph.on('node:selected', async args => {
-        const {node} = args;
-
-        // if(!silent)
-        //     graph.unselect(node);
-    });
-
-    graph.on('node:change:parent', e => {
-        const node: Node.Properties = e.node;
-        const parent = node.parent as any as Node.Properties;
-
-        if (!parent)
-            return;
-
-        const childActivity: Activity = {...node.data};
-        const parentActivity: Activity = {...parent.data};
-
-        // Assign the child activity to the parent activity in the specified port property.
-        const portName = node.getProp('embeddedPortName');
-        const propName = camelCase(portName);
-        parentActivity[propName] = childActivity;
-
-        requestAnimationFrame(async () => {
-            // Delete the node itself during the next animation frame. Doing it immediately doesn't cause X6 to update the graph.
-            node.remove({deep: true});
-
-            // Trigger a repaint of the parent node.
-            debugger;
-            parent.setData(parentActivity, {overwrite: true});
-        });
+        return false;
     });
 
     const onGraphUpdated = async (e: any) => {
         await interop.raiseGraphUpdated();
+        return false;
     };
 
     const onNodeRemoved = async (e: any) => {
-        const activity = e.node.data as Activity;
         await onGraphUpdated(e);
+        return false;
     };
 
     const onNodeAdded = async (e: any) => {
-        const node = e.node as any;
-
-        if (!node.isClone) {
-            const activity = {...node.getData()} as Activity;
-        }
-
         await onGraphUpdated(e);
+        return false;
     };
 
     graph.on('node:moved', onGraphUpdated);
