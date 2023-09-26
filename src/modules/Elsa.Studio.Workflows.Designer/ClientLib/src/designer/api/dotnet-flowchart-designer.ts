@@ -35,7 +35,7 @@ export class DotNetFlowchartDesigner {
     }
 
     /// <summary>
-    /// Raises the <see cref="GraphUpdated"/> event.
+    /// Raises the <see cref="PasteCellsRequested"/> event.
     /// </summary>
     async raisePasteCellsRequested(activityCells: any[], edgeCells: any[]) : Promise<void> {
         await this.componentRef.invokeMethodAsync('HandlePasteCellsRequested', activityCells, edgeCells);
