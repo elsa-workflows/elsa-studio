@@ -327,6 +327,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         var activities = container.GetActivities().ToList();
         var activityLookup = new Dictionary<string, JsonObject>();
+        var newContainerId = ActivityIdGenerator.GenerateId();
+        
+        // Update the container ID.
+        container.SetId(newContainerId);
 
         foreach (var activity in activities)
         {
@@ -338,7 +342,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             // Capture the original activity ID so we can update the edges.
             activityLookup[activity.GetId()] = activity;
 
-            // Update the activity ID and name.
+            // Update the activity ID.
             activity.SetId(newActivityId);
 
             // If the activity contains embedded ports, generate new IDs for the contained flowchart.
