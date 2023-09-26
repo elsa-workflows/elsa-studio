@@ -25,7 +25,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IModuleService, DefaultModuleService>()
             .AddScoped<IUIHintService, DefaultUIHintService>()
             .AddScoped<ISyntaxService, DefaultSyntaxService>()
-            .AddScoped<IActivityIdGenerator, ShortGuidActivityIdGenerator>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             ;
