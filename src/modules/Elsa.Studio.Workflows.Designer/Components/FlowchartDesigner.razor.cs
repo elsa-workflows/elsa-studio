@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
@@ -17,6 +19,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -184,6 +187,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             activityNode.Position.X = designerMetadata.Position.X;
             activityNode.Position.Y = designerMetadata.Position.Y;
             activity.SetDesignerMetadata(designerMetadata);
+
+            // If the activity contains embedded ports, generate new IDs for the contained flowchart.
+            ProcessEmbeddedPorts(activity, descriptor);
         }
 
         // Update the edges.
@@ -316,6 +322,57 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private async Task SetGridColorAsync(string color) => await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(color));
     private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);
     private async Task<T> ScheduleGraphActionAsync<T>(Func<Task<T>> action) => await _pendingGraphActions.EnqueueAsync(action);
+
+    private void GenerateNewActivityIds(JsonObject container)
+    {
+        var activities = container.GetActivities().ToList();
+        var activityLookup = new Dictionary<string, JsonObject>();
+
+        foreach (var activity in activities)
+        {
+            var activityType = activity.GetTypeName();
+            var activityVersion = activity.GetVersion();
+            var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
+            var newActivityId = ActivityIdGenerator.GenerateId();
+
+            // Capture the original activity ID so we can update the edges.
+            activityLookup[activity.GetId()] = activity;
+
+            // Update the activity ID and name.
+            activity.SetId(newActivityId);
+
+            // If the activity contains embedded ports, generate new IDs for the contained flowchart.
+            ProcessEmbeddedPorts(activity, descriptor);
+        }
+
+        // Update connections.
+        var connections = container.GetConnections().ToList();
+
+        foreach (var connection in connections)
+        {
+            var sourceActivityId = connection.Source.ActivityId;
+            var targetActivityId = connection.Target.ActivityId;
+            var sourceActivity = activityLookup[sourceActivityId];
+            var targetActivity = activityLookup[targetActivityId];
+
+            connection.Source.ActivityId = sourceActivity.GetId();
+            connection.Target.ActivityId = targetActivity.GetId();
+        }
+    }
+
+    /// <summary>
+    /// Processes each embedded port's activity and generates new IDs for the contained flowchart.
+    /// </summary>
+    private void ProcessEmbeddedPorts(JsonObject activity, ActivityDescriptor descriptor)
+    {
+        var embeddedPorts = descriptor.Ports.Where(x => x.Type == PortType.Embedded);
+        foreach (var embeddedPort in embeddedPorts)
+        {
+            var camelName = embeddedPort.Name.Camelize();
+            if (activity.TryGetPropertyValue(camelName, out var propValue) && propValue is JsonObject childActivity)
+                GenerateNewActivityIds(childActivity);
+        }
+    }
 
     private async void OnDarkModeChanged()
     {

@@ -210,20 +210,20 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.bindKey(['ctrl+v', 'meta+v'], () => {
             if (!graph.isClipboardEmpty()) {
                 const cells = graph.getCellsInClipboard();
-                
-                if(cells.length == 0)
+
+                if (cells.length == 0)
                     return;
-                
+
                 const activityCells = cells.filter(x => x.shape == 'elsa-activity');
                 const edgeCells: Edge[] = cells.filter(x => x.shape == 'elsa-edge');
-                
+
                 interop.raisePasteCellsRequested(activityCells, edgeCells);
             }
         });
     }
 
     graph.on('blank:click', async () => {
-        if(!!lastSelectedNode) {
+        if (!!lastSelectedNode) {
             lastSelectedNode.setProp('selected-port', null);
         }
         await interop.raiseCanvasSelected();
@@ -278,19 +278,19 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 continue;
 
             // Mark the node as unselected.
-            if(graph.isSelected(node)) {
+            if (graph.isSelected(node)) {
                 graph.unselect(node);
             }
 
             const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
             node.setProp('selected-port', embeddedPortName);
             lastSelectedNode = node;
-            
+
             await interop.raiseActivityEmbeddedPortSelected(activity, embeddedPortName);
             return;
         }
 
-        if(!graph.isSelected(node)) {
+        if (!graph.isSelected(node)) {
             silent = true;
             graph.select(node);
             silent = false;
