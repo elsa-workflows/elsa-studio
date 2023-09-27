@@ -6,6 +6,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using ThrottleDebounce;
 
@@ -42,6 +43,7 @@ public partial class ExpressionInput : IDisposable
     /// </summary>
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
     private bool IsUISyntax => _selectedSyntax == UISyntax;
@@ -74,7 +76,7 @@ public partial class ExpressionInput : IDisposable
             return;
 
         var model = await _monacoEditor.GetModel();
-        await Global.SetModelLanguage(model, syntaxProvider.Language);
+        await Global.SetModelLanguage(JSRuntime, model, syntaxProvider.Language);
     }
 
 
@@ -109,7 +111,7 @@ public partial class ExpressionInput : IDisposable
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
             GlyphMargin = false,
-            DomReadOnly = EditorContext.IsReadOnly
+            DomReadOnly = EditorContext.IsReadOnly,
         };
     }
 
@@ -157,10 +159,14 @@ public partial class ExpressionInput : IDisposable
         _lastMonacoEditorContent = InputValue;
         await model.SetValue(InputValue);
         _isInternalContentChange = false;
-        await Global.SetModelLanguage(model, _monacoLanguage);
+        await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
     }
 
-    public void Dispose() => _throttledValueChanged.Dispose();
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _throttledValueChanged.Dispose();
+    }
 }
 
 public record SyntaxDescriptor(string Syntax, string DisplayName);

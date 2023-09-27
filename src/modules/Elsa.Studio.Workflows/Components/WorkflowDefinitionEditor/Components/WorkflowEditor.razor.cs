@@ -249,6 +249,12 @@ public partial class WorkflowEditor
 
     private void SelectActivity(JsonObject activity)
     {
+        // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
+        // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
+        SelectedActivity = null;
+        ActivityDescriptor = null;
+        StateHasChanged();
+        
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());

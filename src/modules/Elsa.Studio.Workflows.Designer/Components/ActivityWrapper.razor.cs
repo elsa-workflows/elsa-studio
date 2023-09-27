@@ -18,6 +18,9 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
+/// <summary>
+/// A wrapper for an activity component.
+/// </summary>
 public partial class ActivityWrapper
 {
     private string _label = default!;
@@ -42,6 +45,7 @@ public partial class ActivityWrapper
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
