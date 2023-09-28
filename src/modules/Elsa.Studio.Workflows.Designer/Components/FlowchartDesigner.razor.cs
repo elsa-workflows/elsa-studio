@@ -362,6 +362,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             connection.Source.ActivityId = sourceActivity.GetId();
             connection.Target.ActivityId = targetActivity.GetId();
         }
+        
+        container.SetConnections(connections);
     }
 
     /// <summary>
