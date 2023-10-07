@@ -19,6 +19,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 public partial class WorkflowInstanceDetails
 {
     private WorkflowInstance? _workflowInstance;
+    private ActivityExecutionContextState? _workflowActivityExecutionContext;
 
     /// <summary>
     /// Gets or sets the workflow instance to display.
@@ -52,7 +53,7 @@ public partial class WorkflowInstanceDetails
                 ["Definition version"] = _workflowInstance.Version.ToString(),
                 ["Definition version ID"] = _workflowInstance.DefinitionVersionId,
                 ["Correlation ID"] = _workflowInstance.CorrelationId,
-                ["Incident Strategy"] = WorkflowDefinition?.Options.IncidentStrategyType?.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).First().Split(".", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last().Replace("Strategy", "").Humanize() ?? "Default",
+                ["Incident Strategy"] = GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType),
                 ["Status"] = _workflowInstance.Status.ToString(),
                 ["Sub status"] = _workflowInstance.SubStatus.ToString(),
                 ["Incidents"] = _workflowInstance.IncidentCount.ToString(),
@@ -77,9 +78,14 @@ public partial class WorkflowInstanceDetails
         {
             _workflowInstance = WorkflowInstance;
 
-            // If the workflow instance is still running, observe it.
-            if (_workflowInstance?.Status == WorkflowStatus.Running)
-                await ObserveWorkflowInstanceAsync();
+            if (_workflowInstance != null)
+            {
+                _workflowActivityExecutionContext = GetWorkflowActivityExecutionContext(_workflowInstance);
+
+                // If the workflow instance is still running, observe it.
+                if (_workflowInstance?.Status == WorkflowStatus.Running)
+                    await ObserveWorkflowInstanceAsync();
+            }
         }
     }
 
@@ -89,8 +95,14 @@ public partial class WorkflowInstanceDetails
         WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
         {
             _workflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
+            _workflowActivityExecutionContext = GetWorkflowActivityExecutionContext(_workflowInstance!);
             StateHasChanged();
         });
+    }
+
+    private ActivityExecutionContextState? GetWorkflowActivityExecutionContext(WorkflowInstance workflowInstance)
+    {
+        return workflowInstance.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
     }
 
     private string GetStorageDriverDisplayName(string? storageDriverTypeName)
@@ -104,15 +116,24 @@ public partial class WorkflowInstanceDetails
     private string GetVariableValue(Variable variable)
     {
         // TODO: Implement a REST API that returns values from the various storage providers, instead of hardcoding it here with hardcoded support for workflow storage only.
-        
-        var workflowInstance = WorkflowInstance!;
+        var defaultValue = variable.Value?.ToString() ?? string.Empty;
 
-        if (!workflowInstance.WorkflowState.Properties.TryGetValue("PersistentVariablesDictionary", out var variablesDictionaryObject))
-            return string.Empty;
+        if (_workflowActivityExecutionContext == null)
+            return defaultValue;
+
+        if (!_workflowActivityExecutionContext.Properties.TryGetValue("PersistentVariablesDictionary", out var variablesDictionaryObject))
+            return defaultValue;
 
         var dictionary = ((JsonElement)variablesDictionaryObject).Deserialize<IDictionary<string, object>>()!;
-        var workflowInstanceId = workflowInstance.Id;
-        var key = $"{workflowInstanceId}:Workflow1:{variable.Name}";
-        return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : string.Empty;
+        var key = variable.Id;
+        return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : defaultValue;
+    }
+
+    private static string GetIncidentStrategyDisplayName(string? incidentStrategyTypeName)
+    {
+        return incidentStrategyTypeName?.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).First()
+            .Split(".", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last()
+            .Replace("Strategy", "")
+            .Humanize() ?? "Default";
     }
 }

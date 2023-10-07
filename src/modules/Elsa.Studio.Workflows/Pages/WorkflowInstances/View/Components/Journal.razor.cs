@@ -205,11 +205,17 @@ public partial class Journal : IAsyncDisposable
 
     private async Task OnJournalEntrySelected(int index)
     {
-        var entry = _currentEntries[index];
+        if (index < 0 || index >= _currentEntries.Count)
+        {
+            SelectedEntry = null;
+            SelectedIndex = -1;
+        }
+
+        var entry = index >= 0 && index < _currentEntries.Count ? _currentEntries[index] : null;
         SelectedEntry = entry;
         SelectedIndex = index;
 
-        if (JournalEntrySelected != null)
+        if (JournalEntrySelected != null && entry != null)
             await JournalEntrySelected(entry);
     }
 

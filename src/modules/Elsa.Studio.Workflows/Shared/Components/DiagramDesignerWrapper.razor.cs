@@ -37,7 +37,7 @@ public partial class DiagramDesignerWrapper
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public string? WorkflowInstanceId { get; set; }
-    [Parameter] public RenderFragment CustomToolbarItems { get; set; } = default!;
+    [Parameter] public RenderFragment? CustomToolbarItems { get; set; }
     [Parameter] public bool IsProgressing { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
     [Parameter] public Func<Task>? GraphUpdated { get; set; }

@@ -4,7 +4,7 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
-        @if (WorkflowDefinition != null)
+        @if (WorkflowDefinition != null && WorkflowInstance != null!)
         {
             <DiagramDesignerWrapper @ref="_designer" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged">
                 <CustomToolbarItems>
@@ -13,7 +13,7 @@
                         Icon="@Icons.Material.Outlined.EditNote"
                         OnClick="@(() => OnEditClicked(WorkflowDefinition.DefinitionId))"></MudIconButton>
                     </MudTooltip>
-                    <ElapsedTime StartTime="WorkflowInstance.CreatedAt" EndTime="@(WorkflowInstance.Status == WorkflowStatus.Running ? DateTimeOffset.UtcNow : WorkflowInstance.FinishedAt!.Value)"/>
+                    <ElapsedTime StartTime="WorkflowInstance.CreatedAt" EndTime="@(WorkflowInstance.Status == WorkflowStatus.Running ? DateTimeOffset.UtcNow : WorkflowInstance.FinishedAt ?? DateTimeOffset.UtcNow)"/>
                 </CustomToolbarItems>
             </DiagramDesignerWrapper>
         }

@@ -66,6 +66,7 @@
                         <MudTh>Completed</MudTh>
                         <MudTh>Duration</MudTh>
                         <MudTh>Status</MudTh>
+                        <MudTh>Activity Instance ID</MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         @{
@@ -75,7 +76,8 @@
                         <MudTd>@record.StartedAt.ToString("g")</MudTd>
                         <MudTd>@record.CompletedAt?.ToString("g")</MudTd>
                         <MudTd>@(record.CompletedAt != null ? (record.CompletedAt - record.StartedAt).Value.ToString("g") : "")</MudTd>
-                        <MudTd>@(record.CompletedAt == null ? record.HasBookmarks ? "Suspended" : "Executing" : "Completed")</MudTd>
+                        <MudTd>@record.Status</MudTd>
+                        <MudTd>@record.Id</MudTd>
                     </RowTemplate>
                     <PagerContent>
                         <MudTablePager/>

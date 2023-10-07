@@ -148,7 +148,7 @@ public partial class ActivityDetails
 
         var activityState = record.ActivityState?
             .Where(x => !x.Key.StartsWith("_"))
-            .ToDictionary(x => x.Key, x => x.Value.ToString());
+            .ToDictionary(x => x.Key, x => x.Value?.ToString());
 
         var outcomesData = record.Payload?.TryGetValue("Outcomes", out var outcomesValue) == true
             ? new Dictionary<string, string?> { ["Outcomes"] = outcomesValue.ToString()! }
