@@ -12,7 +12,7 @@
                     Variant="Variant.Outlined">
                     <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
-                
+
                 <MudTextField
                     T="string"
                     Label="Name"
@@ -42,39 +42,31 @@
                     Variant="Variant.Text"
                     HelperText="Whether to show the description in the designer."
                     Margin="Margin.None"
-                    DisableUnderLine="@false"
-                >
+                    DisableUnderLine="@false">
                     <MudCheckBox
                         T="bool?"
                         Label="Show description"
                         Dense="@true"
                         Checked="@(Activity.GetShowDescription() == true)"
-                        CheckedChanged="OnShowDescriptionChanged"
-                    />
+                        CheckedChanged="OnShowDescriptionChanged"/>
                 </MudField>
                 
-                @if (IsTrigger)
-                {
-                    <MudField
-                        Variant="Variant.Text"
-                        DisableUnderLine="@false"
-                        Margin="Margin.None"
-                        HelperText="When checked, this activity can trigger this workflow."
-                        Label="Trigger workflow"
-                    >
-                        <MudCheckBox
-                            T="bool?"
-                            Label="Trigger workflow"
-                            Dense="@true"
-                            Checked="@(Activity.GetCanStartWorkflow() == true)"
-                            CheckedChanged="OnCanStartWorkflowChanged"
-                        />
-                    </MudField>
-                }
+                <MudField
+                    Variant="Variant.Text"
+                    DisableUnderLine="@false"
+                    Margin="Margin.None"
+                    HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")">
+                    <MudCheckBox
+                        T="bool?"
+                        Label="@(IsTrigger ? "Trigger workflow" : "Start of workflow")"
+                        Dense="@true"
+                        Checked="@(Activity.GetCanStartWorkflow() == true)"
+                        CheckedChanged="OnCanStartWorkflowChanged"/>
+                </MudField>
 
             </MudStack>
         </MudForm>
     }
-    
+
     <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>
