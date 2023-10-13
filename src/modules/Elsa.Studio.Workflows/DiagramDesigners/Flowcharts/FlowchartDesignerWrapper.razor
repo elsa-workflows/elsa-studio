@@ -1,10 +1,19 @@
 @if (IsReadOnly)
+
 {
-    <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected" ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true" ActivityStats="ActivityStats"/>
+    <div style="height:100%">
+        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
+            ActivityStats="ActivityStats" />
+    </div>
 }
+
 else
+
 {
-    <div class="flowchart-diagram-designer" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
-        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected" ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats"/>
+    <div class="flowchart-diagram-designer" style="height: 100%" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
+        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
+            GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" />
     </div>
 }

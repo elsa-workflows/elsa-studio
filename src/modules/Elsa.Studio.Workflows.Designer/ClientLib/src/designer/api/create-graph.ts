@@ -71,8 +71,6 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             }
         },
         magnetThreshold: 0,
-        height: 1000,
-        width: 1000,
         panning: {
             enabled: true,
             modifiers: ['ctrl', 'meta'],
