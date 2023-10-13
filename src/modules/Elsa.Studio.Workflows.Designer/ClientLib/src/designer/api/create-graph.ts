@@ -75,12 +75,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         width: 1000,
         panning: {
             enabled: true,
-            modifiers: ['ctrl', 'meta'],
         },
         mousewheel: {
             enabled: true,
             factor: 1.05,
-            modifiers: ['ctrl', 'meta'],
             minScale: 0.4,
             maxScale: 3,
         },
@@ -171,6 +169,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         new Selection({
             enabled: true,
             multiple: !readOnly,
+            modifiers: ['ctrl', 'shift'],
             rubberEdge: false,
             rubberNode: true,
             rubberband: true,
