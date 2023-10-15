@@ -21,5 +21,12 @@
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <!-- Prevents build error on GH Actions -->
+        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
 
 </Project>

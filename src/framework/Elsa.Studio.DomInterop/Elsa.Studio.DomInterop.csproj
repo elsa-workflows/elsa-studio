@@ -19,4 +19,11 @@
         <PackageReference Include="Microsoft.JSInterop" Version="7.0.9"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <!-- Prevents build error on GH Actions -->
+        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
 </Project>
