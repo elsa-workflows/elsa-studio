@@ -111,7 +111,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var definition = await api.PublishAsync(definitionId, cancellationToken);
+        var definition = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
         await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
         return definition;
     }
