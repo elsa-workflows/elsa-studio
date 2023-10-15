@@ -8,6 +8,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Refit;
 
@@ -275,5 +276,3 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
 }
-
-public record FileDownload(string? FileName, Stream Content);

@@ -9,6 +9,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 
+/// <summary>
+/// Displays a list of workflow definitions.
+/// </summary>
 public partial class Index
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
@@ -20,20 +23,14 @@ public partial class Index
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] public IFiles Files { get; set; } = default!;
+    [Inject] private IFiles Files { get; set; } = default!;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
-        // TODO: Load only json-based workflow definitions for now.
-        // Later, also allow CLR-based workflows to be "edited" (publish / unpublish / position activities / set variables, etc.)
-
-        const string materializerName = "Json";
-
         var request = new ListWorkflowDefinitionsRequest
         {
             Page = state.Page,
-            PageSize = state.PageSize,
-            MaterializerName = materializerName
+            PageSize = state.PageSize
         };
 
         var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
@@ -41,7 +38,6 @@ public partial class Index
 
         var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
-            MaterializerName = materializerName,
             DefinitionIds = unpublishedWorkflowDefinitionIds,
         }, VersionOptions.Published);
 
