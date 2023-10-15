@@ -21,9 +21,15 @@
 
     <ItemGroup>
         <!-- Prevents build error on GH Actions -->
-        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
+        <!--        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">-->
+        <!--            <CopyToPublishDirectory>Never</CopyToPublishDirectory>-->
+        <!--        </None>-->
+<!--        <Content Remove="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json"/>-->
+        <None Include="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
+
     </ItemGroup>
 
 </Project>
