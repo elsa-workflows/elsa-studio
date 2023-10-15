@@ -19,10 +19,4 @@
         <PackageReference Include="Microsoft.JSInterop" Version="7.0.9"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
-            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-    </ItemGroup>
-
 </Project>

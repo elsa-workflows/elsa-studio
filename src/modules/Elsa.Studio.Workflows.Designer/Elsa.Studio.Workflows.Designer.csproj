@@ -18,12 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">
-            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-        </None>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
     </ItemGroup>
