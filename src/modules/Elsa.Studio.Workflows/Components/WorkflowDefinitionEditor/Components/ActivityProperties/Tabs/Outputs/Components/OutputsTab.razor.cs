@@ -77,8 +77,7 @@ public partial class OutputsTab
 
         if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
         
-        // Disable this for now until we rework input/output handling at the engine level.
-        //if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
+        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
 
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();
