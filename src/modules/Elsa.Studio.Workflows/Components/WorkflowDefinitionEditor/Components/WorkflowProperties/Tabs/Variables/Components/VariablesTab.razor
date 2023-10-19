@@ -19,35 +19,37 @@
         }
         else
         {
-            <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Storage</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-
-                @foreach (var variable in Variables)
-                {
-                    var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : default;
-                    var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+            <VerticalWell ExtraPadding="160">
+                <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
+                    <thead>
                     <tr>
-                        <td>@variable.Name</td>
-                        <td>@variable.GetTypeDisplayName()</td>
-                        <td>@storageDriverName</td>
-                        <td style="text-align: right;">
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                                <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">Edit</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">Delete</MudMenuItem>
-                            </MudMenu>
-                        </td>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Storage</th>
+                        <th></th>
                     </tr>
-                }
-                </tbody>
-            </MudSimpleTable>
+                    </thead>
+                    <tbody>
+
+                    @foreach (var variable in Variables)
+                    {
+                        var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : default;
+                        var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                        <tr>
+                            <td>@variable.Name</td>
+                            <td>@variable.GetTypeDisplayName()</td>
+                            <td>@storageDriverName</td>
+                            <td style="text-align: right;">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">Edit</MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">Delete</MudMenuItem>
+                                </MudMenu>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </MudSimpleTable>
+            </VerticalWell>
         }
     </MudStack>
     <MudOverlay Visible="IsReadOnly" Absolute="true"/>

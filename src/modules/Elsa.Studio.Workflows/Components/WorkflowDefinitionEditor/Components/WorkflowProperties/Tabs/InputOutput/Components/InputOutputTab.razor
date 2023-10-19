@@ -2,12 +2,11 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outcomes
 @using Variant = MudBlazor.Variant
-<div class="pa-4">
+<VerticalWell ExtraPadding="40">
     <MudStack>
         <InputsSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
         <OutputsSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
         <OutcomesSection WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </MudStack>
-    
     <MudOverlay Visible="IsReadOnly" Absolute="true"/>
-</div>
+</VerticalWell>

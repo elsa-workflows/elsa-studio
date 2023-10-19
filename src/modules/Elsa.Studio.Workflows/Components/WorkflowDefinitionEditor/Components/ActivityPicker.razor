@@ -8,7 +8,7 @@
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Activities">
-        <div class="pa-4">
+        <Well>
             <MudStack Spacing="3">
                 <MudTextField @bind-Value="@_searchText"
                               Placeholder="Search..."
@@ -20,7 +20,7 @@
                               Clearable="true">
                 </MudTextField>
 
-                <div class="pa-2" style="overflow-y: scroll; max-height: calc(100vh - var(--mud-appbar-height) - 120px);">
+                <VerticalWell ExtraPadding="40">
                     <MudExpansionPanels Elevation="1">
                         @foreach (var grouping in GroupedActivityDescriptors.OrderBy(x => x.Key))
                         {
@@ -57,8 +57,8 @@
                             </MudExpansionPanel>
                         }
                     </MudExpansionPanels>
-                </div>
+                </VerticalWell>
             </MudStack>
-        </div>
+        </Well>
     </MudTabPanel>
 </MudTabs>

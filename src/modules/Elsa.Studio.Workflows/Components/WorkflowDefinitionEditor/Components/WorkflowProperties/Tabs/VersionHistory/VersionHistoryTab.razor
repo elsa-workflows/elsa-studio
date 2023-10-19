@@ -7,7 +7,7 @@
         <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft">
             <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
         </MudMenu>
-        <div style="overflow-y: scroll; max-height: calc(100vh - var(--mud-appbar-height) - 140px);">
+        <VerticalWell ExtraPadding="160">
             <MudTable
                 @ref="Table"
                 ServerData="LoadVersionsAsync"
@@ -51,7 +51,7 @@
                     <MudTablePager/>
                 </PagerContent>
             </MudTable>
-        </div>
+        </VerticalWell>
     </MudStack>
 
 </div>
