@@ -20,33 +20,51 @@ public class SwitchPortProvider : ActivityPortProviderBase
     {
         var cases = GetCases(context.Activity);
 
-        return cases.Select(x =>
+        foreach (var @case in cases)
         {
-            var label = GetLabel(x);
-            return new Port
+            var label = GetLabel(@case);
+            yield return new Port
             {
                 Name = label,
+                DisplayName = label,
                 Type = PortType.Embedded,
-                DisplayName = label
             };
-        });
+        }
+        
+        yield return new Port
+        {
+            Name = "Default",
+            DisplayName = "Default",
+            Type = PortType.Embedded
+        };
     }
 
     /// <inheritdoc />
     public override JsonObject? ResolvePort(string portName, PortProviderContext context)
     {
+        if (portName == "Default")
+        {
+            return context.Activity.GetProperty<JsonObject>("default");
+        }
+        
         var cases = GetCases(context.Activity);
         var @case = cases.FirstOrDefault(x => GetLabel(x) == portName);
-        
+
         return @case != null ? GetActivity(@case) : null;
     }
 
     /// <inheritdoc />
     public override void AssignPort(string portName, JsonObject activity, PortProviderContext context)
     {
+        if(portName == "Default")
+        {
+            context.Activity.SetProperty(activity, "default");
+            return;
+        }
+        
         var cases = GetCases(context.Activity).ToList();
         var @case = cases.FirstOrDefault(x => GetLabel(x) == portName);
-        
+
         if (@case == null)
             return;
 
@@ -56,9 +74,15 @@ public class SwitchPortProvider : ActivityPortProviderBase
     /// <inheritdoc />
     public override void ClearPort(string portName, PortProviderContext context)
     {
+        if(portName == "Default")
+        {
+            context.Activity.SetProperty(null, "default");
+            return;
+        }
+        
         var cases = GetCases(context.Activity).ToList();
         var @case = cases.FirstOrDefault(x => GetLabel(x) == portName);
-        
+
         if (@case == null)
             return;
 

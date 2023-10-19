@@ -29,11 +29,21 @@ public class FlowSwitchPortProvider : ActivityPortProviderBase
         
         var cases = context.Activity.GetProperty<List<SwitchCase>>(options, "cases") ?? new List<SwitchCase>();
 
-        return cases.Select(x => new Port
+        foreach (var @case in cases)
         {
-            Name = x.Label,
-            Type = PortType.Flow,
-            DisplayName = x.Label
-        });
+            yield return new Port
+            {
+                Name = @case.Label,
+                DisplayName = @case.Label,
+                Type = PortType.Flow,
+            };
+        }
+
+        yield return new Port
+        {
+            Name = "Default",
+            DisplayName = "Default",
+            Type = PortType.Flow
+        };
     }
 }
