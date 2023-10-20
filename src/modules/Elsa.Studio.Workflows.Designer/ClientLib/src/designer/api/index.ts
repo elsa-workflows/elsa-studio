@@ -14,4 +14,5 @@ export * from './update-activity';
 export * from './update-activity-size';
 export * from './update-activity-stats';
 export * from './zoom-to-fit';
+export * from './auto-layout';
 export {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";

@@ -67,7 +67,5 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     private async Task OnZoomToFitClicked() => await _designerWrapper!.ZoomToFitAsync();
     private async Task OnCenterClicked() => await _designerWrapper!.CenterContentAsync();
 
-    private async Task OnAutoLayoutClicked()
-    {
-    }
+    private async Task OnAutoLayoutClicked() => await _designerWrapper!.AutoLayoutAsync();
 }

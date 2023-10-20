@@ -276,6 +276,16 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
 
     /// <summary>
+    /// Update the Graph Layout.
+    /// </summary>
+    public async Task AutoLayoutAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats) {
+        var flowchartMapper = await GetFlowchartMapperAsync();
+        var flowchart = activity.GetFlowchart();
+        var graph = flowchartMapper.Map(flowchart, activityStats);       
+        await ScheduleGraphActionAsync(() => _graphApi.AutoLayoutAsync(graph));
+        }
+
+    /// <summary>
     /// Update the specified activity on the graph.
     /// </summary>
     /// <param name="id">The activity ID.</param>

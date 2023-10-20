@@ -94,6 +94,11 @@ public class X6GraphApi
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
     
     /// <summary>
+    /// Adjusts the graph layout.
+    /// </summary>
+    public async Task AutoLayoutAsync(X6Graph graph) => await InvokeAsync(module => module.InvokeVoidAsync("autoLayout", _containerId, graph)); 
+    
+    /// <summary>
     /// Updates the node with the specified activity. 
     /// </summary>
     /// <param name="id">The activity ID.</param>
