@@ -1,4 +1,4 @@
-import { DagreLayout } from '@antv/layout';
+import { DagreLayout, Model } from '@antv/layout';
 import { loadGraph } from './load-graph';
 import { graphBindings } from './graph-bindings';
 
@@ -11,7 +11,7 @@ const dagreLayout = new DagreLayout({
     nodesep: 15,
 })
 
-export async function autoLayout(graphId: string, model: any) {
+export async function autoLayout(graphId: string, model: Model) {
 
     const {graph, interop} = graphBindings[graphId];
     
