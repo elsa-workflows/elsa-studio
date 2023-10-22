@@ -53,6 +53,8 @@ public partial class FlowchartDesignerWrapper
     public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
     public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
     public async Task CenterContentAsync() => await Designer.CenterContentAsync();
+
+    public async Task AutoLayoutAsync() => await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
     
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {

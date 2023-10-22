@@ -5,24 +5,25 @@
   "license": "MIT",
   "version": "1.0.0",
   "dependencies": {
+    "@antv/layout": "^0.3.24",
     "@antv/x6": "^2.11.4",
-    "@antv/x6-plugin-snapline": "^2.1.7",
-    "@antv/x6-plugin-selection": "^2.1.7",
-    "@antv/x6-plugin-scroller": "^2.0.9",
-    "@antv/x6-plugin-transform": "^2.1.7",
-    "@antv/x6-plugin-keyboard": "^2.2.1",
     "@antv/x6-plugin-clipboard": "^2.1.6",
     "@antv/x6-plugin-history": "^2.2.3",
+    "@antv/x6-plugin-keyboard": "^2.2.1",
+    "@antv/x6-plugin-scroller": "^2.0.9",
+    "@antv/x6-plugin-selection": "^2.1.7",
+    "@antv/x6-plugin-snapline": "^2.1.7",
+    "@antv/x6-plugin-transform": "^2.1.7",
     "lodash.camelcase": "^4.3.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4",
     "css-loader": "^6.8.1",
     "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4",
     "typescript": "^5.1.6",
-    "ts-loader": "^9.4.4"
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4"
   },
   "scripts": {
     "build": "webpack"

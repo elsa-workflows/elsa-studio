@@ -276,6 +276,17 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
 
     /// <summary>
+    /// Update the Graph Layout.
+    /// </summary>
+    public async Task AutoLayoutAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    {
+        var flowchartMapper = await GetFlowchartMapperAsync();
+        var flowchart = activity.GetFlowchart();
+        var graph = flowchartMapper.Map(flowchart, activityStats);
+        await ScheduleGraphActionAsync(() => _graphApi.AutoLayoutAsync(graph));
+    }
+
+    /// <summary>
     /// Update the specified activity on the graph.
     /// </summary>
     /// <param name="id">The activity ID.</param>
@@ -328,7 +339,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var activities = container.GetActivities().ToList();
         var activityLookup = new Dictionary<string, JsonObject>();
         var newContainerId = ActivityIdGenerator.GenerateId();
-        
+
         // Update the container ID.
         container.SetId(newContainerId);
 
@@ -362,7 +373,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             connection.Source.ActivityId = sourceActivity.GetId();
             connection.Target.ActivityId = targetActivity.GetId();
         }
-        
+
         container.SetConnections(connections);
     }
 
