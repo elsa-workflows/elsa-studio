@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -34,34 +35,128 @@ public partial class DiagramDesignerWrapper
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats = new Dictionary<string, ActivityStats>();
 
-    [Parameter] public JsonObject Activity { get; set; } = default!;
-    [Parameter] public bool IsReadOnly { get; set; }
-    [Parameter] public string? WorkflowInstanceId { get; set; }
-    [Parameter] public RenderFragment? CustomToolbarItems { get; set; }
-    [Parameter] public bool IsProgressing { get; set; }
-    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
-    [Parameter] public Func<Task>? GraphUpdated { get; set; }
-    [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    /// <summary>
+    /// The diagram activity to display.
+    /// </summary>
+    [Parameter]
+    public JsonObject Activity { get; set; } = default!;
+
+    /// <summary>
+    /// Whether the designer is read-only.
+    /// </summary>
+    [Parameter]
+    public bool IsReadOnly { get; set; }
+
+    /// <summary>
+    /// The workflow instance ID, if any.
+    /// </summary>
+    [Parameter]
+    public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
+    /// A custom toolbar to display.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? CustomToolbarItems { get; set; }
+
+    /// <summary>
+    /// Whether the designer is progressing.
+    /// </summary>
+    [Parameter]
+    public bool IsProgressing { get; set; }
+
+    /// <summary>
+    /// An event raised when an activity is selected.
+    /// </summary>
+    [Parameter]
+    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    /// <summary>
+    /// An event raised when an embedded port is selected.
+    /// </summary>
+    [Parameter]
+    public Func<Task>? GraphUpdated { get; set; }
+
+    /// <summary>
+    /// An event raised when the path changes.
+    /// </summary>
+    [Parameter]
+    public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
+    /// <summary>
+    /// Selects the activity with the specified ID.
+    /// </summary>
+    /// <param name="activityId">The ID of the activity to select.</param>
+    public async Task SelectActivityAsync(string activityId)
+    {
+        var diagramActivity = Activity;
+        var activityToSelect = diagramActivity.GetActivities().FirstOrDefault(x => x.GetId() == activityId);
+
+        if (activityToSelect != null)
+        {
+            await _diagramDesigner!.SelectActivityAsync(activityId);
+            return;
+        }
+
+        var activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(diagramActivity);
+        var embeddedActivityNode = activityNodeLookup[activityId];
+        var path = new List<ActivityPathSegment>();
+
+        while (true)
+        {
+            var flowchart = embeddedActivityNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
+            var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
+
+            if (owningActivityNode == null)
+                break;
+            
+            var propName = flowchart!.PropertyName!;
+            path.Add(new ActivityPathSegment(owningActivityNode.Activity.GetId(), owningActivityNode.Activity.GetTypeName(), propName));
+
+            embeddedActivityNode = owningActivityNode;
+        }
+    }
+
+    /// <summary>
+    /// Updates the stats of the specified activity.
+    /// </summary>
+    /// <param name="activityId">The ID of the activity to update.</param>
+    /// <param name="stats">The stats to update.</param>
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
+
+    /// <summary>
+    /// Reads the activity from the designer.
+    /// </summary>
     public Task<JsonObject> ReadActivityAsync()
     {
         return Task.FromResult(Activity);
     }
 
+    /// <summary>
+    /// Loads the specified activity into the designer.
+    /// </summary>
+    /// <param name="activity">The activity to load.</param>
     public async Task LoadActivityAsync(JsonObject activity)
     {
         await _diagramDesigner!.LoadRootActivityAsync(activity, _activityStats);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
 
+    /// <summary>
+    /// Updates the specified activity in the designer.
+    /// </summary>
+    /// <param name="activityId">the ID of the activity to update.</param>
+    /// <param name="activity">The activity to update.</param>
     public async Task UpdateActivityAsync(string activityId, JsonObject activity)
     {
         var currentContainer = GetCurrentContainerActivity();
@@ -77,30 +172,24 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
-    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) => await _diagramDesigner.UpdateActivityStatsAsync(activityId, stats);
-
-    public JsonObject? GetCurrentActivity()
-    {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.Activity;
-    }
-
-    public JsonObject GetCurrentContainerActivity()
-    {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.EmbeddedActivity ?? Activity;
-    }
-    
-    public async Task SelectActivityAsync(string activityId)
-    {
-        await _diagramDesigner.SelectActivityAsync(activityId);
-    }
-
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
+    }
+
+    private JsonObject? GetCurrentActivity()
+    {
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.Activity;
+    }
+
+    private JsonObject GetCurrentContainerActivity()
+    {
+        var resolvedPath = ResolvePath().LastOrDefault();
+        return resolvedPath?.EmbeddedActivity ?? Activity;
     }
 
     private IEnumerable<GraphSegment> ResolvePath()

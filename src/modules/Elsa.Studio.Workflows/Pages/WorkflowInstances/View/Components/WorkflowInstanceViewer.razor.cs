@@ -1,10 +1,12 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -30,7 +32,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private DiagramDesignerWrapper _designer = default!;
     private int _propertiesPaneHeight = 300;
-    private IDictionary<string, JsonObject> _activityLookup = new Dictionary<string, JsonObject>();
+    private IDictionary<string, ActivityNode> _activityNodeLookup = new Dictionary<string, ActivityNode>();
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
     private bool _activateEventsTabPanel = false;
@@ -103,7 +105,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         if (WorkflowDefinition?.Root == null!)
             return;
 
-        _activityLookup = ActivityVisitor.VisitAndMap(WorkflowDefinition.Root);
+        _activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(WorkflowDefinition.Root);
         await HandleActivitySelectedAsync(WorkflowDefinition.Root);
 
         // If the workflow instance is still running, observe it.
@@ -125,14 +127,13 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         if (SelectedWorkflowExecutionLogRecord != null)
         {
             var activityId = SelectedWorkflowExecutionLogRecord.Record.ActivityId;
-            var activity = _activityLookup.TryGetValue(activityId, out var activityObject) ? activityObject : default;
+            var activityNode = _activityNodeLookup.TryGetValue(activityId, out var activityObject) ? activityObject : default;
 
-            if (activity != null)
+            if (activityNode != null)
             {
                 _activateEventsTabPanel = true;
 
-                await SelectActivityAsync(activity.GetId());
-                //await HandleActivitySelectedAsync(activity);
+                await SelectActivityAsync(activityNode.Activity.GetId());
             }
         }
     }

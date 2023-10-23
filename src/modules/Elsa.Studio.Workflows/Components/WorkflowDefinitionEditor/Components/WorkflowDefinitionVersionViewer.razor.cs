@@ -43,7 +43,8 @@ public partial class WorkflowDefinitionVersionViewer
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
-    
+
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
@@ -54,6 +55,7 @@ public partial class WorkflowDefinitionVersionViewer
         SelectActivity(WorkflowDefinition.Root);
     }
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         if (WorkflowDefinition?.Root == null)
@@ -65,6 +67,7 @@ public partial class WorkflowDefinitionVersionViewer
         SelectActivity(WorkflowDefinition.Root);
     }
 
+    /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (WorkflowDefinition?.Root == null)

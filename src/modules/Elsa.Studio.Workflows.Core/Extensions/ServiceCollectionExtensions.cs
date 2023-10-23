@@ -1,7 +1,10 @@
+using Elsa.Api.Client.Contracts;
+using Elsa.Api.Client.Services;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
+using Elsa.Studio.Workflows.Resolvers;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Providers;
 using Elsa.Studio.Workflows.UI.Services;
@@ -37,6 +40,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddScoped<IActivityPortService, DefaultActivityPortService>()
             .AddScoped<IActivityVisitor, DefaultActivityVisitor>()
+            .AddScoped<IActivityResolver, DefaultActivityResolver>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();

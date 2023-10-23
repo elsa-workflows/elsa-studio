@@ -25,7 +25,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats);
 
     /// <inheritdoc />
-    public async Task SelectActivityAsync(string id) => await _designerWrapper.SelectActivityAsync(id);
+    public async Task SelectActivityAsync(string id) => await _designerWrapper!.SelectActivityAsync(id);
 
     /// <inheritdoc />
     public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
