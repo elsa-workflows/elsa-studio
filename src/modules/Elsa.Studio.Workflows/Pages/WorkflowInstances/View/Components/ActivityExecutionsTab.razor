@@ -1,0 +1,67 @@
+@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Resources.ActivityExecutions.Models
+
+<ScrollableWell MaxHeight="VisiblePaneHeight">
+    <MudStack Row="true">
+        <MudTable
+            T="ActivityExecutionRecordTableRow"
+            Items="Items"
+            Dense="true"
+            Bordered="false"
+            Striped="false"
+            Elevation="0"
+            Outlined="true"
+            Hover="true"
+            RowStyle="cursor: pointer;"
+            OnRowClick="@OnActivityExecutionClicked">
+            <HeaderContent>
+                <MudTh>#</MudTh>
+                <MudTh>Started</MudTh>
+                <MudTh>Completed</MudTh>
+                <MudTh>Duration</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Activity Instance ID</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @{
+                    var record = context.ActivityExecution;
+                }
+                <MudTh>@context.Number</MudTh>
+                <MudTd>@record.StartedAt.ToString("g")</MudTd>
+                <MudTd>@record.CompletedAt?.ToString("g")</MudTd>
+                <MudTd>@(record.CompletedAt != null ? (record.CompletedAt - record.StartedAt).Value.ToString("g") : "")</MudTd>
+                <MudTd>@record.Status</MudTd>
+                <MudTd>@record.Id</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager/>
+            </PagerContent>
+        </MudTable>
+
+        <div>
+            @if (SelectedActivityState.Any())
+            {
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
+                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false"/>
+                </div>
+            }
+
+            @if (SelectedOutcomesData.Any())
+            {
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
+                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true"/>
+                </div>
+            }
+
+            @if (SelectedOutputData.Any())
+            {
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
+                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false"/>
+                </div>
+            }
+        </div>
+    </MudStack>
+</ScrollableWell>

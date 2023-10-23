@@ -90,6 +90,11 @@ public partial class DiagramDesignerWrapper
         var resolvedPath = ResolvePath().LastOrDefault();
         return resolvedPath?.EmbeddedActivity ?? Activity;
     }
+    
+    public async Task SelectActivityAsync(string activityId)
+    {
+        await _diagramDesigner.SelectActivityAsync(activityId);
+    }
 
     protected override async Task OnInitializedAsync()
     {

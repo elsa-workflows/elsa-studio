@@ -264,6 +264,15 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var node = mapper.MapActivity(activity);
         await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
+    
+    /// <summary>
+    /// Selects the specified activity in the graph.
+    /// </summary>
+    /// <param name="id">The ID of the activity to select.</param>
+    public async Task SelectActivityAsync(string id)
+    {
+        await ScheduleGraphActionAsync(() => _graphApi.SelectActivityAsync(id));
+    }
 
     /// <summary>
     /// Zoom the canvas to fit all activities.
@@ -292,7 +301,6 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <param name="id">The activity ID.</param>
     /// <param name="activity">The updated activity.</param>
     public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
-
 
     /// <summary>
     /// Update the specified activity stats on the graph.

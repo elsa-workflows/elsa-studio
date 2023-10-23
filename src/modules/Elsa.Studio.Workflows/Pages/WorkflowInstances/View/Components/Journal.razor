@@ -4,7 +4,7 @@
 @using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Journal">
-        <MudPaper Class="ma-2" Elevation="0" Outlined="true">
+        <MudPaper Class="mx-2 mt-2 mb-0" Elevation="0" Outlined="true">
             <MudToolBar Dense="true">
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.Timer"
@@ -37,7 +37,7 @@
                 </MudToggleIconButton>
             </MudToolBar>
         </MudPaper>
-        <div class="pa-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
+        <div class="px-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
             <MudTimeline @ref="_timeline" SelectedIndexChanged="OnJournalEntrySelected" SelectedIndex="SelectedIndex">
                 <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
                     @{
@@ -63,22 +63,22 @@
                                 _ => Color.Default
                                 };
                     }
-                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="@($"cursor-pointer pa-4 {bgClass}")">
+                    <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="@timelineAlign" Class="@($"cursor-pointer pa-1 {bgClass}")">
                         <ItemDot>
                             <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                         </ItemDot>
                         <ItemContent>
-                            <MudText Typo="Typo.body1">@displayName</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.EventName</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
+                            <MudText Typo="Typo.body2">@displayName</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@record.EventName</MudText>
                         </ItemContent>
                         <ItemOpposite>
-
+                            <div class="d-flex justify-end gap-4">
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
+                            </div>
                             <div class="d-flex justify-end gap-4">
                                 <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary">@timeMetric.ToString("hh\\:mm\\:ss\\.fff")</MudText>
                             </div>
-
                         </ItemOpposite>
                     </MudTimelineItem>
                 </Virtualize>

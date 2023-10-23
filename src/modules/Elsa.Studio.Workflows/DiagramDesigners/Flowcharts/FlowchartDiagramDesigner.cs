@@ -8,16 +8,29 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
+/// <summary>
+/// A diagram designer that displays a flowchart.
+/// </summary>
 public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
 
+    /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await _designerWrapper!.LoadFlowchartAsync(activity, activityStatsMap);
-    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats); 
 
+    /// <inheritdoc />
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
+
+    /// <inheritdoc />
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats);
+
+    /// <inheritdoc />
+    public async Task SelectActivityAsync(string id) => await _designerWrapper.SelectActivityAsync(id);
+
+    /// <inheritdoc />
     public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
 
+    /// <inheritdoc />
     public RenderFragment DisplayDesigner(DisplayContext context)
     {
         var flowchart = context.Activity;
@@ -38,6 +51,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         };
     }
 
+    /// <inheritdoc />
     public IEnumerable<RenderFragment> GetToolboxItems()
     {
         yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, "Zoom to fit the screen", OnZoomToFitClicked);
