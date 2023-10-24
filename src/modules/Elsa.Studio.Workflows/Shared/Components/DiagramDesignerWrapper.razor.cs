@@ -308,6 +308,18 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity, _activityStats);
     }
 
+    private async Task OnActivityDoubleClick(JsonObject activity)
+    {
+        if (!IsReadOnly)
+            return;
+        
+        // If the activity is a workflow definition activity, then open the workflow definition editor.
+        if (activity.GetWorkflowDefinitionId() != null)
+        {
+            await OnActivityEmbeddedPortSelected(new ActivityEmbeddedPortSelectedArgs(activity, "Root"));
+        }
+    }
+
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
         var activity = args.Activity;

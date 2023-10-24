@@ -38,7 +38,7 @@ else
                        <MudStack Style="height:100%" Justify="Justify.Center">
                            <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
                            @{
-                               var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded,IsBrowsable: true }).ToList();
+                               var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
                            }
                            @if (visiblePorts.Any())
                            {

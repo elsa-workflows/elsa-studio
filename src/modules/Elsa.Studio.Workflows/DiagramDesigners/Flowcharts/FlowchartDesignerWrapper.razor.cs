@@ -25,26 +25,37 @@ public partial class FlowchartDesignerWrapper
     /// The flowchart to display.
     /// </summary>
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    
     /// <summary>
     /// A map of activity stats.
     /// </summary>
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
+    
     /// <summary>
     /// Whether the designer is read-only.
     /// </summary>
     [Parameter] public bool IsReadOnly { get; set; }
+    
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
     [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    
+    /// <summary>
+    /// An event raised when an activity is double-clicked.
+    /// </summary>
+    [Parameter] public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
+    
     /// <summary>
     /// An event raised when the graph is updated.
     /// </summary>
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
+    
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;

@@ -81,6 +81,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
 
     /// <summary>
+    /// An event raised when an activity is double clicked.
+    /// </summary>
+    [Parameter]
+    public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
+
+    /// <summary>
     /// An event raised when the canvas is selected.
     /// </summary>
     [Parameter]
@@ -125,6 +131,19 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
         var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
         await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
+    }
+
+    /// <summary>
+    /// Invoked from JavaScript when an activity is double clicked.
+    /// </summary>
+    /// <param name="activity">The clicked activity.</param>
+    [JSInvokable]
+    public async Task HandleActivityDoubleClick(JsonObject activity)
+    {
+        if (ActivityDoubleClick == null)
+            return;
+
+        await InvokeAsync(async () => await ActivityDoubleClick(activity));
     }
 
     /// <summary>
@@ -264,7 +283,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         var node = mapper.MapActivity(activity);
         await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
-    
+
     /// <summary>
     /// Selects the specified activity in the graph.
     /// </summary>

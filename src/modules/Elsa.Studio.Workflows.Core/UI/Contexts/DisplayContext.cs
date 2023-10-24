@@ -17,6 +17,7 @@ public record DisplayContext(
     JsonObject Activity, 
     Func<JsonObject, Task>? ActivitySelectedCallback = default,
     Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelectedCallback = default,
+    Func<JsonObject, Task>? ActivityDoubleClickCallback = default,
     Func<Task>? GraphUpdatedCallback = default, 
     bool IsReadOnly = false,
     IDictionary<string, ActivityStats>? ActivityStats = default);
