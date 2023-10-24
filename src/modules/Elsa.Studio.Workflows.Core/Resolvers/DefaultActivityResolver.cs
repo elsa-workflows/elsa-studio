@@ -28,7 +28,7 @@ public class DefaultActivityResolver : IActivityResolver
             let containedObject = containedItem.AsObject()
             where containedObject.IsActivity()
             select new EmbeddedActivity(containedObject, prop.Key);
-        
+
         return new(containedActivities.ToList());
     }
 }

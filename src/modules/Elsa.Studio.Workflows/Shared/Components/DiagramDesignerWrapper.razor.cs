@@ -104,10 +104,19 @@ public partial class DiagramDesignerWrapper
 
         if (activityToSelect != null)
         {
+            // The selected activity exists in the root level, so we can just select it.
+            // But if we are in a nested activity, we need to find the path to the activity.
+            if (_pathSegments.Any())
+            {
+                await UpdatePathSegmentsAsync(segments => segments.Clear());
+                await DisplayCurrentSegmentAsync();
+            }
+
             await _diagramDesigner!.SelectActivityAsync(activityId);
             return;
         }
 
+        // The activity select is not a direct child of the root activity. We need to find the path to the activity.
         var activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(diagramActivity);
         var embeddedActivityNode = activityNodeLookup[activityId];
         var path = new List<ActivityPathSegment>();
@@ -119,12 +128,27 @@ public partial class DiagramDesignerWrapper
 
             if (owningActivityNode == null)
                 break;
-            
-            var propName = flowchart!.PropertyName!;
+
+            var propName = flowchart!.PropertyName!.Pascalize();
             path.Add(new ActivityPathSegment(owningActivityNode.Activity.GetId(), owningActivityNode.Activity.GetTypeName(), propName));
 
             embeddedActivityNode = owningActivityNode;
         }
+
+        // Update the path segments.
+        await UpdatePathSegmentsAsync(segments =>
+        {
+            segments.Clear();
+
+            foreach (var segment in path.AsEnumerable().Reverse())
+                segments.Push(segment);
+        });
+
+        // Display new segment.
+        await DisplayCurrentSegmentAsync();
+
+        // Select the activity.
+        await _diagramDesigner!.SelectActivityAsync(activityId);
     }
 
     /// <summary>
