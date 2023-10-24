@@ -8,6 +8,7 @@ using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
@@ -87,7 +88,7 @@ public partial class DiagramDesignerWrapper
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
 
@@ -96,21 +97,21 @@ public partial class DiagramDesignerWrapper
     /// <summary>
     /// Selects the activity with the specified ID.
     /// </summary>
-    /// <param name="activityId">The ID of the activity to select.</param>
-    public async Task SelectActivityAsync(string activityId)
+    /// <param name="activityNode">The activity node to select.</param>
+    public async Task SelectActivityAsync(ActivityNode activityNode)
     {
         var diagramActivity = GetCurrentContainerActivity();
-        var activityToSelect = diagramActivity.GetActivities().FirstOrDefault(x => x.GetId() == activityId);
+        var activityToSelect = diagramActivity.GetActivities().FirstOrDefault(x => x.GetId() == activityNode.Activity.GetId());
 
         if (activityToSelect != null)
         {
-            await _diagramDesigner!.SelectActivityAsync(activityId);
+            await _diagramDesigner!.SelectActivityAsync(activityNode.Activity.GetId());
             return;
         }
 
         // The selected activity is not a direct child of the root activity. We need to find the path to the activity.
-        var activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(Activity);
-        var embeddedActivityNode = activityNodeLookup[activityId];
+        var embeddedActivityNode = activityNode;
+
         var path = new List<ActivityPathSegment>();
 
         while (true)
@@ -118,7 +119,7 @@ public partial class DiagramDesignerWrapper
             var flowchart = embeddedActivityNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
             var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
 
-            if (owningActivityNode == null)
+            if (owningActivityNode == null || !owningActivityNode.Parents.Any())
                 break;
 
             var propName = flowchart!.PropertyName!.Pascalize();
@@ -140,7 +141,7 @@ public partial class DiagramDesignerWrapper
         await DisplayCurrentSegmentAsync();
 
         // Select the activity.
-        await _diagramDesigner!.SelectActivityAsync(activityId);
+        await _diagramDesigner!.SelectActivityAsync(activityNode.Activity.GetId());
     }
 
     /// <summary>
@@ -157,6 +158,11 @@ public partial class DiagramDesignerWrapper
     {
         return Task.FromResult(Activity);
     }
+
+    /// <summary>
+    /// Gets the path to the current activity.
+    /// </summary>
+    public IEnumerable<ActivityPathSegment> GetPath() => _pathSegments.ToList();
 
     /// <summary>
     /// Loads the specified activity into the designer.
@@ -245,7 +251,7 @@ public partial class DiagramDesignerWrapper
         if (WorkflowInstanceId != null)
         {
             var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
-            _activityStats = report.Stats.ToDictionary(x => x.ActivityId, x => new ActivityStats
+            _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
             {
                 Faulted = x.IsFaulted,
                 Blocked = x.IsBlocked,
@@ -333,7 +339,7 @@ public partial class DiagramDesignerWrapper
                 // Create a flowchart and embed it into the activity.
                 embeddedActivity = new JsonObject(new Dictionary<string, JsonNode?>
                 {
-                    ["id"] = ActivityIdGenerator.GenerateId(),
+                    ["id"] = IdentityGenerator.GenerateId(),
                     ["type"] = "Elsa.Flowchart",
                     ["version"] = 1,
                     ["name"] = "Flowchart1",

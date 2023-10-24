@@ -10,6 +10,8 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -59,6 +61,7 @@ public partial class WorkflowEditor
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
     
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -67,12 +70,13 @@ public partial class WorkflowEditor
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
+    private JsonObject? WorkflowGraph { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    public string? SelectedActivityId { get; set; }
+    private string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
 
-    public RadzenSplitterPane ActivityPropertiesPane
+    private RadzenSplitterPane ActivityPropertiesPane
     {
         get => _activityPropertiesPane;
         set

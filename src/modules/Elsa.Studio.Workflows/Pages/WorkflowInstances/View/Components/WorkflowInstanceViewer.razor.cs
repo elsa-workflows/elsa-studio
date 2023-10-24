@@ -10,6 +10,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -78,7 +79,6 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    private string? SelectedActivityId { get; set; }
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
     private ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
@@ -105,8 +105,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         if (WorkflowDefinition?.Root == null!)
             return;
 
-        _activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(WorkflowDefinition.Root);
-        await HandleActivitySelectedAsync(WorkflowDefinition.Root);
+        _activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(WorkflowDefinition);
 
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
@@ -126,23 +125,24 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         // If a workflow execution log record is selected, check to see if it's associated with an activity.
         if (SelectedWorkflowExecutionLogRecord != null)
         {
-            var activityId = SelectedWorkflowExecutionLogRecord.Record.ActivityId;
-            var activityNode = _activityNodeLookup.TryGetValue(activityId, out var activityObject) ? activityObject : default;
+            var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
+            var activityNode = _activityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
 
             if (activityNode != null)
             {
                 _activateEventsTabPanel = true;
 
-                await SelectActivityAsync(activityNode.Activity.GetId());
+                await SelectActivityAsync(activityNode);
             }
         }
     }
-    
+
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
             await UpdatePropertiesPaneHeightAsync();
         }
 
@@ -191,28 +191,28 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     {
         _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
-    
-    private async Task SelectActivityAsync(string activityId)
+
+    private async Task SelectActivityAsync(ActivityNode activityNode)
     {
-        await _designer.SelectActivityAsync(activityId);
+        await _designer.SelectActivityAsync(activityNode);
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
     {
+        var activityNodeId = activity.GetNodeId()!;
         SelectedActivity = activity;
-        SelectedActivityId = activity.GetId();
-        ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
-        SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(SelectedActivityId);
+        ActivityDescriptor = ActivityRegistry.Find(activity!.GetTypeName(), activity!.GetVersion());
+        SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
 
         StateHasChanged();
     }
 
-    private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityId)
+    private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityNodeId)
     {
-        if (!_activityExecutionRecordsLookup.TryGetValue(activityId, out var records))
+        if (!_activityExecutionRecordsLookup.TryGetValue(activityNodeId, out var records))
         {
-            records = (await ActivityExecutionService.ListAsync(WorkflowInstance.Id, activityId)).ToList();
-            _activityExecutionRecordsLookup[activityId] = records;
+            records = (await ActivityExecutionService.ListAsync(WorkflowInstance.Id, activityNodeId)).ToList();
+            _activityExecutionRecordsLookup[activityNodeId] = records;
         }
 
         return records;

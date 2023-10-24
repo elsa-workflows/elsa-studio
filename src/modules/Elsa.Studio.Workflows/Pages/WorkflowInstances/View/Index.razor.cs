@@ -37,9 +37,9 @@ public partial class Index
     {
         var instance = await WorkflowInstanceService.GetAsync(Id) ?? throw new InvalidOperationException($"Workflow instance with ID {Id} not found.");
         var definitionVersionIds = new[] { instance.DefinitionVersionId };
-        var definitions = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
+        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
         _workflowInstances = new List<WorkflowInstance> { instance };
-        _workflowDefinitions = definitions.Items.ToList();
+        _workflowDefinitions = response.ToList();
         await SelectWorkflowInstanceAsync(instance);
     }
 

@@ -24,9 +24,9 @@ internal class FlowchartMapper : IFlowchartMapper
 
         foreach (var activity in activities)
         {
-            var activityId = activity.GetId();
-            var activityStats = activityStatsMap?.TryGetValue(activityId, out var stats) == true ? stats : null;
-            var node = _activityMapper.MapActivity(activity.AsObject(), activityStats);
+            var activityNodeId = activity.GetNodeId();
+            var activityStats = activityStatsMap?.TryGetValue(activityNodeId, out var stats) == true ? stats : null;
+            var node = _activityMapper.MapActivity(activity, activityStats);
             graph.Nodes.Add(node);
         }
 

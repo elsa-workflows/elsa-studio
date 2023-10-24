@@ -3,7 +3,7 @@ namespace Elsa.Studio.Workflows.Domain.Contracts;
 /// <summary>
 /// Generates unique activity IDs.
 /// </summary>
-public interface IActivityIdGenerator
+public interface IIdentityGenerator
 {
     /// <summary>
     /// Generates a unique activity ID.

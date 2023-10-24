@@ -96,7 +96,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
-    [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
 
     /// <summary>
@@ -166,7 +166,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var activityType = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
             var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
-            var newActivityId = ActivityIdGenerator.GenerateId();
+            var newActivityId = IdentityGenerator.GenerateId();
             var newName = ActivityNameGenerator.GenerateNextName(allActivities, descriptor);
 
             // Capture the original activity ID so we can update the edges.
@@ -346,7 +346,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         var activities = container.GetActivities().ToList();
         var activityLookup = new Dictionary<string, JsonObject>();
-        var newContainerId = ActivityIdGenerator.GenerateId();
+        var newContainerId = IdentityGenerator.GenerateId();
 
         // Update the container ID.
         container.SetId(newContainerId);
@@ -356,7 +356,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var activityType = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
             var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
-            var newActivityId = ActivityIdGenerator.GenerateId();
+            var newActivityId = IdentityGenerator.GenerateId();
 
             // Capture the original activity ID so we can update the edges.
             activityLookup[activity.GetId()] = activity;

@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -8,8 +10,10 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
+using Elsa.Studio.Workflows.Extensions;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
@@ -20,16 +24,18 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
-    private readonly IActivityIdGenerator _activityIdGenerator;
+    private readonly IIdentityGenerator _identityGenerator;
+    private readonly IActivityVisitor _activityVisitor;
     private readonly IMediator _mediator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteWorkflowDefinitionService"/> class.
     /// </summary>
-    public RemoteWorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IActivityIdGenerator activityIdGenerator, IMediator mediator)
+    public RemoteWorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IIdentityGenerator identityGenerator, IActivityVisitor activityVisitor, IMediator mediator)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
-        _activityIdGenerator = activityIdGenerator;
+        _identityGenerator = identityGenerator;
+        _activityVisitor = activityVisitor;
         _mediator = mediator;
     }
 
@@ -44,7 +50,8 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+        var definition = await api.GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+        return await ProcessAsync(definition);
     }
 
     /// <inheritdoc />
@@ -55,10 +62,16 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<ListResponse<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var response = await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var definitions = response.Items;
+
+        foreach (var definition in definitions) 
+            await ProcessAsync(definition);
+
+        return definitions;
     }
 
     /// <inheritdoc />
@@ -70,14 +83,14 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         if (request.Publish == true)
             await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
 
-        return definition;
+        return (await ProcessAsync(definition))!;
     }
 
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        
+
         try
         {
             await api.DeleteAsync(definitionId, cancellationToken);
@@ -94,7 +107,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     public async Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        
+
         try
         {
             await api.DeleteVersionAsync(id, cancellationToken);
@@ -113,7 +126,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var api = await GetApiAsync(cancellationToken);
         var definition = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
         await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
-        return definition;
+        return (await ProcessAsync(definition))!;
     }
 
     /// <inheritdoc />
@@ -123,7 +136,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
 
         await _mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
-        return definition;
+        return (await ProcessAsync(definition))!;
     }
 
     /// <inheritdoc />
@@ -214,7 +227,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 IsPublished = false,
                 Root = new JsonObject(new Dictionary<string, JsonNode?>
                 {
-                    ["id"] = _activityIdGenerator.GenerateId(),
+                    ["id"] = _identityGenerator.GenerateId(),
                     ["type"] = "Elsa.Flowchart",
                     ["version"] = 1,
                     ["name"] = "Flowchart1"
@@ -244,10 +257,11 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.ImportAsync(definition, cancellationToken);
+        var definition = await api.ImportAsync(definitionModel, cancellationToken);
+        return (await ProcessAsync(definition))!;
     }
 
     /// <inheritdoc />
@@ -273,6 +287,21 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
     }
-    
+
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+
+    private async Task<WorkflowDefinition?> ProcessAsync(WorkflowDefinition? definition)
+    {
+        if (definition == null)
+            return null;
+
+        var graph = await _activityVisitor.VisitAsync(definition);
+        var nodes = graph.Flatten().ToList();
+
+        foreach (var node in nodes) 
+            node.Activity.SetNodeId(node.NodeId);
+
+        definition.Root = graph.Activity.GetRoot()!;
+        return definition;
+    }
 }

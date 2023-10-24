@@ -46,7 +46,7 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     [Parameter] public Func<Task>? GraphUpdated { get; set; }
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = default!;
-    [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
     private FlowchartDesigner Designer { get; set; } = default!;
 
@@ -117,7 +117,7 @@ public partial class FlowchartDesignerWrapper
         
         var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
         {
-            ["id"] = ActivityIdGenerator.GenerateId(),
+            ["id"] = IdentityGenerator.GenerateId(),
             ["name"] = ActivityNameGenerator.GenerateNextName(activities, activityDescriptor),
             ["type"] = activityDescriptor.TypeName,
             ["version"] = activityDescriptor.Version,

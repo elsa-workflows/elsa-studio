@@ -71,7 +71,7 @@ public partial class ActivityExecutionsTab
 
         var outputData = new Dictionary<string, string?>();
 
-        if (record?.Outputs != null)
+        if (record.Outputs != null)
             foreach (var (key, value) in record.Outputs)
                 outputData[key] = value?.ToString();
 

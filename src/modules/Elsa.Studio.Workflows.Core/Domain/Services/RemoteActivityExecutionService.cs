@@ -26,23 +26,23 @@ public class RemoteActivityExecutionService : IActivityExecutionService
     /// <inheritdoc />
     public async Task<ActivityExecutionReport> GetReportAsync(string workflowInstanceId, JsonObject containerActivity, CancellationToken cancellationToken = default)
     {
-        var activityIds = containerActivity.GetActivities().Select(x => x.GetId()).ToList();
+        var activityNodeIds = containerActivity.GetActivities().Select(x => x.GetNodeId()).ToList();
         var request = new GetActivityExecutionReportRequest
         {
             WorkflowInstanceId = workflowInstanceId,
-            ActivityIds = activityIds
+            ActivityNodeIds = activityNodeIds
         };
         var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         return await api.GetReportAsync(request, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityNodeId, CancellationToken cancellationToken = default)
     {
         var request = new ListActivityExecutionsRequest
         {
             WorkflowInstanceId = workflowInstanceId,
-            ActivityId = activityId
+            ActivityNodeId = activityNodeId
         };
         
         var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
