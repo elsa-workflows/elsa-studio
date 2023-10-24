@@ -99,25 +99,17 @@ public partial class DiagramDesignerWrapper
     /// <param name="activityId">The ID of the activity to select.</param>
     public async Task SelectActivityAsync(string activityId)
     {
-        var diagramActivity = Activity;
+        var diagramActivity = GetCurrentContainerActivity();
         var activityToSelect = diagramActivity.GetActivities().FirstOrDefault(x => x.GetId() == activityId);
 
         if (activityToSelect != null)
         {
-            // The selected activity exists in the root level, so we can just select it.
-            // But if we are in a nested activity, we need to find the path to the activity.
-            if (_pathSegments.Any())
-            {
-                await UpdatePathSegmentsAsync(segments => segments.Clear());
-                await DisplayCurrentSegmentAsync();
-            }
-
             await _diagramDesigner!.SelectActivityAsync(activityId);
             return;
         }
 
-        // The activity select is not a direct child of the root activity. We need to find the path to the activity.
-        var activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(diagramActivity);
+        // The selected activity is not a direct child of the root activity. We need to find the path to the activity.
+        var activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(Activity);
         var embeddedActivityNode = activityNodeLookup[activityId];
         var path = new List<ActivityPathSegment>();
 
@@ -232,7 +224,7 @@ public partial class DiagramDesignerWrapper
             var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
             var portProvider = ActivityPortService.GetProvider(portProviderContext);
 
-            currentContainer = portProvider.ResolvePort(portName, portProviderContext)!;
+            currentContainer = portProvider.ResolvePort(portName, portProviderContext)!.GetFlowchart();
 
             var segment = new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
             yield return segment;
