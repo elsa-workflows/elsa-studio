@@ -109,14 +109,21 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
-        // The selected activity is not a direct child of the root activity. We need to find the path to the activity.
+        // The selected activity is not a direct child of the current container.
+        // We need to find the container that owns the activity and update the path segments accordingly.
         var embeddedActivityNode = activityNode;
 
         var path = new List<ActivityPathSegment>();
 
         while (true)
         {
+            // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
+            // The key is to find the owning activity of the activity that was selected. Which in the case of the Flowchart diagram, has at least a Flowchart as its parent, which in turn my have a Workflow as its parent.
+            
+            // Find the flowchart to which this activity belongs.
             var flowchart = embeddedActivityNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
+            
+            // Try to get the owning activity of the flowchart. Keep in mind that there could be a Workflow activity in between if the owning activity is a WorkflowDefinitionActivity.
             var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
 
             if (owningActivityNode == null || !owningActivityNode.Parents.Any())
