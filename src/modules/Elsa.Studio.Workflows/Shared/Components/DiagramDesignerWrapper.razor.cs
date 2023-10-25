@@ -184,7 +184,7 @@ public partial class DiagramDesignerWrapper
     /// <summary>
     /// Updates the specified activity in the designer.
     /// </summary>
-    /// <param name="activityId">the ID of the activity to update.</param>
+    /// <param name="activityId">The ID of the activity to update.</param>
     /// <param name="activity">The activity to update.</param>
     public async Task UpdateActivityAsync(string activityId, JsonObject activity)
     {

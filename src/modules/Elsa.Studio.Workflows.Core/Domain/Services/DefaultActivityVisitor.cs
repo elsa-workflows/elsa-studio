@@ -10,7 +10,7 @@ public class DefaultActivityVisitor : IActivityVisitor
     private readonly IEnumerable<IActivityResolver> _portResolvers;
 
     /// <summary>
-    /// Constructor.
+    /// Initializes a new instance of the <see cref="DefaultActivityVisitor"/> class.
     /// </summary>
     public DefaultActivityVisitor(IEnumerable<IActivityResolver> portResolvers)
     {
