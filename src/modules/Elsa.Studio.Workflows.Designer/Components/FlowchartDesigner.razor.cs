@@ -81,6 +81,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
 
     /// <summary>
+    /// An event raised when an activity is double clicked.
+    /// </summary>
+    [Parameter]
+    public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
+
+    /// <summary>
     /// An event raised when the canvas is selected.
     /// </summary>
     [Parameter]
@@ -96,7 +102,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
-    [Inject] private IActivityIdGenerator ActivityIdGenerator { get; set; } = default!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
 
     /// <summary>
@@ -125,6 +131,19 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
         var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
         await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
+    }
+
+    /// <summary>
+    /// Invoked from JavaScript when an activity is double clicked.
+    /// </summary>
+    /// <param name="activity">The clicked activity.</param>
+    [JSInvokable]
+    public async Task HandleActivityDoubleClick(JsonObject activity)
+    {
+        if (ActivityDoubleClick == null)
+            return;
+
+        await InvokeAsync(async () => await ActivityDoubleClick(activity));
     }
 
     /// <summary>
@@ -166,7 +185,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var activityType = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
             var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
-            var newActivityId = ActivityIdGenerator.GenerateId();
+            var newActivityId = IdentityGenerator.GenerateId();
             var newName = ActivityNameGenerator.GenerateNextName(allActivities, descriptor);
 
             // Capture the original activity ID so we can update the edges.
@@ -266,6 +285,15 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
+    /// Selects the specified activity in the graph.
+    /// </summary>
+    /// <param name="id">The ID of the activity to select.</param>
+    public async Task SelectActivityAsync(string id)
+    {
+        await ScheduleGraphActionAsync(() => _graphApi.SelectActivityAsync(id));
+    }
+
+    /// <summary>
     /// Zoom the canvas to fit all activities.
     /// </summary>
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
@@ -292,7 +320,6 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <param name="id">The activity ID.</param>
     /// <param name="activity">The updated activity.</param>
     public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
-
 
     /// <summary>
     /// Update the specified activity stats on the graph.
@@ -338,7 +365,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         var activities = container.GetActivities().ToList();
         var activityLookup = new Dictionary<string, JsonObject>();
-        var newContainerId = ActivityIdGenerator.GenerateId();
+        var newContainerId = IdentityGenerator.GenerateId();
 
         // Update the container ID.
         container.SetId(newContainerId);
@@ -348,7 +375,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var activityType = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
             var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
-            var newActivityId = ActivityIdGenerator.GenerateId();
+            var newActivityId = IdentityGenerator.GenerateId();
 
             // Capture the original activity ID so we can update the edges.
             activityLookup[activity.GetId()] = activity;

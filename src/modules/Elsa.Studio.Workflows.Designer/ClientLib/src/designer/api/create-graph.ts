@@ -370,6 +370,12 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     });
 
+    graph.on('node:dblclick', async args => {
+        const {e, node} = args;
+        const activity: Activity = node.data;
+        await interop.raiseActivityDoubleClick(activity);
+    });
+
     const onGraphUpdated = async (e: any) => {
         await interop.raiseGraphUpdated();
         return false;

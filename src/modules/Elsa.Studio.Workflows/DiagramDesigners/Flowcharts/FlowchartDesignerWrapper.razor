@@ -4,7 +4,7 @@
     <div style="height:100%">
         <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
             ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
-            ActivityStats="ActivityStats" />
+            ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
     </div>
 }
 
@@ -14,6 +14,6 @@ else
     <div class="flowchart-diagram-designer" style="height: 100%" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
         <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
             ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
-            GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" />
+            GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
     </div>
 }

@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -13,7 +10,7 @@ namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 /// <summary>
 /// Displays the details of an activity.
 /// </summary>
-public partial class ActivityDetails
+public partial class ActivityDetailsTab
 {
     /// <summary>
     /// Represents a row in the table of activity executions.
@@ -163,13 +160,5 @@ public partial class ActivityDetails
         SelectedActivityState = activityState ?? new Dictionary<string, string?>();
         SelectedOutcomesData = outcomesData ?? new Dictionary<string, string?>();
         SelectedOutputData = outputData;
-    }
-
-    private Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
-    {
-        SelectedItem = arg.Item.ActivityExecution;
-        CreateSelectedItemDataModels(SelectedItem);
-        StateHasChanged();
-        return Task.CompletedTask;
     }
 }

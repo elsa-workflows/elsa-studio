@@ -9,6 +9,7 @@ export * from './paste-cells';
 export * from './read-graph';
 export * from './raise-activity-selected';
 export * from './raise-activity-embedded-port-selected';
+export * from './select-activity';
 export * from './set-grid-color';
 export * from './update-activity';
 export * from './update-activity-size';

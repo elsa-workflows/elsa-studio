@@ -161,7 +161,11 @@ public partial class Journal : IAsyncDisposable
                 timeMetric);
         }).ToList();
 
+        var selectedEntry = SelectedEntry;
         _currentEntries = entries;
+        
+        // If the selected entry is still in the list, select it again.
+        SelectedEntry = entries.FirstOrDefault(x => x.Record.Id == selectedEntry?.Record.Id);
 
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }

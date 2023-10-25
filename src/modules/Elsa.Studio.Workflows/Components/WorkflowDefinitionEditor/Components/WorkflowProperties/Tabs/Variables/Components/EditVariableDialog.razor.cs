@@ -35,6 +35,7 @@ public partial class EditVariableDialog
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -49,7 +50,7 @@ public partial class EditVariableDialog
 
         if (Variable == null)
         {
-            _model.Id = Guid.NewGuid().ToString("N");
+            _model.Id = IdentityGenerator.GenerateId();
             _model.Name = GetNewVariableName(WorkflowDefinition.Variables);
             _model.StorageDriver = _storageDriverDescriptors.First();
             _model.VariableType = _variableTypes.First();

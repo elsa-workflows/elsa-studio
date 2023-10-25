@@ -32,6 +32,12 @@ public interface IDiagramDesigner
     Task UpdateActivityStatsAsync(string id, ActivityStats stats);
     
     /// <summary>
+    /// Selects the specified activity in the diagram.
+    /// </summary>
+    /// <param name="id">The ID of the activity to select.</param>
+    Task SelectActivityAsync(string id);
+    
+    /// <summary>
     /// Reads the root activity from the diagram.
     /// </summary>
     Task<JsonObject> ReadRootActivityAsync();

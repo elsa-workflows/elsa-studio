@@ -20,16 +20,16 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
-    private readonly IActivityIdGenerator _activityIdGenerator;
+    private readonly IIdentityGenerator _identityGenerator;
     private readonly IMediator _mediator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteWorkflowDefinitionService"/> class.
     /// </summary>
-    public RemoteWorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IActivityIdGenerator activityIdGenerator, IMediator mediator)
+    public RemoteWorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IIdentityGenerator identityGenerator, IMediator mediator)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
-        _activityIdGenerator = activityIdGenerator;
+        _identityGenerator = identityGenerator;
         _mediator = mediator;
     }
 
@@ -55,10 +55,11 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<ListResponse<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var response = await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        return response.Items;
     }
 
     /// <inheritdoc />
@@ -77,7 +78,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     public async Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        
+
         try
         {
             await api.DeleteAsync(definitionId, cancellationToken);
@@ -94,7 +95,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     public async Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        
+
         try
         {
             await api.DeleteVersionAsync(id, cancellationToken);
@@ -214,7 +215,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
                 IsPublished = false,
                 Root = new JsonObject(new Dictionary<string, JsonNode?>
                 {
-                    ["id"] = _activityIdGenerator.GenerateId(),
+                    ["id"] = _identityGenerator.GenerateId(),
                     ["type"] = "Elsa.Flowchart",
                     ["version"] = 1,
                     ["name"] = "Flowchart1"
@@ -244,10 +245,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definition, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.ImportAsync(definition, cancellationToken);
+        return await api.ImportAsync(definitionModel, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -273,6 +274,6 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
     }
-    
+
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
 }

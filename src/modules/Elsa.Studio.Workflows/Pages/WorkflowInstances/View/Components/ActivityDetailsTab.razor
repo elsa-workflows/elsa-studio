@@ -1,0 +1,40 @@
+<ScrollableWell MaxHeight="VisiblePaneHeight">
+    <MudStack>
+        <div>
+            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Activity</MudText>
+            <DataPanel Data="ActivityInfo" HideEmptyValues="true"/>
+        </div>
+
+        @if (ActivityData.Any())
+        {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
+                <DataPanel Data="@ActivityData" HideEmptyValues="false"/>
+            </div>
+        }
+
+        @if (OutcomesData.Any())
+        {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
+                <DataPanel Data="OutcomesData" HideEmptyValues="true"/>
+            </div>
+        }
+
+        @if (OutputData.Any())
+        {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
+                <DataPanel Data="OutputData" HideEmptyValues="false"/>
+            </div>
+        }
+
+        @if (ExceptionData.Any())
+        {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Fault</MudText>
+                <DataPanel Data="ExceptionData" HideEmptyValues="true"/>
+            </div>
+        }
+    </MudStack>
+</ScrollableWell>

@@ -31,17 +31,36 @@ public partial class ActivityWrapper
     private ActivityDescriptor _activityDescriptor = default!;
     private ICollection<Port> _ports = new List<Port>();
 
+    /// <summary>
+    /// Gets or sets the element ID.
+    /// </summary>
     [Parameter] public string? ElementId { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the activity ID.
+    /// </summary>
     [Parameter] public string ActivityId { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets the activity.
+    /// </summary>
     [Parameter] public JsonObject Activity { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets the selected port name.
+    /// </summary>
     [Parameter] public string? SelectedPortName { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the activity stats.
+    /// </summary>
     [Parameter] public ActivityStats? Stats { get; set; }
 
-    [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
-    [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    [Inject] IActivityPortService ActivityPortService { get; set; } = default!;
-    [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private DesignerJsInterop DesignerInterop { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
+    [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
 

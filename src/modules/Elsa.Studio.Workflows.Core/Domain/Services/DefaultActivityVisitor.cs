@@ -1,48 +1,64 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
+/// <inheritdoc />
 public class DefaultActivityVisitor : IActivityVisitor
 {
-    public IEnumerable<JsonObject> Visit(JsonObject root)
-    {
-        var activities = new List<JsonObject>();
+    private readonly IEnumerable<IActivityResolver> _portResolvers;
 
-        foreach (var property in root)
-        {
-            var value = property.Value;
-            if (value is JsonObject jsonObject)
-            {
-                activities.AddRange(ProcessJsonObject(jsonObject));
-            }
-            else if (value is JsonArray jsonArray)
-            {
-                foreach(var item in jsonArray)
-                {
-                    if (item is JsonObject jsonObjectInArray) 
-                        activities.AddRange(ProcessJsonObject(jsonObjectInArray));
-                }
-            }
-        }
-        
-        return activities.DistinctBy(x => x.GetId()).ToList();
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultActivityVisitor"/> class.
+    /// </summary>
+    public DefaultActivityVisitor(IEnumerable<IActivityResolver> portResolvers)
+    {
+        _portResolvers = portResolvers.OrderByDescending(x => x.Priority).ToList();
     }
 
-    private IEnumerable<JsonObject> ProcessJsonObject(JsonObject obj)
+    /// <inheritdoc />
+    public async Task<ActivityNode> VisitAsync(JsonObject activity, CancellationToken cancellationToken = default)
     {
-        var activities = new List<JsonObject>();
-        if (IsActivity(obj))
-        {
-            activities.Add(obj);
-        }
-        activities.AddRange(Visit(obj));
-        return activities;
+        var collectedActivities = new HashSet<JsonObject>(new[] { activity });
+        var graph = new ActivityNode(activity, null);
+        var collectedNodes = new HashSet<ActivityNode>(new[] { graph });
+        await VisitRecursiveAsync((graph, activity), collectedActivities, collectedNodes, cancellationToken);
+        return graph;
     }
-    
-    private static bool IsActivity(JsonObject obj)
+
+    private async Task VisitRecursiveAsync((ActivityNode Node, JsonObject Activity) pair, HashSet<JsonObject> collectedActivities, HashSet<ActivityNode> collectedNodes, CancellationToken cancellationToken)
     {
-        return obj.ContainsKey("type") && obj.ContainsKey("id") && obj.ContainsKey("version");
+        await VisitPortsRecursiveAsync(pair, collectedActivities, collectedNodes, cancellationToken);
+    }
+
+    private async Task VisitPortsRecursiveAsync((ActivityNode Node, JsonObject Activity) pair, HashSet<JsonObject> collectedActivities, HashSet<ActivityNode> collectedNodes, CancellationToken cancellationToken)
+    {
+        var resolver = _portResolvers.FirstOrDefault(x => x.GetSupportsActivity(pair.Activity));
+
+        if (resolver == null)
+            return;
+
+        var embeddedActivities = await resolver.GetActivitiesAsync(pair.Activity, cancellationToken);
+
+        foreach (var embeddedActivity in embeddedActivities)
+        {
+            // Continue if the specified activity was already encountered.
+            if (collectedActivities.Contains(embeddedActivity.Activity))
+                continue;
+
+            var childNode = collectedNodes.FirstOrDefault(x => x.Activity == embeddedActivity.Activity);
+
+            if (childNode == null)
+            {
+                childNode = new ActivityNode(embeddedActivity.Activity, embeddedActivity.PropertyName);
+                collectedNodes.Add(childNode);
+            }
+
+            childNode.Parents.Add(pair.Node);
+            pair.Node.Children.Add(childNode);
+            collectedActivities.Add(embeddedActivity.Activity);
+            await VisitRecursiveAsync((childNode, embeddedActivity.Activity), collectedActivities, collectedNodes, cancellationToken);
+        }
     }
 }

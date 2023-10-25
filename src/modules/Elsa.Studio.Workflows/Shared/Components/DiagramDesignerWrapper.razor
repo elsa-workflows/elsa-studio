@@ -35,4 +35,11 @@
         </SeparatorTemplate>
     </MudBreadcrumbs>
 </div>
-@_diagramDesigner?.DisplayDesigner(new DisplayContext(GetCurrentContainerActivity(), ActivitySelected, OnActivityEmbeddedPortSelected, OnGraphUpdated, IsReadOnly, _activityStats))
+@_diagramDesigner?.DisplayDesigner(new DisplayContext(
+    GetCurrentContainerActivity(), 
+    ActivitySelected, 
+    OnActivityEmbeddedPortSelected, 
+    OnActivityDoubleClick,
+    OnGraphUpdated, 
+    IsReadOnly, 
+    _activityStats))

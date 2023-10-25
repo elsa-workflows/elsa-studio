@@ -42,7 +42,6 @@ public class X6GraphApi
     /// </summary>
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
     
-    
     /// <summary>
     /// Sets the grid color.
     /// </summary>
@@ -59,6 +58,15 @@ public class X6GraphApi
         var nodeElement = JsonSerializer.SerializeToElement(node, serializerOptions);
         
         await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
+    }
+    
+    /// <summary>
+    /// Selects the specified activity in the graph.
+    /// </summary>
+    /// <param name="id">The ID of the activity to select.</param>
+    public async Task SelectActivityAsync(string id)
+    {
+        await InvokeAsync(module => module.InvokeVoidAsync("selectActivity", _containerId, id));
     }
     
     /// <summary>
