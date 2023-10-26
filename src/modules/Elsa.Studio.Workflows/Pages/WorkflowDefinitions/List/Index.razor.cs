@@ -84,8 +84,10 @@ public partial class Index
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var workflowDefinition = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
-            Edit(workflowDefinition.DefinitionId);
+            var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
+
+            result.OnSuccess(definition => Edit(definition.DefinitionId));
+            result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
         }
     }
 
