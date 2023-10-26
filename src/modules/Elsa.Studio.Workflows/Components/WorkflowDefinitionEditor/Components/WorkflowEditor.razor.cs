@@ -75,7 +75,6 @@ public partial class WorkflowEditor
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
-    private JsonObject? WorkflowGraph { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private string? SelectedActivityId { get; set; }
@@ -329,7 +328,15 @@ public partial class WorkflowEditor
     {
         await ProgressAsync(async () => await PublishAsync(async () =>
         {
-            Snackbar.Add("Workflow published", Severity.Success);
+            // Depending on whether or not the workflow contains Not Found activities, display a different message.
+            var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
+            var nodes = graph.Flatten();
+            var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
+
+            if (hasNotFoundActivities)
+                Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
+            else
+                Snackbar.Add("Workflow published", Severity.Success);
 
             if (!ShouldUpdateReferences())
                 return;
