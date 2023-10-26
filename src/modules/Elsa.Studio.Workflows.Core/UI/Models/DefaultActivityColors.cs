@@ -6,6 +6,7 @@ namespace Elsa.Studio.Workflows.UI.Models;
 public static class DefaultActivityColors
 {
     public static string Default { get; set; } = "var(--mud-palette-primary)";
+    public static string NotFound { get; set; } = "var(--mud-palette-error)";
     public static string Composition { get; set; } = "#f97316";
     public static string Console { get; set; } = "#0369a1";
     public static string Http { get; set; } = "#2dd4bf";

@@ -3,18 +3,23 @@ using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
+/// <inheritdoc />
 public class DefaultActivityDisplaySettingsRegistry : IActivityDisplaySettingsRegistry
 {
     private readonly IEnumerable<IActivityDisplaySettingsProvider> _providers;
     private IDictionary<string, ActivityDisplaySettings>? _settings;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultActivityDisplaySettingsRegistry"/> class.
+    /// </summary>
     public DefaultActivityDisplaySettingsRegistry(IEnumerable<IActivityDisplaySettingsProvider> providers)
     {
         _providers = providers;
     }
 
-    public static ActivityDisplaySettings DefaultSettings { get; set; } = new(DefaultActivityColors.Default);
+    private static ActivityDisplaySettings DefaultSettings { get; set; } = new(DefaultActivityColors.Default);
 
+    /// <inheritdoc />
     public ActivityDisplaySettings GetSettings(string activityType)
     {
         var dictionary = GetSettingsDictionary();
