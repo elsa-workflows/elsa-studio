@@ -2,6 +2,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
@@ -34,7 +35,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Saves a workflow definition.
     /// </summary>
-    Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
+    Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Deletes a workflow definition.
@@ -54,7 +55,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Retracts a workflow definition.
     /// </summary>
-    Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task<Result<WorkflowDefinition, ValidationErrors>> RetractAsync(string definitionId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Deletes multiple workflow definitions.
@@ -89,7 +90,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Creates a new workflow definition.
     /// </summary>
-    Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default);
+    Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Exports a workflow definition.

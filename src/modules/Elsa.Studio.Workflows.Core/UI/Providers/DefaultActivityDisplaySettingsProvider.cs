@@ -12,6 +12,9 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
     /// <inheritdoc />
     public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
+        // Not Found Activity
+        ["Elsa.NotFoundActivity"] = new(DefaultActivityColors.NotFound, ElsaStudioIcons.Heroicons.Exclamation),
+        
         // Branching
         ["Elsa.If"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Heroicons.Question),
         ["Elsa.FlowDecision"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Heroicons.Question),

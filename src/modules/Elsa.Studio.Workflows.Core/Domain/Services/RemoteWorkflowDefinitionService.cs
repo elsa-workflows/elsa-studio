@@ -7,7 +7,9 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Refit;
@@ -63,15 +65,51 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var definition = await api.SaveAsync(request, cancellationToken);
 
-        if (request.Publish == true)
-            await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
+        try
+        {
+            var definition = await api.SaveAsync(request, cancellationToken);
 
+            if (request.Publish == true)
+                await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
+
+            return new(definition);
+        }
+        catch (ValidationApiException e)
+        {
+            var errors = e.GetValidationErrors();
+            return new(errors);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var definition = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
+        await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
         return definition;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> RetractAsync(string definitionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var api = await GetApiAsync(cancellationToken);
+            var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
+
+            await _mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
+            return new(definition);
+        }
+        catch (ValidationApiException e)
+        {
+            var errors = e.GetValidationErrors();
+            return new(errors);
+        }
     }
 
     /// <inheritdoc />
@@ -106,25 +144,6 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         {
             return false;
         }
-    }
-
-    /// <inheritdoc />
-    public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
-    {
-        var api = await GetApiAsync(cancellationToken);
-        var definition = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
-        await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
-        return definition;
-    }
-
-    /// <inheritdoc />
-    public async Task<WorkflowDefinition> RetractAsync(string definitionId, CancellationToken cancellationToken = default)
-    {
-        var api = await GetApiAsync(cancellationToken);
-        var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
-
-        await _mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
-        return definition;
     }
 
     /// <inheritdoc />
@@ -201,7 +220,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
         {

@@ -9,8 +9,10 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
@@ -48,18 +50,21 @@ public partial class WorkflowEditor
     /// <summary>
     /// Gets or sets the drag and drop manager via property injection.
     /// </summary>
-    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
-    
+    [CascadingParameter]
+    public DragDropManager DragDropManager { get; set; } = default!;
+
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
     /// <summary>
     /// Gets or sets a callback that is invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
-    
+    [Parameter]
+    public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -70,7 +75,6 @@ public partial class WorkflowEditor
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
-    private JsonObject? WorkflowGraph { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private string? SelectedActivityId { get; set; }
@@ -100,10 +104,10 @@ public partial class WorkflowEditor
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
-        
+
         if (WorkflowDefinition?.Root == null)
             return;
-        
+
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -123,7 +127,7 @@ public partial class WorkflowEditor
             await SaveChangesRateLimitedAsync(readDiagram);
     }
 
-    private async Task SaveAsync(bool readDiagram, bool publish)
+    private async Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
     {
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
 
@@ -165,16 +169,18 @@ public partial class WorkflowEditor
             Publish = publish,
         };
 
-        workflowDefinition = await WorkflowDefinitionService.SaveAsync(saveRequest);
-        await SetWorkflowDefinitionAsync(workflowDefinition);
-        
+        var result = await WorkflowDefinitionService.SaveAsync(saveRequest);
+        await result.OnSuccessAsync(async definition => await SetWorkflowDefinitionAsync(definition));
+
         _isDirty = false;
         StateHasChanged();
+
+        return result;
     }
 
-    private async Task PublishAsync()
+    private async Task PublishAsync(Func<Task>? onSuccess = default, Action? onFailure = default)
     {
-        await SaveChangesAsync(true, true, true);
+        await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
 
     private bool ShouldUpdateReferences() => WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows;
@@ -185,17 +191,20 @@ public partial class WorkflowEditor
         return updateReferencesResponse.AffectedWorkflows.Count;
     }
 
-    private async Task<ProblemDetails?> RetractAsync()
+    private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        try
+        var result = await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+        await result.OnSuccessAsync(async definition =>
         {
-            var workflowDefinition = await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
-            await SetWorkflowDefinitionAsync(workflowDefinition);
-            return null;
-        }
-        catch (ValidationApiException e)
+            await SetWorkflowDefinitionAsync(definition);
+
+            if (onSuccess != null)
+                await onSuccess();
+        });
+
+        if (onFailure != null)
         {
-            return e.Content;
+            await result.OnFailedAsync(async errors => await onFailure(errors));
         }
     }
 
@@ -204,7 +213,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<Task>? onSuccess = default, Action? onFailure = default)
     {
         await InvokeAsync(async () =>
         {
@@ -218,7 +227,18 @@ public partial class WorkflowEditor
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
-                await SaveAsync(readDiagram, publish);
+                var result = await SaveAsync(readDiagram, publish);
+                result.OnSuccess(_ => onSuccess?.Invoke());
+                result.OnFailed(errors =>
+                {
+                    if (onFailure != null)
+                    {
+                        onFailure();
+                        return;
+                    }
+
+                    Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
+                });
             }
             finally
             {
@@ -258,21 +278,21 @@ public partial class WorkflowEditor
         SelectedActivity = null;
         ActivityDescriptor = null;
         StateHasChanged();
-        
+
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         StateHasChanged();
     }
-    
+
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
         WorkflowDefinition = workflowDefinition;
-        
-        if(WorkflowDefinitionUpdated != null)
+
+        if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
     }
-    
+
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
@@ -291,40 +311,52 @@ public partial class WorkflowEditor
         _isDirty = true;
         StateHasChanged();
         await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
-        
+
         SelectedActivityId = activity.GetId();
     }
 
     private async Task OnSaveClick()
     {
-        await SaveChangesAsync(true, true, false);
-        Snackbar.Add("Workflow saved", Severity.Success);
+        await SaveChangesAsync(true, true, false, () =>
+        {
+            Snackbar.Add("Workflow saved", Severity.Success);
+            return Task.CompletedTask;
+        });
     }
 
     private async Task OnPublishClicked()
     {
-        await ProgressAsync(PublishAsync);
-        Snackbar.Add("Workflow published", Severity.Success);
+        await ProgressAsync(async () => await PublishAsync(async () =>
+        {
+            // Depending on whether or not the workflow contains Not Found activities, display a different message.
+            var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
+            var nodes = graph.Flatten();
+            var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
 
-        if (!ShouldUpdateReferences())
-            return;
+            if (hasNotFoundActivities)
+                Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
+            else
+                Snackbar.Add("Workflow published", Severity.Success);
 
-        var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
-        Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
+            if (!ShouldUpdateReferences())
+                return;
+
+            var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
+            Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
+        }));
     }
 
     private async Task OnRetractClicked()
     {
-        var problemDetails = await ProgressAsync(RetractAsync);
-
-        if (problemDetails != null)
+        await ProgressAsync(async () => await RetractAsync(() =>
         {
-            var error = problemDetails.Errors.Values.First().First();
-            Snackbar.Add(error, Severity.Error);
-            return;
-        }
-
-        Snackbar.Add("Workflow unpublished", Severity.Success);
+            Snackbar.Add("Workflow unpublished", Severity.Success);
+            return Task.CompletedTask;
+        }, errors =>
+        {
+            Snackbar.Add(string.Join(Environment.NewLine, errors.Errors, Severity.Error));
+            return Task.CompletedTask;
+        }));
     }
 
     private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
@@ -378,7 +410,7 @@ public partial class WorkflowEditor
         var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
         await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
         await SetWorkflowDefinitionAsync(workflowDefinition);
-        
+
         _isDirty = false;
 
         StateHasChanged();
@@ -396,9 +428,9 @@ public partial class WorkflowEditor
             var definitionId = WorkflowDefinition!.DefinitionId;
             return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
         });
-        
+
         Snackbar.Add("Successfully started workflow", Severity.Success);
-        
+
         NavigationManager.NavigateTo($"/workflows/instances/{workflowInstanceId}/view");
     }
 }
