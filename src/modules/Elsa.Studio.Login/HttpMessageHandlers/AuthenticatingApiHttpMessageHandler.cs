@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Elsa.Api.Client.Resources.Identity.Responses;
-using Elsa.Studio.Authentication.JwtBearer.Contracts;
 using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Services;
 
 namespace Elsa.Studio.Login.HttpMessageHandlers;

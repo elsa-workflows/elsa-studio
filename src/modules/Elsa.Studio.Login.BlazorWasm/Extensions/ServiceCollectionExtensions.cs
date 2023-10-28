@@ -1,7 +1,7 @@
 using Blazored.LocalStorage;
-using Elsa.Studio.Authentication.JwtBearer.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.BlazorWasm.Services;
+using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 

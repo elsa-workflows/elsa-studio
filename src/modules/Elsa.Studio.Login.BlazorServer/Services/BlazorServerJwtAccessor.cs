@@ -1,5 +1,5 @@
 using Blazored.LocalStorage;
-using Elsa.Studio.Authentication.JwtBearer.Contracts;
+using Elsa.Studio.Login.Contracts;
 using Microsoft.AspNetCore.Http;
 
 namespace Elsa.Studio.Login.BlazorServer.Services;
@@ -22,7 +22,7 @@ public class BlazorServerJwtAccessor : IJwtAccessor
     }
 
     /// <inheritdoc />
-    public async ValueTask<string> ReadTokenAsync(string name)
+    public async ValueTask<string?> ReadTokenAsync(string name)
     {
         if (IsPrerendering())
             return null;

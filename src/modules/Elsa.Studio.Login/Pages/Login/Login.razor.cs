@@ -1,4 +1,3 @@
-using Elsa.Studio.Authentication.JwtBearer.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Pages.Login.Models;
 using Elsa.Studio.Login.Services;

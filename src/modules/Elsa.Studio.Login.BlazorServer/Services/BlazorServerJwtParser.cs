@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.BlazorServer.Services;
 
@@ -12,7 +13,6 @@ public class BlazorServerJwtParser : IJwtParser
     {
         var handler = new JwtSecurityTokenHandler();
         var jwtSecurityToken = handler.ReadJwtToken(jwt);
-        
         return jwtSecurityToken.Claims;
     }
 }

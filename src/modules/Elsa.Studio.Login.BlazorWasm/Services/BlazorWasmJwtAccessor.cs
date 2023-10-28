@@ -1,5 +1,5 @@
 using Blazored.LocalStorage;
-using Elsa.Studio.Authentication.JwtBearer.Contracts;
+using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.BlazorWasm.Services;
 
@@ -18,7 +18,7 @@ public class BlazorWasmJwtAccessor : IJwtAccessor
     }
 
     /// <inheritdoc />
-    public async ValueTask<string> ReadTokenAsync(string name)
+    public async ValueTask<string?> ReadTokenAsync(string name)
     {   
         return await _localStorageService.GetItemAsync<string>(name);
     }
