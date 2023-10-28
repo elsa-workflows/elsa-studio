@@ -33,7 +33,7 @@ public partial class Login
         }
 
         ((AccessTokenAuthenticationStateProvider)AuthenticationStateProvider).NotifyAuthenticationStateChanged();
-        NavigationManager.NavigateTo("/", true);
+        NavigationManager.NavigateTo("", true);
     }
 
     private async Task<bool> ValidateCredentials(string username, string password)

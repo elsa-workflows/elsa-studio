@@ -253,7 +253,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     private Task OnEditClicked(string definitionId)
     {
-        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
+        NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
         return Task.CompletedTask;
     }
 

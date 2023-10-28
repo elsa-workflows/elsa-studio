@@ -108,7 +108,7 @@ public partial class Index
         };
     }
 
-    private void View(string instanceId) => NavigationManager.NavigateTo($"/workflows/instances/{instanceId}/view");
+    private void View(string instanceId) => NavigationManager.NavigateTo($"workflows/instances/{instanceId}/view");
     private void Reload() => _table.ReloadServerData();
 
     private Color GetSubStatusColor(WorkflowSubStatus subStatus)
