@@ -15,9 +15,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the backend module to the service collection.
     /// </summary>
-    public static IServiceCollection AddRemoteBackendModule(this IServiceCollection services, Action<BackendOptions>? configureOptions = default)
+    public static IServiceCollection AddRemoteBackendModule(this IServiceCollection services, Action<BackendOptions>? configureBackendOptions = default)
     {
-        services.Configure(configureOptions ?? (_ => { }));
+        services.Configure(configureBackendOptions ?? (_ => { }));
 
         // Add the Elsa API client.
         services.AddElsaClient();
