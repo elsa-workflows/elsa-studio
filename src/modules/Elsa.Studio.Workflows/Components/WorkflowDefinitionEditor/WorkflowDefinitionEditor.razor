@@ -11,7 +11,7 @@
             <ActivityPicker/>
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
-            <WorkflowDefinitionWorkspace WorkflowDefinitions="@_workflowDefinitions"/>
+            <WorkflowDefinitionWorkspace WorkflowDefinition="@_workflowDefinition"/>
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -19,7 +19,7 @@
 @code
 {
     private readonly DragDropManager _dragDropManager = new();
-    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
+    private WorkflowDefinition? _workflowDefinition;
 
     /// <summary>
     /// The ID of the workflow definition to load.
@@ -30,7 +30,6 @@
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
-        _workflowDefinitions = new List<WorkflowDefinition> { definition! };
+        _workflowDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
     }
 }

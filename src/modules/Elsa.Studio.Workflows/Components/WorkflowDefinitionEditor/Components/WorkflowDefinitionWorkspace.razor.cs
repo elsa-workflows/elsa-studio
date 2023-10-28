@@ -7,42 +7,61 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
+/// <summary>
+/// A workspace for editing a workflow definition.
+/// </summary>
 public partial class WorkflowDefinitionWorkspace : IWorkspace
 {
     private MudDynamicTabs _dynamicTabs = default!;
 
-    [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
+    /// <summary>
+    /// Gets or sets the workflow definition to edit.
+    /// </summary>
+    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets a specific version of the workflow definition to view.
+    /// </summary>
     [Parameter] public WorkflowDefinition? SelectedWorkflowDefinitionVersion { get; set; }
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    
+    /// <summary>
+    /// An event that is invoked when the workflow definition is updated.
+    /// </summary>
     public event Func<Task>? WorkflowDefinitionUpdated;
+
+    /// <inheritdoc />
     public bool IsReadOnly => SelectedWorkflowDefinitionVersion?.IsLatest == false;
+    
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    
+    private WorkflowEditor WorkflowEditor { get; set; } = default!;
 
-    private int ActiveTabIndex { get; } = 0;
-    private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
-    private WorkflowDefinition? SelectedWorkflowDefinition => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowDefinitions.Count ? WorkflowDefinitions.ElementAtOrDefault(ActiveTabIndex) : default;
-
+    /// <summary>
+    /// Displays the specified workflow definition version.
+    /// </summary>
     public void DisplayWorkflowDefinitionVersion(WorkflowDefinition workflowDefinition)
     {
         SelectedWorkflowDefinitionVersion = workflowDefinition;
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Displays the latest workflow definition version, which enables editing.
+    /// </summary>
     public void ResumeEditing()
     {
         SelectedWorkflowDefinitionVersion = default;
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Refreshes the active workflow definition.
+    /// </summary>
     public async Task RefreshActiveWorkflowAsync()
     {
-        var selectedWorkflowDefinition = SelectedWorkflowDefinition;
-        
-        if(selectedWorkflowDefinition == null)
-            return;
-
-        var definitionId = selectedWorkflowDefinition.DefinitionId;
+        var definitionId = WorkflowDefinition.DefinitionId;
         var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest);
-        WorkflowDefinitions[ActiveTabIndex] = definition!;
+        WorkflowDefinition = definition!;
         StateHasChanged();
     }
     
@@ -58,15 +77,11 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     private async Task OnWorkflowDefinitionPropsUpdated()
     {
-        var workflowEditor = WorkflowEditors[SelectedWorkflowDefinition!.DefinitionId];
-        await workflowEditor.NotifyWorkflowChangedAsync();
+        await WorkflowEditor.NotifyWorkflowChangedAsync();
     }
 
     private async Task OnWorkflowDefinitionUpdated()
     {
-        var definitionId = SelectedWorkflowDefinition!.DefinitionId;
-        var workflowEditor = WorkflowEditors[definitionId];
-        WorkflowDefinitions[ActiveTabIndex] = workflowEditor.WorkflowDefinition!;
         StateHasChanged();
 
         if (WorkflowDefinitionUpdated != null)

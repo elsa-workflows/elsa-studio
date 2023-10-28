@@ -5,37 +5,38 @@
     <RadzenSplitter Orientation="Orientation.Horizontal">
         <RadzenSplitterPane Size="65%">
 
-            <MudDynamicTabs @ref="@_dynamicTabs"
-                            Style="height: 100%"
-                            AddTab="@AddTabCallback"
-                            CloseTab="@CloseTabCallback"
-                            bind-ActivePanelIndex="@ActiveTabIndex"
-                            AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
-                            Elevation="0"
-                            ApplyEffectsToContainer>
-                @foreach (var workflowDefinition in WorkflowDefinitions)
-                {
-                    <MudTabPanel Text="@workflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
+            @if (WorkflowDefinition != null!)
+            {
+                <MudDynamicTabs @ref="@_dynamicTabs"
+                                Style="height: 100%"
+                                AddTab="@AddTabCallback"
+                                CloseTab="@CloseTabCallback"
+                                ActivePanelIndex="0"
+                                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                                Elevation="0"
+                                ApplyEffectsToContainer>
+
+                    <MudTabPanel Text="@WorkflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="workflowDefinition.DefinitionId" @ref="WorkflowEditors[workflowDefinition.DefinitionId]" WorkflowDefinition="workflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+                            <WorkflowEditor @key="WorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="WorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
                         }
                         else
                         {
-                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinitionVersion" />
+                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinitionVersion"/>
                         }
-                        
-                    </MudTabPanel>
-                }
 
-            </MudDynamicTabs>
+                    </MudTabPanel>
+
+                </MudDynamicTabs>
+            }
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
             @{
-                var workflowDefinition = SelectedWorkflowDefinitionVersion ?? SelectedWorkflowDefinition;
+                var workflowDefinition = SelectedWorkflowDefinitionVersion ?? WorkflowDefinition;
             }
-            @if (workflowDefinition != null)
+            @if (workflowDefinition != null!)
             {
                 <WorkflowProperties WorkflowDefinition="@workflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
             }

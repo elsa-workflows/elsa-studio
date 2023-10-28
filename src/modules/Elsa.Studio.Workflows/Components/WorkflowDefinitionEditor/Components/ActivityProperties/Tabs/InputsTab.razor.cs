@@ -13,13 +13,31 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
+/// <summary>
+/// A tab for editing the inputs of an activity.
+/// </summary>
 public partial class InputsTab
 {
+    /// <summary>
+    /// Gets or sets the workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the activity to edit.
+    /// </summary>
     [Parameter] public JsonObject? Activity { get; set; }
+    /// <summary>
+    /// Gets or sets the activity descriptor.
+    /// </summary>
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
+    
+    /// <summary>
+    /// An event that is invoked when the activity is updated.
+    /// </summary>
     [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
-    [CascadingParameter] public IWorkspace? Workspace { get; set; }
+    
+    [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
@@ -27,6 +45,7 @@ public partial class InputsTab
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (Activity == null || ActivityDescriptor == null)
