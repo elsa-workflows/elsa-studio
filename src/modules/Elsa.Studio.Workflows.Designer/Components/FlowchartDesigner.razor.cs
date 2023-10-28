@@ -319,7 +319,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="id">The activity ID.</param>
     /// <param name="activity">The updated activity.</param>
-    public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(id, activity));
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(activity));
 
     /// <summary>
     /// Update the specified activity stats on the graph.

@@ -311,8 +311,6 @@ public partial class WorkflowEditor
         _isDirty = true;
         StateHasChanged();
         await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
-
-        SelectedActivityId = activity.GetId();
     }
 
     private async Task OnSaveClick()

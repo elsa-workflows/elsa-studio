@@ -109,16 +109,15 @@ public class X6GraphApi
     /// <summary>
     /// Updates the node with the specified activity. 
     /// </summary>
-    /// <param name="id">The activity ID.</param>
     /// <param name="activity">The activity.</param>
-    public async Task UpdateActivityAsync(string id, JsonObject activity)
+    public async Task UpdateActivityAsync(JsonObject activity)
     {
         var serializerOptions = GetSerializerOptions();
         var mapperFactory = _serviceProvider.GetRequiredService<IMapperFactory>();
         var activityMapper = await mapperFactory.CreateActivityMapperAsync();
         var ports = activityMapper.GetPorts(activity);
         var activityElement = JsonSerializer.SerializeToElement(activity, serializerOptions);
-        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, id, activityElement, ports));
+        await InvokeAsync(module => module.InvokeVoidAsync("updateActivity", _containerId, activityElement, ports));
     }
 
     private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func) => await func(_module);
