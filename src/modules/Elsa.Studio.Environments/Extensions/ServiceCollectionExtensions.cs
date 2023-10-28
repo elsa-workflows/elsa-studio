@@ -1,4 +1,3 @@
-using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
 using Elsa.Studio.Environments.Services;
@@ -20,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnvironmentService, DefaultEnvironmentService>();
         services.Replace(ServiceDescriptor.Scoped<IRemoteBackendApiClientProvider, EnvironmentRemoteBackendApiClientProvider>());
         //services.AddSingleton<IStartupTask, LoadEnvironmentsStartupTask>();
-        services.AddScoped<IModule, Module>();
+        services.AddScoped<IFeature, Feature>();
         return services;
     }
 }

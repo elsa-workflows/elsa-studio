@@ -11,7 +11,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Backend\Elsa.Studio.Backend.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
     </ItemGroup>

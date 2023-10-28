@@ -1,8 +1,10 @@
-using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Shell.Extensions;
+using Elsa.Studio.Webhooks.Extensions;
+using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 
@@ -21,10 +23,12 @@ builder.Services.AddServerSideBlazor(options =>
 // Register shell services and modules.
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
-builder.Services.AddRemoteBackendModule(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
+builder.Services.AddWorkflowContextsModule();
+builder.Services.AddWebhooksModule();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.BlazorWasm.Services;

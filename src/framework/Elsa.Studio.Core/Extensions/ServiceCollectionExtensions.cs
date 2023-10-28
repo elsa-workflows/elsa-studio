@@ -1,4 +1,6 @@
+using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Options;
 using Elsa.Studio.Services;
 using Elsa.Studio.SyntaxProviders;
 using JetBrains.Annotations;
@@ -22,7 +24,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
             .AddScoped<IThemeService, DefaultThemeService>()
             .AddScoped<IAppBarService, DefaultAppBarService>()
-            .AddScoped<IModuleService, DefaultModuleService>()
+            .AddScoped<IFeatureService, DefaultFeatureService>()
             .AddScoped<IUIHintService, DefaultUIHintService>()
             .AddScoped<ISyntaxService, DefaultSyntaxService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
@@ -41,6 +43,20 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMediator, DefaultMediator>();
         
         return services;
+    }
+    
+    /// <summary>
+    /// Adds backend services to the service collection.
+    /// </summary>
+    public static IServiceCollection AddRemoteBackend(this IServiceCollection services, Action<BackendOptions>? configureBackendOptions = default)
+    {
+        services.Configure(configureBackendOptions ?? (_ => { }));
+        services.AddElsaClient();
+        
+        return services
+                .AddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>()
+                .AddScoped<IRemoteBackendApiClientProvider, DefaultRemoteBackendApiClientProvider>()
+            ;
     }
 
     /// <summary>

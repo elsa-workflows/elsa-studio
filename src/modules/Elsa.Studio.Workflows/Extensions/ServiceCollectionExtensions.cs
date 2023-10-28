@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsModule(this IServiceCollection services)
     {
         services
-            .AddScoped<IModule, Module>()
+            .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, WorkflowsMenu>()
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddDefaultUIHintHandlers()

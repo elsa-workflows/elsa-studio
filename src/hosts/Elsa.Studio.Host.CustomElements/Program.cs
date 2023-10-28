@@ -1,8 +1,8 @@
-using Elsa.Studio.Backend.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
@@ -19,7 +19,7 @@ builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("e
 // Register the modules.
 builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddRemoteBackendModule(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddWorkflowsModule();
 
 // Build the application.

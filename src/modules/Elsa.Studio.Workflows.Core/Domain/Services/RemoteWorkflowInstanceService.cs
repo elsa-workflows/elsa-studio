@@ -3,7 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Refit;
 

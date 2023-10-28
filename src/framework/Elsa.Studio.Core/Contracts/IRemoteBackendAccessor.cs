@@ -1,6 +1,6 @@
-using Elsa.Studio.Backend.Models;
+using Elsa.Studio.Models;
 
-namespace Elsa.Studio.Backend.Contracts;
+namespace Elsa.Studio.Contracts;
 
 /// <summary>
 /// Provides access to the current remote backend.

@@ -1,22 +1,22 @@
 using System.Net;
 using Elsa.Api.Client.Resources.Features.Contracts;
-using Elsa.Studio.Backend.Contracts;
-using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Api.Client.Resources.Features.Models;
+using Elsa.Studio.Contracts;
 using Refit;
 
-namespace Elsa.Studio.Workflows.Domain.Services;
+namespace Elsa.Studio.Services;
 
 /// <summary>
 /// A feature service that uses a remote backend to retrieve feature flags.
 /// </summary>
-public class RemoteFeatureService : IFeatureService
+public class RemoteRemoteFeatureProvider : IRemoteFeatureProvider
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RemoteFeatureService"/> class.
+    /// Initializes a new instance of the <see cref="RemoteRemoteFeatureProvider"/> class.
     /// </summary>
-    public RemoteFeatureService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteRemoteFeatureProvider(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
     }
@@ -35,5 +35,13 @@ public class RemoteFeatureService : IFeatureService
         {
             return false;
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        var api = await _remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
+        var response = await api.ListAsync(cancellationToken);
+        return response.Items;
     }
 }

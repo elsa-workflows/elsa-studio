@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Extensions;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Backend.Services;
+namespace Elsa.Studio.Services;
 
 /// <summary>
 /// Provides API clients to the remote backend.

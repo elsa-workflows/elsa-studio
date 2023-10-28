@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Backend.Models;
+namespace Elsa.Studio.Models;
 
 /// <summary>
 /// Represent a remote backend.

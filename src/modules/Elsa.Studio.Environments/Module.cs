@@ -4,11 +4,11 @@ using Elsa.Studio.Environments.Components;
 
 namespace Elsa.Studio.Environments;
 
-public class Module : ModuleBase
+public class Feature : FeatureBase
 {
     private readonly IAppBarService _appBarService;
 
-    public Module(IAppBarService appBarService)
+    public Feature(IAppBarService appBarService)
     {
         _appBarService = appBarService;
     }

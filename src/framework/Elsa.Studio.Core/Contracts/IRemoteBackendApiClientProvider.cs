@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Backend.Contracts;
+namespace Elsa.Studio.Contracts;
 
 /// <summary>
 /// Provides connection details to the backend.

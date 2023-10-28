@@ -5,7 +5,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Backend.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;

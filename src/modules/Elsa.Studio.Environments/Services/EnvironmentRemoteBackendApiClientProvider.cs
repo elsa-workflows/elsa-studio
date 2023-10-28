@@ -1,5 +1,5 @@
 using Elsa.Api.Client.Extensions;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 

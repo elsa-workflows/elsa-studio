@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Backend.Options;
+namespace Elsa.Studio.Options;
 
 /// <summary>
 /// Provides options about the backend.

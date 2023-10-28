@@ -38,7 +38,7 @@
 @code {
     
     [Inject]
-    private IEnumerable<IModule> Modules { get; set; } = default!;
+    private IEnumerable<IFeature> Modules { get; set; } = default!;
 
     [Inject]private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
     

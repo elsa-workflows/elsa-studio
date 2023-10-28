@@ -1,7 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Shell.ComponentProviders;
 using Elsa.Studio.Shell.Options;
-using Elsa.Studio.Shell.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
@@ -37,7 +36,7 @@ public static class ServiceCollectionExtensions
                 })
                 .AddMudExtensions()
                 .AddScoped<IUnauthorizedComponentProvider, DefaultUnauthorizedComponentProvider>()
-                .AddScoped<IStartupTask, InitializeModulesStartupTask>()
+                //.AddScoped<IStartupTask, InitializeModulesStartupTask>()
             ;
     }
 }

@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.BlazorServer.Services;

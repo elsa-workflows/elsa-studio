@@ -1,6 +1,7 @@
+using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Contracts;
+namespace Elsa.Studio.Services;
 
 /// <summary>
 /// A default implementation of <see cref="IMediator"/>.

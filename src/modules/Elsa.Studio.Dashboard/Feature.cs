@@ -2,7 +2,7 @@ using Elsa.Studio.Abstractions;
 
 namespace Elsa.Studio.Dashboard;
 
-public class Module : ModuleBase
+public class Feature : FeatureBase
 {
     
 }
