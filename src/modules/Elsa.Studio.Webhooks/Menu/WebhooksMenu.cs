@@ -13,7 +13,7 @@ public class WebhooksMenu : IMenuProvider
             new()
             {
                 Icon = Icons.Material.Filled.Http,
-                Href = "/webhooks",
+                Href = "webhooks",
                 Text = "Webhooks",
                 GroupName = MenuItemGroups.Settings.Name
             }

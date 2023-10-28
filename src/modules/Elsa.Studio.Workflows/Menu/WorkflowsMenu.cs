@@ -20,12 +20,12 @@ public class WorkflowsMenu : IMenuProvider
                     new MenuItem()
                     {
                         Text = "Definitions",
-                        Href = "/workflows/definitions"
+                        Href = "workflows/definitions"
                     },
                     new MenuItem()
                     {
                         Text = "Instances",
-                        Href = "/workflows/instances"
+                        Href = "workflows/instances"
                     },
                 }
             }

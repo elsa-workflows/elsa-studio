@@ -13,7 +13,7 @@ public class SecurityMenu : IMenuProvider
             new()
             {
                 Icon = Icons.Material.Filled.Security,
-                Href = "/security/users",
+                Href = "security/users",
                 Text = "Security",
                 GroupName = MenuItemGroups.Settings.Name,
                 SubMenuItems =
@@ -21,13 +21,13 @@ public class SecurityMenu : IMenuProvider
                     new MenuItem
                     {
                         Text = "Users",
-                        Href = "/security/users",
+                        Href = "security/users",
                         Icon = Icons.Material.Filled.Person
                     },
                     new MenuItem
                     {
                         Text = "Roles",
-                        Href = "/security/roles",
+                        Href = "security/roles",
                         Icon = Icons.Material.Filled.PeopleOutline
                     }
                 }
