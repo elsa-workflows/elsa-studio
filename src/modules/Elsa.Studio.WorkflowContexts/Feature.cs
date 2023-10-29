@@ -1,5 +1,7 @@
 using Elsa.Studio.Abstractions;
 using Elsa.Studio.Attributes;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.WorkflowContexts.Widgets;
 
 namespace Elsa.Studio.WorkflowContexts;
 
@@ -9,9 +11,18 @@ namespace Elsa.Studio.WorkflowContexts;
 [RemoteFeature("Elsa.WorkflowContexts")]
 public class Feature : FeatureBase
 {
+    private readonly IWidgetRegistry _widgetRegistry;
+
     /// <inheritdoc />
-    public override async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
+    public Feature(IWidgetRegistry widgetRegistry)
     {
-        
+        _widgetRegistry = widgetRegistry;
+    }
+    
+    /// <inheritdoc />
+    public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
+    {
+        _widgetRegistry.Add(new WorkflowContextsEditorWidget());
+        return default;
     }
 }

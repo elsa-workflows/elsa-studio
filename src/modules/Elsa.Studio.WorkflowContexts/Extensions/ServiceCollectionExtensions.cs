@@ -16,8 +16,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowContextsModule(this IServiceCollection services)
     {
         return services
-            .AddScoped<IWorkflowContextsProvider, RemoteWorkflowContextsProvider>()
-            .AddScoped<IFeature, Feature>()
+                .AddScoped<IFeature, Feature>()
+                .AddScoped<IWorkflowContextsProvider, RemoteWorkflowContextsProvider>()
             ;
     }
 }

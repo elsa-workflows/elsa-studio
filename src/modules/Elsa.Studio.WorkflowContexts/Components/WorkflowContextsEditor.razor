@@ -1,0 +1,9 @@
+<MudText Typo="Typo.overline">Workflow Contexts</MudText>
+<MudPaper>
+    <MudStack Spacing="0">
+        @foreach (var descriptor in WorkflowContextDescriptors)
+        {
+            <MudCheckBox T="bool" Label="@descriptor.Name" Checked="@(SelectedWorkflowContextTypes.Contains(descriptor.Type))" CheckedChanged="@(isChecked => OnCheckChanged(descriptor, isChecked == true))"/>
+        }
+    </MudStack>
+</MudPaper>

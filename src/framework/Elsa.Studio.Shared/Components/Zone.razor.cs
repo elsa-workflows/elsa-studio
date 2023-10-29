@@ -6,7 +6,7 @@ namespace Elsa.Studio.Components;
 /// <summary>
 /// Represents a zone in which widgets can be rendered.
 /// </summary>
-public partial class Zone
+public partial class Zone : IDisposable
 {
     /// <summary>
     /// Gets or sets the zone name.
@@ -20,12 +20,26 @@ public partial class Zone
     [Parameter]
     public IDictionary<string, object?> Attributes { get; set; } = new Dictionary<string, object?>();
 
-    [Inject] private IWidgetService WidgetService { get; set; } = default!;
+    [Inject] private IWidgetRegistry WidgetRegistry { get; set; } = default!;
+    [Inject] private IFeatureService FeatureService { get; set; } = default!;
     private ICollection<IWidget> Widgets { get; set; } = new List<IWidget>();
 
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        Widgets = WidgetService.GetWidgets(Name).ToList();
+        FeatureService.Initialized += OnFeatureServiceInitialized;
+        Widgets = WidgetRegistry.List(Name).ToList();
+    }
+
+    private void OnFeatureServiceInitialized()
+    {
+        Widgets = WidgetRegistry.List(Name).ToList();
+        StateHasChanged();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        FeatureService.Initialized -= OnFeatureServiceInitialized;
     }
 }

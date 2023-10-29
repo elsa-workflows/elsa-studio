@@ -9,5 +9,4 @@
             <MudTextField T="string" Label="Description" Variant="Variant.Outlined" HelperText="A brief description of the workflow." Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly"></MudTextField>
         </MudStack>
     </EditForm>
-    <MudOverlay Visible="IsReadOnly" Absolute="true"/>
 </div>

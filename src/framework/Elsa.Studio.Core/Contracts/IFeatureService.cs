@@ -6,6 +6,11 @@ namespace Elsa.Studio.Contracts;
 public interface IFeatureService
 {
     /// <summary>
+    /// Event that is triggered when the features have been initialized.
+    /// </summary>
+    event Action? Initialized;
+    
+    /// <summary>
     /// Returns all features.
     /// </summary>
     IEnumerable<IFeature> GetFeatures();

@@ -7,4 +7,5 @@
     <MudStack>
         <Zone Name="@ZoneNames.WorkflowDefinitionProperties" Attributes="@(new { WorkflowDefinition, OnWorkflowDefinitionUpdated }.ToDictionary())"/>
     </MudStack>
+    <MudOverlay Visible="IsReadOnly" Absolute="true"/>
 </VerticalWell>

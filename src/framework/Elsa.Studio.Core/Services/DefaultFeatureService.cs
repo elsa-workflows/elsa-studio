@@ -18,6 +18,9 @@ public class DefaultFeatureService : IFeatureService
         _features = features;
         _remoteFeatureProvider = remoteFeatureProvider;
     }
+    
+    /// <inheritdoc />
+    public event Action? Initialized;
 
     /// <inheritdoc />
     public IEnumerable<IFeature> GetFeatures()
@@ -37,7 +40,7 @@ public class DefaultFeatureService : IFeatureService
             if (!string.IsNullOrWhiteSpace(remoteFeatureName))
             {
                 // Check if the remote feature is enabled.
-                var remoteFeatureIsEnabled = remoteFeatures.Any(x => x.Name == remoteFeatureName);
+                var remoteFeatureIsEnabled = remoteFeatures.Any(x => x.FullName == remoteFeatureName);
 
                 if (!remoteFeatureIsEnabled)
                     continue;
@@ -45,5 +48,12 @@ public class DefaultFeatureService : IFeatureService
 
             await feature.InitializeAsync(cancellationToken);
         }
+        
+        OnInitialized();
+    }
+
+    private void OnInitialized()
+    {
+        Initialized?.Invoke();
     }
 }
