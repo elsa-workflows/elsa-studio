@@ -8,8 +8,13 @@ namespace Elsa.Studio.Workflows.Services;
 /// </summary>
 public class DisconnectedWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
+    /// <inheritdoc />
     public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
+
+    /// <inheritdoc />
     public event Func<ActivityExecutionLogUpdatedMessage, Task> ActivityExecutionLogUpdated = default!;
+
+    /// <inheritdoc />
     public event Func<WorkflowInstanceUpdatedMessage, Task> WorkflowInstanceUpdated = default!;
     ValueTask IAsyncDisposable.DisposeAsync() => ValueTask.CompletedTask;
 }

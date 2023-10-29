@@ -1,6 +1,5 @@
-using Elsa.Api.Client.Contracts;
-using Elsa.Api.Client.Services;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
@@ -23,7 +22,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddScoped<IFeatureService, RemoteFeatureService>()
+            .AddScoped<IRemoteFeatureProvider, RemoteRemoteFeatureProvider>()
             .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()

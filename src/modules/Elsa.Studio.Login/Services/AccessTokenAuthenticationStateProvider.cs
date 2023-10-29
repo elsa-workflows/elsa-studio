@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Microsoft.AspNetCore.Components.Authorization;
 

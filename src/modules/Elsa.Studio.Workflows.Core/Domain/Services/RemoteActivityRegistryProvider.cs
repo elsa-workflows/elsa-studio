@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Contracts;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Requests;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
 namespace Elsa.Studio.Workflows.Domain.Services;

@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Resources.Identity.Contracts;
 using Elsa.Api.Client.Resources.Identity.Requests;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Models;
 using Refit;

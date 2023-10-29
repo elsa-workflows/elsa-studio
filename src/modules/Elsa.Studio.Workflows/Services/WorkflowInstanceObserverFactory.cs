@@ -1,6 +1,5 @@
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
-using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Elsa.Studio.Workflows.Services;
@@ -9,22 +8,22 @@ namespace Elsa.Studio.Workflows.Services;
 public class WorkflowInstanceObserverFactory : IWorkflowInstanceObserverFactory
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
-    private readonly IFeatureService _featureService;
+    private readonly IRemoteFeatureProvider _remoteFeatureProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WorkflowInstanceObserverFactory"/> class.
     /// </summary>
-    public WorkflowInstanceObserverFactory(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IFeatureService featureService)
+    public WorkflowInstanceObserverFactory(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IRemoteFeatureProvider remoteFeatureProvider)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
-        _featureService = featureService;
+        _remoteFeatureProvider = remoteFeatureProvider;
     }
 
     /// <inheritdoc />
     public async Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId, CancellationToken cancellationToken = default)
     {
         // Only observe the workflow instance if the feature is enabled.
-        if (!await _featureService.IsEnabledAsync("Elsa.RealTimeWorkflowUpdates", cancellationToken))
+        if (!await _remoteFeatureProvider.IsEnabledAsync("Elsa.RealTimeWorkflowUpdates", cancellationToken))
             return new DisconnectedWorkflowInstanceObserver();
 
         // Get the SignalR connection.

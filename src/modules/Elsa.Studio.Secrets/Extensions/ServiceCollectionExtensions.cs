@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSecretsModule(this IServiceCollection services)
     {
         return services
-            .AddScoped<IModule, Module>()
+            .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, SecretsMenu>();
     }
 }

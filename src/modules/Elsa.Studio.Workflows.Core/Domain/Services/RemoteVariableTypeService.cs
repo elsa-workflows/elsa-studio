@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Resources.VariableTypes.Contracts;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
-using Elsa.Studio.Backend.Contracts;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
