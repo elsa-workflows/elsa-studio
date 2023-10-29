@@ -36,7 +36,6 @@ public static class ServiceCollectionExtensions
                 })
                 .AddMudExtensions()
                 .AddScoped<IUnauthorizedComponentProvider, DefaultUnauthorizedComponentProvider>()
-                //.AddScoped<IStartupTask, InitializeModulesStartupTask>()
             ;
     }
 }

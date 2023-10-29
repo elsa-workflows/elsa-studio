@@ -11,7 +11,7 @@ namespace Elsa.Studio.WorkflowContexts.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the login module to the service collection.
+    /// Adds the workflow vcontexts module to the service collection.
     /// </summary>
     public static IServiceCollection AddWorkflowContextsModule(this IServiceCollection services)
     {
