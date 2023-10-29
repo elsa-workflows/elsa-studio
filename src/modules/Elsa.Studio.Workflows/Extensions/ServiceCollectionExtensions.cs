@@ -10,6 +10,7 @@ using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.Handlers;
 using Elsa.Studio.Workflows.Menu;
 using Elsa.Studio.Workflows.Services;
+using Elsa.Studio.Workflows.Widgets;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Extensions;
@@ -42,6 +43,9 @@ public static class ServiceCollectionExtensions
             .AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>();
 
         services.AddNotificationHandler<RefreshActivityRegistry>();
+        services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
+        services.AddScoped<IWidget, WorkflowDefinitionSettingsWidget>();
+        services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
         
         return services;
     }

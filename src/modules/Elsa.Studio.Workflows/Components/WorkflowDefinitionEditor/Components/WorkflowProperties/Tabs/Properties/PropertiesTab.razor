@@ -2,10 +2,9 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Info
 @using Variant = MudBlazor.Variant
+@using Elsa.Studio.Extensions
 <VerticalWell ExtraPadding="60">
     <MudStack>
-        <Metadata WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
-        <Settings WorkflowDefinition="WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
-        <Info WorkflowDefinition="WorkflowDefinition"/>
+        <Zone Name="@ZoneNames.WorkflowDefinitionProperties" Attributes="@(new { WorkflowDefinition, OnWorkflowDefinitionUpdated }.ToDictionary())"/>
     </MudStack>
 </VerticalWell>

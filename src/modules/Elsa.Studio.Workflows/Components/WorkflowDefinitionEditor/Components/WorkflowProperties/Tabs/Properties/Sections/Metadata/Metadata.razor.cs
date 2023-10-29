@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Metadata;
 
+/// <summary>
+/// A component that renders the workflow definition metadata.
+/// </summary>
 public partial class Metadata
 {
     private readonly WorkflowMetadataModel _model = new();
@@ -15,12 +18,20 @@ public partial class Metadata
     private WorkflowPropertiesModelValidator _validator = default!;
     private EditContext _editContext = default!;
 
+    /// <summary>
+    /// Gets or sets the workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets the callback that is invoked when the workflow definition is updated.
+    /// </summary>
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
-    [CascadingParameter] public IWorkspace? Workspace { get; set; }
+    [CascadingParameter] private IWorkspace? Workspace { get; set; }
     
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _model.DefinitionId = WorkflowDefinition.DefinitionId;

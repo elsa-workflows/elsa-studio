@@ -16,7 +16,7 @@
                                 Elevation="0"
                                 ApplyEffectsToContainer>
 
-                    <MudTabPanel Text="@WorkflowDefinition.Name" ShowCloseIcon="true" Style="height: 100%">
+                    <MudTabPanel Text="@WorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
                             <WorkflowEditor @key="WorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="WorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
