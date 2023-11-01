@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.Contracts;
+using Elsa.Studio.Login.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Elsa.Studio.Login.Services;
@@ -28,14 +30,10 @@ public class AccessTokenAuthenticationStateProvider : AuthenticationStateProvide
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
         var claims = _jwtParser.Parse(authToken).ToList();
-
-        // Check if the token has expired.
-        var expString = claims.FirstOrDefault(x => x.Type == "exp")?.Value.Trim();
-        var exp = !string.IsNullOrEmpty(expString) ? long.Parse(expString) : 0;
-        var expiresAt = DateTimeOffset.FromUnixTimeSeconds(exp);
-
+        var isExpired = claims.IsExpired();
+        
         // If the token has expired, return an empty authentication state.
-        if (expiresAt < DateTimeOffset.UtcNow)
+        if (isExpired)
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
         // Otherwise, return the authentication state.
