@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         // Syntax providers.
         services
             .AddSyntaxProvider<LiteralSyntaxProvider>()
+            .AddSyntaxProvider<CSharpSyntaxProvider>()
             .AddSyntaxProvider<JavaScriptSyntaxProvider>()
             .AddSyntaxProvider<LiquidSyntaxProvider>()
             .AddSyntaxProvider<ObjectSyntaxProvider>()

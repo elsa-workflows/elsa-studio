@@ -9,8 +9,12 @@ namespace Elsa.Studio.SyntaxProviders;
 /// </summary>
 public class JavaScriptSyntaxProvider : MonacoSyntaxProviderBase
 {
+    /// <inheritdoc />
     public override Type ExpressionType => typeof(JavaScriptExpression);
+
+    /// <inheritdoc />
     public override string Language => "javascript";
 
+    /// <inheritdoc />
     public override IExpression CreateExpression(object? value = default) => new JavaScriptExpression(value as string ?? "");
 }
