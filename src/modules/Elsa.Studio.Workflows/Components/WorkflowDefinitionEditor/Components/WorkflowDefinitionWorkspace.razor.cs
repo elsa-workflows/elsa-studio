@@ -82,6 +82,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     private async Task OnWorkflowDefinitionUpdated()
     {
+        WorkflowDefinition = WorkflowEditor.WorkflowDefinition!;
         StateHasChanged();
 
         if (WorkflowDefinitionUpdated != null)
