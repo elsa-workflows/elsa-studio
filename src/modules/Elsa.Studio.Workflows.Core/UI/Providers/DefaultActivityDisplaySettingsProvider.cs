@@ -71,5 +71,9 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         
         // Scripting
         ["Elsa.RunJavaScript"] = new(DefaultActivityColors.Scripting, Icons.Material.Outlined.Javascript),
+
+        //ServiceBusActivity
+        ["Elsa.AzureServiceBus.MessageReceived"] = new("#a21caf", ElsaStudioIcons.Heroicons.Incoming),
+        ["Elsa.AzureServiceBus.SendMessage"] = new("#a21caf", ElsaStudioIcons.Heroicons.Outgoing),
     };
 }
