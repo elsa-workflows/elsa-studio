@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
@@ -30,7 +31,7 @@ public partial class MainLayout : IDisposable
         if (AuthenticationState != null)
         {
             var authState = await AuthenticationState;
-            if (authState.User.Identity?.IsAuthenticated ?? false)
+            if (authState.User.Identity?.IsAuthenticated == true && !authState.User.Claims.IsExpired())
                 await FeatureService.InitializeFeaturesAsync();
         }
 
