@@ -5,7 +5,7 @@ using Elsa.Studio.Abstractions;
 namespace Elsa.Studio.SyntaxProviders;
 
 /// <summary>
-/// A provider of a JavaScript syntax that is used by Monaco.
+/// A provider of a C# syntax that is used by Monaco.
 /// </summary>
 public class CSharpSyntaxProvider : MonacoSyntaxProviderBase
 {
