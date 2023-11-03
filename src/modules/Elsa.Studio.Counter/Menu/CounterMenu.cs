@@ -13,19 +13,19 @@ public class CounterMenu : IMenuProvider
             new()
             {
                 Icon = Icons.Material.Filled.Add,
-                Href = "/counter",
+                Href = "counter",
                 Text = "Counter",
                 GroupName = MenuItemGroups.General.Name,
                 SubMenuItems = new List<MenuItem>
                 {
                     new()
                     {
-                        Href = "/counter",
+                        Href = "counter",
                         Text = "Sub menu item 1",
                     },
                     new()
                     {
-                        Href = "/counter2",
+                        Href = "counter2",
                         Text = "Sub menu item 2",
                     },
                 }

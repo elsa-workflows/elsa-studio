@@ -13,7 +13,7 @@ public class SecretsMenu : IMenuProvider
             new()
             {
                 Icon = Icons.Material.Filled.Key,
-                Href = "/secrets",
+                Href = "secrets",
                 Text = "Secrets",
                 GroupName = MenuItemGroups.Settings.Name
             }

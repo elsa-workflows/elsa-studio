@@ -429,6 +429,6 @@ public partial class WorkflowEditor
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        NavigationManager.NavigateTo($"/workflows/instances/{workflowInstanceId}/view");
+        NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
 }

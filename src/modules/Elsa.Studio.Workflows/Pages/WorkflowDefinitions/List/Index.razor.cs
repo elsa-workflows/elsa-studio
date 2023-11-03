@@ -93,7 +93,7 @@ public partial class Index
 
     private void Edit(string definitionId)
     {
-        NavigationManager.NavigateTo($"/workflows/definitions/{definitionId}/edit");
+        NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
     }
     
     private void Reload()
