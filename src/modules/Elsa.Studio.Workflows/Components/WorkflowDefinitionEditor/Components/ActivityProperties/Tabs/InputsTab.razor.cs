@@ -2,6 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Contracts;
+using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Requests;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Contracts;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -40,23 +43,23 @@ public partial class InputsTab
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
-
+    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; }= default!;
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
 
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
-        InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
+        InputDisplayModels = (await BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors)).ToList();
     }
 
-    private IEnumerable<ActivityInputDisplayModel> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
+    private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
 
@@ -68,6 +71,9 @@ public partial class InputsTab
             var syntaxProvider = wrappedInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
+
+            if (inputDescriptor.Options != null)
+                await RefreshOptions(activityDescriptor, inputDescriptor);
 
             var context = new DisplayInputEditorContext
             {
@@ -87,6 +93,20 @@ public partial class InputsTab
         }
 
         return models;
+    }
+
+    private async Task RefreshOptions(ActivityDescriptor activityDescriptor, InputDescriptor inputDescriptor)
+    {
+        var activityTypeName = activityDescriptor.TypeName;
+        var propertyName = inputDescriptor.Name;
+
+        var api = await RemoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
+        var options = await api.GetAsync(activityTypeName, propertyName,new GetActivityDescriptorOptionsRequest()
+        {
+            Context = new { Hello = "world 2" }
+        });
+
+        inputDescriptor.Options = options.Items;
     }
 
     private static WrappedInput? ToWrappedInput(object? value)
