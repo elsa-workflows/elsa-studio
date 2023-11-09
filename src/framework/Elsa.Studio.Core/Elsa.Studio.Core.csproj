@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\..\common.props"/>
-    <Import Project="..\..\..\configureawait.props"/>
+    <Import Project="..\..\..\common.props" />
+    <Import Project="..\..\..\configureawait.props" />
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -11,18 +11,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.FluentValidation" Version="2.1.0"/>
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.6.0"/>
-        <PackageReference Include="FluentValidation" Version="11.7.1"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.12"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.12"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.12"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
-        <PackageReference Include="Microsoft.JSInterop" Version="7.0.12"/>
-        <PackageReference Include="MudBlazor" Version="6.11.0"/>
-        <PackageReference Include="Radzen.Blazor" Version="4.18.1"/>
-        <PackageReference Include="ShortGuid" Version="2.0.1"/>
-        <PackageReference Include="ThrottleDebounce" Version="2.0.0"/>
+        <PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.6.0" />
+        <PackageReference Include="FluentValidation" Version="11.7.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.12" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.12" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.12" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.JSInterop" Version="7.0.12" />
+        <PackageReference Include="MudBlazor" Version="6.11.0" />
+        <PackageReference Include="Radzen.Blazor" Version="4.18.1" />
+        <PackageReference Include="ShortGuid" Version="2.0.1" />
+        <PackageReference Include="ThrottleDebounce" Version="2.0.0" />
     </ItemGroup>
 
     <!--        <ItemGroup Label="Elsa">-->
@@ -30,7 +30,7 @@
     <!--        </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
-        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.824"/>
+        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.827" />
     </ItemGroup>
 
 </Project>
