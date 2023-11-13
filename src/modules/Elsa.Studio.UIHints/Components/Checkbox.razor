@@ -1,5 +1,5 @@
 @using Elsa.Studio.Models
-@using Elsa.Api.Client.Expressions
+@using Elsa.Api.Client.Resources.Scripting.Models
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -35,7 +35,7 @@
         if (EditorContext.InputDescriptor.IsWrapped)
         {
             var newValue = isChecked == true ? "True" : "False";
-            var expression = new LiteralExpression(newValue);
+            var expression = Expression.CreateLiteral(newValue);
 
             await EditorContext.UpdateExpressionAsync(expression);
         }

@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
@@ -46,7 +46,7 @@ public partial class WorkflowDefinitionPicker
 
     private async Task OnValueChanged(SelectListItem? value)
     {
-        var expression = new LiteralExpression(value?.Value);
+        var expression = Expression.CreateLiteral(value?.Value ?? "");
         await EditorContext.UpdateExpressionAsync(expression);
     }
 }

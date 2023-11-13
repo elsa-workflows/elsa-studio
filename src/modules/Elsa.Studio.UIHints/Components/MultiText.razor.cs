@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
-using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Converters;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
@@ -10,13 +10,20 @@ using MudExtensions;
 
 namespace Elsa.Studio.UIHints.Components;
 
+/// <summary>
+/// Implements a component for the "multi-text" UI hint.
+/// </summary>
 public partial class MultiText
 {
     private List<string> _items = new();
     private MudChipField<string> _chipField = default!;
 
+    /// <summary>
+    /// Gets or sets the editor context.
+    /// </summary>
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         _items = GetCurrentItems();
@@ -28,7 +35,7 @@ public partial class MultiText
         return ParseJson(input);
     }
     
-    private List<string> ParseJson(string? json)
+    private static List<string> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {
@@ -42,7 +49,7 @@ public partial class MultiText
     private async Task OnValuesChanges(List<string> arg)
     { 
         var json = JsonSerializer.Serialize(_items);
-        var expression = new ObjectExpression(json);
+        var expression = Expression.CreateObject(json);
         await EditorContext.UpdateExpressionAsync(expression);
     }
 

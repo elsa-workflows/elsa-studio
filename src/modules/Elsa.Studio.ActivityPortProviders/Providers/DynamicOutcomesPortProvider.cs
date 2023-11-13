@@ -1,10 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
-using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Providers;
@@ -78,13 +77,10 @@ public class DynamicOutcomesPortProvider : ActivityPortProviderBase
         var wrappedInput = activity.GetProperty<WrappedInput>(options, dynamicOutcomesInputPropertyName) ?? new WrappedInput
         {
             TypeName = dynamicOutcomesInputDescriptor.TypeName,
-            Expression = new ObjectExpression
-            {
-                Value = "[]"
-            }
+            Expression = Expression.CreateObject("[]")
         };
 
-        var objectExpression = (ObjectExpression)wrappedInput.Expression;
+        var objectExpression = wrappedInput.Expression;
         return JsonSerializer.Deserialize<ICollection<string>>(objectExpression.Value!, options)!;
     }
 
@@ -94,8 +90,6 @@ public class DynamicOutcomesPortProvider : ActivityPortProviderBase
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-
-        options.Converters.Add(new ExpressionJsonConverterFactory());
 
         return options;
     }

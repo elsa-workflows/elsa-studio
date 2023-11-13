@@ -1,11 +1,10 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
-using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Converters;
 using Elsa.Studio.Workflows.Domain.Contexts;
@@ -72,13 +71,10 @@ public class FlowSendHttpRequestPortProvider : ActivityPortProviderBase
         var wrappedInput = activity.GetProperty<WrappedInput>(options, "expectedStatusCodes") ?? new WrappedInput
         {
             TypeName = typeof(int[]).Name,
-            Expression = new ObjectExpression
-            {
-                Value = JsonSerializer.Serialize(new[] { (int)HttpStatusCode.OK }, options)
-            }
+            Expression = Expression.CreateObject(JsonSerializer.Serialize(new[] { (int)HttpStatusCode.OK }, options))
         };
         
-        var objectExpression = (ObjectExpression)wrappedInput.Expression;
+        var objectExpression = wrappedInput.Expression;
         return JsonSerializer.Deserialize<ICollection<int>>(objectExpression.Value!, options)!;
     }
     
@@ -88,8 +84,7 @@ public class FlowSendHttpRequestPortProvider : ActivityPortProviderBase
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-
-        options.Converters.Add(new ExpressionJsonConverterFactory());
+        
         options.Converters.Add(new JsonStringToIntConverter());
 
         return options;

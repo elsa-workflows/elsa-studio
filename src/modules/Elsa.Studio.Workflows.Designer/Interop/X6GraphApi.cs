@@ -143,7 +143,6 @@ public class X6GraphApi
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         
-        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         return serializerOptions;
     }

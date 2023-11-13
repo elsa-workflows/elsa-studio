@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
@@ -21,11 +21,12 @@ public partial class Cases
     private MudTable<SwitchCaseRecord> _table = default!;
 
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
     
     private ICollection<SwitchCaseRecord> Items { get; set; } = new List<SwitchCaseRecord>();
     private bool DisableAddButton => _caseBeingEdited != null || _caseBeingAdded != null;
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         Items = GetItems();
@@ -45,22 +46,21 @@ public partial class Cases
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-
-        options.Converters.Add(new ExpressionJsonConverterFactory());
+        
         return JsonParser.ParseJson(json, () => new List<SwitchCase>(), options);
     }
     
-    private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
+    private IEnumerable<ExpressionDescriptor> GetSupportedSyntaxes()
     {
-        var syntaxes = SyntaxService.ListSyntaxes().Except(_uiSyntaxes);
+        var syntaxes = ExpressionService.ListDescriptorsAsync().Except(_uiSyntaxes);
         
         foreach (var syntax in syntaxes)
-            yield return new SyntaxDescriptor(syntax, syntax);
+            yield return new ExpressionDescriptor(syntax, syntax);
     }
 
     private SwitchCaseRecord Map(SwitchCase @case)
     {
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(@case.Condition.GetType());
+        var syntaxProvider = ExpressionService.GetSyntaxProviderByExpressionType(@case.Condition.GetType());
 
         return new SwitchCaseRecord
         {
@@ -73,7 +73,7 @@ public partial class Cases
     
     private SwitchCase Map(SwitchCaseRecord switchCase)
     {
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(switchCase.Syntax);
+        var syntaxProvider = ExpressionService.GetSyntaxProviderByName(switchCase.Syntax);
         var expression = syntaxProvider.CreateExpression(switchCase.Condition);
         
         return new SwitchCase

@@ -1,8 +1,9 @@
 using System.Text.Json;
-using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.UIHints.Helpers;
+using Elsa.Studio.UIHints.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Components;
@@ -69,21 +70,7 @@ public partial class CheckList
         var json = JsonSerializer.Serialize(selectedValues);
         
         // Update expression.
-        var expression = new ObjectExpression(json);
+        var expression = Expression.CreateObject(json);
         await EditorContext.UpdateExpressionAsync(expression);
     }
-}
-
-public class CheckListItem
-{
-    public CheckListItem(string value, string text, bool isChecked)
-    {
-        Value = value;
-        Text = text;
-        IsChecked = isChecked;
-    }
-
-    public string Value { get; set; }
-    public string Text { get; set; }
-    public bool IsChecked { get; set; }
 }

@@ -39,7 +39,7 @@ public partial class InputsTab
     
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
-    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
 
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
@@ -65,7 +65,7 @@ public partial class InputsTab
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
-            var syntaxProvider = wrappedInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
+            var syntaxProvider = wrappedInput != null ? ExpressionService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
@@ -76,7 +76,7 @@ public partial class InputsTab
                 ActivityDescriptor = activityDescriptor,
                 InputDescriptor = inputDescriptor,
                 Value = input,
-                SelectedSyntaxProvider = syntaxProvider,
+                SelectedExpressionDescriptor = syntaxProvider,
                 UIHintHandler = uiHintHandler,
                 IsReadOnly = Workspace?.IsReadOnly ?? false
             };
@@ -108,8 +108,8 @@ public partial class InputsTab
         if (inputDescriptor.IsWrapped)
         {
             var wrappedInput = (WrappedInput)value!;
-            var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
-            context.SelectedSyntaxProvider = syntaxProvider;
+            var syntaxProvider = ExpressionService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
+            context.SelectedExpressionDescriptor = syntaxProvider;
         }
 
         var options = new JsonSerializerOptions
