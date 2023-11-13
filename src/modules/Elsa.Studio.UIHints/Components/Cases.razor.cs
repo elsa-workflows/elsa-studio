@@ -3,26 +3,33 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Components;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
+using Elsa.Studio.Workflows.Domain.Models;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.UIHints.Components;
 
+/// <summary>
+/// Renders an editor for a collection of <see cref="SwitchCase"/> objects.
+/// </summary>
 public partial class Cases
 {
     private readonly string[] _uiSyntaxes = { "Literal", "Object" };
-    
+
     private SwitchCaseRecord? _caseBeingEdited;
     private SwitchCaseRecord? _caseBeingAdded;
     private MudTable<SwitchCaseRecord> _table = default!;
 
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
-    
+    /// <summary>
+    /// The context for the editor.
+    /// </summary>
+    [Parameter]
+    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+
+    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
+
     private ICollection<SwitchCaseRecord> Items { get; set; } = new List<SwitchCaseRecord>();
     private bool DisableAddButton => _caseBeingEdited != null || _caseBeingAdded != null;
 
@@ -46,36 +53,32 @@ public partial class Cases
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
+
         return JsonParser.ParseJson(json, () => new List<SwitchCase>(), options);
     }
-    
-    private IEnumerable<ExpressionDescriptor> GetSupportedSyntaxes()
+
+    private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
-        var syntaxes = ExpressionService.ListDescriptorsAsync().Except(_uiSyntaxes);
-        
-        foreach (var syntax in syntaxes)
-            yield return new ExpressionDescriptor(syntax, syntax);
+        return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type)).ToList();
     }
 
     private SwitchCaseRecord Map(SwitchCase @case)
     {
-        var syntaxProvider = ExpressionService.GetSyntaxProviderByExpressionType(@case.Condition.GetType());
+        var syntaxProvider = ExpressionDescriptorProvider.GetByType(@case.Condition.Type);
 
         return new SwitchCaseRecord
         {
             Label = @case.Label,
-            Condition = @case.Condition.ToString() ?? string.Empty,
-            Syntax = syntaxProvider.SyntaxName,
+            Condition = @case.Condition.ToString(),
+            ExpressionType = syntaxProvider?.Type ?? "JavaScript",
             Activity = @case.Activity
         };
     }
-    
+
     private SwitchCase Map(SwitchCaseRecord switchCase)
     {
-        var syntaxProvider = ExpressionService.GetSyntaxProviderByName(switchCase.Syntax);
-        var expression = syntaxProvider.CreateExpression(switchCase.Condition);
-        
+        var expression = new Expression(switchCase.ExpressionType);
+
         return new SwitchCase
         {
             Label = switchCase.Label,
@@ -87,7 +90,7 @@ public partial class Cases
     private async Task SaveChangesAsync()
     {
         var cases = Items.Select(Map).ToList();
-        
+
         await EditorContext.UpdateValueAsync(cases);
     }
 
@@ -106,15 +109,15 @@ public partial class Cases
         {
             Label = @case.Label,
             Condition = @case.Condition,
-            Syntax = @case.Syntax
+            ExpressionType = @case.ExpressionType
         };
-        
+
         StateHasChanged();
     }
 
     private async void OnRowEditCancel(object obj)
     {
-        if(_caseBeingAdded != null)
+        if (_caseBeingAdded != null)
         {
             Items.Remove(_caseBeingAdded);
             await SaveChangesAsync();
@@ -122,11 +125,11 @@ public partial class Cases
             StateHasChanged();
             return;
         }
-        
+
         var @case = (SwitchCaseRecord)obj;
         @case.Condition = _caseBeingEdited?.Condition ?? "";
         @case.Label = _caseBeingEdited?.Label ?? "";
-        @case.Syntax = _caseBeingEdited?.Syntax ?? "";
+        @case.ExpressionType = _caseBeingEdited?.ExpressionType ?? "";
         _caseBeingEdited = null;
         StateHasChanged();
     }
@@ -143,7 +146,7 @@ public partial class Cases
         {
             Label = $"Case {Items.Count + 1}",
             Condition = "",
-            Syntax = "JavaScript"
+            ExpressionType = "JavaScript"
         };
 
         Items.Add(@case);
@@ -165,8 +168,16 @@ public class SwitchCaseRecord
 {
     public string Label { get; set; } = string.Empty;
     public string Condition { get; set; } = string.Empty;
-    public string Syntax { get; set; } = "JavaScript";
-    
+
+    [Obsolete("Use ExpressionType instead.")]
+    public string Syntax
+    {
+        get => ExpressionType;
+        set => ExpressionType = value;
+    }
+
+    public string ExpressionType { get; set; } = "JavaScript";
+
     /// <summary>
     /// When used in a <see cref="Switch"/> activity, specifies the activity to schedule when the condition evaluates to true.
     /// </summary>

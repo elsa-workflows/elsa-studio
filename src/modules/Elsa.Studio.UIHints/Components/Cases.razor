@@ -37,9 +37,9 @@
             </MudTd>
             <MudTd DataLabel="Syntax">
                 <MudSelect @bind-Value="@context.Syntax" Variant="Variant.Outlined">
-                    @foreach (var syntaxDescriptor in GetSupportedSyntaxes())
+                    @foreach (var expressionDescriptor in GetSupportedExpressions())
                     {
-                        <MudSelectItem Value="@syntaxDescriptor.Syntax">@syntaxDescriptor.DisplayName</MudSelectItem>
+                        <MudSelectItem Value="@expressionDescriptor.Type">@expressionDescriptor.DisplayName</MudSelectItem>
                     }
                 </MudSelect>
             </MudTd>

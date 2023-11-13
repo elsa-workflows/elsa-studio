@@ -397,7 +397,6 @@ public partial class WorkflowEditor
 
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-        serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
 
         var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;
 
