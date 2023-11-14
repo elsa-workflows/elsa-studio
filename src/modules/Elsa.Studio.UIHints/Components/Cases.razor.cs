@@ -59,25 +59,31 @@ public partial class Cases
 
     private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
-        return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type)).ToList();
+        return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
+    }
+    
+    private string GetDefaultExpressionType()
+    {
+        var defaultExpressionType = GetSupportedExpressions().FirstOrDefault()?.Type ?? "Literal";
+        return defaultExpressionType;
     }
 
     private SwitchCaseRecord Map(SwitchCase @case)
     {
-        var syntaxProvider = ExpressionDescriptorProvider.GetByType(@case.Condition.Type);
+        var defaultExpressionType = GetDefaultExpressionType();
 
         return new SwitchCaseRecord
         {
             Label = @case.Label,
             Condition = @case.Condition.ToString(),
-            ExpressionType = syntaxProvider?.Type ?? "JavaScript",
+            ExpressionType = defaultExpressionType,
             Activity = @case.Activity
         };
     }
 
     private SwitchCase Map(SwitchCaseRecord switchCase)
     {
-        var expression = new Expression(switchCase.ExpressionType);
+        var expression = new Expression(switchCase.ExpressionType, switchCase.Condition);
 
         return new SwitchCase
         {
@@ -87,11 +93,11 @@ public partial class Cases
         };
     }
 
-    private async Task SaveChangesAsync()
+    private Task SaveChangesAsync()
     {
         var cases = Items.Select(Map).ToList();
 
-        await EditorContext.UpdateValueAsync(cases);
+        return EditorContext.UpdateValueAsync(cases);
     }
 
     private async void OnRowEditCommitted(object data)
@@ -146,7 +152,7 @@ public partial class Cases
         {
             Label = $"Case {Items.Count + 1}",
             Condition = "",
-            ExpressionType = "JavaScript"
+            ExpressionType = GetDefaultExpressionType()
         };
 
         Items.Add(@case);
@@ -164,9 +170,19 @@ public partial class Cases
     }
 }
 
+/// <summary>
+/// Represents a single case in a <see cref="Switch"/> activity.
+/// </summary>
 public class SwitchCaseRecord
 {
+    /// <summary>
+    /// The label of the case.
+    /// </summary>
     public string Label { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// The condition of the case.
+    /// </summary>
     public string Condition { get; set; } = string.Empty;
 
     [Obsolete("Use ExpressionType instead.")]
@@ -176,7 +192,10 @@ public class SwitchCaseRecord
         set => ExpressionType = value;
     }
 
-    public string ExpressionType { get; set; } = "JavaScript";
+    /// <summary>
+    /// The expression type of the case.
+    /// </summary>
+    public string ExpressionType { get; set; } = "Literal";
 
     /// <summary>
     /// When used in a <see cref="Switch"/> activity, specifies the activity to schedule when the condition evaluates to true.
