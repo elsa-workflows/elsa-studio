@@ -22,7 +22,7 @@
     {
         <div class="flex-none pt-1">
             <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">
-                @foreach (var item in _expressionDescriptors)
+                @foreach (var item in BrowseableExpressionDescriptors)
                 {
                     var isChecked = item.Type == _selectedExpressionType;
                     var iconColor = isChecked ? Color.Secondary : Color.Transparent;
