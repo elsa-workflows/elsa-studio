@@ -24,9 +24,8 @@ public class DefaultActivityResolver : IActivityResolver
             where prop.Value is JsonObject jsonObject && jsonObject.IsActivity() || prop.Value is JsonArray
             let isCollection = prop.Value is JsonArray
             let containedItems = isCollection ? ((JsonArray)prop.Value).ToArray() : new[] { prop.Value.AsObject() }
-            from containedItem in containedItems
+            from containedItem in containedItems where containedItem is JsonObject && containedItem.AsObject().IsActivity()
             let containedObject = containedItem.AsObject()
-            where containedObject.IsActivity()
             select new EmbeddedActivity(containedObject, prop.Key);
 
         return new(containedActivities.ToList());
