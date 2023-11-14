@@ -1,5 +1,5 @@
 using BlazorMonaco.Editor;
-using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
@@ -71,7 +71,7 @@ public partial class Code : IDisposable
             return;
 
         _lastMonacoEditorContent = value;
-        var expression = new LiteralExpression(value);
+        var expression = Expression.CreateLiteral(value);
 
         await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
     }

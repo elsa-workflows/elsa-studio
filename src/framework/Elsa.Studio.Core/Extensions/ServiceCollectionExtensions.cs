@@ -2,7 +2,6 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
-using Elsa.Studio.SyntaxProviders;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,20 +25,10 @@ public static class ServiceCollectionExtensions
             .AddScoped<IAppBarService, DefaultAppBarService>()
             .AddScoped<IFeatureService, DefaultFeatureService>()
             .AddScoped<IUIHintService, DefaultUIHintService>()
-            .AddScoped<ISyntaxService, DefaultSyntaxService>()
+            .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
-            ;
-
-        // Syntax providers.
-        services
-            .AddSyntaxProvider<LiteralSyntaxProvider>()
-            .AddSyntaxProvider<CSharpSyntaxProvider>()
-            .AddSyntaxProvider<JavaScriptSyntaxProvider>()
-            .AddSyntaxProvider<PythonSyntaxProvider>()
-            .AddSyntaxProvider<LiquidSyntaxProvider>()
-            .AddSyntaxProvider<ObjectSyntaxProvider>()
             ;
         
         // Mediator.
@@ -76,13 +65,5 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUIHintHandler<T>(this IServiceCollection services) where T : class, IUIHintHandler
     {
         return services.AddScoped<IUIHintHandler, T>();
-    }
-    
-    /// <summary>
-    /// Ads the specified <see cref="ISyntaxProvider"/>.
-    /// </summary>
-    public static IServiceCollection AddSyntaxProvider<T>(this IServiceCollection services) where T : class, ISyntaxProvider
-    {
-        return services.AddScoped<ISyntaxProvider, T>();
     }
 }

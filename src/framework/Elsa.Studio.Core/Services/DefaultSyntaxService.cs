@@ -1,29 +1,38 @@
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Services;
 
 /// <inheritdoc />
-public class DefaultSyntaxService : ISyntaxService
+public class DefaultExpressionService : IExpressionService
 {
-    private readonly IEnumerable<ISyntaxProvider> _providers;
+    private readonly IExpressionProvider _expressionProvider;
+    private ICollection<ExpressionDescriptor> _descriptors = default!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultSyntaxService"/> class.
+    /// Initializes a new instance of the <see cref="DefaultExpressionService"/> class.
     /// </summary>
-    public DefaultSyntaxService(IEnumerable<ISyntaxProvider> providers)
+    public DefaultExpressionService(IExpressionProvider expressionProvider)
     {
-        _providers = providers;
+        _expressionProvider = expressionProvider;
     }
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxProvider> ListSyntaxProviders() => _providers;
+    public async Task<IEnumerable<ExpressionDescriptor>> ListDescriptorsAsync(CancellationToken cancellationToken = default)
+    {
+        if (_descriptors == null!)
+        {
+            var descriptors = await _expressionProvider.ListAsync(cancellationToken);
+            _descriptors = descriptors.ToList();
+        }
+
+        return _descriptors;
+    }
 
     /// <inheritdoc />
-    public IEnumerable<string> ListSyntaxes() => _providers.Select(x => x.SyntaxName);
-
-    /// <inheritdoc />
-    public ISyntaxProvider GetSyntaxProviderByName(string syntaxName) => _providers.FirstOrDefault(x => x.SyntaxName == syntaxName) ?? throw new Exception($"No syntax provider found for syntax '{syntaxName}'");
-
-    /// <inheritdoc />
-    public ISyntaxProvider GetSyntaxProviderByExpressionType(Type expressionType) => _providers.FirstOrDefault(x => x.ExpressionType == expressionType) ?? throw new Exception($"No syntax provider found for expression type '{expressionType}'");
+    public async Task<ExpressionDescriptor?> GetByTypeAsync(string type, CancellationToken cancellationToken = default)
+    {
+        var descriptors = await ListDescriptorsAsync(cancellationToken);
+        return descriptors.FirstOrDefault(x => x.Type == type);
+    }
 }

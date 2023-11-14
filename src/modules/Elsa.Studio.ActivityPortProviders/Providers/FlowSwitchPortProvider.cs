@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -24,8 +23,6 @@ public class FlowSwitchPortProvider : ActivityPortProviderBase
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
-        options.Converters.Add(new ExpressionJsonConverterFactory());
         
         var cases = context.Activity.GetProperty<List<SwitchCase>>(options, "cases") ?? new List<SwitchCase>();
 

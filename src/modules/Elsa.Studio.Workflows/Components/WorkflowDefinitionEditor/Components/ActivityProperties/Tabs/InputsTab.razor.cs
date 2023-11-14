@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -38,8 +39,8 @@ public partial class InputsTab
     [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
+    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
-    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
 
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
@@ -65,7 +66,7 @@ public partial class InputsTab
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
-            var syntaxProvider = wrappedInput != null ? SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType()) : default;
+            var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : default;
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
@@ -76,7 +77,7 @@ public partial class InputsTab
                 ActivityDescriptor = activityDescriptor,
                 InputDescriptor = inputDescriptor,
                 Value = input,
-                SelectedSyntaxProvider = syntaxProvider,
+                SelectedExpressionDescriptor = syntaxProvider,
                 UIHintHandler = uiHintHandler,
                 IsReadOnly = Workspace?.IsReadOnly ?? false
             };
@@ -94,7 +95,6 @@ public partial class InputsTab
         var converterOptions = new ObjectConverterOptions(serializerOptions =>
         {
             serializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            serializerOptions.Converters.Add(new ExpressionJsonConverterFactory());
         });
 
         return value.ConvertTo<WrappedInput>(converterOptions);
@@ -108,8 +108,8 @@ public partial class InputsTab
         if (inputDescriptor.IsWrapped)
         {
             var wrappedInput = (WrappedInput)value!;
-            var syntaxProvider = SyntaxService.GetSyntaxProviderByExpressionType(wrappedInput.Expression.GetType());
-            context.SelectedSyntaxProvider = syntaxProvider;
+            var syntaxProvider = ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type);
+            context.SelectedExpressionDescriptor = syntaxProvider;
         }
 
         var options = new JsonSerializerOptions
@@ -117,8 +117,6 @@ public partial class InputsTab
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         
-        options.Converters.Add(new ExpressionJsonConverterFactory());
-
         var propName = inputDescriptor.Name.Camelize();
         activity.SetProperty(value?.SerializeToNode(options), propName);
 

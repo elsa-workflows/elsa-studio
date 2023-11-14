@@ -1,5 +1,6 @@
 using BlazorMonaco.Editor;
-using Elsa.Api.Client.Expressions;
+using Elsa.Api.Client.Resources.Scripting.Extensions;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
@@ -19,13 +20,14 @@ public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
     private readonly string[] _uiSyntaxes = { "Literal", "Object" };
-    private string _selectedSyntax = DefaultSyntax;
+    private string _selectedExpressionType = DefaultSyntax;
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
     private bool _isInternalContentChange;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
+    private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
 
     /// <inheritdoc />
     public ExpressionInput()
@@ -36,19 +38,23 @@ public partial class ExpressionInput : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    
+    [Parameter]
+    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+
     /// <summary>
     /// The content to render inside the editor.
     /// </summary>
-    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
-    [Inject] private ISyntaxService SyntaxService { get; set; } = default!;
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    
+
+    private IEnumerable<ExpressionDescriptor> BrowseableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
-    private bool IsUISyntax => _selectedSyntax == UISyntax;
+    private bool IsUISyntax => _selectedExpressionType == UISyntax;
     private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
-    private string? ButtonLabel => IsUISyntax ? default : _selectedSyntax;
+    private string? ButtonLabel => IsUISyntax ? default : _selectedExpressionType;
     private Variant ButtonVariant => IsUISyntax ? default : Variant.Filled;
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
     private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
@@ -57,34 +63,44 @@ public partial class ExpressionInput : IDisposable
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
-    
-    private IEnumerable<SyntaxDescriptor> GetSupportedSyntaxes()
-    {
-        yield return new SyntaxDescriptor(UISyntax, "Default");
-        var syntaxes = SyntaxService.ListSyntaxes().Except(_uiSyntaxes);
-        
-        foreach (var syntax in syntaxes)
-            yield return new SyntaxDescriptor(syntax, syntax);
-    }
 
-    private async Task UpdateMonacoLanguageAsync(string syntax)
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        var defaultDescriptor = new ExpressionDescriptor(UISyntax, "Default");
+        var expressionDescriptors = (await ExpressionService.ListDescriptorsAsync())
+            .ExceptBy(_uiSyntaxes, x => x.Type)
+            .Prepend(defaultDescriptor);
+        
+        _expressionDescriptors = expressionDescriptors.ToList();
+    }
+    
+    private async Task UpdateMonacoLanguageAsync(string expressionType)
     {
         if (_monacoEditor == null)
             return;
 
-        if (SyntaxService.GetSyntaxProviderByName(syntax) is not IMonacoSyntaxProvider syntaxProvider)
+        var expressionDescriptor = await ExpressionService.GetByTypeAsync(expressionType);
+        
+        if (expressionDescriptor == null)
+            return;
+        
+        var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
+        
+        if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
 
         var model = await _monacoEditor.GetModel();
-        await Global.SetModelLanguage(JSRuntime, model, syntaxProvider.Language);
+        await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
     }
 
 
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
-        _selectedSyntax = EditorContext.SelectedSyntaxProvider?.SyntaxName ?? UISyntax;
-        _monacoLanguage = (EditorContext.SelectedSyntaxProvider as IMonacoSyntaxProvider)?.Language ?? "";
+        var selectedExpressionDescriptor = EditorContext.SelectedExpressionDescriptor;
+        _selectedExpressionType = selectedExpressionDescriptor?.Type ?? UISyntax;
+        _monacoLanguage = selectedExpressionDescriptor?.GetMonacoLanguage() ?? "";
         return base.OnParametersSetAsync();
     }
 
@@ -117,12 +133,11 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnSyntaxSelected(string syntax)
     {
-        _selectedSyntax = syntax;
-
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
+        _selectedExpressionType = syntax;
+        
         var value = InputValue;
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-        input.Expression = syntaxProvider.CreateExpression(value);
+        input.Expression = new Expression(_selectedExpressionType, value);
         await InvokeValueChangedCallback(input);
         await UpdateMonacoLanguageAsync(syntax);
     }
@@ -139,21 +154,21 @@ public partial class ExpressionInput : IDisposable
         if (value == _lastMonacoEditorContent)
             return;
         
-        var syntaxProvider = SyntaxService.GetSyntaxProviderByName(_selectedSyntax);
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-        input.Expression = syntaxProvider.CreateExpression(value);
+        input.Expression = new Expression(_selectedExpressionType, value);
         _lastMonacoEditorContent = value;
         await ThrottleValueChangedCallback(input);
     }
 
     private async Task ThrottleValueChangedCallback(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
+
     private async Task InvokeValueChangedCallback(WrappedInput input)
     {
         await InvokeAsync(async () => await EditorContext.OnValueChanged(input));
     }
 
     private async Task OnMonacoInitialized()
-    {   
+    {
         _isInternalContentChange = true;
         var model = await _monacoEditor!.GetModel();
         _lastMonacoEditorContent = InputValue;
@@ -168,5 +183,3 @@ public partial class ExpressionInput : IDisposable
         _throttledValueChanged.Dispose();
     }
 }
-
-public record SyntaxDescriptor(string Syntax, string DisplayName);

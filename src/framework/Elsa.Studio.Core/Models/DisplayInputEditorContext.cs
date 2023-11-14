@@ -1,10 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Contracts;
-using Elsa.Api.Client.Converters;
-using Elsa.Api.Client.Expressions;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.Scripting.Contracts;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
@@ -49,7 +48,7 @@ public class DisplayInputEditorContext
     /// <summary>
     /// The syntax provider.
     /// </summary>
-    public ISyntaxProvider? SelectedSyntaxProvider { get; set; }
+    public ExpressionDescriptor? SelectedExpressionDescriptor { get; set; }
     
     /// <summary>
     /// A delegate that is invoked when the input value changes.
@@ -79,27 +78,31 @@ public class DisplayInputEditorContext
             return Value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
         
         var wrappedInput = Value as WrappedInput;
+        var expression = wrappedInput?.Expression;
         
-        if (wrappedInput?.Expression is not LiteralExpression expression)
+        if (expression?.Type != "Literal")
             return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
 
         var value = expression.Value;
-
-        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+        return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
 
+    /// <summary>
+    /// Returns the wrapped input object value.
+    /// </summary>
+    /// <returns></returns>
     public string GetObjectValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
             return Serialize(Value ?? InputDescriptor.DefaultValue);
 
         var wrappedInput = Value as WrappedInput;
+        var expression = wrappedInput?.Expression;
         
-        if (wrappedInput?.Expression is not ObjectExpression expression)
+        if (expression?.Type != "Object")
             return Serialize(InputDescriptor.DefaultValue);
 
         var value = expression.Value;
-
         return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
     
@@ -129,7 +132,7 @@ public class DisplayInputEditorContext
     /// Updates the wrapped input expression.
     /// </summary>
     /// <param name="expression"></param>
-    public async Task UpdateExpressionAsync(IExpression expression)
+    public async Task UpdateExpressionAsync(Expression expression)
     {
         var wrappedInput = Value as WrappedInput;
         
@@ -149,8 +152,6 @@ public class DisplayInputEditorContext
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
-        options.Converters.Add(new ExpressionJsonConverterFactory());
 
         return value != null ? JsonSerializer.Serialize(value, options) : string.Empty;
     }

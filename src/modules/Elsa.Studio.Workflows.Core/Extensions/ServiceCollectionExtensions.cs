@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
             .AddScoped<IActivityExecutionService, RemoteActivityExecutionService>()
             .AddScoped<IActivityRegistry, DefaultActivityRegistry>()
+            .AddScoped<IExpressionProvider, RemoteExpressionProvider>()
             .AddScoped<IIdentityGenerator, RandomLongIdentityGenerator>()
             .AddScoped<IActivityNameGenerator, DefaultActivityNameGenerator>()
             .AddScoped<IStorageDriverService, RemoteStorageDriverService>()
