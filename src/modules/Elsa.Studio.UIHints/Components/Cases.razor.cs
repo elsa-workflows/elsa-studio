@@ -61,7 +61,7 @@ public partial class Cases
     {
         return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
     }
-    
+
     private string GetDefaultExpressionType()
     {
         var defaultExpressionType = GetSupportedExpressions().FirstOrDefault()?.Type ?? "Literal";
@@ -168,6 +168,12 @@ public partial class Cases
             });
         });
     }
+
+    private string GetExpressionTypeDisplayName(string expressionType)
+    {
+        var expressionDescriptor = ExpressionDescriptorProvider.GetByType(expressionType) ?? throw new Exception($"Could not find expression descriptor for expression type '{expressionType}'.");
+        return expressionDescriptor.DisplayName;
+    }
 }
 
 /// <summary>
@@ -179,7 +185,7 @@ public class SwitchCaseRecord
     /// The label of the case.
     /// </summary>
     public string Label { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// The condition of the case.
     /// </summary>

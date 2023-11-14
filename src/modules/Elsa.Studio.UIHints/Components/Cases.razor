@@ -17,13 +17,13 @@
         <HeaderContent>
             <MudTh Style="width: 25%">Label</MudTh>
             <MudTh Style="width: 50%;">Condition</MudTh>
-            <MudTh Style="width: 15%;">Syntax</MudTh>
+            <MudTh Style="width: 15%;">Type</MudTh>
             <MudTh Style="width: 40px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Label">@context.Label</MudTd>
             <MudTd DataLabel="Condition">@context.Condition</MudTd>
-            <MudTd DataLabel="Syntax">@context.Syntax</MudTd>
+            <MudTd DataLabel="ExpressionType">@GetExpressionTypeDisplayName(@context.ExpressionType)</MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => OnDeleteClicked(context))"></MudIconButton>
             </MudTd>
@@ -35,8 +35,8 @@
             <MudTd DataLabel="Condition">
                 <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
             </MudTd>
-            <MudTd DataLabel="Syntax">
-                <MudSelect @bind-Value="@context.Syntax" Variant="Variant.Outlined">
+            <MudTd DataLabel="ExpressionType">
+                <MudSelect @bind-Value="@context.ExpressionType" Variant="Variant.Outlined">
                     @foreach (var expressionDescriptor in GetSupportedExpressions())
                     {
                         <MudSelectItem Value="@expressionDescriptor.Type">@expressionDescriptor.DisplayName</MudSelectItem>
