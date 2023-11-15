@@ -12,6 +12,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 
+/// <summary>
+/// A dialog for editing an output.
+/// </summary>
 public partial class EditOutputDialog
 {
     private readonly OutputDefinitionModel _model = new();
@@ -22,12 +25,20 @@ public partial class EditOutputDialog
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<IGrouping<string, VariableTypeDescriptor>> _groupedVariableTypes = new List<IGrouping<string, VariableTypeDescriptor>>();
 
+    /// <summary>
+    /// The workflow definition.
+    /// </summary>
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    
+    /// <summary>
+    /// The output to edit.
+    /// </summary>
     [Parameter] public OutputDefinition? Output { get; set; }
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         // Instantiate the edit context first, so that it is available when rendering (which happens as soon as we call an async method on the next line). 
