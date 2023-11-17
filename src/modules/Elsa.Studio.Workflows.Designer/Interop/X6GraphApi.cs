@@ -88,7 +88,8 @@ public class X6GraphApi
     /// <param name="graph">The model.</param>
     public async Task LoadGraphAsync(X6Graph graph)
     {
-        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, graph));
+        var serializedGraph = SerializeGraph(graph);
+        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
     }
 
     /// <summary>
@@ -104,8 +105,12 @@ public class X6GraphApi
     /// <summary>
     /// Adjusts the graph layout.
     /// </summary>
-    public async Task AutoLayoutAsync(X6Graph graph) => await InvokeAsync(module => module.InvokeVoidAsync("autoLayout", _containerId, graph)); 
-    
+    public async Task AutoLayoutAsync(X6Graph graph)
+    {
+        var serializedGraph = SerializeGraph(graph);
+        await InvokeAsync(module => module.InvokeVoidAsync("autoLayout", _containerId, serializedGraph));
+    }
+
     /// <summary>
     /// Updates the node with the specified activity. 
     /// </summary>
@@ -136,7 +141,14 @@ public class X6GraphApi
 
     private async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func) => await func(_module);
     
-    private JsonSerializerOptions GetSerializerOptions()
+    // Serializing the graph here instead of relying on the JS interop layer to avoid the max depth of 32 exception.
+    private static string SerializeGraph(X6Graph graph)
+    {
+        var options = GetSerializerOptions();
+        return JsonSerializer.Serialize(graph, options);
+    }
+    
+    private static JsonSerializerOptions GetSerializerOptions()
     {
         var serializerOptions = new JsonSerializerOptions
         {
@@ -146,4 +158,5 @@ public class X6GraphApi
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         return serializerOptions;
     }
+
 }
