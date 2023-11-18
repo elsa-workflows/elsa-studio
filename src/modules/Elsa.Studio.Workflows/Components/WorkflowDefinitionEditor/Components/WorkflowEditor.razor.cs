@@ -10,6 +10,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -78,7 +79,7 @@ public partial class WorkflowEditor
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private string? SelectedActivityId { get; set; }
-    private ActivityProperties.ActivityProperties? ActivityPropertiesTab { get; set; }
+    private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
     {

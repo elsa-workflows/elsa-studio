@@ -12,7 +12,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// <summary>
 /// Renders the properties of an activity.
 /// </summary>
-public partial class ActivityProperties
+public partial class ActivityPropertiesPanel
 {
     /// <summary>
     /// Gets or sets the workflow definition.
