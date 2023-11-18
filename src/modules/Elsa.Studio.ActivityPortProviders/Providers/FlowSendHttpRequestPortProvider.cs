@@ -75,7 +75,7 @@ public class FlowSendHttpRequestPortProvider : ActivityPortProviderBase
         };
         
         var objectExpression = wrappedInput.Expression;
-        return JsonSerializer.Deserialize<ICollection<int>>(objectExpression.Value!, options)!;
+        return JsonSerializer.Deserialize<ICollection<int>>(objectExpression.Value!.ToString()!, options)!;
     }
     
     private static JsonSerializerOptions CreateSerializerOptions()

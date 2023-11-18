@@ -81,7 +81,7 @@ public class DynamicOutcomesPortProvider : ActivityPortProviderBase
         };
 
         var objectExpression = wrappedInput.Expression;
-        return JsonSerializer.Deserialize<ICollection<string>>(objectExpression.Value!, options)!;
+        return JsonSerializer.Deserialize<ICollection<string>>(objectExpression.Value!.ToString()!, options)!;
     }
 
     private static JsonSerializerOptions CreateSerializerOptions()

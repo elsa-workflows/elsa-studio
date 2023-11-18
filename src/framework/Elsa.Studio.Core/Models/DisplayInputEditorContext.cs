@@ -84,7 +84,7 @@ public class DisplayInputEditorContext
             return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
 
         var value = expression.Value;
-        return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class DisplayInputEditorContext
             return Serialize(InputDescriptor.DefaultValue);
 
         var value = expression.Value;
-        return value ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
+        return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
     
     /// <summary>
