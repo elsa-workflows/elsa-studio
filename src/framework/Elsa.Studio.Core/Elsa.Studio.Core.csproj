@@ -29,8 +29,8 @@
 <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
 <!--    </ItemGroup>-->
 
-        <ItemGroup Label="Elsa">
-            <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.840"/>
-        </ItemGroup>
+    <ItemGroup Label="Elsa">
+        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.843"/>
+    </ItemGroup>
 
 </Project>
