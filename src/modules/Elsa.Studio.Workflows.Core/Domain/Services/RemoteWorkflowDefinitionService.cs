@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -249,15 +250,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     {
         var api = await GetApiAsync(cancellationToken);
         var response = await api.ExportAsync(definitionId, versionOptions, cancellationToken);
-        var fileName = $"workflow-definition-{definitionId}.json";
-
-        if (response.Headers.TryGetValues("content-disposition", out var contentDispositionHeader)) // Only available if the Elsa Server exposes the "Content-Disposition" header.
-        {
-            var values = contentDispositionHeader?.ToList() ?? new List<string>();
-
-            if (values.Count >= 2)
-                fileName = values[1].Split('=')[1];
-        }
+        var fileName = response.GetDownloadedFileNameOrDefault($"workflow-definition-{definitionId}.json");
 
         return new FileDownload(fileName, response.Content!);
     }
@@ -267,6 +260,16 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     {
         var api = await GetApiAsync(cancellationToken);
         return await api.ImportAsync(definitionModel, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var request = new BulkExportWorkflowDefinitionsRequest(ids.ToArray());
+        var response = await api.BulkExportAsync(request, cancellationToken);
+        var fileName = response.GetDownloadedFileNameOrDefault("workflow-definitions.zip");
+        return new FileDownload(fileName, response.Content!);
     }
 
     /// <inheritdoc />
@@ -288,7 +291,6 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     {
         var api = await GetApiAsync(cancellationToken);
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
-
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
     }

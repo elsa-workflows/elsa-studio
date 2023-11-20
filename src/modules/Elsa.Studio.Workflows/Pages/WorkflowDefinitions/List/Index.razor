@@ -21,9 +21,10 @@
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem OnClick="OnBulkPublishClicked">Publish</MudMenuItem>
-                <MudMenuItem OnClick="OnBulkRetractClicked">Unpublish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkPublishClicked">Publish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkRetractClicked">Unpublish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>

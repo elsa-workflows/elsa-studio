@@ -103,6 +103,11 @@ public interface IWorkflowDefinitionService
     Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Exports a set of workflow definitions.
+    /// </summary>
+    Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Updates the references of a workflow definition.
     /// </summary>
     Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default);

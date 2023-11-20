@@ -53,7 +53,7 @@ public partial class Index
                     : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
                 var publishedVersionNumber = publishedVersion?.Version;
 
-                return new WorkflowDefinitionRow(definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
+                return new WorkflowDefinitionRow(definition.Id, definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
             })
             .ToList();
 
@@ -204,6 +204,14 @@ public partial class Index
 
         Reload();
     }
+    
+    private async Task OnBulkExportClicked()
+    {
+        var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
+        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
+        var fileName = download.FileName;
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+    }
 
     private void OnSearch(string text)
     {
@@ -223,5 +231,5 @@ public partial class Index
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
     
-    private record WorkflowDefinitionRow(string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
+    private record WorkflowDefinitionRow(string Id, string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
 }
