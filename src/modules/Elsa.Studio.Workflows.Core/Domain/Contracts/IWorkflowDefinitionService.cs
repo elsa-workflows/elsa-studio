@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Models;
+using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
 
@@ -121,4 +122,9 @@ public interface IWorkflowDefinitionService
     /// Executes a workflow definition.
     /// </summary>
     Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Imports a set of files containing workflow definitions.
+    /// </summary>
+    Task<int> ImportFilesAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default);
 }

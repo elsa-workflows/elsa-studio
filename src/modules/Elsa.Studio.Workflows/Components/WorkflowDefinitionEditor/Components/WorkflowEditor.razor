@@ -5,44 +5,44 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition?.Root" IsProgressing="_isProgressing" ActivitySelected="OnActivitySelected" GraphUpdated="OnGraphUpdated">
+        <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition?.Root" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>
-                <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="OnAutoSaveChanged"/>
+                <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="@OnAutoSaveChanged"/>
                 <MudTooltip Text="Save" Delay="1000">
                     <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
-                        <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="OnSaveClick"/>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="@OnSaveClick"/>
                     </MudBadge>
                 </MudTooltip>
 
                 <div id="workflow-file-upload-button-wrapper" class="d-none">
-                    <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected"/>
+                    <MudFileUpload T="IBrowserFile" FilesChanged="@OnFileSelected"/>
                 </div>
 
                 <MudTooltip Text="Publish the current workflow." Delay="1000">
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DisableElevation="true">
-                        <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="OnPublishClicked"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="@OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
                             @if (WorkflowDefinition?.IsPublished == true)
                             {
                                 <MudTooltip Text="Unpublish the current workflow." Inline="false" Delay="1000">
-                                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="OnRetractClicked">Unpublish</MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="@OnRetractClicked">Unpublish</MudMenuItem>
                                 </MudTooltip>
                                 <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                             }
                             <MudTooltip Text="Download the current workflow as a JSON file." Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Export</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnDownloadClicked">Export</MudMenuItem>
                             </MudTooltip>
                             <MudTooltip Text="Upload a JSON file containing workflow data to override the current workflow's contents." Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="OnUploadClicked">Import</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnUploadClicked">Import</MudMenuItem>
                             </MudTooltip>
                         </MudMenu>
                     </MudButtonGroup>
                 </MudTooltip>
-                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" Title="Run workflow" Class="ml-4" OnClick="OnRunWorkflowClicked"/>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" Title="Run workflow" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
+        <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

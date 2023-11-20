@@ -295,5 +295,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
         return workflowInstanceId;
     }
 
+    /// <inheritdoc />
+    public async Task<int> ImportFilesAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.ImportFilesAsync(streamParts.ToList(), cancellationToken);
+        return response.Count;
+    }
+
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
 }
