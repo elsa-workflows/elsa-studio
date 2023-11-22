@@ -1,3 +1,7 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
@@ -5,7 +9,9 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using Refit;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 
@@ -24,6 +30,7 @@ public partial class Index
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -53,7 +60,7 @@ public partial class Index
                     : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
                 var publishedVersionNumber = publishedVersion?.Version;
 
-                return new WorkflowDefinitionRow(definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
+                return new WorkflowDefinitionRow(definition.Id, definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
             })
             .ToList();
 
@@ -95,7 +102,7 @@ public partial class Index
     {
         NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
     }
-    
+
     private void Reload()
     {
         _table.ReloadServerData();
@@ -173,7 +180,7 @@ public partial class Index
 
         Reload();
     }
-    
+
     private async Task OnBulkRetractClicked()
     {
         var result = await DialogService.ShowMessageBox("Unpublish selected workflows?", "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
@@ -205,6 +212,28 @@ public partial class Index
         Reload();
     }
 
+    private async Task OnBulkExportClicked()
+    {
+        var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
+        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
+        var fileName = download.FileName;
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+    }
+
+    private Task OnImportClicked()
+    {
+        return DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
+    }
+
+    private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
+    {
+        var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(), x.Name, x.ContentType)).ToList();
+        var count = await WorkflowDefinitionService.ImportFilesAsync(streamParts);
+        var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
+        Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Reload();
+    }
+
     private void OnSearch(string text)
     {
         _searchString = text;
@@ -222,6 +251,6 @@ public partial class Index
         await WorkflowDefinitionService.RetractAsync(definitionId);
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
-    
-    private record WorkflowDefinitionRow(string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
+
+    private record WorkflowDefinitionRow(string Id, string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
 }

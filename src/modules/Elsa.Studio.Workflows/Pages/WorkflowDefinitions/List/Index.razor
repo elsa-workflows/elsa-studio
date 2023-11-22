@@ -6,6 +6,10 @@
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow definitions"/>
+    
+    <div id="workflow-file-upload-button-wrapper" class="d-none">
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
+    </div>
 
     <MudTable
         @ref="_table"
@@ -21,12 +25,22 @@
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem OnClick="OnBulkPublishClicked">Publish</MudMenuItem>
-                <MudMenuItem OnClick="OnBulkRetractClicked">Unpublish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkPublishClicked">Publish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkRetractClicked">Unpublish</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
+            
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
+                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+                    <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
+                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">Import</MudMenuItem>
+                    </MudTooltip>
+                </MudMenu>
+            </MudButtonGroup>
+            
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
