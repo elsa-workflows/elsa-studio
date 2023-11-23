@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Elsa.Api.Client.Converters;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
@@ -37,11 +38,17 @@ public partial class Index
         var request = new ListWorkflowDefinitionsRequest
         {
             Page = state.Page,
-            PageSize = state.PageSize
+            PageSize = state.PageSize,
+            OrderBy = GetOrderBy(state.SortLabel),
+            OrderDirection = state.SortDirection == SortDirection.Descending
+                ? OrderDirection.Descending
+                : OrderDirection.Ascending
         };
 
-        var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
-        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+        var latestWorkflowDefinitionsResponse =
+            await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished)
+            .Select(x => x.DefinitionId).ToList();
 
         var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
@@ -60,11 +67,30 @@ public partial class Index
                     : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
                 var publishedVersionNumber = publishedVersion?.Version;
 
-                return new WorkflowDefinitionRow(definition.Id, definition.DefinitionId, latestVersionNumber, publishedVersionNumber, definition.Name, definition.Description, definition.IsPublished);
+                return new WorkflowDefinitionRow(
+                    definition.Id,
+                    definition.DefinitionId,
+                    latestVersionNumber,
+                    publishedVersionNumber,
+                    definition.Name,
+                    definition.Description,
+                    definition.IsPublished);
             })
             .ToList();
 
-        return new TableData<WorkflowDefinitionRow> { TotalItems = (int)_totalCount, Items = latestWorkflowDefinitions };
+        return new TableData<WorkflowDefinitionRow>
+            { TotalItems = (int)_totalCount, Items = latestWorkflowDefinitions };
+    }
+
+    private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)
+    {
+        return sortLabel switch
+        {
+            "Name" => OrderByWorkflowDefinition.Name,
+            "Version" => OrderByWorkflowDefinition.Version,
+            "Created" => OrderByWorkflowDefinition.Created,
+            _ => null
+        };
     }
 
     private async Task OnCreateWorkflowClicked()
@@ -91,7 +117,9 @@ public partial class Index
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
+            var result =
+                await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!,
+                    newWorkflowModel.Description!);
 
             result.OnSuccess(definition => Edit(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
@@ -121,7 +149,8 @@ public partial class Index
 
     private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var result = await DialogService.ShowMessageBox("Delete workflow?", "Are you sure you want to delete this workflow?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Delete workflow?",
+            "Are you sure you want to delete this workflow?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -133,14 +162,17 @@ public partial class Index
 
     private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
+        var download =
+            await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId,
+                VersionOptions.Latest);
         var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox("Delete selected workflows?", "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Delete selected workflows?",
+            "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -152,7 +184,8 @@ public partial class Index
 
     private async Task OnBulkPublishClicked()
     {
-        var result = await DialogService.ShowMessageBox("Publish selected workflows?", "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Publish selected workflows?",
+            "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -162,19 +195,25 @@ public partial class Index
 
         if (response.Published.Count > 0)
         {
-            var message = response.Published.Count == 1 ? "One workflow is published" : $"{response.Published.Count} workflows are published";
+            var message = response.Published.Count == 1
+                ? "One workflow is published"
+                : $"{response.Published.Count} workflows are published";
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.AlreadyPublished.Count > 0)
         {
-            var message = response.AlreadyPublished.Count == 1 ? "One workflow is already published" : $"{response.AlreadyPublished.Count} workflows are already published";
+            var message = response.AlreadyPublished.Count == 1
+                ? "One workflow is already published"
+                : $"{response.AlreadyPublished.Count} workflows are already published";
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.NotFound.Count > 0)
         {
-            var message = response.NotFound.Count == 1 ? "One workflow is not found" : $"{response.NotFound.Count} workflows are not found";
+            var message = response.NotFound.Count == 1
+                ? "One workflow is not found"
+                : $"{response.NotFound.Count} workflows are not found";
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -183,7 +222,8 @@ public partial class Index
 
     private async Task OnBulkRetractClicked()
     {
-        var result = await DialogService.ShowMessageBox("Unpublish selected workflows?", "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Unpublish selected workflows?",
+            "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -193,19 +233,25 @@ public partial class Index
 
         if (response.Retracted.Count > 0)
         {
-            var message = response.Retracted.Count == 1 ? "One workflow is unpublished" : $"{response.Retracted.Count} workflows are unpublished";
+            var message = response.Retracted.Count == 1
+                ? "One workflow is unpublished"
+                : $"{response.Retracted.Count} workflows are unpublished";
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.AlreadyRetracted.Count > 0)
         {
-            var message = response.AlreadyRetracted.Count == 1 ? "One workflow is already unpublished" : $"{response.AlreadyRetracted.Count} workflows are already unpublished";
+            var message = response.AlreadyRetracted.Count == 1
+                ? "One workflow is already unpublished"
+                : $"{response.AlreadyRetracted.Count} workflows are already unpublished";
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.NotFound.Count > 0)
         {
-            var message = response.NotFound.Count == 1 ? "One workflow is not found" : $"{response.NotFound.Count} workflows are not found";
+            var message = response.NotFound.Count == 1
+                ? "One workflow is not found"
+                : $"{response.NotFound.Count} workflows are not found";
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -252,5 +298,6 @@ public partial class Index
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 
-    private record WorkflowDefinitionRow(string Id, string DefinitionId, int LatestVersion, int? PublishedVersion, string? Name, string? Description, bool IsPublished);
+    private record WorkflowDefinitionRow(string Id, string DefinitionId, int LatestVersion, int? PublishedVersion,
+        string? Name, string? Description, bool IsPublished);
 }
