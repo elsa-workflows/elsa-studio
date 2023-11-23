@@ -6,7 +6,7 @@
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow definitions"/>
-    
+
     <div id="workflow-file-upload-button-wrapper" class="d-none">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
     </div>
@@ -15,12 +15,12 @@
         @ref="_table"
         T="WorkflowDefinitionRow"
         ServerData="ServerReload"
-        Dense="true" 
+        Dense="true"
         Hover="true"
         Elevation="0"
-        OnRowClick="@OnRowClick" 
+        OnRowClick="@OnRowClick"
         RowStyle="cursor: pointer;"
-        MultiSelection="true" 
+        MultiSelection="true"
         SelectOnRowClick="false"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
@@ -31,7 +31,7 @@
                 <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
-            
+
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
@@ -40,7 +40,7 @@
                     </MudTooltip>
                 </MudMenu>
             </MudButtonGroup>
-            
+
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
@@ -62,10 +62,10 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Name" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Name</MudTd>
             <MudTd DataLabel="Latest version" Style="text-align:left">@context.LatestVersion</MudTd>
             <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Description" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Description</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
@@ -75,7 +75,7 @@
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))">Unpublish</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
-                    
+
                 </MudMenu>
             </MudTd>
         </RowTemplate>
