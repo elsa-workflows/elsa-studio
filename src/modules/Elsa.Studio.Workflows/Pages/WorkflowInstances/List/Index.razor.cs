@@ -3,10 +3,14 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using Refit;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.List;
 
@@ -21,7 +25,9 @@ public partial class Index
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-
+    [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
 
@@ -139,6 +145,13 @@ public partial class Index
         Reload();
     }
 
+    private async Task OnDownloadClicked(WorkflowInstanceRow workflowInstanceRow)
+    {
+        var download = await WorkflowInstanceService.ExportAsync(workflowInstanceRow.WorkflowInstanceId);
+        var fileName = $"{workflowInstanceRow.Name?.Kebaberize() ?? workflowInstanceRow.WorkflowInstanceId}.json";
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+    }
+    
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflow instances?", "Are you sure you want to delete the selected workflow instances?", yesText: "Delete", cancelText: "Cancel");
@@ -149,6 +162,28 @@ public partial class Index
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
         await WorkflowInstanceService.BulkDeleteAsync(workflowInstanceIds);
         Reload();
+    }
+
+    private Task OnImportClicked()
+    {
+        return DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
+    }
+    
+    private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
+    {
+        var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(), x.Name, x.ContentType)).ToList();
+        var count = await WorkflowInstanceService.BulkImportAsync(streamParts);
+        var message = count == 1 ? "Successfully imported one instance" : $"Successfully imported {count} instances";
+        Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Reload();
+    }
+
+    private async Task OnBulkExportClicked()
+    {
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        var download = await WorkflowInstanceService.BulkExportAsync(workflowInstanceIds);
+        var fileName = download.FileName;
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnSelectedWorkflowDefinitionsChanged(IEnumerable<WorkflowDefinitionSummary> values)
