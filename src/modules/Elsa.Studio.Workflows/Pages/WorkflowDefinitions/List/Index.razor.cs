@@ -273,7 +273,8 @@ public partial class Index
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
-        var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(), x.Name, x.ContentType)).ToList();
+        var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
+        var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await WorkflowDefinitionService.ImportFilesAsync(streamParts);
         var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
