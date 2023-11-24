@@ -1,10 +1,12 @@
 using System.Net;
+using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
@@ -73,6 +75,34 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         var api = await GetApiAsync(cancellationToken);
         return await api.GetFilteredJournalAsync(instanceId, request, skip, take, cancellationToken);
     }
-    
+
+    /// <inheritdoc />
+    public async Task<FileDownload> ExportAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.ExportAsync(id, cancellationToken);
+        var fileName = response.GetDownloadedFileNameOrDefault($"workflow-instance-{id}.json");
+
+        return new FileDownload(fileName, response.Content!);
+    }
+
+    /// <inheritdoc />
+    public async Task<FileDownload> BulkExportAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var request = new BulkExportWorkflowInstancesRequest(ids.ToArray());
+        var response = await api.BulkExportAsync(request, cancellationToken);
+        var fileName = response.GetDownloadedFileNameOrDefault("workflow-instances.zip");
+        return new FileDownload(fileName, response.Content!);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> BulkImportAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.BulkImportAsync(streamParts.ToList(), cancellationToken);
+        return response.Count;
+    }
+
     private async Task<IWorkflowInstancesApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
 }

@@ -10,6 +10,10 @@
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow instances"/>
 
+    <div id="instance-file-upload-button-wrapper" class="d-none">
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
+    </div>
+    
     <MudTable
         @ref="_table"
         T="WorkflowInstanceRow"
@@ -23,11 +27,15 @@
         SelectOnRowClick="false"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem>Cancel</MudMenuItem>
-                <MudMenuItem>Retry</MudMenuItem>
-            </MudMenu>
+            <MudPaper Class="gap-3 d-flex" Elevation="0">
+                <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
+                    <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
+                    <MudMenuItem>Cancel</MudMenuItem>
+                    <MudMenuItem>Retry</MudMenuItem>
+                    <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
+                </MudMenu>
+                <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
+            </MudPaper>
             <MudSpacer/>
             <MudStack Row="true">
                 <MudSelect
@@ -130,6 +138,8 @@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
                 </MudMenu>
             </MudTd>
         </RowTemplate>
