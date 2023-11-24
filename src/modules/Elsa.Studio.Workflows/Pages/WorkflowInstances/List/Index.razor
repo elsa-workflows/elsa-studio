@@ -107,10 +107,10 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.WorkflowInstanceId</MudTd>
-            <MudTd DataLabel="Correlation ID">@context.CorrelationId</MudTd>
-            <MudTd DataLabel="Workflow">@context.WorkflowDefinition.Name</MudTd>
+            <MudTd DataLabel="Correlation ID" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.CorrelationId</MudTd>
+            <MudTd DataLabel="Workflow" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.WorkflowDefinition.Name</MudTd>
             <MudTd DataLabel="Version">@context.Version</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Name" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Name</MudTd>
             <MudTd DataLabel="SubStatus">
                 <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                     @context.SubStatus
