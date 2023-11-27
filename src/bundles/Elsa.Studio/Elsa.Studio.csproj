@@ -2,17 +2,17 @@
 
     <Import Project="..\..\..\common.props"/>
     <Import Project="..\..\..\configureawait.props"/>
-    
+    <Import Project="..\..\..\frameworks.props"/>
+
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
         <Description>Elsa Studio bundle of commonly used packages.</Description>
         <PackageTags>elsa studio framework bundle</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
+        <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj"/>
     </ItemGroup>
 
 </Project>

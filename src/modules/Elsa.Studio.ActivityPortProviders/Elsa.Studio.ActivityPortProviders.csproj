@@ -2,9 +2,9 @@
 
     <Import Project="..\..\..\common.props" />
     <Import Project="..\..\..\configureawait.props" />
+    <Import Project="..\..\..\frameworks.props"/>
     
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
         <Description>Provides various port providers for activities such as `FlowSwitch` and `SendHttpRequest`.</Description>
         <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>

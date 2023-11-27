@@ -2,9 +2,9 @@
 
     <Import Project="..\..\..\common.props" />
     <Import Project="..\..\..\configureawait.props" />
+    <Import Project="..\..\..\frameworks.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
         <Description>Adds support for connecting to different Elsa Workflows environments.</Description>
         <PackageTags>elsa studio module</PackageTags>
     </PropertyGroup>
@@ -17,8 +17,7 @@
         <PackageReference Include="Refit" Version="7.0.0"/>
         <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0"/>
     </ItemGroup>
-
-
+    
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
     </ItemGroup>

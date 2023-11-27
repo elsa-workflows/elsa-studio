@@ -2,9 +2,9 @@
 
     <Import Project="..\..\..\common.props"/>
     <Import Project="..\..\..\configureawait.props"/>
-
+    <Import Project="..\..\..\frameworks.props"/>
+    
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
         <Description>Blazor Server impementation for certain abstractions provided by Elsa.Studio.Core.</Description>
         <PackageTags>elsa studio blazor server</PackageTags>
     </PropertyGroup>
