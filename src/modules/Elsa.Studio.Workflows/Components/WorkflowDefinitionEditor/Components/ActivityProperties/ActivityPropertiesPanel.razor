@@ -50,6 +50,15 @@
             }
         </MudTabPanel>
 
+        <MudTabPanel Text="Info">
+            @if (ActivityDescriptor != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <InfoTab ActivityDescriptor="@ActivityDescriptor"/>
+                </ScrollableWell>
+            }
+        </MudTabPanel>
+
         @if (IsWorkflowAsActivity)
         {
             <MudTabPanel Text="Version">
