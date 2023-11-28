@@ -1,7 +1,7 @@
 import {Activity} from "../models";
 import {graphBindings} from "./graph-bindings";
 
-export async function raiseActivitySelected(elementId: string, activity: Activity) {
+export async function raiseActivitySelected(elementId: string, activityModel: Activity | string) {
     // Get wrapper element.
     const wrapper = document.getElementById(elementId);
 
@@ -13,6 +13,10 @@ export async function raiseActivitySelected(elementId: string, activity: Activit
 
     // Get graph reference.
     const {interop} = graphBindings[graphId];
+
+    // Parse activity model.
+    // Parse activity model.
+    const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
 
     await interop.raiseActivitySelected(activity);
 }

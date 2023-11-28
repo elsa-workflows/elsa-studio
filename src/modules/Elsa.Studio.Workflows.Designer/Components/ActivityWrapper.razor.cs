@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
@@ -34,27 +35,38 @@ public partial class ActivityWrapper
     /// <summary>
     /// Gets or sets the element ID.
     /// </summary>
-    [Parameter] public string? ElementId { get; set; }
-    
+    [Parameter]
+    public string? ElementId { get; set; }
+
     /// <summary>
     /// Gets or sets the activity ID.
     /// </summary>
-    [Parameter] public string ActivityId { get; set; } = default!;
-    
+    [Parameter]
+    public string ActivityId { get; set; } = default!;
+
     /// <summary>
     /// Gets or sets the activity.
     /// </summary>
-    [Parameter] public JsonObject Activity { get; set; } = default!;
-    
+    [Parameter]
+    public JsonObject Activity { get; set; } = default!;
+
+    /// <summary>
+    /// Until the max depth of JSInterop is configurable to exceed 32, we need to pass the activity JSON as a string.
+    /// </summary>
+    [Parameter]
+    public string ActivityJson { get; set; } = default!;
+
     /// <summary>
     /// Gets or sets the selected port name.
     /// </summary>
-    [Parameter] public string? SelectedPortName { get; set; }
-    
+    [Parameter]
+    public string? SelectedPortName { get; set; }
+
     /// <summary>
     /// Gets or sets the activity stats.
     /// </summary>
-    [Parameter] public ActivityStats? Stats { get; set; }
+    [Parameter]
+    public ActivityStats? Stats { get; set; }
 
     [Inject] private DesignerJsInterop DesignerInterop { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -65,10 +77,13 @@ public partial class ActivityWrapper
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
 
     /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (!string.IsNullOrWhiteSpace(ActivityJson))
+            Activity = JsonSerializer.Deserialize<JsonObject>(ActivityJson, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })!;
+
         await ActivityRegistry.EnsureLoadedAsync();
-        
+
         var activity = Activity;
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
@@ -84,7 +99,7 @@ public partial class ActivityWrapper
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
         _ports = ActivityPortService.GetPorts(new PortProviderContext(descriptor!, activity)).ToList();
-        
+
         await UpdateSizeAsync();
     }
 

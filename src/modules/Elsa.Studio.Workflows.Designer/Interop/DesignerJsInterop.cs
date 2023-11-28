@@ -1,4 +1,6 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.UI.Models;
@@ -36,15 +38,38 @@ internal class DesignerJsInterop : JsInteropBase
         });
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default) =>
-        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activity, size));
-    
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default)
+    {
+        var serializerOptions = GetSerializerOptions();
+        var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
+        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activityJson, size));
+    }
+
     public async Task UpdateActivityStatsAsync(string elementId, string activityId, ActivityStats stats) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivityStats", elementId, activityId, stats));
-    
-    public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity) =>
-        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activity));
-    
-    public async Task RaiseActivityEmbeddedPortSelectedAsync(string elementId, JsonObject activity, string portName) =>
-        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivityEmbeddedPortSelected", elementId, activity, portName));
+
+    public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity)
+    {
+        var serializerOptions = GetSerializerOptions();
+        var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activityJson));
+    }
+
+    public async Task RaiseActivityEmbeddedPortSelectedAsync(string elementId, JsonObject activity, string portName)
+    {
+        var serializerOptions = GetSerializerOptions();
+        var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
+        await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivityEmbeddedPortSelected", elementId, activityJson, portName));
+    }
+
+    private static JsonSerializerOptions GetSerializerOptions()
+    {
+        var serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        serializerOptions.Converters.Add(new JsonStringEnumConverter());
+        return serializerOptions;
+    }
 }

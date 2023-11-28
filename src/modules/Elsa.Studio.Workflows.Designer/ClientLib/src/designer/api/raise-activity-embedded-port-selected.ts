@@ -1,7 +1,7 @@
 import {Activity} from "../models";
 import {graphBindings} from "./graph-bindings";
 
-export async function raiseActivityEmbeddedPortSelected(elementId: string, activity: Activity, portName: string) {
+export async function raiseActivityEmbeddedPortSelected(elementId: string, activityModel: Activity | string, portName: string) {
     // Get wrapper element.
     const wrapper = document.getElementById(elementId);
 
@@ -13,6 +13,9 @@ export async function raiseActivityEmbeddedPortSelected(elementId: string, activ
 
     // Get graph reference.
     const {interop} = graphBindings[graphId];
-    
+
+    // Parse activity model.
+    const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
+
     await interop.raiseActivityEmbeddedPortSelected(activity, portName);
 }

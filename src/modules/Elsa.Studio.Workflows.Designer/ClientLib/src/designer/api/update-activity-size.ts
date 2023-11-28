@@ -2,7 +2,7 @@ import {calculateActivitySize} from "./calculate-activity-size";
 import {Activity, Size} from "../models";
 import {graphBindings} from "./graph-bindings";
 
-export async function updateActivitySize(elementId: string, activity: Activity, size?: Size) {
+export async function updateActivitySize(elementId: string, activityModel: Activity | string, size?: Size) {
     // Get wrapper element.
     const wrapper = document.getElementById(elementId);
 
@@ -19,6 +19,9 @@ export async function updateActivitySize(elementId: string, activity: Activity, 
 
     // Get graph reference.
     const {graph} = graphBindings[graphId];
+    
+    // Parse activity model.
+    const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
 
     // Calculate the size of the activity.
     const rect = await calculateActivitySize(activity);
