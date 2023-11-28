@@ -44,7 +44,7 @@ jobs:
       - name: Pack nuget packages
         run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages/nuget
       - name: Publish Custom Elements packages # This generates client assets that we then package as an NPM package.
-        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION}
+        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION} -f net7.0
       
       # Pack npm wasm package
       - name: Pack elsa-studio-wasm npm package
