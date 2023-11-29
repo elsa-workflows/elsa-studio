@@ -1,15 +1,15 @@
 @using Elsa.Studio.Contracts
 
-<MudText Typo="Typo.body2">Server version: @PackageVersion</MudText>
+<MudText Typo="Typo.body2">Client version: @PackageVersion</MudText>
 
 @code {
-    [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = default!;
+    [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = default!;
     private string PackageVersion { get; set; } = "Loading...";
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var info = await ServerInformationProvider.GetInfoAsync();
+        var info = await ClientInformationProvider.GetInfoAsync();
         PackageVersion = info.PackageVersion;
     }
 

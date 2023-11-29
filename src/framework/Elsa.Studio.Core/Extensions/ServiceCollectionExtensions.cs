@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
+            .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
             ;
         

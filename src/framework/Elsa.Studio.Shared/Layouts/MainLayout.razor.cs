@@ -1,3 +1,4 @@
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
@@ -17,6 +18,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IAppBarService AppBarService { get; set; } = default!;
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
@@ -49,6 +51,17 @@ public partial class MainLayout : IDisposable
     private void ToggleDarkMode()
     {
         ThemeService.IsDarkMode = !ThemeService.IsDarkMode;
+    }
+
+    private async Task ShowProductInfo()
+    {
+        await DialogService.ShowAsync<ProductInfoDialog>("Elsa Studio 3", new DialogOptions
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
     }
 
     void IDisposable.Dispose()
