@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -39,11 +40,20 @@ public partial class ActivityExecutionsTab
     /// </summary>
     [Parameter]
     public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
-    private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+
+    private IEnumerable<ActivityExecutionRecordTableRow> Items =>
+        ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
-    private IDictionary<string, string?> SelectedActivityState { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
+
+    private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } =
+        new Dictionary<string, DataPanelItem>();
+
+    private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } =
+        new Dictionary<string, DataPanelItem>();
+
+    private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } =
+        new Dictionary<string, DataPanelItem>();
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -55,28 +65,28 @@ public partial class ActivityExecutionsTab
     {
         if (record == null)
         {
-            SelectedActivityState = new Dictionary<string, string?>();
-            SelectedOutcomesData = new Dictionary<string, string?>();
-            SelectedOutputData = new Dictionary<string, string?>();
+            SelectedActivityState = new Dictionary<string, DataPanelItem>();
+            SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
+            SelectedOutputData = new Dictionary<string, DataPanelItem>();
             return;
         }
 
         var activityState = record.ActivityState?
             .Where(x => !x.Key.StartsWith("_"))
-            .ToDictionary(x => x.Key, x => x.Value?.ToString());
+            .ToDictionary(x => x.Key, x => new DataPanelItem(x.Value?.ToString()));
 
         var outcomesData = record.Payload?.TryGetValue("Outcomes", out var outcomesValue) == true
-            ? new Dictionary<string, string?> { ["Outcomes"] = outcomesValue!.ToString()! }
+            ? new Dictionary<string, DataPanelItem> { ["Outcomes"] = new(outcomesValue!.ToString()!) }
             : default;
 
-        var outputData = new Dictionary<string, string?>();
+        var outputData = new Dictionary<string, DataPanelItem>();
 
         if (record.Outputs != null)
             foreach (var (key, value) in record.Outputs)
-                outputData[key] = value?.ToString();
+                outputData[key] = new(value?.ToString());
 
-        SelectedActivityState = activityState ?? new Dictionary<string, string?>();
-        SelectedOutcomesData = outcomesData ?? new Dictionary<string, string?>();
+        SelectedActivityState = activityState ?? new Dictionary<string, DataPanelItem>();
+        SelectedOutcomesData = outcomesData ?? new Dictionary<string, DataPanelItem>();
         SelectedOutputData = outputData;
     }
 

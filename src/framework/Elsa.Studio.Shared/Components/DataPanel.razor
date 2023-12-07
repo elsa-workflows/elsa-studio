@@ -1,17 +1,28 @@
 @using Elsa.Studio.DomInterop.Contracts
+@using Elsa.Studio.Models
+
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
     @{
-        var data = HideEmptyValues ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value)) : Data;
+        var data = HideEmptyValues ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value.Text)) : Data;
     }
     @foreach (var item in data)
     {
         <tr>
             <td style="width: 200px;">@item.Key</td>
             <td style="width: 50px;">
-                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value))"/>
+                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
             </td>
-            <td>@item.Value</td>
+            <td>
+                @if (!string.IsNullOrWhiteSpace(item.Value.Link))
+                {
+                    <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
+                }
+                else
+                {
+                    <span>@item.Value.Text</span>
+                }
+            </td>
         </tr>
     }
     </tbody>
@@ -23,7 +34,7 @@
     /// The data to display.
     /// </summary>
     [Parameter]
-    public IDictionary<string, string?> Data { get; set; } = new Dictionary<string, string?>();
+    public IDictionary<string, DataPanelItem> Data { get; set; } = new Dictionary<string, DataPanelItem>();
 
     /// <summary>
     /// If true, empty values will be hidden.

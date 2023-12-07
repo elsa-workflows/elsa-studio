@@ -6,6 +6,7 @@ using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
@@ -39,27 +40,27 @@ public partial class WorkflowInstanceDetails
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
 
-    private IDictionary<string, string?> WorkflowInstanceData
+    private IDictionary<string, DataPanelItem> WorkflowInstanceData
     {
         get
         {
             if (_workflowInstance == null)
-                return new Dictionary<string, string?>();
+                return new Dictionary<string, DataPanelItem>();
 
-            return new Dictionary<string, string?>
+            return new Dictionary<string, DataPanelItem>
             {
-                ["ID"] = _workflowInstance.Id,
-                ["Definition ID"] = _workflowInstance.DefinitionId,
-                ["Definition version"] = _workflowInstance.Version.ToString(),
-                ["Definition version ID"] = _workflowInstance.DefinitionVersionId,
-                ["Correlation ID"] = _workflowInstance.CorrelationId,
-                ["Incident Strategy"] = GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType),
-                ["Status"] = _workflowInstance.Status.ToString(),
-                ["Sub status"] = _workflowInstance.SubStatus.ToString(),
-                ["Incidents"] = _workflowInstance.IncidentCount.ToString(),
-                ["Created"] = _workflowInstance.CreatedAt.ToString("G"),
-                ["Updated"] = _workflowInstance.UpdatedAt.ToString("G"),
-                ["Finished"] = _workflowInstance.FinishedAt?.ToString("G"),
+                ["ID"] = new(_workflowInstance.Id),
+                ["Definition ID"] = new(_workflowInstance.DefinitionId,$"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
+                ["Definition version"] = new(_workflowInstance.Version.ToString()),
+                ["Definition version ID"] = new(_workflowInstance.DefinitionVersionId),
+                ["Correlation ID"] = new(_workflowInstance.CorrelationId),
+                ["Incident Strategy"] = new(GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
+                ["Status"] = new(_workflowInstance.Status.ToString()),
+                ["Sub status"] = new(_workflowInstance.SubStatus.ToString()),
+                ["Incidents"] = new(_workflowInstance.IncidentCount.ToString()),
+                ["Created"] = new(_workflowInstance.CreatedAt.ToString("G")),
+                ["Updated"] = new(_workflowInstance.UpdatedAt.ToString("G")),
+                ["Finished"] = new(_workflowInstance.FinishedAt?.ToString("G")),
             };
         }
     }
