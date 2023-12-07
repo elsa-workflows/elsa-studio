@@ -62,10 +62,22 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
-            <MudTd DataLabel="Name" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Name</MudTd>
+            <MudTd DataLabel="Name">
+                <MudTooltip Text="@context.Name">
+                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                        @context.Name
+                    </div>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="Latest version" Style="text-align:left">@context.LatestVersion</MudTd>
             <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
-            <MudTd DataLabel="Description" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Description</MudTd>
+            <MudTd DataLabel="Description">
+                <MudTooltip Text="@context.Description">
+                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                        @context.Description
+                    </div>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
