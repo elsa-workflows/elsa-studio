@@ -21,6 +21,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.Switch"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Tabler.SwitchDiagonal),
         ["Elsa.FlowSwitch"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Tabler.SwitchDiagonal),
         ["Elsa.FlowJoin"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Tabler.GitMerge),
+        ["Elsa.FlowFork"] = new(DefaultActivityColors.Branching, ElsaStudioIcons.Tabler.GitFork),
         
         // Composition
         ["Elsa.Complete"] = new(DefaultActivityColors.Composition, ElsaStudioIcons.Tabler.CheckCircle),
