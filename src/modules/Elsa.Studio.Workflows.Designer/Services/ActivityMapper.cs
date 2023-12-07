@@ -85,6 +85,10 @@ internal class ActivityMapper : IActivityMapper
                 ["text"] = new X6Attrs
                 {
                     ["text"] = sourcePort.DisplayName ?? string.Empty
+                },
+                ["circle"] = new X6Attrs
+                {
+                    ["fill"] = displaySettings.Color,
                 }
             }
         }).ToList();
