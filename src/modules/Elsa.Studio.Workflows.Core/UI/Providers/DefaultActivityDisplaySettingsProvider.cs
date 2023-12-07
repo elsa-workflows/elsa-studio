@@ -26,6 +26,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.Complete"] = new(DefaultActivityColors.Composition, ElsaStudioIcons.Tabler.CheckCircle),
         ["Elsa.SetOutput"] = new (DefaultActivityColors.Composition),
         ["Elsa.DispatchWorkflow"] = new (DefaultActivityColors.Composition),
+        ["Elsa.BulkDispatchWorkflows"] = new (DefaultActivityColors.Composition),
         
         // Console
         ["Elsa.WriteLine"] = new(DefaultActivityColors.Console, ElsaStudioIcons.Tabler.Pencil),
@@ -72,7 +73,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         // Scripting
         ["Elsa.RunJavaScript"] = new(DefaultActivityColors.Scripting, Icons.Material.Outlined.Javascript),
 
-        //ServiceBusActivity
+        // Azure Service Bus
         ["Elsa.AzureServiceBus.MessageReceived"] = new("#a21caf", ElsaStudioIcons.Heroicons.Incoming),
         ["Elsa.AzureServiceBus.SendMessage"] = new("#a21caf", ElsaStudioIcons.Heroicons.Outgoing),
     };
