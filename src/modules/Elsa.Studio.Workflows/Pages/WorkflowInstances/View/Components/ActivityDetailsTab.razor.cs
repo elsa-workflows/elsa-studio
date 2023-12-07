@@ -84,7 +84,10 @@ public partial class ActivityDetailsTab
         {
             ["ID"] = new(activityId),
             ["Name"] = new(activityName),
-            ["Type"] = new(activityType, $"/workflows/definitions/{workflowDefinitionId}/edit"),
+            ["Type"] = new(activityType,
+                string.IsNullOrWhiteSpace(workflowDefinitionId)
+                    ? null
+                    : $"/workflows/definitions/{workflowDefinitionId}/edit"),
             ["Version"] = new(activityVersion.ToString())
         };
 
