@@ -13,7 +13,7 @@
     <div id="instance-file-upload-button-wrapper" class="d-none">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
     </div>
-    
+
     <MudTable
         @ref="_table"
         T="WorkflowInstanceRow"
@@ -115,18 +115,36 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.WorkflowInstanceId</MudTd>
-            <MudTd DataLabel="Correlation ID" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.CorrelationId</MudTd>
-            <MudTd DataLabel="Workflow" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.WorkflowDefinition.Name</MudTd>
+            <MudTd DataLabel="Correlation ID">
+                <MudTooltip Text="@context.CorrelationId">
+                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                        @context.CorrelationId
+                    </div>
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="Workflow">
+                <MudTooltip Text="@context.WorkflowDefinition.Name">
+                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                        @context.WorkflowDefinition.Name
+                    </div>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="Version">@context.Version</MudTd>
-            <MudTd DataLabel="Name" Style="text-overflow: ellipsis; overflow: hidden; max-width:200px; white-space: nowrap;">@context.Name</MudTd>
+            <MudTd DataLabel="Name">
+                <MudTooltip Text="@context.Name">
+                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                        @context.Name
+                    </div>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="SubStatus">
                 <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                     @context.SubStatus
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="IncidentCount">
-                <MudChip 
-                    Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)" 
+                <MudChip
+                    Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
                     Text="@context.IncidentCount.ToString()"
                     Variant="Variant.Text"
                     Size="Size.Small"/>
