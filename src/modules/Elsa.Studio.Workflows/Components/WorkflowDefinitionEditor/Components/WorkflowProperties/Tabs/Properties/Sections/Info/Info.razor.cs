@@ -1,23 +1,25 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Info;
+namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.
+    Sections.Info;
 
 public partial class Info
 {
-    private IDictionary<string, string> _workflowInfo = new Dictionary<string, string>();
+    private IDictionary<string, DataPanelItem> _workflowInfo = new Dictionary<string, DataPanelItem>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
 
     protected override void OnParametersSet()
     {
-        _workflowInfo = new Dictionary<string, string>
+        _workflowInfo = new Dictionary<string, DataPanelItem>
         {
-            ["Definition ID"] = WorkflowDefinition.DefinitionId,
-            ["Version ID"] = WorkflowDefinition.Id, 
-            ["Version"] = WorkflowDefinition.Version.ToString(),
-            ["Status"] = WorkflowDefinition.IsPublished ? "Published" : "Draft", 
-            ["Readonly"] = WorkflowDefinition.IsReadonly ? "Yes" : "No"
+            ["Definition ID"] = new(WorkflowDefinition.DefinitionId),
+            ["Version ID"] = new(WorkflowDefinition.Id),
+            ["Version"] = new(WorkflowDefinition.Version.ToString()),
+            ["Status"] = new(WorkflowDefinition.IsPublished ? "Published" : "Draft"),
+            ["Readonly"] = new(WorkflowDefinition.IsReadonly ? "Yes" : "No")
         };
     }
 }

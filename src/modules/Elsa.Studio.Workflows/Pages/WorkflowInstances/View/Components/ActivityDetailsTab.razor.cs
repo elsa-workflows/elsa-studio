@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -40,14 +41,17 @@ public partial class ActivityDetailsTab
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
 
     private ActivityExecutionRecord? LastActivityExecution => ActivityExecutions.LastOrDefault();
-    private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+
+    private IEnumerable<ActivityExecutionRecordTableRow> Items =>
+        ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
 
-    private IDictionary<string, string?> ActivityInfo { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> ActivityData { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> OutcomesData { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> OutputData { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> ExceptionData { get; set; } = new Dictionary<string, string?>();
+    private IDictionary<string, DataPanelItem> ActivityInfo { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> ActivityData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> OutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> OutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> ExceptionData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, string?> SelectedActivityState { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
@@ -74,47 +78,55 @@ public partial class ActivityDetailsTab
         var execution = LastActivityExecution;
         var activityVersion = execution?.ActivityTypeVersion;
         var exception = execution?.Exception;
+        var workflowDefinitionId = activity.GetWorkflowDefinitionId();
 
-        var activityInfo = new Dictionary<string, string?>
+        var activityInfo = new Dictionary<string, DataPanelItem>
         {
-            ["ID"] = activityId,
-            ["Name"] = activityName,
-            ["Type"] = activityType,
-            ["Version"] = activityVersion.ToString()
+            ["ID"] = new(activityId),
+            ["Name"] = new(activityName),
+            ["Type"] = new(activityType,
+                string.IsNullOrWhiteSpace(workflowDefinitionId)
+                    ? null
+                    : $"/workflows/definitions/{workflowDefinitionId}/edit"),
+            ["Version"] = new(activityVersion.ToString())
         };
 
-        var outcomesData = new Dictionary<string, string?>();
-        var outputData = new Dictionary<string, string?>();
+        var outcomesData = new Dictionary<string, DataPanelItem>();
+        var outputData = new Dictionary<string, DataPanelItem>();
 
         if (execution != null)
         {
-            activityInfo["Status"] = execution.Status.ToString();
-            activityInfo["Instance ID"] = execution.Id;
+            activityInfo["Status"] = new(execution.Status.ToString());
+            activityInfo["Instance ID"] = new(execution.Id);
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
-                    outcomesData["Outcomes"] = outcomes.ToString();
+                    outcomesData["Outcomes"] = new(outcomes.ToString());
 
             var outputDescriptors = activityDescriptor.Outputs;
             var outputs = execution.Outputs;
 
             foreach (var outputDescriptor in outputDescriptors)
             {
-                var outputValue = outputs != null ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default : default;
-                outputData[outputDescriptor.Name] = outputValue?.ToString();
+                var outputValue = outputs != null
+                    ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default
+                    : default;
+                outputData[outputDescriptor.Name] = new(outputValue?.ToString());
             }
         }
 
-        var exceptionData = new Dictionary<string, string?>();
+        var exceptionData = new Dictionary<string, DataPanelItem>();
 
         if (exception != null)
         {
-            exceptionData["Message"] = exception.Message;
-            exceptionData["InnerException"] = exception.InnerException != null ? exception.InnerException.Type + ": " + exception.InnerException.Message : default;
-            exceptionData["StackTrace"] = exception.StackTrace;
+            exceptionData["Message"] = new(exception.Message);
+            exceptionData["InnerException"] = new(exception.InnerException != null
+                ? exception.InnerException.Type + ": " + exception.InnerException.Message
+                : default);
+            exceptionData["StackTrace"] = new(exception.StackTrace);
         }
 
-        var activityStateData = new Dictionary<string, string?>();
+        var activityStateData = new Dictionary<string, DataPanelItem>();
         var activityState = execution?.ActivityState;
 
         if (activityState != null)
@@ -122,7 +134,7 @@ public partial class ActivityDetailsTab
             foreach (var inputDescriptor in activityDescriptor.Inputs)
             {
                 var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : default;
-                activityStateData[inputDescriptor.Name] = inputValue?.ToString();
+                activityStateData[inputDescriptor.Name] = new(inputValue?.ToString());
             }
         }
 
