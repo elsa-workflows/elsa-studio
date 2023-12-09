@@ -4,6 +4,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
+using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -19,7 +20,7 @@ builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("e
 // Register the modules.
 builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options), configureElsaClientBuilderOptions: elsaClient => elsaClient.ConfigureHttpClientBuilder = httpClientBuilder => httpClientBuilder.AddHttpMessageHandler<AuthenticatingApiHttpMessageHandler>());
 builder.Services.AddWorkflowsModule();
 
 // Build the application.

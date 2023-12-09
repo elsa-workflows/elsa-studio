@@ -3,6 +3,8 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Domain.Contracts
+@inherits StudioComponentBase
+
 @inject IWorkflowDefinitionService WorkflowDefinitionService
 
 <CascadingValue Value="_dragDropManager">

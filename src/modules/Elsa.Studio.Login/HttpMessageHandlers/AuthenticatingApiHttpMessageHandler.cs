@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.Identity.Responses;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Login.HttpMessageHandlers;
 
@@ -13,23 +14,24 @@ namespace Elsa.Studio.Login.HttpMessageHandlers;
 /// </summary>
 public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
 {
-    private readonly IJwtAccessor _jwtAccessor;
     private readonly IRemoteBackendAccessor _remoteBackendAccessor;
+    private readonly IBlazorServiceAccessor _blazorServiceAccessor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthenticatingHttpMessageHandlerProvider"/> class.
     /// </summary>
-    public AuthenticatingApiHttpMessageHandler(IJwtAccessor jwtAccessor, IRemoteBackendAccessor remoteBackendAccessor)
+    public AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor)
     {
-        _jwtAccessor = jwtAccessor;
         _remoteBackendAccessor = remoteBackendAccessor;
-        InnerHandler = new HttpClientHandler();
+        _blazorServiceAccessor = blazorServiceAccessor;
     }
 
     /// <inheritdoc />
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var accessToken = await _jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        var sp = _blazorServiceAccessor.Services;
+        var jwtAccessor = sp.GetRequiredService<IJwtAccessor>();
+        var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         var response = await base.SendAsync(request, cancellationToken);
@@ -37,7 +39,7 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             // Refresh token and retry once.
-            var tokens = await RefreshTokenAsync(cancellationToken);
+            var tokens = await RefreshTokenAsync(jwtAccessor, cancellationToken);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
 
             // Retry.
@@ -47,10 +49,10 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
         return response;
     }
 
-    private async Task<LoginResponse> RefreshTokenAsync(CancellationToken cancellationToken)
+    private async Task<LoginResponse> RefreshTokenAsync(IJwtAccessor jwtAccessor, CancellationToken cancellationToken)
     {
         // Get refresh token.
-        var refreshToken = await _jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
+        var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
         
         // Setup request to get new tokens.
         var url = _remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
@@ -68,8 +70,8 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
         
         // Store tokens.
-        await _jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken!);
-        await _jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken!);
+        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken!);
+        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken!);
         
         // Return tokens.
         return tokens;

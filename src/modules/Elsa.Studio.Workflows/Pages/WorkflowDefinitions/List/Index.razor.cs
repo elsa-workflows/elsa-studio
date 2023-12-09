@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
@@ -45,41 +46,47 @@ public partial class Index
                 : OrderDirection.Ascending
         };
 
-        var latestWorkflowDefinitionsResponse =
-            await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
-        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished)
-            .Select(x => x.DefinitionId).ToList();
-
-        var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
-            DefinitionIds = unpublishedWorkflowDefinitionIds,
-        }, VersionOptions.Published);
+            var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+            var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
-        _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
-
-        var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
-            .Select(definition =>
+            var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
             {
-                var latestVersionNumber = definition.Version;
-                var isPublished = definition.IsPublished;
-                var publishedVersion = isPublished
-                    ? definition
-                    : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
-                var publishedVersionNumber = publishedVersion?.Version;
+                DefinitionIds = unpublishedWorkflowDefinitionIds,
+            }, VersionOptions.Published);
 
-                return new WorkflowDefinitionRow(
-                    definition.Id,
-                    definition.DefinitionId,
-                    latestVersionNumber,
-                    publishedVersionNumber,
-                    definition.Name,
-                    definition.Description,
-                    definition.IsPublished);
-            })
-            .ToList();
+            _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
+
+            var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
+                .Select(definition =>
+                {
+                    var latestVersionNumber = definition.Version;
+                    var isPublished = definition.IsPublished;
+                    var publishedVersion = isPublished
+                        ? definition
+                        : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
+                    var publishedVersionNumber = publishedVersion?.Version;
+
+                    return new WorkflowDefinitionRow(
+                        definition.Id,
+                        definition.DefinitionId,
+                        latestVersionNumber,
+                        publishedVersionNumber,
+                        definition.Name,
+                        definition.Description,
+                        definition.IsPublished);
+                })
+                .ToList();
+
+            return latestWorkflowDefinitions;
+        });
 
         return new TableData<WorkflowDefinitionRow>
-            { TotalItems = (int)_totalCount, Items = latestWorkflowDefinitions };
+        {
+            TotalItems = (int)_totalCount,
+            Items = workflowDefinitionRows
+        };
     }
 
     private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)
@@ -299,6 +306,12 @@ public partial class Index
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 
-    private record WorkflowDefinitionRow(string Id, string DefinitionId, int LatestVersion, int? PublishedVersion,
-        string? Name, string? Description, bool IsPublished);
+    private record WorkflowDefinitionRow(
+        string Id,
+        string DefinitionId,
+        int LatestVersion,
+        int? PublishedVersion,
+        string? Name,
+        string? Description,
+        bool IsPublished);
 }

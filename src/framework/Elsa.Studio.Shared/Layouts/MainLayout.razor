@@ -41,7 +41,7 @@
         </div>
     </MudDrawer>
     <MudMainContent>
-        <ErrorBoundary>
+        <ErrorBoundary @ref="@_errorBoundary">
             <ChildContent>
                 @Body
             </ChildContent>

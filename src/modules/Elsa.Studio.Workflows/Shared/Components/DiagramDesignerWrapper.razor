@@ -1,5 +1,6 @@
 @using Elsa.Studio.Workflows.UI.Contracts
 @using Elsa.Studio.Workflows.UI.Contexts
+@inherits StudioComponentBase
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
     <MudToolBar Dense="true">
         @{
@@ -19,7 +20,7 @@
 <div class="ma-2">
     <MudBreadcrumbs Items="_breadcrumbItems" Style="padding: 6px;">
         <ItemTemplate>
-            <MudLink Color="Color.Default" OnClick="@(async _ => await OnBreadcrumbItemClicked(context))">
+            <MudLink Color="Color.Default" OnClick="@(_ => OnBreadcrumbItemClicked(context))">
                 @if (context.Icon != null)
                 {
                     <MudIcon Icon="@context.Icon"/>

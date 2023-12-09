@@ -1,4 +1,5 @@
 @using Elsa.Studio.Contracts
+@inherits StudioComponentBase
 @inject IThemeService ThemeService
 
 <MudThemeProvider IsDarkMode="false" Theme="@ThemeService.CurrentTheme"/>

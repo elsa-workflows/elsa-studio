@@ -1,5 +1,7 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.VariableTypes.Models
+@inherits StudioComponentBase
+
 <MudDialog>
     <DialogContent>
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">

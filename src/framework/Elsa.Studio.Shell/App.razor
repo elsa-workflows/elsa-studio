@@ -2,7 +2,7 @@
 @using Elsa.Studio.Contracts
 @using Elsa.Studio.Shell.Options
 @using Microsoft.Extensions.Options
-
+@inherits StudioComponentBase
 <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@AdditionalAssemblies">
     <Found Context="routeData">
         @if (!AuthorizationIsDisabled)

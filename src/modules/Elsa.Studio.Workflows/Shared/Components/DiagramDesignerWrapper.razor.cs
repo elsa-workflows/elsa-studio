@@ -119,10 +119,10 @@ public partial class DiagramDesignerWrapper
         {
             // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
             // The key is to find the owning activity of the activity that was selected. Which in the case of the Flowchart diagram, has at least a Flowchart as its parent, which in turn my have a Workflow as its parent.
-            
+
             // Find the flowchart to which this activity belongs.
             var flowchart = embeddedActivityNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
-            
+
             // Try to get the owning activity of the flowchart. Keep in mind that there could be a Workflow activity in between if the owning activity is a WorkflowDefinitionActivity.
             var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
 
@@ -257,7 +257,7 @@ public partial class DiagramDesignerWrapper
 
         if (WorkflowInstanceId != null)
         {
-            var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
+            var report = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
             _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
             {
                 Faulted = x.IsFaulted,
@@ -319,7 +319,7 @@ public partial class DiagramDesignerWrapper
     {
         if (!IsReadOnly)
             return;
-        
+
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {

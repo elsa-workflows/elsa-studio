@@ -9,14 +9,19 @@ public class DefaultFeatureService : IFeatureService
 {
     private readonly IEnumerable<IFeature> _features;
     private readonly IRemoteFeatureProvider _remoteFeatureProvider;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IBlazorServiceAccessor _blazorServiceAccessor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultFeatureService"/> class.
     /// </summary>
-    public DefaultFeatureService(IEnumerable<IFeature> features, IRemoteFeatureProvider remoteFeatureProvider)
+    public DefaultFeatureService(IEnumerable<IFeature> features, IRemoteFeatureProvider remoteFeatureProvider, IServiceProvider serviceProvider, IBlazorServiceAccessor blazorServiceAccessor)
     {
         _features = features;
         _remoteFeatureProvider = remoteFeatureProvider;
+        _serviceProvider = serviceProvider;
+        _blazorServiceAccessor = blazorServiceAccessor;
+        //_blazorServiceAccessor.Services = _serviceProvider;
     }
     
     /// <inheritdoc />

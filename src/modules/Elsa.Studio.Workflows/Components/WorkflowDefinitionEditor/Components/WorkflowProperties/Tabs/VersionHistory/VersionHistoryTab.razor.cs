@@ -8,15 +8,20 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.VersionHistory;
 
+/// Represents a tab in the version history section of a workflow definition workspace.
 public partial class VersionHistoryTab : IDisposable
 {
-    [Parameter] public string DefinitionId { get; set; } = default!;
-    [CascadingParameter] public WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
+    /// Gets or sets the definition ID.
+    [Parameter]
+    public string DefinitionId { get; set; } = default!;
+
+    [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         Workspace.WorkflowDefinitionUpdated += OnWorkflowDefinitionUpdated;
@@ -41,7 +46,7 @@ public partial class VersionHistoryTab : IDisposable
             PageSize = pageSize
         };
 
-        var response = await WorkflowDefinitionService.ListAsync(request, VersionOptions.All);
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
 
         return new TableData<WorkflowDefinitionSummary>
         {

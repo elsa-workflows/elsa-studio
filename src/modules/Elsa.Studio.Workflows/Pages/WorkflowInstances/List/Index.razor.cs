@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
@@ -27,7 +28,7 @@ public partial class Index
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    
+
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
 
@@ -67,13 +68,13 @@ public partial class Index
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending
         };
 
-        var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request);
+        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
-        var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        var workflowDefinitionVersionsResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             Ids = definitionVersionIds,
-        });
+        }));
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 
@@ -151,7 +152,7 @@ public partial class Index
         var fileName = $"{workflowInstanceRow.Name?.Kebaberize() ?? workflowInstanceRow.WorkflowInstanceId}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
-    
+
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflow instances?", "Are you sure you want to delete the selected workflow instances?", yesText: "Delete", cancelText: "Cancel");
@@ -168,7 +169,7 @@ public partial class Index
     {
         return DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
     }
-    
+
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB

@@ -18,7 +18,7 @@ public partial class VersionTab
     [Parameter] public Func<JsonObject, Task>? ActivityUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
-    
+
     private string DefinitionId
     {
         get => Activity.GetProperty("workflowDefinitionId")!.GetValue<string>();
@@ -39,9 +39,9 @@ public partial class VersionTab
 
     private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState)
     {
-        if(Activity == null! || ActivityDescriptor == null!)
+        if (Activity == null! || ActivityDescriptor == null!)
             return new TableData<WorkflowDefinitionSummary>();
-        
+
         var page = tableState.Page;
         var pageSize = tableState.PageSize;
         var definitionId = DefinitionId;
@@ -55,7 +55,7 @@ public partial class VersionTab
             PageSize = pageSize
         };
 
-        var response = await WorkflowDefinitionService.ListAsync(request, VersionOptions.All);
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
 
         return new TableData<WorkflowDefinitionSummary>
         {
@@ -70,10 +70,10 @@ public partial class VersionTab
 
         if (version == CurrentVersionUsed)
             return;
-        
+
         CurrentVersionUsed = version;
         DefinitionVersionId = workflowDefinitionVersion.Id;
- 
+
         if (ActivityUpdated != null)
             await ActivityUpdated(Activity);
     }

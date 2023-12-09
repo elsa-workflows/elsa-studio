@@ -127,7 +127,7 @@ public partial class Journal : IAsyncDisposable
         if (WorkflowInstance == null)
             return new ItemsProviderResult<JournalEntry>(Enumerable.Empty<JournalEntry>(), 0);
 
-        await EnsureActivityDescriptorsAsync();
+        await InvokeWithBlazorServiceContext(EnsureActivityDescriptorsAsync);
 
         var take = request.Count == 0 ? 10 : request.Count;
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
@@ -139,7 +139,7 @@ public partial class Journal : IAsyncDisposable
         if (ShowIncidents)
             filter.EventNames = new[] { "Faulted" };
 
-        var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take);
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take));
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
         var localSkip = request.StartIndex > 0 ? 1 : 0;

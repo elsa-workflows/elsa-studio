@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCoreInternal(this IServiceCollection services)
     {
         services
+            .AddScoped<IBlazorServiceAccessor, BlazorServiceAccessor>()
             .AddScoped<IMenuService, DefaultMenuService>()
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
             .AddScoped<IThemeService, DefaultThemeService>()
@@ -41,10 +43,10 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds backend services to the service collection.
     /// </summary>
-    public static IServiceCollection AddRemoteBackend(this IServiceCollection services, Action<BackendOptions>? configureBackendOptions = default)
+    public static IServiceCollection AddRemoteBackend(this IServiceCollection services, Action<BackendOptions>? configureBackendOptions = default, Action<ElsaClientOptions>? configureElsaClientOptions = default, Action<ElsaClientBuilderOptions>? configureElsaClientBuilderOptions = default)
     {
         services.Configure(configureBackendOptions ?? (_ => { }));
-        services.AddElsaClient();
+        services.AddElsaClient(configureElsaClientOptions, configureElsaClientBuilderOptions);
         
         return services
                 .AddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>()

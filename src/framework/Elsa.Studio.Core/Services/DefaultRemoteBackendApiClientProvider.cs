@@ -1,5 +1,7 @@
+using Blazored.LocalStorage;
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Services;
 
@@ -24,10 +26,10 @@ public class DefaultRemoteBackendApiClientProvider : IRemoteBackendApiClientProv
     public Uri Url => _remoteBackendAccessor.RemoteBackend.Url;
 
     /// <inheritdoc />
-    public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken) where T : class
+    public async ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken) where T : class
     {
         var backendUrl = _remoteBackendAccessor.RemoteBackend.Url;
         var client = _serviceProvider.CreateApi<T>(backendUrl);
-        return ValueTask.FromResult(client);
+        return client;
     }
 }
