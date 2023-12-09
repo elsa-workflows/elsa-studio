@@ -170,7 +170,7 @@ public partial class WorkflowEditor
             Publish = publish,
         };
 
-        var result = await WorkflowDefinitionService.SaveAsync(saveRequest);
+        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.SaveAsync(saveRequest));
         await result.OnSuccessAsync(async definition => await SetWorkflowDefinitionAsync(definition));
 
         _isDirty = false;
@@ -188,13 +188,13 @@ public partial class WorkflowEditor
 
     private async Task<int> UpdateReferencesAsync()
     {
-        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(WorkflowDefinition!.DefinitionId);
+        var updateReferencesResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.UpdateReferencesAsync(WorkflowDefinition!.DefinitionId));
         return updateReferencesResponse.AffectedWorkflows.Count;
     }
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId));
         await result.OnSuccessAsync(async definition =>
         {
             await SetWorkflowDefinitionAsync(definition);
