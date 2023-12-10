@@ -32,7 +32,7 @@ public partial class CreateWorkflowDialog
     {
         _metadataModel.Name = WorkflowName;
         _editContext = new EditContext(_metadataModel);
-        _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService);
+        _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService, BlazorServiceAccessor, Services);
     }
 
     private Task OnCancelClicked()

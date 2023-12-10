@@ -10,9 +10,11 @@ public class StudioComponentBase : ComponentBase, IHandleEvent, IHandleAfterRend
 {
     private bool _hasCalledOnAfterRender;
 
-    [Inject] private IServiceProvider Services { get; set; } = default!;
+    /// Gets the current IServiceProvider.
+    [Inject] protected IServiceProvider Services { get; set; } = default!;
 
-    [Inject] private IBlazorServiceAccessor BlazorServiceAccessor { get; set; } = default!;
+    /// Gets the current <see cref="IBlazorServiceAccessor"/>.
+    [Inject] protected IBlazorServiceAccessor BlazorServiceAccessor { get; set; } = default!;
 
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters) => InvokeWithBlazorServiceContext(() => base.SetParametersAsync(parameters));

@@ -1,17 +1,26 @@
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using FluentValidation;
 
 namespace Elsa.Studio.Workflows.Validators;
 
+/// <summary>
+/// A validator for <see cref="WorkflowMetadataModel"/> instances.
+/// </summary>
 public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowMetadataModel>
 {
-    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService)
+    /// <inheritdoc />
+    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the workflow.");
         
         RuleFor(x => x.Name)
-            .MustAsync(async (context, name, cancellationToken) => await workflowDefinitionService.GetIsNameUniqueAsync(name!, context.DefinitionId, cancellationToken))
+            .MustAsync((context, name, cancellationToken) =>
+            {
+                blazorServiceAccessor.Services = serviceProvider;
+                return workflowDefinitionService.GetIsNameUniqueAsync(name!, context.DefinitionId, cancellationToken);
+            })
             .WithMessage("A workflow with this name already exists.");
     }
 }
