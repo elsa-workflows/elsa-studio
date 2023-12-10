@@ -124,9 +124,7 @@ public partial class Index
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result =
-                await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!,
-                    newWorkflowModel.Description!);
+            var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!));
 
             result.OnSuccess(definition => Edit(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
@@ -163,15 +161,13 @@ public partial class Index
             return;
 
         var definitionId = workflowDefinitionRow.DefinitionId;
-        await WorkflowDefinitionService.DeleteAsync(definitionId);
+        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.DeleteAsync(definitionId));
         Reload();
     }
 
     private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var download =
-            await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId,
-                VersionOptions.Latest);
+        var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest));
         var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -185,7 +181,7 @@ public partial class Index
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        await WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds);
+        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds));
         Reload();
     }
 
@@ -198,7 +194,7 @@ public partial class Index
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        var response = await WorkflowDefinitionService.BulkPublishAsync(workflowDefinitionIds);
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkPublishAsync(workflowDefinitionIds));
 
         if (response.Published.Count > 0)
         {
@@ -236,7 +232,7 @@ public partial class Index
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        var response = await WorkflowDefinitionService.BulkRetractAsync(workflowDefinitionIds);
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkRetractAsync(workflowDefinitionIds));
 
         if (response.Retracted.Count > 0)
         {
@@ -268,7 +264,7 @@ public partial class Index
     private async Task OnBulkExportClicked()
     {
         var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
-        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
+        var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds));
         var fileName = download.FileName;
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -282,7 +278,7 @@ public partial class Index
     {
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
-        var count = await WorkflowDefinitionService.ImportFilesAsync(streamParts);
+        var count = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ImportFilesAsync(streamParts));
         var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
@@ -296,13 +292,13 @@ public partial class Index
 
     private async Task OnPublishClicked(string definitionId)
     {
-        await WorkflowDefinitionService.PublishAsync(definitionId);
+        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.PublishAsync(definitionId));
         Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 
     private async Task OnRetractClicked(string definitionId)
     {
-        await WorkflowDefinitionService.RetractAsync(definitionId);
+        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(definitionId));
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 

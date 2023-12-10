@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
@@ -15,6 +14,7 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.List;
 
+/// Represents the workflow instances list page.
 public partial class Index
 {
     private MudTable<WorkflowInstanceRow> _table = null!;
@@ -32,14 +32,10 @@ public partial class Index
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
 
-    /// <summary>
     /// The selected statuses to filter by.
-    /// </summary>
     public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
 
-    /// <summary>
     /// The selected sub-statuses to filter by.
-    /// </summary>
     public ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
 
     /// <inheritdoc />
