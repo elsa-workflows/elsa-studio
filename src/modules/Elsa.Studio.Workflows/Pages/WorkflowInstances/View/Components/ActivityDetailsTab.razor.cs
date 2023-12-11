@@ -78,7 +78,7 @@ public partial class ActivityDetailsTab
         var execution = LastActivityExecution;
         var activityVersion = execution?.ActivityTypeVersion;
         var exception = execution?.Exception;
-        var workflowDefinitionId = activity.GetWorkflowDefinitionId();
+        var workflowDefinitionId = activity.GetIsWorkflowDefinitionActivity() ? activity.GetWorkflowDefinitionId() : default;
 
         var activityInfo = new Dictionary<string, DataPanelItem>
         {
