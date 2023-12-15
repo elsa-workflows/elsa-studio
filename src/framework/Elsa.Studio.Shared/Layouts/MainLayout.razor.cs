@@ -23,7 +23,6 @@ public partial class MainLayout : IDisposable
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private ILocalStorageService LocalStorageService { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private IBlazorServiceAccessor BlazorServiceAccessor { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
