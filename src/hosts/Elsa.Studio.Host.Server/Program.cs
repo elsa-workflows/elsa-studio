@@ -24,7 +24,9 @@ builder.Services.AddServerSideBlazor(options =>
 // Register shell services and modules.
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
-builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options), configureElsaClientBuilderOptions: elsaClient => elsaClient.ConfigureHttpClientBuilder = httpClientBuilder => httpClientBuilder.AddHttpMessageHandler<AuthenticatingApiHttpMessageHandler>());
+builder.Services.AddRemoteBackend(
+    options => configuration.GetSection("Backend").Bind(options),
+    configureElsaClientBuilderOptions: elsaClient => { elsaClient.ConfigureHttpClientBuilder = httpClientBuilder => { httpClientBuilder.AddHttpMessageHandler<AuthenticatingApiHttpMessageHandler>(); }; });
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
