@@ -50,6 +50,15 @@
                 </Well>
             }
         </MudTabPanel>
+        
+        @if (IsTaskActivity)
+        {
+            <MudTabPanel Text="Task">
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <TaskTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+                </ScrollableWell>
+            </MudTabPanel>
+        }
 
         <MudTabPanel Text="Info">
             @if (ActivityDescriptor != null)
@@ -64,7 +73,7 @@
         {
             <MudTabPanel Text="Version">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" ActivityUpdated="OnActivityUpdated"/>
+                    <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>
             </MudTabPanel>
         }

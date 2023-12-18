@@ -15,7 +15,7 @@ public partial class VersionTab
 {
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     [Parameter] public JsonObject Activity { get; set; } = default!;
-    [Parameter] public Func<JsonObject, Task>? ActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
 
@@ -74,7 +74,7 @@ public partial class VersionTab
         CurrentVersionUsed = version;
         DefinitionVersionId = workflowDefinitionVersion.Id;
 
-        if (ActivityUpdated != null)
-            await ActivityUpdated(Activity);
+        if (OnActivityUpdated != null)
+            await OnActivityUpdated(Activity);
     }
 }

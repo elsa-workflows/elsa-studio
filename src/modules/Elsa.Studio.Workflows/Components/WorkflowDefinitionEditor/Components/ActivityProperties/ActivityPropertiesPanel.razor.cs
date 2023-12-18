@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
@@ -56,4 +57,5 @@ public partial class ActivityPropertiesPanel
     }
 
     private bool IsWorkflowAsActivity => ActivityDescriptor != null && ActivityDescriptor.CustomProperties.TryGetValue("RootType", out var value) && value.ConvertTo<string>() == "WorkflowDefinitionActivity";
+    private bool IsTaskActivity => ActivityDescriptor?.Kind == ActivityKind.Task;
 }
