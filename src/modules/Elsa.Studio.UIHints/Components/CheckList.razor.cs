@@ -41,8 +41,8 @@ public partial class CheckList
         if (isFlagsEnum)
         {
             return !string.IsNullOrWhiteSpace(json)
-                ? int.TryParse(json, out var n) ? new[] { n.ToString() } : Array.Empty<string>()
-                : new[] { defaultValue?.ToString() ?? string.Empty };
+                ? int.TryParse(json, out var n) ? [n.ToString()] : Array.Empty<string>()
+                : [defaultValue?.ToString() ?? string.Empty];
         }
 
         var selectListItems = ParseJson(json);

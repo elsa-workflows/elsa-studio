@@ -1,8 +1,7 @@
 using System.Text.Json;
-using Elsa.Api.Client.Extensions;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Studio.UIHints.Converters;
-using Elsa.Studio.UIHints.Models;
+using Elsa.Api.Client.Shared.UIHints.DropDown;
 
 namespace Elsa.Studio.UIHints.Extensions;
 
@@ -16,45 +15,18 @@ public static class InputDescriptorExtensions
     /// </summary>
     public static SelectList GetSelectList(this InputDescriptor descriptor)
     {
-        var options = descriptor.Options;
-
-        var selectListOptions = options?.TryGetValue("items", out var selectList) == true
-            ? selectList is JsonElement list
-                ? list
-                : default
-            : default;
-
-        if (options == null || selectListOptions.ValueKind == JsonValueKind.Null)
-            return new SelectList(new List<SelectListItem>(), false);
+        var specifications = descriptor.UISpecifications;
+        var props = specifications != null ? specifications.TryGetValue("dropdown", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+        
+        if(props.ValueKind == JsonValueKind.Undefined)
+            return new SelectList(new List<SelectListItem>());
 
         var serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
-
-        serializerOptions.Converters.Add(new SelectListJsonConverter());
-
-        if (selectListOptions.ValueKind == JsonValueKind.Object)
-        {
-            if (selectListOptions.TryGetPropertySafe("items", out var items))
-            {
-                return new SelectList(items.Deserialize<List<SelectListItem>>(serializerOptions)!, false);
-            }
-
-            if (selectListOptions.TryGetPropertySafe("provider", out var provider))
-            {
-                // TODO: Invoke remote provider                
-                return new SelectList(new List<SelectListItem>(), false);
-            }
-        }
-
-        if (selectListOptions.ValueKind == JsonValueKind.Array)
-        {
-            serializerOptions.Converters.Add(new SelectListItemJsonConverter());
-            var items = selectListOptions.Deserialize<List<SelectListItem>>(serializerOptions)!;
-            return new SelectList(items, false);
-        }
-
-        return new SelectList(new List<SelectListItem>(), false);
+        
+        var dropDownProps = props.Deserialize<DropDownProps>(serializerOptions);
+        return dropDownProps?.SelectList?? new SelectList(new List<SelectListItem>(), false);
     }
 }
