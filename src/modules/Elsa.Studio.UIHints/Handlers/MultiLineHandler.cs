@@ -7,7 +7,7 @@ namespace Elsa.Studio.UIHints.Handlers;
 
 public class MultiLineHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "multi-line";
+    public bool GetSupportsUIHint(string uiHint) => uiHint == "multiline";
     public string UISyntax => WellKnownSyntaxNames.Literal;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)

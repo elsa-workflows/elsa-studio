@@ -54,7 +54,7 @@ public class DynamicOutcomesPortProvider : ActivityPortProviderBase
 
     private static DynamicOutcomesOptions? GetDynamicOutcomeOptions(InputDescriptor dynamicOutcomesInputDescriptor)
     {
-        if (dynamicOutcomesInputDescriptor.Options?.TryGetValue(nameof(DynamicOutcomesOptions), out var dynamicOutcomesOptions) != true) 
+        if (dynamicOutcomesInputDescriptor.UISpecifications?.TryGetValue(nameof(DynamicOutcomesOptions), out var dynamicOutcomesOptions) != true) 
             return default;
 
         var serializerOptions = CreateSerializerOptions();

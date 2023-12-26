@@ -7,7 +7,7 @@ namespace Elsa.Studio.UIHints.Handlers;
 
 public class MultiTextHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint is "multi-text";
+    public bool GetSupportsUIHint(string uiHint) => uiHint is "multitext";
     public string UISyntax => WellKnownSyntaxNames.Object;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)

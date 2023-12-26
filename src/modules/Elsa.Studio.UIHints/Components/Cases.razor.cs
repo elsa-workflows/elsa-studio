@@ -76,7 +76,7 @@ public partial class Cases
         {
             Label = @case.Label,
             Condition = @case.Condition.ToString(),
-            ExpressionType = defaultExpressionType,
+            ExpressionType = string.IsNullOrWhiteSpace(@case.Condition.Type) ? defaultExpressionType : @case.Condition.Type,
             Activity = @case.Activity
         };
     }

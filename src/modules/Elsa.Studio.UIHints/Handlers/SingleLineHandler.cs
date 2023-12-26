@@ -7,7 +7,7 @@ namespace Elsa.Studio.UIHints.Handlers;
 
 public class SingleLineHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "single-line";
+    public bool GetSupportsUIHint(string uiHint) => uiHint == "singleline";
     public string UISyntax => WellKnownSyntaxNames.Literal;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
