@@ -1,6 +1,6 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Shared.UIHints.CheckList;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 
 namespace Elsa.Studio.UIHints.Extensions;
@@ -17,16 +17,36 @@ public static class InputDescriptorExtensions
     {
         var specifications = descriptor.UISpecifications;
         var props = specifications != null ? specifications.TryGetValue("dropdown", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
-        
-        if(props.ValueKind == JsonValueKind.Undefined)
+
+        if (props.ValueKind == JsonValueKind.Undefined)
             return new SelectList(new List<SelectListItem>());
 
         var serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
-        
+
         var dropDownProps = props.Deserialize<DropDownProps>(serializerOptions);
-        return dropDownProps?.SelectList?? new SelectList(new List<SelectListItem>(), false);
+        return dropDownProps?.SelectList ?? new SelectList(new List<SelectListItem>(), false);
+    }
+
+    /// <summary>
+    /// Gets a list of <see cref="CheckListItem"/>s for the specified <see cref="InputDescriptor"/>.
+    /// </summary>
+    public static CheckList GetCheckList(this InputDescriptor descriptor)
+    {
+        var specifications = descriptor.UISpecifications;
+        var props = specifications != null ? specifications.TryGetValue("checklist", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+
+        if (props.ValueKind == JsonValueKind.Undefined)
+            return new CheckList(Array.Empty<CheckListItem>());
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        var checkListProps = props.Deserialize<CheckListProps>(serializerOptions);
+        return checkListProps?.CheckList ?? new CheckList(Array.Empty<CheckListItem>());
     }
 }

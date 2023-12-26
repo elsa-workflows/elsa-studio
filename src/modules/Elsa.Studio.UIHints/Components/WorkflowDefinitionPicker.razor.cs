@@ -3,7 +3,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
-using Elsa.Studio.UIHints.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
 

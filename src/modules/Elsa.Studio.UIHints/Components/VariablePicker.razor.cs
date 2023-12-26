@@ -1,7 +1,6 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
-using Elsa.Studio.UIHints.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Components;

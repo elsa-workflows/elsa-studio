@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Shared.UIHints.CheckList;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.UIHints.Helpers;
-using Elsa.Studio.UIHints.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Components;
@@ -18,16 +18,17 @@ public partial class CheckList
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter]
+    public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        var selectList = EditorContext.InputDescriptor.GetSelectList();
-        var selectedValues = GetSelectedValues(selectList.IsFlagsEnum);
+        var checkList = EditorContext.InputDescriptor.GetCheckList();
+        var selectedValues = GetSelectedValues(checkList.IsFlagsEnum);
 
-        _checkListItems = selectList.Items
-            .Select(i => new CheckListItem(i.Value, i.Text, selectedValues.Contains(i.Value)))
+        _checkListItems = checkList.Items
+            .Select(i => new CheckListItem { Value = i.Value, Text = i.Text, IsChecked = selectedValues.Contains(i.Value) })
             .ToList();
     }
 
@@ -62,13 +63,13 @@ public partial class CheckList
     {
         // Toggle state.
         item.IsChecked = state == true;
-        
+
         // Get selected values.
         var selectedValues = _checkListItems.Where(x => x.IsChecked).Select(x => x.Value).ToList();
-        
+
         // Serialize to JSON.
         var json = JsonSerializer.Serialize(selectedValues);
-        
+
         // Update expression.
         var expression = Expression.CreateObject(json);
         await EditorContext.UpdateExpressionAsync(expression);

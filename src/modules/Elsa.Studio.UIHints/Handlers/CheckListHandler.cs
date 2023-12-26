@@ -7,7 +7,7 @@ namespace Elsa.Studio.UIHints.Handlers;
 
 public class CheckListHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "check-list";
+    public bool GetSupportsUIHint(string uiHint) => uiHint == "checklist";
     public string UISyntax => WellKnownSyntaxNames.Object;
 
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
