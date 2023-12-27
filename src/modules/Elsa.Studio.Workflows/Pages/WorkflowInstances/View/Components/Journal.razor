@@ -75,7 +75,7 @@
                         </ItemContent>
                         <ItemOpposite>
                             <div class="d-flex justify-end gap-4">
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("t")</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("G")</MudText>
                             </div>
                             <div class="d-flex justify-end gap-4">
                                 <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>
