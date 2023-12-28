@@ -1,11 +1,15 @@
 @using Elsa.Studio.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
+@using Elsa.Api.Client.Shared.UIHints.SingleLine
+@using Elsa.Studio.UIHints.Extensions
+@using MudBlazor.Utilities
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
     var description = inputDescriptor.Description;
     var inputValue = EditorContext.GetLiteralValueOrDefault();
+    var adornment = !string.IsNullOrWhiteSpace(_singleLineProps.AdornmentText) ? Adornment.Start : Adornment.None;
 }
 
 <ExpressionInput EditorContext="@EditorContext">
@@ -17,6 +21,9 @@
             HelperText="@description"
             Margin="Margin.Dense"
             ReadOnly="EditorContext.IsReadOnly"
+            Adornment="@adornment"
+            AdornmentText="@_singleLineProps.AdornmentText"
+            AdornmentColor="Color.Info"
             Value="@inputValue"
             ValueChanged="OnValueChanged"/>
     </ChildContent>
@@ -24,13 +31,22 @@
 
 @code {
 
+    private SingleLineProps _singleLineProps = new();
+
+    /// Gets or sets the editor context.
     [Parameter]
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _singleLineProps = EditorContext.InputDescriptor.GetSingleLineProps();
+    }
 
     private async Task OnValueChanged(string newValue)
     {
         var expression = Expression.CreateLiteral(newValue);
-        
+
         await EditorContext.UpdateExpressionAsync(expression);
     }
 

@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.UIHints.CodeEditor;
-using Elsa.Api.Client.Shared.UIHints.DropDown;
 
 namespace Elsa.Studio.UIHints.Extensions;
 
@@ -11,7 +10,7 @@ namespace Elsa.Studio.UIHints.Extensions;
 public static class InputDescriptorCodeEditorExtensions
 {
     /// <summary>
-    /// Gets the <see cref="SelectList"/> for the specified <see cref="InputDescriptor"/>.
+    /// Gets the <see cref="CodeEditorOptions"/> for the specified <see cref="InputDescriptor"/>.
     /// </summary>
     public static CodeEditorOptions GetCodeEditorOptions(this InputDescriptor descriptor)
     {

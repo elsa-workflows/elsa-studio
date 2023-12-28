@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.UIHints.CheckList;
-using Elsa.Api.Client.Shared.UIHints.DropDown;
 
 namespace Elsa.Studio.UIHints.Extensions;
 
