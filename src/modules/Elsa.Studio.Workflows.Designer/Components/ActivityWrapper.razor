@@ -10,7 +10,7 @@
     var color = Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > 0 ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
     var content = Stats.Blocked ? default : Stats.Completed.ToString();
     var icon = content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : default : default;
-    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon">
+    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;">
         @DisplayActivityWrapper()
     </MudBadge>
 }
@@ -30,50 +30,50 @@ else
                     Class="elsa-activity pa-3"
                     Style="@($"border-left-color: {_color}; {(CanStartWorkflow ? $"background-color: {_color}" : "")};")"
                     Outlined="true">
-                   <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
-                       @if (_icon != null)
-                       {
-                           <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
-                       }
-                       <MudStack Style="height:100%" Justify="Justify.Center">
-                           <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
-                           @{
-                               var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
-                           }
-                           @if (visiblePorts.Any())
-                           {
-                               <MudStack Row="true">
-                                   @foreach (var port in visiblePorts)
-                                   {
-                                       var portName = port.Name;
-                                       var providerContext = new PortProviderContext(_activityDescriptor, Activity);
-                                       var portProvider = ActivityPortService.GetProvider(providerContext);
-                                       var childActivity = portProvider.ResolvePort(portName, new PortProviderContext(_activityDescriptor, Activity));
+            <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
+                @if (_icon != null)
+                {
+                    <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
+                }
+                <MudStack Style="height:100%" Justify="Justify.Center">
+                    <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
+                    @{
+                        var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
+                    }
+                    @if (visiblePorts.Any())
+                    {
+                        <MudStack Row="true">
+                            @foreach (var port in visiblePorts)
+                            {
+                                var portName = port.Name;
+                                var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+                                var portProvider = ActivityPortService.GetProvider(providerContext);
+                                var childActivity = portProvider.ResolvePort(portName, new PortProviderContext(_activityDescriptor, Activity));
 
-                                       @if (childActivity != null)
-                                       {
-                                           <MudField Label="@port.DisplayName" Variant="Variant.Outlined" Margin="Margin.Dense">
-                                               <div id="@($"activity-{childActivity.GetId()}")" class="embedded-port embedded-port-occupied cursor-pointer" data-port-name="@port.Name">
-                                                   <EmbeddedActivityWrapper ActivityId="@childActivity.GetId()" Activity="childActivity" IsSelected="@(SelectedPortName == port.Name)"/>
-                                               </div>
-                                           </MudField>
-                                       }
-                                       else
-                                       {
-                                           <MudPaper Elevation="0" Class="embedded-port pa-4 cursor-pointer" data-port-name="@port.Name" Style="border: 1px dashed var(--mud-palette-lines-default)">
-                                               @port.DisplayName
-                                           </MudPaper>
-                                       }
-                                   }
-                               </MudStack>
-                           }
+                                @if (childActivity != null)
+                                {
+                                    <MudField Label="@port.DisplayName" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                        <div id="@($"activity-{childActivity.GetId()}")" class="embedded-port embedded-port-occupied cursor-pointer" data-port-name="@port.Name">
+                                            <EmbeddedActivityWrapper ActivityId="@childActivity.GetId()" Activity="childActivity" IsSelected="@(SelectedPortName == port.Name)"/>
+                                        </div>
+                                    </MudField>
+                                }
+                                else
+                                {
+                                    <MudPaper Elevation="0" Class="embedded-port pa-4 cursor-pointer" data-port-name="@port.Name" Style="border: 1px dashed var(--mud-palette-lines-default)">
+                                        @port.DisplayName
+                                    </MudPaper>
+                                }
+                            }
+                        </MudStack>
+                    }
 
-                           @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
-                           {
-                               <MudText Typo="Typo.caption" Style="@colorStyle">@_description</MudText>
-                           }
-                       </MudStack>
-                   </MudStack>
-               </MudPaper>;
+                    @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
+                    {
+                        <MudText Typo="Typo.caption" Style="@colorStyle">@_description</MudText>
+                    }
+                </MudStack>
+            </MudStack>
+        </MudPaper>;
     }
 }

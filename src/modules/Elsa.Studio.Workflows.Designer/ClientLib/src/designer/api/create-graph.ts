@@ -17,50 +17,6 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
-        embedding: {
-            // enabled: true,
-            // findParent(arg: any) {
-            //     const sourceNode = arg.node as Node.Properties;
-            //     const sourceBox = sourceNode.getBBox();
-            //     return this.getNodes().filter((targetNode) => {
-            //         const targetBBox = targetNode.getBBox()
-            //
-            //         // Does the source activity node intersect with the target activity node?
-            //         if (!sourceBox.isIntersectWithRect(targetBBox))
-            //             return false;
-            //
-            //         const targetNodeId = targetNode.id;
-            //         const targetActivityElementId = `activity-${targetNodeId}`;
-            //         const targetNodeElement = document.getElementById(targetActivityElementId);
-            //
-            //         // Does the target activity element exist?
-            //         if (!targetNodeElement)
-            //             return false;
-            //
-            //         // Does the target activity contains embedded ports?
-            //         const embeddedPortElements = targetNodeElement.querySelectorAll('.embedded-port');
-            //
-            //         if (embeddedPortElements.length == 0)
-            //             return false;
-            //
-            //         // Check which of the embedded ports intersect with the source activity node.
-            //         for (let i = 0; i < embeddedPortElements.length; i++) {
-            //             const embeddedPortElement = embeddedPortElements[i];
-            //             const embeddedPortElementRect = embeddedPortElement.getBoundingClientRect();
-            //             const embeddedPortElementBBox = graph.pageToLocal(embeddedPortElementRect);
-            //
-            //             if (!sourceBox.isIntersectWithRect(embeddedPortElementBBox))
-            //                 continue;
-            //
-            //             const embeddedPortName = embeddedPortElement.getAttribute('data-port-name');
-            //             sourceNode.setProp(`embeddedPortName`, embeddedPortName);
-            //             return true;
-            //         }
-            //
-            //         return false
-            //     })
-            // },
-        },
         grid: {
             type: 'mesh',
             visible: true,
@@ -216,8 +172,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
             return false;
         });
-
-        // Paste the cells in the clipboard onto the graph.
+        
+        // Paste
         graph.bindKey(['ctrl+v', 'meta+v'], () => {
             if (!graph.isClipboardEmpty()) {
                 const cells = graph.getCellsInClipboard();
@@ -234,7 +190,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             return false;
         });
 
-        // undo
+        // Undo
         graph.bindKey(['meta+z', 'ctrl+z'], () => {
             if (graph.canUndo()) {
                 graph.undo()
@@ -242,7 +198,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             return false
         });
 
-        // redo
+        // Redo
         graph.bindKey(['meta+y', 'ctrl+y'], () => {
             if (graph.canRedo()) {
                 graph.redo()
@@ -250,7 +206,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             return false
         });
 
-        // delete
+        // Delete
         graph.bindKey('del', () => {
             const cells = graph.getSelectedCells()
             if (cells.length) {
@@ -261,7 +217,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         });
     }
 
-    // select all
+    // Select all
     graph.bindKey(['meta+a', 'ctrl+a'], () => {
         const nodes = graph.getNodes()
         if (nodes) {
@@ -394,8 +350,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     graph.on('node:moved', onGraphUpdated);
     graph.on('node:added', onNodeAdded);
     graph.on('node:removed', onNodeRemoved);
+    graph.on('node:change:size', onGraphUpdated);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
+    graph.on('edge:vertexs:added', onGraphUpdated);
+    graph.on('edge:vertexs:removed', onGraphUpdated);
 
     // Register the graph.
     const graphId = containerId;
