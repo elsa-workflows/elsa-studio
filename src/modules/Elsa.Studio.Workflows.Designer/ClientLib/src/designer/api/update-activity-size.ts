@@ -19,7 +19,7 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
 
     // Get graph reference.
     const {graph} = graphBindings[graphId];
-    
+
     // Parse activity model.
     const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
 
@@ -36,7 +36,7 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
         console.warn(`Could not find node with ID ${activityId} in graph ${graphId}`);
         return;
     }
-
+    
     if (!!size) {
         if (size.width > width)
             width = size.width;
@@ -44,6 +44,6 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
         if (size.height > height)
             height = size.height;
     }
-    
+
     node.size(width, height);
 }

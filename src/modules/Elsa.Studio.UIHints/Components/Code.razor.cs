@@ -1,7 +1,9 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Shared.UIHints.CodeEditor;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
+using Elsa.Studio.UIHints.Extensions;
 using Microsoft.AspNetCore.Components;
 using ThrottleDebounce;
 
@@ -16,6 +18,7 @@ public partial class Code : IDisposable
     private StandaloneCodeEditor? _monacoEditor;
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
+    private CodeEditorOptions _codeEditorOptions = new();
 
     /// <inheritdoc />
     public Code()
@@ -30,11 +33,19 @@ public partial class Code : IDisposable
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
 
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _codeEditorOptions = EditorContext.InputDescriptor.GetCodeEditorOptions();
+    }
+
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
+        var language = _codeEditorOptions.Language ?? "javascript";
+        
         return new StandaloneEditorConstructionOptions
         {
-            Language = "javascript",
+            Language = language,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",

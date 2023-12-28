@@ -12,8 +12,6 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the default UI hint handlers.
     /// </summary>
-    /// <param name="services"></param>
-    /// <returns></returns>
     public static IServiceCollection AddDefaultUIHintHandlers(this IServiceCollection services)
     {
         return services
@@ -24,6 +22,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<MultiLineHandler>()
             .AddUIHintHandler<DropDownHandler>()
             .AddUIHintHandler<CodeEditorHandler>()
+            .AddUIHintHandler<JsonEditorHandler>()
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()
             .AddUIHintHandler<VariablePickerHandler>()

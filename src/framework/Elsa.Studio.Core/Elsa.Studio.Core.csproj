@@ -43,7 +43,7 @@
     <!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
-        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.912"/>
+        <PackageReference Include="Elsa.Api.Client" Version="3.0.0-preview.932"/>
     </ItemGroup>
 
 </Project>
