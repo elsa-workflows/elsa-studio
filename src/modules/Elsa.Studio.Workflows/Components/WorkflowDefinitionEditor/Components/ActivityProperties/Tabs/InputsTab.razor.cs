@@ -76,7 +76,7 @@ public partial class InputsTab
             if (inputDescriptor.UISpecifications != null
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
-                await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor);
+                    await InvokeWithBlazorServiceContext(async ()=> await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor));
 
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
