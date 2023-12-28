@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Contracts;
+using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Requests;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -42,22 +45,23 @@ public partial class InputsTab
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
 
+    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
 
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
-        InputDisplayModels = BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors).ToList();
+        InputDisplayModels = (await BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors)).ToList();
     }
 
-    private IEnumerable<ActivityInputDisplayModel> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
+    private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
 
@@ -67,8 +71,17 @@ public partial class InputsTab
             var value = activity.GetProperty(inputName);
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
             var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : default;
+
+            //Check if refresh is needed
+            if (inputDescriptor.UISpecifications != null
+                && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
+                && bool.Parse(refreshInput.ToString()!))
+                await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor);
+
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
+
+            
 
             var context = new DisplayInputEditorContext
             {
@@ -90,6 +103,30 @@ public partial class InputsTab
         return models;
     }
 
+    private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor,IEnumerable<InputDescriptor> inputDescriptors,  InputDescriptor currentInputDescriptor)
+    {
+        var activityTypeName = activityDescriptor.TypeName;
+        var propertyName = currentInputDescriptor.Name;
+
+        //Embed all props value in the context
+        var contextDictionary = new Dictionary<string, object>();
+        foreach(var inputDescriptor in inputDescriptors)
+        {
+            var inputName = inputDescriptor.Name.Camelize();
+            var value = activity.GetProperty(inputName);
+            if(value != null)
+                contextDictionary.Add(inputName, value);
+        }
+
+        var api = await RemoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
+        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
+        {
+            Context = contextDictionary
+        });
+
+        currentInputDescriptor.UISpecifications = result.Items;
+        
+    }
     private static WrappedInput? ToWrappedInput(object? value)
     {
         var converterOptions = new ObjectConverterOptions(serializerOptions =>
