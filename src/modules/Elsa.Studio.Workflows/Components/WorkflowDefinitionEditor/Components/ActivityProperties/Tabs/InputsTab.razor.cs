@@ -14,6 +14,7 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
@@ -22,25 +23,38 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class InputsTab
 {
+    private readonly RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task> _rateLimitedInputPropertyRefreshAsync;
+
+    /// <inheritdoc />
+    public InputsTab()
+    {
+        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100));
+    }
+
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
     /// <summary>
     /// Gets or sets the activity to edit.
     /// </summary>
-    [Parameter] public JsonObject? Activity { get; set; }
+    [Parameter]
+    public JsonObject? Activity { get; set; }
+
     /// <summary>
     /// Gets or sets the activity descriptor.
     /// </summary>
-    [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
-    
+    [Parameter]
+    public ActivityDescriptor? ActivityDescriptor { get; set; }
+
     /// <summary>
     /// An event that is invoked when the activity is updated.
     /// </summary>
-    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
-    
+    [Parameter]
+    public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
+
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
@@ -61,7 +75,7 @@ public partial class InputsTab
         InputDisplayModels = (await BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors)).ToList();
     }
 
-    private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors)
+    private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
 
@@ -72,16 +86,18 @@ public partial class InputsTab
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
             var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : default;
 
-            //Check if refresh is needed
+            // Check if refresh is needed.
             if (inputDescriptor.UISpecifications != null
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
-                    await InvokeWithBlazorServiceContext(async ()=> await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor));
+            {
+                var task = _rateLimitedInputPropertyRefreshAsync.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
+                if (task != null)
+                    await task;
+            }
 
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
-
-            
+            var input = inputDescriptor.IsWrapped ? wrappedInput : (object?)value;
 
             var context = new DisplayInputEditorContext
             {
@@ -103,36 +119,37 @@ public partial class InputsTab
         return models;
     }
 
-    private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor,IEnumerable<InputDescriptor> inputDescriptors,  InputDescriptor currentInputDescriptor)
+    private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
         var activityTypeName = activityDescriptor.TypeName;
         var propertyName = currentInputDescriptor.Name;
 
-        //Embed all props value in the context
+        // Embed all props value in the context.
         var contextDictionary = new Dictionary<string, object>();
-        foreach(var inputDescriptor in inputDescriptors)
+        foreach (var inputDescriptor in inputDescriptors)
         {
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
-            if(value != null)
+            if (value != null)
                 contextDictionary.Add(inputName, value);
         }
 
         var api = await RemoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
-        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
-        {
-            Context = contextDictionary
-        });
 
-        currentInputDescriptor.UISpecifications = result.Items;
-        
+        await InvokeWithBlazorServiceContext(async () =>
+        {
+            var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
+            {
+                Context = contextDictionary
+            });
+
+            currentInputDescriptor.UISpecifications = result.Items;
+        });
     }
+
     private static WrappedInput? ToWrappedInput(object? value)
     {
-        var converterOptions = new ObjectConverterOptions(serializerOptions =>
-        {
-            serializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        });
+        var converterOptions = new ObjectConverterOptions(serializerOptions => { serializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
         return value.ConvertTo<WrappedInput>(converterOptions);
     }
@@ -153,7 +170,7 @@ public partial class InputsTab
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
+
         var propName = inputDescriptor.Name.Camelize();
         activity.SetProperty(value?.SerializeToNode(options), propName);
 
