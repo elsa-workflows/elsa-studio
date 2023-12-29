@@ -1,0 +1,21 @@
+@using Elsa.Studio.Host.CustomElements.Services
+@using Elsa.Studio.Contracts
+@using Elsa.Studio.Options
+@using Microsoft.Extensions.Options
+@ChildContent
+
+@code {
+    [Parameter] public string RemoteEndpoint { get; set; } = default!;
+    [Parameter] public string? ApiKey { get; set; }
+    [Parameter] public string? AccessToken { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Inject] private BackendService BackendService { get; set; } = default!;
+
+    protected override Task OnInitializedAsync()
+    {
+        BackendService.RemoteEndpoint = RemoteEndpoint;
+        BackendService.ApiKey = ApiKey;
+        BackendService.AccessToken = AccessToken;
+        return Task.CompletedTask;
+    }
+}
