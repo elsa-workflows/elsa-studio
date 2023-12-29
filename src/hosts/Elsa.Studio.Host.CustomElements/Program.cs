@@ -20,7 +20,9 @@ builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("e
 // Register the modules.
 builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddRemoteBackend(options => configuration.GetSection("Backend").Bind(options), configureElsaClientBuilderOptions: elsaClient => elsaClient.ConfigureHttpClientBuilder = httpClientBuilder => httpClientBuilder.AddHttpMessageHandler<AuthenticatingApiHttpMessageHandler>());
+builder.Services.AddRemoteBackend(
+    elsaClient => elsaClient.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler),
+    options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddWorkflowsModule();
 
 // Build the application.
