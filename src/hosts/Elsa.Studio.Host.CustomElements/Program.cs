@@ -17,6 +17,7 @@ var configuration = builder.Configuration;
 
 // Register the custom elements.
 builder.RootComponents.RegisterCustomElsaStudioElements();
+builder.RootComponents.RegisterCustomElement<Backend>("elsa-backend");
 builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("elsa-workflow-definition-editor");
 
 // Register local services.
