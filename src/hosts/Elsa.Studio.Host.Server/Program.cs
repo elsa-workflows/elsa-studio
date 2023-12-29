@@ -25,8 +25,8 @@ builder.Services.AddServerSideBlazor(options =>
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(
-    options => configuration.GetSection("Backend").Bind(options),
-    configureElsaClientBuilderOptions: elsaClient => { elsaClient.ConfigureHttpClientBuilder = httpClientBuilder => { httpClientBuilder.AddHttpMessageHandler<AuthenticatingApiHttpMessageHandler>(); }; });
+    elsaClient => elsaClient.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler),
+    options => configuration.GetSection("Backend").Bind(options));
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
@@ -47,7 +47,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseResponseCompression();
-    
+
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
