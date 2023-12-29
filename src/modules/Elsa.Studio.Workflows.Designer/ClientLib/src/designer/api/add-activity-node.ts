@@ -14,4 +14,6 @@ export async function addActivityNode(graphId: string, node: Node.Properties) {
 
     // Add the node to the graph.
     graph.addNode(node);
+    graph.cleanSelection();
+    graph.select(node.id);
 }
