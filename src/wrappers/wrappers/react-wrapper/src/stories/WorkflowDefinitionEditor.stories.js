@@ -1,4 +1,5 @@
 import {WorkflowDefinitionEditor} from "../components/WorkflowDefinitionEditor/WorkflowDefinitionEditor.jsx";
+import {RemoteArgs} from "../remote-args.js";
 
 export default {
     title: "Workflows/WorkflowDefinitionEditor",
@@ -13,6 +14,8 @@ export default {
 
 export const Default = {
     args: {
-        definitionId: "98e9523c2c8642fea4c652018e684b0d"
+        definitionId: "57305c33e237893b",
+        remoteEndpoint: RemoteArgs.remoteEndpoint,
+        apiKey: RemoteArgs.apiKey
     }
 }
