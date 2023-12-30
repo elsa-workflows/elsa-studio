@@ -6,7 +6,6 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
-using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -22,7 +21,7 @@ builder.RootComponents.RegisterCustomElement<BackendProvider>("elsa-backend-prov
 builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("elsa-workflow-definition-editor");
 builder.RootComponents.RegisterCustomElement<WorkflowInstanceViewerWrapper>("elsa-workflow-instance-viewer");
 builder.RootComponents.RegisterCustomElement<WorkflowInstanceListWrapper>("elsa-workflow-instance-list");
-builder.RootComponents.RegisterCustomElement<WorkflowDefinitionList>("elsa-workflow-definition-list");
+builder.RootComponents.RegisterCustomElement<WorkflowDefinitionListWrapper>("elsa-workflow-definition-list");
 
 // Register local services.
 builder.Services.AddSingleton<BackendService>();
