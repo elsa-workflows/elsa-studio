@@ -4,24 +4,28 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.List;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
 /// Represents the workflow instances list page.
-public partial class Index
+public partial class WorkflowInstanceList
 {
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
 
-    [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
+    
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -111,7 +115,11 @@ public partial class Index
         };
     }
 
-    private void View(string instanceId) => NavigationManager.NavigateTo($"workflows/instances/{instanceId}/view");
+    private async Task ViewAsync(string instanceId)
+    {
+        await ViewWorkflowInstance.InvokeAsync(instanceId);
+    }
+
     private void Reload() => _table.ReloadServerData();
 
     private Color GetSubStatusColor(WorkflowSubStatus subStatus)
@@ -127,8 +135,8 @@ public partial class Index
         };
     }
 
-    private void OnViewClicked(string instanceId) => View(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => View(e.Item.WorkflowInstanceId);
+    private void OnViewClicked(string instanceId) => ViewAsync(instanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => ViewAsync(e.Item.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {

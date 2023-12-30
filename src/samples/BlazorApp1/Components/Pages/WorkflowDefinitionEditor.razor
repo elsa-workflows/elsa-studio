@@ -1,0 +1,12 @@
+﻿@page "/workflow-definitions/{definitionId}"
+@rendermode InteractiveServer
+<WorkflowDefinitionEditorWrapper DefinitionId="@DefinitionId"/>
+
+@code
+{
+    /// <summary>
+    /// The ID of the workflow definition to edit.
+    /// </summary>
+    [Parameter]
+    public string DefinitionId { get; set; } = default!;
+}

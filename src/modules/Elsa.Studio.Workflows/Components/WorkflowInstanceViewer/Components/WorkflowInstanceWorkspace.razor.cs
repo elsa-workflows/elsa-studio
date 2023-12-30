@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.Edit;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 public partial class WorkflowInstanceWorkspace : IWorkspace
 {

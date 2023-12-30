@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
+namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
 /// <summary>
 /// A dialog that allows the user to create a new workflow.

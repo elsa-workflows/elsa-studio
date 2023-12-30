@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
@@ -12,7 +9,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Displays details about a workflow instance.

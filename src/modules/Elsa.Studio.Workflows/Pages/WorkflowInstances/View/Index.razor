@@ -1,23 +1,13 @@
 @page "/workflows/instances/{id}/view"
 @inherits StudioComponentBase
 
-@using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components
-@using Orientation = Radzen.Orientation
-
 <PageTitle>Workflow instance</PageTitle>
+<WorkflowInstanceViewer InstanceId="@Id"/>
 
-<RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
-    <RadzenSplitterPane Size="20%" Min="100px">
-        <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected"/>
-    </RadzenSplitterPane>
-    <RadzenSplitterPane Size="80%">
-        <WorkflowInstanceWorkspace 
-            @ref="_workspace" 
-            WorkflowInstances="@_workflowInstances" 
-            WorkflowDefinitions="_workflowDefinitions" 
-            SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged" 
-            PathChanged="OnDesignerPathChanged" 
-            ActivitySelected="OnActivitySelected"
-            SelectedWorkflowExecutionLogRecord="SelectedJournalEntry"/>
-    </RadzenSplitterPane>
-</RadzenSplitter>
+@code
+{
+    /// <summary>
+    /// The ID of the workflow instance to view.
+    /// </summary>
+    [Parameter] public string Id { get; set; } = default!;
+}

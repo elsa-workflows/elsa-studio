@@ -1,15 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Displays the details of an activity.

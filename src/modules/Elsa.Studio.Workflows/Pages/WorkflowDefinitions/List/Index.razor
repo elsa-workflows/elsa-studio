@@ -1,106 +1,15 @@
 @page "/workflows/definitions"
 @inherits StudioComponentBase
 
-@using Variant = MudBlazor.Variant
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
-
 <PageTitle>Workflow definitions</PageTitle>
+<WorkflowDefinitionList EditWorkflowDefinition="OnWorkflowDefinitionEdit"/>
 
-<MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Workflow definitions"/>
-
-    <div id="workflow-file-upload-button-wrapper" class="d-none">
-        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
-    </div>
-
-    <MudTable
-        @ref="_table"
-        T="WorkflowDefinitionRow"
-        ServerData="ServerReload"
-        Dense="true"
-        Hover="true"
-        Elevation="0"
-        OnRowClick="@OnRowClick"
-        RowStyle="cursor: pointer;"
-        MultiSelection="true"
-        SelectOnRowClick="false"
-        @bind-SelectedItems="_selectedRows">
-        <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkPublishClicked">Publish</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkRetractClicked">Unpublish</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
-            </MudMenu>
-            <MudSpacer/>
-
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
-                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
-                    <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
-                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">Import</MudMenuItem>
-                    </MudTooltip>
-                </MudMenu>
-            </MudButtonGroup>
-
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">ID</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">Name</MudTableSortLabel>
-            </MudTh>
-            <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionRow" Style="text-align: right;">Latest version</MudTableSortLabel>
-            </MudTh>
-            <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionRow" Style="text-align: right;">Published version</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                Description
-            </MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
-            <MudTd DataLabel="Name">
-                <MudTooltip Text="@context.Name">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
-                        @context.Name
-                    </div>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="Latest version" Style="text-align:left">@context.LatestVersion</MudTd>
-            <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
-            <MudTd DataLabel="Description">
-                <MudTooltip Text="@context.Description">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
-                        @context.Description
-                    </div>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="" Style="text-align:right">
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
-                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))">Publish</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))">Unpublish</MudMenuItem>
-                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
-
-                </MudMenu>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>No workflow definitions found</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager/>
-        </PagerContent>
-    </MudTable>
-</MudContainer>
+@code {
+    
+    [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    
+    private void OnWorkflowDefinitionEdit(string definitionId)
+    {
+        NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
+    }
+}

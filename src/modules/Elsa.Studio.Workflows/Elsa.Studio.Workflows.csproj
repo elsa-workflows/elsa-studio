@@ -30,4 +30,14 @@
       <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ActivityDetailsTab.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ActivityExecutionsTab.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ElapsedTime.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\Journal.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\JournalEntryDetailsTab.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\WorkflowInstanceDetails.razor" />
+      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\WorkflowInstanceWorkspace.razor" />
+    </ItemGroup>
+
 </Project>

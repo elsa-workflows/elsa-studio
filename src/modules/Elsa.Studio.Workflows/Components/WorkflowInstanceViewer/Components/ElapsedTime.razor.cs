@@ -1,7 +1,6 @@
-using System;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Represents the elapsed time between a start and end point.

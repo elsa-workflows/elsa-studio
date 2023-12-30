@@ -18,7 +18,7 @@
                 {
                     var definition = WorkflowDefinitions.First(x => x.Id == workflowInstance.DefinitionVersionId);
                     <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="false" Style="height: 100%">
-                        <WorkflowInstanceViewer
+                        <WorkflowInstanceDesigner
                             WorkflowInstance="workflowInstance" 
                             WorkflowDefinition="definition" 
                             PathChanged="PathChanged" 

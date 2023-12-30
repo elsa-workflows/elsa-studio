@@ -1,8 +1,7 @@
-@using Elsa.Studio.Contracts
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
+    <WorkflowInstanceViewer InstanceId="@InstanceId"/>
 </ThemedComponentWrapper>
 
 @code
@@ -11,5 +10,5 @@
     /// The ID of the workflow definition to edit.
     /// </summary>
     [Parameter]
-    public string DefinitionId { get; set; } = default!;
+    public string InstanceId { get; set; } = default!;
 }

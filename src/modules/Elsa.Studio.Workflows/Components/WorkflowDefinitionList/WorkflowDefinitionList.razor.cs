@@ -1,33 +1,33 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
+namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
 /// <summary>
 /// Displays a list of workflow definitions.
 /// </summary>
-public partial class Index
+public partial class WorkflowDefinitionList
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
     private string? _searchString;
 
-    [Inject] NavigationManager NavigationManager { get; set; } = default!;
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+    
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
@@ -124,16 +124,16 @@ public partial class Index
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!));
+            var result = await InvokeWithBlazorServiceContext((() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!)));
 
-            result.OnSuccess(definition => Edit(definition.DefinitionId));
+            await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
         }
     }
 
-    private void Edit(string definitionId)
+    private async Task EditAsync(string definitionId)
     {
-        NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
+        await EditWorkflowDefinition.InvokeAsync(definitionId);
     }
 
     private void Reload()
@@ -141,15 +141,14 @@ public partial class Index
         _table.ReloadServerData();
     }
 
-    private Task OnEditClicked(string definitionId)
+    private async Task OnEditClicked(string definitionId)
     {
-        Edit(definitionId);
-        return Task.CompletedTask;
+        await EditAsync(definitionId);
     }
 
-    private void OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
+    private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
     {
-        Edit(e.Item.DefinitionId);
+        await EditAsync(e.Item.DefinitionId);
     }
 
     private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
@@ -161,7 +160,7 @@ public partial class Index
             return;
 
         var definitionId = workflowDefinitionRow.DefinitionId;
-        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.DeleteAsync(definitionId));
+        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.DeleteAsync(definitionId)));
         Reload();
     }
 
@@ -181,7 +180,7 @@ public partial class Index
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds));
+        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds)));
         Reload();
     }
 
@@ -292,13 +291,13 @@ public partial class Index
 
     private async Task OnPublishClicked(string definitionId)
     {
-        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.PublishAsync(definitionId));
+        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.PublishAsync(definitionId)));
         Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 
     private async Task OnRetractClicked(string definitionId)
     {
-        await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(definitionId));
+        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.RetractAsync(definitionId)));
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
     }
 

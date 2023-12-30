@@ -1,7 +1,7 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.List.Models;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 
 internal record WorkflowInstanceRow(
     string WorkflowInstanceId,

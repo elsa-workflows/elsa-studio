@@ -1,16 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Elsa.Api.Client.RealTime.Messages;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Contracts;
-using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -19,7 +10,7 @@ using Microsoft.AspNetCore.Components.Web.Virtualization;
 using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Displays the journal for a workflow instance.

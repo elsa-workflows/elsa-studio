@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
@@ -10,7 +9,6 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -22,12 +20,12 @@ using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Displays the workflow instance.
 /// </summary>
-public partial class WorkflowInstanceViewer : IAsyncDisposable
+public partial class WorkflowInstanceDesigner : IAsyncDisposable
 {
     private WorkflowInstance _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;

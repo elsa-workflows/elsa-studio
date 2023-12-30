@@ -3,18 +3,18 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 
 /// <summary>
 /// The index page for viewing a workflow instance.
 /// </summary>
-public partial class Index
+public partial class WorkflowInstanceViewer
 {
     private IList<WorkflowInstance> _workflowInstances = new List<WorkflowInstance>();
     private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
@@ -23,7 +23,7 @@ public partial class Index
     /// <summary>
     /// The ID of the workflow instance to view.
     /// </summary>
-    [Parameter] public string Id { get; set; } = default!;
+    [Parameter] public string InstanceId { get; set; } = default!;
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
@@ -35,7 +35,7 @@ public partial class Index
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var instance = await WorkflowInstanceService.GetAsync(Id) ?? throw new InvalidOperationException($"Workflow instance with ID {Id} not found.");
+        var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
         var definitionVersionIds = new[] { instance.DefinitionVersionId };
         var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
         _workflowInstances = new List<WorkflowInstance> { instance };

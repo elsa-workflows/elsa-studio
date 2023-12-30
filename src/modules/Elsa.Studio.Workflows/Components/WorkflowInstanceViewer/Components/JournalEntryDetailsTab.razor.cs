@@ -1,15 +1,11 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Components;
+namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// <summary>
 /// Displays the details of a journal entry.
