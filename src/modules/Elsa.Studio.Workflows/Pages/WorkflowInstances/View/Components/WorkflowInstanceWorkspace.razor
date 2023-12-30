@@ -10,13 +10,14 @@
                             CloseTab="@CloseTabCallback"
                             ActivePanelIndexChanged="OnActivePanelIndexChanged"
                             bind-ActivePanelIndex="@ActiveTabIndex"
+                            AddIconClass="d-none"
                             AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
                             Elevation="0"
                             ApplyEffectsToContainer>
                 @foreach (var workflowInstance in WorkflowInstances)
                 {
                     var definition = WorkflowDefinitions.First(x => x.Id == workflowInstance.DefinitionVersionId);
-                    <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="true" Style="height: 100%">
+                    <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="false" Style="height: 100%">
                         <WorkflowInstanceViewer
                             WorkflowInstance="workflowInstance" 
                             WorkflowDefinition="definition" 
