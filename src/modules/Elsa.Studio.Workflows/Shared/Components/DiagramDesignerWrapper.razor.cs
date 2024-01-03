@@ -229,7 +229,11 @@ public partial class DiagramDesignerWrapper
         {
             var flowchart = currentContainer.GetFlowchart();
             var activities = flowchart.GetActivities();
-            var currentActivity = activities.First(x => x.GetId() == pathSegment.ActivityId);
+            var currentActivity = activities.FirstOrDefault(x => x.GetId() == pathSegment.ActivityId);
+            
+            if (currentActivity == null)
+                continue;
+            
             var portName = pathSegment.PortName;
             var activityTypeName = currentActivity.GetTypeName();
             var activityVersion = currentActivity.GetVersion();
