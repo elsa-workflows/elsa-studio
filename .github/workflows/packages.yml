@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - v3.0.1
   release:
     types: [ prereleased, published ]
 env:
