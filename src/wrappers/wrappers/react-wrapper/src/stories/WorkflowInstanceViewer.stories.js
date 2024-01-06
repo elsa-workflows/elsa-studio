@@ -14,7 +14,7 @@ export default {
 
 export const Default = {
     args: {
-        instanceId: "a015a655bdd4ec0a",
+        instanceId: "f14afe24a2e6f7b1",
         remoteEndpoint: RemoteArgs.remoteEndpoint,
         apiKey: RemoteArgs.apiKey
     }
