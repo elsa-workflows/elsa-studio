@@ -82,13 +82,13 @@ public partial class EditInputDialog
         // TODO: Get these from the backend.
         var descriptors = new[]
         {
-            new UIHintDescriptor("single-line", "Single line", "A single line of text input"),
-            new UIHintDescriptor("multi-line", "Multi line", "Multiple lines of text input"),
+            new UIHintDescriptor("singleline", "Single line", "A single line of text input"),
+            new UIHintDescriptor("multiline", "Multi line", "Multiple lines of text input"),
             new UIHintDescriptor("checkbox", "Checkbox", "A checkbox"),
             new UIHintDescriptor("checklist", "Checklist", "A list of checkboxes"),
-            new UIHintDescriptor("radio-list", "Radio list", "A list of radio buttons"),
+            new UIHintDescriptor("radiolist", "Radio list", "A list of radio buttons"),
             new UIHintDescriptor("dropdown", "Dropdown", "A dropdown list"),
-            new UIHintDescriptor("multi-text", "Multi text", "An input for multiple words, like a tagging input"),
+            new UIHintDescriptor("multitext", "Multi text", "An input for multiple words, like a tagging input"),
             new UIHintDescriptor("code-editor", "Code editor", "A code editor"),
             new UIHintDescriptor("variable-picker", "Variable picker", "A variable picker"),
             new UIHintDescriptor("workflow-definition-picker", "Workflow definition picker", "A workflow definition picker"),
