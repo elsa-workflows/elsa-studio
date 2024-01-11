@@ -6,8 +6,21 @@
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
         <MudTabPanel Text="Details">
             <Well>
-                <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Workflow</MudText>
+                    <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
+                </div>
             </Well>
+
+            @if (WorkflowInstanceSubWorkflowData.Any())
+            {
+                <Well>
+                    <div>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow</MudText>
+                        <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
+                    </div>
+                </Well>
+            }
         </MudTabPanel>
         <MudTabPanel Text="Variables">
             <Well>

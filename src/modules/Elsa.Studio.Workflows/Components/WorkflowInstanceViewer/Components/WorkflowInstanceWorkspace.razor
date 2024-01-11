@@ -21,7 +21,7 @@
                         <WorkflowInstanceDesigner
                             WorkflowInstance="workflowInstance" 
                             WorkflowDefinition="definition" 
-                            PathChanged="PathChanged" 
+                            PathChanged="OnPathChanged" 
                             ActivitySelected="ActivitySelected"
                             SelectedWorkflowExecutionLogRecord="SelectedWorkflowExecutionLogRecord"
                             />
@@ -32,7 +32,7 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            <WorkflowInstanceDetails WorkflowInstance="@SelectedWorkflowInstance" WorkflowDefinition="SelectedWorkflowDefinition" />
+            <WorkflowInstanceDetails @ref="@_workflowInstanceDetails" WorkflowInstance="@SelectedWorkflowInstance" WorkflowDefinition="SelectedWorkflowDefinition" />
         </RadzenSplitterPane>
 
     </RadzenSplitter>
