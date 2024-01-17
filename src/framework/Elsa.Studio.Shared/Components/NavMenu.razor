@@ -13,7 +13,7 @@
 
             foreach (var menuItem in menuItems)
             {
-                <NavMenuItem MenuItem="menuItem"/>
+                <NavMenuItem MenuItem="menuItem" />
             }
         }
     }
@@ -21,8 +21,8 @@
 
 @code
 {
-    private IDictionary<string, MenuItemGroup> _menuItemsGroups = default!;
-    private IEnumerable<MenuItem> _menuItems = default!;
+    private IDictionary<string, MenuItemGroup> _menuItemsGroups = new Dictionary<string, MenuItemGroup>();
+    private IEnumerable<MenuItem> _menuItems = new List<MenuItem>();
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
