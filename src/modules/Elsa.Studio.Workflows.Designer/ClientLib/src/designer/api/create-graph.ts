@@ -60,8 +60,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             connectionPoint: 'anchor',
             allowBlank: false,
             snap: {
-                radius: 20,
-
+                radius: 20
             },
             createEdge() {
                 return graph.createEdge({
