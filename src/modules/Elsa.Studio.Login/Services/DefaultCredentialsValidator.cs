@@ -3,8 +3,6 @@ using Elsa.Api.Client.Resources.Identity.Requests;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Models;
-using Refit;
-using System.Net.Http;
 
 namespace Elsa.Studio.Login.Services;
 
@@ -14,16 +12,14 @@ namespace Elsa.Studio.Login.Services;
 public class DefaultCredentialsValidator : ICredentialsValidator
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
-    private readonly IHttpClientFactory _httpClientFactory;
-
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCredentialsValidator"/> class.
     /// </summary>
-    public DefaultCredentialsValidator(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IHttpClientFactory httpClientFactory)
+    public DefaultCredentialsValidator(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
-        _httpClientFactory = httpClientFactory;
-
+    
     }
 
     /// <inheritdoc />
