@@ -12,14 +12,12 @@ namespace Elsa.Studio.Login.Services;
 public class DefaultCredentialsValidator : ICredentialsValidator
 {
     private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
-    
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCredentialsValidator"/> class.
     /// </summary>
     public DefaultCredentialsValidator(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
     {
         _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
-    
     }
 
     /// <inheritdoc />
