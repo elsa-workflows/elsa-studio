@@ -42,6 +42,7 @@ public partial class WorkflowInstanceDetails
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } =
         new Dictionary<string, StorageDriverDescriptor>();
@@ -58,13 +59,11 @@ public partial class WorkflowInstanceDetails
             return new Dictionary<string, DataPanelItem>
             {
                 ["ID"] = new(_workflowInstance.Id),
-                ["Definition ID"] = new(_workflowInstance.DefinitionId,
-                    $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
+                ["Definition ID"] = new(_workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
                 ["Definition version"] = new(_workflowInstance.Version.ToString()),
                 ["Definition version ID"] = new(_workflowInstance.DefinitionVersionId),
                 ["Correlation ID"] = new(_workflowInstance.CorrelationId),
-                ["Incident Strategy"] =
-                    new(GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
+                ["Incident Strategy"] = new(GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
                 ["Status"] = new(_workflowInstance.Status.ToString()),
                 ["Sub status"] = new(_workflowInstance.SubStatus.ToString()),
                 ["Incidents"] = new(_workflowInstance.IncidentCount.ToString()),
@@ -75,16 +74,23 @@ public partial class WorkflowInstanceDetails
         }
     }
 
-    private IDictionary<string, DataPanelItem> WorkflowInstanceSubWorkflowData
+    private Dictionary<string, DataPanelItem> WorkflowInstanceSubWorkflowData
     {
         get
         {
             if (SelectedSubWorkflow == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new ();
 
-            var workflowDefinitionId = SelectedSubWorkflow.GetWorkflowDefinitionId();
+            var typeName = SelectedSubWorkflow.GetTypeName();
+            var version = SelectedSubWorkflow.GetVersion();
+            var descriptor = ActivityRegistry.Find(typeName, version);
+            var isWorkflowActivity = descriptor != null && descriptor.CustomProperties.TryGetValue("RootType", out var rootTypeNameElement) && ((JsonElement)rootTypeNameElement).GetString() == "WorkflowDefinitionActivity";
+            var workflowDefinitionId = isWorkflowActivity ? SelectedSubWorkflow.GetWorkflowDefinitionId() : default;
 
-            return new Dictionary<string, DataPanelItem>
+            if (workflowDefinitionId == null)
+                return new ();
+
+            return new()
             {
                 ["ID"] = new(SelectedSubWorkflow.GetId()),
                 ["Name"] = new(SelectedSubWorkflow.GetName()),
