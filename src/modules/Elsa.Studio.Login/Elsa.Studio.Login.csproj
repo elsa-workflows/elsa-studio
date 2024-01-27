@@ -15,7 +15,6 @@
 
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage" Version="4.4.0"/>
-        <PackageReference Include="Refit" Version="7.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
