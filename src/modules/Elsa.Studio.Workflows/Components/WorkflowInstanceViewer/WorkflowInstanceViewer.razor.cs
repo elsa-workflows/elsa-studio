@@ -25,6 +25,11 @@ public partial class WorkflowInstanceViewer
     /// </summary>
     [Parameter] public string InstanceId { get; set; } = default!;
 
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
