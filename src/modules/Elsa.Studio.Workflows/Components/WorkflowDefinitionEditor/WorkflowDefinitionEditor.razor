@@ -13,7 +13,7 @@
             <ActivityPicker/>
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
-            <WorkflowDefinitionWorkspace WorkflowDefinition="@_workflowDefinition"/>
+            <WorkflowDefinitionWorkspace WorkflowDefinition="@_workflowDefinition" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -28,6 +28,11 @@
     /// </summary>
     [Parameter]
     public string DefinitionId { get; set; } = default!;
+
+    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
+    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
+    [Parameter]
+    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()

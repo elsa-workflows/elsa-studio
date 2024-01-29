@@ -23,7 +23,12 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Gets or sets a specific version of the workflow definition to view.
     /// </summary>
     [Parameter] public WorkflowDefinition? SelectedWorkflowDefinitionVersion { get; set; }
-    
+
+    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
+    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
+    [Parameter]
+    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+
     /// <summary>
     /// An event that is invoked when the workflow definition is updated.
     /// </summary>
