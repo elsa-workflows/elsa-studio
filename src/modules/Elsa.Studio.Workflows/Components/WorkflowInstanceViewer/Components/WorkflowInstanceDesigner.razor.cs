@@ -66,6 +66,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     [Parameter]
     public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
@@ -251,6 +256,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private Task OnEditClicked(string definitionId)
     {
+        var editWorkflowDefinition = this.EditWorkflowDefinition;
+
+        if (editWorkflowDefinition.HasDelegate)
+            return editWorkflowDefinition.InvokeAsync(definitionId);
+
         NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
         return Task.CompletedTask;
     }

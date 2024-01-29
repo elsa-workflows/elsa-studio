@@ -23,6 +23,11 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+
     public bool IsReadOnly => true;
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
