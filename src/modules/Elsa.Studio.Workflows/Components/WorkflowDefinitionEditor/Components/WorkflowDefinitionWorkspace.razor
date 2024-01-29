@@ -21,7 +21,7 @@
                     <MudTabPanel Text="@WorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="WorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="WorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+                            <WorkflowEditor @key="WorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="WorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
                         }
                         else
                         {

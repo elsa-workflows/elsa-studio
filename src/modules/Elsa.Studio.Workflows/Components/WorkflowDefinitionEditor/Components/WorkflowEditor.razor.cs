@@ -66,6 +66,11 @@ public partial class WorkflowEditor
     [Parameter]
     public Func<Task>? WorkflowDefinitionUpdated { get; set; }
 
+    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
+    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
+    [Parameter]
+    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -429,6 +434,11 @@ public partial class WorkflowEditor
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
+        var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
+
+        if (workflowDefinitionExecuted.HasDelegate)
+            await this.WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+        else
+            NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
 }
