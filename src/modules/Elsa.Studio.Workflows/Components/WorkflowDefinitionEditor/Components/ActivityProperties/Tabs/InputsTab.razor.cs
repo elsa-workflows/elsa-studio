@@ -28,7 +28,7 @@ public partial class InputsTab
     /// <inheritdoc />
     public InputsTab()
     {
-        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100));
+        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100), true);
     }
 
     /// <summary>
