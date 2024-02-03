@@ -58,15 +58,7 @@ public partial class VersionHistoryTab : IDisposable
     private async Task ViewVersion(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
-
-        if (workflowDefinition.IsLatest)
-        {
-            Workspace.ResumeEditing();
-        }
-        else
-        {
-            Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
-        }
+        Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
     }
 
     private async Task ReloadTableAsync()
