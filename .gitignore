@@ -15,7 +15,7 @@
 src/hosts/Elsa.Studio.Host.CustomElements/wasm 
 
 # React public folder
-src/samples/react/workflow-definition-editor-sample/workflow-definition-editor-app/public
+samples/react/workflow-definition-editor-sample/workflow-definition-editor-app/public
 
 # Mono auto generated files
 mono_crash.*

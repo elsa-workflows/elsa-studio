@@ -1,7 +1,9 @@
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
+    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" WorkflowDefinitionVersionUpdated="WorkflowDefinitionVersionUpdated"/>
 </ThemedComponentWrapper>
 
 @code
@@ -16,4 +18,17 @@
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter]
     public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the event that occurs when the workflow definition version is updated.
+    /// </summary>
+    [Parameter]
+    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionUpdated { get; set; }
+    
+    private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets the currently selected workflow definition version.
+    /// </summary>
+    public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionEditor.GetSelectedWorkflowDefinitionVersion();
 }

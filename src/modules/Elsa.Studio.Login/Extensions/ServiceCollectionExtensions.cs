@@ -25,7 +25,6 @@ public static class ServiceCollectionExtensions
                 .AddOptions()
                 .AddAuthorizationCore()
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
-                .AddScoped<IHttpMessageHandlerProvider, AuthenticatingHttpMessageHandlerProvider>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
                 .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
                 .AddScoped<ICredentialsValidator, DefaultCredentialsValidator>()
