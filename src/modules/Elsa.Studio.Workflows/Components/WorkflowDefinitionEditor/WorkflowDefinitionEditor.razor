@@ -13,7 +13,7 @@
             <ActivityPicker/>
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
-            <WorkflowDefinitionWorkspace @ref="WorkflowDefinitionWorkspace" WorkflowDefinition="@_workflowDefinition" WorkflowDefinitionVersionUpdated="WorkflowDefinitionVersionUpdated" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
+            <WorkflowDefinitionWorkspace @ref="WorkflowDefinitionWorkspace" WorkflowDefinition="@_workflowDefinition" WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -35,7 +35,7 @@
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     /// </summary>
     [Parameter]
-    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionUpdated { get; set; }
+    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
     
     /// <summary>
     /// Gets the currently selected workflow definition version.

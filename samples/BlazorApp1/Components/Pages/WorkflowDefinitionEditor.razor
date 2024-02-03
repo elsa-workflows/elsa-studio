@@ -1,7 +1,7 @@
 ﻿@page "/workflow-definitions/{definitionId}"
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @rendermode InteractiveServer
-<WorkflowDefinitionEditorWrapper @ref="Editor" DefinitionId="@DefinitionId" WorkflowDefinitionVersionUpdated="@OnWorkflowDefinitionVersionUpdated"/>
+<WorkflowDefinitionEditorWrapper @ref="Editor" DefinitionId="@DefinitionId" WorkflowDefinitionVersionSelected="@WorkflowDefinitionVersionSelected"/>
 
 <MudButton OnClick="@OnClick">Get Current Version</MudButton>
 
@@ -15,7 +15,7 @@
     
     private WorkflowDefinitionEditorWrapper Editor { get; set; } = default!;
 
-    private Task OnWorkflowDefinitionVersionUpdated(WorkflowDefinition arg)
+    private Task WorkflowDefinitionVersionSelected(WorkflowDefinition arg)
     {
         return Task.CompletedTask;
     }

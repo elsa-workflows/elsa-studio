@@ -3,7 +3,7 @@
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" WorkflowDefinitionVersionUpdated="WorkflowDefinitionVersionUpdated"/>
+    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"/>
 </ThemedComponentWrapper>
 
 @code
@@ -23,7 +23,7 @@
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     /// </summary>
     [Parameter]
-    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionUpdated { get; set; }
+    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
     
     private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
     

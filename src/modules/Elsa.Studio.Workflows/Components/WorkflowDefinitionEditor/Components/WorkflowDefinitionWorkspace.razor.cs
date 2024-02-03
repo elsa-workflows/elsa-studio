@@ -35,7 +35,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     /// </summary>
     [Parameter]
-    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionUpdated { get; set; }
+    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
 
     /// <summary>
     /// An event that is invoked when the workflow definition is updated.
@@ -63,8 +63,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     {
         SelectedWorkflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionVersionUpdated.HasDelegate)
-            WorkflowDefinitionVersionUpdated.InvokeAsync(SelectedWorkflowDefinition);
+        if (WorkflowDefinitionVersionSelected.HasDelegate)
+            WorkflowDefinitionVersionSelected.InvokeAsync(SelectedWorkflowDefinition);
 
         StateHasChanged();
     }
