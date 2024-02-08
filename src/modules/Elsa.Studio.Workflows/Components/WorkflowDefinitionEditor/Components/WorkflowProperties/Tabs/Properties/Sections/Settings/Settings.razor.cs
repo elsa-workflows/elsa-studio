@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Resources.IncidentStrategies.Models;
 using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -35,7 +36,8 @@ public partial class Settings
     private ICollection<IncidentStrategyDescriptor?> _incidentStrategies = new List<IncidentStrategyDescriptor?>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
-
+    private PersistenceStrategy? _selectedPersistenceStrategy;
+    
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
@@ -51,6 +53,14 @@ public partial class Settings
         
         // Select the current incident strategy.
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
+
+        // Select the current persistence strategy
+        PersistenceStrategy persistence = PersistenceStrategy.Default;
+        if (WorkflowDefinition!.CustomProperties.TryGetValue("persistence", out var persistenceString)
+            && persistenceString != null)
+            persistence = (PersistenceStrategy)Enum.Parse(typeof(PersistenceStrategy),persistenceString.ToString());
+
+        _selectedPersistenceStrategy = persistence;
     }
     
     private async Task RaiseWorkflowUpdatedAsync()
@@ -70,6 +80,13 @@ public partial class Settings
     {
         _selectedIncidentStrategy = value;
         WorkflowDefinition!.Options.IncidentStrategyType = value?.TypeName;
+        await RaiseWorkflowUpdatedAsync();
+    }
+
+    private async Task OnPersistenceStrategyChanged(PersistenceStrategy? value)
+    {
+        _selectedPersistenceStrategy = value;
+        WorkflowDefinition!.CustomProperties["persistence"] = value;
         await RaiseWorkflowUpdatedAsync();
     }
 
