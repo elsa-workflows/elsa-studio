@@ -5,7 +5,7 @@
     <Import Project="..\..\..\frameworks.props"/>
 
     <PropertyGroup>
-        <Version>3.0.1</Version>
+        <Version>3.1.0</Version>
         <Description>Core Elsa Studio services.</Description>
         <PackageTags>elsa studio core</PackageTags>
         <RootNamespace>Elsa.Studio</RootNamespace>
