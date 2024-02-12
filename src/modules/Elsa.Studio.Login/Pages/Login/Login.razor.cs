@@ -34,7 +34,7 @@ public partial class Login
         var clientInformation = await ClientInformationProvider.GetInfoAsync();
         var serverInformation = await ServerInformationProvider.GetInfoAsync();
         ClientVersion = clientInformation.PackageVersion;
-        ServerVersion = serverInformation.PackageVersion;
+        ServerVersion = string.Join('.', serverInformation.PackageVersion.Split('.').Take(2));
     }
 
     private async Task TryLogin()
