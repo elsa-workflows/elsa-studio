@@ -5,7 +5,7 @@
     <Import Project="..\..\..\frameworks.props"/>
 
     <PropertyGroup>
-        <Version>3.0.0</Version>
+        <Version>3.0.1</Version>
         <Description>Core Elsa Studio services.</Description>
         <PackageTags>elsa studio core</PackageTags>
         <RootNamespace>Elsa.Studio</RootNamespace>
@@ -38,9 +38,9 @@
         <PackageReference Include="ThrottleDebounce" Version="2.0.0"/>
     </ItemGroup>
 
-    <!--    <ItemGroup Label="Elsa">-->
-    <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
-    <!--    </ItemGroup>-->
+<!--    <ItemGroup Label="Elsa">-->
+<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+<!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
         <PackageReference Include="Elsa.Api.Client" Version="3.0.5"/>
