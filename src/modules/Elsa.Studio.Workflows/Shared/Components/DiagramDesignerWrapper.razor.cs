@@ -10,6 +10,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
@@ -77,6 +78,9 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     [Parameter]
     public Func<Task>? GraphUpdated { get; set; }
+    
+    [CascadingParameter]
+    public WorkflowInstanceViewer? WorkflowInstanceViewer { get; set; }
 
     /// <summary>
     /// An event raised when the path changes.
@@ -335,6 +339,8 @@ public partial class DiagramDesignerWrapper
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {
+            await WorkflowInstanceViewer.UpdateWorkflowDefinitions();
+            
             await OnActivityEmbeddedPortSelected(new ActivityEmbeddedPortSelectedArgs(activity, "Root"));
         }
     }
