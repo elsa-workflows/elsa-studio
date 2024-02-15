@@ -229,6 +229,18 @@ public partial class WorkflowInstanceList
         Reload();
     }
 
+    private async Task OnBulkCancelClicked()
+    {
+        var confirmed = await DialogService.ShowMessageBox("Cancel selected versions", "Are you sure you want to cancel the selected versions?", yesText: "Yes", cancelText: "No");
+
+        if (confirmed != true)
+            return;
+
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        await WorkflowInstanceService.BulkCancelAsync(workflowInstanceIds);
+        Reload();
+    }
+
     private Task OnImportClicked()
     {
         return DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");

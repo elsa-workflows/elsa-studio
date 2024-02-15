@@ -12,6 +12,7 @@ public interface IWorkflowInstanceService
     Task DeleteAsync(string instanceId, CancellationToken cancellationToken = default);
     Task BulkDeleteAsync(IEnumerable<string> instanceIds, CancellationToken cancellationToken = default);
     Task CancelAsync(string instanceId, CancellationToken cancellationToken = default);
+    Task BulkCancelAsync(BulkCancelWorkflowInstancesRequest request, CancellationToken cancellationToken = default);
     Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default);
     Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default);
     Task<FileDownload> ExportAsync(string id, CancellationToken cancellationToken = default);
