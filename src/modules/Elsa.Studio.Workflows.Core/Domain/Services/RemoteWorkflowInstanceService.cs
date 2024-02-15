@@ -51,6 +51,12 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         await api.BulkDeleteAsync(request, cancellationToken);
     }
 
+    public async Task CancelAsync(string instanceId, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        await api.CancelAsync(instanceId, cancellationToken);
+    }
+
     /// <inheritdoc />
     public async Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default)
     {

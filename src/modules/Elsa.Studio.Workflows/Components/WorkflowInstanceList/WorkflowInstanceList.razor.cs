@@ -197,6 +197,18 @@ public partial class WorkflowInstanceList
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
+    
+    private async Task OnCancelClicked(WorkflowInstanceRow row)
+    {
+        var result = await DialogService.ShowMessageBox("Cancel workflow instance?", "Are you sure you want to cancel this workflow instance?", yesText: "Yes", cancelText: "No");
+
+        if (result != true)
+            return;
+
+        var instanceId = row.WorkflowInstanceId;
+        await WorkflowInstanceService.CancelAsync(instanceId);
+        Reload();
+    }
 
     private async Task OnDownloadClicked(WorkflowInstanceRow workflowInstanceRow)
     {
