@@ -24,8 +24,9 @@ public partial class WorkflowInstanceList
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
     /// </summary>
-    [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
-    
+    [Parameter]
+    public EventCallback<string> ViewWorkflowInstance { get; set; }
+
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -122,6 +123,24 @@ public partial class WorkflowInstanceList
 
     private void Reload() => _table.ReloadServerData();
 
+    private bool FilterWorkflowDefinitions(WorkflowDefinitionSummary workflowDefinition, string term)
+    {
+        var trimmedTerm = term.Trim();
+
+        if (string.IsNullOrEmpty(term))
+            return true;
+
+        var sources = new[]
+        {
+            workflowDefinition.Name,
+            workflowDefinition.Description,
+            workflowDefinition.Id,
+            workflowDefinition.DefinitionId
+        };
+
+        return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
+    }
+
     private Color GetSubStatusColor(WorkflowSubStatus subStatus)
     {
         return subStatus switch
@@ -133,6 +152,11 @@ public partial class WorkflowInstanceList
             WorkflowSubStatus.Executing => Color.Primary,
             _ => Color.Default,
         };
+    }
+    
+    private string GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary definition)
+    {
+        return definition.Name;
     }
 
     private void OnViewClicked(string instanceId) => ViewAsync(instanceId);
