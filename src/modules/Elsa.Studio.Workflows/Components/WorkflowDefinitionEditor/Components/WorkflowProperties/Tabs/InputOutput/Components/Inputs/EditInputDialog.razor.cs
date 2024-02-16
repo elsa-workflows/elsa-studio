@@ -34,7 +34,7 @@ public partial class EditInputDialog
         _editContext = new EditContext(_model);
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
-        _uiHints = (await GetUIHitsAsync()).ToList();
+        _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
     }
 
@@ -77,7 +77,7 @@ public partial class EditInputDialog
         }
     }
 
-    private Task<IEnumerable<UIHintDescriptor>> GetUIHitsAsync()
+    private Task<IEnumerable<UIHintDescriptor>> GetUIHintsAsync()
     {
         // TODO: Get these from the backend.
         var descriptors = new[]
