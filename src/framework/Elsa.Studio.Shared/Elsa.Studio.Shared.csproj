@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-    <Import Project="..\..\..\common.props" />
-    <Import Project="..\..\..\configureawait.props" />
-    <Import Project="..\..\..\frameworks.props"/>
-    
     <PropertyGroup>
         <Description>Elsa Studio shared services and components.</Description>
         <PackageTags>elsa studio framework</PackageTags>
@@ -15,8 +11,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
-        <PackageReference Include="BlazorMonaco" Version="3.1.0" />
+        <PackageReference Include="Blazored.LocalStorage"/>
+        <PackageReference Include="BlazorMonaco"/>
     </ItemGroup>
     
     <ItemGroup>
