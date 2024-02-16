@@ -237,7 +237,11 @@ public partial class WorkflowInstanceList
             return;
 
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
-        await WorkflowInstanceService.BulkCancelAsync(workflowInstanceIds);
+        var request = new BulkCancelWorkflowInstancesRequest
+        {
+            Ids = workflowInstanceIds
+        };
+        await WorkflowInstanceService.BulkCancelAsync(request);
         Reload();
     }
 
