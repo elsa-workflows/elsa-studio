@@ -67,24 +67,22 @@
                     }
                 </div>
             </Well>
-            @if (SubWorkflowInputData.Any())
-            {
-                <Well>
+            <Well>
+                @if (SubWorkflowInputData.Any())
+                {
                     <div>
                         <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Inputs</MudText>
                         <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
                     </div>
-                </Well>
-            }
-            @if (SubWorkflowOutputData.Any())
-            {
-                <Well>
+                }
+                @if (SubWorkflowOutputData.Any())
+                {
                     <div>
                         <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Outputs</MudText>
                         <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
                     </div>
-                </Well>
-            }
+                }
+            </Well>
         </MudTabPanel>
     </MudTabs>
 }
