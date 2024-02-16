@@ -77,9 +77,6 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     [Parameter]
     public Func<Task>? GraphUpdated { get; set; }
-    
-    [CascadingParameter]
-    public WorkflowInstanceViewer? WorkflowInstanceViewer { get; set; }
 
     /// <summary>
     /// An event raised when the path changes.
