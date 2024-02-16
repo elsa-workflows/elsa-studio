@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-    <Import Project="..\..\..\common.props" />
-    <Import Project="..\..\..\configureawait.props" />
-    <Import Project="..\..\..\frameworks.props"/>
-    
     <PropertyGroup>
         <Description>Adds workflow management to the studio.</Description>
         <PackageTags>elsa studio module</PackageTags>
@@ -13,12 +9,8 @@
         <SupportedPlatform Include="browser" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.14" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -28,16 +20,6 @@
       <ProjectReference Include="..\Elsa.Studio.UIHints\Elsa.Studio.UIHints.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ActivityDetailsTab.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ActivityExecutionsTab.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\ElapsedTime.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\Journal.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\JournalEntryDetailsTab.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\WorkflowInstanceDetails.razor" />
-      <AdditionalFiles Include="Components\WorkflowInstanceViewer\Components\WorkflowInstanceWorkspace.razor" />
     </ItemGroup>
 
 </Project>
