@@ -24,33 +24,67 @@
         </MudTabPanel>
         <MudTabPanel Text="Variables">
             <Well>
-                <MudTable
-                    T="Variable"
-                    Items="WorkflowDefinition.Variables">
-                    <HeaderContent>
-                        <MudTh>Name</MudTh>
-                        <MudTh>Type</MudTh>
-                        <MudTh>Storage</MudTh>
-                        <MudTh>Value</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd>@context.Name</MudTd>
-                        <MudTd>@context.GetTypeDisplayName()</MudTd>
-                        <MudTd>@GetStorageDriverDisplayName(context.StorageDriverTypeName)</MudTd>
-                        <MudTd>@GetVariableValue(context)</MudTd>
-                    </RowTemplate>
-                    <NoRecordsContent>
+                <div>
+                    @if (WorkflowVariableData.Any())
+                    {
+                        <DataPanel Data="WorkflowVariableData" HideEmptyValues="false"/>
+                    }
+                    else
+                    {
                         <Well>
                             No variables
                         </Well>
-                    </NoRecordsContent>
-                </MudTable>
+                    }
+                </div>
             </Well>
         </MudTabPanel>
         <MudTabPanel Text="Input/output">
             <Well>
-                <MudAlert Variant="Variant.Outlined">Input output</MudAlert>
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Inputs</MudText>
+                    @if (WorkflowInputData.Any())
+                    {
+                        <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
+                    }
+                    else
+                    {
+                        <Well>
+                            No inputs
+                        </Well>
+                    }
+                </div>
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outputs</MudText>
+                    @if (WorkflowOutputData.Any())
+                    {
+                        <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
+                    }
+                    else
+                    {
+                        <Well>
+                            No outputs
+                        </Well>
+                    }
+                </div>
             </Well>
+            @if (SubWorkflowInputData.Any())
+            {
+                <Well>
+                    <div>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Inputs</MudText>
+                        <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
+                    </div>
+                </Well>
+            }
+            @if (SubWorkflowOutputData.Any())
+            {
+                <Well>
+                    <div>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Outputs</MudText>
+                        <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
+                    </div>
+                </Well>
+            }
         </MudTabPanel>
     </MudTabs>
 }

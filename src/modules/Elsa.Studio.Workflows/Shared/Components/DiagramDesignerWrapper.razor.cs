@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Elsa.Api.Client.Contracts;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -339,8 +338,6 @@ public partial class DiagramDesignerWrapper
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {
-            await WorkflowInstanceViewer.UpdateWorkflowDefinitions();
-            
             await OnActivityEmbeddedPortSelected(new ActivityEmbeddedPortSelectedArgs(activity, "Root"));
         }
     }
