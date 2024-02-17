@@ -16,11 +16,11 @@
 /*****************************************************
 * CSS hacks for the MudBlazorExtensions components
 ******************************************************/
-.stack-row-fix .mud-select-extended {
-    
+.mud-select-extended {
+    min-width: 100px;
 }
 
-.stack-row-fix .mud-select-extended .mud-input-slot  {
+.mud-select-extended .mud-input-slot  {
     min-height: 2.1em !important;
 }
 

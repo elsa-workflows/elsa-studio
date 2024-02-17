@@ -37,6 +37,10 @@ public partial class WorkflowInstanceList
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
 
+    private string SearchTerm { get; set; } = string.Empty;
+    private bool? HasIncidents { get; set; }
+    private bool IsDateRangePopoverOpen { get; set; }
+
     /// The selected statuses to filter by.
     public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
 
@@ -159,6 +163,11 @@ public partial class WorkflowInstanceList
         return definition.Name;
     }
 
+    private void ToggleDateRangePopover()
+    {
+        IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
+    }
+
     private void OnViewClicked(string instanceId) => ViewAsync(instanceId);
     private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => ViewAsync(e.Item.WorkflowInstanceId);
 
@@ -232,5 +241,17 @@ public partial class WorkflowInstanceList
     {
         SelectedSubStatuses = values.ToList();
         await _table.ReloadServerData();
+    }
+
+    private async Task OnSearchTermChanged(string text)
+    {
+        SearchTerm = text;
+        await _table.ReloadServerData();
+    }
+    
+    private Task OnHasIncidentsChanged(bool? value)
+    {
+        HasIncidents = value;
+        return _table.ReloadServerData();
     }
 }

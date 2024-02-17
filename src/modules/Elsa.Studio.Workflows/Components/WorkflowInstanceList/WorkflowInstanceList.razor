@@ -18,7 +18,7 @@
     </div>
 
     <MudPaper Elevation="0">
-        <MudStack Row="true" Class="stack-row-fix pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
+        <MudStack Row="true" Class="flex-wrap pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
             <MudPaper Class="gap-3 d-flex" Elevation="0">
                 <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
                     <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
@@ -28,7 +28,26 @@
                 </MudMenu>
                 <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
             </MudPaper>
+            
             <MudSpacer/>
+
+            <MudCheckBox
+                T="bool?"
+                Label="Has Incidents"
+                ValueChanged="@OnHasIncidentsChanged"
+                Value="@HasIncidents"
+                Size="Size.Medium"
+                TriState="true"/>
+            
+            <MudTextField 
+                T="string" 
+                Text="@SearchTerm"
+                Placeholder="Search on name or correlation ID"
+                Variant="Variant.Outlined"
+                AdornmentIcon="@Icons.Material.Outlined.Search"
+                Adornment="Adornment.End"
+                Clearable="true"
+                ValueChanged="@OnSearchTermChanged"/>
 
             <MudSelectExtended
                 T="WorkflowDefinitionSummary"
@@ -96,6 +115,18 @@
                 <MudSelectItemExtended Value="WorkflowSubStatus.Faulted"></MudSelectItemExtended>
                 <MudSelectItemExtended Value="WorkflowSubStatus.Cancelled"></MudSelectItemExtended>
             </MudSelectExtended>
+            
+            <MudField Variant="Variant.Text" DisableUnderLine="true">
+                <MudButton StartIcon="@Icons.Material.Outlined.DateRange" IconSize="Size.Large" OnClick="@ToggleDateRangePopover">
+                    Date Filters
+                </MudButton>
+                <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomLeft" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
+                    <div class="d-flex flex-column">
+                        <MudText Class="ma-2">Content of the popover can be anything.</MudText>
+                        <MudButton OnClick="@ToggleDateRangePopover" Class="ml-auto mr-n3 mb-1" Variant="Variant.Filled" Color="Color.Primary">Apply</MudButton>
+                    </div>
+                </MudPopover>
+            </MudField>
         </MudStack>
     </MudPaper>
     <MudTable
