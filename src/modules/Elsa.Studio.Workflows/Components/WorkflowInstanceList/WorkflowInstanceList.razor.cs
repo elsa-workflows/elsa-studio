@@ -42,10 +42,13 @@ public partial class WorkflowInstanceList
     private bool IsDateRangePopoverOpen { get; set; }
 
     /// The selected statuses to filter by.
-    public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
+    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
 
     /// The selected sub-statuses to filter by.
-    public ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
+    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
+    
+    // The selected timestamp filters to filter by.
+    private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -70,7 +73,8 @@ public partial class WorkflowInstanceList
             Statuses = SelectedStatuses,
             SubStatuses = SelectedSubStatuses,
             OrderBy = GetOrderBy(state.SortLabel),
-            OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending
+            OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
+            TimestampFilters = TimestampFilters.Select(Map).ToList()
         };
 
         var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
@@ -85,7 +89,6 @@ public partial class WorkflowInstanceList
 
         // Select any workflow instances for which no corresponding workflow definition version was found.
         // This can happen when a workflow definition is deleted.
-
         var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
         var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
 
@@ -101,11 +104,24 @@ public partial class WorkflowInstanceList
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
-
-        // TODO: display the workflow instances for which definition versions are missing.
-
+        
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+    }
+
+    private TimestampFilter Map(TimestampFilterModel source)
+    {
+        var date = DateTime.Parse(source.Date);
+        var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
+        var dateTime = date.Add(time);
+        var timestamp = new DateTimeOffset(dateTime);
+        
+        return new TimestampFilter
+        {
+            Column = source.Column,
+            Operator = source.Operator,
+            Timestamp = timestamp
+        };
     }
 
     private OrderByWorkflowInstance? GetOrderBy(string sortLabel)
@@ -158,9 +174,9 @@ public partial class WorkflowInstanceList
         };
     }
     
-    private string GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary definition)
+    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
     {
-        return definition.Name;
+        return definition?.Name;
     }
 
     private void ToggleDateRangePopover()
@@ -253,5 +269,28 @@ public partial class WorkflowInstanceList
     {
         HasIncidents = value;
         return _table.ReloadServerData();
+    }
+    
+    private void OnAddTimestampFilterClicked()
+    {
+        TimestampFilters.Add(new TimestampFilterModel());
+        StateHasChanged();
+    }
+    
+    private void OnRemoveTimestampFilterClicked(TimestampFilterModel filter)
+    {
+        TimestampFilters.Remove(filter);
+        StateHasChanged();
+    }
+    
+    private void OnClearTimestampFiltersClicked()
+    {
+        TimestampFilters.Clear();
+        StateHasChanged();
+    }
+    
+    private async Task OnApplyTimestampFiltersClicked()
+    {
+        await _table.ReloadServerData();
     }
 }
