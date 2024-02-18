@@ -122,9 +122,11 @@
         </MudSelectExtended>
 
         <MudField Variant="Variant.Text" DisableUnderLine="true">
-            <MudButton StartIcon="@Icons.Material.Outlined.DateRange" IconSize="Size.Large" OnClick="@ToggleDateRangePopover">
-                Date Filters
-            </MudButton>
+            <MudBadge Content="@TimestampFilters.Count" Color="Color.Primary" Overlap="true" Class="mx-6 my-4" Visible="@(TimestampFilters.Any())">
+                <MudButton StartIcon="@Icons.Material.Outlined.DateRange" IconSize="Size.Large" OnClick="@ToggleDateRangePopover">
+                    Date Filters
+                </MudButton>
+            </MudBadge>
             <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
                 <table Style="min-width: 920px;">
                     <tbody>
