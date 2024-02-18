@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using System.Text.Json;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -36,7 +37,7 @@ public partial class Settings
     private ICollection<IncidentStrategyDescriptor?> _incidentStrategies = new List<IncidentStrategyDescriptor?>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
-    private PersistenceStrategy? _selectedPersistenceStrategy;
+    private LogPersistenceMode? _selectedLogPersistenceMode;
     
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -54,13 +55,17 @@ public partial class Settings
         // Select the current incident strategy.
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
 
-        // Select the current persistence strategy
-        PersistenceStrategy persistence = PersistenceStrategy.Default;
-        if (WorkflowDefinition!.CustomProperties.TryGetValue("persistence", out var persistenceString)
-            && persistenceString != null)
-            persistence = (PersistenceStrategy)Enum.Parse(typeof(PersistenceStrategy),persistenceString.ToString());
+        // Select the current log persistence mode
+        LogPersistenceMode persistenceMode = LogPersistenceMode.Default;
+        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var persistenceDic)
+            && persistenceDic != null)        {
+            var persistenceString = ((JsonElement)persistenceDic).GetProperty("default");
+            persistenceMode = (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
+        }
 
-        _selectedPersistenceStrategy = persistence;
+            
+
+        _selectedLogPersistenceMode = persistenceMode;
     }
     
     private async Task RaiseWorkflowUpdatedAsync()
@@ -83,10 +88,10 @@ public partial class Settings
         await RaiseWorkflowUpdatedAsync();
     }
 
-    private async Task OnPersistenceStrategyChanged(PersistenceStrategy? value)
+    private async Task OnLogPersistenceModeChanged(LogPersistenceMode? value)
     {
-        _selectedPersistenceStrategy = value;
-        WorkflowDefinition!.CustomProperties["persistence"] = value;
+        _selectedLogPersistenceMode = value;
+        WorkflowDefinition!.CustomProperties["logPersistenceMode"] = new Dictionary<string, object>() { { "default", value } } ;
         await RaiseWorkflowUpdatedAsync();
     }
 

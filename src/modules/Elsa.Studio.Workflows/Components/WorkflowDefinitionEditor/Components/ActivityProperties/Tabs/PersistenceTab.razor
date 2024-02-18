@@ -6,16 +6,16 @@
 
 @{
     
-    RenderFragment GetSelectComponent2(String propertyName, IDictionary<string, PersistenceStrategy> properties) =>
+    RenderFragment GetSelectComponent2(String propertyName, IDictionary<string, LogPersistenceMode> properties) =>
 @<MudSelect Label="@propertyName"
-                    T="PersistenceStrategy"
+                T="LogPersistenceMode"
                     Variant="@MudBlazor.Variant.Outlined"
                     Value="@InitorGetProperty(propertyName,properties)"
                     ValueChanged="@((value) => SetProperty(propertyName,properties,value))"
                     ToStringFunc="@(x=> x.ToString())"
                     ReadOnly="IsReadOnly"
                     SelectedValuesChanged="(values)=>OnBindingChanged()">
-                @foreach (PersistenceStrategy item in Enum.GetValues(typeof(PersistenceStrategy)))
+        @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
                     <MudSelectItem Value="@item"></MudSelectItem>
                 }
@@ -28,14 +28,14 @@
         <MudStack Spacing="6">
             <MudText Typo="Typo.overline">Default configuration</MudText>
             <MudSelect Label="Default Configuration"
-                       T=PersistenceStrategy
+                       T=LogPersistenceMode
                        Variant="@MudBlazor.Variant.Outlined"
                        Value="@persistenceConfiguration.Default"
                        ValueChanged="@(async (bindingOption) => persistenceConfiguration.Default = bindingOption)"
                        ToStringFunc="@(x=> x.ToString())"
                        ReadOnly="IsReadOnly"
                        SelectedValuesChanged="(values)=>OnBindingChanged()">
-                @foreach (PersistenceStrategy item in Enum.GetValues(typeof(PersistenceStrategy)))
+                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
                     <MudSelectItem Value="@item"></MudSelectItem>
                 }

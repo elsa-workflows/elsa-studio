@@ -49,7 +49,8 @@ public partial class PersistenceTab
     private PersistenceActivityConfiguration persistenceConfiguration = new PersistenceActivityConfiguration();
 
     private JsonSerializerOptions _serializerOptions = default;
-    
+
+    private const string LogPersistenceModeKey = "logPersistenceMode";
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -86,31 +87,31 @@ public partial class PersistenceTab
             Activity.SetProperty(customProperties, "customProperties");
         }
 
-        var persistence = (customProperties as JsonObject).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, "persistence");
+        var persistence = (customProperties as JsonObject).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, LogPersistenceModeKey);
         if(persistence == null)
             persistence = new PersistenceActivityConfiguration();
         
         persistenceConfiguration = persistence;
         var props = persistenceConfiguration.SerializeToNode(_serializerOptions);
-        Activity.SetProperty(props, "customProperties", "persistence");
+        Activity.SetProperty(props, "customProperties", LogPersistenceModeKey);
     }
 
     private async Task OnBindingChanged()
     {
         var props = persistenceConfiguration.SerializeToNode(_serializerOptions);
-        Activity.SetProperty(props, "customProperties", "persistence");
+        Activity.SetProperty(props, "customProperties", LogPersistenceModeKey);
 
         await RaiseActivityUpdated();
     }
 
-    private PersistenceStrategy InitorGetProperty(string propertyName, IDictionary<string,PersistenceStrategy> properties)
+    private LogPersistenceMode InitorGetProperty(string propertyName, IDictionary<string,LogPersistenceMode> properties)
     {
         var prop = propertyName.Camelize();
         if (!properties.Any(o => o.Key == prop))
-            properties[prop] = PersistenceStrategy.Default;
+            properties[prop] = LogPersistenceMode.Default;
         return properties[prop];
     }
-    private void SetProperty(string propertyName, IDictionary<string, PersistenceStrategy> properties, PersistenceStrategy value)
+    private void SetProperty(string propertyName, IDictionary<string, LogPersistenceMode> properties, LogPersistenceMode value)
     {
         var prop = propertyName.Camelize();
         properties[prop] = value;
@@ -130,16 +131,16 @@ public class PersistenceActivityConfiguration
     /// <summary>
     /// Default Configuration Strategy for the activity
     /// </summary>
-    public PersistenceStrategy Default { get; set; } = PersistenceStrategy.Default;
+    public LogPersistenceMode Default { get; set; } = LogPersistenceMode.Default;
 
     /// <summary>
     /// Define Configuration Strategy for each Input properties
     /// </summary>
-    public Dictionary<string, PersistenceStrategy> Inputs { get; set; } = new Dictionary<string, PersistenceStrategy>();
+    public Dictionary<string, LogPersistenceMode> Inputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
     
     /// <summary>
     /// Define Configuration Strategy for each Output properties
     /// </summary>
-    public Dictionary<string, PersistenceStrategy> Outputs { get; set; } = new Dictionary<string, PersistenceStrategy>();
+    public Dictionary<string, LogPersistenceMode> Outputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
 }
 

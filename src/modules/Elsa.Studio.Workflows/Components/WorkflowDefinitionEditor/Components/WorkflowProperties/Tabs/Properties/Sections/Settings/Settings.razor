@@ -38,15 +38,15 @@
                 }
             </MudSelect>
             <MudSelect
-                Label="Persistence default strategy"
-                       T="PersistenceStrategy?"
+                Label="Log Persistence Mode"
+                       T="LogPersistenceMode?"
                        Variant="@Variant.Outlined"
-                       Value="@_selectedPersistenceStrategy"
-                       ValueChanged="@OnPersistenceStrategyChanged"
+                       Value="@_selectedLogPersistenceMode"
+                       ValueChanged="@OnLogPersistenceModeChanged"
                        ReadOnly="IsReadOnly">
-                @foreach (PersistenceStrategy item in Enum.GetValues(typeof(PersistenceStrategy)))
+                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
-                    <MudSelectItem Value="@((PersistenceStrategy?) item)">@item</MudSelectItem>
+                    <MudSelectItem Value="@((LogPersistenceMode?) item)">@item</MudSelectItem>
                 }
 
             </MudSelect>
