@@ -124,37 +124,41 @@
                 Date Filters
             </MudButton>
             <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
-                <MudGrid>
+                <table>
+                    <tbody>
                     @foreach (var timestampFilter in TimestampFilters)
                     {
-                        <MudItem>
-                            <MudIconButton Icon="@Icons.Material.Outlined.Remove"/>
-                        </MudItem>
-                        <MudItem>
-                            <MudSelect Label="Column" Variant="Variant.Outlined"  @bind-Value="@timestampFilter.Column">
-                                <MudSelectItem Value="@nameof(WorkflowInstance.CreatedAt)">Created</MudSelectItem>
-                                <MudSelectItem Value="@nameof(WorkflowInstance.UpdatedAt)">Updated</MudSelectItem>
-                                <MudSelectItem Value="@nameof(WorkflowInstance.FinishedAt)">Finished</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem>
-                            <MudSelect Label="Operator" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Operator" Class="timespan-operator">
-                                <MudSelectItem Value="@TimestampFilterOperator.Is">Is</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.IsNot">Is Not</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThan">Is After</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThanOrEqual">Is on or After</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.LessThan">Is Before</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.LessThanOrEqual">Is on or Before</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem>
-                            <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date" />
-                        </MudItem>
-                        <MudItem>
-                            <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time" />
-                        </MudItem>
+                        <tr>
+                            <td>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Remove" OnClick="@(() => OnRemoveTimestampFilterClicked(timestampFilter))"/>
+                            </td>
+                            <td>
+                                <MudSelect Label="Column" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Column">
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.CreatedAt)">Created</MudSelectItem>
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.UpdatedAt)">Updated</MudSelectItem>
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.FinishedAt)">Finished</MudSelectItem>
+                                </MudSelect>
+                            </td>
+                            <td>
+                                <MudSelect Label="Operator" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Operator" Class="timespan-operator">
+                                    <MudSelectItem Value="@TimestampFilterOperator.Is">Is</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.IsNot">Is Not</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.GreaterThan">Is After</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.GreaterThanOrEqual">Is on or After</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.LessThan">Is Before</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.LessThanOrEqual">Is on or Before</MudSelectItem>
+                                </MudSelect>
+                            </td>
+                            <td>
+                                <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
+                            </td>
+                            <td>
+                                <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/>
+                            </td>
+                        </tr>
                     }
-                </MudGrid>
+                    </tbody>
+                </table>
                 <MudStack Row="true" Class="ma-3 pa-3">
                     <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="@OnAddTimestampFilterClicked">Add</MudButton>
                     <MudButton StartIcon="@Icons.Material.Outlined.Clear" OnClick="@OnClearTimestampFiltersClicked" Disabled="@(!TimestampFilters.Any())">Clear</MudButton>

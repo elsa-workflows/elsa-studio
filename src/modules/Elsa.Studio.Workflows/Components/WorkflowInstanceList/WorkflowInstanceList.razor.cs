@@ -74,7 +74,7 @@ public partial class WorkflowInstanceList
             SubStatuses = SelectedSubStatuses,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
-            TimestampFilters = TimestampFilters.Select(Map).ToList()
+            TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
         var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
@@ -111,10 +111,10 @@ public partial class WorkflowInstanceList
 
     private TimestampFilter Map(TimestampFilterModel source)
     {
-        var date = DateTime.Parse(source.Date);
+        var date = !string.IsNullOrWhiteSpace(source.Date) ? DateTime.Parse(source.Date) : DateTime.MinValue;
         var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
         var dateTime = date.Add(time);
-        var timestamp = new DateTimeOffset(dateTime);
+        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
         
         return new TimestampFilter
         {
@@ -184,8 +184,8 @@ public partial class WorkflowInstanceList
         IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
     }
 
-    private void OnViewClicked(string instanceId) => ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => ViewAsync(e.Item.WorkflowInstanceId);
+    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -292,5 +292,6 @@ public partial class WorkflowInstanceList
     private async Task OnApplyTimestampFiltersClicked()
     {
         await _table.ReloadServerData();
+        ToggleDateRangePopover();
     }
 }
