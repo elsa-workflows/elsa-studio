@@ -49,6 +49,8 @@
             AdornmentIcon="@Icons.Material.Outlined.Search"
             Adornment="Adornment.End"
             Clearable="true"
+            DebounceInterval="200"
+            Immediate="true"
             ValueChanged="@OnSearchTermChanged"/>
 
         <MudSelectExtended
@@ -164,6 +166,7 @@
                     <MudButton StartIcon="@Icons.Material.Outlined.Clear" OnClick="@OnClearTimestampFiltersClicked" Disabled="@(!TimestampFilters.Any())">Clear</MudButton>
                     <MudSpacer/>
                     <MudButton OnClick="@OnApplyTimestampFiltersClicked" Class="ml-auto mr-n3 mb-1" Variant="Variant.Filled" Color="Color.Primary">Apply</MudButton>
+                    <MudButton OnClick="@ToggleDateRangePopover" Class="ml-auto mr-n3 mb-1" Variant="Variant.Text" Color="Color.Default">Close</MudButton>
                 </MudStack>
             </MudPopover>
         </MudField>
