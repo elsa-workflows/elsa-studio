@@ -24,8 +24,9 @@ public partial class WorkflowInstanceList
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
     /// </summary>
-    [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
-    
+    [Parameter]
+    public EventCallback<string> ViewWorkflowInstance { get; set; }
+
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -36,11 +37,18 @@ public partial class WorkflowInstanceList
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
 
+    private string SearchTerm { get; set; } = string.Empty;
+    private bool? HasIncidents { get; set; }
+    private bool IsDateRangePopoverOpen { get; set; }
+
     /// The selected statuses to filter by.
-    public ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
+    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
 
     /// The selected sub-statuses to filter by.
-    public ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
+    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
+    
+    // The selected timestamp filters to filter by.
+    private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -64,8 +72,11 @@ public partial class WorkflowInstanceList
             DefinitionIds = SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList(),
             Statuses = SelectedStatuses,
             SubStatuses = SelectedSubStatuses,
+            SearchTerm = SearchTerm,
+            HasIncidents = HasIncidents,
             OrderBy = GetOrderBy(state.SortLabel),
-            OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending
+            OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
+            TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
         var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
@@ -80,7 +91,6 @@ public partial class WorkflowInstanceList
 
         // Select any workflow instances for which no corresponding workflow definition version was found.
         // This can happen when a workflow definition is deleted.
-
         var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
         var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
 
@@ -96,11 +106,24 @@ public partial class WorkflowInstanceList
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
-
-        // TODO: display the workflow instances for which definition versions are missing.
-
+        
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+    }
+
+    private TimestampFilter Map(TimestampFilterModel source)
+    {
+        var date = !string.IsNullOrWhiteSpace(source.Date) ? DateTime.Parse(source.Date) : DateTime.MinValue;
+        var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
+        var dateTime = date.Add(time);
+        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
+        
+        return new TimestampFilter
+        {
+            Column = source.Column,
+            Operator = source.Operator,
+            Timestamp = timestamp
+        };
     }
 
     private OrderByWorkflowInstance? GetOrderBy(string sortLabel)
@@ -122,6 +145,24 @@ public partial class WorkflowInstanceList
 
     private void Reload() => _table.ReloadServerData();
 
+    private bool FilterWorkflowDefinitions(WorkflowDefinitionSummary workflowDefinition, string term)
+    {
+        var trimmedTerm = term.Trim();
+
+        if (string.IsNullOrEmpty(term))
+            return true;
+
+        var sources = new[]
+        {
+            workflowDefinition.Name,
+            workflowDefinition.Description,
+            workflowDefinition.Id,
+            workflowDefinition.DefinitionId
+        };
+
+        return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
+    }
+
     private Color GetSubStatusColor(WorkflowSubStatus subStatus)
     {
         return subStatus switch
@@ -134,9 +175,19 @@ public partial class WorkflowInstanceList
             _ => Color.Default,
         };
     }
+    
+    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
+    {
+        return definition?.Name;
+    }
 
-    private void OnViewClicked(string instanceId) => ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => ViewAsync(e.Item.WorkflowInstanceId);
+    private void ToggleDateRangePopover()
+    {
+        IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
+    }
+
+    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -208,5 +259,41 @@ public partial class WorkflowInstanceList
     {
         SelectedSubStatuses = values.ToList();
         await _table.ReloadServerData();
+    }
+
+    private async Task OnSearchTermChanged(string text)
+    {
+        SearchTerm = text;
+        await _table.ReloadServerData();
+    }
+    
+    private Task OnHasIncidentsChanged(bool? value)
+    {
+        HasIncidents = value;
+        return _table.ReloadServerData();
+    }
+    
+    private void OnAddTimestampFilterClicked()
+    {
+        TimestampFilters.Add(new TimestampFilterModel());
+        StateHasChanged();
+    }
+    
+    private void OnRemoveTimestampFilterClicked(TimestampFilterModel filter)
+    {
+        TimestampFilters.Remove(filter);
+        StateHasChanged();
+    }
+    
+    private void OnClearTimestampFiltersClicked()
+    {
+        TimestampFilters.Clear();
+        StateHasChanged();
+    }
+    
+    private async Task OnApplyTimestampFiltersClicked()
+    {
+        await _table.ReloadServerData();
+        ToggleDateRangePopover();
     }
 }
