@@ -1,49 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\..\common.props"/>
-    <Import Project="..\..\..\configureawait.props"/>
-    <Import Project="..\..\..\frameworks.props"/>
-
     <PropertyGroup>
-        <Version>3.1.0</Version>
         <Description>Core Elsa Studio services.</Description>
         <PackageTags>elsa studio core</PackageTags>
         <RootNamespace>Elsa.Studio</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.14"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="7.0.14"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.14"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
-        <PackageReference Include="Microsoft.JSInterop" Version="7.0.14"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
+        <PackageReference Include="Microsoft.JSInterop"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.JSInterop" Version="8.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
+        <PackageReference Include="Microsoft.JSInterop"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.FluentValidation" Version="2.1.0"/>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.4.0"/>
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.6.0"/>
-        <PackageReference Include="FluentValidation" Version="11.7.1"/>
-        <PackageReference Include="MudBlazor" Version="6.11.0"/>
-        <PackageReference Include="Radzen.Blazor" Version="4.18.1"/>
-        <PackageReference Include="ShortGuid" Version="2.0.1"/>
-        <PackageReference Include="ThrottleDebounce" Version="2.0.0"/>
+        <PackageReference Include="Blazored.FluentValidation"/>
+        <PackageReference Include="Blazored.LocalStorage"/>
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions"/>
+        <PackageReference Include="FluentValidation"/>
+        <PackageReference Include="MudBlazor"/>
+        <PackageReference Include="Radzen.Blazor"/>
+        <PackageReference Include="ShortGuid"/>
+        <PackageReference Include="ThrottleDebounce"/>
     </ItemGroup>
 
 <!--    <ItemGroup Label="Elsa">-->
-<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\v3\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
 <!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
-        <PackageReference Include="Elsa.Api.Client" Version="3.0.5"/>
+        <PackageReference Include="Elsa.Api.Client"/>
     </ItemGroup>
 
 </Project>

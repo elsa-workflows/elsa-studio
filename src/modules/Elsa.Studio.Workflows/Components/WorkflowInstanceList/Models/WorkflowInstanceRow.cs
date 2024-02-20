@@ -14,4 +14,5 @@ internal record WorkflowInstanceRow(
     int IncidentCount,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt,
-    DateTimeOffset? FinishedAt);
+    DateTimeOffset? FinishedAt
+);

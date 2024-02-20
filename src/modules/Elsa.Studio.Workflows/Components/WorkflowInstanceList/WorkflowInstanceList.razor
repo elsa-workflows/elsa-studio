@@ -3,173 +3,270 @@
 @using System.Globalization
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Resources.WorkflowInstances.Enums
+@using Elsa.Api.Client.Resources.WorkflowInstances.Models
+@using Elsa.Api.Client.Shared.Enums
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
+@using MudExtensions.Enums
+@using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
 <PageTitle>Workflow instances</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Workflow instances"/>
+<PageHeading Text="Workflow instances"/>
 
-    <div id="instance-file-upload-button-wrapper" class="d-none">
-        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
-    </div>
+<div id="instance-file-upload-button-wrapper" class="d-none">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
+</div>
 
-    <MudTable
-        @ref="_table"
-        T="WorkflowInstanceRow"
-        ServerData="LoadData"
-        Dense="true"
-        Hover="true"
-        Elevation="0"
-        OnRowClick="@OnRowClick"
-        RowStyle="cursor: pointer;"
-        MultiSelection="true"
-        SelectOnRowClick="false"
-        @bind-SelectedItems="_selectedRows">
-        <ToolBarContent>
-            <MudPaper Class="gap-3 d-flex" Elevation="0">
-                <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-                    <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                    <MudMenuItem>Cancel</MudMenuItem>
-                    <MudMenuItem>Retry</MudMenuItem>
-                    <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
-                </MudMenu>
-                <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
-            </MudPaper>
-            <MudSpacer/>
-            <MudStack Row="true">
-                <MudSelect
-                    T="WorkflowDefinitionSummary"
-                    AdornmentIcon="@Icons.Material.Outlined.Window"
-                    Label="Workflow"
-                    SelectedValues="SelectedWorkflowDefinitions"
-                    MultiSelection="true"
-                    Dense="true"
-                    Clearable="true"
-                    AnchorOrigin="Origin.BottomLeft"
-                    Variant="Variant.Outlined"
-                    ToStringFunc="@(definition => definition.Name)"
-                    SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged">
-                    @foreach (var workflowDefinition in WorkflowDefinitions)
+<MudPaper Elevation="0">
+    <MudStack Row="true" Class="flex-wrap pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
+        <MudPaper Class="gap-3 d-flex" Elevation="0">
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
+                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem>Cancel</MudMenuItem>
+                <MudMenuItem>Retry</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
+            </MudMenu>
+            <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
+        </MudPaper>
+
+        <MudSpacer/>
+
+        <MudCheckBox
+            T="bool?"
+            Label="Has Incidents"
+            ValueChanged="@OnHasIncidentsChanged"
+            Value="@HasIncidents"
+            Size="Size.Medium"
+            TriState="true"/>
+
+        <MudTextField
+            T="string"
+            Text="@SearchTerm"
+            Placeholder="Search on name or correlation ID"
+            Variant="Variant.Outlined"
+            AdornmentIcon="@Icons.Material.Outlined.Search"
+            Adornment="Adornment.End"
+            Clearable="true"
+            DebounceInterval="200"
+            Immediate="true"
+            ValueChanged="@OnSearchTermChanged"/>
+
+        <MudSelectExtended
+            T="WorkflowDefinitionSummary"
+            Label="Workflows"
+            AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+            MultiSelection="true"
+            ItemCollection="@WorkflowDefinitions"
+            SearchBox="true"
+            SearchBoxAutoFocus="true"
+            AnchorOrigin="Origin.BottomCenter"
+            Variant="Variant.Outlined"
+            Clearable="true"
+            SearchBoxClearable="true"
+            Dense="true"
+            ChipSize="Size.Small"
+            ChipVariant="Variant.Filled"
+            ChipCloseable="true"
+            InputMode="InputMode.search"
+            Immediate="true"
+            NoWrap="true"
+            SelectValueOnTab="true"
+            SearchFunc="@FilterWorkflowDefinitions"
+            ValuePresenter="ValuePresenter.Chip"
+            SelectedValues="@SelectedWorkflowDefinitions"
+            SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged"
+            ToStringFunc="@GetWorkflowDefinitionDisplayText">
+        </MudSelectExtended>
+
+        <MudSelectExtended
+            T="WorkflowStatus"
+            Label="Status"
+            AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+            ValuePresenter="ValuePresenter.Chip"
+            MultiSelection="true"
+            Variant="Variant.Outlined"
+            AnchorOrigin="Origin.BottomLeft"
+            Dense="true"
+            ChipSize="Size.Small"
+            ChipVariant="Variant.Filled"
+            ChipCloseable="true"
+            Clearable="true"
+            SelectedValues="SelectedStatuses"
+            SelectedValuesChanged="OnSelectedStatusesChanged">
+            <MudSelectItemExtended Value="WorkflowStatus.Running"></MudSelectItemExtended>
+            <MudSelectItemExtended Value="WorkflowStatus.Finished"></MudSelectItemExtended>
+        </MudSelectExtended>
+
+        <MudSelectExtended
+            T="WorkflowSubStatus"
+            Label="Sub status"
+            AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+            ValuePresenter="ValuePresenter.Chip"
+            MultiSelection="true"
+            Variant="Variant.Outlined"
+            AnchorOrigin="Origin.BottomLeft"
+            Dense="true"
+            ChipSize="Size.Small"
+            ChipVariant="Variant.Filled"
+            ChipCloseable="true"
+            Clearable="true"
+            SelectedValues="SelectedSubStatuses"
+            SelectedValuesChanged="OnSelectedSubStatusesChanged">
+            <MudSelectItemExtended Value="WorkflowSubStatus.Executing"></MudSelectItemExtended>
+            <MudSelectItemExtended Value="WorkflowSubStatus.Suspended"></MudSelectItemExtended>
+            <MudSelectItemExtended Value="WorkflowSubStatus.Finished"></MudSelectItemExtended>
+            <MudSelectItemExtended Value="WorkflowSubStatus.Faulted"></MudSelectItemExtended>
+            <MudSelectItemExtended Value="WorkflowSubStatus.Cancelled"></MudSelectItemExtended>
+        </MudSelectExtended>
+
+        <MudField Variant="Variant.Text" DisableUnderLine="true">
+            <MudBadge Content="@TimestampFilters.Count" Color="Color.Primary" Overlap="true" Class="mx-6 my-4" Visible="@(TimestampFilters.Any())">
+                <MudButton StartIcon="@Icons.Material.Outlined.DateRange" IconSize="Size.Large" OnClick="@ToggleDateRangePopover">
+                    Date Filters
+                </MudButton>
+            </MudBadge>
+            <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
+                <table Style="min-width: 920px;">
+                    <tbody>
+                    @foreach (var timestampFilter in TimestampFilters)
                     {
-                        <MudSelectItem Value="@workflowDefinition">@workflowDefinition.Name</MudSelectItem>
+                        <tr>
+                            <td>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Remove" OnClick="@(() => OnRemoveTimestampFilterClicked(timestampFilter))"/>
+                            </td>
+                            <td>
+                                <MudSelect Label="Column" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Column">
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.CreatedAt)">Created</MudSelectItem>
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.UpdatedAt)">Updated</MudSelectItem>
+                                    <MudSelectItem Value="@nameof(WorkflowInstance.FinishedAt)">Finished</MudSelectItem>
+                                </MudSelect>
+                            </td>
+                            <td>
+                                <MudSelect Label="Operator" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Operator" Class="timespan-operator">
+                                    <MudSelectItem Value="@TimestampFilterOperator.Is">Is</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.IsNot">Is Not</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.GreaterThan">Is After</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.GreaterThanOrEqual">Is on or After</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.LessThan">Is Before</MudSelectItem>
+                                    <MudSelectItem Value="@TimestampFilterOperator.LessThanOrEqual">Is on or Before</MudSelectItem>
+                                </MudSelect>
+                            </td>
+                            <td>
+                                <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
+                            </td>
+                            <td>
+                                <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/>
+                            </td>
+                        </tr>
                     }
-                </MudSelect>
-                <MudSelect
-                    T="WorkflowStatus"
-                    Label="Status"
-                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
-                    MultiSelection="true"
-                    Variant="Variant.Outlined"
-                    AnchorOrigin="Origin.BottomLeft"
-                    Dense="true"
-                    Clearable="true"
-                    SelectedValues="SelectedStatuses"
-                    SelectedValuesChanged="OnSelectedStatusesChanged">
-                    <MudSelectItem Value="WorkflowStatus.Running"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowStatus.Finished"></MudSelectItem>
-                </MudSelect>
-                <MudSelect
-                    T="WorkflowSubStatus"
-                    Label="Sub status"
-                    AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
-                    MultiSelection="true"
-                    Variant="Variant.Outlined"
-                    AnchorOrigin="Origin.BottomLeft"
-                    Dense="true"
-                    Clearable="true"
-                    SelectedValues="SelectedSubStatuses"
-                    SelectedValuesChanged="OnSelectedSubStatusesChanged">
-                    <MudSelectItem Value="WorkflowSubStatus.Executing"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowSubStatus.Suspended"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowSubStatus.Finished"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowSubStatus.Faulted"></MudSelectItem>
-                    <MudSelectItem Value="WorkflowSubStatus.Cancelled"></MudSelectItem>
-                </MudSelect>
-            </MudStack>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>ID</MudTh>
-            <MudTh>Correlation ID</MudTh>
-            <MudTh>Workflow</MudTh>
-            <MudTh>Version</MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">Name</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">Status</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="IncidentCount" T="WorkflowInstanceRow">Incidents</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
-            </MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="ID">@context.WorkflowInstanceId</MudTd>
-            <MudTd DataLabel="Correlation ID">
-                <MudTooltip Text="@context.CorrelationId">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
-                        @context.CorrelationId
-                    </div>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="Workflow">
-                <MudTooltip Text="@context.WorkflowDefinition.Name">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
-                        @context.WorkflowDefinition.Name
-                    </div>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="Version">@context.Version</MudTd>
-            <MudTd DataLabel="Name">
-                <MudTooltip Text="@context.Name">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
-                        @context.Name
-                    </div>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="SubStatus">
-                <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
-                    @context.SubStatus
-                </MudChip>
-            </MudTd>
-            <MudTd DataLabel="IncidentCount">
-                <MudChip
-                    Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
-                    Text="@context.IncidentCount.ToString()"
-                    Variant="Variant.Text"
-                    Size="Size.Small"/>
-            </MudTd>
-            <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-            <MudTd DataLabel="" Style="text-align:right">
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
-                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Download</MudMenuItem>
-                </MudMenu>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>No workflow instances found</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager/>
-        </PagerContent>
-    </MudTable>
+                    </tbody>
+                </table>
+                <MudStack Row="true" Class="ma-3 pa-3">
+                    <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="@OnAddTimestampFilterClicked">Add</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Outlined.Clear" OnClick="@OnClearTimestampFiltersClicked" Disabled="@(!TimestampFilters.Any())">Clear</MudButton>
+                    <MudSpacer/>
+                    <MudButton OnClick="@OnApplyTimestampFiltersClicked" Class="ml-auto mr-n3 mb-1" Variant="Variant.Filled" Color="Color.Primary">Apply</MudButton>
+                    <MudButton OnClick="@ToggleDateRangePopover" Class="ml-auto mr-n3 mb-1" Variant="Variant.Text" Color="Color.Default">Close</MudButton>
+                </MudStack>
+            </MudPopover>
+        </MudField>
+    </MudStack>
+</MudPaper>
+<MudTable
+    @ref="_table"
+    T="WorkflowInstanceRow"
+    ServerData="LoadData"
+    Dense="true"
+    Hover="true"
+    Elevation="0"
+    OnRowClick="@OnRowClick"
+    RowStyle="cursor: pointer;"
+    MultiSelection="true"
+    SelectOnRowClick="false"
+    @bind-SelectedItems="_selectedRows">
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Correlation ID</MudTh>
+        <MudTh>Workflow</MudTh>
+        <MudTh>Version</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">Name</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">Status</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="IncidentCount" T="WorkflowInstanceRow">Incidents</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
+        </MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.WorkflowInstanceId</MudTd>
+        <MudTd DataLabel="Correlation ID">
+            <MudTooltip Text="@context.CorrelationId">
+                <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                    @context.CorrelationId
+                </div>
+            </MudTooltip>
+        </MudTd>
+        <MudTd DataLabel="Workflow">
+            <MudTooltip Text="@context.WorkflowDefinition.Name">
+                <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                    @context.WorkflowDefinition.Name
+                </div>
+            </MudTooltip>
+        </MudTd>
+        <MudTd DataLabel="Version">@context.Version</MudTd>
+        <MudTd DataLabel="Name">
+            <MudTooltip Text="@context.Name">
+                <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                    @context.Name
+                </div>
+            </MudTooltip>
+        </MudTd>
+        <MudTd DataLabel="SubStatus">
+            <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
+                @context.SubStatus
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="IncidentCount">
+            <MudChip
+                Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
+                Text="@context.IncidentCount.ToString()"
+                Variant="Variant.Text"
+                Size="Size.Small"/>
+        </MudTd>
+        <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+        <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+        <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+        <MudTd DataLabel="" Style="text-align:right">
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem>
+            </MudMenu>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No workflow instances found</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager/>
+    </PagerContent>
+</MudTable>
 </MudContainer>
