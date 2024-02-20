@@ -5,18 +5,15 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
+/// <summary>
+/// Represents the persistence tab.
+/// </summary>
 public partial class PersistenceTab
 {
     /// An event raised when the activity is updated.
@@ -40,21 +37,18 @@ public partial class PersistenceTab
     /// </summary>
     [Parameter]
     public ActivityDescriptor? ActivityDescriptor { get; set; }
-
-
+    
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
-
-    private PersistenceActivityConfiguration persistenceConfiguration = new PersistenceActivityConfiguration();
-
-    private JsonSerializerOptions _serializerOptions = default;
-
+    private PersistenceActivityConfiguration _persistenceConfiguration = new();
+    private JsonSerializerOptions _serializerOptions = default!;
     private const string LogPersistenceModeKey = "logPersistenceMode";
+    
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        persistenceConfiguration = new PersistenceActivityConfiguration();
+        _persistenceConfiguration = new PersistenceActivityConfiguration();
         _serializerOptions = new System.Text.Json.JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,
@@ -66,7 +60,7 @@ public partial class PersistenceTab
     }
 
     /// <inheritdoc />
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
@@ -75,39 +69,36 @@ public partial class PersistenceTab
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
 
         SetPersistenceProperties();
-       
     }
 
     private void SetPersistenceProperties()
     {
-        var customProperties = Activity.GetProperty("customProperties");
+        var customProperties = Activity?.GetProperty("customProperties");
         if (customProperties == null)
         {
             customProperties = new JsonObject(new List<KeyValuePair<string, JsonNode?>>());
-            Activity.SetProperty(customProperties, "customProperties");
+            Activity?.SetProperty(customProperties, "customProperties");
         }
 
-        var persistence = (customProperties as JsonObject).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, LogPersistenceModeKey);
-        if(persistence == null)
-            persistence = new PersistenceActivityConfiguration();
-        
-        persistenceConfiguration = persistence;
-        var props = persistenceConfiguration.SerializeToNode(_serializerOptions);
-        Activity.SetProperty(props, "customProperties", LogPersistenceModeKey);
+        var persistence = ((JsonObject)customProperties).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, LogPersistenceModeKey) ?? new PersistenceActivityConfiguration();
+
+        _persistenceConfiguration = persistence;
+        var props = _persistenceConfiguration.SerializeToNode(_serializerOptions);
+        Activity?.SetProperty(props, "customProperties", LogPersistenceModeKey);
     }
 
     private async Task OnBindingChanged()
     {
-        var props = persistenceConfiguration.SerializeToNode(_serializerOptions);
-        Activity.SetProperty(props, "customProperties", LogPersistenceModeKey);
+        var props = _persistenceConfiguration.SerializeToNode(_serializerOptions);
+        Activity?.SetProperty(props, "customProperties", LogPersistenceModeKey);
 
         await RaiseActivityUpdated();
     }
 
-    private LogPersistenceMode InitorGetProperty(string propertyName, IDictionary<string,LogPersistenceMode> properties)
+    private LogPersistenceMode GetProperty(string propertyName, IDictionary<string,LogPersistenceMode> properties)
     {
         var prop = propertyName.Camelize();
-        if (!properties.Any(o => o.Key == prop))
+        if (properties.All(o => o.Key != prop))
             properties[prop] = LogPersistenceMode.Default;
         return properties[prop];
     }
@@ -124,7 +115,7 @@ public partial class PersistenceTab
 }
 
 /// <summary>
-/// Define the Persistence Strategy Configuration for an activity
+/// Defines the Persistence Strategy Configuration for an activity
 /// </summary>
 public class PersistenceActivityConfiguration
 {
@@ -136,11 +127,11 @@ public class PersistenceActivityConfiguration
     /// <summary>
     /// Define Configuration Strategy for each Input properties
     /// </summary>
-    public Dictionary<string, LogPersistenceMode> Inputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
+    public IDictionary<string, LogPersistenceMode> Inputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
     
     /// <summary>
     /// Define Configuration Strategy for each Output properties
     /// </summary>
-    public Dictionary<string, LogPersistenceMode> Outputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
+    public IDictionary<string, LogPersistenceMode> Outputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
 }
 

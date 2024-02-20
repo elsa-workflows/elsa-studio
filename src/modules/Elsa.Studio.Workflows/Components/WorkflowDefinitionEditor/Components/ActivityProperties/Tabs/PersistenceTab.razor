@@ -10,7 +10,7 @@
 @<MudSelect Label="@propertyName"
                 T="LogPersistenceMode"
                     Variant="@MudBlazor.Variant.Outlined"
-                    Value="@InitorGetProperty(propertyName,properties)"
+                    Value="@GetProperty(propertyName,properties)"
                     ValueChanged="@((value) => SetProperty(propertyName,properties,value))"
                     ToStringFunc="@(x=> x.ToString())"
                     ReadOnly="IsReadOnly"
@@ -30,8 +30,8 @@
             <MudSelect Label="Default Configuration"
                        T=LogPersistenceMode
                        Variant="@MudBlazor.Variant.Outlined"
-                       Value="@persistenceConfiguration.Default"
-                       ValueChanged="@(async (bindingOption) => persistenceConfiguration.Default = bindingOption)"
+                       Value="@_persistenceConfiguration.Default"
+                       ValueChanged="@(async (bindingOption) => _persistenceConfiguration.Default = bindingOption)"
                        ToStringFunc="@(x=> x.ToString())"
                        ReadOnly="IsReadOnly"
                        SelectedValuesChanged="(values)=>OnBindingChanged()">
@@ -51,7 +51,7 @@
             }
             @foreach(var input in InputDescriptors)
             {   
-                @GetSelectComponent2(input.Name, persistenceConfiguration.Inputs);
+                @GetSelectComponent2(input.Name, _persistenceConfiguration.Inputs);
             }
 
             <MudDivider />
@@ -64,7 +64,7 @@
             }
             @foreach (var output in OutputDescriptors)
             {
-                    @GetSelectComponent2(output.Name, persistenceConfiguration.Outputs);
+                    @GetSelectComponent2(output.Name, _persistenceConfiguration.Outputs);
             }
         </MudStack>
     </MudForm>
