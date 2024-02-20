@@ -98,11 +98,18 @@ public partial class WorkflowInstanceDetails
     {
         get
         {
-            if (_workflowInstance == null)
+            if (_workflowInstance == null || WorkflowDefinition == null)
                 return new Dictionary<string, DataPanelItem>();
 
-            return _workflowInstance.WorkflowState.Input.ToDictionary(entry => entry.Key,
-                entry => new DataPanelItem(entry.Value.ToString()));
+            var inputData = new Dictionary<string, DataPanelItem>();
+            foreach (var input in WorkflowDefinition.Inputs)
+            {
+                _workflowInstance.WorkflowState.Input.TryGetValue(input.Name, out object? inputFromInstance);
+                var inputName = !string.IsNullOrWhiteSpace(input.DisplayName) ? input.DisplayName : input.Name;
+                inputData.Add(inputName, new DataPanelItem(inputFromInstance?.ToString()));
+            }
+
+            return inputData;
         }
     }
 
@@ -110,11 +117,18 @@ public partial class WorkflowInstanceDetails
     {
         get
         {
-            if (_workflowInstance == null)
+            if (_workflowInstance == null || WorkflowDefinition == null)
                 return new Dictionary<string, DataPanelItem>();
-            
-            return _workflowInstance.WorkflowState.Output.ToDictionary(entry => entry.Key,
-                entry => new DataPanelItem(entry.Value.ToString()));
+
+            var outputData = new Dictionary<string, DataPanelItem>();
+            foreach (var output in WorkflowDefinition.Outputs)
+            {
+                _workflowInstance.WorkflowState.Output.TryGetValue(output.Name, out object? outputFromInstance);
+                var outputName = !string.IsNullOrWhiteSpace(output.DisplayName) ? output.DisplayName : output.Name;
+                outputData.Add(outputName, new DataPanelItem(outputFromInstance?.ToString()));
+            }
+
+            return outputData;
         }
     }
 
@@ -164,7 +178,7 @@ public partial class WorkflowInstanceDetails
                 foreach (var inputDescriptor in activityDescriptor.Inputs)
                 {
                     var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : default;
-                    inputData[inputDescriptor.Name] = new(inputValue?.ToString());
+                    inputData[inputDescriptor.DisplayName ?? inputDescriptor.Name] = new(inputValue?.ToString());
                 }
             }
 
@@ -194,7 +208,7 @@ public partial class WorkflowInstanceDetails
                     var outputValue = outputs != null
                         ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default
                         : default;
-                    outputData[outputDescriptor.Name] = new(outputValue?.ToString());
+                    outputData[outputDescriptor.DisplayName ?? outputDescriptor.Name] = new(outputValue?.ToString());
                 }
             }
 
