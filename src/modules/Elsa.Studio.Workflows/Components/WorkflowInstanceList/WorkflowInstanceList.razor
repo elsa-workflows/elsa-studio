@@ -33,13 +33,11 @@
 
         <MudSpacer/>
 
-        <MudCheckBox
-            T="bool?"
-            Label="Has Incidents"
-            ValueChanged="@OnHasIncidentsChanged"
-            Value="@HasIncidents"
-            Size="Size.Medium"
-            TriState="true"/>
+        <MudSelect T="@(bool?)" Label="Has Incidents" ValueChanged="@OnHasIncidentsChanged" Value="@HasIncidents" Variant="Variant.Outlined">
+            <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(true)">Yes</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(false)">No</MudSelectItem>
+        </MudSelect>
 
         <MudTextField
             T="string"
