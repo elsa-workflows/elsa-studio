@@ -19,7 +19,7 @@
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
 </div>
 
-<MudPaper Elevation="0">
+<MudPaper Elevation="0" Class="workflow-instance-filters">
     <MudStack Row="true" Class="flex-wrap pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
         <MudPaper Class="gap-3 d-flex" Elevation="0">
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
@@ -33,7 +33,7 @@
 
         <MudSpacer/>
 
-        <MudSelect T="@(bool?)" Label="Has Incidents" ValueChanged="@OnHasIncidentsChanged" Value="@HasIncidents" Variant="Variant.Outlined">
+        <MudSelect T="@(bool?)" Label="Has Incidents" ValueChanged="@OnHasIncidentsChanged" Value="@HasIncidents" Variant="Variant.Outlined" OuterClass="mud-select-has-incidents">
             <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
             <MudSelectItem T="@(bool?)" Value="@(true)">Yes</MudSelectItem>
             <MudSelectItem T="@(bool?)" Value="@(false)">No</MudSelectItem>
@@ -126,7 +126,7 @@
                 </MudButton>
             </MudBadge>
             <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
-                <table Style="min-width: 920px;">
+                <table Style="min-width: 920px; border-spacing: 10px;">
                     <tbody>
                     @foreach (var timestampFilter in TimestampFilters)
                     {
