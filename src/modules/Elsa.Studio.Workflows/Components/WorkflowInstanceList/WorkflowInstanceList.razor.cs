@@ -155,9 +155,6 @@ public partial class WorkflowInstanceList
         var sources = new[]
         {
             workflowDefinition.Name,
-            workflowDefinition.Description,
-            workflowDefinition.Id,
-            workflowDefinition.DefinitionId
         };
 
         return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
@@ -267,10 +264,10 @@ public partial class WorkflowInstanceList
         await _table.ReloadServerData();
     }
     
-    private Task OnHasIncidentsChanged(bool? value)
+    private async Task OnHasIncidentsChanged(bool? value)
     {
         HasIncidents = value;
-        return _table.ReloadServerData();
+        await _table.ReloadServerData();
     }
     
     private void OnAddTimestampFilterClicked()

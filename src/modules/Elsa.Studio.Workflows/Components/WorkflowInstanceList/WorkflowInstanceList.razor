@@ -33,13 +33,11 @@
 
         <MudSpacer/>
 
-        <MudCheckBox
-            T="bool?"
-            Label="Has Incidents"
-            ValueChanged="@OnHasIncidentsChanged"
-            Value="@HasIncidents"
-            Size="Size.Medium"
-            TriState="true"/>
+        <MudSelect T="@(bool?)" Label="Has Incidents" ValueChanged="@OnHasIncidentsChanged" Value="@HasIncidents" Variant="Variant.Outlined">
+            <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(true)">Yes</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(false)">No</MudSelectItem>
+        </MudSelect>
 
         <MudTextField
             T="string"
@@ -87,7 +85,7 @@
             ValuePresenter="ValuePresenter.Chip"
             MultiSelection="true"
             Variant="Variant.Outlined"
-            AnchorOrigin="Origin.BottomLeft"
+            AnchorOrigin="Origin.BottomCenter"
             Dense="true"
             ChipSize="Size.Small"
             ChipVariant="Variant.Filled"
@@ -106,7 +104,7 @@
             ValuePresenter="ValuePresenter.Chip"
             MultiSelection="true"
             Variant="Variant.Outlined"
-            AnchorOrigin="Origin.BottomLeft"
+            AnchorOrigin="Origin.BottomCenter"
             Dense="true"
             ChipSize="Size.Small"
             ChipVariant="Variant.Filled"
@@ -157,7 +155,16 @@
                                 <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
                             </td>
                             <td>
-                                <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/>
+                                <MudTextField 
+                                    T="string?" 
+                                    Label="Time" 
+                                    Variant="Variant.Outlined" 
+                                    InputType="InputType.Time" 
+                                    Format="hh:mm:ss:mm" 
+                                    Clearable="true" 
+                                    AdornmentIcon="@Icons.Material.Filled.Timer"
+                                    @bind-Value="timestampFilter.Time"/>
+                                @* <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/> *@
                             </td>
                         </tr>
                     }
@@ -204,7 +211,7 @@
             <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Updated</MudTableSortLabel>
         </MudTh>
         <MudTh>
             <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
