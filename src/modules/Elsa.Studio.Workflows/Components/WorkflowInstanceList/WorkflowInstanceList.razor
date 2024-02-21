@@ -155,7 +155,16 @@
                                 <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
                             </td>
                             <td>
-                                <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/>
+                                <MudTextField 
+                                    T="string?" 
+                                    Label="Time" 
+                                    Variant="Variant.Outlined" 
+                                    InputType="InputType.Time" 
+                                    Format="hh:mm:ss:mm" 
+                                    Clearable="true" 
+                                    AdornmentIcon="@Icons.Material.Filled.Timer"
+                                    @bind-Value="timestampFilter.Time"/>
+                                @* <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/> *@
                             </td>
                         </tr>
                     }
