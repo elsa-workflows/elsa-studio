@@ -42,7 +42,7 @@ public partial class WorkflowInstanceViewer
     {
         var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
         var definitionVersionIds = new[] { instance.DefinitionVersionId };
-        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds, true);
+        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
         _workflowInstances = new List<WorkflowInstance> { instance };
         _workflowDefinitions = response.ToList();
         await SelectWorkflowInstanceAsync(instance);
