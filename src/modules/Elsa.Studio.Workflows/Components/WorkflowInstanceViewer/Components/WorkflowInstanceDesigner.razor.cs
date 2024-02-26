@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -71,6 +72,12 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// </summary>
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
+    /// <summary>
+    /// Gets or sets the current selected sub-workflow.
+    /// </summary>
+    [Parameter]
+    public JsonObject? SelectedSubWorkflow { get; set; } = default!;
+
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
@@ -99,6 +106,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private MudTabs PropertyTabs { get; set; } = default!;
     private MudTabPanel EventsTabPanel { get; set; } = default!;
+
+    /// <summary>
+    /// Updates the selected sub-workflow.
+    /// </summary>
+    /// <param name="obj"></param>
+    public void UpdateSubWorkflow(JsonObject? obj)
+    {
+        SelectedSubWorkflow = obj;
+        StateHasChanged();
+    }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -254,8 +271,24 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         await UpdatePropertiesPaneHeightAsync();
     }
 
-    private Task OnEditClicked(string definitionId)
+    private Task OnEditClicked()
     {
+        var definitionId = WorkflowDefinition!.DefinitionId;
+
+        if (SelectedSubWorkflow != null)
+        {
+            var typeName = SelectedSubWorkflow.GetTypeName();
+            var version = SelectedSubWorkflow.GetVersion();
+            var descriptor = ActivityRegistry.Find(typeName, version);
+            var isWorkflowActivity = descriptor != null &&
+                                     descriptor.CustomProperties.TryGetValue("RootType", out var rootTypeNameElement) &&
+                                     ((JsonElement)rootTypeNameElement).GetString() == "WorkflowDefinitionActivity";
+            if (isWorkflowActivity)
+            {
+                definitionId = SelectedSubWorkflow.GetWorkflowDefinitionId();
+            }
+        }
+
         var editWorkflowDefinition = this.EditWorkflowDefinition;
 
         if (editWorkflowDefinition.HasDelegate)

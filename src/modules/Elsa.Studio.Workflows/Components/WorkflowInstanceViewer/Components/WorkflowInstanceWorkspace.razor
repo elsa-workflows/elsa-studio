@@ -19,6 +19,7 @@
                     var definition = WorkflowDefinitions.First(x => x.Id == workflowInstance.DefinitionVersionId);
                     <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="false" Style="height: 100%">
                         <WorkflowInstanceDesigner
+                             @ref="@_workflowInstanceDesigner"
                             WorkflowInstance="workflowInstance" 
                             WorkflowDefinition="definition" 
                             PathChanged="OnPathChanged" 
@@ -33,7 +34,7 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            <WorkflowInstanceDetails @ref="@_workflowInstanceDetails" WorkflowInstance="@SelectedWorkflowInstance" WorkflowDefinition="SelectedWorkflowDefinition" />
+            <WorkflowInstanceDetails @ref="@_workflowInstanceDetails" WorkflowInstance="@SelectedWorkflowInstance" WorkflowDefinition="SelectedWorkflowDefinition"/>
         </RadzenSplitterPane>
 
     </RadzenSplitter>

@@ -1,8 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
-
-    <Import Project="..\..\..\common.props" />
-    <Import Project="..\..\..\configureawait.props" />
-    <Import Project="..\..\..\frameworks.props"/>
     
     <PropertyGroup>
         <Description>Adds user and role management to the studio.</Description>

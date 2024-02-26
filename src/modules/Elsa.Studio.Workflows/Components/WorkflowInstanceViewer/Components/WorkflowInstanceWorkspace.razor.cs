@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -15,6 +16,7 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
 {
     private MudDynamicTabs _dynamicTabs = default!;
     private WorkflowInstanceDetails _workflowInstanceDetails = default!;
+    private WorkflowInstanceDesigner _workflowInstanceDesigner = default!;
 
     [Parameter] public IList<WorkflowInstance> WorkflowInstances { get; set; } = default!;
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
@@ -36,7 +38,7 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
         ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count
             ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex)
             : default;
-
+    
     private WorkflowDefinition? SelectedWorkflowDefinition
     {
         get
@@ -66,7 +68,8 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
 
     private async Task OnPathChanged(DesignerPathChangedArgs args)
     {
-        _workflowInstanceDetails.UpdateSubWorkflow(args.CurrentActivity);
+        await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.CurrentActivity);
+        _workflowInstanceDesigner.UpdateSubWorkflow(args.CurrentActivity);
         
         if (PathChanged != null)
             await PathChanged(args);

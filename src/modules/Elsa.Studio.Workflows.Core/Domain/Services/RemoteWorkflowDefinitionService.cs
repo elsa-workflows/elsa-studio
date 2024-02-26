@@ -57,10 +57,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var response = await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var response = await api.GetManyByIdAsync(ids.ToList(), includeCompositeRoot, cancellationToken);
         return response.Items;
     }
 
