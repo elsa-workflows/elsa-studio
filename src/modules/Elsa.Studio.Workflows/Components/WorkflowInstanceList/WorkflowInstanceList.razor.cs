@@ -231,7 +231,7 @@ public partial class WorkflowInstanceList
 
     private async Task OnBulkCancelClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox("Cancel selected versions", "Are you sure you want to cancel the selected versions?", yesText: "Yes", cancelText: "No");
+        var confirmed = await DialogService.ShowMessageBox("Cancel selected workflow instances?", "Are you sure you want to cancel the selected workflow instances?", yesText: "Yes", cancelText: "No");
 
         if (confirmed != true)
             return;
