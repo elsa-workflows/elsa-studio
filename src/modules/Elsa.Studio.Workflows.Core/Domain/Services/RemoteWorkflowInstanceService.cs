@@ -52,6 +52,20 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
     }
 
     /// <inheritdoc />
+    public async Task CancelAsync(string instanceId, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        await api.CancelAsync(instanceId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task BulkCancelAsync(BulkCancelWorkflowInstancesRequest request, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        await api.BulkCancelAsync(request, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         try

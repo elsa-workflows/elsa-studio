@@ -23,9 +23,9 @@
     <MudStack Row="true" Class="flex-wrap pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
         <MudPaper Class="gap-3 d-flex" Elevation="0">
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem>Cancel</MudMenuItem>
-                <MudMenuItem>Retry</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkCancelClicked">Cancel</MudMenuItem>
+                <MudMenuItem Disabled="true">Retry</MudMenuItem>
                 <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
@@ -261,6 +261,7 @@
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
                 <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                 <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem>
             </MudMenu>
