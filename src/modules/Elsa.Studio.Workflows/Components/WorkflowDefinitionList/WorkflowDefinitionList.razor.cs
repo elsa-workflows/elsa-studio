@@ -169,7 +169,7 @@ public partial class WorkflowDefinitionList
     private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
         var result = await DialogService.ShowMessageBox("Cancel running workflow instances?",
-            "Are you sure you want to cancel all running workflow instance of this workflow definition?", yesText: "Yes", cancelText: "No");
+            "Are you sure you want to cancel all running workflow instances of this workflow definition?", yesText: "Yes", cancelText: "No");
 
         if (result != true)
             return;
