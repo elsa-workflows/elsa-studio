@@ -5,12 +5,14 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Providers;
+using JetBrains.Annotations;
 
 namespace Elsa.Studio.ActivityPortProviders.Providers;
 
 /// <summary>
 /// Provides ports for the FlowSwitch activity based on its cases.
 /// </summary>
+[UsedImplicitly]
 public class FlowSwitchPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />
@@ -23,7 +25,7 @@ public class FlowSwitchPortProvider : ActivityPortProviderBase
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
+
         var cases = context.Activity.GetProperty<List<SwitchCase>>(options, "cases") ?? new List<SwitchCase>();
 
         foreach (var @case in cases)
@@ -35,6 +37,9 @@ public class FlowSwitchPortProvider : ActivityPortProviderBase
                 Type = PortType.Flow,
             };
         }
+
+        if (cases.Any(x => x.Label == "Default"))
+            yield break;
 
         yield return new Port
         {

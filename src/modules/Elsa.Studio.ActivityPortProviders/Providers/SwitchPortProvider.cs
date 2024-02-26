@@ -18,7 +18,7 @@ public class SwitchPortProvider : ActivityPortProviderBase
     /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)
     {
-        var cases = GetCases(context.Activity);
+        var cases = GetCases(context.Activity).ToList();
 
         foreach (var @case in cases)
         {
@@ -30,6 +30,9 @@ public class SwitchPortProvider : ActivityPortProviderBase
                 Type = PortType.Embedded,
             };
         }
+        
+        if (cases.Any(x => GetLabel(x) == "Default"))
+            yield break;
         
         yield return new Port
         {
