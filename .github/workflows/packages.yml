@@ -3,12 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'main'
-      - 'feature/*'
-      - 'issue/*'
-      - 'enhancement/*'
-      - 'patch/*'
-      - 'fix/*'
+      - 'nexxbiz-hotfix'
   release:
     types: [ prereleased, published ]
 env:
