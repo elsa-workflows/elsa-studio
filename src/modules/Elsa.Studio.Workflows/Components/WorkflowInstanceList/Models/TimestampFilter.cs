@@ -26,5 +26,5 @@ public class TimestampFilterModel
     /// <summary>
     /// Gets or sets the time to filter by.
     /// </summary>
-    public string Time { get; set; }
+    public string? Time { get; set; }
 }

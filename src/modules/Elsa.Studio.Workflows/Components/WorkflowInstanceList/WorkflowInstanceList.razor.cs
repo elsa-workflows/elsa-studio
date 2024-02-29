@@ -155,9 +155,6 @@ public partial class WorkflowInstanceList
         var sources = new[]
         {
             workflowDefinition.Name,
-            workflowDefinition.Description,
-            workflowDefinition.Id,
-            workflowDefinition.DefinitionId
         };
 
         return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
@@ -200,6 +197,18 @@ public partial class WorkflowInstanceList
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
+    
+    private async Task OnCancelClicked(WorkflowInstanceRow row)
+    {
+        var result = await DialogService.ShowMessageBox("Cancel workflow instance?", "Are you sure you want to cancel this workflow instance?", yesText: "Yes", cancelText: "No");
+
+        if (result != true)
+            return;
+
+        var instanceId = row.WorkflowInstanceId;
+        await WorkflowInstanceService.CancelAsync(instanceId);
+        Reload();
+    }
 
     private async Task OnDownloadClicked(WorkflowInstanceRow workflowInstanceRow)
     {
@@ -217,6 +226,22 @@ public partial class WorkflowInstanceList
 
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
         await WorkflowInstanceService.BulkDeleteAsync(workflowInstanceIds);
+        Reload();
+    }
+
+    private async Task OnBulkCancelClicked()
+    {
+        var confirmed = await DialogService.ShowMessageBox("Cancel selected workflow instances?", "Are you sure you want to cancel the selected workflow instances?", yesText: "Yes", cancelText: "No");
+
+        if (confirmed != true)
+            return;
+
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        var request = new BulkCancelWorkflowInstancesRequest
+        {
+            Ids = workflowInstanceIds
+        };
+        await WorkflowInstanceService.BulkCancelAsync(request);
         Reload();
     }
 
@@ -267,10 +292,10 @@ public partial class WorkflowInstanceList
         await _table.ReloadServerData();
     }
     
-    private Task OnHasIncidentsChanged(bool? value)
+    private async Task OnHasIncidentsChanged(bool? value)
     {
         HasIncidents = value;
-        return _table.ReloadServerData();
+        await _table.ReloadServerData();
     }
     
     private void OnAddTimestampFilterClicked()

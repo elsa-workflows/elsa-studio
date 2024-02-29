@@ -19,13 +19,13 @@
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
 </div>
 
-<MudPaper Elevation="0">
+<MudPaper Elevation="0" Class="workflow-instance-filters">
     <MudStack Row="true" Class="flex-wrap pl-2 pr-6 py-6" Justify="Justify.FlexEnd" AlignItems="AlignItems.End">
         <MudPaper Class="gap-3 d-flex" Elevation="0">
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-                <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem>Cancel</MudMenuItem>
-                <MudMenuItem>Retry</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkCancelClicked">Cancel</MudMenuItem>
+                <MudMenuItem Disabled="true">Retry</MudMenuItem>
                 <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">Import</MudButton>
@@ -33,13 +33,11 @@
 
         <MudSpacer/>
 
-        <MudCheckBox
-            T="bool?"
-            Label="Has Incidents"
-            ValueChanged="@OnHasIncidentsChanged"
-            Value="@HasIncidents"
-            Size="Size.Medium"
-            TriState="true"/>
+        <MudSelect T="@(bool?)" Label="Has Incidents" ValueChanged="@OnHasIncidentsChanged" Value="@HasIncidents" Variant="Variant.Outlined" OuterClass="mud-select-has-incidents">
+            <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(true)">Yes</MudSelectItem>
+            <MudSelectItem T="@(bool?)" Value="@(false)">No</MudSelectItem>
+        </MudSelect>
 
         <MudTextField
             T="string"
@@ -87,7 +85,7 @@
             ValuePresenter="ValuePresenter.Chip"
             MultiSelection="true"
             Variant="Variant.Outlined"
-            AnchorOrigin="Origin.BottomLeft"
+            AnchorOrigin="Origin.BottomCenter"
             Dense="true"
             ChipSize="Size.Small"
             ChipVariant="Variant.Filled"
@@ -106,7 +104,7 @@
             ValuePresenter="ValuePresenter.Chip"
             MultiSelection="true"
             Variant="Variant.Outlined"
-            AnchorOrigin="Origin.BottomLeft"
+            AnchorOrigin="Origin.BottomCenter"
             Dense="true"
             ChipSize="Size.Small"
             ChipVariant="Variant.Filled"
@@ -128,7 +126,7 @@
                 </MudButton>
             </MudBadge>
             <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
-                <table Style="min-width: 920px;">
+                <table Style="min-width: 920px; border-spacing: 10px;">
                     <tbody>
                     @foreach (var timestampFilter in TimestampFilters)
                     {
@@ -157,7 +155,16 @@
                                 <MudDatePicker Label="Date" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
                             </td>
                             <td>
-                                <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/>
+                                <MudTextField 
+                                    T="string?" 
+                                    Label="Time" 
+                                    Variant="Variant.Outlined" 
+                                    InputType="InputType.Time" 
+                                    Format="hh:mm:ss:mm" 
+                                    Clearable="true" 
+                                    AdornmentIcon="@Icons.Material.Filled.Timer"
+                                    @bind-Value="timestampFilter.Time"/>
+                                @* <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/> *@
                             </td>
                         </tr>
                     }
@@ -204,7 +211,7 @@
             <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">Created</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Last executed</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">Updated</MudTableSortLabel>
         </MudTh>
         <MudTh>
             <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">Finished</MudTableSortLabel>
@@ -254,6 +261,7 @@
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
                 <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                 <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem>
             </MudMenu>

@@ -108,7 +108,7 @@ public partial class InputsTab
                 Value = input,
                 SelectedExpressionDescriptor = syntaxProvider,
                 UIHintHandler = uiHintHandler,
-                IsReadOnly = Workspace?.IsReadOnly ?? false
+                IsReadOnly = (Workspace?.IsReadOnly ?? false) || (inputDescriptor.IsReadOnly ?? false),
             };
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);

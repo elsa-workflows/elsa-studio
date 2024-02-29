@@ -14,8 +14,8 @@ public class JsonEditorHandler : IUIHintHandler
     {
         return builder =>
         {
-            builder.OpenComponent(0, typeof(Code));
-            builder.AddAttribute(1, nameof(Code.EditorContext), context);
+            builder.OpenComponent(0, typeof(Json));
+            builder.AddAttribute(1, nameof(Json.EditorContext), context);
             builder.CloseComponent();
         };
     }
