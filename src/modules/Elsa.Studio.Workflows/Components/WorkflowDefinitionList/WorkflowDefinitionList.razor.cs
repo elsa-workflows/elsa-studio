@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
@@ -40,6 +41,7 @@ public partial class WorkflowDefinitionList
     {
         var request = new ListWorkflowDefinitionsRequest
         {
+            IsSystem = false,
             Page = state.Page,
             PageSize = state.PageSize,
             OrderBy = GetOrderBy(state.SortLabel),

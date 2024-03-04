@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
