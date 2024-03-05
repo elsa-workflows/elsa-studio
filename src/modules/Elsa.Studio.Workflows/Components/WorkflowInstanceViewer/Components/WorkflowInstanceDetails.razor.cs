@@ -23,7 +23,6 @@ public partial class WorkflowInstanceDetails
     private WorkflowInstance? _workflowInstance;
 
     private ActivityExecutionRecord? _workflowActivityExecutionRecord;
-    //private ActivityExecutionContextState? _workflowActivityExecutionContext;
 
     /// <summary>
     /// Gets or sets the workflow instance to display.
@@ -41,13 +40,13 @@ public partial class WorkflowInstanceDetails
     /// Gets or sets the current selected sub-workflow.
     /// </summary>
     [Parameter]
-    public JsonObject? SelectedSubWorkflow { get; set; } = default!;
+    public JsonObject? SelectedSubWorkflow { get; set; }
 
     /// <summary>
     /// Gets or sets the current selected sub-workflow executions.
     /// </summary>
     [Parameter]
-    public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; } = default!;
+    public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
@@ -222,7 +221,6 @@ public partial class WorkflowInstanceDetails
     /// <summary>
     /// Updates the selected sub-workflow.
     /// </summary>
-    /// <param name="obj"></param>
     public async Task UpdateSubWorkflowAsync(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
