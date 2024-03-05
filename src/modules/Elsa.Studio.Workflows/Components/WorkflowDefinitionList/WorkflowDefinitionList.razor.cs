@@ -1,11 +1,10 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -22,7 +21,6 @@ public partial class WorkflowDefinitionList
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
-    private string? _searchString;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -35,6 +33,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    private string SearchTerm { get; set; } = string.Empty;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -42,6 +41,7 @@ public partial class WorkflowDefinitionList
         {
             Page = state.Page,
             PageSize = state.PageSize,
+            SearchTerm = SearchTerm,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending
                 ? OrderDirection.Descending
@@ -300,10 +300,10 @@ public partial class WorkflowDefinitionList
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
-
-    private void OnSearch(string text)
+    
+    private void OnSearchTermChanged(string text)
     {
-        _searchString = text;
+        SearchTerm = text;
         Reload();
     }
 
