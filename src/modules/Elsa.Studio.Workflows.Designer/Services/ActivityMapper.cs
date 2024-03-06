@@ -125,19 +125,29 @@ internal class ActivityMapper : IActivityMapper
     public IEnumerable<X6Port> GetInPorts(JsonObject activity)
     {
         var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
-
-        // Create default input port.
-        yield return new X6Port
+        var activityType = activity.GetTypeName();
+        var activityVersion = activity.GetVersion();
+        var activityDescriptor = _activityRegistry.Find(activityType, activityVersion)!;
+        
+        var ports = new List<X6Port>();
+        // Create default output port, except for terminal nodes.
+        var isStart = activityDescriptor.IsStart;
+        if (!isStart)
         {
-            Id = "In",
-            Group = "in",
-            Attrs = new X6Attrs
+            // Create default input port.
+            ports.Add(new X6Port
             {
-                ["circle"] = new X6Attrs
+                Id = "In",
+                Group = "in",
+                Attrs = new X6Attrs
                 {
-                    ["stroke"] = displaySettings.Color,
+                    ["circle"] = new X6Attrs
+                    {
+                        ["stroke"] = displaySettings.Color,
+                    }
                 }
-            }
-        };
+            });
+        }
+        return ports;
     }
 }
