@@ -10,19 +10,12 @@ using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-internal class ActivityMapper : IActivityMapper
+internal class ActivityMapper(
+    IActivityRegistry activityRegistry,
+    IActivityPortService activityPortService,
+    IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
+    : IActivityMapper
 {
-    private readonly IActivityRegistry _activityRegistry;
-    private readonly IActivityPortService _activityPortService;
-    private readonly IActivityDisplaySettingsRegistry _activityDisplaySettingsRegistry;
-
-    public ActivityMapper(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
-    {
-        _activityRegistry = activityRegistry;
-        _activityPortService = activityPortService;
-        _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
-    }
-
     public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = default)
     {
         var activityId = activity.GetId();
@@ -72,9 +65,9 @@ internal class ActivityMapper : IActivityMapper
     {
         var activityType = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
-        var activityDescriptor = _activityRegistry.Find(activityType, activityVersion)!;
-        var sourcePorts = _activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
+        var activityDescriptor = activityRegistry.Find(activityType, activityVersion)!;
+        var sourcePorts = activityPortService.GetPorts(new PortProviderContext(activityDescriptor, activity)).Where(x => x.Type == PortType.Flow);
+        var displaySettings = activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
 
         var ports = sourcePorts.Select(sourcePort => new X6Port
         {
@@ -124,11 +117,11 @@ internal class ActivityMapper : IActivityMapper
 
     public IEnumerable<X6Port> GetInPorts(JsonObject activity)
     {
-        var displaySettings = _activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
+        var displaySettings = activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());
         var activityType = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
-        var activityDescriptor = _activityRegistry.Find(activityType, activityVersion)!;
-        
+        var activityDescriptor = activityRegistry.Find(activityType, activityVersion)!;
+
         var ports = new List<X6Port>();
         // Create default output port, except for terminal nodes.
         var isStart = activityDescriptor.IsStart;
@@ -148,6 +141,7 @@ internal class ActivityMapper : IActivityMapper
                 }
             });
         }
+
         return ports;
     }
 }
