@@ -266,8 +266,9 @@
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
-                <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                <!--<MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem>-->
+                @* Disabled until we fix an issue with Workflow Instance Exports. *@
+                @* <MudDivider DividerType="DividerType.FullWidth"></MudDivider> *@
+                @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem> *@
             </MudMenu>
         </MudTd>
     </RowTemplate>
