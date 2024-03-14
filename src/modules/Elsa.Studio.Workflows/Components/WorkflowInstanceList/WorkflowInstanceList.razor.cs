@@ -74,6 +74,7 @@ public partial class WorkflowInstanceList
             SubStatuses = SelectedSubStatuses,
             SearchTerm = SearchTerm,
             HasIncidents = HasIncidents,
+            IsSystem = false,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
