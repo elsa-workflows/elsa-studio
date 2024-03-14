@@ -41,6 +41,17 @@ public partial class ActivityExecutionsTab
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    
+    /// <summary>
+    /// Refreshes the component.
+    /// </summary>
+    public void Refresh()
+    {
+        SelectedItem = null;
+        SelectedActivityState = new Dictionary<string, DataPanelItem>();
+        SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
+        SelectedOutputData = new Dictionary<string, DataPanelItem>();
+    }
 
     private void CreateSelectedItemDataModels(ActivityExecutionRecord? record)
     {
