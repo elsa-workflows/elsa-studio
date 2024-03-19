@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Blazor WebAssembly impementation for certain abstractions provided by Elsa.Studio.Core.</Description>
-        <PackageTags>elsa studio blazor server</PackageTags>
+        <PackageTags>elsa studio blazor webassembly</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

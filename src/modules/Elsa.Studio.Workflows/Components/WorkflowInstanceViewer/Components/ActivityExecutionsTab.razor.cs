@@ -41,9 +41,11 @@ public partial class ActivityExecutionsTab
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
+    
+    /// <summary>
+    /// Refreshes the component.
+    /// </summary>
+    public void Refresh()
     {
         SelectedItem = null;
         SelectedActivityState = new Dictionary<string, DataPanelItem>();
