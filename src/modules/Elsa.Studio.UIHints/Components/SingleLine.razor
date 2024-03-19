@@ -45,7 +45,7 @@
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue);
+        var expression = Expression.CreateLiteral(newValue.TrimWhitespace());
 
         await EditorContext.UpdateExpressionAsync(expression);
     }
