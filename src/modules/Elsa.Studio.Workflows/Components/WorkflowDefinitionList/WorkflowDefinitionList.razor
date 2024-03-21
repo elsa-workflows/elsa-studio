@@ -19,6 +19,7 @@
         RowStyle="cursor: pointer;"
         MultiSelection="true"
         SelectOnRowClick="false"
+        Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
@@ -29,6 +30,20 @@
             </MudMenu>
             <MudSpacer/>
 
+            <MudTextField
+                T="string"
+                Text="@SearchTerm"
+                Placeholder="Search on name, description, id, definition id"
+                Variant="Variant.Outlined"
+                AdornmentIcon="@Icons.Material.Outlined.Search"
+                Adornment="Adornment.End"
+                Clearable="true"
+                DebounceInterval="1500"
+                Immediate="true"
+                Class="d-flex flex-row justify-end align-end gap-3 flex-wrap pl-2 pr-6 py-6 mt-0"
+                Style="height: 36.5px;"
+                ValueChanged="@OnSearchTermChanged"/>
+
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
@@ -37,11 +52,10 @@
                     </MudTooltip>
                 </MudMenu>
             </MudButtonGroup>
-
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">ID</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">Definition ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">Name</MudTableSortLabel>
@@ -61,7 +75,7 @@
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
             <MudTd DataLabel="Name">
                 <MudTooltip Text="@context.Name">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                    <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
                         @context.Name
                     </div>
                 </MudTooltip>
@@ -70,7 +84,7 @@
             <MudTd DataLabel="Published version" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="Description">
                 <MudTooltip Text="@context.Description">
-                    <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
+                    <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
                         @context.Description
                     </div>
                 </MudTooltip>
@@ -79,6 +93,7 @@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))">Publish</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))">Unpublish</MudMenuItem>
@@ -99,3 +114,13 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
+
+<style>
+    .definitions-table .mud-table-cell .mud-checkbox {
+        margin: 0;
+    }
+    
+    .definitions-table .mud-table-toolbar {
+        margin-bottom: 12px; /*mb-3*/
+    }
+</style>

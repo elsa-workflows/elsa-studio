@@ -31,6 +31,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private WorkflowInstance _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private DiagramDesignerWrapper _designer = default!;
+    private ActivityDetailsTab? _activityDetailsTab = default!;
+    private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
     private IDictionary<string, ActivityNode> _activityNodeLookup = new Dictionary<string, ActivityNode>();
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
@@ -65,12 +67,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The activity selected callback.
     /// </summary>
     [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
     /// </summary>
-    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+    [Parameter]
+    public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the current selected sub-workflow.
@@ -223,8 +226,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         SelectedActivity = activity;
         ActivityDescriptor = ActivityRegistry.Find(activity!.GetTypeName(), activity!.GetVersion());
         SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
-
         StateHasChanged();
+        _activityDetailsTab?.Refresh();
+        _activityExecutionsTab?.Refresh();
     }
 
     private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityNodeId)
@@ -262,8 +266,10 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         SelectedWorkflowExecutionLogRecord = null;
         await HandleActivitySelectedAsync(activity);
 
-        if (ActivitySelected != null)
-            await ActivitySelected(activity);
+        var activitySelected = ActivitySelected;
+        
+        if (activitySelected.HasDelegate)
+            await activitySelected.InvokeAsync(activity);
     }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
@@ -289,7 +295,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             }
         }
 
-        var editWorkflowDefinition = this.EditWorkflowDefinition;
+        var editWorkflowDefinition = EditWorkflowDefinition;
 
         if (editWorkflowDefinition.HasDelegate)
             return editWorkflowDefinition.InvokeAsync(definitionId);
