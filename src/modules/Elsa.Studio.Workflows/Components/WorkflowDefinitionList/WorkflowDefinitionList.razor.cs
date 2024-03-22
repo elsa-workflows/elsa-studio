@@ -39,6 +39,7 @@ public partial class WorkflowDefinitionList
     {
         var request = new ListWorkflowDefinitionsRequest
         {
+            IsSystem = false,
             Page = state.Page,
             PageSize = state.PageSize,
             SearchTerm = SearchTerm,

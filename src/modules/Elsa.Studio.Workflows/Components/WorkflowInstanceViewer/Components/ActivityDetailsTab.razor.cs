@@ -41,9 +41,14 @@ public partial class ActivityDetailsTab
 
     private ActivityExecutionRecord? LastActivityExecution => ActivityExecutions.LastOrDefault();
 
-    private IEnumerable<ActivityExecutionRecordTableRow> Items =>
-        ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-
+    private IEnumerable<ActivityExecutionRecordTableRow> Items
+    {
+        get
+        {
+            return ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+        }
+    }
+    
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
 
     private IDictionary<string, DataPanelItem> ActivityInfo { get; set; } = new Dictionary<string, DataPanelItem>();
@@ -55,16 +60,24 @@ public partial class ActivityDetailsTab
     private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
 
+    /// <summary>
+    /// Refreshes the component.
+    /// </summary>
+    public void Refresh()
+    {
+        CreateDataModels();
+    }
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        SelectedItem = null;
-        CreateDataModels();
     }
 
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        SelectedItem = null;
+        CreateDataModels();
     }
 
     private void CreateDataModels()

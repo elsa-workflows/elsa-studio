@@ -19,6 +19,7 @@
         RowStyle="cursor: pointer;"
         MultiSelection="true"
         SelectOnRowClick="false"
+        Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
@@ -32,14 +33,15 @@
             <MudTextField
                 T="string"
                 Text="@SearchTerm"
-                Placeholder="Search on name or correlation ID"
+                Placeholder="Search on name, description, id, definition id"
                 Variant="Variant.Outlined"
                 AdornmentIcon="@Icons.Material.Outlined.Search"
                 Adornment="Adornment.End"
                 Clearable="true"
-                DebounceInterval="200"
+                DebounceInterval="1500"
                 Immediate="true"
-                Class="mr-3"
+                Class="d-flex flex-row justify-end align-end gap-3 flex-wrap pl-2 pr-6 py-6 mt-0"
+                Style="height: 36.5px;"
                 ValueChanged="@OnSearchTermChanged"/>
 
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
@@ -50,11 +52,10 @@
                     </MudTooltip>
                 </MudMenu>
             </MudButtonGroup>
-
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">ID</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">Definition ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">Name</MudTableSortLabel>
@@ -113,3 +114,13 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
+
+<style>
+    .definitions-table .mud-table-cell .mud-checkbox {
+        margin: 0;
+    }
+    
+    .definitions-table .mud-table-toolbar {
+        margin-bottom: 12px; /*mb-3*/
+    }
+</style>
