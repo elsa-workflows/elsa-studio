@@ -6,7 +6,7 @@
 
 @{
     
-    RenderFragment GetSelectComponent2(String propertyName, IDictionary<string, LogPersistenceMode> properties) =>
+    RenderFragment GetSelectComponent(String propertyName, IDictionary<string, LogPersistenceMode> properties) =>
 @<MudSelect Label="@propertyName"
                 T="LogPersistenceMode"
                     Variant="@MudBlazor.Variant.Outlined"
@@ -51,7 +51,7 @@
             }
             @foreach(var input in InputDescriptors)
             {   
-                @GetSelectComponent2(input.Name, _persistenceConfiguration.Inputs);
+                @GetSelectComponent(input.Name, _persistenceConfiguration.Inputs);
             }
 
             <MudDivider />
@@ -64,7 +64,7 @@
             }
             @foreach (var output in OutputDescriptors)
             {
-                    @GetSelectComponent2(output.Name, _persistenceConfiguration.Outputs);
+                    @GetSelectComponent(output.Name, _persistenceConfiguration.Outputs);
             }
         </MudStack>
     </MudForm>
