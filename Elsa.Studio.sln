@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{C5
 		README.md = README.md
 		LICENSE = LICENSE
 		NuGet.Config = NuGet.Config
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{B7464426-9B29-4CF9-9B9C-6941D9E99060}"
