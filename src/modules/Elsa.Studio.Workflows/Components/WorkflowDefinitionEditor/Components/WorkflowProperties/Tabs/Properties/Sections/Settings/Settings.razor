@@ -39,16 +39,15 @@
             </MudSelect>
             <MudSelect
                 Label="Log Persistence Mode"
-                       T="LogPersistenceMode?"
-                       Variant="@Variant.Outlined"
-                       Value="@_selectedLogPersistenceMode"
-                       ValueChanged="@OnLogPersistenceModeChanged"
-                       ReadOnly="IsReadOnly">
+                T="LogPersistenceMode?"
+                Variant="@Variant.Outlined"
+                Value="@_selectedLogPersistenceMode"
+                ValueChanged="@OnLogPersistenceModeChanged"
+                ReadOnly="IsReadOnly">
                 @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
-                    <MudSelectItem Value="@((LogPersistenceMode?) item)">@item</MudSelectItem>
+                    <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
                 }
-
             </MudSelect>
             <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
                 <MudCheckBox
@@ -56,8 +55,8 @@
                     Label="Usable as activity"
                     Checked="@(WorkflowDefinition.Options.UsableAsActivity == true)"
                     CheckedChanged="@OnUsableAsActivityCheckChanged"
-                    Dense="                    true"
-                    ReadOnly="                    IsReadOnly"/>
+                    Dense="true"
+                    ReadOnly="IsReadOnly"/>
             </MudField>
             @if (WorkflowDefinition.Options.UsableAsActivity == true)
             {
@@ -68,7 +67,7 @@
                         Dense="@true"
                         Checked="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
                         CheckedChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
-                        ReadOnly="                        IsReadOnly"/>
+                        ReadOnly="IsReadOnly"/>
                 </MudField>
                 <MudTextField
                     T="string"
