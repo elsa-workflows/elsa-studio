@@ -17,18 +17,21 @@ public partial class Settings
     /// <summary>
     /// The workflow definition.
     /// </summary>
-    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
     /// <summary>
     /// An event raised when the workflow is updated.
     /// </summary>
-    [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
-    
+    [Parameter]
+    public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+
     /// <summary>
     /// The workspace.
     /// </summary>
-    [CascadingParameter] public IWorkspace? Workspace { get; set; }
-    
+    [CascadingParameter]
+    public IWorkspace? Workspace { get; set; }
+
     [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = default!;
     [Inject] private IIncidentStrategiesProvider IncidentStrategiesProvider { get; set; } = default!;
 
@@ -38,36 +41,35 @@ public partial class Settings
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
     private LogPersistenceMode? _selectedLogPersistenceMode;
-    
+
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         // Load activation strategies.
         _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
-        
+
         // Load incident strategies.
         var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
         _incidentStrategies = new IncidentStrategyDescriptor?[] { default }.Concat(incidentStrategies).ToList();
-        
+
         // Select the current activation strategy.
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
-        
+
         // Select the current incident strategy.
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
 
         // Select the current log persistence mode
         LogPersistenceMode persistenceMode = LogPersistenceMode.Default;
         if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var persistenceDic)
-            && persistenceDic != null)        {
+            && persistenceDic != null)
+        {
             var persistenceString = ((JsonElement)persistenceDic).GetProperty("default");
             persistenceMode = (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
         }
-
-            
-
+        
         _selectedLogPersistenceMode = persistenceMode;
     }
-    
+
     private async Task RaiseWorkflowUpdatedAsync()
     {
         if (OnWorkflowDefinitionUpdated != null)
@@ -80,7 +82,7 @@ public partial class Settings
         WorkflowDefinition!.Options.ActivationStrategyType = value.TypeName;
         await RaiseWorkflowUpdatedAsync();
     }
-    
+
     private async Task OnIncidentStrategyChanged(IncidentStrategyDescriptor? value)
     {
         _selectedIncidentStrategy = value;
@@ -91,7 +93,7 @@ public partial class Settings
     private async Task OnLogPersistenceModeChanged(LogPersistenceMode? value)
     {
         _selectedLogPersistenceMode = value;
-        WorkflowDefinition!.CustomProperties["logPersistenceMode"] = new Dictionary<string, object>() { { "default", value } } ;
+        WorkflowDefinition!.CustomProperties["logPersistenceMode"] = new Dictionary<string, object>() { { "default", value } };
         await RaiseWorkflowUpdatedAsync();
     }
 
@@ -100,7 +102,7 @@ public partial class Settings
         WorkflowDefinition!.Options.UsableAsActivity = value;
         await RaiseWorkflowUpdatedAsync();
     }
-    
+
     private async Task OnAutoUpdateConsumingWorkflowsCheckChanged(bool? value)
     {
         WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows = value == true;
