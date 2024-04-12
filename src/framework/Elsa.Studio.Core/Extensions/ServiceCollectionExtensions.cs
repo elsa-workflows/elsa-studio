@@ -3,7 +3,6 @@ using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
-using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Extensions;
@@ -11,7 +10,6 @@ namespace Elsa.Studio.Extensions;
 /// <summary>
 /// Contains extension methods for the <see cref="IServiceCollection"/> interface.
 /// </summary>
-[PublicAPI]
 public static class ServiceCollectionExtensions
 {
     /// <summary>

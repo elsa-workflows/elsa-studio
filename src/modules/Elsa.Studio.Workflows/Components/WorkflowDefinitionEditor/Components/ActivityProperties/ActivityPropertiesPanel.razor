@@ -60,6 +60,13 @@
             </MudTabPanel>
         }
 
+        <MudTabPanel Text="Persistence">
+              <ScrollableWell MaxHeight="VisiblePaneHeight">
+                <PersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
+              </ScrollableWell>
+         </MudTabPanel> 
+               
+
         <MudTabPanel Text="Info">
             @if (ActivityDescriptor != null)
             {
