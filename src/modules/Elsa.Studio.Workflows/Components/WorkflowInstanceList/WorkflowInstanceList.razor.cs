@@ -165,10 +165,11 @@ public partial class WorkflowInstanceList
     {
         return subStatus switch
         {
+            WorkflowSubStatus.Pending => Color.Tertiary,
             WorkflowSubStatus.Suspended => Color.Warning,
             WorkflowSubStatus.Finished => Color.Success,
             WorkflowSubStatus.Faulted => Color.Error,
-            WorkflowSubStatus.Cancelled => Color.Default,
+            WorkflowSubStatus.Cancelled => Color.Tertiary,
             WorkflowSubStatus.Executing => Color.Primary,
             _ => Color.Default,
         };
