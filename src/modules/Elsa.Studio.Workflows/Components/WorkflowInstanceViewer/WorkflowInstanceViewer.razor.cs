@@ -25,6 +25,11 @@ public partial class WorkflowInstanceViewer
     /// </summary>
     [Parameter] public string InstanceId { get; set; } = default!;
 
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
@@ -37,7 +42,7 @@ public partial class WorkflowInstanceViewer
     {
         var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
         var definitionVersionIds = new[] { instance.DefinitionVersionId };
-        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
+        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds, true);
         _workflowInstances = new List<WorkflowInstance> { instance };
         _workflowDefinitions = response.ToList();
         await SelectWorkflowInstanceAsync(instance);

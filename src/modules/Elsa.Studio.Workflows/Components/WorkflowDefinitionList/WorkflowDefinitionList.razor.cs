@@ -1,10 +1,10 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -21,7 +21,6 @@ public partial class WorkflowDefinitionList
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
-    private string? _searchString;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -31,15 +30,19 @@ public partial class WorkflowDefinitionList
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    private string SearchTerm { get; set; } = string.Empty;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
         var request = new ListWorkflowDefinitionsRequest
         {
+            IsSystem = false,
             Page = state.Page,
             PageSize = state.PageSize,
+            SearchTerm = SearchTerm,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending
                 ? OrderDirection.Descending
@@ -164,6 +167,22 @@ public partial class WorkflowDefinitionList
         Reload();
     }
 
+    private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var result = await DialogService.ShowMessageBox("Cancel running workflow instances?",
+            "Are you sure you want to cancel all running workflow instances of this workflow definition?", yesText: "Yes", cancelText: "No");
+
+        if (result != true)
+            return;
+
+        var request = new BulkCancelWorkflowInstancesRequest
+        {
+            DefinitionVersionId = workflowDefinitionRow.Id
+        };
+        await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.BulkCancelAsync(request));
+        Reload();
+    }
+
     private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
         var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest));
@@ -282,10 +301,10 @@ public partial class WorkflowDefinitionList
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
-
-    private void OnSearch(string text)
+    
+    private void OnSearchTermChanged(string text)
     {
-        _searchString = text;
+        SearchTerm = text;
         Reload();
     }
 
@@ -293,12 +312,14 @@ public partial class WorkflowDefinitionList
     {
         await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.PublishAsync(definitionId)));
         Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Reload();
     }
 
     private async Task OnRetractClicked(string definitionId)
     {
         await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.RetractAsync(definitionId)));
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Reload();
     }
 
     private record WorkflowDefinitionRow(

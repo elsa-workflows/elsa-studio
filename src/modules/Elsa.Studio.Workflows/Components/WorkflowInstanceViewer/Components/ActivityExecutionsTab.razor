@@ -1,9 +1,7 @@
-@using Elsa.Api.Client.Extensions
-@using Elsa.Api.Client.Resources.ActivityExecutions.Models
 @inherits StudioComponentBase
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
-    <MudStack Row="true">
+    <MudStack Row="false">
         <MudTable
             T="ActivityExecutionRecordTableRow"
             Items="Items"
@@ -39,30 +37,22 @@
             </PagerContent>
         </MudTable>
 
-        <div>
-            @if (SelectedActivityState.Any())
-            {
+        @if (SelectedItem != null)
+        {
+            <div>
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
-                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false"/>
+                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="No state associated with this execution."/>
                 </div>
-            }
-
-            @if (SelectedOutcomesData.Any())
-            {
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
-                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true"/>
+                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="No outcomes associated with this execution."/>
                 </div>
-            }
-
-            @if (SelectedOutputData.Any())
-            {
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
-                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false"/>
+                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="No output associated with this execution."/>
                 </div>
-            }
-        </div>
+            </div>
+        }
     </MudStack>
 </ScrollableWell>

@@ -57,10 +57,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var response = await api.GetManyByIdAsync(ids.ToList(), true, cancellationToken);
+        var response = await api.GetManyByIdAsync(ids.ToList(), includeCompositeRoot, cancellationToken);
         return response.Items;
     }
 
@@ -289,7 +289,7 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     /// <inheritdoc />
     public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
-        var api = await GetApiAsync(cancellationToken);
+        var api = await GetExecuteWorkflowApiAsync(cancellationToken);
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
@@ -306,5 +306,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
     {
         return await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+    }
+    
+    private async Task<IExecuteWorkflowApi> GetExecuteWorkflowApiAsync(CancellationToken cancellationToken = default)
+    {
+        return await _remoteBackendApiClientProvider.GetApiAsync<IExecuteWorkflowApi>(cancellationToken);
     }
 }

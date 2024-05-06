@@ -7,8 +7,8 @@
     <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition!.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true">
             <CustomToolbarItems>
-                <MudTooltip Text="Download this version as a JSON file." Inline="false">
-                    <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Download</MudIconButton>
+                <MudTooltip Text="Export this version as a JSON file." Inline="false">
+                    <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Export</MudIconButton>
                 </MudTooltip>
                 <MudText Typo="Typo.body1">@($"Version {WorkflowDefinition?.Version ?? 0}")</MudText>
             </CustomToolbarItems>

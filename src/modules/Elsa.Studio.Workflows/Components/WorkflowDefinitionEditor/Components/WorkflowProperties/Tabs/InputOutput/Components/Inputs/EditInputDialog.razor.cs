@@ -34,7 +34,7 @@ public partial class EditInputDialog
         _editContext = new EditContext(_model);
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
-        _uiHints = (await GetUIHitsAsync()).ToList();
+        _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
     }
 
@@ -77,18 +77,18 @@ public partial class EditInputDialog
         }
     }
 
-    private Task<IEnumerable<UIHintDescriptor>> GetUIHitsAsync()
+    private Task<IEnumerable<UIHintDescriptor>> GetUIHintsAsync()
     {
         // TODO: Get these from the backend.
         var descriptors = new[]
         {
-            new UIHintDescriptor("single-line", "Single line", "A single line of text input"),
-            new UIHintDescriptor("multi-line", "Multi line", "Multiple lines of text input"),
+            new UIHintDescriptor("singleline", "Single line", "A single line of text input"),
+            new UIHintDescriptor("multiline", "Multi line", "Multiple lines of text input"),
             new UIHintDescriptor("checkbox", "Checkbox", "A checkbox"),
             new UIHintDescriptor("checklist", "Checklist", "A list of checkboxes"),
-            new UIHintDescriptor("radio-list", "Radio list", "A list of radio buttons"),
+            new UIHintDescriptor("radiolist", "Radio list", "A list of radio buttons"),
             new UIHintDescriptor("dropdown", "Dropdown", "A dropdown list"),
-            new UIHintDescriptor("multi-text", "Multi text", "An input for multiple words, like a tagging input"),
+            new UIHintDescriptor("multitext", "Multi text", "An input for multiple words, like a tagging input"),
             new UIHintDescriptor("code-editor", "Code editor", "A code editor"),
             new UIHintDescriptor("variable-picker", "Variable picker", "A variable picker"),
             new UIHintDescriptor("workflow-definition-picker", "Workflow definition picker", "A workflow definition picker"),

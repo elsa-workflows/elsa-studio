@@ -1,4 +1,6 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -13,6 +15,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 public partial class WorkflowInstanceWorkspace : IWorkspace
 {
     private MudDynamicTabs _dynamicTabs = default!;
+    private WorkflowInstanceDetails _workflowInstanceDetails = default!;
+    private WorkflowInstanceDesigner _workflowInstanceDesigner = default!;
 
     [Parameter] public IList<WorkflowInstance> WorkflowInstances { get; set; } = default!;
     [Parameter] public IList<WorkflowDefinition> WorkflowDefinitions { get; set; } = default!;
@@ -21,17 +25,28 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     [Parameter] public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+
     public bool IsReadOnly => true;
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
-    private WorkflowInstance? SelectedWorkflowInstance => ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex) : default;
 
+    private WorkflowInstance? SelectedWorkflowInstance =>
+        ActiveTabIndex >= 0 && ActiveTabIndex < WorkflowInstances.Count
+            ? WorkflowInstances.ElementAtOrDefault(ActiveTabIndex)
+            : default;
+    
     private WorkflowDefinition? SelectedWorkflowDefinition
     {
         get
         {
             var instance = SelectedWorkflowInstance;
-            return instance == null ? default : WorkflowDefinitions.FirstOrDefault(x => x.Id == instance.DefinitionVersionId);
+            return instance == null
+                ? default
+                : WorkflowDefinitions.FirstOrDefault(x => x.Id == instance.DefinitionVersionId);
         }
     }
 
@@ -49,5 +64,14 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     {
         if (SelectedWorkflowInstanceChanged != null)
             await SelectedWorkflowInstanceChanged(SelectedWorkflowInstance!);
+    }
+
+    private async Task OnPathChanged(DesignerPathChangedArgs args)
+    {
+        await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.CurrentActivity);
+        _workflowInstanceDesigner.UpdateSubWorkflow(args.CurrentActivity);
+        
+        if (PathChanged != null)
+            await PathChanged(args);
     }
 }

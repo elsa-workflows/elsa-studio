@@ -1,8 +1,9 @@
 <Project>
   <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Authors>Elsa Workflows Community</Authors>
-    <Copyright>2023</Copyright> 
+    <Copyright>2023</Copyright>
     <PackageProjectUrl>https://github.com/elsa-workflows/elsa-studio</PackageProjectUrl>
     <RepositoryUrl>https://github.com/elsa-workflows/elsa-studio</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -10,10 +11,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    
+
     <!-- For NuGet browsers that currently don't support <PackageIcon> yet -->
     <PackageIconUrl>https://v3.elsaworkflows.io/nuget-icon.png</PackageIconUrl>
-      
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisModeDocumentation>Default</AnalysisModeDocumentation>
     <AnalysisLevelDocumentation>latest</AnalysisLevelDocumentation>
@@ -26,23 +27,5 @@
 
   <ItemGroup Label="Files">
     <None Include="..\..\..\icon.png" Pack="true" PackagePath="\"/>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
   </ItemGroup>
 </Project>

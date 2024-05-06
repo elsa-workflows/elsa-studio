@@ -13,7 +13,7 @@
             <ActivityPicker/>
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
-            <WorkflowDefinitionWorkspace WorkflowDefinition="@_workflowDefinition"/>
+            <WorkflowDefinitionWorkspace @ref="WorkflowDefinitionWorkspace" WorkflowDefinition="@_workflowDefinition" WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -22,12 +22,30 @@
 {
     private readonly DragDropManager _dragDropManager = new();
     private WorkflowDefinition? _workflowDefinition;
+    
+    private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = default!;
 
     /// <summary>
     /// The ID of the workflow definition to load.
     /// </summary>
     [Parameter]
     public string DefinitionId { get; set; } = default!;
+    
+    /// <summary>
+    /// Gets or sets the event that occurs when the workflow definition version is updated.
+    /// </summary>
+    [Parameter]
+    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
+    
+    /// <summary>
+    /// Gets the currently selected workflow definition version.
+    /// </summary>
+    public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionWorkspace.GetSelectedWorkflowDefinitionVersion();
+
+    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
+    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
+    [Parameter]
+    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()

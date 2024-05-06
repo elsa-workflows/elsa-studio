@@ -31,7 +31,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Finds all workflow definitions by their IDs.
     /// </summary>
-    Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+    Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Saves a workflow definition.

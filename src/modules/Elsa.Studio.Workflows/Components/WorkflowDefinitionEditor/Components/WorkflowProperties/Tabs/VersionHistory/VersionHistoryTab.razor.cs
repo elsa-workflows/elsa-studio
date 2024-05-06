@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -58,15 +58,7 @@ public partial class VersionHistoryTab : IDisposable
     private async Task ViewVersion(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
-
-        if (workflowDefinition.IsLatest)
-        {
-            Workspace.ResumeEditing();
-        }
-        else
-        {
-            Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
-        }
+        Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
     }
 
     private async Task ReloadTableAsync()

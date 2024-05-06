@@ -14,11 +14,19 @@
 }
 
 /*****************************************************
-* Environment Picker
+* CSS hacks for the MudBlazor and MudBlazorExtensions components
 ******************************************************/
-.elsa-environment-picker .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
-    padding-top: 11px;
-    padding-bottom: 11px;
+.mud-select.timespan-operator {
+    min-width: 150px;
+}
+
+.mud-select-extended {
+    min-width: 100px;
+}
+
+.mud-select-has-incidents {
+    max-width: 160px;
+    justify-content: end;
 }
 
 /*****************************************************

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -30,6 +31,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private WorkflowInstance _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private DiagramDesignerWrapper _designer = default!;
+    private ActivityDetailsTab? _activityDetailsTab = default!;
+    private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
     private IDictionary<string, ActivityNode> _activityNodeLookup = new Dictionary<string, ActivityNode>();
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
@@ -64,7 +67,19 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The activity selected callback.
     /// </summary>
     [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+
+    /// <summary>
+    /// An event that is invoked when a workflow definition is edited.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> EditWorkflowDefinition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the current selected sub-workflow.
+    /// </summary>
+    [Parameter]
+    public JsonObject? SelectedSubWorkflow { get; set; } = default!;
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -94,6 +109,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private MudTabs PropertyTabs { get; set; } = default!;
     private MudTabPanel EventsTabPanel { get; set; } = default!;
+
+    /// <summary>
+    /// Updates the selected sub-workflow.
+    /// </summary>
+    /// <param name="obj"></param>
+    public void UpdateSubWorkflow(JsonObject? obj)
+    {
+        SelectedSubWorkflow = obj;
+        StateHasChanged();
+    }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -201,8 +226,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         SelectedActivity = activity;
         ActivityDescriptor = ActivityRegistry.Find(activity!.GetTypeName(), activity!.GetVersion());
         SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
-
         StateHasChanged();
+        _activityDetailsTab?.Refresh();
+        _activityExecutionsTab?.Refresh();
     }
 
     private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityNodeId)
@@ -240,8 +266,10 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         SelectedWorkflowExecutionLogRecord = null;
         await HandleActivitySelectedAsync(activity);
 
-        if (ActivitySelected != null)
-            await ActivitySelected(activity);
+        var activitySelected = ActivitySelected;
+        
+        if (activitySelected.HasDelegate)
+            await activitySelected.InvokeAsync(activity);
     }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
@@ -249,8 +277,29 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         await UpdatePropertiesPaneHeightAsync();
     }
 
-    private Task OnEditClicked(string definitionId)
+    private Task OnEditClicked()
     {
+        var definitionId = WorkflowDefinition!.DefinitionId;
+
+        if (SelectedSubWorkflow != null)
+        {
+            var typeName = SelectedSubWorkflow.GetTypeName();
+            var version = SelectedSubWorkflow.GetVersion();
+            var descriptor = ActivityRegistry.Find(typeName, version);
+            var isWorkflowActivity = descriptor != null &&
+                                     descriptor.CustomProperties.TryGetValue("RootType", out var rootTypeNameElement) &&
+                                     ((JsonElement)rootTypeNameElement).GetString() == "WorkflowDefinitionActivity";
+            if (isWorkflowActivity)
+            {
+                definitionId = SelectedSubWorkflow.GetWorkflowDefinitionId();
+            }
+        }
+
+        var editWorkflowDefinition = EditWorkflowDefinition;
+
+        if (editWorkflowDefinition.HasDelegate)
+            return editWorkflowDefinition.InvokeAsync(definitionId);
+
         NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
         return Task.CompletedTask;
     }

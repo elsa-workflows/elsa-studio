@@ -1,16 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\..\common.props"/>
-    <Import Project="..\..\..\configureawait.props"/>
-    <Import Project="..\..\..\frameworks.props"/>
-    
     <PropertyGroup>
         <Description>Blazor WebAssembly impementation for certain abstractions provided by Elsa.Studio.Core.</Description>
-        <PackageTags>elsa studio blazor server</PackageTags>
+        <PackageTags>elsa studio blazor webassembly</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.4.0"/>
+        <PackageReference Include="Blazored.LocalStorage"/>
     </ItemGroup>
 
     <ItemGroup>

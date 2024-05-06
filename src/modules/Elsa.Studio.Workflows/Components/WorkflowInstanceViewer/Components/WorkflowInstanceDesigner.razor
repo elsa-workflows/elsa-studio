@@ -10,7 +10,7 @@
                     <MudTooltip Text="Edit Workflow Definition">
                         <MudIconButton
                             Icon="@Icons.Material.Outlined.EditNote"
-                            OnClick="@(() => OnEditClicked(WorkflowDefinition.DefinitionId))">
+                            OnClick="@(() => OnEditClicked())">
                         </MudIconButton>
                     </MudTooltip>
                     <ElapsedTime StartTime="WorkflowInstance.CreatedAt" EndTime="@(WorkflowInstance.Status == WorkflowStatus.Running ? DateTimeOffset.UtcNow : WorkflowInstance.FinishedAt ?? DateTimeOffset.UtcNow)"/>
@@ -33,11 +33,11 @@
                     @if (SelectedActivity != null)
                     {
                         <MudTabPanel Text="Activity">
-                            <ActivityDetailsTab Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                            <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                         </MudTabPanel>
 
                         <MudTabPanel Text="Executions" BadgeData="@SelectedActivityExecutions.Count">
-                            <ActivityExecutionsTab Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                            <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                         </MudTabPanel>
                     }
 

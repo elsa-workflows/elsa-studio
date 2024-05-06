@@ -28,7 +28,7 @@ public partial class InputsTab
     /// <inheritdoc />
     public InputsTab()
     {
-        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100));
+        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100), true);
     }
 
     /// <summary>
@@ -78,8 +78,9 @@ public partial class InputsTab
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
+        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).ToList();
 
-        foreach (var inputDescriptor in inputDescriptors)
+        foreach (var inputDescriptor in browsableInputDescriptors)
         {
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
@@ -108,7 +109,7 @@ public partial class InputsTab
                 Value = input,
                 SelectedExpressionDescriptor = syntaxProvider,
                 UIHintHandler = uiHintHandler,
-                IsReadOnly = Workspace?.IsReadOnly ?? false
+                IsReadOnly = (Workspace?.IsReadOnly ?? false) || (inputDescriptor.IsReadOnly ?? false),
             };
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);

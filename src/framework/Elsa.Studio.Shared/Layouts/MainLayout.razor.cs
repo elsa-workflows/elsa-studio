@@ -73,7 +73,7 @@ public partial class MainLayout : IDisposable
 
     private async Task ShowProductInfo()
     {
-        await DialogService.ShowAsync<ProductInfoDialog>("Elsa Studio 3", new DialogOptions
+        await DialogService.ShowAsync<ProductInfoDialog>($"Elsa Studio {ToolVersion.GetDisplayVersion()}", new DialogOptions
         {
             FullWidth = true,
             MaxWidth = MaxWidth.ExtraSmall,

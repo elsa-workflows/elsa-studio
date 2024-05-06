@@ -36,24 +36,21 @@ public partial class ActivityExecutionsTab
     [Parameter]
     public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
-    private IEnumerable<ActivityExecutionRecordTableRow> Items =>
-        ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-
+    private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
-
-    private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } =
-        new Dictionary<string, DataPanelItem>();
-
-    private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } =
-        new Dictionary<string, DataPanelItem>();
-
-    private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } =
-        new Dictionary<string, DataPanelItem>();
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
+    private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    
+    /// <summary>
+    /// Refreshes the component.
+    /// </summary>
+    public void Refresh()
     {
         SelectedItem = null;
+        SelectedActivityState = new Dictionary<string, DataPanelItem>();
+        SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
+        SelectedOutputData = new Dictionary<string, DataPanelItem>();
     }
 
     private void CreateSelectedItemDataModels(ActivityExecutionRecord? record)
