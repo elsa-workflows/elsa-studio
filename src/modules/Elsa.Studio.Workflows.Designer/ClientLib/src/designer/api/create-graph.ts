@@ -75,7 +75,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 })
             },
             validateConnection({targetMagnet}) {
-                return !!targetMagnet
+                return !!targetMagnet && targetMagnet.getAttribute('port-group') === 'in'
             },
         },
         highlighting: {
