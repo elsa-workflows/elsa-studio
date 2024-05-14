@@ -13,7 +13,7 @@
                     Value="@GetProperty(propertyName,properties)"
                     ValueChanged="@((value) => SetProperty(propertyName,properties,value))"
                     ToStringFunc="@(x=> x.ToString())"
-                    ReadOnly="IsReadOnly"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"
                     SelectedValuesChanged="(values)=>OnBindingChanged()">
         @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
@@ -33,7 +33,7 @@
                        Value="@_persistenceConfiguration.Default"
                        ValueChanged="@(async (bindingOption) => _persistenceConfiguration.Default = bindingOption)"
                        ToStringFunc="@(x=> x.ToString())"
-                       ReadOnly="IsReadOnly"
+                       ReadOnly="IsReadOnly" Disabled="IsReadOnly"
                        SelectedValuesChanged="(values)=>OnBindingChanged()">
                 @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
                 {
@@ -64,10 +64,8 @@
             }
             @foreach (var output in OutputDescriptors)
             {
-                    @GetSelectComponent(output.Name, _persistenceConfiguration.Outputs);
+                @GetSelectComponent(output.Name, _persistenceConfiguration.Outputs);
             }
         </MudStack>
     </MudForm>
-
-    <MudOverlay Visible="@IsReadOnly" Absolute="true" />
  </div>

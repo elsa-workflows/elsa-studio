@@ -28,7 +28,8 @@
                     AdornmentText="@propertyTypeName"
                     Adornment="Adornment.End"
                     ToStringFunc="@(x => x?.Text!)"
-                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))">
+                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                     <MudSelectItem T="BindingTargetOption?" Value="@null">-</MudSelectItem>
                     @foreach (var bindingTargetGroup in _bindingTargetGroups)
                     {
@@ -44,6 +45,4 @@
             }
         </MudStack>
     </MudForm>
-    
-    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>

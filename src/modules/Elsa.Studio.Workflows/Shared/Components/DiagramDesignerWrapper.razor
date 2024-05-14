@@ -6,7 +6,7 @@
         @{
             if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
             {
-                foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                foreach (var toolboxComponent in toolboxProvider.GetToolboxItems(IsReadOnly))
                 {
                     @toolboxComponent
                 }

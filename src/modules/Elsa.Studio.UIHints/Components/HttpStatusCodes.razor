@@ -24,7 +24,9 @@
             ChipSize="Size.Medium"
             ChipVariant="Variant.Filled"
             OnKeyDown="@OnKeyDown"
-            ValuesChanged="@OnValuesChanges"/>
+            ValuesChanged="@OnValuesChanges"
+            ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly"/>
 
     </ChildContent>
 </ExpressionInput>
