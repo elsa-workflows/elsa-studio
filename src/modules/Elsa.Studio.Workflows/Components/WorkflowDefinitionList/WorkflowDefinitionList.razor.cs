@@ -198,7 +198,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflows?",
-            "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
+            "Are you sure you want to delete the selected workflows? The read-only workflows will not be affected.", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -211,7 +211,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkPublishClicked()
     {
         var result = await DialogService.ShowMessageBox("Publish selected workflows?",
-            "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
+            "Are you sure you want to publish the selected workflows? The read-only workflows will not be affected.", yesText: "Publish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -249,7 +249,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkRetractClicked()
     {
         var result = await DialogService.ShowMessageBox("Unpublish selected workflows?",
-            "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
+            "Are you sure you want to unpublish the selected workflows? The read-only workflows will not be affected.", yesText: "Unpublish", cancelText: "Cancel");
 
         if (result != true)
             return;

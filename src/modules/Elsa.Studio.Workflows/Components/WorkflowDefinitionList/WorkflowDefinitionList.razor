@@ -49,7 +49,7 @@
                 Style="height: 36.5px;"
                 ValueChanged="@OnSearchTermChanged"/>
 
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
+            <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DisableElevation="false">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">Create workflow</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode">
                     <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
