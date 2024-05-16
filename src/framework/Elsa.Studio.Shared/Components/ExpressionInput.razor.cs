@@ -47,6 +47,7 @@ public partial class ExpressionInput : IDisposable
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
 
+    [Inject] private ITypeDefinition typeDefinitionService { get; set; } = default!;
     [Inject] private IExpressionService ExpressionService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
@@ -92,6 +93,9 @@ public partial class ExpressionInput : IDisposable
 
         var model = await _monacoEditor.GetModel();
         await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
+
+        if (_monacoLanguage == "javascript")
+            await ProcessCodeHinting();
     }
 
 
@@ -175,6 +179,19 @@ public partial class ExpressionInput : IDisposable
         await model.SetValue(InputValue);
         _isInternalContentChange = false;
         await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+
+        if (_monacoLanguage == "javascript")
+            await ProcessCodeHinting();
+    }
+
+    private async Task ProcessCodeHinting()
+    {
+        var activityTypeName = EditorContext.ActivityDescriptor.TypeName;
+        var propertyName = EditorContext.InputDescriptor.Name;
+        var definitionId = EditorContext.WorkflowDefinition.DefinitionId;
+
+        var data = await typeDefinitionService.GetTypeDefinition(definitionId, activityTypeName, propertyName);
+        await JSRuntime.InvokeVoidAsync("monaco.languages.typescript.javascriptDefaults.addExtraLib", data, null);
     }
 
     /// <inheritdoc />
