@@ -34,6 +34,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
+    public bool IsReadOnlyMode = false;
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -52,6 +53,9 @@ public partial class WorkflowDefinitionList
         var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
             var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+            
+            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
+            
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
             var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
@@ -78,7 +82,8 @@ public partial class WorkflowDefinitionList
                         publishedVersionNumber,
                         definition.Name,
                         definition.Description,
-                        definition.IsPublished);
+                        definition.IsPublished,
+                        (definition?.Links.Count(l=> l.Rel == "publish") ?? 0) == 0);
                 })
                 .ToList();
 
@@ -329,5 +334,6 @@ public partial class WorkflowDefinitionList
         int? PublishedVersion,
         string? Name,
         string? Description,
-        bool IsPublished);
+        bool IsPublished,
+        bool IsReadOnlyMode);
 }

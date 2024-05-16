@@ -99,7 +99,7 @@ public partial class PersistenceTab
     {
         var prop = propertyName.Camelize();
         if (properties.All(o => o.Key != prop))
-            properties[prop] = LogPersistenceMode.Default;
+            properties[prop] = LogPersistenceMode.Inherit;
         return properties[prop];
     }
     private void SetProperty(string propertyName, IDictionary<string, LogPersistenceMode> properties, LogPersistenceMode value)
@@ -122,7 +122,7 @@ public class PersistenceActivityConfiguration
     /// <summary>
     /// Default Configuration Strategy for the activity
     /// </summary>
-    public LogPersistenceMode Default { get; set; } = LogPersistenceMode.Default;
+    public LogPersistenceMode Default { get; set; } = LogPersistenceMode.Inherit;
 
     /// <summary>
     /// Define Configuration Strategy for each Input properties
