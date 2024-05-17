@@ -25,6 +25,8 @@
             ChipVariant="Variant.Filled"
             OnKeyDown="@OnKeyDown"
             ValuesChanged="@OnValuesChanges"
+            ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly"
         />
         
     </ChildContent>

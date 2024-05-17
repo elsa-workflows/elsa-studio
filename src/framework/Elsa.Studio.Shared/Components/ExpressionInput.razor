@@ -2,7 +2,7 @@
 <div class="d-flex flex-grow-1 gap-4 align-content-start relative">
     <div class="flex-1">
 
-        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")">
+        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")" Disabled="EditorContext.IsReadOnly">
             <StandaloneCodeEditor
                 @ref="_monacoEditor"
                 Id="@_monacoEditorId"
@@ -21,7 +21,7 @@
     @if (EditorContext.InputDescriptor.IsWrapped)
     {
         <div class="flex-none pt-1">
-            <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">
+            <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true" Disabled="EditorContext.IsReadOnly">
                 @foreach (var item in BrowseableExpressionDescriptors)
                 {
                     var isChecked = item.Type == _selectedExpressionType;
@@ -31,6 +31,4 @@
             </MudMenu>
         </div>
     }
-
-    <MudOverlay Visible="EditorContext.IsReadOnly" Absolute="true"/>
 </div>

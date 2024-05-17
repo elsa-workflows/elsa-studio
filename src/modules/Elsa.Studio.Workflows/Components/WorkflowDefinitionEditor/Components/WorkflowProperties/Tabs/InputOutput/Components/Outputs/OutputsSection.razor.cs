@@ -14,6 +14,7 @@ public partial class OutputsSection
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public bool IsReadonly { get; set; } = default;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;

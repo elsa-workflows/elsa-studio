@@ -19,7 +19,9 @@
             HelperText="@description"
             Margin="Margin.Dense"
             Value="@inputValue"
-            ValueChanged="OnValueChanged"/>
+            ValueChanged="OnValueChanged"
+            ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly"/>
     </ChildContent>
 </ExpressionInput>
 

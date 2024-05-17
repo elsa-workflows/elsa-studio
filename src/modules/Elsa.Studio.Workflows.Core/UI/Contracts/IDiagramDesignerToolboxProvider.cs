@@ -7,5 +7,5 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 /// </summary>
 public interface IDiagramDesignerToolboxProvider : IDiagramDesigner
 {
-    IEnumerable<RenderFragment> GetToolboxItems();
+    IEnumerable<RenderFragment> GetToolboxItems(bool isReadOnly);
 }

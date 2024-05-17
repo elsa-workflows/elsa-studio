@@ -59,7 +59,7 @@ public partial class Settings
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
 
         // Select the current log persistence mode
-        LogPersistenceMode persistenceMode = LogPersistenceMode.Default;
+        LogPersistenceMode persistenceMode = LogPersistenceMode.Inherit;
         if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var persistenceDic)
             && persistenceDic != null)
         {

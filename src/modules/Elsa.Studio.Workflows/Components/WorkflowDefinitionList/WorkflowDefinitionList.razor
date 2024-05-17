@@ -1,6 +1,11 @@
 @inherits StudioComponentBase
 @using Variant = MudBlazor.Variant
 
+@if (IsReadOnlyMode)
+{
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">You are running in read-only mode. Workflow operations are disabled.</MudAlert>
+}
+
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Workflow definitions"/>
 
@@ -23,9 +28,9 @@
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkPublishClicked">Publish</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkRetractClicked">Unpublish</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkPublishClicked">Publish</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkRetractClicked">Unpublish</MudMenuItem>
                 <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
@@ -44,9 +49,9 @@
                 Style="height: 36.5px;"
                 ValueChanged="@OnSearchTermChanged"/>
 
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked">Create workflow</MudButton>
-                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+            <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DisableElevation="false">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">Create workflow</MudButton>
+                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode">
                     <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
                         <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">Import</MudMenuItem>
                     </MudTooltip>
@@ -91,12 +96,19 @@
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    @if (!IsReadOnlyMode && !context.IsReadOnlyMode)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">Edit</MudMenuItem>
+                    }
+                    else
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">View</MudMenuItem>
+                    }
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">Delete</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))">Publish</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))">Unpublish</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">Publish</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">Unpublish</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem>
 

@@ -176,8 +176,11 @@ public partial class DiagramDesignerWrapper
     /// <param name="activity">The activity to load.</param>
     public async Task LoadActivityAsync(JsonObject activity)
     {
-        await _diagramDesigner!.LoadRootActivityAsync(activity, _activityStats);
-        await UpdatePathSegmentsAsync(segments => segments.Clear());
+        if (_diagramDesigner != null)
+        {
+            await _diagramDesigner!.LoadRootActivityAsync(activity, _activityStats);
+            await UpdatePathSegmentsAsync(segments => segments.Clear());
+        }
     }
 
     /// <summary>

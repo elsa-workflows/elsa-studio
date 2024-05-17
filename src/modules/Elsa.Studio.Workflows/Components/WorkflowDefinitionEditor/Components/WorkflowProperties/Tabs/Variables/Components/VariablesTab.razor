@@ -11,7 +11,8 @@
             Variant="Variant.Filled"
             Color="Color.Primary"
             Class="align-self-end"
-            OnClick="OnAddVariableClicked">
+            OnClick="OnAddVariableClicked"
+            Disabled="IsReadOnly">
             Add variable
         </MudButton>
 
@@ -42,7 +43,7 @@
                             <td>@variable.GetTypeDisplayName()</td>
                             <td>@storageDriverName</td>
                             <td style="text-align: right;">
-                                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadOnly">
                                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">Edit</MudMenuItem>
                                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">Delete</MudMenuItem>
                                 </MudMenu>
@@ -54,5 +55,4 @@
             </VerticalWell>
         }
     </MudStack>
-    <MudOverlay Visible="IsReadOnly" Absolute="true"/>
 </Well>
