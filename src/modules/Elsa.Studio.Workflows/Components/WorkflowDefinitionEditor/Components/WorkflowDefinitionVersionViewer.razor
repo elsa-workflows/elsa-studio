@@ -2,15 +2,17 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
+@using Variant = MudBlazor.Variant
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition!.Root" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
+        <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition!.Root" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
             <CustomToolbarItems>
                 <MudTooltip Text="Export this version as a JSON file." Inline="false">
                     <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Export</MudIconButton>
                 </MudTooltip>
                 <MudText Typo="Typo.body1">@($"Version {WorkflowDefinition?.Version ?? 0}")</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" Title="Run workflow" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>

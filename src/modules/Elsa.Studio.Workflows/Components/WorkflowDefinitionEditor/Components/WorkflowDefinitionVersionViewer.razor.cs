@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -9,6 +10,7 @@ using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 
@@ -19,11 +21,18 @@ public partial class WorkflowDefinitionVersionViewer
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper? _diagramDesigner;
+    private bool _isProgressing;
 
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
+    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
+    [Parameter]
+    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
@@ -115,5 +124,39 @@ public partial class WorkflowDefinitionVersionViewer
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
         _activityPropertiesPaneHeight = (int)visibleHeight + 50;
+    }
+    
+    private async Task OnRunWorkflowClicked()
+    {
+        var workflowInstanceId = await ProgressAsync(async () =>
+        {
+            var request = new ExecuteWorkflowDefinitionRequest
+            {
+                VersionOptions = VersionOptions.SpecificVersion(WorkflowDefinition!.Version)
+            };
+
+            var definitionId = WorkflowDefinition!.DefinitionId;
+            return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
+        });
+
+        Snackbar.Add("Successfully started workflow", Severity.Success);
+
+        var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
+
+        if (workflowDefinitionExecuted.HasDelegate)
+            await this.WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+        else
+            NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
+    }
+    
+    private async Task<T> ProgressAsync<T>(Func<Task<T>> action)
+    {
+        _isProgressing = true;
+        StateHasChanged();
+        var result = await action.Invoke();
+        _isProgressing = false;
+        StateHasChanged();
+
+        return result;
     }
 }

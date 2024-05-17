@@ -121,12 +121,12 @@ public partial class ExpressionInput : IDisposable
             Theme = "vs",
             RoundedSelection = true,
             ScrollBeyondLastLine = false,
-            ReadOnly = EditorContext.IsReadOnly,
             OverviewRulerLanes = 0,
             OverviewRulerBorder = false,
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
             GlyphMargin = false,
+            ReadOnly = EditorContext.IsReadOnly,
             DomReadOnly = EditorContext.IsReadOnly
         };
     }

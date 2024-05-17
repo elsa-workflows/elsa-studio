@@ -35,6 +35,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
     public bool IsReadOnlyMode = false;
+    private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -198,7 +199,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflows?",
-            "Are you sure you want to delete the selected workflows? The read-only workflows will not be affected.", yesText: "Delete", cancelText: "Cancel");
+            $"Are you sure you want to delete the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -211,7 +212,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkPublishClicked()
     {
         var result = await DialogService.ShowMessageBox("Publish selected workflows?",
-            "Are you sure you want to publish the selected workflows? The read-only workflows will not be affected.", yesText: "Publish", cancelText: "Cancel");
+            $"Are you sure you want to publish the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Publish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -249,7 +250,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkRetractClicked()
     {
         var result = await DialogService.ShowMessageBox("Unpublish selected workflows?",
-            "Are you sure you want to unpublish the selected workflows? The read-only workflows will not be affected.", yesText: "Unpublish", cancelText: "Cancel");
+            $"Are you sure you want to unpublish the selected workflows? {(_selectedRows.Count(w=>w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Unpublish", cancelText: "Cancel");
 
         if (result != true)
             return;
