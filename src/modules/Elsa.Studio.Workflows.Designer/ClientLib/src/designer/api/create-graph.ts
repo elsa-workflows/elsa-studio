@@ -74,8 +74,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                     zIndex: -1,
                 })
             },
-            validateConnection({targetMagnet}) {
-                return !!targetMagnet
+            validateConnection({ sourceMagnet, targetMagnet }) {
+                if (!sourceMagnet || sourceMagnet.getAttribute('port-group') === 'in') {
+                    return false
+                }
+                
+                if (!targetMagnet || targetMagnet.getAttribute('port-group') !== 'in') {
+                    return false
+                }
+
+                return true
             },
         },
         highlighting: {
