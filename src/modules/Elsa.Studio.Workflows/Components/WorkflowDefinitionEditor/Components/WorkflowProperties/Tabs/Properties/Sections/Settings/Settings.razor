@@ -75,7 +75,7 @@
                     Label="Category"
                     HelperText="A custom activity category to assign this workflow-as-an-activity to."
                     Value="@WorkflowDefinition.Options.ActivityCategory"
-                    ValueChanged="OnCategoryChanged"/>
+                    ValueChanged="OnCategoryChanged" ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
             }
         </MudStack>
     </div>
