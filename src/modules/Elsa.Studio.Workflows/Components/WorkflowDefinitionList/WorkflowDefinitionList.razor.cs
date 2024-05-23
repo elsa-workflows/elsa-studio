@@ -55,7 +55,7 @@ public partial class WorkflowDefinitionList
         {
             var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
             
-            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
+            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
             
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
@@ -84,7 +84,7 @@ public partial class WorkflowDefinitionList
                         definition.Name,
                         definition.Description,
                         definition.IsPublished,
-                        (definition?.Links.Count(l=> l.Rel == "publish") ?? 0) == 0);
+                        (definition?.Links?.Count(l=> l.Rel == "publish") ?? 0) == 0);
                 })
                 .ToList();
 

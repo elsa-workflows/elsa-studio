@@ -44,7 +44,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// <inheritdoc />
     public bool IsReadOnly => SelectedWorkflowDefinition?.IsLatest == false 
-            || (SelectedWorkflowDefinition?.Links.Count(l => l.Rel == "publish") ?? 0) == 0;
+            || (SelectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
