@@ -1,6 +1,8 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -38,12 +40,57 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
 
     /// <summary>
+    /// Gets or sets the event that occurs when an activity is selected.
+    /// </summary>
+    [Parameter]
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+    
+    /// Gets or sets the event triggered when the workflow definition is being saved.
+    [Parameter]
+    public EventCallback Saving { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been saved.
+    [Parameter]
+    public EventCallback Saved { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to save.
+    [Parameter]
+    public EventCallback<ValidationErrors> SavingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being published.
+    [Parameter]
+    public EventCallback Publishing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been published.
+    [Parameter]
+    public EventCallback Published { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to publish.
+    [Parameter]
+    public EventCallback<ValidationErrors> PublishingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being retracted.
+    [Parameter]
+    public EventCallback Retracting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been retracted.
+    [Parameter]
+    public EventCallback Retracted { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to retract.
+    [Parameter]
+    public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+
+    /// <summary>
     /// An event that is invoked when the workflow definition is updated.
     /// </summary>
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
     public bool IsReadOnly => SelectedWorkflowDefinition?.IsLatest == false;
+    
+    /// Gets the selected activity ID.
+    public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 

@@ -61,7 +61,7 @@ public partial class WorkflowEditor
     public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
-    /// Gets or sets a callback that is invoked when the workflow definition is updated.
+    /// Gets or sets a callback invoked when the workflow definition is updated.
     /// </summary>
     [Parameter]
     public Func<Task>? WorkflowDefinitionUpdated { get; set; }
@@ -70,6 +70,58 @@ public partial class WorkflowEditor
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter]
     public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+
+    /// Gets or sets the event triggered when an activity is selected.
+    [Parameter]
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being saved.
+    [Parameter]
+    public EventCallback Saving { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been saved.
+    [Parameter]
+    public EventCallback Saved { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to save.
+    [Parameter]
+    public EventCallback<ValidationErrors> SavingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being published.
+    [Parameter]
+    public EventCallback Publishing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been published.
+    [Parameter]
+    public EventCallback Published { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to publish.
+    [Parameter]
+    public EventCallback<ValidationErrors> PublishingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being retracted.
+    [Parameter]
+    public EventCallback Retracting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been retracted.
+    [Parameter]
+    public EventCallback Retracted { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to retract.
+    [Parameter]
+    public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being downloaded.
+    [Parameter]
+    public EventCallback Downloading { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been downloaded.
+    [Parameter]
+    public EventCallback Downloaded { get; set; }
+
+
+    /// Gets the selected activity ID.
+    public string? SelectedActivityId { get; private set; }
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
@@ -83,7 +135,6 @@ public partial class WorkflowEditor
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    private string? SelectedActivityId { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
@@ -184,7 +235,7 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task PublishAsync(Func<Task>? onSuccess = default, Action? onFailure = default)
+    private async Task PublishAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
@@ -219,7 +270,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<Task>? onSuccess = default, Action? onFailure = default)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await InvokeAsync(async () =>
         {
@@ -229,21 +280,22 @@ public partial class WorkflowEditor
                 StateHasChanged();
             }
 
-            // Because this method is rate limited, it's possible that the designer has been disposed since the last invocation.
+            // Because this method is rate-limited, it's possible that the designer has been disposed since the last invocation.
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
+                await Saving.InvokeAsync();
                 var result = await SaveAsync(readDiagram, publish);
-                result.OnSuccess(_ => onSuccess?.Invoke());
-                result.OnFailed(errors =>
+                await result.OnSuccessAsync(_ =>
                 {
-                    if (onFailure != null)
-                    {
-                        onFailure();
-                        return;
-                    }
-
+                    onSuccess?.Invoke();
+                    return Task.CompletedTask;
+                });
+                await result.OnFailedAsync(errors =>
+                {
+                    onFailure?.Invoke(errors);
                     Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
+                    return Task.CompletedTask;
                 });
             }
             finally
@@ -306,10 +358,10 @@ public partial class WorkflowEditor
         _activityPropertiesPaneHeight = (int)visibleHeight - 50;
     }
 
-    private Task OnActivitySelected(JsonObject activity)
+    private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        return Task.CompletedTask;
+        await ActivitySelected.InvokeAsync(activity);
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -321,18 +373,21 @@ public partial class WorkflowEditor
 
     private async Task OnSaveClick()
     {
-        await SaveChangesAsync(true, true, false, () =>
-        {
-            Snackbar.Add("Workflow saved", Severity.Success);
-            return Task.CompletedTask;
-        });
+        await Saving.InvokeAsync();
+        await SaveChangesAsync(true, true, false,
+            async () =>
+            {
+                Snackbar.Add("Workflow saved", Severity.Success);
+                await Saved.InvokeAsync();
+            }, async errors => { await SavingFailed.InvokeAsync(errors); });
     }
 
     private async Task OnPublishClicked()
     {
+        await Publishing.InvokeAsync();
         await ProgressAsync(async () => await PublishAsync(async () =>
         {
-            // Depending on whether or not the workflow contains Not Found activities, display a different message.
+            // Depending on whether the workflow contains Not Found activities, display a different message.
             var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
             var nodes = graph.Flatten();
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
@@ -342,24 +397,27 @@ public partial class WorkflowEditor
             else
                 Snackbar.Add("Workflow published", Severity.Success);
 
-            if (!ShouldUpdateReferences())
-                return;
+            if (ShouldUpdateReferences())
+            {
+                var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
+                Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
+            }
 
-            var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
-            Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
-        }));
+            await Published.InvokeAsync();
+        }, async errors => { await PublishingFailed.InvokeAsync(errors); }));
     }
 
     private async Task OnRetractClicked()
     {
-        await ProgressAsync(async () => await RetractAsync(() =>
+        await Retracting.InvokeAsync();
+        await ProgressAsync(async () => await RetractAsync(async () =>
         {
             Snackbar.Add("Workflow unpublished", Severity.Success);
-            return Task.CompletedTask;
-        }, errors =>
+            await Retracted.InvokeAsync();
+        }, async errors =>
         {
-            Snackbar.Add(string.Join(Environment.NewLine, errors.Errors, Severity.Error));
-            return Task.CompletedTask;
+            Snackbar.Add(string.Join(Environment.NewLine, errors, Severity.Error));
+            await RetractingFailed.InvokeAsync(errors);
         }));
     }
 
