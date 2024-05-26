@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        // Register core.
+        services.AddSharedServices();
         services.AddCoreInternal();
         
         return services;
