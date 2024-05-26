@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddScoped<ITypeDefinition, TypeDefinitionService>()
             ;
         
         // Mediator.
