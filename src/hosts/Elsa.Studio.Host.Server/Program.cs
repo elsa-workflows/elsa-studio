@@ -19,6 +19,7 @@ builder.Services.AddServerSideBlazor(options =>
 {
     // Register the root components.
     options.RootComponents.RegisterCustomElsaStudioElements();
+    options.RootComponents.MaxJSRootComponents = 1000;
 });
 
 // Register shell services and modules.
