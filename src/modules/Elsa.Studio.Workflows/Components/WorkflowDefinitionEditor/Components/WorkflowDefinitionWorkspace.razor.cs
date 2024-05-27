@@ -103,7 +103,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
-    public bool IsReadOnly => SelectedWorkflowDefinition?.IsLatest == false;
+    public bool IsReadOnly => SelectedWorkflowDefinition?.IsLatest == false 
+            || (SelectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
     
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;

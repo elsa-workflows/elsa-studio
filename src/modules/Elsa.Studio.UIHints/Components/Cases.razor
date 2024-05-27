@@ -14,7 +14,8 @@
         CanCancelEdit="true"
         RowEditPreview="OnRowEditPreview"
         RowEditCancel="OnRowEditCancel"
-        RowEditCommit="OnRowEditCommitted">
+        RowEditCommit="OnRowEditCommitted"
+        ReadOnly="EditorContext.IsReadOnly">
         <HeaderContent>
             <MudTh Style="width: 25%">Label</MudTh>
             <MudTh Style="width: 50%;">Condition</MudTh>
@@ -26,18 +27,18 @@
             <MudTd DataLabel="Condition">@context.Condition</MudTd>
             <MudTd DataLabel="ExpressionType">@GetExpressionTypeDisplayName(@context.ExpressionType)</MudTd>
             <MudTd>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => OnDeleteClicked(context))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="EditorContext.IsReadOnly"></MudIconButton>
             </MudTd>
         </RowTemplate>
         <RowEditingTemplate>
             <MudTd DataLabel="Label">
-                <MudTextField @bind-Value="@context.Label" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+                <MudTextField @bind-Value="@context.Label" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly"></MudTextField>
             </MudTd>
             <MudTd DataLabel="Condition">
-                <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+                <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly"></MudTextField>
             </MudTd>
             <MudTd DataLabel="ExpressionType">
-                <MudSelect @bind-Value="@context.ExpressionType" Variant="Variant.Outlined">
+                <MudSelect @bind-Value="@context.ExpressionType" Variant="Variant.Outlined" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly">
                     @foreach (var expressionDescriptor in GetSupportedExpressions())
                     {
                         <MudSelectItem Value="@expressionDescriptor.Type">@expressionDescriptor.DisplayName</MudSelectItem>
@@ -46,14 +47,14 @@
             </MudTd>
         </RowEditingTemplate>
         <NoRecordsContent>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="OnAddClicked">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="OnAddClicked" Disabled="EditorContext.IsReadOnly">
                 Add case
             </MudButton>
         </NoRecordsContent>
     </MudTable>
     @if (Items.Any())
     {
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton)" OnClick="OnAddClicked">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton || EditorContext.IsReadOnly)" OnClick="OnAddClicked">
             Add case
         </MudButton>
     }

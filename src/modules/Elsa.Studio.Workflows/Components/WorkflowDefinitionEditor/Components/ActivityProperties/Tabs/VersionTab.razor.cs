@@ -6,6 +6,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -18,6 +19,8 @@ public partial class VersionTab
     [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
+    [CascadingParameter] private IWorkspace? Workspace { get; set; }
+    private bool IsReadOnly => Workspace?.IsReadOnly == true;
 
     private string DefinitionId
     {

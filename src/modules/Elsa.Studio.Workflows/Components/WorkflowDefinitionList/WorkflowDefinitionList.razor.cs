@@ -34,6 +34,8 @@ public partial class WorkflowDefinitionList
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
+    public bool IsReadOnlyMode = false;
+    private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
@@ -52,6 +54,9 @@ public partial class WorkflowDefinitionList
         var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
             var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+            
+            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
+            
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
             var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
@@ -78,7 +83,8 @@ public partial class WorkflowDefinitionList
                         publishedVersionNumber,
                         definition.Name,
                         definition.Description,
-                        definition.IsPublished);
+                        definition.IsPublished,
+                        (definition?.Links?.Count(l=> l.Rel == "publish") ?? 0) == 0);
                 })
                 .ToList();
 
@@ -193,7 +199,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflows?",
-            "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
+            $"Are you sure you want to delete the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -206,7 +212,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkPublishClicked()
     {
         var result = await DialogService.ShowMessageBox("Publish selected workflows?",
-            "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
+            $"Are you sure you want to publish the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Publish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -244,7 +250,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkRetractClicked()
     {
         var result = await DialogService.ShowMessageBox("Unpublish selected workflows?",
-            "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
+            $"Are you sure you want to unpublish the selected workflows? {(_selectedRows.Count(w=>w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Unpublish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -329,5 +335,6 @@ public partial class WorkflowDefinitionList
         int? PublishedVersion,
         string? Name,
         string? Description,
-        bool IsPublished);
+        bool IsPublished,
+        bool IsReadOnlyMode);
 }

@@ -7,7 +7,7 @@
     {
         <MudForm ReadOnly="IsReadOnly">
             <MudStack Spacing="5">
-                <MudField
+                <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
                     HelperText="The ID of the activity."
@@ -21,7 +21,9 @@
                     HelperText="The name of the activity. Named activities can be referenced by other activities."
                     Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
-                    ValueChanged="OnActivityNameChanged"/>
+                    ValueChanged="OnActivityNameChanged"
+                    ReadOnly="IsReadOnly"
+                    Disabled="IsReadOnly"/>
 
                 <MudTextField
                     T="string"
@@ -29,7 +31,9 @@
                     HelperText="The text to display in the designer."
                     Value="@Activity.GetDisplayText()"
                     Variant="Variant.Outlined"
-                    ValueChanged="OnActivityDisplayTextChanged"/>
+                    ValueChanged="OnActivityDisplayTextChanged"
+                    ReadOnly="IsReadOnly"
+                    Disabled="IsReadOnly"/>
 
                 <MudTextField
                     T="string"
@@ -38,13 +42,16 @@
                     Value="@Activity.GetDescription()"
                     Variant="Variant.Outlined"
                     Lines="3"
-                    ValueChanged="OnActivityDescriptionChanged"/>
+                    ValueChanged="OnActivityDescriptionChanged"
+                    ReadOnly="IsReadOnly"
+                    Disabled="IsReadOnly"/>
 
                 <MudField
                     Variant="Variant.Text"
                     HelperText="Whether to show the description in the designer."
                     Margin="Margin.None"
-                    DisableUnderLine="@false">
+                    DisableUnderLine="@false"
+                    Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
                         Label="Show description"
@@ -57,7 +64,8 @@
                     Variant="Variant.Text"
                     DisableUnderLine="@false"
                     Margin="Margin.None"
-                    HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")">
+                    HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")"
+                    Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
                         Label="@(IsTrigger ? "Trigger workflow" : "Start of workflow")"
@@ -69,6 +77,4 @@
             </MudStack>
         </MudForm>
     }
-
-    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>

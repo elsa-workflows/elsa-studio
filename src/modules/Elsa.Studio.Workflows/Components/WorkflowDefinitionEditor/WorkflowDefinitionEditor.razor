@@ -9,6 +9,11 @@
 
 @inject IWorkflowDefinitionService WorkflowDefinitionService
 
+@if (IsReadOnly)
+{
+    <MudAlert Severity="Severity.Warning" Variant="MudBlazor.Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">Unable to make changes as the workflow or application is currently in read-only mode.</MudAlert>
+}
+
 <CascadingValue Value="_dragDropManager">
     <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
         <RadzenSplitterPane Size="15%" Min="100px">
@@ -118,6 +123,9 @@
     /// Gets the currently selected activity ID.
     public string? SelectedActivityId => WorkflowDefinitionWorkspace.SelectedActivityId;
 
+    /// <inheritdoc />
+    public bool IsReadOnly => _workflowDefinition != null && (_workflowDefinition?.Links?.Count(l=>l.Rel == "publish") ?? 0) == 0;
+    
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
