@@ -10,7 +10,7 @@
         <MudField Label="@displayName" Variant="Variant.Outlined" HelperText="@description" Margin="Margin.Dense" Disabled="EditorContext.IsReadOnly">
             @foreach (var item in _checkListItems)
             {
-                <MudCheckBox T="bool" Label="@item.Text" Checked="@item.IsChecked" CheckedChanged="@(state => OnCheckedChanged(item, state))" Dense="true"></MudCheckBox>
+                <MudCheckBox T="bool" Label="@item.Text" Checked="@item.IsChecked" CheckedChanged="@(state => OnCheckedChanged(item, state))" Dense="true" Disabled="EditorContext.IsReadOnly"></MudCheckBox>
             }
         </MudField>
     </ChildContent>
