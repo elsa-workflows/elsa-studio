@@ -22,12 +22,22 @@ public partial class WorkflowDefinitionVersionViewer
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper? _diagramDesigner;
     private bool _isProgressing;
-
+    
+    /// Gets or sets the workflow definition to view.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter]
     public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+
+    /// Gets or sets the event triggered when an activity is selected.
+    [Parameter]
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+    
+    /// Gets the ID of the selected activity.
+    public string? SelectedActivityId { get; private set; }
+
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -38,7 +48,6 @@ public partial class WorkflowDefinitionVersionViewer
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    public string? SelectedActivityId { get; set; }
     private ActivityProperties.ActivityPropertiesPanel? ActivityPropertiesTab { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
@@ -48,7 +57,7 @@ public partial class WorkflowDefinitionVersionViewer
         {
             _activityPropertiesPane = value;
 
-            // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
+            // Prefix the ID with a non-numerical value, so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
@@ -57,10 +66,10 @@ public partial class WorkflowDefinitionVersionViewer
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
-        
+
         if (WorkflowDefinition?.Root == null)
             return;
-        
+
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -70,9 +79,9 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
-        if(_diagramDesigner != null)
+        if (_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
-        
+
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -81,8 +90,8 @@ public partial class WorkflowDefinitionVersionViewer
     {
         if (WorkflowDefinition?.Root == null)
             return;
-        
-        if(firstRender)
+
+        if (firstRender)
             await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
     }
 
@@ -99,11 +108,11 @@ public partial class WorkflowDefinitionVersionViewer
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         StateHasChanged();
     }
-    
-    private Task OnActivitySelected(JsonObject activity)
+
+    private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        return Task.CompletedTask;
+        await ActivitySelected.InvokeAsync(activity);
     }
     
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -118,7 +127,7 @@ public partial class WorkflowDefinitionVersionViewer
         var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
-    
+
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
