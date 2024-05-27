@@ -80,6 +80,22 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Gets or sets the event triggered when the workflow definition has failed to retract.
     [Parameter]
     public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+    
+    /// Gets or sets the event triggered when the workflow definition is being exported.
+    [Parameter]
+    public EventCallback Exporting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been exported.
+    [Parameter]
+    public EventCallback Exported { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being imported.
+    [Parameter]
+    public EventCallback Importing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been imported.
+    [Parameter]
+    public EventCallback Imported { get; set; }
 
     /// <summary>
     /// An event that is invoked when the workflow definition is updated.

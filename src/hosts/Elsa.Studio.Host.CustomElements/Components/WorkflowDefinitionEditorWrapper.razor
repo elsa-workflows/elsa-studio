@@ -16,7 +16,11 @@
                               PublishingFailed="PublishingFailed"
                               Retracting="Retracting"
                               Retracted="Retracted"
-                              RetractingFailed="RetractingFailed"/>
+                              RetractingFailed="RetractingFailed"
+                              Exporting="Exporting"
+                              Exported="Exported"
+                              Importing="Importing"
+                              Imported="Imported"/>
 </ThemedComponentWrapper>
 
 @code
@@ -74,9 +78,25 @@
     [Parameter]
     public EventCallback<ValidationErrors> RetractingFailed { get; set; }
 
+    /// Gets or sets the event triggered when the workflow definition is being exported.
+    [Parameter]
+    public EventCallback Exporting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been exported.
+    [Parameter]
+    public EventCallback Exported { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being imported.
+    [Parameter]
+    public EventCallback Importing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been imported.
+    [Parameter]
+    public EventCallback Imported { get; set; }
+
     /// Gets the currently selected activity ID.
     public string? SelectedActivityId => WorkflowDefinitionEditor.SelectedActivityId;
-    
+
     private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
 
     /// Gets the currently selected workflow definition version.

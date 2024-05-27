@@ -111,14 +111,21 @@ public partial class WorkflowEditor
     [Parameter]
     public EventCallback<ValidationErrors> RetractingFailed { get; set; }
 
-    /// Gets or sets the event triggered when the workflow definition is being downloaded.
+    /// Gets or sets the event triggered when the workflow definition is being exported.
     [Parameter]
-    public EventCallback Downloading { get; set; }
+    public EventCallback Exporting { get; set; }
 
-    /// Gets or sets the event triggered when the workflow definition has been downloaded.
+    /// Gets or sets the event triggered when the workflow definition has been exported.
     [Parameter]
-    public EventCallback Downloaded { get; set; }
+    public EventCallback Exported { get; set; }
 
+    /// Gets or sets the event triggered when the workflow definition is being imported.
+    [Parameter]
+    public EventCallback Importing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been imported.
+    [Parameter]
+    public EventCallback Imported { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -439,14 +446,18 @@ public partial class WorkflowEditor
 
     private async Task OnDownloadClicked()
     {
+        await Exporting.InvokeAsync();
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
         var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await Exported.InvokeAsync();
     }
 
     private async Task OnUploadClicked()
     {
+        await Importing.InvokeAsync();
         await DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
+        await Imported.InvokeAsync();
     }
 
     private async Task OnFileSelected(IBrowserFile file)
