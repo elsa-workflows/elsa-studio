@@ -1,16 +1,31 @@
+@using System.Text.Json.Nodes
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
-@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components
+@using Elsa.Studio.Workflows.Domain.Models
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"/>
+    <WorkflowDefinitionEditor DefinitionId="@DefinitionId"
+                              WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
+                              WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
+                              ActivitySelected="ActivitySelected"
+                              Saving="Saving"
+                              Saved="Saved"
+                              SavingFailed="SavingFailed"
+                              Publishing="Publishing"
+                              Published="Published"
+                              PublishingFailed="PublishingFailed"
+                              Retracting="Retracting"
+                              Retracted="Retracted"
+                              RetractingFailed="RetractingFailed"
+                              Exporting="Exporting"
+                              Exported="Exported"
+                              Importing="Importing"
+                              Imported="Imported"/>
 </ThemedComponentWrapper>
 
 @code
 {
-    /// <summary>
     /// The ID of the workflow definition to edit.
-    /// </summary>
     [Parameter]
     public string DefinitionId { get; set; } = default!;
 
@@ -18,17 +33,72 @@
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter]
     public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
-    
-    /// <summary>
+
     /// Gets or sets the event that occurs when the workflow definition version is updated.
-    /// </summary>
     [Parameter]
     public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
-    
+
+    /// Gets or sets the event triggered when an activity is selected.
+    [Parameter]
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being saved.
+    [Parameter]
+    public EventCallback Saving { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been saved.
+    [Parameter]
+    public EventCallback Saved { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to save.
+    [Parameter]
+    public EventCallback<ValidationErrors> SavingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being published.
+    [Parameter]
+    public EventCallback Publishing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been published.
+    [Parameter]
+    public EventCallback Published { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to publish.
+    [Parameter]
+    public EventCallback<ValidationErrors> PublishingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being retracted.
+    [Parameter]
+    public EventCallback Retracting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been retracted.
+    [Parameter]
+    public EventCallback Retracted { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to retract.
+    [Parameter]
+    public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being exported.
+    [Parameter]
+    public EventCallback Exporting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been exported.
+    [Parameter]
+    public EventCallback Exported { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being imported.
+    [Parameter]
+    public EventCallback Importing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been imported.
+    [Parameter]
+    public EventCallback Imported { get; set; }
+
+    /// Gets the currently selected activity ID.
+    public string? SelectedActivityId => WorkflowDefinitionEditor.SelectedActivityId;
+
     private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
-    
-    /// <summary>
+
     /// Gets the currently selected workflow definition version.
-    /// </summary>
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionEditor.GetSelectedWorkflowDefinitionVersion();
 }
