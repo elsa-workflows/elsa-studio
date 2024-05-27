@@ -8,8 +8,8 @@
                 Id="@_monacoEditorId"
                 ConstructionOptions="ConfigureMonacoEditor"
                 CssClass="studio-expression-input-monaco-editor"
-                OnDidInit="OnMonacoInitialized"
-                OnDidChangeModelContent="OnMonacoContentChanged"/>
+                OnDidInit="OnMonacoInitializedAsync"
+                OnDidChangeModelContent="OnMonacoContentChangedAsync"/>
         </MudField>
 
         @if (!ShowMonacoEditor)
@@ -26,7 +26,7 @@
                 {
                     var isChecked = item.Type == _selectedExpressionType;
                     var iconColor = isChecked ? Color.Secondary : Color.Transparent;
-                    <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelected(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>
+                    <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelectedAsync(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>
                 }
             </MudMenu>
         </div>
