@@ -17,7 +17,8 @@
                 Label="@displayName"
                 Checked="@isChecked"
                 Dense="true"
-                CheckedChanged="OnCheckChanged"/>
+                CheckedChanged="OnCheckChanged"
+                Disabled="EditorContext.IsReadOnly"/>
         </MudField>
     </ChildContent>
 </ExpressionInput>
