@@ -27,7 +27,7 @@ public partial class WorkflowDefinitionVersionViewer
     [Parameter]
     public EventCallback<JsonObject> ActivitySelected { get; set; }
     
-    /// Gets or sets the ID of the selected activity.
+    /// Gets the ID of the selected activity.
     public string? SelectedActivityId { get; private set; }
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
