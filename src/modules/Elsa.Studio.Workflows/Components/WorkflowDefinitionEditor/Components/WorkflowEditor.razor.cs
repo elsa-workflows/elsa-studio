@@ -6,6 +6,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -24,7 +25,6 @@ using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
-using Refit;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -191,7 +191,7 @@ public partial class WorkflowEditor
             await SaveChangesRateLimitedAsync(readDiagram);
     }
 
-    private async Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
+    private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
     {
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
 
@@ -234,7 +234,7 @@ public partial class WorkflowEditor
         };
 
         var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.SaveAsync(saveRequest));
-        await result.OnSuccessAsync(async definition => await SetWorkflowDefinitionAsync(definition));
+        await result.OnSuccessAsync(async response => await SetWorkflowDefinitionAsync(response.WorkflowDefinition));
 
         _isDirty = false;
         StateHasChanged();
@@ -242,7 +242,7 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task PublishAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
@@ -277,7 +277,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await InvokeAsync(async () =>
         {
@@ -293,9 +293,9 @@ public partial class WorkflowEditor
             {
                 await Saving.InvokeAsync();
                 var result = await SaveAsync(readDiagram, publish);
-                await result.OnSuccessAsync(_ =>
+                await result.OnSuccessAsync(response =>
                 {
-                    onSuccess?.Invoke();
+                    onSuccess?.Invoke(response);
                     return Task.CompletedTask;
                 });
                 await result.OnFailedAsync(errors =>
@@ -382,7 +382,7 @@ public partial class WorkflowEditor
     {
         await Saving.InvokeAsync();
         await SaveChangesAsync(true, true, false,
-            async () =>
+            async _ =>
             {
                 Snackbar.Add("Workflow saved", Severity.Success);
                 await Saved.InvokeAsync();
@@ -392,7 +392,7 @@ public partial class WorkflowEditor
     private async Task OnPublishClicked()
     {
         await Publishing.InvokeAsync();
-        await ProgressAsync(async () => await PublishAsync(async () =>
+        await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
             var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
@@ -404,10 +404,9 @@ public partial class WorkflowEditor
             else
                 Snackbar.Add("Workflow published", Severity.Success);
 
-            if (ShouldUpdateReferences())
+            if (response.ConsumingWorkflowCount > 0)
             {
-                var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
-                Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
+                Snackbar.Add($"{response.ConsumingWorkflowCount} consuming workflow(s) updated", Severity.Success, options => options.VisibleStateDuration = 3000);
             }
 
             await Published.InvokeAsync();
