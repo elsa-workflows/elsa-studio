@@ -31,6 +31,7 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     public bool IsReadOnly => true;
+    public bool HasWorkflowEditPermission => true;
     private int ActiveTabIndex { get; } = 0;
     private IDictionary<string, WorkflowEditor> WorkflowEditors { get; } = new Dictionary<string, WorkflowEditor>();
 

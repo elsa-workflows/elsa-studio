@@ -21,6 +21,7 @@ public partial class VersionHistoryTab : IDisposable
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
+    private bool HasWorkflowEditPermission => Workspace?.HasWorkflowEditPermission ?? false;
 
     /// <inheritdoc />
     protected override void OnInitialized()
