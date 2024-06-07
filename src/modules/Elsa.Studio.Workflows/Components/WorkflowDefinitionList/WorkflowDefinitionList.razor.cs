@@ -133,7 +133,7 @@ public partial class WorkflowDefinitionList
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await InvokeWithBlazorServiceContext((() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!)));
+            var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!));
 
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
@@ -236,6 +236,14 @@ public partial class WorkflowDefinitionList
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
+        if (response.UpdatedConsumers.Count > 0)
+        {
+            var message = response.UpdatedConsumers.Count == 1
+                ? "One workflow consuming a published workflow has been updated"
+                : $"{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; options.VisibleStateDuration = 3000; });
+        }
+
         if (response.NotFound.Count > 0)
         {
             var message = response.NotFound.Count == 1
@@ -316,8 +324,24 @@ public partial class WorkflowDefinitionList
 
     private async Task OnPublishClicked(string definitionId)
     {
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.PublishAsync(definitionId)));
-        Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.PublishAsync(definitionId));
+        if (response.AlreadyPublished)
+        {
+            Snackbar.Add("Workflow was already published", Severity.Info,options => { options.SnackbarVariant = Variant.Filled; });
+        }
+        else
+        {
+            Snackbar.Add("Workflow published", Severity.Success,options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.ConsumingWorkflowCount > 0)
+        {
+            var message = response.ConsumingWorkflowCount == 1
+                ? "One workflow consuming a published workflow has been updated"
+                : $"{response.ConsumingWorkflowCount} workflows consuming published workflows have been updated";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; options.VisibleStateDuration = 3000; });
+        }
+        
         Reload();
     }
 

@@ -65,18 +65,20 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
 
         try
         {
-            var definition = await api.SaveAsync(request, cancellationToken);
+            var response = await api.SaveAsync(request, cancellationToken);
 
             if (request.Publish == true)
-                await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
+            {
+                await _mediator.NotifyAsync(new WorkflowDefinitionPublished(response.WorkflowDefinition), cancellationToken);
+            }
 
-            return new(definition);
+            return new(response);
         }
         catch (ValidationApiException e)
         {
@@ -86,12 +88,12 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
+    public async Task<SaveWorkflowDefinitionResponse> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var definition = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
-        await _mediator.NotifyAsync(new WorkflowDefinitionPublished(definition), cancellationToken);
-        return definition;
+        var response = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
+        await _mediator.NotifyAsync(new WorkflowDefinitionPublished(response.WorkflowDefinition), cancellationToken);
+        return response;
     }
 
     /// <inheritdoc />
@@ -242,7 +244,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
             }
         };
 
-        return await SaveAsync(saveRequest, cancellationToken);
+        var result = await SaveAsync(saveRequest, cancellationToken);
+        return result.IsSuccess
+            ? new Result<WorkflowDefinition, ValidationErrors>(result.Success!.WorkflowDefinition)
+            : new Result<WorkflowDefinition, ValidationErrors>(result.Failure!);
     }
 
     /// <inheritdoc />
