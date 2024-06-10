@@ -92,7 +92,7 @@ public partial class WorkflowInstanceDetails
                 return new Dictionary<string, DataPanelItem>();
 
             return WorkflowDefinition.Variables.ToDictionary(entry => entry.Name,
-                entry => new DataPanelItem(@GetVariableValue(entry)));
+                entry => new DataPanelItem(GetVariableValue(entry)));
         }
     }
 
@@ -258,7 +258,10 @@ public partial class WorkflowInstanceDetails
 
     private async Task GetWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
     {
-        var records = await ActivityExecutionService.ListAsync(workflowInstanceId, "Workflow1");
+        var rootWorkflowActivityExecutionContext = WorkflowInstance?.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
+        if (rootWorkflowActivityExecutionContext == null) return;
+        var rootWorkflowActivityNodeId = rootWorkflowActivityExecutionContext.ScheduledActivityNodeId;
+        var records = await ActivityExecutionService.ListAsync(workflowInstanceId, rootWorkflowActivityNodeId);
         _workflowActivityExecutionRecord = records.MaxBy(x => x.StartedAt);
     }
 
