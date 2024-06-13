@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Wasm" type="DotNetProject" factoryName=".NET Project">
-    <option name="EXE_PATH" value="$USER_HOME$/.nuget/packages/microsoft.aspnetcore.components.webassembly.devserver/7.0.14/tools/blazor-devserver.dll" />
+    <option name="EXE_PATH" value="$USER_HOME$/.nuget/packages/microsoft.aspnetcore.components.webassembly.devserver/7.0.20/tools/blazor-devserver.dll" />
     <option name="PROGRAM_PARAMETERS" value="--applicationpath $PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Wasm/bin/Debug/net7.0/Elsa.Studio.Host.Wasm.dll" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Wasm" />
     <option name="PASS_PARENT_ENVS" value="1" />
