@@ -12,24 +12,13 @@ namespace Elsa.Studio.Login.HttpMessageHandlers;
 /// <summary>
 /// An <see cref="HttpMessageHandler"/> that configures the outgoing HTTP request to use the access token as bearer token.
 /// </summary>
-public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
+public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor)
+    : DelegatingHandler
 {
-    private readonly IRemoteBackendAccessor _remoteBackendAccessor;
-    private readonly IBlazorServiceAccessor _blazorServiceAccessor;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthenticatingHttpMessageHandlerProvider"/> class.
-    /// </summary>
-    public AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor)
-    {
-        _remoteBackendAccessor = remoteBackendAccessor;
-        _blazorServiceAccessor = blazorServiceAccessor;
-    }
-
     /// <inheritdoc />
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var sp = _blazorServiceAccessor.Services;
+        var sp = blazorServiceAccessor.Services;
         var jwtAccessor = sp.GetRequiredService<IJwtAccessor>();
         var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -55,7 +44,7 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
         var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
         
         // Setup request to get new tokens.
-        var url = _remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
+        var url = remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
         var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
         refreshRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", refreshToken);
         
