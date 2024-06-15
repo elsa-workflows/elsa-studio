@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -22,6 +24,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
@@ -35,6 +38,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateJsonSerializerOptions();
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
@@ -121,11 +125,11 @@ public partial class WorkflowEditor
 
     /// Gets or sets the event triggered when the workflow definition is being imported.
     [Parameter]
-    public EventCallback Importing { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
     [Parameter]
-    public EventCallback Imported { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -139,6 +143,7 @@ public partial class WorkflowEditor
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
@@ -454,37 +459,125 @@ public partial class WorkflowEditor
 
     private async Task OnUploadClicked()
     {
-        await Importing.InvokeAsync();
         await DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
-        await Imported.InvokeAsync();
     }
 
-    private async Task OnFileSelected(IBrowserFile file)
+    private async Task OnFilesSelected(IReadOnlyList<IBrowserFile>? files)
     {
-        using var reader = new StreamReader(file.OpenReadStream());
+        if (files == null || files.Count == 0)
+            return;
+
+        // Allow application host to handle additional file types.
+        await Importing.InvokeAsync(files);
+        await InvokeWithBlazorServiceContext(() => ImportFilesAsync(files));
+        await Imported.InvokeAsync(files);
+        _isDirty = false;
+
+        StateHasChanged();
+    }
+
+    private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        IBrowserFile? importedFile = null;
+
+        foreach (var file in files)
+        {
+            var stream = file.OpenReadStream();
+
+            if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
+            {
+                var success = await ImportZipFileAsync(stream);
+                if (success)
+                {
+                    importedFile = file;
+                    break;
+                }
+            }
+
+            else if (file.ContentType == MediaTypeNames.Application.Json || file.Name.EndsWith(".json"))
+            {
+                var success = await ImportFromStreamAsync(stream);
+                if (success)
+                {
+                    importedFile = file;
+                    break;
+                }
+            }
+        }
+
+        if (importedFile != null)
+            Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+    }
+
+    private async Task<bool> ImportZipFileAsync(Stream stream)
+    {
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        var zipArchive = new ZipArchive(memoryStream);
+
+        foreach (var entry in zipArchive.Entries)
+        {
+            if (entry.FullName.EndsWith(".json"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportFromStreamAsync(entryStream);
+
+                if (success)
+                    return true;
+            }
+            else if (entry.FullName.EndsWith(".zip"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportZipFileAsync(entryStream);
+
+                if (success)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<bool> ImportFromStreamAsync(Stream stream)
+    {
+        using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
 
-        JsonSerializerOptions serializerOptions = new()
+        try
+        {
+            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
+
+            // Check if this is a workflow definition file.
+            if (model.DefinitionId == null!)
+                return false;
+
+            // Overwrite the definition ID with the one currently loaded.
+            // This will ensure that the imported definition will be saved as a new version of the current definition. 
+            model.DefinitionId = WorkflowDefinition!.DefinitionId;
+
+            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+            await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
+            await SetWorkflowDefinitionAsync(workflowDefinition);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Failed to import workflow definition: {e.Message}", Severity.Error);
+        }
+
+        return true;
+    }
+
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
+    {
+        JsonSerializerOptions options = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-        serializerOptions.Converters.Add(new JsonStringEnumConverter());
-        serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-
-        var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;
-
-        // Overwrite the definition ID with the one currently loaded.
-        // This will ensure that the imported definition will be saved as a new version of the current definition. 
-        model.DefinitionId = WorkflowDefinition!.DefinitionId;
-
-        var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
-        await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
-        await SetWorkflowDefinitionAsync(workflowDefinition);
-
-        _isDirty = false;
-
-        StateHasChanged();
+        options.Converters.Add(new JsonStringEnumConverter());
+        options.Converters.Add(new VersionOptionsJsonConverter());
+        return options;
     }
 
     private async Task OnRunWorkflowClicked()
@@ -505,7 +598,7 @@ public partial class WorkflowEditor
         var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
 
         if (workflowDefinitionExecuted.HasDelegate)
-            await this.WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+            await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
