@@ -262,19 +262,23 @@ public partial class WorkflowEditor
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId));
+        var result = await InvokeWithBlazorServiceContext(async () =>
+        {
+            await Retracting.InvokeAsync();
+            return await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+        });
         await result.OnSuccessAsync(async definition =>
         {
             await SetWorkflowDefinitionAsync(definition);
-
-            if (onSuccess != null)
-                await onSuccess();
+            if (onSuccess != null) await onSuccess();
+            await Retracted.InvokeAsync();
         });
 
-        if (onFailure != null)
+        await result.OnFailedAsync(async errors =>
         {
-            await result.OnFailedAsync(async errors => await onFailure(errors));
-        }
+            if (onFailure != null) await onFailure(errors);
+            await RetractingFailed.InvokeAsync(errors);
+        });
     }
 
     private async Task SaveChangesRateLimitedAsync(bool readDiagram)
@@ -296,18 +300,22 @@ public partial class WorkflowEditor
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
+                if (publish) await Publishing.InvokeAsync();
                 await Saving.InvokeAsync();
                 var result = await SaveAsync(readDiagram, publish);
-                await result.OnSuccessAsync(response =>
+                await result.OnSuccessAsync(async response =>
                 {
                     onSuccess?.Invoke(response);
-                    return Task.CompletedTask;
+                    await Saved.InvokeAsync();
+                    if (publish) await Published.InvokeAsync();
                 });
-                await result.OnFailedAsync(errors =>
+
+                await result.OnFailedAsync(async errors =>
                 {
                     onFailure?.Invoke(errors);
                     Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
-                    return Task.CompletedTask;
+                    await SavingFailed.InvokeAsync(errors);
+                    if (publish) await PublishingFailed.InvokeAsync(errors);
                 });
             }
             finally
@@ -385,18 +393,15 @@ public partial class WorkflowEditor
 
     private async Task OnSaveClick()
     {
-        await Saving.InvokeAsync();
-        await SaveChangesAsync(true, true, false,
-            async _ =>
-            {
-                Snackbar.Add("Workflow saved", Severity.Success);
-                await Saved.InvokeAsync();
-            }, async errors => { await SavingFailed.InvokeAsync(errors); });
+        await SaveChangesAsync(true, true, false, _ =>
+        {
+            Snackbar.Add("Workflow saved", Severity.Success);
+            return Task.CompletedTask;
+        });
     }
 
     private async Task OnPublishClicked()
     {
-        await Publishing.InvokeAsync();
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
@@ -413,9 +418,7 @@ public partial class WorkflowEditor
             {
                 Snackbar.Add($"{response.ConsumingWorkflowCount} consuming workflow(s) updated", Severity.Success, options => options.VisibleStateDuration = 3000);
             }
-
-            await Published.InvokeAsync();
-        }, async errors => { await PublishingFailed.InvokeAsync(errors); }));
+        }));
     }
 
     private async Task OnRetractClicked()
