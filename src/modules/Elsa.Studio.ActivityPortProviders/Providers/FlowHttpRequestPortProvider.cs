@@ -9,16 +9,21 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Converters;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Providers;
+using JetBrains.Annotations;
 
 namespace Elsa.Studio.ActivityPortProviders.Providers;
 
 /// <summary>
-/// Provides ports for the FlowSendHttpRequest activity based on its supported status codes.
+/// Provides ports for the FlowSendHttpRequest & DownloadHttpFile activities based on its supported status codes.
 /// </summary>
-public class FlowSendHttpRequestPortProvider : ActivityPortProviderBase
+[UsedImplicitly]
+public class FlowHttpRequestPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />
-    public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName is "Elsa.FlowSendHttpRequest";
+    public override bool GetSupportsActivityType(PortProviderContext context)
+    {
+        return context.ActivityDescriptor.TypeName is "Elsa.FlowSendHttpRequest" or "Elsa.DownloadHttpFile";
+    }
 
     /// <inheritdoc />
     public override IEnumerable<Port> GetPorts(PortProviderContext context)

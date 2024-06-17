@@ -13,8 +13,12 @@ public partial class HttpStatusCodes
     private List<HttpStatusCodeCase> _items = new();
     private MudChipField<string> _chipField = default!;
 
+    /// <summary>
+    /// The editor context.
+    /// </summary>
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _items = GetCurrentItems();
@@ -40,8 +44,7 @@ public partial class HttpStatusCodes
         _items.AddRange(values?
             .Where(x => _items.All(y => y.StatusCode.ToString() != x))
             .Select(x => new HttpStatusCodeCase { StatusCode = int.Parse(x) }) ?? new List<HttpStatusCodeCase>());
-
-        //var json = JsonSerializer.Serialize(_items);
+        
         await EditorContext.UpdateValueAsync(_items);
     }
 

@@ -24,7 +24,7 @@
                 }
             </MudSelect>
             <MudSelect
-                T="IncidentStrategyDescriptor"
+                T="IncidentStrategyDescriptor?"
                 Label="Incident handling strategy"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
@@ -53,8 +53,8 @@
                 <MudCheckBox
                     T="bool?"
                     Label="Usable as activity"
-                    Checked="@(WorkflowDefinition.Options.UsableAsActivity == true)"
-                    CheckedChanged="@OnUsableAsActivityCheckChanged"
+                    Value="@(WorkflowDefinition.Options.UsableAsActivity == true)"
+                    ValueChanged="@OnUsableAsActivityCheckChanged"
                     Dense="true"
                     ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
             </MudField>
@@ -65,8 +65,8 @@
                         T="bool?"
                         Label="Auto-update consuming workflows"
                         Dense="@true"
-                        Checked="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
-                        CheckedChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
+                        Value="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
+                        ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
                         ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
                 </MudField>
                 <MudTextField
