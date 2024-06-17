@@ -53,11 +53,16 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     }
 
     /// <inheritdoc />
-    public IEnumerable<RenderFragment> GetToolboxItems()
+    public IEnumerable<RenderFragment> GetToolboxItems(bool isReadonly)
     {
         yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, "Zoom to fit the screen", OnZoomToFitClicked);
         yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, "Center", OnCenterClicked);
-        yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout", OnAutoLayoutClicked);
+        
+        if (!isReadonly)
+        {
+            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout",
+                OnAutoLayoutClicked);
+        }
     }
 
     private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)

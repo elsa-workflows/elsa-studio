@@ -1,10 +1,10 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Pages.WorkflowDefinitions.List;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -21,7 +21,6 @@ public partial class WorkflowDefinitionList
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
-    private string? _searchString;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -31,15 +30,21 @@ public partial class WorkflowDefinitionList
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    private string SearchTerm { get; set; } = string.Empty;
+    public bool IsReadOnlyMode = false;
+    private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
     {
         var request = new ListWorkflowDefinitionsRequest
         {
+            IsSystem = false,
             Page = state.Page,
             PageSize = state.PageSize,
+            SearchTerm = SearchTerm,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending
                 ? OrderDirection.Descending
@@ -49,6 +54,9 @@ public partial class WorkflowDefinitionList
         var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
             var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+            
+            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
+            
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
             var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
@@ -75,7 +83,8 @@ public partial class WorkflowDefinitionList
                         publishedVersionNumber,
                         definition.Name,
                         definition.Description,
-                        definition.IsPublished);
+                        definition.IsPublished,
+                        (definition?.Links?.Count(l=> l.Rel == "publish") ?? 0) == 0);
                 })
                 .ToList();
 
@@ -124,7 +133,7 @@ public partial class WorkflowDefinitionList
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await InvokeWithBlazorServiceContext((() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!)));
+            var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!));
 
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
@@ -164,6 +173,22 @@ public partial class WorkflowDefinitionList
         Reload();
     }
 
+    private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var result = await DialogService.ShowMessageBox("Cancel running workflow instances?",
+            "Are you sure you want to cancel all running workflow instances of this workflow definition?", yesText: "Yes", cancelText: "No");
+
+        if (result != true)
+            return;
+
+        var request = new BulkCancelWorkflowInstancesRequest
+        {
+            DefinitionVersionId = workflowDefinitionRow.Id
+        };
+        await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.BulkCancelAsync(request));
+        Reload();
+    }
+
     private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
         var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest));
@@ -174,7 +199,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox("Delete selected workflows?",
-            "Are you sure you want to delete the selected workflows?", yesText: "Delete", cancelText: "Cancel");
+            $"Are you sure you want to delete the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -187,7 +212,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkPublishClicked()
     {
         var result = await DialogService.ShowMessageBox("Publish selected workflows?",
-            "Are you sure you want to publish the selected workflows?", yesText: "Publish", cancelText: "Cancel");
+            $"Are you sure you want to publish the selected workflows? {(_selectedRows.Count(w=> w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Publish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -211,6 +236,14 @@ public partial class WorkflowDefinitionList
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
+        if (response.UpdatedConsumers.Count > 0)
+        {
+            var message = response.UpdatedConsumers.Count == 1
+                ? "One workflow consuming a published workflow has been updated"
+                : $"{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; options.VisibleStateDuration = 3000; });
+        }
+
         if (response.NotFound.Count > 0)
         {
             var message = response.NotFound.Count == 1
@@ -225,7 +258,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkRetractClicked()
     {
         var result = await DialogService.ShowMessageBox("Unpublish selected workflows?",
-            "Are you sure you want to unpublish the selected workflows?", yesText: "Unpublish", cancelText: "Cancel");
+            $"Are you sure you want to unpublish the selected workflows? {(_selectedRows.Count(w=>w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : "")}", yesText: "Unpublish", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -282,23 +315,41 @@ public partial class WorkflowDefinitionList
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
-
-    private void OnSearch(string text)
+    
+    private void OnSearchTermChanged(string text)
     {
-        _searchString = text;
+        SearchTerm = text;
         Reload();
     }
 
     private async Task OnPublishClicked(string definitionId)
     {
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.PublishAsync(definitionId)));
-        Snackbar.Add("Workflow published", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.PublishAsync(definitionId));
+        if (response.AlreadyPublished)
+        {
+            Snackbar.Add("Workflow was already published", Severity.Info,options => { options.SnackbarVariant = Variant.Filled; });
+        }
+        else
+        {
+            Snackbar.Add("Workflow published", Severity.Success,options => { options.SnackbarVariant = Variant.Filled; });
+        }
+
+        if (response.ConsumingWorkflowCount > 0)
+        {
+            var message = response.ConsumingWorkflowCount == 1
+                ? "One workflow consuming a published workflow has been updated"
+                : $"{response.ConsumingWorkflowCount} workflows consuming published workflows have been updated";
+            Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; options.VisibleStateDuration = 3000; });
+        }
+        
+        Reload();
     }
 
     private async Task OnRetractClicked(string definitionId)
     {
         await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.RetractAsync(definitionId)));
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Reload();
     }
 
     private record WorkflowDefinitionRow(
@@ -308,5 +359,6 @@ public partial class WorkflowDefinitionList
         int? PublishedVersion,
         string? Name,
         string? Description,
-        bool IsPublished);
+        bool IsPublished,
+        bool IsReadOnlyMode);
 }

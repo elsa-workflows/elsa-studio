@@ -16,5 +16,5 @@ public interface IActivityExecutionService
     /// <summary>
     /// Gets a list of activity execution records.
     /// </summary>
-    Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ActivityExecutionRecord>> ListAsync(string workflowInstanceId, string activityNodeId, CancellationToken cancellationToken = default);
 }

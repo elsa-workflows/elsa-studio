@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
@@ -20,7 +21,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 public partial class WorkflowInstanceDetails
 {
     private WorkflowInstance? _workflowInstance;
-    private ActivityExecutionContextState? _workflowActivityExecutionContext;
+
+    private ActivityExecutionRecord? _workflowActivityExecutionRecord;
 
     /// <summary>
     /// Gets or sets the workflow instance to display.
@@ -38,13 +40,13 @@ public partial class WorkflowInstanceDetails
     /// Gets or sets the current selected sub-workflow.
     /// </summary>
     [Parameter]
-    public JsonObject? SelectedSubWorkflow { get; set; } = default!;
+    public JsonObject? SelectedSubWorkflow { get; set; }
 
     /// <summary>
     /// Gets or sets the current selected sub-workflow executions.
     /// </summary>
     [Parameter]
-    public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; } = default!;
+    public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
@@ -90,7 +92,7 @@ public partial class WorkflowInstanceDetails
                 return new Dictionary<string, DataPanelItem>();
 
             return WorkflowDefinition.Variables.ToDictionary(entry => entry.Name,
-                entry => new DataPanelItem(@GetVariableValue(entry)));
+                entry => new DataPanelItem(GetVariableValue(entry)));
         }
     }
 
@@ -219,7 +221,6 @@ public partial class WorkflowInstanceDetails
     /// <summary>
     /// Updates the selected sub-workflow.
     /// </summary>
-    /// <param name="obj"></param>
     public async Task UpdateSubWorkflowAsync(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
@@ -246,7 +247,7 @@ public partial class WorkflowInstanceDetails
 
             if (_workflowInstance != null)
             {
-                _workflowActivityExecutionContext = GetWorkflowActivityExecutionContext(_workflowInstance);
+                await GetWorkflowActivityExecutionRecordAsync(_workflowInstance.Id);
 
                 // If the workflow instance is still running, observe it.
                 if (_workflowInstance?.Status == WorkflowStatus.Running)
@@ -255,20 +256,24 @@ public partial class WorkflowInstanceDetails
         }
     }
 
+    private async Task GetWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
+    {
+        var rootWorkflowActivityExecutionContext = WorkflowInstance?.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
+        if (rootWorkflowActivityExecutionContext == null) return;
+        var rootWorkflowActivityNodeId = rootWorkflowActivityExecutionContext.ScheduledActivityNodeId;
+        var records = await ActivityExecutionService.ListAsync(workflowInstanceId, rootWorkflowActivityNodeId);
+        _workflowActivityExecutionRecord = records.MaxBy(x => x.StartedAt);
+    }
+
     private async Task ObserveWorkflowInstanceAsync()
     {
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance!.Id);
         WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
         {
             _workflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
-            _workflowActivityExecutionContext = GetWorkflowActivityExecutionContext(_workflowInstance!);
+            await GetWorkflowActivityExecutionRecordAsync(_workflowInstance!.Id);
             StateHasChanged();
         });
-    }
-
-    private ActivityExecutionContextState? GetWorkflowActivityExecutionContext(WorkflowInstance workflowInstance)
-    {
-        return workflowInstance.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
     }
 
     private string GetStorageDriverDisplayName(string? storageDriverTypeName)
@@ -281,19 +286,19 @@ public partial class WorkflowInstanceDetails
             : descriptor.DisplayName;
     }
 
+    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(JsonSerializerOptions)")]
     private string GetVariableValue(Variable variable)
     {
         // TODO: Implement a REST API that returns values from the various storage providers, instead of hardcoding it here with hardcoded support for workflow storage only.
         var defaultValue = variable.Value?.ToString() ?? string.Empty;
 
-        if (_workflowActivityExecutionContext == null)
+        if (_workflowActivityExecutionRecord == null)
             return defaultValue;
 
-        if (!_workflowActivityExecutionContext.Properties.TryGetValue("PersistentVariablesDictionary",
-                out var variablesDictionaryObject))
+        if (!_workflowActivityExecutionRecord.Properties.TryGetValue("PersistentVariablesDictionary", out var variablesDictionaryObject))
             return defaultValue;
 
-        var dictionary = ((JsonElement)variablesDictionaryObject).Deserialize<IDictionary<string, object>>()!;
+        var dictionary = ((JsonElement)variablesDictionaryObject!).Deserialize<IDictionary<string, object>>()!;
         var key = variable.Id;
         return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : defaultValue;
     }

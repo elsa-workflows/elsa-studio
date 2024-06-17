@@ -9,7 +9,8 @@
         Variant="Variant.Filled"
         Color="Color.Primary"
         Class="align-self-end"
-        OnClick="OnAddOutputClicked">
+        OnClick="OnAddOutputClicked"
+        Disabled="IsReadonly">
         Add output
     </MudButton>
 
@@ -38,7 +39,7 @@
                     <td>@output.Name</td>
                     <td>@typeName</td>
                     <td style="text-align: right;">
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
                             <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">Edit</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">Delete</MudMenuItem>
                         </MudMenu>

@@ -53,7 +53,6 @@ public class DefaultActivityRegistry : IActivityRegistry
     {
         // Return the latest version of each activity descriptor from _activityDescriptors.
         return _activityDescriptors.Values
-            .Where(x => x.IsBrowsable)
             .GroupBy(activityDescriptor => activityDescriptor.TypeName)
             .Select(grouping => grouping.OrderByDescending(y => y.Version).First());
     }

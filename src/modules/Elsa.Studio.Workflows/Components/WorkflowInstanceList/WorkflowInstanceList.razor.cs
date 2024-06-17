@@ -1,5 +1,5 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
@@ -74,6 +74,7 @@ public partial class WorkflowInstanceList
             SubStatuses = SelectedSubStatuses,
             SearchTerm = SearchTerm,
             HasIncidents = HasIncidents,
+            IsSystem = false,
             OrderBy = GetOrderBy(state.SortLabel),
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
@@ -164,10 +165,11 @@ public partial class WorkflowInstanceList
     {
         return subStatus switch
         {
+            WorkflowSubStatus.Pending => Color.Tertiary,
             WorkflowSubStatus.Suspended => Color.Warning,
             WorkflowSubStatus.Finished => Color.Success,
             WorkflowSubStatus.Faulted => Color.Error,
-            WorkflowSubStatus.Cancelled => Color.Default,
+            WorkflowSubStatus.Cancelled => Color.Tertiary,
             WorkflowSubStatus.Executing => Color.Primary,
             _ => Color.Default,
         };
@@ -197,6 +199,18 @@ public partial class WorkflowInstanceList
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
+    
+    private async Task OnCancelClicked(WorkflowInstanceRow row)
+    {
+        var result = await DialogService.ShowMessageBox("Cancel workflow instance?", "Are you sure you want to cancel this workflow instance?", yesText: "Yes", cancelText: "No");
+
+        if (result != true)
+            return;
+
+        var instanceId = row.WorkflowInstanceId;
+        await WorkflowInstanceService.CancelAsync(instanceId);
+        Reload();
+    }
 
     private async Task OnDownloadClicked(WorkflowInstanceRow workflowInstanceRow)
     {
@@ -214,6 +228,22 @@ public partial class WorkflowInstanceList
 
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
         await WorkflowInstanceService.BulkDeleteAsync(workflowInstanceIds);
+        Reload();
+    }
+
+    private async Task OnBulkCancelClicked()
+    {
+        var confirmed = await DialogService.ShowMessageBox("Cancel selected workflow instances?", "Are you sure you want to cancel the selected workflow instances?", yesText: "Yes", cancelText: "No");
+
+        if (confirmed != true)
+            return;
+
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        var request = new BulkCancelWorkflowInstancesRequest
+        {
+            Ids = workflowInstanceIds
+        };
+        await WorkflowInstanceService.BulkCancelAsync(request);
         Reload();
     }
 

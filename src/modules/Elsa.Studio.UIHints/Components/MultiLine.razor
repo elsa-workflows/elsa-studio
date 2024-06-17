@@ -1,5 +1,6 @@
 @using Elsa.Studio.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
+@using Elsa.Studio.UIHints.Extensions
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -18,7 +19,9 @@
             HelperText="@description"
             Margin="Margin.Dense"
             Value="@inputValue"
-            ValueChanged="OnValueChanged"/>
+            ValueChanged="OnValueChanged"
+            ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly"/>
     </ChildContent>
 </ExpressionInput>
 
@@ -29,7 +32,7 @@
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue);
+        var expression = Expression.CreateLiteral(newValue.TrimNull());
         
         await EditorContext.UpdateExpressionAsync(expression);
     }

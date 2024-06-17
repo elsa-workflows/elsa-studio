@@ -41,10 +41,9 @@ public partial class WorkflowInstanceViewer
     protected override async Task OnInitializedAsync()
     {
         var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
-        var definitionVersionIds = new[] { instance.DefinitionVersionId };
-        var response = await WorkflowDefinitionService.FindManyByIdAsync(definitionVersionIds);
+        var workflowDefinition = await WorkflowDefinitionService.FindByIdAsync(instance.DefinitionVersionId, true);
         _workflowInstances = new List<WorkflowInstance> { instance };
-        _workflowDefinitions = response.ToList();
+        _workflowDefinitions = [workflowDefinition!];
         await SelectWorkflowInstanceAsync(instance);
     }
 

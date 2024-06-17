@@ -21,6 +21,7 @@
             HelperText="@description"
             Margin="Margin.Dense"
             ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly"
             Adornment="@adornment"
             AdornmentText="@_singleLineProps.AdornmentText"
             AdornmentColor="Color.Info"
@@ -45,7 +46,7 @@
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue);
+        var expression = Expression.CreateLiteral(newValue.TrimWhitespace());
 
         await EditorContext.UpdateExpressionAsync(expression);
     }

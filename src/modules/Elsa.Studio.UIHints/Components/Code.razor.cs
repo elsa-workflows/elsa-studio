@@ -58,12 +58,13 @@ public partial class Code : IDisposable
             Theme = "vs",
             RoundedSelection = true,
             ScrollBeyondLastLine = false,
-            ReadOnly = false,
             OverviewRulerLanes = 0,
             OverviewRulerBorder = false,
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
-            GlyphMargin = false
+            GlyphMargin = false,
+            ReadOnly = EditorContext.IsReadOnly,
+            DomReadOnly = EditorContext.IsReadOnly
         };
     }
 

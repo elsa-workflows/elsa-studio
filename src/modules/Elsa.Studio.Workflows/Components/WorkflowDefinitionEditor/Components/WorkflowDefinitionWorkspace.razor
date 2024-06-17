@@ -19,11 +19,29 @@
                     <MudTabPanel Text="@SelectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="SelectedWorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="SelectedWorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
+                            <WorkflowEditor @key="SelectedWorkflowDefinition.DefinitionId" 
+                                            @ref="WorkflowEditor" 
+                                            WorkflowDefinition="SelectedWorkflowDefinition" 
+                                            WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" 
+                                            WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
+                                            ActivitySelected="ActivitySelected"
+                                            Saving="Saving"
+                                            Saved="Saved"
+                                            SavingFailed="SavingFailed"
+                                            Publishing="Publishing"
+                                            Published="Published"
+                                            PublishingFailed="PublishingFailed"
+                                            Retracting="Retracting"
+                                            Retracted="Retracted"
+                                            RetractingFailed="RetractingFailed"
+                                            Exporting="Exporting"
+                                            Exported="Exported"
+                                            Importing="Importing"
+                                            Imported="Imported"/>
                         }
                         else
                         {
-                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinition"/>
+                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinition" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" ActivitySelected="ActivitySelected"/>
                         }
 
                     </MudTabPanel>

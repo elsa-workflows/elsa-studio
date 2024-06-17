@@ -1,4 +1,3 @@
-@using Elsa.Studio.Workflows.UI.Contracts
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
@@ -8,7 +7,7 @@
     <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper @ref="_diagramDesigner" Activity="WorkflowDefinition?.Root" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>
-                <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" CheckedChanged="@OnAutoSaveChanged"/>
+                <MudSwitch T="bool?" Checked="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged"/>
                 <MudTooltip Text="Save" Delay="1000">
                     <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                         <MudIconButton Icon="@Icons.Material.Outlined.Save" Title="Save" OnClick="@OnSaveClick"/>
@@ -16,7 +15,7 @@
                 </MudTooltip>
 
                 <div id="workflow-file-upload-button-wrapper" class="d-none">
-                    <MudFileUpload T="IBrowserFile" FilesChanged="@OnFileSelected"/>
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
                 </div>
 
                 <MudTooltip Text="Publish the current workflow." Delay="1000">

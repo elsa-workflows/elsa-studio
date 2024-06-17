@@ -5,7 +5,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
-using Humanizer;
+using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -19,7 +19,7 @@ namespace Elsa.Studio.Components;
 public partial class ExpressionInput : IDisposable
 {
     private const string DefaultSyntax = "Literal";
-    private readonly string[] _uiSyntaxes = { "Literal", "Object" };
+    private readonly string[] _uiSyntaxes = ["Literal", "Object"];
     private string _selectedExpressionType = DefaultSyntax;
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
@@ -32,7 +32,7 @@ public partial class ExpressionInput : IDisposable
     /// <inheritdoc />
     public ExpressionInput()
     {
-        _throttledValueChanged = Debouncer.Debounce<WrappedInput, Task>(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+        _throttledValueChanged = Debouncer.Debounce<WrappedInput, Task>(InvokeValueChangedCallbackAsync, TimeSpan.FromMilliseconds(500));
     }
 
     /// <summary>
@@ -47,8 +47,10 @@ public partial class ExpressionInput : IDisposable
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
 
+    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = default!;
     [Inject] private IExpressionService ExpressionService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
 
     private IEnumerable<ExpressionDescriptor> BrowseableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
@@ -71,29 +73,29 @@ public partial class ExpressionInput : IDisposable
         var expressionDescriptors = (await ExpressionService.ListDescriptorsAsync())
             .ExceptBy(_uiSyntaxes, x => x.Type)
             .Prepend(defaultDescriptor);
-        
+
         _expressionDescriptors = expressionDescriptors.ToList();
     }
-    
+
     private async Task UpdateMonacoLanguageAsync(string expressionType)
     {
         if (_monacoEditor == null)
             return;
 
         var expressionDescriptor = await ExpressionService.GetByTypeAsync(expressionType);
-        
+
         if (expressionDescriptor == null)
             return;
-        
+
         var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
-        
+
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
 
         var model = await _monacoEditor.GetModel();
         await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
-
 
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
@@ -121,28 +123,28 @@ public partial class ExpressionInput : IDisposable
             Theme = "vs",
             RoundedSelection = true,
             ScrollBeyondLastLine = false,
-            ReadOnly = false,
             OverviewRulerLanes = 0,
             OverviewRulerBorder = false,
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
             GlyphMargin = false,
-            DomReadOnly = EditorContext.IsReadOnly,
+            ReadOnly = EditorContext.IsReadOnly,
+            DomReadOnly = EditorContext.IsReadOnly
         };
     }
 
-    private async Task OnSyntaxSelected(string syntax)
+    private async Task OnSyntaxSelectedAsync(string syntax)
     {
         _selectedExpressionType = syntax;
-        
+
         var value = InputValue;
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
         input.Expression = new Expression(_selectedExpressionType, value);
-        await InvokeValueChangedCallback(input);
+        await InvokeValueChangedCallbackAsync(input);
         await UpdateMonacoLanguageAsync(syntax);
     }
 
-    private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
+    private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
         if (_isInternalContentChange)
             return;
@@ -153,21 +155,21 @@ public partial class ExpressionInput : IDisposable
         // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
         if (value == _lastMonacoEditorContent)
             return;
-        
+
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
         input.Expression = new Expression(_selectedExpressionType, value);
         _lastMonacoEditorContent = value;
-        await ThrottleValueChangedCallback(input);
+        await ThrottleValueChangedCallbackAsync(input);
     }
 
-    private async Task ThrottleValueChangedCallback(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
+    private async Task ThrottleValueChangedCallbackAsync(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
 
-    private async Task InvokeValueChangedCallback(WrappedInput input)
+    private async Task InvokeValueChangedCallbackAsync(WrappedInput input)
     {
         await InvokeAsync(async () => await EditorContext.OnValueChanged(input));
     }
 
-    private async Task OnMonacoInitialized()
+    private async Task OnMonacoInitializedAsync()
     {
         _isInternalContentChange = true;
         var model = await _monacoEditor!.GetModel();
@@ -175,6 +177,15 @@ public partial class ExpressionInput : IDisposable
         await model.SetValue(InputValue);
         _isInternalContentChange = false;
         await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
+    }
+
+    private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
+    {
+        var context = new MonacoContext(editor, EditorContext);
+
+        foreach (var handler in MonacoHandlers)
+            await handler.InitializeAsync(context);
     }
 
     /// <inheritdoc />

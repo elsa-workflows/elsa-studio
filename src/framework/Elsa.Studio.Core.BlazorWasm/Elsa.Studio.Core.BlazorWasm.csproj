@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Blazor WebAssembly impementation for certain abstractions provided by Elsa.Studio.Core.</Description>
-        <PackageTags>elsa studio blazor server</PackageTags>
+        <PackageTags>elsa studio blazor webassembly</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,6 +11,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
+        <ProjectReference Include="..\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
     </ItemGroup>
 
 </Project>

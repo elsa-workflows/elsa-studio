@@ -36,7 +36,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Saves a workflow definition.
     /// </summary>
-    Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
+    Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Deletes a workflow definition.
@@ -51,7 +51,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Publishes a workflow definition.
     /// </summary>
-    Task<WorkflowDefinition> PublishAsync(string definitionId, CancellationToken cancellationToken = default);
+    Task<SaveWorkflowDefinitionResponse> PublishAsync(string definitionId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Retracts a workflow definition.

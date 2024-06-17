@@ -1,6 +1,6 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
-<MudForm ReadOnly="IsReadOnly">
+<MudForm>
     <MudStack Spacing="5">
         <MudField
             Variant="@Variant.Text"
@@ -12,7 +12,9 @@
                 Label="Run Asynchronously"
                 Dense="@true"
                 Checked="@(Activity?.GetRunAsynchronously() == true)"
-                CheckedChanged="OnRunAsynchronouslyChanged"/>
+                CheckedChanged="OnRunAsynchronouslyChanged"
+                ReadOnly="IsReadOnly" Disabled="IsReadOnly"
+                />
         </MudField>
     </MudStack>
 </MudForm>

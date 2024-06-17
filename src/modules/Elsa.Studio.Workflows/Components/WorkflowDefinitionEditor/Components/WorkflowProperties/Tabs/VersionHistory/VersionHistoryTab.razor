@@ -5,7 +5,7 @@
 
     <MudText Typo="Typo.overline">Version history</MudText>
     <MudStack>
-        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft">
+        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft" Disabled="!HasWorkflowEditPermission">
             <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
         </MudMenu>
         <VerticalWell ExtraPadding="160">
@@ -43,8 +43,8 @@
                     <MudTd style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                             <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context))">View</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Undo" OnClick="@(() => OnRollbackClicked(context))">Rollback to this version</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Undo" OnClick="@(() => OnRollbackClicked(context))" Disabled="!HasWorkflowEditPermission">Rollback to this version</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="!HasWorkflowEditPermission">Delete</MudMenuItem>
                         </MudMenu>
                     </MudTd>
                 </RowTemplate>

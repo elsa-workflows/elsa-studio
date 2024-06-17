@@ -11,6 +11,7 @@ public partial class OutcomesSection
     private MudChipField<string> _chipField = default!;
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public bool IsReadonly { get; set; } = default;
     
     private List<string> Outcomes => WorkflowDefinition.Outcomes.ToList();
     

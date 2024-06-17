@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -6,6 +8,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -21,10 +24,10 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
-using Refit;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -35,6 +38,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateJsonSerializerOptions();
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
@@ -61,7 +65,7 @@ public partial class WorkflowEditor
     public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
-    /// Gets or sets a callback that is invoked when the workflow definition is updated.
+    /// Gets or sets a callback invoked when the workflow definition is updated.
     /// </summary>
     [Parameter]
     public Func<Task>? WorkflowDefinitionUpdated { get; set; }
@@ -70,6 +74,65 @@ public partial class WorkflowEditor
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter]
     public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+
+    /// Gets or sets the event triggered when an activity is selected.
+    [Parameter]
+    public EventCallback<JsonObject> ActivitySelected { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being saved.
+    [Parameter]
+    public EventCallback Saving { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been saved.
+    [Parameter]
+    public EventCallback Saved { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to save.
+    [Parameter]
+    public EventCallback<ValidationErrors> SavingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being published.
+    [Parameter]
+    public EventCallback Publishing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been published.
+    [Parameter]
+    public EventCallback Published { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to publish.
+    [Parameter]
+    public EventCallback<ValidationErrors> PublishingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being retracted.
+    [Parameter]
+    public EventCallback Retracting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been retracted.
+    [Parameter]
+    public EventCallback Retracted { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has failed to retract.
+    [Parameter]
+    public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being exported.
+    [Parameter]
+    public EventCallback Exporting { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been exported.
+    [Parameter]
+    public EventCallback Exported { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition is being imported.
+    [Parameter]
+    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
+
+    /// Gets or sets the event triggered when the workflow definition has been imported.
+    [Parameter]
+    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
+
+    /// Gets the selected activity ID.
+    public string? SelectedActivityId { get; private set; }
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
@@ -80,10 +143,10 @@ public partial class WorkflowEditor
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
-    private string? SelectedActivityId { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
@@ -133,7 +196,7 @@ public partial class WorkflowEditor
             await SaveChangesRateLimitedAsync(readDiagram);
     }
 
-    private async Task<Result<WorkflowDefinition, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
+    private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
     {
         var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
 
@@ -176,7 +239,7 @@ public partial class WorkflowEditor
         };
 
         var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.SaveAsync(saveRequest));
-        await result.OnSuccessAsync(async definition => await SetWorkflowDefinitionAsync(definition));
+        await result.OnSuccessAsync(async response => await SetWorkflowDefinitionAsync(response.WorkflowDefinition));
 
         _isDirty = false;
         StateHasChanged();
@@ -184,7 +247,7 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task PublishAsync(Func<Task>? onSuccess = default, Action? onFailure = default)
+    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
@@ -199,19 +262,23 @@ public partial class WorkflowEditor
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId));
+        var result = await InvokeWithBlazorServiceContext(async () =>
+        {
+            await Retracting.InvokeAsync();
+            return await WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId);
+        });
         await result.OnSuccessAsync(async definition =>
         {
             await SetWorkflowDefinitionAsync(definition);
-
-            if (onSuccess != null)
-                await onSuccess();
+            if (onSuccess != null) await onSuccess();
+            await Retracted.InvokeAsync();
         });
 
-        if (onFailure != null)
+        await result.OnFailedAsync(async errors =>
         {
-            await result.OnFailedAsync(async errors => await onFailure(errors));
-        }
+            if (onFailure != null) await onFailure(errors);
+            await RetractingFailed.InvokeAsync(errors);
+        });
     }
 
     private async Task SaveChangesRateLimitedAsync(bool readDiagram)
@@ -219,7 +286,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<Task>? onSuccess = default, Action? onFailure = default)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
         await InvokeAsync(async () =>
         {
@@ -229,21 +296,26 @@ public partial class WorkflowEditor
                 StateHasChanged();
             }
 
-            // Because this method is rate limited, it's possible that the designer has been disposed since the last invocation.
+            // Because this method is rate-limited, it's possible that the designer has been disposed since the last invocation.
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
+                if (publish) await Publishing.InvokeAsync();
+                await Saving.InvokeAsync();
                 var result = await SaveAsync(readDiagram, publish);
-                result.OnSuccess(_ => onSuccess?.Invoke());
-                result.OnFailed(errors =>
+                await result.OnSuccessAsync(async response =>
                 {
-                    if (onFailure != null)
-                    {
-                        onFailure();
-                        return;
-                    }
+                    onSuccess?.Invoke(response);
+                    await Saved.InvokeAsync();
+                    if (publish) await Published.InvokeAsync();
+                });
 
+                await result.OnFailedAsync(async errors =>
+                {
+                    onFailure?.Invoke(errors);
                     Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
+                    await SavingFailed.InvokeAsync(errors);
+                    if (publish) await PublishingFailed.InvokeAsync(errors);
                 });
             }
             finally
@@ -306,10 +378,10 @@ public partial class WorkflowEditor
         _activityPropertiesPaneHeight = (int)visibleHeight - 50;
     }
 
-    private Task OnActivitySelected(JsonObject activity)
+    private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        return Task.CompletedTask;
+        await ActivitySelected.InvokeAsync(activity);
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -321,7 +393,7 @@ public partial class WorkflowEditor
 
     private async Task OnSaveClick()
     {
-        await SaveChangesAsync(true, true, false, () =>
+        await SaveChangesAsync(true, true, false, _ =>
         {
             Snackbar.Add("Workflow saved", Severity.Success);
             return Task.CompletedTask;
@@ -330,9 +402,9 @@ public partial class WorkflowEditor
 
     private async Task OnPublishClicked()
     {
-        await ProgressAsync(async () => await PublishAsync(async () =>
+        await ProgressAsync(async () => await PublishAsync(async response =>
         {
-            // Depending on whether or not the workflow contains Not Found activities, display a different message.
+            // Depending on whether the workflow contains Not Found activities, display a different message.
             var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
             var nodes = graph.Flatten();
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
@@ -342,24 +414,24 @@ public partial class WorkflowEditor
             else
                 Snackbar.Add("Workflow published", Severity.Success);
 
-            if (!ShouldUpdateReferences())
-                return;
-
-            var affectedWorkflows = await ProgressAsync(UpdateReferencesAsync);
-            Snackbar.Add($"{affectedWorkflows} consuming workflow(s) updated", Severity.Success);
+            if (response.ConsumingWorkflowCount > 0)
+            {
+                Snackbar.Add($"{response.ConsumingWorkflowCount} consuming workflow(s) updated", Severity.Success, options => options.VisibleStateDuration = 3000);
+            }
         }));
     }
 
     private async Task OnRetractClicked()
     {
-        await ProgressAsync(async () => await RetractAsync(() =>
+        await Retracting.InvokeAsync();
+        await ProgressAsync(async () => await RetractAsync(async () =>
         {
             Snackbar.Add("Workflow unpublished", Severity.Success);
-            return Task.CompletedTask;
-        }, errors =>
+            await Retracted.InvokeAsync();
+        }, async errors =>
         {
-            Snackbar.Add(string.Join(Environment.NewLine, errors.Errors, Severity.Error));
-            return Task.CompletedTask;
+            Snackbar.Add(string.Join(Environment.NewLine, errors, Severity.Error));
+            await RetractingFailed.InvokeAsync(errors);
         }));
     }
 
@@ -381,9 +453,11 @@ public partial class WorkflowEditor
 
     private async Task OnDownloadClicked()
     {
+        await Exporting.InvokeAsync();
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
         var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await Exported.InvokeAsync();
     }
 
     private async Task OnUploadClicked()
@@ -391,32 +465,122 @@ public partial class WorkflowEditor
         await DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
     }
 
-    private async Task OnFileSelected(IBrowserFile file)
+    private async Task OnFilesSelected(IReadOnlyList<IBrowserFile>? files)
     {
-        using var reader = new StreamReader(file.OpenReadStream());
+        if (files == null || files.Count == 0)
+            return;
+
+        // Allow application host to handle additional file types.
+        await Importing.InvokeAsync(files);
+        await InvokeWithBlazorServiceContext(() => ImportFilesAsync(files));
+        await Imported.InvokeAsync(files);
+        _isDirty = false;
+
+        StateHasChanged();
+    }
+
+    private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        IBrowserFile? importedFile = null;
+
+        foreach (var file in files)
+        {
+            var stream = file.OpenReadStream();
+
+            if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
+            {
+                var success = await ImportZipFileAsync(stream);
+                if (success)
+                {
+                    importedFile = file;
+                    break;
+                }
+            }
+
+            else if (file.ContentType == MediaTypeNames.Application.Json || file.Name.EndsWith(".json"))
+            {
+                var success = await ImportFromStreamAsync(stream);
+                if (success)
+                {
+                    importedFile = file;
+                    break;
+                }
+            }
+        }
+
+        if (importedFile != null)
+            Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+    }
+
+    private async Task<bool> ImportZipFileAsync(Stream stream)
+    {
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        var zipArchive = new ZipArchive(memoryStream);
+
+        foreach (var entry in zipArchive.Entries)
+        {
+            if (entry.FullName.EndsWith(".json"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportFromStreamAsync(entryStream);
+
+                if (success)
+                    return true;
+            }
+            else if (entry.FullName.EndsWith(".zip"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportZipFileAsync(entryStream);
+
+                if (success)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<bool> ImportFromStreamAsync(Stream stream)
+    {
+        using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
 
-        JsonSerializerOptions serializerOptions = new()
+        try
+        {
+            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
+
+            // Check if this is a workflow definition file.
+            if (model.DefinitionId == null!)
+                return false;
+
+            // Overwrite the definition ID with the one currently loaded.
+            // This will ensure that the imported definition will be saved as a new version of the current definition. 
+            model.DefinitionId = WorkflowDefinition!.DefinitionId;
+
+            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+            await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
+            await SetWorkflowDefinitionAsync(workflowDefinition);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Failed to import workflow definition: {e.Message}", Severity.Error);
+        }
+
+        return true;
+    }
+
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
+    {
+        JsonSerializerOptions options = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-        serializerOptions.Converters.Add(new JsonStringEnumConverter());
-        serializerOptions.Converters.Add(new VersionOptionsJsonConverter());
-
-        var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, serializerOptions)!;
-
-        // Overwrite the definition ID with the one currently loaded.
-        // This will ensure that the imported definition will be saved as a new version of the current definition. 
-        model.DefinitionId = WorkflowDefinition!.DefinitionId;
-
-        var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
-        await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
-        await SetWorkflowDefinitionAsync(workflowDefinition);
-
-        _isDirty = false;
-
-        StateHasChanged();
+        options.Converters.Add(new JsonStringEnumConverter());
+        options.Converters.Add(new VersionOptionsJsonConverter());
+        return options;
     }
 
     private async Task OnRunWorkflowClicked()
@@ -437,7 +601,7 @@ public partial class WorkflowEditor
         var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
 
         if (workflowDefinitionExecuted.HasDelegate)
-            await this.WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+            await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }

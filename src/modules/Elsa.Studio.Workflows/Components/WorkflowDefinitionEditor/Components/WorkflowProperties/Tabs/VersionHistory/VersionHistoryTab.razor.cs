@@ -1,6 +1,6 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -20,6 +20,8 @@ public partial class VersionHistoryTab : IDisposable
     [Inject] private IDialogService DialogService { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
+    private bool HasWorkflowEditPermission => Workspace?.HasWorkflowEditPermission ?? false;
 
     /// <inheritdoc />
     protected override void OnInitialized()

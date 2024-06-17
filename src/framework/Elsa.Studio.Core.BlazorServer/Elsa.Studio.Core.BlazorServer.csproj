@@ -7,11 +7,12 @@
     
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage"/>
-        <PackageReference Include="Microsoft.AspNetCore.App"/>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
+        <ProjectReference Include="..\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
     </ItemGroup>
 
 </Project>

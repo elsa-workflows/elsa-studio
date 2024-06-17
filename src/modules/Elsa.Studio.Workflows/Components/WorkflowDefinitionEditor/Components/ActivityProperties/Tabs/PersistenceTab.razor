@@ -1,0 +1,71 @@
+﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
+@using Variant = MudBlazor.Variant
+@inherits StudioComponentBase
+
+
+@{
+    
+    RenderFragment GetSelectComponent(String propertyName, IDictionary<string, LogPersistenceMode> properties) =>
+@<MudSelect Label="@propertyName"
+                T="LogPersistenceMode"
+                    Variant="@MudBlazor.Variant.Outlined"
+                    Value="@GetProperty(propertyName,properties)"
+                    ValueChanged="@((value) => SetProperty(propertyName,properties,value))"
+                    ToStringFunc="@(x=> x.ToString())"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"
+                    SelectedValuesChanged="(values)=>OnBindingChanged()">
+        @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
+                {
+                    <MudSelectItem Value="@item"></MudSelectItem>
+                }
+    </MudSelect>
+        ;
+       
+}
+<div class="pa-4">
+    <MudForm ReadOnly="IsReadOnly">
+        <MudStack Spacing="6">
+            <MudText Typo="Typo.overline">Default configuration</MudText>
+            <MudSelect Label="Default Configuration"
+                       T=LogPersistenceMode
+                       Variant="@MudBlazor.Variant.Outlined"
+                       Value="@_persistenceConfiguration.Default"
+                       ValueChanged="@(async (bindingOption) => _persistenceConfiguration.Default = bindingOption)"
+                       ToStringFunc="@(x=> x.ToString())"
+                       ReadOnly="IsReadOnly" Disabled="IsReadOnly"
+                       SelectedValuesChanged="(values)=>OnBindingChanged()">
+                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
+                {
+                    <MudSelectItem Value="@item"></MudSelectItem>
+                }
+
+            </MudSelect>
+            <MudDivider />
+            <MudText Typo="Typo.overline">Input Properties</MudText>
+            @if(!InputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                </Well>
+            }
+            @foreach(var input in InputDescriptors)
+            {   
+                @GetSelectComponent(input.Name, _persistenceConfiguration.Inputs);
+            }
+
+            <MudDivider />
+            <MudText Typo="Typo.overline">Output Properties</MudText>
+            @if (!OutputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                </Well>
+            }
+            @foreach (var output in OutputDescriptors)
+            {
+                @GetSelectComponent(output.Name, _persistenceConfiguration.Outputs);
+            }
+        </MudStack>
+    </MudForm>
+ </div>
