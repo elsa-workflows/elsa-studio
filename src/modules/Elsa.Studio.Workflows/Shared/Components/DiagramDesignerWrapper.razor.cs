@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -31,7 +32,7 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     [Parameter]
     public JsonObject Activity { get; set; } = default!;
-    
+
     /// <summary>
     /// The subgraph to display.
     /// </summary>
@@ -87,6 +88,7 @@ public partial class DiagramDesignerWrapper
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
@@ -328,7 +330,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (IsReadOnly)
+        if (!IsReadOnly)
             return;
 
         // If the activity is a workflow definition activity, then open the workflow definition editor.
@@ -348,6 +350,20 @@ public partial class DiagramDesignerWrapper
         var portProviderContext = new PortProviderContext(activityDescriptor, activity);
         var portProvider = ActivityPortService.GetProvider(portProviderContext);
         var embeddedActivity = portProvider.ResolvePort(portName, portProviderContext);
+
+        if (embeddedActivity == null)
+        {
+            // Lazy load?
+            if (activityDescriptor.CustomProperties.TryGetValue("WorkflowDefinitionVersionId", out var workflowDefinitionVersionIdValue))
+            {
+                await InvokeWithBlazorServiceContext(async () =>
+                {
+                    var workflowDefinitionVersionId = ((JsonElement)workflowDefinitionVersionIdValue).GetString()!;
+                    var workflowDefinition = await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionVersionId);
+                    embeddedActivity = workflowDefinition;
+                });
+            }
+        }
 
         if (embeddedActivity != null)
         {
