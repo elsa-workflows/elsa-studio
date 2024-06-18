@@ -1,6 +1,7 @@
 @using System.Text.Json.Nodes
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Studio.Workflows.Domain.Models
+@using Microsoft.AspNetCore.Components.Forms
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
@@ -88,11 +89,11 @@
 
     /// Gets or sets the event triggered when the workflow definition is being imported.
     [Parameter]
-    public EventCallback Importing { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
     [Parameter]
-    public EventCallback Imported { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
 
     /// Gets the currently selected activity ID.
     public string? SelectedActivityId => WorkflowDefinitionEditor.SelectedActivityId;

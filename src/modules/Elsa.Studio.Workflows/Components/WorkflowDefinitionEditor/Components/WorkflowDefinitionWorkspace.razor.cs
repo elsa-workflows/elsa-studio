@@ -5,6 +5,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -91,11 +92,11 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// Gets or sets the event triggered when the workflow definition is being imported.
     [Parameter]
-    public EventCallback Importing { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
     [Parameter]
-    public EventCallback Imported { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
 
     /// <summary>
     /// An event that is invoked when the workflow definition is updated.
