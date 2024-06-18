@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -6,7 +7,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 public class FallbackDesignerProvider : IDiagramDesignerProvider
 {
     public double Priority => -1000;
-    public bool GetSupportsActivity(JsonObject activity) => true;
+    public bool GetSupportsActivity(JsonObject activity, WorkflowSubgraph workflowSubgraph) => true;
 
     public IDiagramDesigner GetEditor() => new FallbackDiagramDesigner();
 }

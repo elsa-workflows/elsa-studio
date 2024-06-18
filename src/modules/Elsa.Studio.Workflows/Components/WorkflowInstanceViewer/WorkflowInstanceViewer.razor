@@ -8,9 +8,9 @@
     <RadzenSplitterPane Size="80%">
         <WorkflowInstanceWorkspace 
             @ref="_workspace" 
-            WorkflowInstances="@_workflowInstances" 
-            WorkflowDefinitions="_workflowDefinitions" 
-            SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged" 
+            WorkflowInstance="@_workflowInstance" 
+            WorkflowDefinition="@_workflowDefinition"
+            WorkflowSubgraph="@_workflowSubgraph"
             PathChanged="OnDesignerPathChanged" 
             ActivitySelected="OnActivitySelected"
             SelectedWorkflowExecutionLogRecord="SelectedJournalEntry"

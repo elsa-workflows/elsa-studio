@@ -34,6 +34,11 @@ public interface IWorkflowDefinitionService
     Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Finds a workflow subgraph by workflow definition ID.
+    /// </summary>
+    Task<WorkflowSubgraph?> FindSubgraphAsync(string id, CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Saves a workflow definition.
     /// </summary>
     Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);

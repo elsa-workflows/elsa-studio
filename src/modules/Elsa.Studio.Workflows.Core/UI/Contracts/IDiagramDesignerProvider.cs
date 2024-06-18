@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
 
@@ -8,6 +9,6 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 public interface IDiagramDesignerProvider
 {
     double Priority { get; }
-    bool GetSupportsActivity(JsonObject activity);
+    bool GetSupportsActivity(JsonObject activity, WorkflowSubgraph workflowSubgraph);
     IDiagramDesigner GetEditor();
 }

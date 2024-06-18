@@ -16,9 +16,10 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 /// </summary>
 public partial class WorkflowInstanceViewer
 {
-    private IList<WorkflowInstance> _workflowInstances = new List<WorkflowInstance>();
-    private IList<WorkflowDefinition> _workflowDefinitions = new List<WorkflowDefinition>();
+    private WorkflowInstance _workflowInstance = default!;
+    private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
+    private WorkflowSubgraph _workflowSubgraph = default!;
 
     /// <summary>
     /// The ID of the workflow instance to view.
@@ -42,16 +43,17 @@ public partial class WorkflowInstanceViewer
     {
         var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
         var workflowDefinition = await WorkflowDefinitionService.FindByIdAsync(instance.DefinitionVersionId);
-        _workflowInstances = new List<WorkflowInstance> { instance };
-        _workflowDefinitions = [workflowDefinition!];
+        var subgraph = await WorkflowDefinitionService.FindSubgraphAsync(instance.DefinitionVersionId);
+        _workflowInstance = instance;
+        _workflowDefinition = workflowDefinition!;
+        _workflowSubgraph = subgraph!;
         await SelectWorkflowInstanceAsync(instance);
     }
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
     {
         // Select activity IDs that are direct children of the root.
-        var definition = _workflowDefinitions.First(x => x.Id == instance.DefinitionVersionId);
-        var activityIds = definition.Root.GetActivities().Select(x => x.GetId()).ToList();
+        var activityIds = _workflowDefinition.Root.GetActivities().Select(x => x.GetId()).ToList();
         var filter = new JournalFilter
         {
             ActivityIds = activityIds
@@ -71,8 +73,7 @@ public partial class WorkflowInstanceViewer
         {
             ActivityIds = activityIds
         };
-        var instance = _workflowInstances.First();
-        await Journal.SetWorkflowInstanceAsync(instance, filter);
+        await Journal.SetWorkflowInstanceAsync(_workflowInstance, filter);
     }
 
     private Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)

@@ -1,11 +1,7 @@
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
-using Elsa.Studio.Workflows.Designer;
-using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
@@ -35,6 +31,12 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     [Parameter]
     public JsonObject Activity { get; set; } = default!;
+    
+    /// <summary>
+    /// The subgraph to display.
+    /// </summary>
+    [Parameter]
+    public WorkflowSubgraph WorkflowSubgraph { get; set; } = default!;
 
     /// <summary>
     /// Whether the designer is read-only.
@@ -76,7 +78,7 @@ public partial class DiagramDesignerWrapper
     /// An event raised when the path changes.
     /// </summary>
     [Parameter]
-    public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -207,7 +209,7 @@ public partial class DiagramDesignerWrapper
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
+        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity, WorkflowSubgraph);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
     }
 
@@ -220,7 +222,7 @@ public partial class DiagramDesignerWrapper
     private JsonObject GetCurrentContainerActivity()
     {
         var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.EmbeddedActivity ?? Activity;
+        return resolvedPath?.EmbeddedActivity ?? Activity ?? throw new Exception("No container activity found");
     }
 
     private IEnumerable<GraphSegment> ResolvePath()
@@ -276,8 +278,8 @@ public partial class DiagramDesignerWrapper
             });
         }
 
-        if (PathChanged != null)
-            await PathChanged(new DesignerPathChangedArgs(currentContainerActivity, currentActivity));
+        if (PathChanged.HasDelegate)
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity, currentActivity));
 
         StateHasChanged();
     }
@@ -326,7 +328,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (!IsReadOnly)
+        if (IsReadOnly)
             return;
 
         // If the activity is a workflow definition activity, then open the workflow definition editor.

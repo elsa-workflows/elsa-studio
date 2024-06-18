@@ -65,6 +65,13 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
+    public async Task<WorkflowSubgraph?> FindSubgraphAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetSubgraphAsync(id, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
