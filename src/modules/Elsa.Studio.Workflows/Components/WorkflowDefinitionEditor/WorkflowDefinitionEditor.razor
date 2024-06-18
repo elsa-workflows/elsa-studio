@@ -106,11 +106,11 @@
 
     /// Gets or sets the event triggered when the workflow definition is being imported.
     [Parameter]
-    public EventCallback Importing { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
     [Parameter]
-    public EventCallback Imported { get; set; }
+    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
 
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionWorkspace.GetSelectedWorkflowDefinitionVersion();
