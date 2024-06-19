@@ -11,5 +11,5 @@ public interface IDiagramDesignerService
     /// <summary>
     /// Gets the diagram designer for the specified activity.
     /// </summary>
-    IDiagramDesigner GetDiagramDesigner(JsonObject activity, WorkflowSubgraph workflowSubgraph);
+    IDiagramDesigner GetDiagramDesigner(JsonObject activity);
 }

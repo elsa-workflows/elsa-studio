@@ -3,9 +3,9 @@
 @inherits StudioComponentBase
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
-        @if (WorkflowDefinition != null && WorkflowSubgraph != null && WorkflowInstance != null!)
+        @if (WorkflowDefinition != null && WorkflowInstance != null!)
         {
-            <DiagramDesignerWrapper @ref="_designer" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged">
+            <DiagramDesignerWrapper @ref="_designer" WorkflowDefinitionVersionId="@WorkflowDefinition.Id" Activity="WorkflowDefinition.Root" ActivitySelected="OnActivitySelected" IsReadOnly="true" WorkflowInstanceId="@WorkflowInstance.Id" PathChanged="PathChanged">
                 <CustomToolbarItems>
                     <MudTooltip Text="Edit Workflow Definition">
                         <MudIconButton

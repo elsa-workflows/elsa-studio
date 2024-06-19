@@ -16,7 +16,7 @@ public class FlowchartDiagramDesignerProvider : IDiagramDesignerProvider
     public double Priority => 0;
 
     /// <inheritdoc />
-    public bool GetSupportsActivity(JsonObject activity, WorkflowSubgraph workflowSubgraph) => activity.GetTypeName() == "Elsa.Flowchart";
+    public bool GetSupportsActivity(JsonObject activity) => activity.GetTypeName() == "Elsa.Flowchart";
 
     /// <inheritdoc />
     public IDiagramDesigner GetEditor() => new FlowchartDiagramDesigner();

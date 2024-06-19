@@ -25,11 +25,6 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     /// Gets or sets the workflow definition of the workflow instance to view.
     /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
-    /// <summary>
-    /// Gets or sets the workflow subgraph.
-    /// </summary>
-    [Parameter] public WorkflowSubgraph? WorkflowSubgraph { get; set; }
 
     /// <summary>
     /// Gets or sets the selected workflow execution log record.

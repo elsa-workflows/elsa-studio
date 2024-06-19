@@ -19,11 +19,11 @@ public class DefaultDiagramDesignerService : IDiagramDesignerService
     }
 
     /// <inheritdoc />
-    public IDiagramDesigner GetDiagramDesigner(JsonObject activity, WorkflowSubgraph workflowSubgraph)
+    public IDiagramDesigner GetDiagramDesigner(JsonObject activity)
     {
         var provider = _providers
             .OrderByDescending(x => x.Priority)
-            .FirstOrDefault(x => x.GetSupportsActivity(activity, workflowSubgraph)) ?? throw new Exception($"No diagram editor provider found for activity {activity.GetTypeName()}.");
+            .FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.GetTypeName()}.");
         return provider.GetEditor();
     }
 }

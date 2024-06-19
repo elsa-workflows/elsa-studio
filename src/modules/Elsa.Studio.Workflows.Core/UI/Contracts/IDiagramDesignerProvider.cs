@@ -9,6 +9,6 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 public interface IDiagramDesignerProvider
 {
     double Priority { get; }
-    bool GetSupportsActivity(JsonObject activity, WorkflowSubgraph workflowSubgraph);
+    bool GetSupportsActivity(JsonObject activity);
     IDiagramDesigner GetEditor();
 }

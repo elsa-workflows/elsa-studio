@@ -19,7 +19,6 @@ public partial class WorkflowInstanceViewer
     private WorkflowInstance _workflowInstance = default!;
     private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
-    private WorkflowSubgraph _workflowSubgraph = default!;
 
     /// <summary>
     /// The ID of the workflow instance to view.
@@ -43,10 +42,8 @@ public partial class WorkflowInstanceViewer
     {
         var instance = await WorkflowInstanceService.GetAsync(InstanceId) ?? throw new InvalidOperationException($"Workflow instance with ID {InstanceId} not found.");
         var workflowDefinition = await WorkflowDefinitionService.FindByIdAsync(instance.DefinitionVersionId);
-        var subgraph = await WorkflowDefinitionService.FindSubgraphAsync(instance.DefinitionVersionId);
         _workflowInstance = instance;
         _workflowDefinition = workflowDefinition!;
-        _workflowSubgraph = subgraph!;
         await SelectWorkflowInstanceAsync(instance);
     }
 

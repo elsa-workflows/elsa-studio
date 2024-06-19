@@ -7,7 +7,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 public class FallbackDesignerProvider : IDiagramDesignerProvider
 {
     public double Priority => -1000;
-    public bool GetSupportsActivity(JsonObject activity, WorkflowSubgraph workflowSubgraph) => true;
+    public bool GetSupportsActivity(JsonObject activity) => true;
 
     public IDiagramDesigner GetEditor() => new FallbackDiagramDesigner();
 }

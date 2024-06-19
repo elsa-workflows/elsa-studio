@@ -36,7 +36,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Finds a workflow subgraph by workflow definition ID.
     /// </summary>
-    Task<WorkflowSubgraph?> FindSubgraphAsync(string id, CancellationToken cancellationToken = default);
+    Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Saves a workflow definition.

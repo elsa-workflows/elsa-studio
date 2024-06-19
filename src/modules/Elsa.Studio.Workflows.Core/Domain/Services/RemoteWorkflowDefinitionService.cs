@@ -65,10 +65,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowSubgraph?> FindSubgraphAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetSubgraphAsync(id, cancellationToken);
+        return await api.GetSubgraphAsync(id, parentNodeId, cancellationToken);
     }
 
     /// <inheritdoc />

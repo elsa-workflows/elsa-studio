@@ -47,6 +47,7 @@ public static class ActivityVisitorExtensions
     {
         var workflowActivity = new JsonObject();
         workflowActivity.SetId("Workflow1");
+        workflowActivity.SetNodeId("Workflow1");
         workflowActivity.SetTypeName("Elsa.Workflow");
         workflowActivity.SetVersion(1);
         workflowActivity.SetName(workflowDefinition.Name);

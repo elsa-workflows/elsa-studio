@@ -52,12 +52,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
-    /// The current sub graph to display.
-    /// </summary>
-    [Parameter]
-    public WorkflowSubgraph? WorkflowSubgraph { get; set; }
-
-    /// <summary>
     /// The selected workflow execution log record.
     /// </summary>
     [Parameter]

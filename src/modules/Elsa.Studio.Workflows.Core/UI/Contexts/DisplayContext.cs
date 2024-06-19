@@ -9,7 +9,6 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 /// Represents a context for displaying an activity.
 /// </summary>
 /// <param name="Activity">The activity to display.</param>
-/// <param name="WorkflowSubgraph">The subgraph to display.</param>
 /// <param name="ActivitySelectedCallback">A callback that is invoked when an activity is selected.</param>
 /// <param name="ActivityEmbeddedPortSelectedCallback">A callback that is invoked when an embedded port is selected.</param>
 /// <param name="GraphUpdatedCallback">A callback that is invoked when the graph is updated.</param>
@@ -17,7 +16,6 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 /// <param name="ActivityStats">A map of activity stats.</param>
 public record DisplayContext(
     JsonObject Activity, 
-    WorkflowSubgraph WorkflowSubgraph,
     Func<JsonObject, Task>? ActivitySelectedCallback = default,
     Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelectedCallback = default,
     Func<JsonObject, Task>? ActivityDoubleClickCallback = default,
