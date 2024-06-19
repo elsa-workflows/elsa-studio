@@ -83,7 +83,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "samples\Blazo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{F4B408E1-5169-4FA9-B2D7-2377634C4DEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Api.Client", "..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj", "{26ECE061-0F39-4945-8356-EF14E67A8F39}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Api.Client", "..\..\elsa-core\perf-5350\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj", "{26ECE061-0F39-4945-8356-EF14E67A8F39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
