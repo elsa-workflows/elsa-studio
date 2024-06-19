@@ -3,6 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -30,7 +31,7 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     [Parameter]
     public string WorkflowDefinitionVersionId { get; set; } = default!;
-    
+
     /// <summary>
     /// The diagram activity to display.
     /// </summary>
@@ -218,8 +219,9 @@ public partial class DiagramDesignerWrapper
 
     private JsonObject GetCurrentContainerActivity()
     {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.EmbeddedActivity ?? Activity ?? throw new Exception("No container activity found");
+        var path = ResolvePath().ToList();
+        var segment = path.LastOrDefault();
+        return segment?.EmbeddedActivity ?? Activity ?? throw new Exception("No container activity found");
     }
 
     private IEnumerable<GraphSegment> ResolvePath()
@@ -355,8 +357,9 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
+        var nodes = (await ActivityVisitor.VisitAsync(Activity)).Flatten().ToList();
         var selectedActivity = args.Activity;
-        var activity = Activity.GetActivities().First(x => x.GetNodeId() == selectedActivity.GetNodeId());
+        var activity = nodes.First(x => x.NodeId == selectedActivity.GetNodeId()).Activity;
         var portName = args.PortName;
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
@@ -378,8 +381,8 @@ public partial class DiagramDesignerWrapper
                     if (subGraph != null)
                     {
                         subGraph = subGraph.Children.FirstOrDefault(x => x.Port == portName);
-                        
-                        if(subGraph != null)
+
+                        if (subGraph != null)
                         {
                             StitchNodesRecursive(subGraph);
                             embeddedActivity = subGraph.Activity;
