@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 
 namespace Elsa.Studio.Workflows.UI.Contracts;
 

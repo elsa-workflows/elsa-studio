@@ -51,8 +51,6 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     /// <inheritdoc />
     public bool HasWorkflowEditPermission => true;
 
-    public int ActiveTabIndex { get; set; }
-
     private async Task OnPathChanged(DesignerPathChangedArgs args)
     {
         await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.CurrentActivity);
@@ -60,10 +58,5 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
         
         if(PathChanged.HasDelegate)
             await PathChanged.InvokeAsync(args);
-    }
-
-    private void OnActivePanelIndexChanged()
-    {
-        
     }
 }
