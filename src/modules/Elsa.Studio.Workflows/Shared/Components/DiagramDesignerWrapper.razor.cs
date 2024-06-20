@@ -336,6 +336,7 @@ public partial class DiagramDesignerWrapper
         }
     }
 
+    // Stitching is the act of converting a graph model of nodes to a structured model where child activities are properties of parent properties.
     private void StitchNodesRecursive(ActivityNode activityNode)
     {
         var currentNode = activityNode;
@@ -344,14 +345,13 @@ public partial class DiagramDesignerWrapper
         foreach (var grouping in groupedChildren)
         {
             var portName = grouping.Key.Camelize();
-            currentNode.Activity[portName] = grouping.Count() > 1 || portName == "activities"
+            var isCollection = grouping.Count() > 1 || portName == "activities";
+            currentNode.Activity[portName] = isCollection
                 ? new JsonArray(grouping.Select(x => (JsonNode)x.Activity).ToArray())
                 : grouping.First().Activity;
 
-            foreach (var childNode in grouping.ToList())
-            {
+            foreach (var childNode in grouping.ToList()) 
                 StitchNodesRecursive(childNode);
-            }
         }
     }
 
