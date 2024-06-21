@@ -336,7 +336,7 @@ public partial class DiagramDesignerWrapper
         }
     }
 
-    // Stitching is the act of converting a graph model of nodes to a structured model where child activities are properties of parent properties.
+    // Stitching is the act of converting a graph model of nodes to a structured model where child activities are properties of their parent activity.
     // An example:
 
     // Source model (the graph):                          Target model:
