@@ -392,10 +392,8 @@ public partial class DiagramDesignerWrapper
                 await InvokeWithBlazorServiceContext(async () =>
                 {
                     var parentNodeId = activity.GetNodeId();
-                    var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId);
-                    if (selectedActivityGraph == null) throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
-                    var selectedPortGraph = selectedActivityGraph.Children.FirstOrDefault(x => x.Port == portName);
-                    if (selectedPortGraph == null) throw new InvalidOperationException($"Could not find selected activity graph for {portName}");
+                    var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
+                    var selectedPortGraph = selectedActivityGraph.Children.FirstOrDefault(x => x.Port == portName) ?? throw new InvalidOperationException($"Could not find selected activity graph for {portName}");
 
                     StitchNodesRecursive(selectedPortGraph);
                     embeddedActivity = selectedPortGraph.Activity;
