@@ -30,4 +30,11 @@ public interface IActivityRegistry
     /// <param name="version">The activity version.</param>
     /// <returns>The activity descriptor.</returns>
     ActivityDescriptor? Find(string activityType, int? version = default);
+
+    /// <summary>
+    /// Finds all activity descriptor versions by type.
+    /// </summary>
+    /// <param name="activityType"></param>
+    /// <returns></returns>
+    IEnumerable<ActivityDescriptor> FindAll(string activityType);
 }
