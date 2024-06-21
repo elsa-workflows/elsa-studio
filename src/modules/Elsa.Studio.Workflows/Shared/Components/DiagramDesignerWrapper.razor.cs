@@ -29,56 +29,47 @@ public partial class DiagramDesignerWrapper
     /// <summary>
     /// The workflow definition version ID.
     /// </summary>
-    [Parameter]
-    public string WorkflowDefinitionVersionId { get; set; } = default!;
+    [Parameter] public string WorkflowDefinitionVersionId { get; set; } = default!;
 
     /// <summary>
     /// The diagram activity to display.
     /// </summary>
-    [Parameter]
-    public JsonObject Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
 
     /// <summary>
     /// Whether the designer is read-only.
     /// </summary>
-    [Parameter]
-    public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 
     /// <summary>
     /// The workflow instance ID, if any.
     /// </summary>
-    [Parameter]
-    public string? WorkflowInstanceId { get; set; }
+    [Parameter] public string? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// A custom toolbar to display.
     /// </summary>
-    [Parameter]
-    public RenderFragment? CustomToolbarItems { get; set; }
+    [Parameter] public RenderFragment? CustomToolbarItems { get; set; }
 
     /// <summary>
     /// Whether the designer is progressing.
     /// </summary>
-    [Parameter]
-    public bool IsProgressing { get; set; }
+    [Parameter] public bool IsProgressing { get; set; }
 
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
-    [Parameter]
-    public Func<Task>? GraphUpdated { get; set; }
+    [Parameter] public Func<Task>? GraphUpdated { get; set; }
 
     /// <summary>
     /// An event raised when the path changes.
     /// </summary>
-    [Parameter]
-    public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
+    [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -88,6 +79,7 @@ public partial class DiagramDesignerWrapper
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
@@ -129,9 +121,9 @@ public partial class DiagramDesignerWrapper
             if (owningActivityNode == null || !owningActivityNode.Parents.Any())
                 break;
 
-            var propName = flowchart!.Port!.Pascalize();
+            var portName = flowchart!.Port!.Pascalize();
             path.Add(new ActivityPathSegment(owningActivityNode.Activity.GetId(),
-                owningActivityNode.Activity.GetTypeName(), propName));
+                owningActivityNode.Activity.GetTypeName(), portName));
 
             embeddedActivityNode = owningActivityNode;
         }
@@ -374,7 +366,7 @@ public partial class DiagramDesignerWrapper
                 ? new JsonArray(grouping.Select(x => (JsonNode)x.Activity).ToArray())
                 : grouping.First().Activity;
 
-            foreach (var childNode in grouping.ToList()) 
+            foreach (var childNode in grouping.ToList())
                 StitchNodesRecursive(childNode);
         }
     }
@@ -400,18 +392,13 @@ public partial class DiagramDesignerWrapper
                 await InvokeWithBlazorServiceContext(async () =>
                 {
                     var parentNodeId = activity.GetNodeId();
-                    var subGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId);
+                    var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId);
+                    if (selectedActivityGraph == null) throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
+                    var selectedPortGraph = selectedActivityGraph.Children.FirstOrDefault(x => x.Port == portName);
+                    if (selectedPortGraph == null) throw new InvalidOperationException($"Could not find selected activity graph for {portName}");
 
-                    if (subGraph != null)
-                    {
-                        subGraph = subGraph.Children.FirstOrDefault(x => x.Port == portName);
-
-                        if (subGraph != null)
-                        {
-                            StitchNodesRecursive(subGraph);
-                            embeddedActivity = subGraph.Activity;
-                        }
-                    }
+                    StitchNodesRecursive(selectedActivityGraph);
+                    embeddedActivity = selectedActivityGraph.Activity;
 
                     if (embeddedActivity != null)
                         portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
