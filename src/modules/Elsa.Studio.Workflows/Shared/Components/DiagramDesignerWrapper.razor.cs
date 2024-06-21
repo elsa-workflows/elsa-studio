@@ -337,6 +337,30 @@ public partial class DiagramDesignerWrapper
     }
 
     // Stitching is the act of converting a graph model of nodes to a structured model where child activities are properties of parent properties.
+    // An example:
+
+    // Source model (the graph):                          Target model:
+    // {                                                   {
+    //   "activity": {                                        "type": "Elsa.If",
+    //     "type": "Elsa.If"                                  "then": {
+    //   },                                                     "type": "Elsa.WriteLine",
+    //   "children": [                                           "text": "Foo"
+    //     {                                                   },
+    //       "port": "then",                                   "else": {
+    //       "activity": {                                       "type": "Elsa.WriteLine",
+    //         "type": "Elsa.WriteLine",                         "text": "Bar"
+    //         "text": "Foo"                                   }
+    //       }                                             }
+    //     }, 
+    //     { 
+    //       "port": "else", 
+    //       "activity": { 
+    //         "type": "Elsa.WriteLine", 
+    //         "text": "Bar" 
+    //       } 
+    //     } 
+    //   ] 
+    // }
     private void StitchNodesRecursive(ActivityNode activityNode)
     {
         var currentNode = activityNode;
