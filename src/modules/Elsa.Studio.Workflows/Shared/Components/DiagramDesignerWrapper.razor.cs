@@ -397,8 +397,8 @@ public partial class DiagramDesignerWrapper
                     var selectedPortGraph = selectedActivityGraph.Children.FirstOrDefault(x => x.Port == portName);
                     if (selectedPortGraph == null) throw new InvalidOperationException($"Could not find selected activity graph for {portName}");
 
-                    StitchNodesRecursive(selectedActivityGraph);
-                    embeddedActivity = selectedActivityGraph.Activity;
+                    StitchNodesRecursive(selectedPortGraph);
+                    embeddedActivity = selectedPortGraph.Activity;
 
                     if (embeddedActivity != null)
                         portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
