@@ -10,7 +10,7 @@ public partial class OutcomesSection
 {
     private MudChipField<string> _chipField = default!;
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
     [Parameter] public bool IsReadonly { get; set; } = default;
 
     private List<string> Outcomes => WorkflowDefinition.Outcomes.ToList();
@@ -18,8 +18,8 @@ public partial class OutcomesSection
     private async Task OnValuesChanges(List<string> values)
     {
         WorkflowDefinition.Outcomes = values;
-        if (OnWorkflowDefinitionUpdated.HasDelegate)
-            await OnWorkflowDefinitionUpdated.InvokeAsync();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private void OnKeyDown(KeyboardEventArgs arg)

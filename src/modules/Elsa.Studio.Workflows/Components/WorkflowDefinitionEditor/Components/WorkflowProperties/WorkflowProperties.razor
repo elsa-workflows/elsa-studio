@@ -7,13 +7,13 @@
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="Properties">
-        <PropertiesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <PropertiesTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Variables">
-        <VariablesTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <VariablesTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Input/output">
-        <InputOutputTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
+        <InputOutputTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Version history">
         <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId" WorkflowDefinitionReverting="WorkflowDefinitionReverting" WorkflowDefinitionReverted="WorkflowDefinitionReverted"/>

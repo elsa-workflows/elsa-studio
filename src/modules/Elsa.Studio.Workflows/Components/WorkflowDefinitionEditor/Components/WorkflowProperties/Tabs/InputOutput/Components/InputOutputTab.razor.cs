@@ -7,7 +7,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class InputOutputTab
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
     
     private bool IsReadOnly => Workspace?.IsReadOnly ?? true;

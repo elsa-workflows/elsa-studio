@@ -17,7 +17,7 @@ public partial class PropertiesTab
     /// <summary>
     /// Gets or sets the callback that is invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;

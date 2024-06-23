@@ -7,7 +7,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class WorkflowProperties
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
     
     /// Gets or sets the callback that is invoked when the workflow definition is about to be reverted to an earlier version.
     [Parameter] public EventCallback<WorkflowDefinitionReversionEventArgs> WorkflowDefinitionReverting { get; set; }

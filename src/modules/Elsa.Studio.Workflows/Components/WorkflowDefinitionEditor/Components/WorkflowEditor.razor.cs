@@ -65,7 +65,7 @@ public partial class WorkflowEditor
     /// <summary>
     /// Gets or sets a callback invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
@@ -349,8 +349,8 @@ public partial class WorkflowEditor
     {
         WorkflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionUpdated != null)
-            await WorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()

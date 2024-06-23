@@ -86,10 +86,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// Gets or sets the callback that is invoked when the workflow definition is reverted to an earlier version.
     [Parameter] public EventCallback<WorkflowDefinitionReversionEventArgs> WorkflowDefinitionReverted { get; set; }
-
-    /// <summary>
+    
     /// An event that is invoked when the workflow definition is updated.
-    /// </summary>
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
