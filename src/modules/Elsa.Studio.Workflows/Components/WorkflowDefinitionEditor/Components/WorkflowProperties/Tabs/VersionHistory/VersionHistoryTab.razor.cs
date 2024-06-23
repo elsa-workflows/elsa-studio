@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -12,8 +13,13 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class VersionHistoryTab : IDisposable
 {
     /// Gets or sets the definition ID.
-    [Parameter]
-    public string DefinitionId { get; set; } = default!;
+    [Parameter] public string DefinitionId { get; set; } = default!;
+
+    /// Gets or sets the callback that is invoked when the workflow definition is about to be reverted to an earlier version.
+    [Parameter] public EventCallback<WorkflowDefinitionReversionEventArgs> WorkflowDefinitionReverting { get; set; }
+
+    /// Gets or sets the callback that is invoked when the workflow definition is reverted to an earlier version.
+    [Parameter] public EventCallback<WorkflowDefinitionReversionEventArgs> WorkflowDefinitionReverted { get; set; }
 
     [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
@@ -107,7 +113,10 @@ public partial class VersionHistoryTab : IDisposable
     {
         var definitionId = workflowDefinition.DefinitionId;
         var version = workflowDefinition.Version;
+        var eventArgs = new WorkflowDefinitionReversionEventArgs(definitionId, version);
+        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverting.InvokeAsync(eventArgs);
         await WorkflowDefinitionService.RevertVersionAsync(definitionId, version);
+        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverted.InvokeAsync(eventArgs);
         await Workspace.RefreshActiveWorkflowAsync();
         await ReloadTableAsync();
     }

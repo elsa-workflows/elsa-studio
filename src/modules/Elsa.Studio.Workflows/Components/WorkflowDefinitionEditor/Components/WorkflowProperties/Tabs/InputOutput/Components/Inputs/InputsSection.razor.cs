@@ -13,7 +13,7 @@ public partial class InputsSection
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
     [Parameter] public bool IsReadonly { get; set; } = default;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -34,8 +34,8 @@ public partial class InputsSection
 
     private async Task RaiseWorkflowDefinitionUpdatedAsync()
     {
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (OnWorkflowDefinitionUpdated.HasDelegate)
+            await OnWorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task OpenInputEditorDialog(InputDefinition? inputDefinition)

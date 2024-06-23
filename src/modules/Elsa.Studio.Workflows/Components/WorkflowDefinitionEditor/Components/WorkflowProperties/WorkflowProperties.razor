@@ -2,6 +2,7 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Variables.Components
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.VersionHistory
+@using Elsa.Studio.Workflows.Shared.Args
 @inherits StudioComponentBase
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
@@ -15,6 +16,6 @@
         <InputOutputTab WorkflowDefinition="@WorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Version history">
-        <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId"/>
+        <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId" WorkflowDefinitionReverting="WorkflowDefinitionReverting" WorkflowDefinitionReverted="WorkflowDefinitionReverted"/>
     </MudTabPanel>
 </MudTabs>

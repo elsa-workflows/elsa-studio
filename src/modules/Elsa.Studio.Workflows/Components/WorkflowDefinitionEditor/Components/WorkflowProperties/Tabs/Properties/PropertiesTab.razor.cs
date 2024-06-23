@@ -12,14 +12,12 @@ public partial class PropertiesTab
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter]
-    public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the callback that is invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter]
-    public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback OnWorkflowDefinitionUpdated { get; set; }
 
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;

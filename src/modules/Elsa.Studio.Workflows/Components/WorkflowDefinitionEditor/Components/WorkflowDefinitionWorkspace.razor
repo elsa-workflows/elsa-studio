@@ -53,7 +53,12 @@
         <RadzenSplitterPane Size="35%" Min="100px">
             @if (SelectedWorkflowDefinition != null!)
             {
-                <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
+                <WorkflowProperties 
+                    WorkflowDefinition="@SelectedWorkflowDefinition" 
+                    OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"
+                    WorkflowDefinitionReverting="WorkflowDefinitionReverting"
+                    WorkflowDefinitionReverted="WorkflowDefinitionReverted"
+                    />
             }
         </RadzenSplitterPane>
 
