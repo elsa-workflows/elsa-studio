@@ -30,10 +30,10 @@
                                 <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                             }
                             <MudTooltip Text="Export the current workflow as a JSON file." Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnDownloadClicked">Export</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnExportClicked">Export</MudMenuItem>
                             </MudTooltip>
                             <MudTooltip Text="Import a JSON file containing workflow data to override the current workflow's contents." Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnUploadClicked">Import</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">Import</MudMenuItem>
                             </MudTooltip>
                         </MudMenu>
                     </MudButtonGroup>
