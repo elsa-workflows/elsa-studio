@@ -328,49 +328,6 @@ public partial class DiagramDesignerWrapper
         }
     }
 
-    // Stitching is the act of converting a graph model of nodes to a structured model where child activities are properties of their parent activity.
-    // An example:
-
-    // Source model (the graph):                          Target model:
-    // {                                                   {
-    //   "activity": {                                        "type": "Elsa.If",
-    //     "type": "Elsa.If"                                  "then": {
-    //   },                                                     "type": "Elsa.WriteLine",
-    //   "children": [                                           "text": "Foo"
-    //     {                                                   },
-    //       "port": "then",                                   "else": {
-    //       "activity": {                                       "type": "Elsa.WriteLine",
-    //         "type": "Elsa.WriteLine",                         "text": "Bar"
-    //         "text": "Foo"                                   }
-    //       }                                             }
-    //     }, 
-    //     { 
-    //       "port": "else", 
-    //       "activity": { 
-    //         "type": "Elsa.WriteLine", 
-    //         "text": "Bar" 
-    //       } 
-    //     } 
-    //   ] 
-    // }
-    private void StitchNodesRecursive(ActivityNode activityNode)
-    {
-        var currentNode = activityNode;
-        var groupedChildren = currentNode.Children.GroupBy(x => x.Port).ToList();
-
-        foreach (var grouping in groupedChildren)
-        {
-            var portName = grouping.Key.Camelize();
-            var isCollection = grouping.Count() > 1 || portName == "activities";
-            currentNode.Activity[portName] = isCollection
-                ? new JsonArray(grouping.Select(x => (JsonNode)x.Activity).ToArray())
-                : grouping.First().Activity;
-
-            foreach (var childNode in grouping.ToList())
-                StitchNodesRecursive(childNode);
-        }
-    }
-
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
         var nodes = (await ActivityVisitor.VisitAsync(Activity)).Flatten().ToList();
@@ -393,10 +350,9 @@ public partial class DiagramDesignerWrapper
                 {
                     var parentNodeId = activity.GetNodeId();
                     var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
-                    var selectedPortGraph = selectedActivityGraph.Children.FirstOrDefault(x => x.Port == portName) ?? throw new InvalidOperationException($"Could not find selected activity graph for {portName}");
-
-                    StitchNodesRecursive(selectedPortGraph);
-                    embeddedActivity = selectedPortGraph.Activity;
+                    var propName = portName.Camelize();
+                    var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!; 
+                    embeddedActivity = selectedPortActivity;
 
                     if (embeddedActivity != null)
                         portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
