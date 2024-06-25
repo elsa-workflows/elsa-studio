@@ -1,13 +1,9 @@
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Contracts;
-using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
-using Elsa.Studio.Workflows.Designer;
-using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -31,52 +27,49 @@ public partial class DiagramDesignerWrapper
     private IDictionary<string, ActivityStats> _activityStats = new Dictionary<string, ActivityStats>();
 
     /// <summary>
+    /// The workflow definition version ID.
+    /// </summary>
+    [Parameter] public string WorkflowDefinitionVersionId { get; set; } = default!;
+
+    /// <summary>
     /// The diagram activity to display.
     /// </summary>
-    [Parameter]
-    public JsonObject Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = default!;
 
     /// <summary>
     /// Whether the designer is read-only.
     /// </summary>
-    [Parameter]
-    public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 
     /// <summary>
     /// The workflow instance ID, if any.
     /// </summary>
-    [Parameter]
-    public string? WorkflowInstanceId { get; set; }
+    [Parameter] public string? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// A custom toolbar to display.
     /// </summary>
-    [Parameter]
-    public RenderFragment? CustomToolbarItems { get; set; }
+    [Parameter] public RenderFragment? CustomToolbarItems { get; set; }
 
     /// <summary>
     /// Whether the designer is progressing.
     /// </summary>
-    [Parameter]
-    public bool IsProgressing { get; set; }
+    [Parameter] public bool IsProgressing { get; set; }
 
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
-    [Parameter]
-    public Func<Task>? GraphUpdated { get; set; }
+    [Parameter] public Func<Task>? GraphUpdated { get; set; }
 
     /// <summary>
     /// An event raised when the path changes.
     /// </summary>
-    [Parameter]
-    public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
@@ -85,6 +78,8 @@ public partial class DiagramDesignerWrapper
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
@@ -126,9 +121,9 @@ public partial class DiagramDesignerWrapper
             if (owningActivityNode == null || !owningActivityNode.Parents.Any())
                 break;
 
-            var propName = flowchart!.PropertyName!.Pascalize();
+            var portName = flowchart!.Port!.Pascalize();
             path.Add(new ActivityPathSegment(owningActivityNode.Activity.GetId(),
-                owningActivityNode.Activity.GetTypeName(), propName));
+                owningActivityNode.Activity.GetTypeName(), portName));
 
             embeddedActivityNode = owningActivityNode;
         }
@@ -154,8 +149,10 @@ public partial class DiagramDesignerWrapper
     /// </summary>
     /// <param name="activityId">The ID of the activity to update.</param>
     /// <param name="stats">The stats to update.</param>
-    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) =>
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats)
+    {
         await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
+    }
 
     /// <summary>
     /// Reads the activity from the designer.
@@ -164,11 +161,6 @@ public partial class DiagramDesignerWrapper
     {
         return Task.FromResult(Activity);
     }
-
-    /// <summary>
-    /// Gets the path to the current activity.
-    /// </summary>
-    public IEnumerable<ActivityPathSegment> GetPath() => _pathSegments.ToList();
 
     /// <summary>
     /// Loads the specified activity into the designer.
@@ -219,8 +211,9 @@ public partial class DiagramDesignerWrapper
 
     private JsonObject GetCurrentContainerActivity()
     {
-        var resolvedPath = ResolvePath().LastOrDefault();
-        return resolvedPath?.EmbeddedActivity ?? Activity;
+        var path = ResolvePath().ToList();
+        var segment = path.LastOrDefault();
+        return segment?.EmbeddedActivity ?? Activity ?? throw new Exception("No container activity found");
     }
 
     private IEnumerable<GraphSegment> ResolvePath()
@@ -264,8 +257,7 @@ public partial class DiagramDesignerWrapper
 
         if (WorkflowInstanceId != null)
         {
-            var report = await InvokeWithBlazorServiceContext(() =>
-                ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
+            var report = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
             _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
             {
                 Faulted = x.IsFaulted,
@@ -276,8 +268,8 @@ public partial class DiagramDesignerWrapper
             });
         }
 
-        if (PathChanged != null)
-            await PathChanged(new DesignerPathChangedArgs(currentContainerActivity, currentActivity));
+        if (PathChanged.HasDelegate)
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity, currentActivity));
 
         StateHasChanged();
     }
@@ -338,7 +330,9 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
-        var activity = args.Activity;
+        var nodes = (await ActivityVisitor.VisitAsync(Activity)).Flatten().ToList();
+        var selectedActivity = args.Activity;
+        var activity = nodes.First(x => x.NodeId == selectedActivity.GetNodeId()).Activity;
         var portName = args.PortName;
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
@@ -346,6 +340,25 @@ public partial class DiagramDesignerWrapper
         var portProviderContext = new PortProviderContext(activityDescriptor, activity);
         var portProvider = ActivityPortService.GetProvider(portProviderContext);
         var embeddedActivity = portProvider.ResolvePort(portName, portProviderContext);
+
+        if (embeddedActivity == null)
+        {
+            // Lazy load.
+            if (activityDescriptor.CustomProperties.ContainsKey("WorkflowDefinitionVersionId"))
+            {
+                await InvokeWithBlazorServiceContext(async () =>
+                {
+                    var parentNodeId = activity.GetNodeId();
+                    var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
+                    var propName = portName.Camelize();
+                    var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!; 
+                    embeddedActivity = selectedPortActivity;
+
+                    if (embeddedActivity != null)
+                        portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
+                });
+            }
+        }
 
         if (embeddedActivity != null)
         {

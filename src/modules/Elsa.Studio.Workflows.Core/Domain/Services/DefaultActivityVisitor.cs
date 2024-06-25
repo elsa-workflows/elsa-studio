@@ -21,7 +21,7 @@ public class DefaultActivityVisitor : IActivityVisitor
     public async Task<ActivityNode> VisitAsync(JsonObject activity, CancellationToken cancellationToken = default)
     {
         var collectedActivities = new HashSet<JsonObject>(new[] { activity });
-        var graph = new ActivityNode(activity, null);
+        var graph = new ActivityNode(activity);
         var collectedNodes = new HashSet<ActivityNode>(new[] { graph });
         await VisitRecursiveAsync((graph, activity), collectedActivities, collectedNodes, cancellationToken);
         return graph;

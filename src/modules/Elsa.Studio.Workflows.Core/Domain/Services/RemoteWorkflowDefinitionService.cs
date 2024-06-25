@@ -43,25 +43,32 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetByDefinitionIdAsync(definitionId, versionOptions, includeCompositeRoot, cancellationToken);
+        return await api.GetByDefinitionIdAsync(definitionId, versionOptions, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition?> FindByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.GetByIdAsync(id, includeCompositeRoot, cancellationToken);
+        return await api.GetByIdAsync(id, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, bool includeCompositeRoot = false, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var response = await api.GetManyByIdAsync(ids.ToList(), includeCompositeRoot, cancellationToken);
+        var response = await api.GetManyByIdAsync(ids.ToList(), cancellationToken);
         return response.Items;
+    }
+
+    /// <inheritdoc />
+    public async Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        return await api.GetSubgraphAsync(id, parentNodeId, cancellationToken);
     }
 
     /// <inheritdoc />

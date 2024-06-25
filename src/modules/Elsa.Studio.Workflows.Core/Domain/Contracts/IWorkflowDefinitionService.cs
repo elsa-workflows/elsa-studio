@@ -21,17 +21,22 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Finds a workflow definition by its ID.
     /// </summary>
-    Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Finds a workflow definition by its ID.
     /// </summary>
-    Task<WorkflowDefinition?> FindByIdAsync(string id, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinition?> FindByIdAsync(string id, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Finds all workflow definitions by their IDs.
     /// </summary>
-    Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, bool includeCompositeRoot = false, CancellationToken cancellationToken = default);
+    Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Finds a workflow subgraph by workflow definition ID.
+    /// </summary>
+    Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Saves a workflow definition.

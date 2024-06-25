@@ -61,7 +61,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The path changed callback.
     /// </summary>
     [Parameter]
-    public Func<DesignerPathChangedArgs, Task>? PathChanged { get; set; }
+    public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
     /// <summary>
     /// The activity selected callback.
@@ -165,7 +165,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         if (firstRender)
         {
-            await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
+            if(WorkflowDefinition != null)
+                await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
             await UpdatePropertiesPaneHeightAsync();
         }
 

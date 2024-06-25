@@ -382,6 +382,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
             // Update the activity ID.
             activity.SetId(newActivityId);
+            activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
 
             // If the activity contains embedded ports, generate new IDs for the contained flowchart.
             ProcessEmbeddedPorts(activity, descriptor);

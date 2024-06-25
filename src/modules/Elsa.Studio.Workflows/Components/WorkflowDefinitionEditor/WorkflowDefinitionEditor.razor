@@ -125,7 +125,7 @@
     /// Gets the currently selected activity ID.
     public string? SelectedActivityId => WorkflowDefinitionWorkspace.SelectedActivityId;
 
-    /// <inheritdoc />
+    /// Gets a value that indicates if the workflow definition editor should be displayed in readonly mode.
     public bool IsReadOnly => _workflowDefinition != null && (_workflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
 
     /// <inheritdoc />
