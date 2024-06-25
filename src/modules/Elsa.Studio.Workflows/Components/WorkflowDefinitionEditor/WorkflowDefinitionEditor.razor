@@ -129,9 +129,6 @@
     public bool IsReadOnly => _workflowDefinition != null && (_workflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
 
     /// <inheritdoc />
-    public bool IsReadOnly => _workflowDefinition != null && (_workflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
-
-    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         _workflowDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
