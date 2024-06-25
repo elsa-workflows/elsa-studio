@@ -18,7 +18,7 @@ public class WorkflowDefinitionSettingsWidget : WorkflowDefinitionPropertiesWidg
         {
             builder.OpenComponent<Settings>(0);
             builder.AddAttribute(1, nameof(Settings.WorkflowDefinition), attributes["WorkflowDefinition"]);
-            builder.AddAttribute(2, nameof(Settings.OnWorkflowDefinitionUpdated), attributes["OnWorkflowDefinitionUpdated"]);
+            builder.AddAttribute(2, nameof(Settings.WorkflowDefinitionUpdated), attributes["WorkflowDefinitionUpdated"]);
             builder.CloseComponent();
         };
     };

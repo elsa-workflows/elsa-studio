@@ -24,7 +24,7 @@ public partial class Settings
     /// An event raised when the workflow is updated.
     /// </summary>
     [Parameter]
-    public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>
     /// The workspace.
@@ -59,11 +59,10 @@ public partial class Settings
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
 
         // Select the current log persistence mode
-        LogPersistenceMode persistenceMode = LogPersistenceMode.Inherit;
-        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var persistenceDic)
-            && persistenceDic != null)
+        var persistenceMode = LogPersistenceMode.Inherit;
+        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var value) && value != null!)
         {
-            var persistenceString = ((JsonElement)persistenceDic).GetProperty("default");
+            var persistenceString = ((JsonElement)value).GetProperty("default");
             persistenceMode = (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
         }
         
@@ -72,8 +71,8 @@ public partial class Settings
 
     private async Task RaiseWorkflowUpdatedAsync()
     {
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task OnActivationStrategyChanged(WorkflowActivationStrategyDescriptor value)

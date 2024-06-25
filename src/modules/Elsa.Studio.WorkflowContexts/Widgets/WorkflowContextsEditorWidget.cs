@@ -20,7 +20,7 @@ public class WorkflowContextsEditorWidget : IWidget
     {
         builder.OpenComponent<WorkflowContextsEditor>(0);
         builder.AddAttribute(1, nameof(WorkflowContextsEditor.WorkflowDefinition), attributes["WorkflowDefinition"]);
-        builder.AddAttribute(2, nameof(WorkflowContextsEditor.OnWorkflowDefinitionUpdated), attributes["OnWorkflowDefinitionUpdated"]);
+        builder.AddAttribute(2, nameof(WorkflowContextsEditor.WorkflowDefinitionUpdated), attributes["WorkflowDefinitionUpdated"]);
         builder.CloseComponent();
 
     };

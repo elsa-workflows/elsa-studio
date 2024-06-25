@@ -21,7 +21,7 @@ public partial class WorkflowContextsEditor
     /// Gets or sets the callback that is invoked when the workflow definition is updated.
     /// </summary>
     [Parameter]
-    public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     [Inject] private IWorkflowContextsProvider WorkflowContextsProvider { get; set; } = default!;
 
@@ -49,7 +49,7 @@ public partial class WorkflowContextsEditor
 
         WorkflowDefinition.SetWorkflowContextProviderTypes(SelectedWorkflowContextTypes);
 
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 }

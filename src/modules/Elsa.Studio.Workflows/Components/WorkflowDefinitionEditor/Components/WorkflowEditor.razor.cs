@@ -65,7 +65,7 @@ public partial class WorkflowEditor
     /// <summary>
     /// Gets or sets a callback invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
@@ -349,8 +349,8 @@ public partial class WorkflowEditor
     {
         WorkflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionUpdated != null)
-            await WorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
@@ -433,7 +433,7 @@ public partial class WorkflowEditor
             await SaveChangesAsync(true, false, false);
     }
 
-    private async Task OnDownloadClicked()
+    private async Task OnExportClicked()
     {
         await Exporting.InvokeAsync();
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
@@ -442,7 +442,7 @@ public partial class WorkflowEditor
         await Exported.InvokeAsync();
     }
 
-    private async Task OnUploadClicked()
+    private async Task OnImportClicked()
     {
         await DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
     }
@@ -454,7 +454,7 @@ public partial class WorkflowEditor
 
         // Allow application host to handle additional file types.
         await Importing.InvokeAsync(files);
-        await InvokeWithBlazorServiceContext(() => ImportFilesAsync(files));
+        await ImportFilesAsync(files);
         await Imported.InvokeAsync(files);
         _isDirty = false;
 
@@ -464,6 +464,11 @@ public partial class WorkflowEditor
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
     {
         IBrowserFile? importedFile = null;
+
+        _isDirty = true;
+        _isProgressing = true;
+        StateHasChanged();
+        await Saving.InvokeAsync();
 
         foreach (var file in files)
         {
@@ -490,8 +495,15 @@ public partial class WorkflowEditor
             }
         }
 
+        _isProgressing = false;
+        _isDirty = false;
+        StateHasChanged();
+
         if (importedFile != null)
+        {
+            await Saved.InvokeAsync();
             Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+        }
     }
 
     private async Task<bool> ImportZipFileAsync(Stream stream)
@@ -540,8 +552,7 @@ public partial class WorkflowEditor
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
             model.DefinitionId = WorkflowDefinition!.DefinitionId;
-
-            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+            var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
         }

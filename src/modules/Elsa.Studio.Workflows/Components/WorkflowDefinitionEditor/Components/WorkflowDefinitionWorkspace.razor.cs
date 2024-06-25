@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -79,10 +80,20 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
     [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
+    
+    /// Gets or sets the callback that is invoked when the workflow definition is about to be reverted to an earlier version.
+    [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionReverting { get; set; }
 
-    /// <summary>
+    /// Gets or sets the callback that is invoked when the workflow definition is reverted to an earlier version.
+    [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionReverted { get; set; }
+    
+    /// Gets or sets a callback that is invoked when the workflow definition version is about to be deleted.
+    [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionDeleting { get; set; }
+    
+    /// Gets or sets a callback that is invoked when the workflow definition version is about to be deleted.
+    [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionDeleted { get; set; }
+    
     /// An event that is invoked when the workflow definition is updated.
-    /// </summary>
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
