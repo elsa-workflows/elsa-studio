@@ -1,4 +1,7 @@
 using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
@@ -12,6 +15,8 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private JsonObject _activity = default!;
+
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
 
     /// <inheritdoc />
     public Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -42,6 +47,12 @@ public class FallbackDiagramDesigner : IDiagramDesigner
     public Task<JsonObject> ReadRootActivityAsync()
     {
         return Task.FromResult(_activity);
+    }
+
+    /// <inheritdoc />
+    public async Task<ActivityGraph> GetActivityGraphAsync()
+    {
+        return await ActivityVisitor.VisitAndCreateGraphAsync(_activity);
     }
 
     /// <inheritdoc />

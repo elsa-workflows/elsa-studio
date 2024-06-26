@@ -10,7 +10,9 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.Shared.Components;
@@ -34,52 +36,31 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ActivityDetailsTab? _activityDetailsTab = default!;
     private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
-    private IDictionary<string, ActivityNode> _activityNodeLookup = new Dictionary<string, ActivityNode>();
+    private ActivityGraph _activityGraph = default!;
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
     private bool _activateEventsTabPanel = false;
-
-    /// <summary>
+    
     /// The workflow instance.
-    /// </summary>
-    [Parameter]
-    public WorkflowInstance WorkflowInstance { get; set; } = default!;
-
-    /// <summary>
+    [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
+    
     /// The workflow definition.
-    /// </summary>
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
-
-    /// <summary>
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
     /// The selected workflow execution log record.
-    /// </summary>
-    [Parameter]
-    public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-
-    /// <summary>
+    [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
+    
     /// The path changed callback.
-    /// </summary>
-    [Parameter]
-    public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
-
-    /// <summary>
+    [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
+    
     /// The activity selected callback.
-    /// </summary>
-    [Parameter]
-    public EventCallback<JsonObject> ActivitySelected { get; set; }
-
-    /// <summary>
-    /// An event that is invoked when a workflow definition is edited.
-    /// </summary>
-    [Parameter]
-    public EventCallback<string> EditWorkflowDefinition { get; set; }
-
-    /// <summary>
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    
+    /// An event that is invoked when the workflow definition is requested to be edited.
+    [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+    
     /// Gets or sets the current selected sub-workflow.
-    /// </summary>
-    [Parameter]
-    public JsonObject? SelectedSubWorkflow { get; set; } = default!;
+    [Parameter] public JsonObject? SelectedSubWorkflow { get; set; }
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -88,6 +69,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private JsonObject? SelectedActivity { get; set; }
@@ -128,7 +110,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (WorkflowDefinition?.Root == null!)
             return;
 
-        _activityNodeLookup = await ActivityVisitor.VisitAndMapAsync(WorkflowDefinition);
+        _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
 
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
@@ -149,7 +131,29 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (SelectedWorkflowExecutionLogRecord != null)
         {
             var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-            var activityNode = _activityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
+            var activityNode = _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
+
+            if (activityNode == null)
+            {
+                 // Lazy load the selected node path.
+                 var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(_workflowInstance.DefinitionVersionId, nodeId);
+                
+                 if (pathSegmentsResponse != null)
+                 {
+                     activityNode = pathSegmentsResponse.ChildNode;
+                     _activityGraph = _activityGraph.Merge(pathSegmentsResponse.Container);
+                     StateHasChanged();
+                     
+                     // Reassign the current path.
+                     await _designer.UpdatePathSegmentsAsync(segments =>
+                     {
+                         segments.Clear();
+                         
+                         foreach (var segment in pathSegmentsResponse.PathSegments) 
+                             segments.Push(segment);
+                     });
+                 }
+            }
 
             if (activityNode != null)
             {
@@ -165,7 +169,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         if (firstRender)
         {
-            if(WorkflowDefinition != null)
+            if (WorkflowDefinition != null)
                 await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
             await UpdatePropertiesPaneHeightAsync();
         }
@@ -268,7 +272,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         await HandleActivitySelectedAsync(activity);
 
         var activitySelected = ActivitySelected;
-        
+
         if (activitySelected.HasDelegate)
             await activitySelected.InvokeAsync(activity);
     }

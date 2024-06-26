@@ -37,6 +37,11 @@ public interface IWorkflowDefinitionService
     /// Finds a workflow subgraph by workflow definition ID.
     /// </summary>
     Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns all ancestor nodes for the specified child node.
+    /// </summary>
+    Task<GetPathSegmentsResponse?> GetPathSegmentsAsync(string id, string? childNodeId = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Saves a workflow definition.

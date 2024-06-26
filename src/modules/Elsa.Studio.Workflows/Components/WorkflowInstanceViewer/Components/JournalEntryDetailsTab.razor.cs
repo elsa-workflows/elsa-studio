@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -24,12 +25,12 @@ public partial class JournalEntryDetailsTab
     [Parameter]
     public int VisiblePaneHeight { get; set; }
 
-    [CascadingParameter] private IDictionary<string, JsonObject> ActivityLookup { get; set; } = default!;
+    [CascadingParameter] private ActivityGraph ActivityGraph { get; set; } = default!;
 
     private JsonObject GetActivity()
     {
         var activityId = JournalEntry.Record.ActivityId;
-        return ActivityLookup[activityId];
+        return ActivityGraph.ActivityNodeLookup[activityId].Activity;
     }
 
     private IDictionary<string, DataPanelItem> ParsePayload(object? payload)

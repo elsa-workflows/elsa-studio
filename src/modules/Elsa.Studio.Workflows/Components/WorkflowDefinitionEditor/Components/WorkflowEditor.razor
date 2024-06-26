@@ -5,7 +5,13 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@WorkflowDefinition?.Id" Activity="WorkflowDefinition?.Root" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" GraphUpdated="@OnGraphUpdated">
+        <DiagramDesignerWrapper 
+            @ref="_diagramDesigner" 
+            WorkflowDefinitionVersionId="@WorkflowDefinition?.Id"
+            Activity="@Activity"
+            IsProgressing="@_isProgressing" 
+            ActivitySelected="@OnActivitySelected" 
+            GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>
                 <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="Auto-save" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged"/>
                 <MudTooltip Text="Save" Delay="1000">

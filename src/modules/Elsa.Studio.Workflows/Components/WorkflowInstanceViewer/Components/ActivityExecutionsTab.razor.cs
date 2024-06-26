@@ -17,31 +17,24 @@ public partial class ActivityExecutionsTab
     /// <param name="Number">The number of executions.</param>
     /// <param name="ActivityExecution">The activity execution.</param>
     public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecord ActivityExecution);
-
-    /// <summary>
+    
     /// The height of the visible pane.
-    /// </summary>
-    [Parameter]
-    public int VisiblePaneHeight { get; set; }
+    [Parameter] public int VisiblePaneHeight { get; set; }
 
-    /// <summary>
-    /// The activity.
-    /// </summary>
-    [Parameter]
-    public JsonObject Activity { get; set; } = default!;
+    /// The activity to display executions for.
+    [Parameter] public JsonObject Activity { get; set; } = default!;
 
     /// <summary>
     /// The activity execution records.
     /// </summary>
-    [Parameter]
-    public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    [Parameter] public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
-    
+
     /// <summary>
     /// Refreshes the component.
     /// </summary>

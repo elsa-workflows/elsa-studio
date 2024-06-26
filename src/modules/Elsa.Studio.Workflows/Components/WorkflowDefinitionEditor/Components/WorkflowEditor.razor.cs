@@ -127,6 +127,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
+    private JsonObject? Activity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
@@ -159,6 +160,7 @@ public partial class WorkflowEditor
         if (WorkflowDefinition?.Root == null)
             return;
 
+        //ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -184,7 +186,7 @@ public partial class WorkflowEditor
 
         if (readDiagram)
         {
-            var root = await _diagramDesigner.ReadActivityAsync();
+            var root = await _diagramDesigner.GetActivityAsync();
             workflowDefinition.Root = root;
         }
 
@@ -348,6 +350,7 @@ public partial class WorkflowEditor
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
         WorkflowDefinition = workflowDefinition;
+        //ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
 
         if (WorkflowDefinitionUpdated.HasDelegate)
             await WorkflowDefinitionUpdated.InvokeAsync();
@@ -387,13 +390,13 @@ public partial class WorkflowEditor
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
-            var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
-            var nodes = graph.Flatten();
-            var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
-
-            if (hasNotFoundActivities)
-                Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
-            else
+            //var graph = ActivityGraph!;
+            //var nodes = graph.ActivityNodeLookup.Values;
+            // var hasNotFoundActivities =  nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
+            //
+            // if (hasNotFoundActivities)
+            //     Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
+            // else
                 Snackbar.Add("Workflow published", Severity.Success);
 
             if (response.ConsumingWorkflowCount > 0)
