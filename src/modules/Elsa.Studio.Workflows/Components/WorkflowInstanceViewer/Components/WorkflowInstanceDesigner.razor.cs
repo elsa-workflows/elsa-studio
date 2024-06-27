@@ -6,13 +6,9 @@ using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.Shared.Components;
@@ -36,29 +32,28 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ActivityDetailsTab? _activityDetailsTab = default!;
     private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
-    // private ActivityGraph _activityGraph = default!;
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
     private bool _activateEventsTabPanel = false;
-    
+
     /// The workflow instance.
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
-    
+
     /// The workflow definition.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+
     /// The selected workflow execution log record.
     [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-    
+
     /// The path changed callback.
     [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
-    
+
     /// The activity selected callback.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-    
+
     /// An event that is invoked when the workflow definition is requested to be edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
-    
+
     /// Gets or sets the current selected sub-workflow.
     [Parameter] public JsonObject? SelectedSubWorkflow { get; set; }
 
@@ -96,7 +91,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// <summary>
     /// Updates the selected sub-workflow.
     /// </summary>
-    /// <param name="obj"></param>
     public void UpdateSubWorkflow(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
@@ -110,8 +104,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         if (WorkflowDefinition?.Root == null!)
             return;
-
-        //_activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
 
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
@@ -132,36 +124,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (SelectedWorkflowExecutionLogRecord != null)
         {
             var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-            // var activityGraph = await _designer.GetActivityGraphAsync();
-            // var activityNode = activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
-            //
-            // if (activityNode == null)
-            // {
-            //      // Lazy load the selected node path.
-            //      var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(_workflowInstance.DefinitionVersionId, nodeId);
-            //     
-            //      if (pathSegmentsResponse != null)
-            //      {
-            //          activityNode = pathSegmentsResponse.ChildNode;
-            //          activityGraph.Merge(pathSegmentsResponse.Container);
-            //          StateHasChanged();
-            //          
-            //          // Reassign the current path.
-            //          await _designer.UpdatePathSegmentsAsync(segments =>
-            //          {
-            //              segments.Clear();
-            //              
-            //              foreach (var segment in pathSegmentsResponse.PathSegments) 
-            //                  segments.Push(segment);
-            //          });
-            //      }
-            // }
-            //
-            // if (activityNode != null)
-            // {
-                _activateEventsTabPanel = true;
-                await SelectActivityAsync(nodeId);
-            //}
+            _activateEventsTabPanel = true;
+            await SelectActivityAsync(nodeId);
         }
     }
 

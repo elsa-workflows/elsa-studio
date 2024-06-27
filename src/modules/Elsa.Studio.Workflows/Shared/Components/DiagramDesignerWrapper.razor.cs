@@ -185,31 +185,10 @@ public partial class DiagramDesignerWrapper
     /// <param name="action">A delegate that manipulates the path</param>
     public async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
     {
-        var segments = new Stack<ActivityPathSegment>(_pathSegments.Reverse());
-        var originalHash = Hash(_pathSegments);
-        action(segments);
-        var newHash = Hash(segments);
-
-        if (originalHash == newHash)
-            return;
-
-        _pathSegments = segments;
+        action(_pathSegments);
         await UpdateBreadcrumbItemsAsync();
     }
-
-    public string Hash(params object?[] values)
-    {
-        var strings = values.Select(x => JsonSerializer.Serialize(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-        var input = string.Join("|", strings);
-        return Hash(input);
-    }
-
-    public string Hash(string value)
-    {
-        var data = SHA256.HashData(Encoding.UTF8.GetBytes(value));
-        return Convert.ToHexString(data);
-    }
-
+    
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
@@ -222,33 +201,9 @@ public partial class DiagramDesignerWrapper
     {
     }
 
-    // private JsonObject? GetCurrentActivity()
-    // {
-    //     var resolvedPath = ResolvePath().LastOrDefault();
-    //     return resolvedPath?.Activity;
-    // }
-    //
-    private JsonObject GetCurrentActivity()
-    {
-        // var path = ResolvePath().ToList();
-        // var segment = path.LastOrDefault();
-        // return segment?.EmbeddedActivity ?? Activity ?? throw new Exception("No container activity found");
-
-        var lastSegment = _pathSegments.LastOrDefault();
-
-        if (lastSegment == null)
-            return Activity;
-
-        var nodeId = lastSegment.ActivityNodeId;
-        var node = _activityGraph?.ActivityNodeLookup[nodeId];
-        var activity = node?.Activity;
-
-        return activity ?? Activity;
-    }
-
     private JsonObject GetCurrentContainerActivity()
     {
-        var lastSegment = _pathSegments.LastOrDefault();
+        var lastSegment = _pathSegments.FirstOrDefault();
 
         if (lastSegment == null)
             return _activityGraph.Activity;
@@ -278,55 +233,9 @@ public partial class DiagramDesignerWrapper
         return activityInPort;
     }
 
-    // private IEnumerable<GraphSegment> ResolvePath()
-    // {
-    //     var currentContainer = Activity;
-    //
-    //     foreach (var pathSegment in _pathSegments.Reverse())
-    //     {
-    //         var flowchart = currentContainer!.GetFlowchart();
-    //         var activities = flowchart.GetActivities();
-    //         var currentActivity = activities.FirstOrDefault(x => x.GetId() == pathSegment.ActivityId);
-    //
-    //         if (currentActivity == null)
-    //             continue;
-    //
-    //         var portName = pathSegment.PortName;
-    //         var activityTypeName = currentActivity.GetTypeName();
-    //         var activityVersion = currentActivity.GetVersion();
-    //         var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-    //         var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
-    //         var portProvider = ActivityPortService.GetProvider(portProviderContext);
-    //
-    //         currentContainer = portProvider.ResolvePort(portName, portProviderContext)?.GetFlowchart();
-    //
-    //         var segment = new GraphSegment(currentActivity, pathSegment.PortName, currentContainer);
-    //         yield return segment;
-    //     }
-    // }
-
     private async Task UpdateBreadcrumbItemsAsync()
     {
-        // var currentContainerActivity = GetCurrentContainerActivity();
-        // var currentActivity = GetCurrentActivity();
         _breadcrumbItems = (await GetBreadcrumbItems()).ToList();
-
-        // if (WorkflowInstanceId != null)
-        // {
-        //     var report = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
-        //     _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
-        //     {
-        //         Faulted = x.IsFaulted,
-        //         Blocked = x.IsBlocked,
-        //         Completed = x.CompletedCount,
-        //         Started = x.StartedCount,
-        //         Uncompleted = x.UncompletedCount
-        //     });
-        // }
-        //
-        // if (PathChanged.HasDelegate)
-        //     await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity, currentActivity));
-
         StateHasChanged();
     }
 
@@ -337,31 +246,9 @@ public partial class DiagramDesignerWrapper
         if (_pathSegments.Any())
             breadcrumbItems.Add(new BreadcrumbItem("Root", "#_root_", false, Icons.Material.Outlined.Home));
 
-        //var resolvedPath = ResolvePath().ToList();
-
-        // foreach (var segment in resolvedPath)
-        // {
-        //     var currentActivity = segment.Activity;
-        //     var activityTypeName = currentActivity.GetTypeName();
-        //     var activityVersion = currentActivity.GetVersion();
-        //     var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-        //     var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
-        //     var portProvider = ActivityPortService.GetProvider(portProviderContext);
-        //     var ports = portProvider.GetPorts(portProviderContext);
-        //     var embeddedPort = ports.First(x => x.Name == segment.PortName);
-        //     var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
-        //     var disabled = segment == resolvedPath.Last();
-        //     var activityDisplayText = currentActivity.GetName() ?? activityDescriptor.DisplayName;
-        //     var breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
-        //     var activityBreadcrumbItem = new BreadcrumbItem(breadcrumbDisplayText, $"#{currentActivity.GetId()}",
-        //         disabled, displaySettings.Icon);
-        //
-        //     breadcrumbItems.Add(activityBreadcrumbItem);
-        // }
-
         var nodeLookup = _activityGraph!.ActivityNodeLookup;
 
-        foreach (var segment in _pathSegments)
+        foreach (var segment in _pathSegments.Reverse())
         {
             var activityNodeId = segment.ActivityNodeId;
             var activityNode = nodeLookup[activityNodeId];
@@ -374,7 +261,7 @@ public partial class DiagramDesignerWrapper
             var ports = portProvider.GetPorts(portProviderContext);
             var embeddedPort = ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
-            var disabled = segment == _pathSegments.Last();
+            var disabled = segment == _pathSegments.FirstOrDefault();
             var activityDisplayText = activity.GetName() ?? activityDescriptor.DisplayName;
             var breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
             var activityBreadcrumbItem = new BreadcrumbItem(breadcrumbDisplayText, $"#{activity.GetId()}", disabled, displaySettings.Icon);
@@ -434,6 +321,9 @@ public partial class DiagramDesignerWrapper
                 {
                     var parentNodeId = activity.GetNodeId();
                     var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
+                    var selectedActivityGraphNodes = await ActivityVisitor.VisitAsync(selectedActivityGraph.Activity);
+                    _activityGraph.Merge(selectedActivityGraphNodes);
+                    
                     var propName = portName.Camelize();
                     var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
                     embeddedActivity = selectedPortActivity;
@@ -441,7 +331,6 @@ public partial class DiagramDesignerWrapper
                     if (embeddedActivity != null)
                     {
                         portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
-                        //_activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(_activityGraph.Activity);
                     }
                 });
             }
