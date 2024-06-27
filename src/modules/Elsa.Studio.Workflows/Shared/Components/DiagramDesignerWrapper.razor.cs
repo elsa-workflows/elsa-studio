@@ -46,7 +46,7 @@ public partial class DiagramDesignerWrapper
     [Parameter] public bool IsProgressing { get; set; }
 
     /// An event raised when an activity is selected.
-    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// An event raised when an embedded port is selected.
     [Parameter] public EventCallback GraphUpdated { get; set; }
@@ -140,6 +140,14 @@ public partial class DiagramDesignerWrapper
     public async Task<JsonObject> ReadActivityAsync()
     {
         return await _diagramDesigner!.ReadRootActivityAsync();
+    }
+    
+    /// <summary>
+    /// Gets the root activity graph.
+    /// </summary>
+    public Task<ActivityGraph> GetActivityGraphAsync()
+    {
+        return Task.FromResult(_activityGraph);
     }
     
     /// <summary>
@@ -415,9 +423,13 @@ public partial class DiagramDesignerWrapper
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
         //var nodes = _activityGraph!.ActivityNodeLookup;
-        var nodes = _activityGraph!.ActivityNodeLookup;
+        var nodes = _activityGraph.ActivityNodeLookup;
         var selectedActivity = args.Activity;
-        var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode) ? selectedActivityNode.Activity : throw new KeyNotFoundException();
+        var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode) ? selectedActivityNode.Activity : null;
+
+        if (activity is null)
+            return;
+        
         var portName = args.PortName;
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
@@ -455,7 +467,8 @@ public partial class DiagramDesignerWrapper
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
             if (embeddedActivityTypeName != "Elsa.Flowchart" && embeddedActivityTypeName != "Elsa.Workflow")
             {
-                ActivitySelected?.Invoke(embeddedActivity);
+                if(ActivitySelected.HasDelegate)
+                    await ActivitySelected.InvokeAsync(embeddedActivity);
                 return;
             }
 
@@ -496,25 +509,25 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnGraphUpdated()
     {
-        var rootActivity = await _diagramDesigner!.ReadRootActivityAsync();
-        //var currentActivity = GetCurrentActivity();
-        var container = GetCurrentContainerActivity();
+        var embeddedActivity = await _diagramDesigner!.ReadRootActivityAsync();
         var currentSegment = CurrentPathSegment;
 
         if (currentSegment == null) // Root activity was updated.
         {
-            _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(rootActivity);
+            _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(embeddedActivity);
         }
         else
         {
+            var currentActivityNode = _activityGraph.ActivityNodeLookup[currentSegment.ActivityNodeId];
+            var currentActivity = currentActivityNode.Activity;
             var portName = currentSegment.PortName;
-            var activityTypeName = container.GetTypeName();
-            var activityVersion = container.GetVersion();
+            var activityTypeName = currentActivity.GetTypeName();
+            var activityVersion = currentActivity.GetVersion();
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-            var portProviderContext = new PortProviderContext(activityDescriptor, container);
+            var portProviderContext = new PortProviderContext(activityDescriptor, currentActivity);
             var portProvider = ActivityPortService.GetProvider(portProviderContext);
 
-            portProvider.AssignPort(portName, rootActivity, portProviderContext);
+            portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
         }
 
         if (GraphUpdated.HasDelegate)

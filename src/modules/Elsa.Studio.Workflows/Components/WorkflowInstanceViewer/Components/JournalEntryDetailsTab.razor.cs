@@ -25,13 +25,13 @@ public partial class JournalEntryDetailsTab
     [Parameter]
     public int VisiblePaneHeight { get; set; }
 
-    [CascadingParameter] private ActivityGraph ActivityGraph { get; set; } = default!;
+    //[CascadingParameter] private ActivityGraph ActivityGraph { get; set; } = default!;
 
-    private JsonObject GetActivity()
-    {
-        var activityId = JournalEntry.Record.ActivityId;
-        return ActivityGraph.ActivityNodeLookup[activityId].Activity;
-    }
+    // private JsonObject GetActivity()
+    // {
+    //     var activityId = JournalEntry.Record.ActivityId;
+    //     return ActivityGraph.ActivityNodeLookup[activityId].Activity;
+    // }
 
     private IDictionary<string, DataPanelItem> ParsePayload(object? payload)
     {

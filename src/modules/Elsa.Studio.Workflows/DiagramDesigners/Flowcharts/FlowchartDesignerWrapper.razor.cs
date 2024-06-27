@@ -24,44 +24,37 @@ public partial class FlowchartDesignerWrapper
     /// <summary>
     /// The flowchart to display.
     /// </summary>
-    [Parameter]
-    public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = default!;
 
     /// <summary>
     /// A map of activity stats.
     /// </summary>
-    [Parameter]
-    public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
+    [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
 
     /// <summary>
     /// Whether the designer is read-only.
     /// </summary>
-    [Parameter]
-    public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
-    [Parameter]
-    public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
 
     /// <summary>
     /// An event raised when an activity is double-clicked.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
 
     /// <summary>
     /// An event raised when the graph is updated.
     /// </summary>
-    [Parameter]
-    public Func<Task>? GraphUpdated { get; set; }
+    [Parameter] public EventCallback GraphUpdated { get; set; }
 
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
@@ -156,13 +149,14 @@ public partial class FlowchartDesignerWrapper
             newActivity.SetProperty(valueNode, propertyName);
         }
 
-        // If the activity is a trigger and it's the first trigger on the flowchart, set the trigger property to true.
+        // If the activity is a trigger, and it's the first trigger on the flowchart, set the trigger property to true.
         if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
             newActivity.SetCanStartWorkflow(true);
 
         await Designer.AddActivityAsync(newActivity);
 
-        ActivitySelected?.Invoke(newActivity);
+        if(ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(newActivity);
     }
 
     private void OnDragOver(DragEventArgs e)
@@ -189,8 +183,8 @@ public partial class FlowchartDesignerWrapper
 
     private async Task OnCanvasSelected()
     {
-        if (ActivitySelected != null)
-            await ActivitySelected(Flowchart);
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(Flowchart);
     }
 
     private async Task OnZoomToFitClick() => await Designer.ZoomToFitAsync();

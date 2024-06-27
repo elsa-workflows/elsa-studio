@@ -1,3 +1,5 @@
+@using System.Text.Json.Nodes
+@using Elsa.Studio.Workflows.UI.Args
 @using Elsa.Studio.Workflows.UI.Contracts
 @using Elsa.Studio.Workflows.UI.Contexts
 @inherits StudioComponentBase
@@ -39,8 +41,8 @@
 @_diagramDesigner?.DisplayDesigner(new DisplayContext(
     GetCurrentContainerActivity(), 
     ActivitySelected, 
-    OnActivityEmbeddedPortSelected, 
-    OnActivityDoubleClick,
-    OnGraphUpdated, 
+    EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected), 
+    EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
+    EventCallback.Factory.Create(this, OnGraphUpdated), 
     IsReadOnly, 
     _activityStats))

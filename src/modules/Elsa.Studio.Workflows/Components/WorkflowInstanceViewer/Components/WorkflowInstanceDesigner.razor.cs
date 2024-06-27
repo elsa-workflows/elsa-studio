@@ -36,7 +36,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ActivityDetailsTab? _activityDetailsTab = default!;
     private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
-    private ActivityGraph _activityGraph = default!;
+    // private ActivityGraph _activityGraph = default!;
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
     private bool _activateEventsTabPanel = false;
@@ -72,6 +72,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
+    private JsonObject? RootActivity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
@@ -110,7 +111,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (WorkflowDefinition?.Root == null!)
             return;
 
-        _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
+        //_activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
 
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
@@ -131,7 +132,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (SelectedWorkflowExecutionLogRecord != null)
         {
             var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-            var activityNode = _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
+            var activityGraph = await _designer.GetActivityGraphAsync();
+            var activityNode = activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
 
             if (activityNode == null)
             {
@@ -141,7 +143,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
                  if (pathSegmentsResponse != null)
                  {
                      activityNode = pathSegmentsResponse.ChildNode;
-                     _activityGraph = _activityGraph.Merge(pathSegmentsResponse.Container);
+                     activityGraph.Merge(pathSegmentsResponse.Container);
                      StateHasChanged();
                      
                      // Reassign the current path.
