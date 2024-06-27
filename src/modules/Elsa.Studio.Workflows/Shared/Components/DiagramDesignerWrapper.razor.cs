@@ -253,7 +253,10 @@ public partial class DiagramDesignerWrapper
         foreach (var segment in _pathSegments.Reverse())
         {
             var activityNodeId = segment.ActivityNodeId;
+            
+            // TODO: If the activity hasn't been loaded yet, load it now.
             var activityNode = nodeLookup[activityNodeId];
+            
             var activity = activityNode.Activity;
             var activityTypeName = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
