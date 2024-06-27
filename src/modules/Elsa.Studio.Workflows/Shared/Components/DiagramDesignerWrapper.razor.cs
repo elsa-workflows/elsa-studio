@@ -67,61 +67,48 @@ public partial class DiagramDesignerWrapper
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
     /// <summary>
-    /// Selects the activity with the specified ID.
+    /// Selects the activity with the specified node ID.
     /// </summary>
-    /// <param name="activityNode">The activity node to select.</param>
-    public async Task SelectActivityAsync(ActivityNode activityNode)
+    /// <param name="nodeId">The ID of the activity node to select.</param>
+    public async Task SelectActivityAsync(string nodeId)
     {
-        var diagramActivity = GetCurrentContainerActivity();
-        var activityToSelect = diagramActivity.GetActivities()
-            .FirstOrDefault(x => x.GetId() == activityNode.Activity.GetId());
+        var containerActivity = GetCurrentContainerActivity();
+        var activities = containerActivity.GetActivities();
+        var activityToSelect = activities.FirstOrDefault(x => x.GetNodeId() == nodeId);
 
         if (activityToSelect != null)
         {
-            await _diagramDesigner!.SelectActivityAsync(activityNode.Activity.GetId());
-            //return;
+            await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
+            return;
         }
 
-        // // The selected activity is not a direct child of the current container.
-        // // We need to find the container that owns the activity and update the path segments accordingly.
-        // var embeddedActivityNode = activityNode;
-        //
-        // var path = new List<ActivityPathSegment>();
-        //
-        // while (true)
-        // {
-        //     // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
-        //     // The key is to find the owning activity of the activity that was selected. Which in the case of the Flowchart diagram, has at least a Flowchart as its parent, which in turn my have a Workflow as its parent.
-        //
-        //     // Find the flowchart to which this activity belongs.
-        //     var flowchart = embeddedActivityNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
-        //
-        //     // Try to get the owning activity of the flowchart. Keep in mind that there could be a Workflow activity in between if the owning activity is a WorkflowDefinitionActivity.
-        //     var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
-        //
-        //     if (owningActivityNode == null || !owningActivityNode.Parents.Any())
-        //         break;
-        //
-        //     var portName = flowchart!.Port!.Pascalize();
-        //     path.Add(new ActivityPathSegment(owningActivityNode.Activity.GetId(), owningActivityNode.Activity.GetTypeName(), portName));
-        //
-        //     embeddedActivityNode = owningActivityNode;
-        // }
-        //
-        // // Update the path segments.
-        // await UpdatePathSegmentsAsync(segments =>
-        // {
-        //     segments.Clear();
-        //
-        //     foreach (var segment in path.AsEnumerable().Reverse())
-        //         segments.Push(segment);
-        // });
-        //
-        // // Display new segment.
-        // await DisplayCurrentSegmentAsync();
-        //
-        // // Select the activity.
-        // await _diagramDesigner!.SelectActivityAsync(activityNode.Activity.GetId());
+        // The selected activity is not a direct child of the current container.
+        // We need to find the container that owns the activity and update the path segments accordingly.
+        
+        // Lazy load the selected node path.
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+
+        if (pathSegmentsResponse == null)
+            return;
+        
+        activityToSelect = pathSegmentsResponse.ChildNode.Activity;
+        _activityGraph.Merge(pathSegmentsResponse.Container);
+        StateHasChanged();
+                 
+        // Reassign the current path.
+        await UpdatePathSegmentsAsync(segments =>
+        {
+            segments.Clear();
+                     
+            foreach (var segment in pathSegmentsResponse.PathSegments) 
+                segments.Push(segment);
+        });
+        
+        // Display new segment.
+        await DisplayCurrentSegmentAsync();
+        
+        // Select the activity.
+        await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
     }
 
     /// <summary>

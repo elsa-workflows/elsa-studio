@@ -132,37 +132,36 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (SelectedWorkflowExecutionLogRecord != null)
         {
             var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-            var activityGraph = await _designer.GetActivityGraphAsync();
-            var activityNode = activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
-
-            if (activityNode == null)
-            {
-                 // Lazy load the selected node path.
-                 var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(_workflowInstance.DefinitionVersionId, nodeId);
-                
-                 if (pathSegmentsResponse != null)
-                 {
-                     activityNode = pathSegmentsResponse.ChildNode;
-                     activityGraph.Merge(pathSegmentsResponse.Container);
-                     StateHasChanged();
-                     
-                     // Reassign the current path.
-                     await _designer.UpdatePathSegmentsAsync(segments =>
-                     {
-                         segments.Clear();
-                         
-                         foreach (var segment in pathSegmentsResponse.PathSegments) 
-                             segments.Push(segment);
-                     });
-                 }
-            }
-
-            if (activityNode != null)
-            {
+            // var activityGraph = await _designer.GetActivityGraphAsync();
+            // var activityNode = activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var activityObject) ? activityObject : default;
+            //
+            // if (activityNode == null)
+            // {
+            //      // Lazy load the selected node path.
+            //      var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(_workflowInstance.DefinitionVersionId, nodeId);
+            //     
+            //      if (pathSegmentsResponse != null)
+            //      {
+            //          activityNode = pathSegmentsResponse.ChildNode;
+            //          activityGraph.Merge(pathSegmentsResponse.Container);
+            //          StateHasChanged();
+            //          
+            //          // Reassign the current path.
+            //          await _designer.UpdatePathSegmentsAsync(segments =>
+            //          {
+            //              segments.Clear();
+            //              
+            //              foreach (var segment in pathSegmentsResponse.PathSegments) 
+            //                  segments.Push(segment);
+            //          });
+            //      }
+            // }
+            //
+            // if (activityNode != null)
+            // {
                 _activateEventsTabPanel = true;
-
-                await SelectActivityAsync(activityNode);
-            }
+                await SelectActivityAsync(nodeId);
+            //}
         }
     }
 
@@ -222,9 +221,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
-    private async Task SelectActivityAsync(ActivityNode activityNode)
+    private async Task SelectActivityAsync(string nodeId)
     {
-        await _designer.SelectActivityAsync(activityNode);
+        await _designer.SelectActivityAsync(nodeId);
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
