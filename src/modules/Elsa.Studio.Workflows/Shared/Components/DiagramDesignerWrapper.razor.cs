@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
@@ -301,7 +298,6 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
-        //var nodes = _activityGraph!.ActivityNodeLookup;
         var nodes = _activityGraph.ActivityNodeLookup;
         var selectedActivity = args.Activity;
         var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode) ? selectedActivityNode.Activity : null;
@@ -332,11 +328,6 @@ public partial class DiagramDesignerWrapper
                     var propName = portName.Camelize();
                     var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
                     embeddedActivity = selectedPortActivity;
-
-                    // if (embeddedActivity != null)
-                    // {
-                    //     portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
-                    // }
                 });
             }
         }
@@ -419,7 +410,7 @@ public partial class DiagramDesignerWrapper
     {
         if (item.Href == "#_root_")
         {
-            await UpdatePathSegmentsAsync(segments => segments.Clear());
+            await UpdatePathSegmentsAsync(segments => segments.Clear()); 
             await DisplayCurrentSegmentAsync();
             return;
         }
