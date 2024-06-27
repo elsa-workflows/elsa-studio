@@ -68,6 +68,9 @@ public partial class FlowchartDesignerWrapper
     /// <param name="activityStats">A map of activity stats.</param>
     public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = default)
     {
+        if (activity.GetTypeName() != "Elsa.Flowchart")
+            throw new ArgumentException("Activity must be an Elsa.Flowchart", nameof(activity));
+
         Flowchart = activity;
         ActivityStats = activityStats;
         await Designer.LoadFlowchartAsync(activity, activityStats);
@@ -155,7 +158,7 @@ public partial class FlowchartDesignerWrapper
 
         await Designer.AddActivityAsync(newActivity);
 
-        if(ActivitySelected.HasDelegate)
+        if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(newActivity);
     }
 

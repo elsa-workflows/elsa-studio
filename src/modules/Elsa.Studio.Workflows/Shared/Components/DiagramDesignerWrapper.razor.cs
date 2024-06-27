@@ -92,7 +92,8 @@ public partial class DiagramDesignerWrapper
             return;
         
         activityToSelect = pathSegmentsResponse.ChildNode.Activity;
-        _activityGraph.Merge(pathSegmentsResponse.Container);
+        var containerNode = await ActivityVisitor.VisitAsync(pathSegmentsResponse.Container.Activity);
+        _activityGraph.Merge(containerNode);
         StateHasChanged();
                  
         // Reassign the current path.
@@ -218,6 +219,9 @@ public partial class DiagramDesignerWrapper
         var port = lastSegment.PortName;
         var embeddedActivity = GetEmbeddedActivity(activity, port);
 
+        if(embeddedActivity?.GetTypeName() == "Elsa.Workflow")
+            embeddedActivity = embeddedActivity.GetRoot();
+        
         return embeddedActivity ?? Activity;
     }
 
@@ -246,7 +250,8 @@ public partial class DiagramDesignerWrapper
         if (_pathSegments.Any())
             breadcrumbItems.Add(new BreadcrumbItem("Root", "#_root_", false, Icons.Material.Outlined.Home));
 
-        var nodeLookup = _activityGraph!.ActivityNodeLookup;
+        var nodeLookup = _activityGraph.ActivityNodeLookup;
+        var firstSegment = _pathSegments.FirstOrDefault();
 
         foreach (var segment in _pathSegments.Reverse())
         {
@@ -261,7 +266,7 @@ public partial class DiagramDesignerWrapper
             var ports = portProvider.GetPorts(portProviderContext);
             var embeddedPort = ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
-            var disabled = segment == _pathSegments.FirstOrDefault();
+            var disabled = segment == firstSegment;
             var activityDisplayText = activity.GetName() ?? activityDescriptor.DisplayName;
             var breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
             var activityBreadcrumbItem = new BreadcrumbItem(breadcrumbDisplayText, $"#{activity.GetId()}", disabled, displaySettings.Icon);
@@ -321,17 +326,17 @@ public partial class DiagramDesignerWrapper
                 {
                     var parentNodeId = activity.GetNodeId();
                     var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
-                    var selectedActivityGraphNodes = await ActivityVisitor.VisitAsync(selectedActivityGraph.Activity);
-                    _activityGraph.Merge(selectedActivityGraphNodes);
+                    var visitedActivityNode = await ActivityVisitor.VisitAsync(selectedActivityGraph.Activity);
+                    _activityGraph.Merge(visitedActivityNode);
                     
                     var propName = portName.Camelize();
                     var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
                     embeddedActivity = selectedPortActivity;
 
-                    if (embeddedActivity != null)
-                    {
-                        portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
-                    }
+                    // if (embeddedActivity != null)
+                    // {
+                    //     portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
+                    // }
                 });
             }
         }
