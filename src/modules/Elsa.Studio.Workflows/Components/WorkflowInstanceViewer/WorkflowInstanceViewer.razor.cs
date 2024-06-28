@@ -35,7 +35,7 @@ public partial class WorkflowInstanceViewer
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
-    private JournalEntry? SelectedJournalEntry { get; set; }
+    //private JournalEntry? SelectedJournalEntry { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -73,11 +73,10 @@ public partial class WorkflowInstanceViewer
         await Journal.SetWorkflowInstanceAsync(_workflowInstance, filter);
     }
 
-    private Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
+    private async Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
     {
-        SelectedJournalEntry = entry;
+        await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     private Task OnActivitySelected(JsonObject arg)

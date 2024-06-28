@@ -42,9 +42,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The workflow definition.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
-    /// The selected workflow execution log record.
-    [Parameter] public JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-
     /// The path changed callback.
     [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
@@ -70,6 +67,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private JsonObject? RootActivity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
+    private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
     private ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
@@ -87,14 +85,26 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private MudTabs PropertyTabs { get; set; } = default!;
     private MudTabPanel EventsTabPanel { get; set; } = default!;
-
-    /// <summary>
+    
     /// Updates the selected sub-workflow.
-    /// </summary>
     public void UpdateSubWorkflow(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
         StateHasChanged();
+    }
+    
+    /// Selects the activity by its node ID.
+    public async Task SelectActivityAsync(string nodeId)
+    {
+        await _designer.SelectActivityAsync(nodeId);
+    }
+    
+    /// Sets the selected journal entry.
+    public async Task SelectWorkflowExecutionLogRecordAsync(JournalEntry entry)
+    {
+        var nodeId = entry.Record.NodeId;
+        _activateEventsTabPanel = true;
+        await SelectActivityAsync(nodeId);
     }
 
     /// <inheritdoc />
@@ -120,13 +130,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (_workflowInstance != WorkflowInstance)
             _workflowInstance = WorkflowInstance;
 
-        // If a workflow execution log record is selected, check to see if it's associated with an activity.
-        if (SelectedWorkflowExecutionLogRecord != null)
-        {
-            var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-            _activateEventsTabPanel = true;
-            await SelectActivityAsync(nodeId);
-        }
+        // // If a workflow execution log record is selected, check to see if it's associated with an activity.
+        // if (SelectedWorkflowExecutionLogRecord != null)
+        // {
+        //     var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
+        //     _activateEventsTabPanel = true;
+        //     await SelectActivityAsync(nodeId);
+        // }
     }
 
     /// <inheritdoc />
@@ -185,11 +195,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
-    private async Task SelectActivityAsync(string nodeId)
-    {
-        await _designer.SelectActivityAsync(nodeId);
-    }
-
     private async Task HandleActivitySelectedAsync(JsonObject activity)
     {
         var activityNodeId = activity.GetNodeId()!;
@@ -233,7 +238,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        SelectedWorkflowExecutionLogRecord = null;
+        //SelectedWorkflowExecutionLogRecord = null;
         await HandleActivitySelectedAsync(activity);
 
         var activitySelected = ActivitySelected;
