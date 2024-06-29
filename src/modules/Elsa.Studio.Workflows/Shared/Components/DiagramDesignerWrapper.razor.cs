@@ -63,9 +63,7 @@ public partial class DiagramDesignerWrapper
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : default;
 
-    /// <summary>
     /// Selects the activity with the specified node ID.
-    /// </summary>
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
     {
@@ -78,27 +76,59 @@ public partial class DiagramDesignerWrapper
             await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
             return;
         }
-
+        
         // The selected activity is not a direct child of the current container.
         // We need to find the container that owns the activity and update the path segments accordingly.
+        var pathSegments = new List<ActivityPathSegment>();
 
-        // Lazy load the selected node path.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+        if (_activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var existingNode))
+        {
+            activityToSelect = existingNode.Activity;
+            var currentNode = existingNode;
+            
+            while (true)
+            {
+                // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
+                // The key is to find the owning activity of the activity that was selected. Which in the case of the Flowchart diagram, has at least a Flowchart as its parent, which in turn my have a Workflow as its parent.
 
-        if (pathSegmentsResponse == null)
-            return;
+                // Find the flowchart to which this activity belongs.
+                var flowchart = currentNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
 
-        activityToSelect = pathSegmentsResponse.ChildNode.Activity;
-        var containerNode = await ActivityVisitor.VisitAsync(pathSegmentsResponse.Container.Activity);
-        _activityGraph.Merge(containerNode);
-        StateHasChanged();
+                // Try to get the owning activity of the flowchart. Keep in mind that there could be a Workflow activity in between if the owning activity is a WorkflowDefinitionActivity.
+                var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
+
+                if (owningActivityNode == null || !owningActivityNode.Parents.Any())
+                    break;
+
+                var propName = flowchart!.Port!.Pascalize();
+                var owningActivity = owningActivityNode.Activity;
+                pathSegments.Add(new ActivityPathSegment(owningActivity.GetNodeId(), owningActivity.GetId(), owningActivityNode.Activity.GetTypeName(), propName));
+
+                currentNode = owningActivityNode;
+            }
+        }
+        else
+        {
+            // The selected activity is not currently part of the graph.
+            // Load the selected node path from the backend.
+            var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+
+            if (pathSegmentsResponse == null)
+                return;
+
+            activityToSelect = pathSegmentsResponse.ChildNode.Activity;
+            var containerNode = await ActivityVisitor.VisitAsync(pathSegmentsResponse.Container.Activity);
+            pathSegments = pathSegmentsResponse.PathSegments.ToList();
+            _activityGraph.Merge(containerNode);
+            StateHasChanged();
+        }
 
         // Reassign the current path.
         await UpdatePathSegmentsAsync(segments =>
         {
             segments.Clear();
 
-            foreach (var segment in pathSegmentsResponse.PathSegments)
+            foreach (var segment in pathSegments)
                 segments.Push(segment);
         });
 
@@ -109,9 +139,7 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
     }
 
-    /// <summary>
     /// Updates the stats of the specified activity.
-    /// </summary>
     /// <param name="activityId">The ID of the activity to update.</param>
     /// <param name="stats">The stats to update.</param>
     public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats)
@@ -119,34 +147,26 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
     }
 
-    /// <summary>
     /// Reads the activity from the designer.
-    /// </summary>
     public async Task<JsonObject> ReadActivityAsync()
     {
         return await _diagramDesigner!.ReadRootActivityAsync();
     }
 
-    /// <summary>
     /// Gets the root activity graph.
-    /// </summary>
     public Task<ActivityGraph> GetActivityGraphAsync()
     {
         return Task.FromResult(_activityGraph);
     }
 
-    /// <summary>
     /// Gets the root activity.
-    /// </summary>
     public Task<JsonObject> GetActivityAsync()
     {
         var rootActivity = _activityGraph.Activity;
         return Task.FromResult(rootActivity);
     }
 
-    /// <summary>
     /// Loads the specified activity into the designer.
-    /// </summary>
     /// <param name="activity">The activity to load.</param>
     public async Task LoadActivityAsync(JsonObject activity)
     {
@@ -157,9 +177,7 @@ public partial class DiagramDesignerWrapper
         StateHasChanged();
     }
 
-    /// <summary>
     /// Updates the specified activity in the designer.
-    /// </summary>
     /// <param name="activityId">The ID of the activity to update.</param>
     /// <param name="activity">The activity to update.</param>
     public async Task UpdateActivityAsync(string activityId, JsonObject activity)
@@ -177,9 +195,7 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
-    /// <summary>
     /// Updates the current path.
-    /// </summary>
     /// <param name="action">A delegate that manipulates the path</param>
     public async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
     {
