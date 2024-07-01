@@ -6,30 +6,14 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
-/// <summary>
 /// Displays the details of a journal entry.
-/// </summary>
 public partial class JournalEntryDetailsTab
 {
-    /// <summary>
     /// The journal entry.
-    /// </summary>
-    [Parameter]
-    public JournalEntry JournalEntry { get; set; } = default!;
+    [Parameter] public JournalEntry JournalEntry { get; set; } = default!;
 
-    /// <summary>
     /// The height of the visible pane.
-    /// </summary>
-    [Parameter]
-    public int VisiblePaneHeight { get; set; }
-
-    //[CascadingParameter] private ActivityGraph ActivityGraph { get; set; } = default!;
-
-    // private JsonObject GetActivity()
-    // {
-    //     var activityId = JournalEntry.Record.ActivityId;
-    //     return ActivityGraph.ActivityNodeLookup[activityId].Activity;
-    // }
+    [Parameter] public int VisiblePaneHeight { get; set; }
 
     private IDictionary<string, DataPanelItem> ParsePayload(object? payload)
     {

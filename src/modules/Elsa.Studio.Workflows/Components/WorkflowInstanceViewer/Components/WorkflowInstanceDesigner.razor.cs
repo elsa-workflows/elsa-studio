@@ -85,20 +85,20 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private MudTabs PropertyTabs { get; set; } = default!;
     private MudTabPanel EventsTabPanel { get; set; } = default!;
-    
+
     /// Updates the selected sub-workflow.
     public void UpdateSubWorkflow(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
         StateHasChanged();
     }
-    
+
     /// Selects the activity by its node ID.
     public async Task SelectActivityAsync(string nodeId)
     {
         await _designer.SelectActivityAsync(nodeId);
     }
-    
+
     /// Sets the selected journal entry.
     public async Task SelectWorkflowExecutionLogRecordAsync(JournalEntry entry)
     {
@@ -124,19 +124,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     }
 
     /// <inheritdoc />
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         // ReSharper disable once RedundantCheckBeforeAssignment
         if (_workflowInstance != WorkflowInstance)
             _workflowInstance = WorkflowInstance;
-
-        // // If a workflow execution log record is selected, check to see if it's associated with an activity.
-        // if (SelectedWorkflowExecutionLogRecord != null)
-        // {
-        //     var nodeId = SelectedWorkflowExecutionLogRecord.Record.NodeId;
-        //     _activateEventsTabPanel = true;
-        //     await SelectActivityAsync(nodeId);
-        // }
     }
 
     /// <inheritdoc />
@@ -238,7 +230,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        //SelectedWorkflowExecutionLogRecord = null;
         await HandleActivitySelectedAsync(activity);
 
         var activitySelected = ActivitySelected;
@@ -281,10 +272,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (WorkflowInstanceObserver != null!)
-            await WorkflowInstanceObserver.DisposeAsync();
-
-        if (_elapsedTimer != null!)
-            await _elapsedTimer.DisposeAsync();
+        if (WorkflowInstanceObserver != null!) await WorkflowInstanceObserver.DisposeAsync();
+        if (_elapsedTimer != null!) await _elapsedTimer.DisposeAsync();
     }
 }
