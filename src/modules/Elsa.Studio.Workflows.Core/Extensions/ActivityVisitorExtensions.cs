@@ -33,7 +33,7 @@ public static class ActivityVisitorExtensions
         return nodes.ToDictionary(x => x.NodeId);
     }
     
-    /// Creates an activity graph based on the provided JSON activity.
+    /// Creates an activity graph based on the provided workflow definition.
     public static async Task<ActivityGraph> VisitAndCreateGraphAsync(this IActivityVisitor visitor, WorkflowDefinition workflowDefinition)
     {
         var workflowActivity = ToActivity(workflowDefinition);
