@@ -76,7 +76,7 @@ public partial class DiagramDesignerWrapper
             await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
             return;
         }
-        
+
         // The selected activity is not a direct child of the current container.
         // We need to find the container that owns the activity and update the path segments accordingly.
         var pathSegments = new List<ActivityPathSegment>();
@@ -85,7 +85,7 @@ public partial class DiagramDesignerWrapper
         {
             activityToSelect = existingNode.Activity;
             var currentNode = existingNode;
-            
+
             while (true)
             {
                 // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
@@ -253,7 +253,25 @@ public partial class DiagramDesignerWrapper
     private async Task UpdateBreadcrumbItemsAsync()
     {
         _breadcrumbItems = (await GetBreadcrumbItems()).ToList();
+        await RefreshActivityStatsAsync();
         StateHasChanged();
+    }
+
+    private async Task RefreshActivityStatsAsync()
+    {
+        if (WorkflowInstanceId != null)
+        {
+            var currentContainerActivity = GetCurrentContainerActivity();
+            var report = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
+            _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
+            {
+                Faulted = x.IsFaulted,
+                Blocked = x.IsBlocked,
+                Completed = x.CompletedCount,
+                Started = x.StartedCount,
+                Uncompleted = x.UncompletedCount
+            });
+        }
     }
 
     private async Task<IEnumerable<BreadcrumbItem>> GetBreadcrumbItems()
