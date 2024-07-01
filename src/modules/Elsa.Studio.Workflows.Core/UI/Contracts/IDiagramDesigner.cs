@@ -41,7 +41,7 @@ public interface IDiagramDesigner
     /// Reads the root activity from the diagram.
     /// </summary>
     Task<JsonObject> ReadRootActivityAsync();
-    
+
     /// <summary>
     /// Display the designer.
     /// </summary>

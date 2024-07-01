@@ -11,23 +11,17 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 
-/// <summary>
 /// The index page for viewing a workflow instance.
-/// </summary>
 public partial class WorkflowInstanceViewer
 {
     private WorkflowInstance _workflowInstance = default!;
     private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
 
-    /// <summary>
     /// The ID of the workflow instance to view.
-    /// </summary>
     [Parameter] public string InstanceId { get; set; } = default!;
 
-    /// <summary>
     /// An event that is invoked when a workflow definition is edited.
-    /// </summary>
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -35,7 +29,6 @@ public partial class WorkflowInstanceViewer
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
-    private JournalEntry? SelectedJournalEntry { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -73,11 +66,9 @@ public partial class WorkflowInstanceViewer
         await Journal.SetWorkflowInstanceAsync(_workflowInstance, filter);
     }
 
-    private Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
+    private async Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
     {
-        SelectedJournalEntry = entry;
-        StateHasChanged();
-        return Task.CompletedTask;
+        await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
     }
 
     private Task OnActivitySelected(JsonObject arg)

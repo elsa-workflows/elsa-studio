@@ -6,6 +6,8 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -40,12 +42,14 @@ public partial class WorkflowDefinitionVersionViewer
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
+    private ActivityGraph ActivityGraph { get; set; }
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityProperties.ActivityPropertiesPanel? ActivityPropertiesTab { get; set; }
@@ -70,6 +74,7 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
+        ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition);
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -79,6 +84,8 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
+        ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition);
+        
         if (_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
 

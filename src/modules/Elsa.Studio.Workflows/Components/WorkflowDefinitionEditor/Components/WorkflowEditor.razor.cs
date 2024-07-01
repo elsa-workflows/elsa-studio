@@ -127,6 +127,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
+    private JsonObject? Activity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
@@ -138,14 +139,13 @@ public partial class WorkflowEditor
         {
             _activityPropertiesPane = value;
 
-            // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
+            // Prefix the ID with a non-numerical value, so it can always be used as a query selector
+            // (sometimes, Radzen generates a unique ID starting with a number).
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
 
-    /// <summary>
     /// Gets or sets a flag indicating whether the workflow definition is dirty.
-    /// </summary>
     public async Task NotifyWorkflowChangedAsync()
     {
         await HandleChangesAsync(false);
@@ -184,7 +184,7 @@ public partial class WorkflowEditor
 
         if (readDiagram)
         {
-            var root = await _diagramDesigner.ReadActivityAsync();
+            var root = await _diagramDesigner.GetActivityAsync();
             workflowDefinition.Root = root;
         }
 
@@ -278,7 +278,7 @@ public partial class WorkflowEditor
                 StateHasChanged();
             }
 
-            // Because this method is rate-limited, it's possible that the designer has been disposed since the last invocation.
+            // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
@@ -387,8 +387,8 @@ public partial class WorkflowEditor
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
-            var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
-            var nodes = graph.Flatten();
+            var graph = await _diagramDesigner.GetActivityGraphAsync();
+            var nodes = graph.ActivityNodeLookup.Values;
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
 
             if (hasNotFoundActivities)

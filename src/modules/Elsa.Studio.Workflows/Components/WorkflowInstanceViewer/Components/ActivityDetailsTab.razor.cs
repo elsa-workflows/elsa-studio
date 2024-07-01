@@ -18,24 +18,15 @@ public partial class ActivityDetailsTab
     /// <param name="Number">The number of executions.</param>
     /// <param name="ActivityExecution">The activity execution.</param>
     public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecord ActivityExecution);
-
-    /// <summary>
+    
     /// The height of the visible pane.
-    /// </summary>
-    [Parameter]
-    public int VisiblePaneHeight { get; set; }
-
-    /// <summary>
-    /// The activity.
-    /// </summary>
-    [Parameter]
-    public JsonObject Activity { get; set; } = default!;
-
-    /// <summary>
+    [Parameter] public int VisiblePaneHeight { get; set; }
+    
+    /// The activity to display details for.
+    [Parameter] public JsonObject Activity { get; set; } = default!;
+    
     /// The activity execution records.
-    /// </summary>
-    [Parameter]
-    public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    [Parameter] public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
 
@@ -43,12 +34,9 @@ public partial class ActivityDetailsTab
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items
     {
-        get
-        {
-            return ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-        }
+        get { return ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x)); }
     }
-    
+
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
 
     private IDictionary<string, DataPanelItem> ActivityInfo { get; set; } = new Dictionary<string, DataPanelItem>();
