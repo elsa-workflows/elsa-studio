@@ -69,7 +69,6 @@ public partial class WorkflowInstanceViewer
     private async Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
     {
         await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
-        StateHasChanged();
     }
 
     private Task OnActivitySelected(JsonObject arg)
