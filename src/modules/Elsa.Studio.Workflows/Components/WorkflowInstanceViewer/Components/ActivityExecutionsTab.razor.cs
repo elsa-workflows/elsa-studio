@@ -6,27 +6,21 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
-/// <summary>
 /// Displays the details of an activity.
-/// </summary>
 public partial class ActivityExecutionsTab
 {
-    /// <summary>
     /// Represents a row in the table of activity executions.
-    /// </summary>
     /// <param name="Number">The number of executions.</param>
     /// <param name="ActivityExecution">The activity execution.</param>
     public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecord ActivityExecution);
-    
+
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
 
     /// The activity to display executions for.
     [Parameter] public JsonObject Activity { get; set; } = default!;
 
-    /// <summary>
     /// The activity execution records.
-    /// </summary>
     [Parameter] public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
@@ -35,9 +29,7 @@ public partial class ActivityExecutionsTab
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
 
-    /// <summary>
     /// Refreshes the component.
-    /// </summary>
     public void Refresh()
     {
         SelectedItem = null;
