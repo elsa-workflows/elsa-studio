@@ -77,51 +77,17 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
-        // The selected activity is not a direct child of the current container.
-        // We need to find the container that owns the activity and update the path segments accordingly.
-        var pathSegments = new List<ActivityPathSegment>();
+        // Load the selected node path from the backend.
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
 
-        if (_activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var existingNode))
-        {
-            activityToSelect = existingNode.Activity;
-            var currentNode = existingNode;
+        if (pathSegmentsResponse == null)
+            return;
 
-            while (true)
-            {
-                // TODO: The following process is highly specialized for the case of Flowchart diagrams and will not work for other diagram types.
-                // The key is to find the owning activity of the activity that was selected. Which in the case of the Flowchart diagram, has at least a Flowchart as its parent, which in turn my have a Workflow as its parent.
-
-                // Find the flowchart to which this activity belongs.
-                var flowchart = currentNode.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() == "Elsa.Flowchart");
-
-                // Try to get the owning activity of the flowchart. Keep in mind that there could be a Workflow activity in between if the owning activity is a WorkflowDefinitionActivity.
-                var owningActivityNode = flowchart?.Ancestors().FirstOrDefault(x => x.Activity.GetTypeName() != "Elsa.Workflow");
-
-                if (owningActivityNode == null || !owningActivityNode.Parents.Any())
-                    break;
-
-                var propName = flowchart!.Port!.Pascalize();
-                var owningActivity = owningActivityNode.Activity;
-                pathSegments.Add(new ActivityPathSegment(owningActivity.GetNodeId(), owningActivity.GetId(), owningActivityNode.Activity.GetTypeName(), propName));
-
-                currentNode = owningActivityNode;
-            }
-        }
-        else
-        {
-            // The selected activity is not currently part of the graph.
-            // Load the selected node path from the backend.
-            var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
-
-            if (pathSegmentsResponse == null)
-                return;
-
-            activityToSelect = pathSegmentsResponse.ChildNode.Activity;
-            var containerNode = await ActivityVisitor.VisitAsync(pathSegmentsResponse.Container.Activity);
-            pathSegments = pathSegmentsResponse.PathSegments.ToList();
-            _activityGraph.Merge(containerNode);
-            StateHasChanged();
-        }
+        activityToSelect = pathSegmentsResponse.ChildNode.Activity;
+        var containerNode = await ActivityVisitor.VisitAsync(pathSegmentsResponse.Container.Activity);
+        var pathSegments = pathSegmentsResponse.PathSegments.ToList();
+        _activityGraph.Merge(containerNode);
+        StateHasChanged();
 
         // Reassign the current path.
         await UpdatePathSegmentsAsync(segments =>
