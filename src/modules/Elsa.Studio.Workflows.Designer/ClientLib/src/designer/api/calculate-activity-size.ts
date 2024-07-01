@@ -27,6 +27,7 @@ export function calculateActivitySize(activity: Activity): Promise<Size> {
                 const width = rect.width;
                 const height = rect.height;
 
+                debugger;
                 // Remove the temporary element (used only to calculate its size).
                 wrapper.remove();
 
