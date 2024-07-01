@@ -17,16 +17,28 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     private FlowchartDesignerWrapper? _designerWrapper;
 
     /// <inheritdoc />
-    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await _designerWrapper!.LoadFlowchartAsync(activity, activityStatsMap);
+    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
+    {
+        await InvokeDesignerActionAsync(x => x.LoadFlowchartAsync(activity, activityStatsMap));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats);
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityStatsAsync(id, stats));
+    }
 
     /// <inheritdoc />
-    public async Task SelectActivityAsync(string id) => await _designerWrapper!.SelectActivityAsync(id);
+    public async Task SelectActivityAsync(string id)
+    {
+        await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
+    }
 
     /// <inheritdoc />
     public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
@@ -83,6 +95,11 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 
             builder.CloseComponent();
         };
+    }
+
+    private async Task InvokeDesignerActionAsync(Func<FlowchartDesignerWrapper, Task> action)
+    {
+        if (_designerWrapper != null) await action(_designerWrapper);
     }
 
     private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
