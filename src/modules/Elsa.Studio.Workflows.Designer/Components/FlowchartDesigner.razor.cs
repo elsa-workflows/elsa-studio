@@ -34,6 +34,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private readonly PendingActionsQueue _pendingGraphActions;
     private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
+    private JsonObject? _flowchart;
 
     /// <inheritdoc />
     public FlowchartDesigner()
@@ -64,7 +65,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// <summary>
-    /// An event raised when an activity embedded port is selected.
+    /// An event raised when an activity-embedded port is selected.
     /// </summary>
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
 
@@ -311,6 +312,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     protected override void OnInitialized()
     {
         ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+        _flowchart = Flowchart;
     }
 
     /// <inheritdoc />
@@ -327,6 +329,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        if (!Equals(_flowchart, Flowchart))
+        {
+            _flowchart = Flowchart;
+            await _rateLimitedLoadFlowchartAction.InvokeAsync();
+        }
+        
         if (!Equals(_activityStats, ActivityStats))
         {
             _activityStats = ActivityStats;

@@ -58,7 +58,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     {
         yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, "Zoom to fit the screen", OnZoomToFitClicked);
         yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, "Center", OnCenterClicked);
-        
+
         if (!isReadonly)
         {
             yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout",
@@ -85,8 +85,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         };
     }
 
-    private async Task OnZoomToFitClicked() => await _designerWrapper!.ZoomToFitAsync();
-    private async Task OnCenterClicked() => await _designerWrapper!.CenterContentAsync();
-
-    private async Task OnAutoLayoutClicked() => await _designerWrapper!.AutoLayoutAsync();
+    private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
+    private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper!.CenterContentAsync() : Task.CompletedTask;
+    private Task OnAutoLayoutClicked() => _designerWrapper != null ? _designerWrapper!.AutoLayoutAsync() : Task.CompletedTask;
 }

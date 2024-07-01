@@ -17,7 +17,7 @@ export function calculateActivitySize(activity: Activity): Promise<Size> {
         const checkSize = () => {
             const activityElement: Element = wrapper.getElementsByTagName(activityTagName)[0];
             const activityElementRect = activityElement.getBoundingClientRect();
-
+            
             // If the custom element has no width or height yet, it means it has not yet rendered.
             if (activityElementRect.width == 0 || activityElementRect.height == 0) {
                 // Request an animation frame and call ourselves back immediately after.
@@ -26,8 +26,7 @@ export function calculateActivitySize(activity: Activity): Promise<Size> {
                 const rect = wrapper.getElementsByClassName("elsa-activity")[0].getBoundingClientRect();
                 const width = rect.width;
                 const height = rect.height;
-
-                debugger;
+                
                 // Remove the temporary element (used only to calculate its size).
                 wrapper.remove();
 

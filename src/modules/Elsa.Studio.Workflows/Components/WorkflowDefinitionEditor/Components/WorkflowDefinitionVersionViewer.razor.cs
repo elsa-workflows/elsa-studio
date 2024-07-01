@@ -24,19 +24,17 @@ public partial class WorkflowDefinitionVersionViewer
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper? _diagramDesigner;
     private bool _isProgressing;
-    
+
     /// Gets or sets the workflow definition to view.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter]
-    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
-    [Parameter]
-    public EventCallback<JsonObject> ActivitySelected { get; set; }
-    
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+
     /// Gets the ID of the selected activity.
     public string? SelectedActivityId { get; private set; }
 
@@ -49,7 +47,7 @@ public partial class WorkflowDefinitionVersionViewer
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
-    private ActivityGraph ActivityGraph { get; set; }
+    private JsonObject? Activity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityProperties.ActivityPropertiesPanel? ActivityPropertiesTab { get; set; }
@@ -74,7 +72,6 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
-        ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition);
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -84,8 +81,6 @@ public partial class WorkflowDefinitionVersionViewer
         if (WorkflowDefinition?.Root == null)
             return;
 
-        ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition);
-        
         if (_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
 
@@ -109,7 +104,7 @@ public partial class WorkflowDefinitionVersionViewer
         SelectedActivity = null;
         ActivityDescriptor = null;
         StateHasChanged();
-        
+
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
@@ -121,11 +116,11 @@ public partial class WorkflowDefinitionVersionViewer
         SelectActivity(activity);
         await ActivitySelected.InvokeAsync(activity);
     }
-    
+
     private async Task OnSelectedActivityUpdated(JsonObject activity)
     {
         StateHasChanged();
-        await _diagramDesigner.UpdateActivityAsync(SelectedActivityId!, activity);
+        await _diagramDesigner!.UpdateActivityAsync(SelectedActivityId!, activity);
     }
 
     private async Task OnDownloadClicked()
@@ -141,7 +136,7 @@ public partial class WorkflowDefinitionVersionViewer
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
         _activityPropertiesPaneHeight = (int)visibleHeight + 50;
     }
-    
+
     private async Task OnRunWorkflowClicked()
     {
         var workflowInstanceId = await ProgressAsync(async () =>
@@ -157,14 +152,14 @@ public partial class WorkflowDefinitionVersionViewer
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
+        var workflowDefinitionExecuted = WorkflowDefinitionExecuted;
 
         if (workflowDefinitionExecuted.HasDelegate)
-            await this.WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+            await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
-    
+
     private async Task<T> ProgressAsync<T>(Func<Task<T>> action)
     {
         _isProgressing = true;

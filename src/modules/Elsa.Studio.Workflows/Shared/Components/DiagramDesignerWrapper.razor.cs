@@ -137,8 +137,8 @@ public partial class DiagramDesignerWrapper
     public async Task LoadActivityAsync(JsonObject activity)
     {
         Activity = activity;
-        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(Activity);
-        _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(Activity);
+        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(activity);
+        _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(activity);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
         StateHasChanged();
     }
@@ -161,24 +161,19 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
-    /// Updates the current path.
-    /// <param name="action">A delegate that manipulates the path</param>
-    public async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
-    {
-        action(_pathSegments);
-        await UpdateBreadcrumbItemsAsync();
-    }
-
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
         await LoadActivityAsync(Activity);
     }
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
+    
+    /// Updates the current path.
+    /// <param name="action">A delegate that manipulates the path</param>
+    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
     {
+        action(_pathSegments);
+        await UpdateBreadcrumbItemsAsync();
     }
 
     private JsonObject GetCurrentContainerActivity()
