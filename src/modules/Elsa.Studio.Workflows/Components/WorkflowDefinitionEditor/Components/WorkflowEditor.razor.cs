@@ -139,14 +139,13 @@ public partial class WorkflowEditor
         {
             _activityPropertiesPane = value;
 
-            // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
+            // Prefix the ID with a non-numerical value, so it can always be used as a query selector
+            // (sometimes, Radzen generates a unique ID starting with a number).
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
 
-    /// <summary>
     /// Gets or sets a flag indicating whether the workflow definition is dirty.
-    /// </summary>
     public async Task NotifyWorkflowChangedAsync()
     {
         await HandleChangesAsync(false);
@@ -160,7 +159,6 @@ public partial class WorkflowEditor
         if (WorkflowDefinition?.Root == null)
             return;
 
-        //ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
         SelectActivity(WorkflowDefinition.Root);
     }
 
@@ -280,7 +278,7 @@ public partial class WorkflowEditor
                 StateHasChanged();
             }
 
-            // Because this method is rate-limited, it's possible that the designer has been disposed since the last invocation.
+            // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
@@ -350,7 +348,6 @@ public partial class WorkflowEditor
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
         WorkflowDefinition = workflowDefinition;
-        //ActivityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(WorkflowDefinition.Root);
 
         if (WorkflowDefinitionUpdated.HasDelegate)
             await WorkflowDefinitionUpdated.InvokeAsync();
@@ -390,13 +387,13 @@ public partial class WorkflowEditor
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
-            //var graph = ActivityGraph!;
-            //var nodes = graph.ActivityNodeLookup.Values;
-            // var hasNotFoundActivities =  nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
-            //
-            // if (hasNotFoundActivities)
-            //     Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
-            // else
+            var graph = await _diagramDesigner.GetActivityGraphAsync();
+            var nodes = graph.ActivityNodeLookup.Values;
+            var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
+
+            if (hasNotFoundActivities)
+                Snackbar.Add("Workflow published with Not Found activities", Severity.Warning, options => options.VisibleStateDuration = 5000);
+            else
                 Snackbar.Add("Workflow published", Severity.Success);
 
             if (response.ConsumingWorkflowCount > 0)
