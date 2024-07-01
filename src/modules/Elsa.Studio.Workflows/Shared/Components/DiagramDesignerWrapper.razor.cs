@@ -442,6 +442,8 @@ public partial class DiagramDesignerWrapper
             var portProvider = ActivityPortService.GetProvider(portProviderContext);
 
             portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
+            var node = await ActivityVisitor.VisitAsync(embeddedActivity);
+            _activityGraph.Merge(node);
         }
 
         if (GraphUpdated.HasDelegate)
