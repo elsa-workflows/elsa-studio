@@ -34,7 +34,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private int _propertiesPaneHeight = 300;
     private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
     private Timer? _elapsedTimer;
-    private bool _activateEventsTabPanel = false;
 
     /// The workflow instance.
     [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
@@ -103,8 +102,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     public async Task SelectWorkflowExecutionLogRecordAsync(JournalEntry entry)
     {
         var nodeId = entry.Record.NodeId;
-        _activateEventsTabPanel = true;
+        SelectedWorkflowExecutionLogRecord = entry;
         await SelectActivityAsync(nodeId);
+        StateHasChanged();
     }
 
     /// <inheritdoc />
@@ -139,12 +139,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             if (WorkflowDefinition != null)
                 await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
             await UpdatePropertiesPaneHeightAsync();
-        }
-
-        if (_activateEventsTabPanel)
-        {
-            PropertyTabs.ActivatePanel(EventsTabPanel);
-            _activateEventsTabPanel = false;
         }
     }
 
