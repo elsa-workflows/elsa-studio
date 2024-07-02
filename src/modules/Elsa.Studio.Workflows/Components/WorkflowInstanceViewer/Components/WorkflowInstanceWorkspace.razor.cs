@@ -44,8 +44,8 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
 
     private async Task OnPathChanged(DesignerPathChangedArgs args)
     {
-        await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.CurrentActivity);
-        _workflowInstanceDesigner.UpdateSubWorkflow(args.CurrentActivity);
+        await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.ContainerActivity);
+        _workflowInstanceDesigner.UpdateSubWorkflow(args.ContainerActivity);
         
         if(PathChanged.HasDelegate)
             await PathChanged.InvokeAsync(args);
