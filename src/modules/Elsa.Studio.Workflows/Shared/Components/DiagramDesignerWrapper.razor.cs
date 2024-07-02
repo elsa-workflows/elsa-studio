@@ -174,6 +174,12 @@ public partial class DiagramDesignerWrapper
     {
         action(_pathSegments);
         await UpdateBreadcrumbItemsAsync();
+        
+        if (PathChanged.HasDelegate)
+        {
+            var currentContainerActivity = GetCurrentContainerActivity();
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity));
+        }
     }
 
     private JsonObject GetCurrentContainerActivity()
