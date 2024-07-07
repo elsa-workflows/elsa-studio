@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Designer.Contracts;
@@ -22,7 +16,6 @@ using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using MudBlazor;
 using MudBlazor.Utilities;
 using ThrottleDebounce;
 
@@ -41,6 +34,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private readonly PendingActionsQueue _pendingGraphActions;
     private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
+    private JsonObject? _flowchart;
 
     /// <inheritdoc />
     public FlowchartDesigner()
@@ -53,50 +47,42 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <summary>
     /// The flowchart to render.
     /// </summary>
-    [Parameter]
-    public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = default!;
 
     /// <summary>
     /// The activity stats to render.
     /// </summary>
-    [Parameter]
-    public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
+    [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
 
     /// <summary>
     /// Whether the flowchart is read-only.
     /// </summary>
-    [Parameter]
-    public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// <summary>
-    /// An event raised when an activity embedded port is selected.
+    /// An event raised when an activity-embedded port is selected.
     /// </summary>
-    [Parameter]
-    public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
+    [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
 
     /// <summary>
-    /// An event raised when an activity is double clicked.
+    /// An event raised when an activity is double-clicked.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
 
     /// <summary>
     /// An event raised when the canvas is selected.
     /// </summary>
-    [Parameter]
-    public Func<Task>? CanvasSelected { get; set; }
+    [Parameter] public EventCallback CanvasSelected { get; set; }
 
     /// <summary>
     /// An event raised when the graph is updated.
     /// </summary>
-    [Parameter]
-    public Func<Task>? GraphUpdated { get; set; }
+    [Parameter] public EventCallback GraphUpdated { get; set; }
 
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
     [Inject] private IThemeService ThemeService { get; set; } = default!;
@@ -112,10 +98,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [JSInvokable]
     public async Task HandleActivitySelected(JsonObject activity)
     {
-        if (ActivitySelected == null)
-            return;
-
-        await InvokeAsync(async () => await ActivitySelected(activity));
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(activity);
     }
 
     /// <summary>
@@ -126,24 +110,24 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [JSInvokable]
     public async Task HandleActivityEmbeddedPortSelected(JsonObject activity, string portName)
     {
-        if (ActivityEmbeddedPortSelected == null)
-            return;
-
-        var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
-        await InvokeAsync(async () => await ActivityEmbeddedPortSelected(args));
+        if (ActivityEmbeddedPortSelected.HasDelegate)
+        {
+            var args = new ActivityEmbeddedPortSelectedArgs(activity, portName);
+            await ActivityEmbeddedPortSelected.InvokeAsync(args);
+        }
     }
 
     /// <summary>
-    /// Invoked from JavaScript when an activity is double clicked.
+    /// Invoked from JavaScript when an activity is double-clicked.
     /// </summary>
     /// <param name="activity">The clicked activity.</param>
     [JSInvokable]
     public async Task HandleActivityDoubleClick(JsonObject activity)
     {
-        if (ActivityDoubleClick == null)
-            return;
-
-        await InvokeAsync(async () => await ActivityDoubleClick(activity));
+        if (ActivityDoubleClick.HasDelegate)
+        {
+            await ActivityDoubleClick.InvokeAsync(activity);
+        }
     }
 
     /// <summary>
@@ -152,10 +136,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
-        if (CanvasSelected == null)
-            return;
-
-        await InvokeAsync(async () => await CanvasSelected());
+        if (CanvasSelected.HasDelegate)
+            await CanvasSelected.InvokeAsync();
     }
 
     /// <summary>
@@ -164,10 +146,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {
-        if (GraphUpdated == null)
-            return;
-
-        await InvokeAsync(async () => await GraphUpdated());
+        if (GraphUpdated.HasDelegate)
+            await GraphUpdated.InvokeAsync();
     }
 
     /// <summary>
@@ -332,6 +312,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     protected override void OnInitialized()
     {
         ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+        _flowchart = Flowchart;
     }
 
     /// <inheritdoc />
@@ -348,6 +329,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        if (!Equals(_flowchart, Flowchart))
+        {
+            _flowchart = Flowchart;
+            await _rateLimitedLoadFlowchartAction.InvokeAsync();
+        }
+        
         if (!Equals(_activityStats, ActivityStats))
         {
             _activityStats = ActivityStats;
@@ -382,6 +369,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
             // Update the activity ID.
             activity.SetId(newActivityId);
+            activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
 
             // If the activity contains embedded ports, generate new IDs for the contained flowchart.
             ProcessEmbeddedPorts(activity, descriptor);

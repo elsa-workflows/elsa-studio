@@ -116,7 +116,7 @@ public partial class Journal : IAsyncDisposable
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
     {
         if (WorkflowInstance == null)
-            return new ItemsProviderResult<JournalEntry>(Enumerable.Empty<JournalEntry>(), 0);
+            return new ItemsProviderResult<JournalEntry>([], 0);
 
         await InvokeWithBlazorServiceContext(EnsureActivityDescriptorsAsync);
 
@@ -128,8 +128,10 @@ public partial class Journal : IAsyncDisposable
             filter.ActivityIds = JournalFilter?.ActivityIds;
 
         if (ShowIncidents)
-            filter.EventNames = new[] { "Faulted" };
+            filter.EventNames = ["Faulted"];
 
+        filter.ExcludedActivityTypes = ["Elsa.Workflow", "Elsa.Flowchart"];
+        
         var response = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take));
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();

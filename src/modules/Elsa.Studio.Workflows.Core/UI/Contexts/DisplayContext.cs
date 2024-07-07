@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.UI.Contexts;
 
@@ -15,9 +16,9 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 /// <param name="ActivityStats">A map of activity stats.</param>
 public record DisplayContext(
     JsonObject Activity, 
-    Func<JsonObject, Task>? ActivitySelectedCallback = default,
-    Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelectedCallback = default,
-    Func<JsonObject, Task>? ActivityDoubleClickCallback = default,
-    Func<Task>? GraphUpdatedCallback = default, 
+    EventCallback<JsonObject> ActivitySelectedCallback = default,
+    EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelectedCallback = default,
+    EventCallback<JsonObject> ActivityDoubleClickCallback = default,
+    EventCallback GraphUpdatedCallback = default, 
     bool IsReadOnly = false,
     IDictionary<string, ActivityStats>? ActivityStats = default);

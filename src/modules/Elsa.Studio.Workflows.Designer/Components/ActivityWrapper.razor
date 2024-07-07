@@ -1,35 +1,20 @@
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Enums
-@using Humanizer
 @using Elsa.Api.Client.Extensions
-@using System.Text.Json
-@using Elsa.Api.Client.Converters
 @using Elsa.Studio.Workflows.Domain.Contexts
 @inherits StudioComponentBase
-@if (Stats != null)
-{
-    var color = Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
-    var content = Stats.Blocked ? default : Stats.Completed.ToString();
-    var icon = content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : default : default;
-    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;">
-        @DisplayActivityWrapper()
-    </MudBadge>
-}
-else
-{
-    @DisplayActivityWrapper()
-}
+@{
+    const string white = "#ffffff";
+    var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
+    var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
+    var content = Stats == null ? null : Stats.Blocked ? null : Stats.Completed.ToString();
+    var icon = Stats == null ? null : content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : null : null;
+    var showBadge = Stats != null;
 
-@code
-{
-    private RenderFragment DisplayActivityWrapper()
-    {
-        const string white = "#ffffff";
-        var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
-
-        return @<MudPaper
-                    Class="elsa-activity pa-3"
-                    Style="@($"border-left-color: {_color}; {(CanStartWorkflow ? $"background-color: {_color}" : "")};")"
-                    Outlined="true">
+    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;" Visible="showBadge">
+        <MudPaper
+            Class="elsa-activity pa-3"
+            Style="@($"border-left-color: {_color}; {(CanStartWorkflow ? $"background-color: {_color}" : "")};")"
+            Outlined="true">
             <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
                 @if (_icon != null)
                 {
@@ -74,6 +59,6 @@ else
                     }
                 </MudStack>
             </MudStack>
-        </MudPaper>;
-    }
+        </MudPaper>
+    </MudBadge>
 }

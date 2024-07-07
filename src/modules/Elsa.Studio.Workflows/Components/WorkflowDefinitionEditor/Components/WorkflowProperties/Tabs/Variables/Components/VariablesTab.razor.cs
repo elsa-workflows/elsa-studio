@@ -13,7 +13,7 @@ public partial class VariablesTab
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
@@ -33,8 +33,8 @@ public partial class VariablesTab
 
     private async Task RaiseWorkflowDefinitionUpdatedAsync()
     {
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task OpenVariableEditorDialog(Variable? variable)

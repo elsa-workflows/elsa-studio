@@ -55,81 +55,63 @@ public partial class WorkflowEditor
     /// <summary>
     /// Gets or sets the drag and drop manager via property injection.
     /// </summary>
-    [CascadingParameter]
-    public DragDropManager DragDropManager { get; set; } = default!;
+    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets a callback invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter]
-    public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter]
-    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
-    [Parameter]
-    public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition is being saved.
-    [Parameter]
-    public EventCallback Saving { get; set; }
+    [Parameter] public EventCallback Saving { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been saved.
-    [Parameter]
-    public EventCallback Saved { get; set; }
+    [Parameter] public EventCallback Saved { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has failed to save.
-    [Parameter]
-    public EventCallback<ValidationErrors> SavingFailed { get; set; }
+    [Parameter] public EventCallback<ValidationErrors> SavingFailed { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition is being published.
-    [Parameter]
-    public EventCallback Publishing { get; set; }
+    [Parameter] public EventCallback Publishing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been published.
-    [Parameter]
-    public EventCallback Published { get; set; }
+    [Parameter] public EventCallback Published { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has failed to publish.
-    [Parameter]
-    public EventCallback<ValidationErrors> PublishingFailed { get; set; }
+    [Parameter] public EventCallback<ValidationErrors> PublishingFailed { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition is being retracted.
-    [Parameter]
-    public EventCallback Retracting { get; set; }
+    [Parameter] public EventCallback Retracting { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been retracted.
-    [Parameter]
-    public EventCallback Retracted { get; set; }
+    [Parameter] public EventCallback Retracted { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has failed to retract.
-    [Parameter]
-    public EventCallback<ValidationErrors> RetractingFailed { get; set; }
+    [Parameter] public EventCallback<ValidationErrors> RetractingFailed { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition is being exported.
-    [Parameter]
-    public EventCallback Exporting { get; set; }
+    [Parameter] public EventCallback Exporting { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been exported.
-    [Parameter]
-    public EventCallback Exported { get; set; }
+    [Parameter] public EventCallback Exported { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition is being imported.
-    [Parameter]
-    public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
+    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> Importing { get; set; }
 
     /// Gets or sets the event triggered when the workflow definition has been imported.
-    [Parameter]
-    public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
+    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> Imported { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -145,6 +127,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
+    private JsonObject? Activity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
@@ -156,14 +139,13 @@ public partial class WorkflowEditor
         {
             _activityPropertiesPane = value;
 
-            // Prefix the ID with a non-numerical value so it can always be used as a query selector (sometimes, Radzen generates a unique ID starting with a number).
+            // Prefix the ID with a non-numerical value, so it can always be used as a query selector
+            // (sometimes, Radzen generates a unique ID starting with a number).
             _activityPropertiesPane.UniqueID = $"pane-{value.UniqueID}";
         }
     }
 
-    /// <summary>
     /// Gets or sets a flag indicating whether the workflow definition is dirty.
-    /// </summary>
     public async Task NotifyWorkflowChangedAsync()
     {
         await HandleChangesAsync(false);
@@ -202,7 +184,7 @@ public partial class WorkflowEditor
 
         if (readDiagram)
         {
-            var root = await _diagramDesigner.ReadActivityAsync();
+            var root = await _diagramDesigner.GetActivityAsync();
             workflowDefinition.Root = root;
         }
 
@@ -296,7 +278,7 @@ public partial class WorkflowEditor
                 StateHasChanged();
             }
 
-            // Because this method is rate-limited, it's possible that the designer has been disposed since the last invocation.
+            // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
             // Therefore, we need to wrap this in a try/catch block.
             try
             {
@@ -367,8 +349,8 @@ public partial class WorkflowEditor
     {
         WorkflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionUpdated != null)
-            await WorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
@@ -405,8 +387,8 @@ public partial class WorkflowEditor
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
-            var graph = await ActivityVisitor.VisitAsync(WorkflowDefinition!);
-            var nodes = graph.Flatten();
+            var graph = await _diagramDesigner.GetActivityGraphAsync();
+            var nodes = graph.ActivityNodeLookup.Values;
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
 
             if (hasNotFoundActivities)
@@ -451,7 +433,7 @@ public partial class WorkflowEditor
             await SaveChangesAsync(true, false, false);
     }
 
-    private async Task OnDownloadClicked()
+    private async Task OnExportClicked()
     {
         await Exporting.InvokeAsync();
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
@@ -460,7 +442,7 @@ public partial class WorkflowEditor
         await Exported.InvokeAsync();
     }
 
-    private async Task OnUploadClicked()
+    private async Task OnImportClicked()
     {
         await DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
     }
@@ -472,7 +454,7 @@ public partial class WorkflowEditor
 
         // Allow application host to handle additional file types.
         await Importing.InvokeAsync(files);
-        await InvokeWithBlazorServiceContext(() => ImportFilesAsync(files));
+        await ImportFilesAsync(files);
         await Imported.InvokeAsync(files);
         _isDirty = false;
 
@@ -482,6 +464,11 @@ public partial class WorkflowEditor
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
     {
         IBrowserFile? importedFile = null;
+
+        _isDirty = true;
+        _isProgressing = true;
+        StateHasChanged();
+        await Saving.InvokeAsync();
 
         foreach (var file in files)
         {
@@ -508,8 +495,15 @@ public partial class WorkflowEditor
             }
         }
 
+        _isProgressing = false;
+        _isDirty = false;
+        StateHasChanged();
+
         if (importedFile != null)
+        {
+            await Saved.InvokeAsync();
             Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+        }
     }
 
     private async Task<bool> ImportZipFileAsync(Stream stream)
@@ -558,8 +552,7 @@ public partial class WorkflowEditor
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
             model.DefinitionId = WorkflowDefinition!.DefinitionId;
-
-            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+            var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
         }

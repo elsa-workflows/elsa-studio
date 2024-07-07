@@ -27,5 +27,5 @@ export async function updateActivityStats(elementId: string, activityId: string,
         return;
     }
     
-    node.setProp('activityStats', activityStats)
+    node.setProp('activityStats', activityStats);
 }

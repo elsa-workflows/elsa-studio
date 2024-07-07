@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
@@ -16,16 +17,28 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     private FlowchartDesignerWrapper? _designerWrapper;
 
     /// <inheritdoc />
-    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await _designerWrapper!.LoadFlowchartAsync(activity, activityStatsMap);
+    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
+    {
+        await InvokeDesignerActionAsync(x => x.LoadFlowchartAsync(activity, activityStatsMap));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats);
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityStatsAsync(id, stats));
+    }
 
     /// <inheritdoc />
-    public async Task SelectActivityAsync(string id) => await _designerWrapper!.SelectActivityAsync(id);
+    public async Task SelectActivityAsync(string id)
+    {
+        await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
+    }
 
     /// <inheritdoc />
     public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
@@ -57,7 +70,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     {
         yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, "Zoom to fit the screen", OnZoomToFitClicked);
         yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, "Center", OnCenterClicked);
-        
+
         if (!isReadonly)
         {
             yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout",
@@ -84,8 +97,12 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         };
     }
 
-    private async Task OnZoomToFitClicked() => await _designerWrapper!.ZoomToFitAsync();
-    private async Task OnCenterClicked() => await _designerWrapper!.CenterContentAsync();
+    private async Task InvokeDesignerActionAsync(Func<FlowchartDesignerWrapper, Task> action)
+    {
+        if (_designerWrapper != null) await action(_designerWrapper);
+    }
 
-    private async Task OnAutoLayoutClicked() => await _designerWrapper!.AutoLayoutAsync();
+    private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
+    private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper!.CenterContentAsync() : Task.CompletedTask;
+    private Task OnAutoLayoutClicked() => _designerWrapper != null ? _designerWrapper!.AutoLayoutAsync() : Task.CompletedTask;
 }
