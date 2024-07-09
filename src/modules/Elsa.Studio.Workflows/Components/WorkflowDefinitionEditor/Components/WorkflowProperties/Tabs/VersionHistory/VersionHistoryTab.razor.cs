@@ -32,8 +32,9 @@ public partial class VersionHistoryTab : IDisposable
     [Inject] private IDialogService DialogService { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
-    private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
-    private bool HasWorkflowEditPermission => Workspace?.HasWorkflowEditPermission ?? false;
+    private bool IsReadOnly => Workspace.IsReadOnly;
+    private bool HasWorkflowEditPermission => Workspace.HasWorkflowEditPermission;
+    private long _recordCount = 0; 
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -53,7 +54,7 @@ public partial class VersionHistoryTab : IDisposable
 
         var request = new ListWorkflowDefinitionsRequest
         {
-            DefinitionIds = new[] { DefinitionId },
+            DefinitionIds = [DefinitionId],
             OrderDirection = OrderDirection.Descending,
             OrderBy = OrderByWorkflowDefinition.Version,
             Page = page,
@@ -62,6 +63,7 @@ public partial class VersionHistoryTab : IDisposable
 
         var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
 
+        _recordCount = response.TotalCount;
         return new TableData<WorkflowDefinitionSummary>
         {
             Items = response.Items,
@@ -78,6 +80,16 @@ public partial class VersionHistoryTab : IDisposable
     private async Task ReloadTableAsync()
     {
         await Table.ReloadServerData();
+    }
+    
+    private bool CanRollback(WorkflowDefinitionSummary workflowDefinitionSummary)
+    {
+        return HasWorkflowEditPermission && workflowDefinitionSummary is { IsLatest: false };
+    }
+    
+    private bool CanDelete(WorkflowDefinitionSummary workflowDefinitionSummary)
+    {
+        return HasWorkflowEditPermission && _recordCount > 1;
     }
 
     private async Task OnWorkflowDefinitionUpdated() => await ReloadTableAsync();
