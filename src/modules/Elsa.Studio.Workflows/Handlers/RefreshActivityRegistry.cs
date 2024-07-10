@@ -1,19 +1,19 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Notifications;
+using JetBrains.Annotations;
 
 namespace Elsa.Studio.Workflows.Handlers;
 
-/// <summary>
 /// A handler that refreshes the activity registry when a workflow definition is deleted, published or retracted.
-/// </summary>
-public class RefreshActivityRegistry :INotificationHandler<WorkflowDefinitionDeleted>,
+[UsedImplicitly]
+public class RefreshActivityRegistry : INotificationHandler<WorkflowDefinitionDeleted>,
     INotificationHandler<WorkflowDefinitionPublished>,
     INotificationHandler<WorkflowDefinitionRetracted>,
-    INotificationHandler<WorkflowDefinitionsBulkDeleted>,
-    INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>,
-    INotificationHandler<WorkflowDefinitionsBulkPublished>,
-    INotificationHandler<WorkflowDefinitionsBulkRetracted>
+    INotificationHandler<BulkWorkflowDefinitionsDeleted>,
+    INotificationHandler<BulkWorkflowDefinitionVersionsDeleted>,
+    INotificationHandler<BulkWorkflowDefinitionsPublished>,
+    INotificationHandler<BulkWorkflowDefinitionsRetracted>
 {
     private readonly IActivityRegistry _activityRegistry;
 
@@ -24,14 +24,14 @@ public class RefreshActivityRegistry :INotificationHandler<WorkflowDefinitionDel
     {
         _activityRegistry = activityRegistry;
     }
-    
+
     async Task INotificationHandler<WorkflowDefinitionDeleted>.HandleAsync(WorkflowDefinitionDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionPublished>.HandleAsync(WorkflowDefinitionPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionRetracted>.HandleAsync(WorkflowDefinitionRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkDeleted>.HandleAsync(WorkflowDefinitionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionVersionsBulkDeleted>.HandleAsync(WorkflowDefinitionVersionsBulkDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkPublished>.HandleAsync(WorkflowDefinitionsBulkPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
-    async Task INotificationHandler<WorkflowDefinitionsBulkRetracted>.HandleAsync(WorkflowDefinitionsBulkRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<BulkWorkflowDefinitionsDeleted>.HandleAsync(BulkWorkflowDefinitionsDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<BulkWorkflowDefinitionVersionsDeleted>.HandleAsync(BulkWorkflowDefinitionVersionsDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<BulkWorkflowDefinitionsPublished>.HandleAsync(BulkWorkflowDefinitionsPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<BulkWorkflowDefinitionsRetracted>.HandleAsync(BulkWorkflowDefinitionsRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
 
     private async Task RefreshActivityRegistryAsync(CancellationToken cancellationToken = default)
     {

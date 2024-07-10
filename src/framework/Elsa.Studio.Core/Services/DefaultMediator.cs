@@ -43,10 +43,10 @@ public class DefaultMediator : IMediator
     /// <inheritdoc />
     public Task NotifyAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
     {
-        // Collect handlers that were registered manually, and handlers registered via DI.
+        // Collect handlers registered manually, and handlers registered via DI.
         var manualHandlers = _handlers.OfType<INotificationHandler<TNotification>>().ToList();
-        var diHandlers = _serviceProvider.GetServices<INotificationHandler>().OfType<INotificationHandler<TNotification>>().ToList();
-        var handlers = manualHandlers.Concat(diHandlers).ToList();
+        var registeredHandlers = _serviceProvider.GetServices<INotificationHandler>().OfType<INotificationHandler<TNotification>>().ToList();
+        var handlers = manualHandlers.Concat(registeredHandlers).ToList();
         var tasks = handlers.Select(x => x.HandleAsync(notification, cancellationToken));
         return Task.WhenAll(tasks);
     }
