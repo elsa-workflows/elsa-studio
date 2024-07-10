@@ -15,17 +15,23 @@ public partial class VersionHistoryTab : IDisposable
     /// Gets or sets the definition ID.
     [Parameter] public string DefinitionId { get; set; } = default!;
 
-    /// Gets or sets a callback that is invoked when the workflow definition is about to be reverted to an earlier version.
+    /// Gets or sets a callback invoked when the workflow definition is about to be reverted to an earlier version.
     [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionReverting { get; set; }
 
-    /// Gets or sets a callback that is invoked when the workflow definition is reverted to an earlier version.
+    /// Gets or sets a callback invoked when the workflow definition is reverted to an earlier version.
     [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionReverted { get; set; }
-    
-    /// Gets or sets a callback that is invoked when the workflow definition version is about to be deleted.
+
+    /// Gets or sets a callback invoked when the workflow definition version is about to be deleted.
     [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionDeleting { get; set; }
-    
-    /// Gets or sets a callback that is invoked when the workflow definition version is about to be deleted.
+
+    /// Gets or sets a callback invoked when the workflow definition version is about to be deleted.
     [Parameter] public EventCallback<WorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionDeleted { get; set; }
+
+    /// Gets or sets a callback invoked when workflow definition versions are about to be deleted in bulk.
+    [Parameter] public EventCallback<BulkWorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionBulkDeleting { get; set; }
+
+    /// Gets or sets a callback invoked when workflow definition versions have been deleted in bulk.
+    [Parameter] public EventCallback<BulkWorkflowDefinitionVersionEventArgs> WorkflowDefinitionVersionBulkDeleted { get; set; }
 
     [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
@@ -34,7 +40,7 @@ public partial class VersionHistoryTab : IDisposable
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace.IsReadOnly;
     private bool HasWorkflowEditPermission => Workspace.HasWorkflowEditPermission;
-    private long _recordCount = 0; 
+    private long _recordCount = 0;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -81,12 +87,12 @@ public partial class VersionHistoryTab : IDisposable
     {
         await Table.ReloadServerData();
     }
-    
+
     private bool CanRollback(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         return HasWorkflowEditPermission && workflowDefinitionSummary is { IsLatest: false };
     }
-    
+
     private bool CanDelete(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
         return HasWorkflowEditPermission && _recordCount > 1;
@@ -106,7 +112,8 @@ public partial class VersionHistoryTab : IDisposable
         if (confirmed != true)
             return;
 
-        var eventArgs = new WorkflowDefinitionVersionEventArgs(workflowDefinitionSummary.Id, workflowDefinitionSummary.DefinitionId, workflowDefinitionSummary.Version);
+        var definitionVersion = new WorkflowDefinitionVersion(workflowDefinitionSummary.DefinitionId, workflowDefinitionSummary.Id, workflowDefinitionSummary.Version);
+        var eventArgs = new WorkflowDefinitionVersionEventArgs(definitionVersion);
         if (WorkflowDefinitionVersionDeleting.HasDelegate) await WorkflowDefinitionVersionDeleting.InvokeAsync(eventArgs);
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionSummary.Id);
         if (WorkflowDefinitionVersionDeleting.HasDelegate) await WorkflowDefinitionVersionDeleted.InvokeAsync(eventArgs);
@@ -125,27 +132,36 @@ public partial class VersionHistoryTab : IDisposable
         if (confirmed != true)
             return;
 
+        var definitionVersions = SelectedDefinitions.Select(WorkflowDefinitionVersion.FromDefinitionSummary).ToList();
+
+        if (WorkflowDefinitionVersionBulkDeleting.HasDelegate)
+            await WorkflowDefinitionVersionBulkDeleting.InvokeAsync(new BulkWorkflowDefinitionVersionEventArgs(definitionVersions));
+
         if (WorkflowDefinitionVersionDeleting.HasDelegate)
         {
             foreach (var definition in SelectedDefinitions)
             {
-                var eventArgs = new WorkflowDefinitionVersionEventArgs(definition.Id, definition.DefinitionId, definition.Version);
+                var definitionVersion = new WorkflowDefinitionVersion(definition.DefinitionId, definition.Id, definition.Version);
+                var eventArgs = new WorkflowDefinitionVersionEventArgs(definitionVersion);
                 await WorkflowDefinitionVersionDeleting.InvokeAsync(eventArgs);
             }
         }
-        
+
         var ids = SelectedDefinitions.Select(x => x.Id).ToList();
         await WorkflowDefinitionService.BulkDeleteVersionsAsync(ids);
-        
+
         if (WorkflowDefinitionVersionDeleting.HasDelegate)
         {
             foreach (var definition in SelectedDefinitions)
             {
-                var eventArgs = new WorkflowDefinitionVersionEventArgs(definition.Id, definition.DefinitionId, definition.Version);
+                var definitionVersion = new WorkflowDefinitionVersion(definition.DefinitionId, definition.Id, definition.Version);
+                var eventArgs = new WorkflowDefinitionVersionEventArgs(definitionVersion);
                 await WorkflowDefinitionVersionDeleted.InvokeAsync(eventArgs);
             }
         }
-        
+
+        if (WorkflowDefinitionVersionBulkDeleted.HasDelegate)
+            await WorkflowDefinitionVersionBulkDeleted.InvokeAsync(new BulkWorkflowDefinitionVersionEventArgs(definitionVersions));
         await ReloadTableAsync();
     }
 
@@ -154,10 +170,13 @@ public partial class VersionHistoryTab : IDisposable
         var definitionVersionId = workflowDefinition.Id;
         var definitionId = workflowDefinition.DefinitionId;
         var version = workflowDefinition.Version;
-        var eventArgs = new WorkflowDefinitionVersionEventArgs(definitionVersionId, definitionId, version);
-        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverting.InvokeAsync(eventArgs);
-        await WorkflowDefinitionService.RevertVersionAsync(definitionId, version);
-        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverted.InvokeAsync(eventArgs);
+        var revertingVersion = new WorkflowDefinitionVersion(definitionVersionId, definitionId, version);
+        var revertingEventArgs = new WorkflowDefinitionVersionEventArgs(revertingVersion);
+        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverting.InvokeAsync(revertingEventArgs);
+        var newDefinition = await WorkflowDefinitionService.RevertVersionAsync(definitionId, version);
+        var revertedVersion = new WorkflowDefinitionVersion(definitionId, newDefinition.Id, newDefinition.Version);
+        var revertedEventArgs = new WorkflowDefinitionVersionEventArgs(revertedVersion);
+        if (WorkflowDefinitionReverting.HasDelegate) await WorkflowDefinitionReverted.InvokeAsync(revertedEventArgs);
         await Workspace.RefreshActiveWorkflowAsync();
         await ReloadTableAsync();
     }

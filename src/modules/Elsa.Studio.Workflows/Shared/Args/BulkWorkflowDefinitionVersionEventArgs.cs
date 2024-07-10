@@ -1,0 +1,3 @@
+namespace Elsa.Studio.Workflows.Shared.Args;
+
+public record BulkWorkflowDefinitionVersionEventArgs(ICollection<WorkflowDefinitionVersion> WorkflowDefinitionVersions);

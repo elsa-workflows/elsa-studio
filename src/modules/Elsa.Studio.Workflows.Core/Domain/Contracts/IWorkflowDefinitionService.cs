@@ -126,7 +126,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Reverts the specified workflow definition to the specified version.
     /// </summary>
-    Task RevertVersionAsync(string definitionId, int  version, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinitionSummary> RevertVersionAsync(string definitionId, int  version, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Executes a workflow definition.

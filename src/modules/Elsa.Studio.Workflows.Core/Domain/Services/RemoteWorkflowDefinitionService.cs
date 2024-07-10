@@ -299,10 +299,10 @@ public class RemoteWorkflowDefinitionService : IWorkflowDefinitionService
     }
 
     /// <inheritdoc />
-    public async Task RevertVersionAsync(string definitionId, int version, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinitionSummary> RevertVersionAsync(string definitionId, int version, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        await api.RevertVersionAsync(definitionId, version, cancellationToken);
+        return await api.RevertVersionAsync(definitionId, version, cancellationToken);
     }
 
     /// <inheritdoc />
