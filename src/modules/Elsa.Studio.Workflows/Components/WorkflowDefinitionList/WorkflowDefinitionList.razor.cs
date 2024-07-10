@@ -13,18 +13,14 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
-/// <summary>
 /// Displays a list of workflow definitions.
-/// </summary>
 public partial class WorkflowDefinitionList
 {
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
-
-    /// <summary>
+    
     /// An event that is invoked when a workflow definition is edited.
-    /// </summary>
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
     
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -34,7 +30,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
-    public bool IsReadOnlyMode = false;
+    private bool IsReadOnlyMode { get; set; }
     private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
@@ -54,9 +50,7 @@ public partial class WorkflowDefinitionList
         var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
             var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
-            
             IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l=> l.Rel == "bulk-publish") ?? 0) == 0;
-            
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
             var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest

@@ -56,7 +56,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Deletes a workflow definition version.
     /// </summary>
-    Task<bool> DeleteVersionAsync(string id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteVersionAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Publishes a workflow definition.
@@ -76,7 +76,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Deletes multiple workflow definition versions.
     /// </summary>
-    Task<long> BulkDeleteVersionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+    Task<long> BulkDeleteVersionsAsync(IEnumerable<WorkflowDefinitionVersion> workflowDefinitionVersions, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Publishes multiple workflow definitions.
@@ -126,7 +126,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Reverts the specified workflow definition to the specified version.
     /// </summary>
-    Task<WorkflowDefinitionSummary> RevertVersionAsync(string definitionId, int  version, CancellationToken cancellationToken = default);
+    Task<WorkflowDefinitionSummary> RevertVersionAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Executes a workflow definition.

@@ -16,12 +16,6 @@
         <InputOutputTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
     <MudTabPanel Text="Version history">
-        <VersionHistoryTab 
-            DefinitionId="@WorkflowDefinition.DefinitionId" 
-            WorkflowDefinitionReverting="WorkflowDefinitionReverting" 
-            WorkflowDefinitionReverted="WorkflowDefinitionReverted"
-            WorkflowDefinitionVersionDeleting="WorkflowDefinitionVersionDeleting"
-            WorkflowDefinitionVersionDeleted="WorkflowDefinitionVersionDeleted"
-            />
+        <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId"/>
     </MudTabPanel>
 </MudTabs>
