@@ -42,11 +42,11 @@ public partial class WorkflowInstanceViewer
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
     {
-        // Select activity IDs that are direct children of the root.
-        var activityIds = _workflowDefinition.Root.GetActivities().Select(x => x.GetId()).ToList();
+        // Select activity node IDs that are direct children of the root.
+        var activityNodeIds = _workflowDefinition.Root.GetActivities().Select(x => x.GetNodeId()).ToList();
         var filter = new JournalFilter
         {
-            ActivityIds = activityIds
+            ActivityNodeIds = activityNodeIds
         };
         await Journal.SetWorkflowInstanceAsync(instance, filter);
     }
@@ -58,10 +58,10 @@ public partial class WorkflowInstanceViewer
 
     private async Task OnDesignerPathChanged(DesignerPathChangedArgs args)
     {
-        var activityIds = args.ContainerActivity.GetActivities().Select(x => x.GetId()).ToList();
+        var activityNodeIds = args.ContainerActivity.GetActivities().Select(x => x.GetNodeId()).ToList();
         var filter = new JournalFilter
         {
-            ActivityIds = activityIds
+            ActivityNodeIds = activityNodeIds
         };
         await Journal.SetWorkflowInstanceAsync(_workflowInstance, filter);
     }
