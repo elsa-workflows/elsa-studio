@@ -184,8 +184,8 @@ public class RemoteWorkflowDefinitionService(IRemoteBackendApiClientProvider rem
     {
         var request = new BulkPublishWorkflowDefinitionsRequest(definitionIds);
         var api = await GetApiAsync(cancellationToken);
+        await mediator.NotifyAsync(new BulkWorkflowDefinitionsPublishing(request.DefinitionIds), cancellationToken);
         var response = await api.BulkPublishAsync(request, cancellationToken);
-
         await mediator.NotifyAsync(new BulkWorkflowDefinitionsPublished(response.Published), cancellationToken);
         return response;
     }
