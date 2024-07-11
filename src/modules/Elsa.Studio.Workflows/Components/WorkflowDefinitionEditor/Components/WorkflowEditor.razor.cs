@@ -412,7 +412,7 @@ public partial class WorkflowEditor
             await Retracted.InvokeAsync();
         }, async errors =>
         {
-            Snackbar.Add(string.Join(Environment.NewLine, errors, Severity.Error));
+            Snackbar.Add(string.Join(Environment.NewLine, errors), Severity.Error);
             await RetractingFailed.InvokeAsync(errors);
         }));
     }
