@@ -97,6 +97,9 @@ public partial class VersionHistoryTab : IDisposable
         var workflowDefinitionVersion = WorkflowDefinitionVersion.FromDefinitionSummary(workflowDefinitionSummary);
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionVersion);
         await ReloadTableAsync();
+
+        if (Workspace.IsViewingVersion(workflowDefinitionVersion.WorkflowDefinitionVersionId))
+            await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
     }
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)
