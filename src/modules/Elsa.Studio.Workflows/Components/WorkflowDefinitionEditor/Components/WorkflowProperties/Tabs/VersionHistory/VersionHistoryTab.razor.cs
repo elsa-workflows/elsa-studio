@@ -98,7 +98,7 @@ public partial class VersionHistoryTab : IDisposable
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionVersion);
         await ReloadTableAsync();
 
-        if (Workspace.IsViewingVersion(workflowDefinitionVersion.WorkflowDefinitionVersionId))
+        if (Workspace.IsSelectedDefinition(workflowDefinitionVersion.WorkflowDefinitionVersionId))
             await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
     }
 
@@ -117,6 +117,10 @@ public partial class VersionHistoryTab : IDisposable
         var definitionVersions = SelectedDefinitions.Select(WorkflowDefinitionVersion.FromDefinitionSummary).ToList();
         await WorkflowDefinitionService.BulkDeleteVersionsAsync(definitionVersions);
         await ReloadTableAsync();
+
+        var selectedDefinition = Workspace.GetSelectedDefinition();
+        if (selectedDefinition != null && definitionVersions.Any(x => x.WorkflowDefinitionVersionId == selectedDefinition.Id))
+            await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
     }
 
     private async Task OnRollbackClicked(WorkflowDefinitionSummary workflowDefinition)

@@ -82,9 +82,15 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => _selectedWorkflowDefinition;
     
     /// Determines whether the workspace is currently viewing a specific version of a workflow definition.
-    public bool IsViewingVersion(string definitionVersionId)
+    public bool IsSelectedDefinition(string definitionVersionId)
     {
         return _selectedWorkflowDefinition?.Id == definitionVersionId;
+    }
+    
+    /// Gets the selected workflow definition.
+    public WorkflowDefinition? GetSelectedDefinition()
+    {
+        return _selectedWorkflowDefinition;
     }
     
     /// Displays the latest version of a workflow definition asynchronously.
