@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
@@ -15,6 +14,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
+    private readonly Guid _id = Guid.NewGuid();
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -41,7 +41,10 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     }
 
     /// <inheritdoc />
-    public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
+    public async Task<JsonObject> ReadRootActivityAsync()
+    {
+        return await _designerWrapper!.ReadRootActivityAsync();
+    }
 
     /// <inheritdoc />
     public RenderFragment DisplayDesigner(DisplayContext context)
@@ -52,7 +55,8 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         return builder =>
         {
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
+            builder.SetKey(_id);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart),  flowchart);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.IsReadOnly), context.IsReadOnly);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);

@@ -133,10 +133,11 @@ public partial class WorkflowEditor
             return;
      
         _workflowDefinition = WorkflowDefinition;
+        
         if (_workflowDefinition?.Root == null)
             return;
-
-        await _diagramDesigner.LoadActivityAsync(_workflowDefinition.Root);
+            
+        await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
         SelectActivity(_workflowDefinition.Root);
     }
 
@@ -315,7 +316,7 @@ public partial class WorkflowEditor
 
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
-        _workflowDefinition = workflowDefinition;
+        _workflowDefinition = WorkflowDefinition = workflowDefinition;
 
         if (WorkflowDefinitionUpdated.HasDelegate)
             await WorkflowDefinitionUpdated.InvokeAsync();
