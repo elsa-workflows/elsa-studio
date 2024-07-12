@@ -60,7 +60,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
         
-        if (_selectedWorkflowDefinition == null!)
+        if (_selectedWorkflowDefinition == null)
             _selectedWorkflowDefinition = _workflowDefinition;
     }
     

@@ -6,7 +6,7 @@
     <RadzenSplitter Orientation="Orientation.Horizontal">
         <RadzenSplitterPane Size="65%">
 
-            @if (_selectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null)
             {
                 <MudDynamicTabs @ref="@_dynamicTabs"
                                 Style="height: 100%"
@@ -38,7 +38,7 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            @if (_selectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null)
             {
                 <WorkflowProperties 
                     WorkflowDefinition="@_selectedWorkflowDefinition" 
