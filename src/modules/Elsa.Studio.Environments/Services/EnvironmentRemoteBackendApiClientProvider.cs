@@ -28,7 +28,7 @@ public class EnvironmentRemoteBackendApiClientProvider : IRemoteBackendApiClient
     /// <inheritdoc />
     public async ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class
     {
-        var services = new ServiceCollection().AddElsaClient(x =>
+        var services = new ServiceCollection().AddDefaultApiClients(x =>
         {
             x.BaseAddress = Url;
             //x.ConfigureHttpClient = httpClient => httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

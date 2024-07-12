@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRemoteBackend(this IServiceCollection services, Action<ElsaClientBuilderOptions> configureElsaClient, Action<BackendOptions>? configureBackendOptions = default)
     {
         services.Configure(configureBackendOptions ?? (_ => { }));
-        services.AddElsaClient(configureElsaClient);
+        services.AddDefaultApiClients(configureElsaClient);
         
         return services
                 .AddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>()
