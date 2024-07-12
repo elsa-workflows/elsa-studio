@@ -14,7 +14,7 @@ public partial class VersionHistoryTab : IDisposable
 {
     /// Gets or sets the definition ID.
     [Parameter] public string DefinitionId { get; set; } = default!;
-    
+
     [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -59,10 +59,10 @@ public partial class VersionHistoryTab : IDisposable
         };
     }
 
-    private async Task ViewVersion(WorkflowDefinitionSummary workflowDefinitionSummary)
+    private async Task ViewVersionAsync(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
-        Workspace.DisplayWorkflowDefinitionVersion(workflowDefinition);
+        var workflowDefinition = await InvokeWithBlazorServiceContext(async () => (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!);
+        await Workspace.DisplayWorkflowDefinitionVersionAsync(workflowDefinition);
     }
 
     private async Task ReloadTableAsync()
@@ -84,7 +84,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnViewClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        await ViewVersion(workflowDefinitionSummary);
+        await ViewVersionAsync(workflowDefinitionSummary);
     }
 
     private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
@@ -93,7 +93,7 @@ public partial class VersionHistoryTab : IDisposable
 
         if (confirmed != true)
             return;
-        
+
         var workflowDefinitionVersion = WorkflowDefinitionVersion.FromDefinitionSummary(workflowDefinitionSummary);
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionVersion);
         await ReloadTableAsync();
@@ -101,7 +101,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)
     {
-        await ViewVersion(arg.Item);
+        await ViewVersionAsync(arg.Item);
     }
 
     private async Task OnBulkDeleteClicked()
@@ -121,9 +121,9 @@ public partial class VersionHistoryTab : IDisposable
         var definitionVersionId = workflowDefinition.Id;
         var definitionId = workflowDefinition.DefinitionId;
         var version = workflowDefinition.Version;
-        var revertingVersion = new WorkflowDefinitionVersion(definitionVersionId, definitionId, version);
-        await WorkflowDefinitionService.RevertVersionAsync(revertingVersion);
-        await Workspace.RefreshActiveWorkflowAsync();
+        var revertingVersion = new WorkflowDefinitionVersion(definitionId, definitionVersionId, version);
+        var newDefinitionVersion = await WorkflowDefinitionService.RevertVersionAsync(revertingVersion);
         await ReloadTableAsync();
+        await ViewVersionAsync(newDefinitionVersion);
     }
 }

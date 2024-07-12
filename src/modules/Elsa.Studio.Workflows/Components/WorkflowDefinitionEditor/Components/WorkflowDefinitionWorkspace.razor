@@ -6,7 +6,7 @@
     <RadzenSplitter Orientation="Orientation.Horizontal">
         <RadzenSplitterPane Size="65%">
 
-            @if (SelectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null!)
             {
                 <MudDynamicTabs @ref="@_dynamicTabs"
                                 Style="height: 100%"
@@ -16,19 +16,19 @@
                                 Elevation="0"
                                 ApplyEffectsToContainer>
 
-                    <MudTabPanel Text="@SelectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
+                    <MudTabPanel Text="@_selectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="SelectedWorkflowDefinition.DefinitionId" 
+                            <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId" 
                                             @ref="WorkflowEditor" 
-                                            WorkflowDefinition="SelectedWorkflowDefinition" 
+                                            WorkflowDefinition="_selectedWorkflowDefinition" 
                                             WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" 
                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                                             ActivitySelected="ActivitySelected"/>
                         }
                         else
                         {
-                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinition" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" ActivitySelected="ActivitySelected"/>
+                            <WorkflowDefinitionVersionViewer WorkflowDefinition="_selectedWorkflowDefinition" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" ActivitySelected="ActivitySelected"/>
                         }
 
                     </MudTabPanel>
@@ -38,10 +38,10 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            @if (SelectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null!)
             {
                 <WorkflowProperties 
-                    WorkflowDefinition="@SelectedWorkflowDefinition" 
+                    WorkflowDefinition="@_selectedWorkflowDefinition" 
                     WorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"
                     />
             }

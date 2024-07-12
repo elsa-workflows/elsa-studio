@@ -2,11 +2,8 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -17,6 +14,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowDefinitionWorkspace : IWorkspace
 {
     private MudDynamicTabs _dynamicTabs = default!;
+    private WorkflowDefinition? _workflowDefinition = default!;
+    private WorkflowDefinition? _selectedWorkflowDefinition = default!;
 
     /// <summary>
     /// Gets or sets the workflow definition to edit.
@@ -46,10 +45,10 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
-    public bool IsReadOnly => SelectedWorkflowDefinition?.IsLatest == false || (SelectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
+    public bool IsReadOnly => _selectedWorkflowDefinition?.IsLatest == false || (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
 
     /// <inheritdoc />
-    public bool HasWorkflowEditPermission => (SelectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) > 0;
+    public bool HasWorkflowEditPermission => (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) > 0;
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
@@ -59,21 +58,34 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     private WorkflowEditor WorkflowEditor { get; set; } = default!;
 
     /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _workflowDefinition = WorkflowDefinition;
+        _selectedWorkflowDefinition = SelectedWorkflowDefinition;
+    }
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (SelectedWorkflowDefinition == null!)
-            SelectedWorkflowDefinition = WorkflowDefinition;
+        _workflowDefinition = WorkflowDefinition;
+        _selectedWorkflowDefinition = SelectedWorkflowDefinition;
+        
+        if (_selectedWorkflowDefinition == null!)
+            _selectedWorkflowDefinition = _workflowDefinition;
     }
 
     /// <summary>
     /// Displays the specified workflow definition version.
     /// </summary>
-    public void DisplayWorkflowDefinitionVersion(WorkflowDefinition workflowDefinition)
+    public async Task DisplayWorkflowDefinitionVersionAsync(WorkflowDefinition workflowDefinition)
     {
-        SelectedWorkflowDefinition = workflowDefinition;
+        _selectedWorkflowDefinition = workflowDefinition;
+        
+        if(workflowDefinition.IsLatest)
+            _workflowDefinition = workflowDefinition;
 
         if (WorkflowDefinitionVersionSelected.HasDelegate)
-            WorkflowDefinitionVersionSelected.InvokeAsync(SelectedWorkflowDefinition);
+            await WorkflowDefinitionVersionSelected.InvokeAsync(_selectedWorkflowDefinition);
 
         StateHasChanged();
     }
@@ -81,16 +93,16 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// <summary>
     /// Gets the currently selected workflow definition version.
     /// </summary>
-    public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => SelectedWorkflowDefinition;
+    public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => _selectedWorkflowDefinition;
 
     /// <summary>
     /// Refreshes the active workflow definition.
     /// </summary>
     public async Task RefreshActiveWorkflowAsync()
     {
-        var definitionId = WorkflowDefinition.DefinitionId;
+        var definitionId = _workflowDefinition!.DefinitionId;
         var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest);
-        SelectedWorkflowDefinition = definition!;
+        _selectedWorkflowDefinition = definition!;
         StateHasChanged();
     }
 
@@ -101,7 +113,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     private async Task OnWorkflowDefinitionUpdated()
     {
-        SelectedWorkflowDefinition = WorkflowEditor.WorkflowDefinition!;
+        _workflowDefinition = WorkflowEditor.WorkflowDefinition!;
+        _selectedWorkflowDefinition = _workflowDefinition;
         StateHasChanged();
 
         if (WorkflowDefinitionUpdated != null)
