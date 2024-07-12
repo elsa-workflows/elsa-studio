@@ -270,7 +270,8 @@ public partial class WorkflowInstanceDetails
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance!.Id);
         WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
         {
-            _workflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
+            WorkflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
+            _workflowInstance = WorkflowInstance;
             await GetWorkflowActivityExecutionRecordAsync(_workflowInstance!.Id);
             StateHasChanged();
         });

@@ -7,11 +7,11 @@ namespace Elsa.Studio.Workflows.Services;
 /// <summary>
 /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
 /// </summary>
-public class WorkflowInstanceObserver : IWorkflowInstanceObserver
+public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
     private readonly HubConnection _connection;
 
-    public WorkflowInstanceObserver(HubConnection connection)
+    public RealtimeWorkflowInstanceObserver(HubConnection connection)
     {
         _connection = connection;
 

@@ -166,13 +166,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
         {
-            _workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
-
-            if (_workflowInstance.Status == WorkflowStatus.Finished)
+            WorkflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
+            _workflowInstance = WorkflowInstance;
+            
+            if (WorkflowInstance.Status == WorkflowStatus.Finished)
             {
                 if (_elapsedTimer != null)
                     await _elapsedTimer.DisposeAsync();
             }
+            
+            StateHasChanged();
         });
     }
 
