@@ -12,9 +12,7 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
-/// <summary>
 /// Displays the journal for a workflow instance.
-/// </summary>
 public partial class Journal : IAsyncDisposable
 {
     private MudTimeline _timeline = default!;
@@ -22,11 +20,8 @@ public partial class Journal : IAsyncDisposable
     private HubConnection? _hubConnection;
     private WorkflowInstance? _workflowInstance;
 
-    /// <summary>
-    /// Gets or sets a callback that is invoked when a journal entry is selected.
-    /// </summary>
-    [Parameter]
-    public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
+    /// Gets or sets a callback invoked when a journal entry is selected.
+    [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -43,9 +38,7 @@ public partial class Journal : IAsyncDisposable
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
     private int SelectedIndex { get; set; } = -1;
 
-    /// <summary>
     /// Sets the workflow instance to display the journal for.
-    /// </summary>
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
         WorkflowInstance = workflowInstance;
@@ -55,9 +48,7 @@ public partial class Journal : IAsyncDisposable
         StateHasChanged();
     }
 
-    /// <summary>
     /// Clears the selection.
-    /// </summary>
     public void ClearSelection()
     {
         SelectedEntry = null;
@@ -124,14 +115,11 @@ public partial class Journal : IAsyncDisposable
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
         var filter = new JournalFilter();
 
-        if (ShowScopedEvents)
-            filter.ActivityIds = JournalFilter?.ActivityIds;
-
-        if (ShowIncidents)
-            filter.EventNames = ["Faulted"];
+        if (ShowScopedEvents) filter.ActivityNodeIds = JournalFilter?.ActivityNodeIds;
+        if (ShowIncidents) filter.EventNames = ["Faulted"];
 
         filter.ExcludedActivityTypes = ["Elsa.Workflow", "Elsa.Flowchart"];
-        
+
         var response = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take));
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
@@ -155,7 +143,7 @@ public partial class Journal : IAsyncDisposable
 
         var selectedEntry = SelectedEntry;
         _currentEntries = entries;
-        
+
         // If the selected entry is still in the list, select it again.
         SelectedEntry = entries.FirstOrDefault(x => x.Record.Id == selectedEntry?.Record.Id);
 

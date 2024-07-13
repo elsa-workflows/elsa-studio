@@ -7,6 +7,7 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
+using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
@@ -167,14 +168,14 @@ public partial class DiagramDesignerWrapper
         await ActivityRegistry.EnsureLoadedAsync();
         await LoadActivityAsync(Activity);
     }
-    
+
     /// Updates the current path.
     /// <param name="action">A delegate that manipulates the path</param>
     private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
     {
         action(_pathSegments);
         await UpdateBreadcrumbItemsAsync();
-        
+
         if (PathChanged.HasDelegate)
         {
             var currentContainerActivity = GetCurrentContainerActivity();
@@ -291,6 +292,18 @@ public partial class DiagramDesignerWrapper
             return;
 
         await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity, _activityStats);
+    }
+    
+    private RenderFragment? DisplayDesigner()
+    {
+        return _diagramDesigner?.DisplayDesigner(new DisplayContext(
+            GetCurrentContainerActivity(),
+            ActivitySelected,
+            EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected),
+            EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
+            EventCallback.Factory.Create(this, OnGraphUpdated),
+            IsReadOnly,
+            _activityStats));
     }
 
     private async Task OnActivityDoubleClick(JsonObject activity)

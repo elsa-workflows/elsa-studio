@@ -7,7 +7,7 @@
     <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper 
             @ref="_diagramDesigner" 
-            WorkflowDefinitionVersionId="@WorkflowDefinition?.Id"
+            WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
             Activity="@Activity"
             IsProgressing="@_isProgressing" 
             ActivitySelected="@OnActivitySelected" 
@@ -28,7 +28,7 @@
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DisableElevation="true">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="@OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
-                            @if (WorkflowDefinition?.IsPublished == true)
+                            @if (_workflowDefinition?.IsPublished == true)
                             {
                                 <MudTooltip Text="Unpublish the current workflow." Inline="false" Delay="1000">
                                     <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="@OnRetractClicked">Unpublish</MudMenuItem>
@@ -49,6 +49,6 @@
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
+        <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>
