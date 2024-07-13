@@ -1,0 +1,33 @@
+﻿@inherits StudioComponentBase
+
+<div class="pa-4">
+    <MudForm ReadOnly="IsReadOnly">
+        <MudStack Spacing="5">
+            <MudText Typo="Typo.overline">Workflow Context Settings</MudText>
+            @if (_items.Count > 0)
+            {
+                <MudSimpleTable>                    
+                    <tbody>
+                        @foreach (var item in _items)
+                        {
+                            <tr>
+                                <td>
+                                    <MudText>@item.Text</MudText>
+                                </td>
+                                <td>
+                                    <MudCheckBox T=bool? Value=@(IsChecked(@item.Value, "Load")) Label="Load" ValueChanged="@(IsChecked => OnValueChanged(@item.Value, "Load", IsChecked))"></MudCheckBox>
+                                </td>
+                                <td>
+                                    <MudCheckBox T=bool? Value=@(IsChecked(@item.Value, "Save")) Label="Save" ValueChanged="@(IsChecked => OnValueChanged(@item.Value, "Save", IsChecked))"></MudCheckBox>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </MudSimpleTable>
+            }
+        </MudStack>
+    </MudForm>
+
+</div>
+

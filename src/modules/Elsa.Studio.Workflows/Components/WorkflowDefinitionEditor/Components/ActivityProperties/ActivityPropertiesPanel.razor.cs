@@ -47,6 +47,8 @@ public partial class ActivityPropertiesPanel
 
     [Inject] private IExpressionService ExpressionService { get; set; } = default!;
 
+    [Inject] private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
+
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
 
     /// <inheritdoc />
