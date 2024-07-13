@@ -1,7 +1,4 @@
-@using System.Text.Json.Nodes
-@using Elsa.Studio.Workflows.UI.Args
 @using Elsa.Studio.Workflows.UI.Contracts
-@using Elsa.Studio.Workflows.UI.Contexts
 @inherits StudioComponentBase
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
     <MudToolBar Dense="true">
@@ -38,11 +35,4 @@
         </SeparatorTemplate>
     </MudBreadcrumbs>
 </div>
-@_diagramDesigner?.DisplayDesigner(new DisplayContext(
-    GetCurrentContainerActivity(), 
-    ActivitySelected, 
-    EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected), 
-    EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
-    EventCallback.Factory.Create(this, OnGraphUpdated), 
-    IsReadOnly, 
-    _activityStats))
+@DisplayDesigner()

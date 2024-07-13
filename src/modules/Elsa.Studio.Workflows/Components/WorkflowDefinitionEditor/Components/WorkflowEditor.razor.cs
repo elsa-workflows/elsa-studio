@@ -45,6 +45,7 @@ public partial class WorkflowEditor
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = default!;
+    private WorkflowDefinition? _workflowDefinition;
 
     /// <inheritdoc />
     public WorkflowEditor()
@@ -88,7 +89,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
-    private JsonObject? Activity => WorkflowDefinition?.Root;
+    private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
@@ -115,12 +116,29 @@ public partial class WorkflowEditor
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        _workflowDefinition = WorkflowDefinition;
+        
         await ActivityRegistry.EnsureLoadedAsync();
 
-        if (WorkflowDefinition?.Root == null)
+        if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(_workflowDefinition.Root);
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (WorkflowDefinition == _workflowDefinition)
+            return;
+     
+        _workflowDefinition = WorkflowDefinition;
+        
+        if (_workflowDefinition?.Root == null)
+            return;
+            
+        await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
+        SelectActivity(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -141,7 +159,7 @@ public partial class WorkflowEditor
 
     private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
     {
-        var workflowDefinition = WorkflowDefinition ?? new WorkflowDefinition();
+        var workflowDefinition = _workflowDefinition ?? new WorkflowDefinition();
 
         if (readDiagram)
         {
@@ -195,17 +213,17 @@ public partial class WorkflowEditor
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
 
-    private bool ShouldUpdateReferences() => WorkflowDefinition!.Options.AutoUpdateConsumingWorkflows;
+    private bool ShouldUpdateReferences() => _workflowDefinition!.Options.AutoUpdateConsumingWorkflows;
 
     private async Task<int> UpdateReferencesAsync()
     {
-        var updateReferencesResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.UpdateReferencesAsync(WorkflowDefinition!.DefinitionId));
+        var updateReferencesResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.UpdateReferencesAsync(_workflowDefinition!.DefinitionId));
         return updateReferencesResponse.AffectedWorkflows.Count;
     }
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(WorkflowDefinition!.DefinitionId));
+        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(_workflowDefinition!.DefinitionId));
         await result.OnSuccessAsync(async definition =>
         {
             await SetWorkflowDefinitionAsync(definition);
@@ -298,7 +316,7 @@ public partial class WorkflowEditor
 
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
-        WorkflowDefinition = workflowDefinition;
+        _workflowDefinition = WorkflowDefinition = workflowDefinition;
 
         if (WorkflowDefinitionUpdated.HasDelegate)
             await WorkflowDefinitionUpdated.InvokeAsync();
@@ -385,8 +403,8 @@ public partial class WorkflowEditor
 
     private async Task OnExportClicked()
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.Latest);
-        var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.Latest);
+        var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
         if(download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -493,7 +511,7 @@ public partial class WorkflowEditor
 
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
-            model.DefinitionId = WorkflowDefinition!.DefinitionId;
+            model.DefinitionId = _workflowDefinition!.DefinitionId;
             var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
@@ -527,7 +545,7 @@ public partial class WorkflowEditor
                 VersionOptions = VersionOptions.Latest
             };
 
-            var definitionId = WorkflowDefinition!.DefinitionId;
+            var definitionId = _workflowDefinition!.DefinitionId;
             return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
         });
 
