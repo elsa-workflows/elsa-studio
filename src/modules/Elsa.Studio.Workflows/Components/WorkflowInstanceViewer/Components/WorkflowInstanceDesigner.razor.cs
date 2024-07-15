@@ -67,7 +67,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
     private ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
 
     private RadzenSplitterPane ActivityPropertiesPane
@@ -115,20 +115,35 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (WorkflowDefinition?.Root == null!)
             return;
 
+        await UpdateObserverAsync();
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        // ReSharper disable once RedundantCheckBeforeAssignment
+        if (_workflowInstance != WorkflowInstance)
+        {
+            _workflowInstance = WorkflowInstance;
+            
+            await UpdateObserverAsync();
+        }
+    }
+
+    private async Task UpdateObserverAsync()
+    {
         // If the workflow instance is still running, observe it.
         if (WorkflowInstance.Status == WorkflowStatus.Running)
         {
             await ObserveWorkflowInstanceAsync();
             StartElapsedTimer();
         }
-    }
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        // ReSharper disable once RedundantCheckBeforeAssignment
-        if (_workflowInstance != WorkflowInstance)
-            _workflowInstance = WorkflowInstance;
+        else
+        {
+            if (WorkflowInstanceObserver != null)
+                await WorkflowInstanceObserver.DisposeAsync();
+            StopElapsedTimer();
+        }
     }
 
     /// <inheritdoc />
@@ -163,25 +178,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             if (includesSelectedActivity)
                 await HandleActivitySelectedAsync(SelectedActivity!);
         });
-
-        WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
-        {
-            WorkflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
-            _workflowInstance = WorkflowInstance;
-            
-            if (WorkflowInstance.Status == WorkflowStatus.Finished)
-            {
-                if (_elapsedTimer != null)
-                    await _elapsedTimer.DisposeAsync();
-            }
-            
-            StateHasChanged();
-        });
     }
 
     private void StartElapsedTimer()
     {
         _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+    
+    private void StopElapsedTimer()
+    {
+        _elapsedTimer?.Change(Timeout.Infinite, Timeout.Infinite);
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)

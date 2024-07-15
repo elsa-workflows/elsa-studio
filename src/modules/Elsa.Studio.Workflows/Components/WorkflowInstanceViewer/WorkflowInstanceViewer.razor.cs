@@ -1,11 +1,14 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
+using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
@@ -17,6 +20,7 @@ public partial class WorkflowInstanceViewer
     private WorkflowInstance _workflowInstance = default!;
     private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
+    private IWorkflowInstanceObserver _workflowInstanceObserver = default!;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -27,6 +31,7 @@ public partial class WorkflowInstanceViewer
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
 
@@ -38,6 +43,24 @@ public partial class WorkflowInstanceViewer
         _workflowInstance = instance;
         _workflowDefinition = workflowDefinition!;
         await SelectWorkflowInstanceAsync(instance);
+
+        if (_workflowInstance.Status == WorkflowStatus.Running) 
+            await ObserveWorkflowInstanceAsync();
+    }
+    
+    private async Task ObserveWorkflowInstanceAsync()
+    {
+        _workflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id);
+        
+        _workflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
+        {
+            var workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
+            await InvokeAsync(() =>
+            {
+                _workflowInstance = workflowInstance;
+                StateHasChanged();
+            });
+        });
     }
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
