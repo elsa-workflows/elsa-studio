@@ -54,9 +54,7 @@ public partial class WorkflowInstanceDetails
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
-    private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } =
-        new Dictionary<string, StorageDriverDescriptor>();
-
+    private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
     private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
 
     private IDictionary<string, DataPanelItem> WorkflowInstanceData
@@ -217,10 +215,8 @@ public partial class WorkflowInstanceDetails
             return outputData;
         }
     }
-
-    /// <summary>
+    
     /// Updates the selected sub-workflow.
-    /// </summary>
     public async Task UpdateSubWorkflowAsync(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
@@ -258,23 +254,33 @@ public partial class WorkflowInstanceDetails
 
     private async Task GetWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
     {
+        _workflowActivityExecutionRecord = await GetLastWorkflowActivityExecutionRecordAsync(workflowInstanceId);
+    }
+    
+    private async Task<ActivityExecutionRecord?> GetLastWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
+    {
         var rootWorkflowActivityExecutionContext = WorkflowInstance?.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
-        if (rootWorkflowActivityExecutionContext == null) return;
+        if (rootWorkflowActivityExecutionContext == null) return null;
         var rootWorkflowActivityNodeId = rootWorkflowActivityExecutionContext.ScheduledActivityNodeId;
         var records = await ActivityExecutionService.ListAsync(workflowInstanceId, rootWorkflowActivityNodeId);
-        _workflowActivityExecutionRecord = records.MaxBy(x => x.StartedAt);
+        return records.MaxBy(x => x.StartedAt);
     }
 
     private async Task ObserveWorkflowInstanceAsync()
     {
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance!.Id);
-        WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
+        WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ =>
         {
-            WorkflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
-            _workflowInstance = WorkflowInstance;
-            await GetWorkflowActivityExecutionRecordAsync(_workflowInstance!.Id);
-            StateHasChanged();
-        });
+            var workflowInstance = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance!.Id));
+            var lastExecutionRecord = await InvokeWithBlazorServiceContext(() => GetLastWorkflowActivityExecutionRecordAsync(_workflowInstance!.Id));
+            await InvokeAsync(() =>
+            {
+                WorkflowInstance = _workflowInstance = workflowInstance;
+                _workflowActivityExecutionRecord = lastExecutionRecord;
+                StateHasChanged();
+                return Task.CompletedTask;
+            });
+        };
     }
 
     private string GetStorageDriverDisplayName(string? storageDriverTypeName)
