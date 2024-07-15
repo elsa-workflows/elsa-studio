@@ -35,7 +35,7 @@ public class WorkflowInstanceObserverFactory(
             .WithUrl(hubUrl, httpMessageHandlerFactory)
             .Build();
 
-        var observer = new RealtimeWorkflowInstanceObserver(connection);
+        var observer = new SignalRWorkflowInstanceObserver(connection);
 
         try
         {

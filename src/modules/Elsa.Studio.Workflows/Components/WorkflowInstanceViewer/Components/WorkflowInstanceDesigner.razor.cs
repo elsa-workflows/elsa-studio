@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.RealTime.Messages;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -122,28 +123,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     protected override async Task OnParametersSetAsync()
     {
         // ReSharper disable once RedundantCheckBeforeAssignment
-        if (_workflowInstance != WorkflowInstance)
-        {
+        if (_workflowInstance != WorkflowInstance) 
             _workflowInstance = WorkflowInstance;
-            
-            await UpdateObserverAsync();
-        }
-    }
-
-    private async Task UpdateObserverAsync()
-    {
-        // If the workflow instance is still running, observe it.
-        if (WorkflowInstance.Status == WorkflowStatus.Running)
-        {
-            await ObserveWorkflowInstanceAsync();
-            StartElapsedTimer();
-        }
-        else
-        {
-            if (WorkflowInstanceObserver != null)
-                await WorkflowInstanceObserver.DisposeAsync();
-            StopElapsedTimer();
-        }
     }
 
     /// <inheritdoc />
@@ -156,28 +137,52 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             await UpdatePropertiesPaneHeightAsync();
         }
     }
-
-    private async Task ObserveWorkflowInstanceAsync()
+    
+    private async Task UpdateObserverAsync()
     {
+        if (WorkflowInstance.Status == WorkflowStatus.Running)
+            await CreateObserverAsync();
+        else
+            await DisposeObserverAsync();
+    }
+    
+    private async Task CreateObserverAsync()
+    {
+        await DisposeObserverAsync();
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance.Id);
-        WorkflowInstanceObserver.ActivityExecutionLogUpdated += async message => await InvokeAsync(async () =>
+        WorkflowInstanceObserver.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
+        StartElapsedTimer();
+    }
+    
+    private async Task DisposeObserverAsync()
+    {
+        if (WorkflowInstanceObserver != null!)
         {
-            foreach (var stats in message.Stats)
-            {
-                var activityId = stats.ActivityId;
-                _activityExecutionRecordsLookup.Remove(activityId);
-                await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
-            }
+            WorkflowInstanceObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+            await WorkflowInstanceObserver.DisposeAsync();
+            WorkflowInstanceObserver = null;
+        }
+        
+        StopElapsedTimer();
+    }
 
-            await InvokeAsync(StateHasChanged);
+    private async Task OnActivityExecutionLogUpdated(ActivityExecutionLogUpdatedMessage message)
+    {
+        foreach (var stats in message.Stats)
+        {
+            var activityId = stats.ActivityId;
+            _activityExecutionRecordsLookup.Remove(activityId);
+            await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
+        }
 
-            // If we received an update for the selected activity, refresh the activity details.
-            var selectedActivityId = SelectedActivity?.GetId();
-            var includesSelectedActivity = selectedActivityId != null && message.Stats.Any(x => x.ActivityId == selectedActivityId);
+        await InvokeAsync(StateHasChanged);
 
-            if (includesSelectedActivity)
-                await HandleActivitySelectedAsync(SelectedActivity!);
-        });
+        // If we received an update for the selected activity, refresh the activity details.
+        var selectedActivityId = SelectedActivity?.GetId();
+        var includesSelectedActivity = selectedActivityId != null && message.Stats.Any(x => x.ActivityId == selectedActivityId);
+
+        if (includesSelectedActivity)
+            await HandleActivitySelectedAsync(SelectedActivity!);
     }
 
     private void StartElapsedTimer()
@@ -188,6 +193,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private void StopElapsedTimer()
     {
         _elapsedTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        _elapsedTimer?.Dispose();
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
@@ -278,7 +284,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (WorkflowInstanceObserver != null!) await WorkflowInstanceObserver.DisposeAsync();
-        if (_elapsedTimer != null!) await _elapsedTimer.DisposeAsync();
+        await DisposeObserverAsync();
     }
 }

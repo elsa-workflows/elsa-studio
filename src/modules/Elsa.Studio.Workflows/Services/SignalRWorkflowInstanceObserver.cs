@@ -5,12 +5,13 @@ using Microsoft.AspNetCore.SignalR.Client;
 namespace Elsa.Studio.Workflows.Services;
 
 /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
-public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
+public class SignalRWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
     private readonly HubConnection _connection;
+    private string _id = Guid.NewGuid().ToString();
 
-    /// The `RealtimeWorkflowInstanceObserver` class is a wrapper around a SignalR connection that receives notifications about workflow instance updates.
-    public RealtimeWorkflowInstanceObserver(HubConnection connection)
+    /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
+    public SignalRWorkflowInstanceObserver(HubConnection connection)
     {
         _connection = connection;
 
@@ -45,6 +46,7 @@ public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        await _connection.StopAsync();
         await _connection.DisposeAsync();
     }
 }
