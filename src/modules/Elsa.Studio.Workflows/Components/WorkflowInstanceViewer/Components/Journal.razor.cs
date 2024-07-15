@@ -166,7 +166,6 @@ public partial class Journal : IAsyncDisposable
     private async Task ObserveWorkflowInstanceAsync()
     {
         await DisposeObserverAsync();
-        
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance!.Id);
         WorkflowInstanceObserver.WorkflowJournalUpdated += async _ => await InvokeAsync(async () =>
         {

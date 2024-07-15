@@ -170,19 +170,22 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         foreach (var stats in message.Stats)
         {
+            var activityNodeId = stats.ActivityNodeId;
             var activityId = stats.ActivityId;
-            _activityExecutionRecordsLookup.Remove(activityId);
+            _activityExecutionRecordsLookup.Remove(activityNodeId);
             await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
         }
 
         await InvokeAsync(StateHasChanged);
 
         // If we received an update for the selected activity, refresh the activity details.
-        var selectedActivityId = SelectedActivity?.GetId();
-        var includesSelectedActivity = selectedActivityId != null && message.Stats.Any(x => x.ActivityId == selectedActivityId);
+        var selectedActivityNodeId = SelectedActivity?.GetNodeId();
+        var includesSelectedActivity = selectedActivityNodeId != null && message.Stats.Any(x => x.ActivityNodeId == selectedActivityNodeId);
 
         if (includesSelectedActivity)
+        {
             await HandleActivitySelectedAsync(SelectedActivity!);
+        }
     }
 
     private void StartElapsedTimer()
