@@ -169,7 +169,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
                 await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
 
             // If we received an update for the selected activity, refresh the activity details.
             var selectedActivityId = SelectedActivity?.GetId();
@@ -192,13 +192,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
     {
-        var activityNodeId = activity.GetNodeId()!;
-        SelectedActivity = activity;
-        ActivityDescriptor = ActivityRegistry.Find(activity!.GetTypeName(), activity!.GetVersion());
-        SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
-        StateHasChanged();
-        _activityDetailsTab?.Refresh();
-        _activityExecutionsTab?.Refresh();
+        await InvokeAsync(async () =>
+        {
+            var activityNodeId = activity.GetNodeId();
+            SelectedActivity = activity;
+            ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
+            SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
+            StateHasChanged();
+            _activityDetailsTab?.Refresh();
+            _activityExecutionsTab?.Refresh();
+        });
     }
 
     private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityNodeId)
