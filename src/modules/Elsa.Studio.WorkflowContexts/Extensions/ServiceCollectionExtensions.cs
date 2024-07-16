@@ -1,6 +1,8 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.WorkflowContexts.Contracts;
+using Elsa.Studio.WorkflowContexts.Handlers;
 using Elsa.Studio.WorkflowContexts.Services;
+using Elsa.Studio.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.WorkflowContexts.Extensions;
@@ -18,6 +20,7 @@ public static class ServiceCollectionExtensions
         return services
                 .AddScoped<IFeature, Feature>()
                 .AddScoped<IWorkflowContextsProvider, RemoteWorkflowContextsProvider>()
+                .AddUIHintHandler<WorkflowContextProviderPickerHandler>()
             ;
     }
 }
