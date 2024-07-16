@@ -7,7 +7,6 @@ using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
@@ -17,7 +16,6 @@ public partial class Journal : IAsyncDisposable
 {
     private MudTimeline _timeline = default!;
     private IList<JournalEntry> _currentEntries = default!;
-    private HubConnection? _hubConnection;
     private WorkflowInstance? _workflowInstance;
 
     /// Gets or sets a callback invoked when a journal entry is selected.
@@ -29,7 +27,7 @@ public partial class Journal : IAsyncDisposable
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
     private WorkflowInstance? WorkflowInstance { get; set; }
-    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
     private bool ShowIncidents { get; set; }
@@ -158,9 +156,16 @@ public partial class Journal : IAsyncDisposable
         foreach (var timeout in new[] { 10, 100, 500, 1000 })
             _ = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, timeout, Timeout.Infinite);
     }
+    
+    private async Task DisposeObserverAsync()
+    {
+        if(WorkflowInstanceObserver != null)
+            await WorkflowInstanceObserver.DisposeAsync();
+    }
 
     private async Task ObserveWorkflowInstanceAsync()
     {
+        await DisposeObserverAsync();
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance!.Id);
         WorkflowInstanceObserver.WorkflowJournalUpdated += async _ => await InvokeAsync(async () =>
         {
@@ -205,7 +210,6 @@ public partial class Journal : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (_hubConnection != null)
-            await _hubConnection.DisposeAsync();
+        await DisposeObserverAsync();
     }
 }

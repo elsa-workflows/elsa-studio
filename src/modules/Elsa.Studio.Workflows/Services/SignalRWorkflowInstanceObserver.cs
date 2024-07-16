@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Elsa.Studio.Workflows.Services;
 
-/// <summary>
 /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
-/// </summary>
-public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
+public class SignalRWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
     private readonly HubConnection _connection;
+    private string _id = Guid.NewGuid().ToString();
 
-    public RealtimeWorkflowInstanceObserver(HubConnection connection)
+    /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
+    public SignalRWorkflowInstanceObserver(HubConnection connection)
     {
         _connection = connection;
 
@@ -20,8 +20,13 @@ public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
         connection.On("WorkflowInstanceUpdatedAsync", async (WorkflowInstanceUpdatedMessage message) => await OnWorkflowInstanceUpdatedAsync(message));
     }
 
+    /// <inheritdoc />
     public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
+    
+    /// <inheritdoc />
     public event Func<ActivityExecutionLogUpdatedMessage, Task> ActivityExecutionLogUpdated = default!;
+    
+    /// <inheritdoc />
     public event Func<WorkflowInstanceUpdatedMessage, Task> WorkflowInstanceUpdated = default!;
 
     private async Task OnWorkflowJournalUpdatedAsync(WorkflowExecutionLogUpdatedMessage arg)
@@ -41,6 +46,7 @@ public class RealtimeWorkflowInstanceObserver : IWorkflowInstanceObserver
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        await _connection.StopAsync();
         await _connection.DisposeAsync();
     }
 }

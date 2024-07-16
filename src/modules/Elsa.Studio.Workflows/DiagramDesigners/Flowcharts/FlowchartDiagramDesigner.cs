@@ -77,8 +77,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 
         if (!isReadonly)
         {
-            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout",
-                OnAutoLayoutClicked);
+            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout", OnAutoLayoutClicked);
         }
     }
 

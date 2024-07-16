@@ -290,8 +290,11 @@ public partial class WorkflowInstanceList
 
     private async Task OnSearchTermChanged(string text)
     {
-        SearchTerm = text;
-        await _table.ReloadServerData();
+        if(text != SearchTerm)
+        {
+            SearchTerm = text;
+            await _table.ReloadServerData();
+        }
     }
     
     private async Task OnHasIncidentsChanged(bool? value)
