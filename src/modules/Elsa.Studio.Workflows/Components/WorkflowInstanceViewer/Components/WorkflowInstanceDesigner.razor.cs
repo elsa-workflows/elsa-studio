@@ -156,7 +156,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
         else
         {
-            await DisposeObserverAsync();
             StopElapsedTimer();
         }
     }

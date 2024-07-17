@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
+using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
@@ -46,21 +47,23 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
         _ = Task.Run(GetRecentExecutionRecordsAsync);
     }
 
-    public string? Name { get; set; }
+    /// <inheritdoc />
     public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
+
+    /// <inheritdoc />
     public event Func<ActivityExecutionLogUpdatedMessage, Task> ActivityExecutionLogUpdated = default!;
+
+    /// <inheritdoc />
     public event Func<WorkflowInstanceUpdatedMessage, Task> WorkflowInstanceUpdated = default!;
 
     private async Task GetRecentExecutionRecordsAsync()
     {
         while (_checkForUpdates)
         {
-            var now = DateTime.UtcNow;
             try
             {
                 _blazorServiceAccessor.Services = _serviceProvider;
-                _logger.LogInformation("{ObserverName} is polling", Name);
-                var response = await _workflowInstancesApi.GetUpdatedAtAsync(_workflowInstanceId);
+                var response = await _workflowInstancesApi.GetExecutionStateAsync(_workflowInstanceId);
                 var lastUpdateAt = response.UpdatedAt;
 
                 if (_lastUpdateAt < lastUpdateAt)
@@ -75,6 +78,9 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
 
                     if (WorkflowInstanceUpdated != null!) await WorkflowInstanceUpdated(new WorkflowInstanceUpdatedMessage(_workflowInstanceId));
                 }
+
+                if (response.Status == WorkflowStatus.Finished)
+                    break;
             }
             catch (ObjectDisposedException)
             {

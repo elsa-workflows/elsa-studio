@@ -97,8 +97,6 @@ public partial class Journal : IAsyncDisposable
     {
         if (WorkflowInstance?.Status == WorkflowStatus.Running)
             await ObserveWorkflowInstanceAsync();
-        else
-            await DisposeObserverAsync();
     }
 
     private TimeSpan GetTimeMetric(WorkflowExecutionLogRecord current, WorkflowExecutionLogRecord? previous)

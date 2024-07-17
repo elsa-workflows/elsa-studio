@@ -84,11 +84,8 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
             _workflowInstance = workflowInstance;
             StateHasChanged();
 
-            if (_workflowInstance.Status == WorkflowStatus.Finished)
-            {
-                await DisposeObserverAsync();
+            if (_workflowInstance.Status == WorkflowStatus.Finished) 
                 await Journal.SetWorkflowInstanceAsync(_workflowInstance);
-            }
         });
     }
 
