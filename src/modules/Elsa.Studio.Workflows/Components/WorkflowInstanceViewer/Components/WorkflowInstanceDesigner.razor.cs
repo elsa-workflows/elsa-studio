@@ -10,6 +10,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.Shared.Components;
@@ -29,7 +30,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 {
     private WorkflowInstance? _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;
-    private DiagramDesignerWrapper _designer = default!;
+    private DiagramDesignerWrapper? _designer;
     private ActivityDetailsTab? _activityDetailsTab = default!;
     private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
@@ -96,6 +97,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// Selects the activity by its node ID.
     public async Task SelectActivityAsync(string nodeId)
     {
+        if (_designer == null) return;
         await _designer.SelectActivityAsync(nodeId);
     }
 
@@ -141,6 +143,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             if (WorkflowDefinition != null)
                 await HandleActivitySelectedAsync(WorkflowDefinition!.Root);
             await UpdatePropertiesPaneHeightAsync();
+            await UpdateObserverAsync();
         }
     }
 
@@ -160,11 +163,17 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task CreateObserverAsync()
     {
-        if (_workflowInstance == null)
+        if (_workflowInstance == null || _designer == null)
             return;
-        
+
         await DisposeObserverAsync();
-        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id, "WorkflowInstanceDesigner");
+        var container = _designer.GetCurrentContainerActivity();
+        var observerContext = new WorkflowInstanceObserverContext
+        {
+            WorkflowInstanceId = _workflowInstance.Id,
+            ContainerActivity = container,
+        };
+        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(observerContext);
         WorkflowInstanceObserver.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
     }
 
@@ -180,6 +189,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task OnActivityExecutionLogUpdated(ActivityExecutionLogUpdatedMessage message)
     {
+        if (_designer == null) return;
+        
         foreach (var stats in message.Stats)
         {
             var activityNodeId = stats.ActivityNodeId;

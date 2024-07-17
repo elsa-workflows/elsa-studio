@@ -162,28 +162,8 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
 
-    /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
-    {
-        await ActivityRegistry.EnsureLoadedAsync();
-        await LoadActivityAsync(Activity);
-    }
-
-    /// Updates the current path.
-    /// <param name="action">A delegate that manipulates the path</param>
-    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
-    {
-        action(_pathSegments);
-        await UpdateBreadcrumbItemsAsync();
-
-        if (PathChanged.HasDelegate)
-        {
-            var currentContainerActivity = GetCurrentContainerActivity();
-            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity));
-        }
-    }
-
-    private JsonObject GetCurrentContainerActivity()
+    /// The current container activity or the root activity of the graph.
+    public JsonObject GetCurrentContainerActivity()
     {
         var lastSegment = _pathSegments.FirstOrDefault();
 
@@ -204,6 +184,27 @@ public partial class DiagramDesignerWrapper
             embeddedActivity = embeddedActivity.GetRoot();
 
         return embeddedActivity ?? Activity;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        await ActivityRegistry.EnsureLoadedAsync();
+        await LoadActivityAsync(Activity);
+    }
+
+    /// Updates the current path.
+    /// <param name="action">A delegate that manipulates the path</param>
+    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
+    {
+        action(_pathSegments);
+        await UpdateBreadcrumbItemsAsync();
+
+        if (PathChanged.HasDelegate)
+        {
+            var currentContainerActivity = GetCurrentContainerActivity();
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity));
+        }
     }
 
     private JsonObject? GetEmbeddedActivity(JsonObject activity, string portName)

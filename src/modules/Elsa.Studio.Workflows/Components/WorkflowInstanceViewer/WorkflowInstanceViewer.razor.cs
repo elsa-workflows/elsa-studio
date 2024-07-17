@@ -51,7 +51,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private async Task ObserveWorkflowInstanceAsync()
     {
         await DisposeObserverAsync();
-        _workflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id, "WorkflowInstanceViewer");
+        _workflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id);
         _workflowInstanceObserver.WorkflowInstanceUpdated += OnWorkflowInstanceUpdatedAsync;
     }
 
