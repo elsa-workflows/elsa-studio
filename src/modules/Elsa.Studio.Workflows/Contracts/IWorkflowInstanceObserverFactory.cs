@@ -1,8 +1,6 @@
 namespace Elsa.Studio.Workflows.Contracts;
 
-/// <summary>
 /// A factory for creating <see cref="IWorkflowInstanceObserver"/> instances.
-/// </summary>
 public interface IWorkflowInstanceObserverFactory
 {
     /// <summary>
@@ -11,5 +9,5 @@ public interface IWorkflowInstanceObserverFactory
     /// <param name="workflowInstanceId">The ID of the workflow instance to observe.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>A <see cref="IWorkflowInstanceObserver"/> instance.</returns>
-    Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId, CancellationToken cancellationToken = default);
+    Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId, string observerName, CancellationToken cancellationToken = default);
 }

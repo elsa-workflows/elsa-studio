@@ -27,7 +27,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceDesigner : IAsyncDisposable
 {
-    private WorkflowInstance _workflowInstance = default!;
+    private WorkflowInstance? _workflowInstance = default!;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private DiagramDesignerWrapper _designer = default!;
     private ActivityDetailsTab? _activityDetailsTab = default!;
@@ -37,7 +37,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private Timer? _elapsedTimer;
 
     /// The workflow instance.
-    [Parameter] public WorkflowInstance WorkflowInstance { get; set; } = default!;
+    [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
 
     /// The workflow definition.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -122,9 +122,15 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        // ReSharper disable once RedundantCheckBeforeAssignment
-        if (_workflowInstance != WorkflowInstance) 
-            _workflowInstance = WorkflowInstance;
+        var hasDifferentState = _workflowInstance?.Id != WorkflowInstance?.Id || _workflowInstance?.Status != WorkflowInstance?.Status;
+
+        if (_workflowInstance != WorkflowInstance)
+        {
+            _workflowInstance = WorkflowInstance!;
+
+            if (hasDifferentState)
+                await UpdateObserverAsync();
+        }
     }
 
     /// <inheritdoc />
@@ -137,23 +143,31 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             await UpdatePropertiesPaneHeightAsync();
         }
     }
-    
+
     private async Task UpdateObserverAsync()
     {
-        if (WorkflowInstance.Status == WorkflowStatus.Running)
+        if (WorkflowInstance?.Status == WorkflowStatus.Running)
+        {
             await CreateObserverAsync();
+            StartElapsedTimer();
+        }
         else
+        {
             await DisposeObserverAsync();
+            StopElapsedTimer();
+        }
     }
-    
+
     private async Task CreateObserverAsync()
     {
+        if (_workflowInstance == null)
+            return;
+        
         await DisposeObserverAsync();
-        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance.Id);
+        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id, "WorkflowInstanceDesigner");
         WorkflowInstanceObserver.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
-        StartElapsedTimer();
     }
-    
+
     private async Task DisposeObserverAsync()
     {
         if (WorkflowInstanceObserver != null!)
@@ -162,8 +176,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             await WorkflowInstanceObserver.DisposeAsync();
             WorkflowInstanceObserver = null;
         }
-        
-        StopElapsedTimer();
     }
 
     private async Task OnActivityExecutionLogUpdated(ActivityExecutionLogUpdatedMessage message)
@@ -190,13 +202,17 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private void StartElapsedTimer()
     {
-        _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        if (_elapsedTimer == null)
+            _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
-    
+
     private void StopElapsedTimer()
     {
-        _elapsedTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        _elapsedTimer?.Dispose();
+        if (_elapsedTimer != null)
+        {
+            _elapsedTimer?.Dispose();
+            _elapsedTimer = null;
+        }
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
@@ -287,6 +303,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        StopElapsedTimer();
         await DisposeObserverAsync();
     }
 }
