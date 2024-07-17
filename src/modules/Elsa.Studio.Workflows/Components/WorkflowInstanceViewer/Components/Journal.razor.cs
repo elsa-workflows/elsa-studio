@@ -76,15 +76,6 @@ public partial class Journal : IAsyncDisposable
         }
     }
 
-    /// <inheritdoc />
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            UpdateJournalHack();
-        }
-    }
-
     private async Task EnsureActivityDescriptorsAsync() => await ActivityRegistry.EnsureLoadedAsync();
 
     private async Task RefreshJournalAsync()
@@ -157,15 +148,6 @@ public partial class Journal : IAsyncDisposable
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }
 
-    private void UpdateJournalHack()
-    {
-        // A little hack to ensure the journal is refreshed.
-        // Sometimes the journal doesn't update on first load, until a UI refresh is triggered.
-        // We do it a few times, first quickly, but if that was too soon, try it again a few times, but slower.
-        foreach (var timeout in new[] { 10, 100, 500, 1000 })
-            _ = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, timeout, Timeout.Infinite);
-    }
-
     private async Task DisposeObserverAsync()
     {
         if (WorkflowInstanceObserver != null)
@@ -185,11 +167,7 @@ public partial class Journal : IAsyncDisposable
 
     private async Task OnWorkflowJournalUpdatedAsync(WorkflowExecutionLogUpdatedMessage message)
     {
-        await InvokeAsync(async () =>
-        {
-            await RefreshJournalAsync();
-            UpdateJournalHack();
-        });
+        await InvokeAsync(RefreshJournalAsync);
     }
 
     private async Task OnTimeMetricButtonToggleChanged(bool value)
