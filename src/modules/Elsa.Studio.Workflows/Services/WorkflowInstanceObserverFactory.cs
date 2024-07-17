@@ -38,9 +38,10 @@ public class WorkflowInstanceObserverFactory(
         var activityExecutionsApi = await remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         var workflowInstanceId = context.WorkflowInstanceId;
 
-        // Only observe the workflow instance if the feature is enabled.
+        // Only establish a SignalR connection if that feature is enabled.
         if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.RealTimeWorkflowUpdates", cancellationToken))
         {
+            // Fall back to regular polling.
             return new PollingWorkflowInstanceObserver(
                 context,
                 blazorServiceAccessor,
@@ -49,7 +50,7 @@ public class WorkflowInstanceObserverFactory(
                 activityExecutionsApi);
         }
 
-        // Get the SignalR connection.
+        // Set-up the SignalR connection.
         var baseUrl = remoteBackendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
         var connection = new HubConnectionBuilder()
@@ -64,7 +65,7 @@ public class WorkflowInstanceObserverFactory(
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
-            logger.LogWarning("The workflow instance observer hub was not found, but the RealTimeWorkflows feature was enabled. Please make sure to call `app.UseWorkflowsSignalRHubs()` from the workflow server to install the required SignalR middleware component. Falling back to disconnected observer");
+            logger.LogWarning("The workflow instance observer hub was not found, but the RealTimeWorkflows feature was enabled. Please make sure to call `app.UseWorkflowsSignalRHubs()` from the workflow server to install the required SignalR middleware component. Falling back to polling observer");
             return new PollingWorkflowInstanceObserver(
                 context,
                 blazorServiceAccessor,
@@ -74,7 +75,6 @@ public class WorkflowInstanceObserverFactory(
         }
 
         await connection.SendAsync("ObserveInstanceAsync", workflowInstanceId, cancellationToken: cancellationToken);
-
         return observer;
     }
 }

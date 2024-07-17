@@ -20,8 +20,6 @@ public class SignalRWorkflowInstanceObserver : IWorkflowInstanceObserver
         connection.On("WorkflowInstanceUpdatedAsync", async (WorkflowInstanceUpdatedMessage message) => await OnWorkflowInstanceUpdatedAsync(message));
     }
 
-    public string? Name { get; set; }
-
     /// <inheritdoc />
     public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
     

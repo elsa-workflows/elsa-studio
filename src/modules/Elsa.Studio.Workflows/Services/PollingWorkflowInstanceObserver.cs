@@ -76,7 +76,7 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
                 }
 
                 if (response.Status == WorkflowStatus.Finished)
-                    break;
+                    _checkForUpdates = false;
             }
             catch (ObjectDisposedException)
             {
