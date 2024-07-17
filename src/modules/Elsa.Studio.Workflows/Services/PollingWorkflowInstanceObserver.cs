@@ -9,7 +9,6 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Elsa.Studio.Workflows.Services;
 
@@ -22,8 +21,7 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
     private readonly IActivityExecutionsApi _activityExecutionsApi;
     private readonly string _workflowInstanceId;
     private readonly JsonObject? _containerActivity;
-    private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(1);
-    private readonly ILogger<PollingWorkflowInstanceObserver> _logger;
+    private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(5);
     private DateTimeOffset _lastUpdateAt = DateTimeOffset.MinValue;
     private bool _checkForUpdates = true;
 
@@ -33,8 +31,7 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
         IBlazorServiceAccessor blazorServiceAccessor,
         IServiceProvider serviceProvider,
         IWorkflowInstancesApi workflowInstancesApi,
-        IActivityExecutionsApi activityExecutionsApi,
-        ILogger<PollingWorkflowInstanceObserver> logger)
+        IActivityExecutionsApi activityExecutionsApi)
     {
         _blazorServiceAccessor = blazorServiceAccessor;
         _serviceProvider = serviceProvider;
@@ -42,7 +39,6 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
         _activityExecutionsApi = activityExecutionsApi;
         _workflowInstanceId = context.WorkflowInstanceId;
         _containerActivity = context.ContainerActivity;
-        _logger = logger;
 
         _ = Task.Run(GetRecentExecutionRecordsAsync);
     }

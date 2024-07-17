@@ -17,7 +17,6 @@ public class WorkflowInstanceObserverFactory(
     IHttpMessageHandlerFactory httpMessageHandlerFactory,
     IBlazorServiceAccessor blazorServiceAccessor,
     IServiceProvider serviceProvider,
-    ILoggerFactory loggerFactory,
     ILogger<WorkflowInstanceObserverFactory> logger) : IWorkflowInstanceObserverFactory
 {
     /// <inheritdoc />
@@ -37,7 +36,6 @@ public class WorkflowInstanceObserverFactory(
         var cancellationToken = context.CancellationToken;
         var workflowInstancesApi = await remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
         var activityExecutionsApi = await remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
-        var pollingLogger = loggerFactory.CreateLogger<PollingWorkflowInstanceObserver>();
         var workflowInstanceId = context.WorkflowInstanceId;
 
         // Only observe the workflow instance if the feature is enabled.
@@ -48,8 +46,7 @@ public class WorkflowInstanceObserverFactory(
                 blazorServiceAccessor,
                 serviceProvider,
                 workflowInstancesApi,
-                activityExecutionsApi,
-                pollingLogger);
+                activityExecutionsApi);
         }
 
         // Get the SignalR connection.
@@ -73,8 +70,7 @@ public class WorkflowInstanceObserverFactory(
                 blazorServiceAccessor,
                 serviceProvider,
                 workflowInstancesApi,
-                activityExecutionsApi,
-                pollingLogger);
+                activityExecutionsApi);
         }
 
         await connection.SendAsync("ObserveInstanceAsync", workflowInstanceId, cancellationToken: cancellationToken);
