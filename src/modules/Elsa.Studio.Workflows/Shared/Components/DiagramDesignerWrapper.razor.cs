@@ -161,6 +161,15 @@ public partial class DiagramDesignerWrapper
 
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
+    
+    /// The parent activity of the current activity being loaded in the designer.
+    public JsonObject GetParentActivity()
+    {
+        var lastSegment = _pathSegments.FirstOrDefault();
+        var nodeId = lastSegment?.ActivityNodeId;
+        var node = nodeId != null ? _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var nodeObject) ? nodeObject : null : null;
+        return node?.Activity ?? Activity;
+    }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -168,7 +177,7 @@ public partial class DiagramDesignerWrapper
         await ActivityRegistry.EnsureLoadedAsync();
         await LoadActivityAsync(Activity);
     }
-
+    
     /// Updates the current path.
     /// <param name="action">A delegate that manipulates the path</param>
     private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
@@ -178,8 +187,9 @@ public partial class DiagramDesignerWrapper
 
         if (PathChanged.HasDelegate)
         {
+            var parentActivity = GetParentActivity();
             var currentContainerActivity = GetCurrentContainerActivity();
-            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(currentContainerActivity));
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(parentActivity, currentContainerActivity));
         }
     }
 
