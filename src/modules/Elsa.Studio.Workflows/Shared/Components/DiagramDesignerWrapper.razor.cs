@@ -161,39 +161,9 @@ public partial class DiagramDesignerWrapper
 
         await _diagramDesigner!.UpdateActivityAsync(activityId, activity);
     }
-    
-    /// The parent activity of the current activity being loaded in the designer.
-    public JsonObject GetParentActivity()
-    {
-        var lastSegment = _pathSegments.FirstOrDefault();
-        var nodeId = lastSegment?.ActivityNodeId;
-        var node = nodeId != null ? _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var nodeObject) ? nodeObject : null : null;
-        return node?.Activity ?? Activity;
-    }
 
-    /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
-    {
-        await ActivityRegistry.EnsureLoadedAsync();
-        await LoadActivityAsync(Activity);
-    }
-    
-    /// Updates the current path.
-    /// <param name="action">A delegate that manipulates the path</param>
-    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
-    {
-        action(_pathSegments);
-        await UpdateBreadcrumbItemsAsync();
-
-        if (PathChanged.HasDelegate)
-        {
-            var parentActivity = GetParentActivity();
-            var currentContainerActivity = GetCurrentContainerActivity();
-            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(parentActivity, currentContainerActivity));
-        }
-    }
-
-    private JsonObject GetCurrentContainerActivity()
+    /// The current container activity or the root activity of the graph.
+    public JsonObject GetCurrentContainerActivity()
     {
         var lastSegment = _pathSegments.FirstOrDefault();
 
@@ -214,6 +184,37 @@ public partial class DiagramDesignerWrapper
             embeddedActivity = embeddedActivity.GetRoot();
 
         return embeddedActivity ?? Activity;
+    }
+    
+    /// The parent activity of the current activity being loaded in the designer.
+    public JsonObject GetParentActivity()
+    {
+        var lastSegment = _pathSegments.FirstOrDefault();
+        var nodeId = lastSegment?.ActivityNodeId;
+        var node = nodeId != null ? _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var nodeObject) ? nodeObject : null : null;
+        return node?.Activity ?? Activity;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        await ActivityRegistry.EnsureLoadedAsync();
+        await LoadActivityAsync(Activity);
+    }
+
+    /// Updates the current path.
+    /// <param name="action">A delegate that manipulates the path</param>
+    private async Task UpdatePathSegmentsAsync(Action<Stack<ActivityPathSegment>> action)
+    {
+        action(_pathSegments);
+        await UpdateBreadcrumbItemsAsync();
+
+        if (PathChanged.HasDelegate)
+        {
+            var parentActivity = GetParentActivity();
+            var currentContainerActivity = GetCurrentContainerActivity();
+            await PathChanged.InvokeAsync(new DesignerPathChangedArgs(parentActivity, currentContainerActivity));
+        }
     }
 
     private JsonObject? GetEmbeddedActivity(JsonObject activity, string portName)

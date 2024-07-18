@@ -31,5 +31,5 @@ public partial class ElapsedTime
     [Parameter]
     public DateTimeOffset EndTime { get; set; } = DateTimeOffset.UtcNow;
     
-    private TimeSpan Elapsed => EndTime - StartTime;
+    private TimeSpan Elapsed => EndTime < StartTime ? TimeSpan.Zero : EndTime - StartTime;
 }

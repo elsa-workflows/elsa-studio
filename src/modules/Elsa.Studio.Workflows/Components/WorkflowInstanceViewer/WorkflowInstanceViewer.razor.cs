@@ -9,7 +9,6 @@ using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
-using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
@@ -52,24 +51,18 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private async Task ObserveWorkflowInstanceAsync()
     {
         await DisposeObserverAsync();
-
         _workflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id);
-
-        _workflowInstanceObserver.WorkflowInstanceUpdated += async _ =>
-        {
-            var workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
-            await InvokeAsync(() =>
-            {
-                _workflowInstance = workflowInstance;
-                StateHasChanged();
-            });
-        };
+        _workflowInstanceObserver.WorkflowInstanceUpdated += OnWorkflowInstanceUpdatedAsync;
     }
 
     private async Task DisposeObserverAsync()
     {
         if (_workflowInstanceObserver != null)
+        {
+            _workflowInstanceObserver.WorkflowInstanceUpdated -= OnWorkflowInstanceUpdatedAsync;
             await _workflowInstanceObserver.DisposeAsync();
+            _workflowInstanceObserver = null;
+        }
     }
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
@@ -82,10 +75,18 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         };
         await Journal.SetWorkflowInstanceAsync(instance, filter);
     }
-
-    private async Task OnSelectedWorkflowInstanceChanged(WorkflowInstance value)
+    
+    private async Task OnWorkflowInstanceUpdatedAsync(WorkflowInstanceUpdatedMessage message)
     {
-        await SelectWorkflowInstanceAsync(value);
+        var workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
+        await InvokeAsync(async () =>
+        {
+            _workflowInstance = workflowInstance;
+            StateHasChanged();
+
+            if (_workflowInstance.Status == WorkflowStatus.Finished) 
+                await Journal.SetWorkflowInstanceAsync(_workflowInstance);
+        });
     }
 
     private async Task OnDesignerPathChanged(DesignerPathChangedArgs args)

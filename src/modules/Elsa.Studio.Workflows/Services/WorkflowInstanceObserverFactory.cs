@@ -1,8 +1,10 @@
 using System.Net;
+using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 
@@ -17,18 +19,38 @@ public class WorkflowInstanceObserverFactory(
     IServiceProvider serviceProvider,
     ILogger<WorkflowInstanceObserverFactory> logger) : IWorkflowInstanceObserverFactory
 {
-    private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(15);
-    
     /// <inheritdoc />
-    public async Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId, CancellationToken cancellationToken = default)
+    public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId)
     {
-        var api = await remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
+        var context = new WorkflowInstanceObserverContext
+        {
+            WorkflowInstanceId = workflowInstanceId
+        };
 
-        // Only observe the workflow instance if the feature is enabled.
+        return CreateAsync(context);
+    }
+
+    /// <inheritdoc />
+    public async Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context)
+    {
+        var cancellationToken = context.CancellationToken;
+        var workflowInstancesApi = await remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
+        var activityExecutionsApi = await remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        var workflowInstanceId = context.WorkflowInstanceId;
+
+        // Only establish a SignalR connection if that feature is enabled.
         if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.RealTimeWorkflowUpdates", cancellationToken))
-            return new PollingWorkflowInstanceObserver(blazorServiceAccessor, serviceProvider, api, workflowInstanceId, _pollingInterval);
+        {
+            // Fall back to regular polling.
+            return new PollingWorkflowInstanceObserver(
+                context,
+                blazorServiceAccessor,
+                serviceProvider,
+                workflowInstancesApi,
+                activityExecutionsApi);
+        }
 
-        // Get the SignalR connection.
+        // Set-up the SignalR connection.
         var baseUrl = remoteBackendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
         var connection = new HubConnectionBuilder()
@@ -43,12 +65,16 @@ public class WorkflowInstanceObserverFactory(
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
-            logger.LogWarning("The workflow instance observer hub was not found, but the RealTimeWorkflows feature was enabled. Please make sure to call `app.UseWorkflowsSignalRHubs()` from the workflow server to install the required SignalR middleware component. Falling back to disconnected observer");
-            return new PollingWorkflowInstanceObserver(blazorServiceAccessor, serviceProvider, api, workflowInstanceId, _pollingInterval);
+            logger.LogWarning("The workflow instance observer hub was not found, but the RealTimeWorkflows feature was enabled. Please make sure to call `app.UseWorkflowsSignalRHubs()` from the workflow server to install the required SignalR middleware component. Falling back to polling observer");
+            return new PollingWorkflowInstanceObserver(
+                context,
+                blazorServiceAccessor,
+                serviceProvider,
+                workflowInstancesApi,
+                activityExecutionsApi);
         }
 
         await connection.SendAsync("ObserveInstanceAsync", workflowInstanceId, cancellationToken: cancellationToken);
-
         return observer;
     }
 }
