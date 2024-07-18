@@ -3,11 +3,11 @@ using Elsa.Studio.Workflows.Contracts;
 
 namespace Elsa.Studio.Workflows.Services;
 
-/// <summary>
 /// An implementation of <see cref="IWorkflowInstanceObserver"/> that does nothing.
-/// </summary>
 public class DisconnectedWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
+    public string? Name { get; set; }
+
     /// <inheritdoc />
     public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
 

@@ -150,14 +150,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             await GraphUpdated.InvokeAsync();
     }
 
-    /// <summary>
     /// Invoked from JavaScript when the graph is updated.
-    /// </summary>
     [JSInvokable]
     public async Task HandlePasteCellsRequested(X6ActivityNode[] activityNodes, X6Edge[] edges)
     {
         var allActivities = Flowchart.GetActivities().ToList();
         var activityLookup = new Dictionary<string, X6ActivityNode>();
+        var container = Flowchart;
 
         foreach (var activityNode in activityNodes)
         {
@@ -173,6 +172,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
             // Update the activity ID and name.
             activity.SetId(newActivityId);
+            activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
             activity.SetName(newName);
             activityNode.Id = newActivityId;
 

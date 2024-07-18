@@ -1,3 +1,4 @@
+using Elsa.Api.Client.RealTime.Messages;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
@@ -7,7 +8,6 @@ using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
@@ -17,7 +17,6 @@ public partial class Journal : IAsyncDisposable
 {
     private MudTimeline _timeline = default!;
     private IList<JournalEntry> _currentEntries = default!;
-    private HubConnection? _hubConnection;
     private WorkflowInstance? _workflowInstance;
 
     /// Gets or sets a callback invoked when a journal entry is selected.
@@ -29,7 +28,7 @@ public partial class Journal : IAsyncDisposable
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
     private WorkflowInstance? WorkflowInstance { get; set; }
-    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
     private bool ShowIncidents { get; set; }
@@ -41,10 +40,11 @@ public partial class Journal : IAsyncDisposable
     /// Sets the workflow instance to display the journal for.
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
-        WorkflowInstance = workflowInstance;
+        WorkflowInstance = _workflowInstance = workflowInstance;
         JournalFilter = filter;
         await EnsureActivityDescriptorsAsync();
         await RefreshJournalAsync();
+        await UpdateObserverAsync();
         StateHasChanged();
     }
 
@@ -65,22 +65,14 @@ public partial class Journal : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        var hasDifferentState = _workflowInstance?.Id != WorkflowInstance?.Id || _workflowInstance?.Status != WorkflowInstance?.Status;
+
         if (_workflowInstance != WorkflowInstance)
         {
             _workflowInstance = WorkflowInstance;
 
-            // If the workflow instance is still running, observe it.
-            if (WorkflowInstance?.Status == WorkflowStatus.Running)
-                await ObserveWorkflowInstanceAsync();
-        }
-    }
-
-    /// <inheritdoc />
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            UpdateJournalHack();
+            if (hasDifferentState) 
+                await UpdateObserverAsync();
         }
     }
 
@@ -90,6 +82,12 @@ public partial class Journal : IAsyncDisposable
     {
         if (VirtualizeComponent != null!)
             await VirtualizeComponent.RefreshDataAsync();
+    }
+    
+    private async Task UpdateObserverAsync()
+    {
+        if (WorkflowInstance?.Status == WorkflowStatus.Running)
+            await ObserveWorkflowInstanceAsync();
     }
 
     private TimeSpan GetTimeMetric(WorkflowExecutionLogRecord current, WorkflowExecutionLogRecord? previous)
@@ -150,23 +148,26 @@ public partial class Journal : IAsyncDisposable
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }
 
-    private void UpdateJournalHack()
+    private async Task DisposeObserverAsync()
     {
-        // A little hack to ensure the journal is refreshed.
-        // Sometimes the journal doesn't update on first load, until a UI refresh is triggered.
-        // We do it a few times, first quickly, but if that was too soon, try it again a few times, but slower.
-        foreach (var timeout in new[] { 10, 100, 500, 1000 })
-            _ = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, timeout, Timeout.Infinite);
+        if (WorkflowInstanceObserver != null)
+        {
+            WorkflowInstanceObserver.WorkflowJournalUpdated -= OnWorkflowJournalUpdatedAsync;
+            await WorkflowInstanceObserver.DisposeAsync();
+            WorkflowInstanceObserver = null;
+        }
     }
 
     private async Task ObserveWorkflowInstanceAsync()
     {
+        await DisposeObserverAsync();
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance!.Id);
-        WorkflowInstanceObserver.WorkflowJournalUpdated += async _ => await InvokeAsync(async () =>
-        {
-            await RefreshJournalAsync();
-            UpdateJournalHack();
-        });
+        WorkflowInstanceObserver.WorkflowJournalUpdated += OnWorkflowJournalUpdatedAsync;
+    }
+
+    private async Task OnWorkflowJournalUpdatedAsync(WorkflowExecutionLogUpdatedMessage message)
+    {
+        await InvokeAsync(RefreshJournalAsync);
     }
 
     private async Task OnTimeMetricButtonToggleChanged(bool value)
@@ -205,7 +206,6 @@ public partial class Journal : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (_hubConnection != null)
-            await _hubConnection.DisposeAsync();
+        await DisposeObserverAsync();
     }
 }

@@ -7,9 +7,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
-/// <summary>
 /// Displays the details of an activity.
-/// </summary>
 public partial class ActivityDetailsTab
 {
     /// <summary>
@@ -47,10 +45,8 @@ public partial class ActivityDetailsTab
     private IDictionary<string, string?> SelectedActivityState { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
-
-    /// <summary>
+    
     /// Refreshes the component.
-    /// </summary>
     public void Refresh()
     {
         CreateDataModels();

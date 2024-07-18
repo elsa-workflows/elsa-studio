@@ -1,9 +1,12 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.RealTime.Messages;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -12,11 +15,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 
 /// The index page for viewing a workflow instance.
-public partial class WorkflowInstanceViewer
+public partial class WorkflowInstanceViewer : IAsyncDisposable
 {
     private WorkflowInstance _workflowInstance = default!;
     private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
+    private IWorkflowInstanceObserver? _workflowInstanceObserver = default!;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -27,6 +31,7 @@ public partial class WorkflowInstanceViewer
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
 
@@ -38,6 +43,26 @@ public partial class WorkflowInstanceViewer
         _workflowInstance = instance;
         _workflowDefinition = workflowDefinition!;
         await SelectWorkflowInstanceAsync(instance);
+
+        if (_workflowInstance.Status == WorkflowStatus.Running)
+            await ObserveWorkflowInstanceAsync();
+    }
+
+    private async Task ObserveWorkflowInstanceAsync()
+    {
+        await DisposeObserverAsync();
+        _workflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance.Id);
+        _workflowInstanceObserver.WorkflowInstanceUpdated += OnWorkflowInstanceUpdatedAsync;
+    }
+
+    private async Task DisposeObserverAsync()
+    {
+        if (_workflowInstanceObserver != null)
+        {
+            _workflowInstanceObserver.WorkflowInstanceUpdated -= OnWorkflowInstanceUpdatedAsync;
+            await _workflowInstanceObserver.DisposeAsync();
+            _workflowInstanceObserver = null;
+        }
     }
 
     private async Task SelectWorkflowInstanceAsync(WorkflowInstance instance)
@@ -50,10 +75,18 @@ public partial class WorkflowInstanceViewer
         };
         await Journal.SetWorkflowInstanceAsync(instance, filter);
     }
-
-    private async Task OnSelectedWorkflowInstanceChanged(WorkflowInstance value)
+    
+    private async Task OnWorkflowInstanceUpdatedAsync(WorkflowInstanceUpdatedMessage message)
     {
-        await SelectWorkflowInstanceAsync(value);
+        var workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
+        await InvokeAsync(async () =>
+        {
+            _workflowInstance = workflowInstance;
+            StateHasChanged();
+
+            if (_workflowInstance.Status == WorkflowStatus.Finished) 
+                await Journal.SetWorkflowInstanceAsync(_workflowInstance);
+        });
     }
 
     private async Task OnDesignerPathChanged(DesignerPathChangedArgs args)
@@ -75,5 +108,10 @@ public partial class WorkflowInstanceViewer
     {
         Journal.ClearSelection();
         return Task.CompletedTask;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        await DisposeObserverAsync();
     }
 }
