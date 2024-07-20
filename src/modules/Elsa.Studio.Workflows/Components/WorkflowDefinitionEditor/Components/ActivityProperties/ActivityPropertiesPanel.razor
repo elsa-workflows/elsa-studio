@@ -1,5 +1,6 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
+@using Elsa.Studio.Extensions
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 
@@ -81,6 +82,15 @@
             <MudTabPanel Text="Version">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+                </ScrollableWell>
+            </MudTabPanel>
+        }
+
+        @foreach(var tab in PluginTabs)
+        {
+             <MudTabPanel Text="@tab.Title">
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    @tab.Render((new {WorkflowDefinition, Activity, ActivityDescriptor, OnActivityUpdated}).ToDictionary())
                 </ScrollableWell>
             </MudTabPanel>
         }
