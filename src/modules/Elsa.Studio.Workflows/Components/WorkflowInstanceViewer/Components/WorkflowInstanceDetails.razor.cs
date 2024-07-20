@@ -27,37 +27,29 @@ public partial class WorkflowInstanceDetails
     /// <summary>
     /// Gets or sets the workflow instance to display.
     /// </summary>
-    [Parameter]
-    public WorkflowInstance? WorkflowInstance { get; set; }
+    [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
 
     /// <summary>
     /// Gets or sets the workflow definition associated with the workflow instance.
     /// </summary>
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the current selected sub-workflow.
     /// </summary>
-    [Parameter]
-    public JsonObject? SelectedSubWorkflow { get; set; }
+    [Parameter] public JsonObject? SelectedSubWorkflow { get; set; }
 
     /// <summary>
     /// Gets or sets the current selected sub-workflow executions.
     /// </summary>
-    [Parameter]
-    public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
+    [Parameter] public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
-    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
-    private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } =
-        new Dictionary<string, StorageDriverDescriptor>();
-
-    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
 
     private IDictionary<string, DataPanelItem> WorkflowInstanceData
     {
@@ -88,11 +80,9 @@ public partial class WorkflowInstanceDetails
     {
         get
         {
-            if (WorkflowDefinition == null)
-                return new Dictionary<string, DataPanelItem>();
-
-            return WorkflowDefinition.Variables.ToDictionary(entry => entry.Name,
-                entry => new DataPanelItem(GetVariableValue(entry)));
+            return WorkflowDefinition == null 
+                ? new Dictionary<string, DataPanelItem>() 
+                : WorkflowDefinition.Variables.ToDictionary(entry => entry.Name, entry => new DataPanelItem(GetVariableValue(entry)));
         }
     }
 
@@ -218,9 +208,7 @@ public partial class WorkflowInstanceDetails
         }
     }
 
-    /// <summary>
     /// Updates the selected sub-workflow.
-    /// </summary>
     public async Task UpdateSubWorkflowAsync(JsonObject? obj)
     {
         SelectedSubWorkflow = obj;
@@ -245,36 +233,22 @@ public partial class WorkflowInstanceDetails
         {
             _workflowInstance = WorkflowInstance;
 
-            if (_workflowInstance != null)
-            {
-                await GetWorkflowActivityExecutionRecordAsync(_workflowInstance.Id);
-
-                // If the workflow instance is still running, observe it.
-                if (_workflowInstance?.Status == WorkflowStatus.Running)
-                    await ObserveWorkflowInstanceAsync();
-            }
+            if (_workflowInstance != null) await GetWorkflowActivityExecutionRecordAsync(_workflowInstance.Id);
         }
     }
 
     private async Task GetWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
     {
-        var rootWorkflowActivityExecutionContext = WorkflowInstance?.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
-        if (rootWorkflowActivityExecutionContext == null) return;
-        var rootWorkflowActivityNodeId = rootWorkflowActivityExecutionContext.ScheduledActivityNodeId;
-        var records = await ActivityExecutionService.ListAsync(workflowInstanceId, rootWorkflowActivityNodeId);
-        _workflowActivityExecutionRecord = records.MaxBy(x => x.StartedAt);
+        _workflowActivityExecutionRecord = await GetLastWorkflowActivityExecutionRecordAsync(workflowInstanceId);
     }
 
-    private async Task ObserveWorkflowInstanceAsync()
+    private async Task<ActivityExecutionRecord?> GetLastWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
     {
-        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(_workflowInstance!.Id);
-        WorkflowInstanceObserver.WorkflowInstanceUpdated += async _ => await InvokeAsync(async () =>
-        {
-            WorkflowInstance = await WorkflowInstanceService.GetAsync(_workflowInstance!.Id);
-            _workflowInstance = WorkflowInstance;
-            await GetWorkflowActivityExecutionRecordAsync(_workflowInstance!.Id);
-            StateHasChanged();
-        });
+        var rootWorkflowActivityExecutionContext = WorkflowInstance?.WorkflowState.ActivityExecutionContexts.FirstOrDefault(x => x.ParentContextId == null);
+        if (rootWorkflowActivityExecutionContext == null) return null;
+        var rootWorkflowActivityNodeId = rootWorkflowActivityExecutionContext.ScheduledActivityNodeId;
+        var records = await ActivityExecutionService.ListAsync(workflowInstanceId, rootWorkflowActivityNodeId);
+        return records.MaxBy(x => x.StartedAt);
     }
 
     private string GetStorageDriverDisplayName(string? storageDriverTypeName)
