@@ -12,7 +12,7 @@ namespace Elsa.Studio.WorkflowContexts.Extensions
     public static class ActivityExtensions
     {
         public static void SetWorkflowContextSettings(this JsonObject activity, Dictionary<string, ActivityWorkflowContextSettings> value) =>
-            activity.SetProperty(JsonValue.Create(new { value }), "customProperties", "ActivityWorkflowContextSettingsKey");
+            activity.SetProperty(JsonValue.Create(value), "customProperties", "ActivityWorkflowContextSettingsKey");
 
         public static Dictionary<string, ActivityWorkflowContextSettings> GetWorkflowContextSettings(this JsonObject activity) =>
             activity.GetProperty<Dictionary<string, ActivityWorkflowContextSettings>>("customProperties", "ActivityWorkflowContextSettingsKey");
