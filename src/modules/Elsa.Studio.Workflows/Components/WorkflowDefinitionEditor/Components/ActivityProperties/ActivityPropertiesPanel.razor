@@ -8,7 +8,7 @@
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
 
         <MudTabPanel Text="Input">
-            @if (ActivityDescriptor?.Inputs.Any() == true)
+            @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <InputsTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
@@ -23,7 +23,7 @@
         </MudTabPanel>
 
         <MudTabPanel Text="Output">
-            @if (ActivityDescriptor?.Outputs.Any() == true)
+            @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
