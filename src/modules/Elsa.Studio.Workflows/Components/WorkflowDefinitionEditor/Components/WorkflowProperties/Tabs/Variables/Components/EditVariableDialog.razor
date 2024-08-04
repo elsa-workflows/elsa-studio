@@ -22,7 +22,7 @@
                     }
                 </MudSelectExtended>
                 <MudField Variant="Variant.Outlined" Label="Is array" HelperText="Check this option if the variable holds an array of the selected type.">
-                    <MudCheckBox T="bool" @bind-Checked="_model.IsArray" Label="This variable is an array"></MudCheckBox>
+                    <MudCheckBox T="bool" @bind-Value="_model.IsArray" Label="This variable is an array"></MudCheckBox>
                 </MudField>
                 <MudTextField Label="Default value" @bind-Value="_model.DefaultValue" HelperText="A default value." Variant="Variant.Outlined"/>
                 <MudSelect T="StorageDriverDescriptor" @bind-Value="_model.StorageDriver" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Dense="false" Label="Storage">
