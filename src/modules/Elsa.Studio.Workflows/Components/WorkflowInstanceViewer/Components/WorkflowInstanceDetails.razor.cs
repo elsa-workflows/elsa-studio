@@ -270,10 +270,15 @@ public partial class WorkflowInstanceDetails
         if (_workflowActivityExecutionRecord == null)
             return defaultValue;
 
-        if (!_workflowActivityExecutionRecord.Properties.TryGetValue("PersistentVariablesDictionary", out var variablesDictionaryObject))
+        var variablesDictionaryObject = _workflowActivityExecutionRecord.Properties.TryGetValue("PersistentVariablesDictionary", out var v1) 
+            ? v1 : _workflowActivityExecutionRecord.Properties.TryGetValue("Variables", out var v2) 
+                ? v2 
+                : null;  
+        
+        if (variablesDictionaryObject == null)
             return defaultValue;
 
-        var dictionary = ((JsonElement)variablesDictionaryObject!).Deserialize<IDictionary<string, object>>()!;
+        var dictionary = ((JsonElement)variablesDictionaryObject).Deserialize<IDictionary<string, object>>()!;
         var key = variable.Id;
         return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : defaultValue;
     }

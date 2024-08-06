@@ -381,7 +381,7 @@ public partial class WorkflowEditor
             return Task.CompletedTask;
         }, errors =>
         {
-            Snackbar.Add(string.Join(Environment.NewLine, errors, Severity.Error));
+            Snackbar.Add(string.Join(Environment.NewLine, errors), Severity.Error);
             return Task.CompletedTask;
         }));
     }
