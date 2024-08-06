@@ -191,7 +191,6 @@ public partial class WorkflowEditor
                 Version = workflowDefinition.Version,
                 CreatedAt = workflowDefinition.CreatedAt,
                 CustomProperties = workflowDefinition.CustomProperties,
-                PropertyBag = workflowDefinition.PropertyBag,
                 DefinitionId = workflowDefinition.DefinitionId,
                 IsLatest = workflowDefinition.IsLatest,
                 IsPublished = workflowDefinition.IsPublished,
