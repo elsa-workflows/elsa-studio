@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 
@@ -16,7 +18,12 @@ public static class WorkflowDefinitionExtensions
     /// <returns>The workflow context provider types.</returns>
     public static IEnumerable<string> GetWorkflowContextProviderTypes(this WorkflowDefinition workflowDefinition)
     {
-        return workflowDefinition.PropertyBag.TryGetValueOrDefault("Elsa:WorkflowContextProviderTypes", Enumerable.Empty<string>);
+        if (!workflowDefinition.CustomProperties.TryGetValue("Elsa:WorkflowContextProviderTypes", out var providerTypesValue))
+            return [];
+        
+        var jsonElement = (JsonElement)providerTypesValue;
+        var providerTypes = jsonElement.Deserialize<string[]>()!;
+        return providerTypes;
     }
 
     /// <summary>
@@ -27,6 +34,7 @@ public static class WorkflowDefinitionExtensions
     /// <returns>The workflow context provider types.</returns>
     public static void SetWorkflowContextProviderTypes(this WorkflowDefinition workflowDefinition, IEnumerable<string> value)
     {
-        workflowDefinition.PropertyBag.SetValue("Elsa:WorkflowContextProviderTypes", value.ToList());
+        var jsonArray = JsonSerializer.SerializeToNode(value.ToArray());
+        workflowDefinition.CustomProperties["Elsa:WorkflowContextProviderTypes"] = jsonArray;
     }
 }
