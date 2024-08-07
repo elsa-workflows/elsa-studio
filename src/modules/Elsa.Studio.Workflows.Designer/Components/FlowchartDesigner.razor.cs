@@ -42,28 +42,28 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
         _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () => { await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats)); }, TimeSpan.FromMilliseconds(100));
     }
-    
+
     /// The flowchart to render.
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
-    
+
     /// The activity stats to render.
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
-    
+
     /// Whether the flowchart is read-only.
     [Parameter] public bool IsReadOnly { get; set; }
-    
+
     /// An event raised when an activity is selected.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-    
+
     /// An event raised when an activity-embedded port is selected.
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
-    
+
     /// An event raised when an activity is double-clicked.
     [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
-    
+
     /// An event raised when the canvas is selected.
     [Parameter] public EventCallback CanvasSelected { get; set; }
-    
+
     /// An event raised when the graph is updated.
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
@@ -112,7 +112,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             await ActivityDoubleClick.InvokeAsync(activity);
         }
     }
-    
+
     /// Invoked from JavaScript when the canvas is selected.
     [JSInvokable]
     public async Task HandleCanvasSelected()
@@ -120,7 +120,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         if (CanvasSelected.HasDelegate)
             await CanvasSelected.InvokeAsync();
     }
-    
+
     /// Invoked from JavaScript when the graph is updated.
     [JSInvokable]
     public async Task HandleGraphUpdated()
@@ -251,7 +251,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         await ScheduleGraphActionAsync(() => _graphApi.SelectActivityAsync(id));
     }
-    
+
     /// Zoom the canvas to fit all activities.
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
 
@@ -259,7 +259,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// Center the canvas content.
     /// </summary>
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
-    
+
     /// Update the Graph Layout.
     public async Task AutoLayoutAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
@@ -309,7 +309,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             _flowchart = Flowchart;
             await _rateLimitedLoadFlowchartAction.InvokeAsync();
         }
-        
+
         if (!Equals(_activityStats, ActivityStats))
         {
             _activityStats = ActivityStats;
@@ -366,7 +366,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
         container.SetConnections(connections);
     }
-    
+
     /// Processes each embedded port's activity and generates new IDs for the contained flowchart.
     private void ProcessEmbeddedPorts(JsonObject activity, ActivityDescriptor descriptor)
     {
@@ -390,7 +390,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
-        
+
         ((IDisposable)this).Dispose();
     }
 
