@@ -4,8 +4,7 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Domain.Contracts
-@using Elsa.Studio.Workflows.Domain.Models
-@using Elsa.Studio.Workflows.Shared.Args
+@using Elsa.Studio.Workflows.Extensions
 @inherits StudioComponentBase
 
 @inject IWorkflowDefinitionService WorkflowDefinitionService
@@ -58,7 +57,7 @@
     public string? SelectedActivityId => WorkflowDefinitionWorkspace.SelectedActivityId;
 
     /// Gets a value that indicates if the workflow definition editor should be displayed in readonly mode.
-    private bool IsReadOnly => _workflowDefinition != null && (_workflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
+    private bool IsReadOnly => _workflowDefinition.GetIsReadOnly();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()

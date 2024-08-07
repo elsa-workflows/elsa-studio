@@ -40,48 +40,31 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public FlowchartDesigner()
     {
         _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
-
         _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () => { await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats)); }, TimeSpan.FromMilliseconds(100));
     }
-
-    /// <summary>
+    
     /// The flowchart to render.
-    /// </summary>
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
-
-    /// <summary>
+    
     /// The activity stats to render.
-    /// </summary>
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
-
-    /// <summary>
+    
     /// Whether the flowchart is read-only.
-    /// </summary>
     [Parameter] public bool IsReadOnly { get; set; }
-
-    /// <summary>
+    
     /// An event raised when an activity is selected.
-    /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-
-    /// <summary>
+    
     /// An event raised when an activity-embedded port is selected.
-    /// </summary>
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
-
-    /// <summary>
+    
     /// An event raised when an activity is double-clicked.
-    /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
-
-    /// <summary>
+    
     /// An event raised when the canvas is selected.
-    /// </summary>
     [Parameter] public EventCallback CanvasSelected { get; set; }
-
-    /// <summary>
+    
     /// An event raised when the graph is updated.
-    /// </summary>
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
@@ -129,20 +112,16 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             await ActivityDoubleClick.InvokeAsync(activity);
         }
     }
-
-    /// <summary>
+    
     /// Invoked from JavaScript when the canvas is selected.
-    /// </summary>
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
         if (CanvasSelected.HasDelegate)
             await CanvasSelected.InvokeAsync();
     }
-
-    /// <summary>
+    
     /// Invoked from JavaScript when the graph is updated.
-    /// </summary>
     [JSInvokable]
     public async Task HandleGraphUpdated()
     {
@@ -272,20 +251,16 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         await ScheduleGraphActionAsync(() => _graphApi.SelectActivityAsync(id));
     }
-
-    /// <summary>
+    
     /// Zoom the canvas to fit all activities.
-    /// </summary>
     public async Task ZoomToFitAsync() => await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
 
     /// <summary>
     /// Center the canvas content.
     /// </summary>
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
-
-    /// <summary>
+    
     /// Update the Graph Layout.
-    /// </summary>
     public async Task AutoLayoutAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
         var flowchartMapper = await GetFlowchartMapperAsync();
@@ -391,10 +366,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
         container.SetConnections(connections);
     }
-
-    /// <summary>
+    
     /// Processes each embedded port's activity and generates new IDs for the contained flowchart.
-    /// </summary>
     private void ProcessEmbeddedPorts(JsonObject activity, ActivityDescriptor descriptor)
     {
         var embeddedPorts = descriptor.Ports.Where(x => x.Type == PortType.Embedded);
@@ -417,7 +390,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
-
+        
         ((IDisposable)this).Dispose();
     }
 

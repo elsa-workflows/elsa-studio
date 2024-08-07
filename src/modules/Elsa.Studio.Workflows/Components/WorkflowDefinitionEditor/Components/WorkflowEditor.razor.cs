@@ -15,9 +15,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -32,9 +30,7 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
-/// <summary>
 /// A component that allows the user to edit a workflow definition.
-/// </summary>
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
@@ -53,19 +49,13 @@ public partial class WorkflowEditor
         _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(readDiagram => SaveChangesAsync(readDiagram, false, false), TimeSpan.FromMilliseconds(500));
     }
 
-    /// <summary>
     /// Gets or sets the drag and drop manager via property injection.
-    /// </summary>
     [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
 
-    /// <summary>
     /// Gets or sets the workflow definition.
-    /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
-    /// <summary>
     /// Gets or sets a callback invoked when the workflow definition is updated.
-    /// </summary>
     [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
@@ -117,7 +107,7 @@ public partial class WorkflowEditor
     protected override async Task OnInitializedAsync()
     {
         _workflowDefinition = WorkflowDefinition;
-        
+
         await ActivityRegistry.EnsureLoadedAsync();
 
         if (_workflowDefinition?.Root == null)
@@ -131,12 +121,12 @@ public partial class WorkflowEditor
     {
         if (WorkflowDefinition == _workflowDefinition)
             return;
-     
+
         _workflowDefinition = WorkflowDefinition;
-        
+
         if (_workflowDefinition?.Root == null)
             return;
-            
+
         await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
         SelectActivity(_workflowDefinition.Root);
     }
@@ -405,7 +395,7 @@ public partial class WorkflowEditor
     {
         var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.Latest);
         var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
-        if(download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
+        if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
@@ -418,7 +408,7 @@ public partial class WorkflowEditor
     {
         if (files == null || files.Count == 0)
             return;
-        
+
         await ImportFilesAsync(files);
         _isDirty = false;
 
@@ -462,7 +452,7 @@ public partial class WorkflowEditor
         _isDirty = false;
         StateHasChanged();
 
-        if (importedFile != null) 
+        if (importedFile != null)
             Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
     }
 
@@ -551,9 +541,7 @@ public partial class WorkflowEditor
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        var workflowDefinitionExecuted = this.WorkflowDefinitionExecuted;
-
-        if (workflowDefinitionExecuted.HasDelegate)
+        if (WorkflowDefinitionExecuted.HasDelegate)
             await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
