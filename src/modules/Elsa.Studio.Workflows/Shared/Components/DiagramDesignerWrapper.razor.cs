@@ -17,7 +17,7 @@ using MudBlazor;
 namespace Elsa.Studio.Workflows.Shared.Components;
 
 /// A wrapper around the diagram designer that provides a breadcrumb and a toolbar.
-public partial class DiagramDesignerWrapper : IDisposable
+public partial class DiagramDesignerWrapper
 {
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
@@ -462,10 +462,5 @@ public partial class DiagramDesignerWrapper : IDisposable
         });
 
         await DisplayCurrentSegmentAsync();
-    }
-
-    public void Dispose()
-    {
-        Console.WriteLine("DiagramDesignerWrapper Disposing");
     }
 }
