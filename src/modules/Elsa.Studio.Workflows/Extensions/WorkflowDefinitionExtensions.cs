@@ -12,6 +12,6 @@ public static class WorkflowDefinitionExtensions
     /// <returns><c>true</c> if the workflow definition is read-only; otherwise, <c>false</c>.</returns>
     public static bool GetIsReadOnly(this WorkflowDefinition? workflowDefinition)
     {
-        return workflowDefinition != null && (workflowDefinition.IsLatest == false || (workflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);
+        return workflowDefinition != null && (workflowDefinition.IsLatest == false || (workflowDefinition.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);
     }
 }
