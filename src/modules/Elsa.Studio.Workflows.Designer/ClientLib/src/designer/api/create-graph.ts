@@ -74,11 +74,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                     zIndex: -1,
                 })
             },
-            validateConnection({ sourceMagnet, targetMagnet }) {
+            validateConnection({sourceMagnet, targetMagnet}) {
                 if (!sourceMagnet || sourceMagnet.getAttribute('port-group') === 'in') {
                     return false
                 }
-                
+
                 if (!targetMagnet || targetMagnet.getAttribute('port-group') !== 'in') {
                     return false
                 }
@@ -180,7 +180,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
             return false;
         });
-        
+
         // Paste
         graph.bindKey(['ctrl+v', 'meta+v'], () => {
             if (!graph.isClipboardEmpty()) {

@@ -5,17 +5,17 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@WorkflowDefinition!.Id" Activity="Activity" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
+        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@_workflowDefinition!.Id" Activity="Activity" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
             <CustomToolbarItems>
                 <MudTooltip Text="Export this version as a JSON file." Inline="false">
                     <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">Export</MudIconButton>
                 </MudTooltip>
-                <MudText Typo="Typo.body1">@($"Version {WorkflowDefinition?.Version ?? 0}")</MudText>
+                <MudText Typo="Typo.body1">@($"Version {_workflowDefinition?.Version ?? 0}")</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" Title="Run workflow" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesPanel @ref="ActivityPropertiesTab" WorkflowDefinition="@WorkflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
+        <ActivityPropertiesPanel @ref="ActivityPropertiesTab" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

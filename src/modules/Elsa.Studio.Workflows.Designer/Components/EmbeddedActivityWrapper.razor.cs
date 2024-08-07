@@ -32,7 +32,8 @@ public partial class EmbeddedActivityWrapper
     [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
     
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
-    
+
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await ActivityRegistry.EnsureLoadedAsync();
@@ -46,7 +47,7 @@ public partial class EmbeddedActivityWrapper
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
         _label = activityDisplayText;
-        _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
+        _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor.Description ?? string.Empty;
         _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;

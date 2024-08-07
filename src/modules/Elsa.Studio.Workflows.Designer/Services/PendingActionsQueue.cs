@@ -1,15 +1,9 @@
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-public class PendingActionsQueue
+public class PendingActionsQueue(Func<ValueTask<bool>> shortCircuit)
 {
     private readonly Queue<Func<Task>> _pendingActions = new();
-    private readonly Func<ValueTask<bool>> _shortCircuit;
 
-    public PendingActionsQueue(Func<ValueTask<bool>> shortCircuit)
-    {
-        _shortCircuit = shortCircuit;
-    }
-    
     public async Task ProcessAsync()
     {
         while (_pendingActions.Any())
@@ -21,7 +15,7 @@ public class PendingActionsQueue
 
     public async Task EnqueueAsync(Func<Task> action)
     {
-        if(await _shortCircuit())
+        if(await shortCircuit())
         {
             await action();
             return;
@@ -38,7 +32,7 @@ public class PendingActionsQueue
 
     public async Task<T> EnqueueAsync<T>(Func<Task<T>> action)
     {
-        if(await _shortCircuit())
+        if(await shortCircuit())
             return await action();
         
         var tsc = new TaskCompletionSource<T>();

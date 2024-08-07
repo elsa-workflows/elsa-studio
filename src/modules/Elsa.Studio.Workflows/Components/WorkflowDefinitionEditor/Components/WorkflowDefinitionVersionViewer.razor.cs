@@ -6,8 +6,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -24,6 +22,7 @@ public partial class WorkflowDefinitionVersionViewer
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper? _diagramDesigner;
     private bool _isProgressing;
+    private WorkflowDefinition? _workflowDefinition;
 
     /// Gets or sets the workflow definition to view.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -47,7 +46,7 @@ public partial class WorkflowDefinitionVersionViewer
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
 
-    private JsonObject? Activity => WorkflowDefinition?.Root;
+    private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityProperties.ActivityPropertiesPanel? ActivityPropertiesTab { get; set; }
@@ -67,34 +66,35 @@ public partial class WorkflowDefinitionVersionViewer
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        _workflowDefinition = WorkflowDefinition;
         await ActivityRegistry.EnsureLoadedAsync();
 
-        if (WorkflowDefinition?.Root == null)
+        if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        if (WorkflowDefinition?.Root == null)
+        if (WorkflowDefinition == _workflowDefinition)
+            return;
+     
+        _workflowDefinition = WorkflowDefinition;
+        
+        if (_workflowDefinition?.Root == null)
             return;
 
         if (_diagramDesigner != null)
-            await _diagramDesigner.LoadActivityAsync(WorkflowDefinition.Root);
+            await _diagramDesigner.LoadActivityAsync(_workflowDefinition.Root);
 
-        SelectActivity(WorkflowDefinition.Root);
+        SelectActivity(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (WorkflowDefinition?.Root == null)
-            return;
-
-        if (firstRender)
-            await _diagramDesigner!.LoadActivityAsync(WorkflowDefinition.Root);
     }
 
     private void SelectActivity(JsonObject activity)
@@ -125,8 +125,8 @@ public partial class WorkflowDefinitionVersionViewer
 
     private async Task OnDownloadClicked()
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(WorkflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(WorkflowDefinition.Version));
-        var fileName = $"{WorkflowDefinition.Name.Kebaberize()}.json";
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(_workflowDefinition.Version));
+        var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
@@ -143,10 +143,10 @@ public partial class WorkflowDefinitionVersionViewer
         {
             var request = new ExecuteWorkflowDefinitionRequest
             {
-                VersionOptions = VersionOptions.SpecificVersion(WorkflowDefinition!.Version)
+                VersionOptions = VersionOptions.SpecificVersion(_workflowDefinition!.Version)
             };
 
-            var definitionId = WorkflowDefinition!.DefinitionId;
+            var definitionId = _workflowDefinition!.DefinitionId;
             return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
         });
 
