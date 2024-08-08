@@ -92,11 +92,6 @@ public partial class WorkflowDefinitionVersionViewer
         SelectActivity(_workflowDefinition.Root);
     }
 
-    /// <inheritdoc />
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-    }
-
     private void SelectActivity(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
