@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Converters;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,9 +8,7 @@ using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 
-/// <summary>
 /// Provides a wrapper around the X6 graph API.
-/// </summary>
 public class X6GraphApi
 {
     private readonly IJSObjectReference _module;
@@ -30,24 +27,22 @@ public class X6GraphApi
         _serviceProvider = serviceProvider;
         _containerId = containerId;
     }
-    
+
     /// <summary>
     /// Reads the flowchart from the graph.
     /// </summary>
     /// <returns>The flowchart.</returns>
     public async Task<JsonElement> ReadGraphAsync() => await InvokeAsync(module => module.InvokeAsync<JsonElement>("readGraph", _containerId));
-    
-    /// <summary>
+
     /// Disposes the graph.
-    /// </summary>
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
-    
+
     /// <summary>
     /// Sets the grid color.
     /// </summary>
     /// <param name="color">The color.</param>
     public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
-    
+
     /// <summary>
     /// Adds a node to the graph.
     /// </summary>
@@ -56,10 +51,10 @@ public class X6GraphApi
     {
         var serializerOptions = GetSerializerOptions();
         var nodeElement = JsonSerializer.SerializeToElement(node, serializerOptions);
-        
+
         await InvokeAsync(module => module.InvokeVoidAsync("addActivityNode", _containerId, nodeElement));
     }
-    
+
     /// <summary>
     /// Selects the specified activity in the graph.
     /// </summary>
@@ -68,7 +63,7 @@ public class X6GraphApi
     {
         await InvokeAsync(module => module.InvokeVoidAsync("selectActivity", _containerId, id));
     }
-    
+
     /// <summary>
     /// Adds the specified activity nodes and edges to the graph.
     /// </summary>
@@ -92,19 +87,13 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
     }
 
-    /// <summary>
     /// Zoom the canvas to fit the content.
-    /// </summary>
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
-    
-    /// <summary>
+
     /// Center the canvas content.
-    /// </summary>
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
-    
-    /// <summary>
+
     /// Adjusts the graph layout.
-    /// </summary>
     public async Task AutoLayoutAsync(X6Graph graph)
     {
         var serializedGraph = SerializeGraph(graph);
@@ -126,7 +115,7 @@ public class X6GraphApi
     }
 
     private async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func) => await func(_module);
-    
+
     private async Task TryInvokeAsync(Func<IJSObjectReference, ValueTask> func)
     {
         try
@@ -140,23 +129,22 @@ public class X6GraphApi
     }
 
     private async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func) => await func(_module);
-    
+
     // Serializing the graph here instead of relying on the JS interop layer to avoid the max depth of 32 exception.
     private static string SerializeGraph(X6Graph graph)
     {
         var options = GetSerializerOptions();
         return JsonSerializer.Serialize(graph, options);
     }
-    
+
     private static JsonSerializerOptions GetSerializerOptions()
     {
         var serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
+
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         return serializerOptions;
     }
-
 }

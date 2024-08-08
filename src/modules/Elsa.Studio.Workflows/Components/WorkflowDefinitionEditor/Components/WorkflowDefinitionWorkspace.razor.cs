@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -35,7 +36,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public event Func<Task>? WorkflowDefinitionUpdated;
 
     /// <inheritdoc />
-    public bool IsReadOnly => _selectedWorkflowDefinition?.IsLatest == false || (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0;
+    public bool IsReadOnly => _selectedWorkflowDefinition.GetIsReadOnly();
 
     /// <inheritdoc />
     public bool HasWorkflowEditPermission => (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) > 0;

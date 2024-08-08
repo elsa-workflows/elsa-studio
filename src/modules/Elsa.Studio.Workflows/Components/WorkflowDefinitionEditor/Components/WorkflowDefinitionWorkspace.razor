@@ -19,16 +19,19 @@
                     <MudTabPanel Text="@_selectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId" 
-                                            @ref="WorkflowEditor" 
-                                            WorkflowDefinition="_selectedWorkflowDefinition" 
-                                            WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" 
+                            <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId"
+                                            @ref="WorkflowEditor"
+                                            WorkflowDefinition="_selectedWorkflowDefinition"
+                                            WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"
                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                                             ActivitySelected="ActivitySelected"/>
                         }
                         else
                         {
-                            <WorkflowDefinitionVersionViewer WorkflowDefinition="_selectedWorkflowDefinition" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" ActivitySelected="ActivitySelected"/>
+                            <WorkflowDefinitionVersionViewer @key="_selectedWorkflowDefinition.DefinitionId"
+                                                             WorkflowDefinition="_selectedWorkflowDefinition" 
+                                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" 
+                                                             ActivitySelected="ActivitySelected"/>
                         }
 
                     </MudTabPanel>
@@ -40,10 +43,9 @@
         <RadzenSplitterPane Size="35%" Min="100px">
             @if (_selectedWorkflowDefinition != null)
             {
-                <WorkflowProperties 
-                    WorkflowDefinition="@_selectedWorkflowDefinition" 
-                    WorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"
-                    />
+                <WorkflowProperties
+                    WorkflowDefinition="@_selectedWorkflowDefinition"
+                    WorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
             }
         </RadzenSplitterPane>
 

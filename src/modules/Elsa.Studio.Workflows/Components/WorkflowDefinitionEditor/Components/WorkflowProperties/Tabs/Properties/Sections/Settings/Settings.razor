@@ -69,6 +69,16 @@
                         ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
                         ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
                 </MudField>
+                @* <MudSelect *@
+                @*     T="string" *@
+                @*     Label="Resolution Strategy" *@
+                @*     Variant="@Variant.Outlined" *@
+                @*     HelperText="What should we do when a consuming workflow is published and also has a draft version?" *@
+                @*     ReadOnly="IsReadOnly" Disabled="IsReadOnly"> *@
+                @*     <MudSelectItem T="string">Update Draft</MudSelectItem> *@
+                @*     <MudSelectItem T="string">Update Draft and Publish</MudSelectItem> *@
+                @*     <MudSelectItem T="string">Discard Draft and Publish</MudSelectItem> *@
+                @* </MudSelect> *@
                 <MudTextField
                     T="string"
                     Variant="Variant.Outlined"
