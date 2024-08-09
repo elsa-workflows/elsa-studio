@@ -25,7 +25,11 @@ public class RemoteActivityRegistryProvider : IActivityRegistryProvider
     public async Task<IEnumerable<ActivityDescriptor>> ListAsync(CancellationToken cancellationToken = default)
     {
         var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorsApi>(cancellationToken);
-        var response = await api.ListAsync(new ListActivityDescriptorsRequest(), cancellationToken);
+        var request = new ListActivityDescriptorsRequest
+        {
+            Refresh = true
+        };
+        var response = await api.ListAsync(request, cancellationToken);
         
         return response.Items;
     }
