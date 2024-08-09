@@ -1,5 +1,7 @@
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
+using JetBrains.Annotations;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.UI.Providers;
@@ -7,8 +9,10 @@ namespace Elsa.Studio.Workflows.UI.Providers;
 /// <summary>
 /// Provides default activity display settings.
 /// </summary>
+[UsedImplicitly]
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
+    /// <param name="activityDescriptor"></param>
     /// <inheritdoc />
     public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
