@@ -20,10 +20,9 @@ public static class WorkflowDefinitionExtensions
     {
         if (!workflowDefinition.CustomProperties.TryGetValue("Elsa:WorkflowContextProviderTypes", out var providerTypesValue))
             return [];
-        
+
         var jsonElement = (JsonElement)providerTypesValue;
-        var providerTypes = jsonElement.Deserialize<string[]>()!;
-        return providerTypes;
+        return jsonElement.Deserialize<string[]>(JsonSerializerOptions.Default);
     }
 
     /// <summary>
@@ -34,7 +33,7 @@ public static class WorkflowDefinitionExtensions
     /// <returns>The workflow context provider types.</returns>
     public static void SetWorkflowContextProviderTypes(this WorkflowDefinition workflowDefinition, IEnumerable<string> value)
     {
-        var jsonArray = JsonSerializer.SerializeToNode(value.ToArray());
-        workflowDefinition.CustomProperties["Elsa:WorkflowContextProviderTypes"] = jsonArray;
+        var jsonElement = JsonSerializer.SerializeToElement(value.ToArray());
+        workflowDefinition.CustomProperties["Elsa:WorkflowContextProviderTypes"] = jsonElement;
     }
 }

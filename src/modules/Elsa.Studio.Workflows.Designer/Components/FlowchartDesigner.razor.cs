@@ -304,7 +304,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        if (!Equals(_flowchart, Flowchart))
+        if (!Equals(_flowchart, Flowchart) && _flowchart?.GetNodeId() != Flowchart.GetNodeId())
         {
             _flowchart = Flowchart;
             await _rateLimitedLoadFlowchartAction.InvokeAsync();
