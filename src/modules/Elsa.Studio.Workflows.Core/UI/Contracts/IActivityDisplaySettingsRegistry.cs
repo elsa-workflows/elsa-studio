@@ -7,5 +7,10 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 /// </summary>
 public interface IActivityDisplaySettingsRegistry
 {
+    /// <summary>
+    /// Retrieves the display settings for the specified activity type.
+    /// </summary>
+    /// <param name="activityType">The activity type.</param>
+    /// <returns>The display settings for the specified activity type.</returns>
     ActivityDisplaySettings GetSettings(string activityType);
 }

@@ -54,7 +54,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
-        services.AddSingleton<IDiagramDesignerProvider, T>();
+        services.AddScoped<IDiagramDesignerProvider, T>();
         return services;
     }
     
@@ -63,7 +63,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
     {
-        services.AddSingleton<IActivityDisplaySettingsProvider, T>();
+        services.AddScoped<IActivityDisplaySettingsProvider, T>();
         return services;
     }
     
@@ -72,7 +72,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddActivityPortProvider<T>(this IServiceCollection services) where T : class, IActivityPortProvider
     {
-        services.AddSingleton<IActivityPortProvider, T>();
+        services.AddScoped<IActivityPortProvider, T>();
         return services;
     }
 }
