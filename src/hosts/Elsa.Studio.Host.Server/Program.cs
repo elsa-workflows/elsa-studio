@@ -33,6 +33,7 @@ builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
+builder.Services.AddAgentsModule();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

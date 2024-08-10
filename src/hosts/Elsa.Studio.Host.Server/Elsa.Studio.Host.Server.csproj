@@ -13,6 +13,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj"/>
         <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorServer\Elsa.Studio.Core.BlazorServer.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Agents\Elsa.Studio.Agents.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj"/>
