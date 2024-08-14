@@ -15,7 +15,6 @@ export async function raiseActivitySelected(elementId: string, activityModel: Ac
     const {interop} = graphBindings[graphId];
 
     // Parse activity model.
-    // Parse activity model.
     const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
 
     await interop.raiseActivitySelected(activity);
