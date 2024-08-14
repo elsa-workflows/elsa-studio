@@ -1,4 +1,5 @@
 using BlazorMonaco.Editor;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.Scripting.Extensions;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -9,7 +10,11 @@ using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using MudExtensions;
+using Polly;
+using System.Reflection.Emit;
 using ThrottleDebounce;
+using static MudBlazor.Colors;
 
 namespace Elsa.Studio.Components;
 
@@ -61,10 +66,13 @@ public partial class ExpressionInput : IDisposable
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
     private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => IsUISyntax ? default : Color.Secondary;
-    private bool ShowMonacoEditor => !IsUISyntax && EditorContext.InputDescriptor.IsWrapped;
+    private bool ShowMonacoEditor => !IsUISyntax && EditorContext.InputDescriptor.IsWrapped && MonacoSyntaxExist;
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
+
+    private string? MonacoSyntax { get; set; }
+    private bool MonacoSyntaxExist => !String.IsNullOrEmpty(_monacoLanguage);
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -88,10 +96,10 @@ public partial class ExpressionInput : IDisposable
             return;
 
         var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
-
+        _monacoLanguage = monacoLanguage;
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
-
+        
         var model = await _monacoEditor.GetModel();
         await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
         await RunMonacoHandlersAsync(_monacoEditor);
@@ -103,6 +111,7 @@ public partial class ExpressionInput : IDisposable
         var selectedExpressionDescriptor = EditorContext.SelectedExpressionDescriptor;
         _selectedExpressionType = selectedExpressionDescriptor?.Type ?? UISyntax;
         _monacoLanguage = selectedExpressionDescriptor?.GetMonacoLanguage() ?? "";
+        UpdateUIHintAsync(EditorContext);
         return base.OnParametersSetAsync();
     }
 
@@ -142,6 +151,25 @@ public partial class ExpressionInput : IDisposable
         input.Expression = new Expression(_selectedExpressionType, value);
         await InvokeValueChangedCallbackAsync(input);
         await UpdateMonacoLanguageAsync(syntax);
+        
+    }
+    [Inject] private IUIHintService UIHintService { get; set; } = default!;
+    private void UpdateUIHintAsync(DisplayInputEditorContext editorContext)
+    {
+        if (MonacoSyntax == null
+            && _selectedExpressionType == editorContext?.SelectedExpressionDescriptor?.Type
+            && editorContext.SelectedExpressionDescriptor.Properties.ContainsKey("UIHint"))
+        {
+            var uiHint = editorContext.SelectedExpressionDescriptor.Properties["UIHint"];
+
+            //Create ChildContent
+            var uiHintHandler = UIHintService.GetHandler(uiHint);
+            var editor = uiHintHandler.DisplayInputEditor(editorContext);
+
+            ChildContent = editor;
+        }
+        
+        
     }
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
