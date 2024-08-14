@@ -331,6 +331,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
         // Update the container ID.
         container.SetId(newContainerId);
+        container.SetNodeId($"{container.GetNodeId()}:{newContainerId}");
 
         foreach (var activity in activities)
         {
@@ -339,7 +340,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             var descriptor = ActivityRegistry.Find(activityType, activityVersion)!;
             var newActivityId = IdentityGenerator.GenerateId();
 
-            // Capture the original activity ID so we can update the edges.
+            // Capture the original activity ID so we can update the edges.  
             activityLookup[activity.GetId()] = activity;
 
             // Update the activity ID.

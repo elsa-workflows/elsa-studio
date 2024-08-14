@@ -41,4 +41,8 @@
 <!--        <PackageReference Include="Elsa.Api.Client"/>-->
 <!--    </ItemGroup>-->
 
+    <ItemGroup Label="Elsa">
+        <PackageReference Include="Elsa.Api.Client"/>
+    </ItemGroup>
+
 </Project>
