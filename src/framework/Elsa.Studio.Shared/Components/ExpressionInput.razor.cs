@@ -26,6 +26,7 @@ public partial class ExpressionInput : IDisposable
     private const string DefaultSyntax = "Literal";
     private readonly string[] _uiSyntaxes = ["Literal", "Object"];
     private string _selectedExpressionType = DefaultSyntax;
+    private string _selectedExpressionTypeDisplayName = DefaultSyntax;
     private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
     private bool _isInternalContentChange;
@@ -61,7 +62,7 @@ public partial class ExpressionInput : IDisposable
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
     private bool IsUISyntax => _selectedExpressionType == UISyntax;
     private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
-    private string? ButtonLabel => IsUISyntax ? default : _selectedExpressionType;
+    private string? ButtonLabel => IsUISyntax ? default : _selectedExpressionTypeDisplayName;
     private Variant ButtonVariant => IsUISyntax ? default : Variant.Filled;
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
     private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
@@ -97,6 +98,8 @@ public partial class ExpressionInput : IDisposable
 
         var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
         _monacoLanguage = monacoLanguage;
+        _selectedExpressionTypeDisplayName = expressionDescriptor.DisplayName;
+
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
         
@@ -110,6 +113,8 @@ public partial class ExpressionInput : IDisposable
     {
         var selectedExpressionDescriptor = EditorContext.SelectedExpressionDescriptor;
         _selectedExpressionType = selectedExpressionDescriptor?.Type ?? UISyntax;
+        _selectedExpressionTypeDisplayName = selectedExpressionDescriptor?.DisplayName ?? UISyntax;
+
         _monacoLanguage = selectedExpressionDescriptor?.GetMonacoLanguage() ?? "";
         UpdateUIHintAsync(EditorContext);
         return base.OnParametersSetAsync();
@@ -165,6 +170,7 @@ public partial class ExpressionInput : IDisposable
             //Create ChildContent
             var uiHintHandler = UIHintService.GetHandler(uiHint);
             var editor = uiHintHandler.DisplayInputEditor(editorContext);
+            _selectedExpressionTypeDisplayName = editorContext.SelectedExpressionDescriptor.DisplayName;
 
             ChildContent = editor;
         }
