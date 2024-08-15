@@ -422,10 +422,10 @@ public partial class WorkflowEditor
         _isDirty = true;
         _isProgressing = true;
         StateHasChanged();
-
+        var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         foreach (var file in files)
         {
-            var stream = file.OpenReadStream();
+            var stream = file.OpenReadStream(maxAllowedSize);
 
             if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
             {
