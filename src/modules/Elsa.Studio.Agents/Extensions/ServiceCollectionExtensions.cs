@@ -1,4 +1,6 @@
+using Elsa.Studio.Agents;
 using Elsa.Studio.Agents.UI.Providers;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,8 +13,10 @@ public static class ServiceCollectionExtensions
     /// Adds the Agents module.
     public static IServiceCollection AddAgentsModule(this IServiceCollection services)
     {
-        services.AddActivityDisplaySettingsProvider<AgentsActivityDisplaySettingsProvider>();
-        
-        return services;
+        return services
+                .AddScoped<IMenuProvider, AgentsMenu>()
+                .AddScoped<IMenuGroupProvider, AgentsMenu>()
+                .AddActivityDisplaySettingsProvider<AgentsActivityDisplaySettingsProvider>()
+            ;
     }
 }
