@@ -1,0 +1,18 @@
+@using Variant = MudBlazor.Variant
+@inherits StudioComponentBase
+
+<MudDialog>
+    <DialogContent>
+        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
+            <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
+            <MudStack>
+                <MudTextField Label="Name" @bind-Value="_agentInputModel.Name" For="@(() => _agentInputModel.Name)" HelperText="The name of the new agent." Variant="Variant.Outlined"/>
+                <MudTextField Label="Description" @bind-Value="_agentInputModel.Description" For="@(() => _agentInputModel.Description)" HelperText="A brief description of the agent." Lines="3" Variant="Variant.Outlined"/>
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnCancelClicked">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
