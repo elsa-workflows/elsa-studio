@@ -15,11 +15,12 @@ using Refit;
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
 /// Represents the workflow instances list page.
-public partial class WorkflowInstanceList
+public partial class WorkflowInstanceList : IAsyncDisposable
 {
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
+    private Timer? _elapsedTimer;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -46,7 +47,7 @@ public partial class WorkflowInstanceList
 
     /// The selected sub-statuses to filter by.
     private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
-    
+
     // The selected timestamp filters to filter by.
     private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
 
@@ -54,6 +55,7 @@ public partial class WorkflowInstanceList
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
+        StartElapsedTimer();
     }
 
     private async Task LoadWorkflowDefinitionsAsync()
@@ -107,7 +109,7 @@ public partial class WorkflowInstanceList
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
-        
+
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }
@@ -118,7 +120,7 @@ public partial class WorkflowInstanceList
         var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
         var dateTime = date.Add(time);
         var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
-        
+
         return new TimestampFilter
         {
             Column = source.Column,
@@ -174,7 +176,7 @@ public partial class WorkflowInstanceList
             _ => Color.Default,
         };
     }
-    
+
     private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
     {
         return definition?.Name;
@@ -199,7 +201,7 @@ public partial class WorkflowInstanceList
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
-    
+
     private async Task OnCancelClicked(WorkflowInstanceRow row)
     {
         var result = await DialogService.ShowMessageBox("Cancel workflow instance?", "Are you sure you want to cancel this workflow instance?", yesText: "Yes", cancelText: "No");
@@ -296,34 +298,60 @@ public partial class WorkflowInstanceList
             await _table.ReloadServerData();
         }
     }
-    
+
     private async Task OnHasIncidentsChanged(bool? value)
     {
         HasIncidents = value;
         await _table.ReloadServerData();
     }
-    
+
     private void OnAddTimestampFilterClicked()
     {
         TimestampFilters.Add(new TimestampFilterModel());
         StateHasChanged();
     }
-    
+
     private void OnRemoveTimestampFilterClicked(TimestampFilterModel filter)
     {
         TimestampFilters.Remove(filter);
         StateHasChanged();
     }
-    
+
     private void OnClearTimestampFiltersClicked()
     {
         TimestampFilters.Clear();
         StateHasChanged();
     }
-    
+
     private async Task OnApplyTimestampFiltersClicked()
     {
         await _table.ReloadServerData();
         ToggleDateRangePopover();
+    }
+
+    private void StartElapsedTimer()
+    {
+        if (_elapsedTimer == null)
+            _elapsedTimer = new Timer((_) =>
+                    {
+                        InvokeAsync( async ()  =>
+                            {
+                                _table.ReloadServerData();
+                            });
+                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+    }
+
+    private void StopElapsedTimer()
+    {
+        if (_elapsedTimer != null)
+        {
+            _elapsedTimer?.Dispose();
+            _elapsedTimer = null;
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        StopElapsedTimer();
     }
 }
