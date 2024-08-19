@@ -38,7 +38,7 @@ public partial class VariablePicker2
         //var variable = Variables.FirstOrDefault(x => x.Id == variableId);
         //await EditorContext.UpdateValueAsync(variable);
         var expression = Expression.CreateObject(value?.Value ?? "");
-        expression.Type = "Secrets";
+        expression.Type = "VariableInput";
         await EditorContext.UpdateExpressionAsync(expression);
     }
 }
