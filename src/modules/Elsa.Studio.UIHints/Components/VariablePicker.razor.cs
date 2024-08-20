@@ -1,7 +1,9 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
+using System.Text.Json;
 
 namespace Elsa.Studio.UIHints.Components;
 
@@ -19,6 +21,11 @@ public partial class VariablePicker
 
     private ICollection<Variable> Variables => EditorContext.WorkflowDefinition.Variables;
 
+    private JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
@@ -27,7 +34,12 @@ public partial class VariablePicker
 
     private SelectListItem? GetSelectedValue()
     {
-        var value = EditorContext.GetValueOrDefault<Variable>();
+        Variable? value;
+        if (EditorContext.InputDescriptor.IsWrapped)
+            value = System.Text.Json.JsonSerializer.Deserialize<Variable>(EditorContext.GetExpressionValueOrDefault()
+                , JsonSerializerOptions);
+        else
+            value = EditorContext.GetValueOrDefault<Variable>();
         return _items.FirstOrDefault(x => x.Value == value?.Id);
     }
     
@@ -35,6 +47,13 @@ public partial class VariablePicker
     {
         var variableId = value?.Value;
         var variable = Variables.FirstOrDefault(x => x.Id == variableId);
-        await EditorContext.UpdateValueAsync(variable);
+
+        if(EditorContext.InputDescriptor.IsWrapped)
+           await EditorContext.UpdateExpressionAsync(
+                new Api.Client.Resources.Scripting.Models.Expression("Variable", System.Text.Json.JsonSerializer
+                .Serialize(variable, JsonSerializerOptions)
+                ));
+        else
+            await EditorContext.UpdateValueAsync(variable);
     }
 }
