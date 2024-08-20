@@ -330,14 +330,18 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         }
 
         node.setProp('selected-port', null);
-        await interop.raiseActivitySelected(activity);
-        return false;
     });
 
     graph.on('node:dblclick', async args => {
-        const {e, node} = args;
+        const {node} = args;
         const activity: Activity = node.data;
         await interop.raiseActivityDoubleClick(activity);
+    });
+
+    graph.on('node:selected', async args => {
+        const {node} = args;
+        const activity: Activity = node.data;
+        await interop.raiseActivitySelected(activity);
     });
 
     const onGraphUpdated = async (e: any) => {
