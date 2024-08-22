@@ -3,6 +3,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
+using System.Text;
 using System.Text.Json;
 
 namespace Elsa.Studio.UIHints.Components;
@@ -36,8 +37,22 @@ public partial class VariablePicker
     {
         Variable? value;
         if (EditorContext.InputDescriptor.IsWrapped)
-            value = System.Text.Json.JsonSerializer.Deserialize<Variable>(EditorContext.GetExpressionValueOrDefault()
-                , JsonSerializerOptions);
+        {
+            var expressionValue = EditorContext.GetExpressionValueOrDefault();
+            if (string.IsNullOrEmpty(expressionValue))
+                value = null;
+            else
+            {
+                try
+                {
+                    value = System.Text.Json.JsonSerializer.Deserialize<Variable>(expressionValue, JsonSerializerOptions);
+                }
+                catch (Exception)
+                {
+                    value = null;   
+                }
+            }
+        }
         else
             value = EditorContext.GetValueOrDefault<Variable>();
         return _items.FirstOrDefault(x => x.Value == value?.Id);
