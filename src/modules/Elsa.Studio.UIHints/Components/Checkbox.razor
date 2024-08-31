@@ -11,13 +11,13 @@
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
-        <MudField Variant="Variant.Text" Margin="Margin.None" DisableUnderLine="@false" HelperText="@description" Disabled="EditorContext.IsReadOnly">
+        <MudField Variant="Variant.Text" Margin="Margin.None" UnderLine="@true" HelperText="@description" Disabled="EditorContext.IsReadOnly">
             <MudCheckBox
                 T="bool?"
                 Label="@displayName"
-                Checked="@isChecked"
+                Value="@isChecked"
                 Dense="true"
-                CheckedChanged="OnCheckChanged"
+                ValueChanged="OnCheckChanged"
                 Disabled="EditorContext.IsReadOnly"/>
         </MudField>
     </ChildContent>
