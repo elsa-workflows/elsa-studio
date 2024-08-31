@@ -21,8 +21,17 @@ public partial class CreateAgentDialog
     [Parameter] public string AgentName { get; set; } = "New workflow";
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
+    private ICollection<ServiceModel> AvailableServices { get; set; } = [];
+    private IReadOnlyCollection<string> SelectedServices { get; set; } = [];
 
     /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
+        var response = await servicesApi.ListAsync();
+        AvailableServices = response.Items;
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         _agentInputModel.Name = AgentName;
@@ -32,6 +41,7 @@ public partial class CreateAgentDialog
         _editContext = new EditContext(_agentInputModel);
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
+        SelectedServices = _agentInputModel.Services.ToList().AsReadOnly();
     }
 
     private Task OnCancelClicked()
@@ -50,6 +60,7 @@ public partial class CreateAgentDialog
 
     private Task OnValidSubmit()
     {
+        _agentInputModel.Services = SelectedServices.ToList();
         MudDialog.Close(_agentInputModel);
         return Task.CompletedTask;
     }

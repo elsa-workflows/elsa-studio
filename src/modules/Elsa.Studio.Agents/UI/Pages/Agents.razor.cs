@@ -27,10 +27,10 @@ public partial class Agents
         return await ApiClientProvider.GetApiAsync<IAgentsApi>();
     }
     
-    private async Task<TableData<AgentModel>> ServerReload(TableState state)
+    private async Task<TableData<AgentModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetAgentsApiAsync();
-        var agents = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync());
+        var agents = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
 
         return new TableData<AgentModel>
         {

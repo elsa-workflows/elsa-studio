@@ -26,10 +26,10 @@ public partial class ApiKeys
         return await ApiClientProvider.GetApiAsync<IApiKeysApi>();
     }
     
-    private async Task<TableData<ApiKeyModel>> ServerReload(TableState state)
+    private async Task<TableData<ApiKeyModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetApiClientAsync();
-        var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync());
+        var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
 
         return new TableData<ApiKeyModel>
         {

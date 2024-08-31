@@ -24,10 +24,10 @@ public partial class Services
         return await ApiClientProvider.GetApiAsync<IServicesApi>();
     }
     
-    private async Task<TableData<ServiceModel>> ServerReload(TableState state)
+    private async Task<TableData<ServiceModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetApiClientAsync();
-        var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync());
+        var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
 
         return new TableData<ServiceModel>
         {

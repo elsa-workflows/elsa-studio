@@ -63,7 +63,7 @@ public partial class WorkflowInstanceList
         WorkflowDefinitions = workflowDefinitionsResponse.Items;
     }
 
-    private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state)
+    private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
         var request = new ListWorkflowInstancesRequest
         {
@@ -80,13 +80,13 @@ public partial class WorkflowInstanceList
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
-        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
+        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request, cancellationToken));
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
         var workflowDefinitionVersionsResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             Ids = definitionVersionIds,
-        }));
+        }, cancellationToken: cancellationToken));
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 
