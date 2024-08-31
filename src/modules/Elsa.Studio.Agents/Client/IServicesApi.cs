@@ -5,7 +5,7 @@ using Refit;
 
 namespace Elsa.Studio.Agents.Client;
 
-///  Represents a client API for interacting with agents.
+///  Represents a client API for interacting with AI services.
 public interface IServicesApi
 {
     /// Lists all services.

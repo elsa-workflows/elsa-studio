@@ -23,21 +23,30 @@ public partial class CreateAgentDialog
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
     private ICollection<ServiceModel> AvailableServices { get; set; } = [];
     private IReadOnlyCollection<string> SelectedServices { get; set; } = [];
+    private ICollection<PluginDescriptorModel> AvailablePlugins { get; set; } = [];
+    private IReadOnlyCollection<string> SelectedPlugins { get; set; } = [];
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         _agentInputModel.Name = AgentName;
+        _agentInputModel.PromptTemplate = "You are a helpful assistant.";
+        _agentInputModel.Description = "A helpful assistant.";
+        _agentInputModel.FunctionName = "Reply";
         _agentInputModel.OutputVariable.Type = "object";
         _agentInputModel.OutputVariable.Description = "The output of the agent.";
         _agentInputModel.ExecutionSettings.ResponseFormat = "json_object";
         _editContext = new EditContext(_agentInputModel);
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
-        _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
         var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
+        var pluginsApi = await ApiClientProvider.GetApiAsync<IPluginsApi>();
+        _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
         var servicesResponseList = await servicesApi.ListAsync();
+        var pluginsResponseList = await pluginsApi.ListAsync();
         AvailableServices = servicesResponseList.Items;
+        AvailablePlugins = pluginsResponseList.Items;
         SelectedServices = _agentInputModel.Services.ToList().AsReadOnly();
+        SelectedPlugins = _agentInputModel.Plugins.ToList().AsReadOnly();
     }
 
     private Task OnCancelClicked()
@@ -57,6 +66,7 @@ public partial class CreateAgentDialog
     private Task OnValidSubmit()
     {
         _agentInputModel.Services = SelectedServices.ToList();
+        _agentInputModel.Plugins = SelectedPlugins.ToList();
         MudDialog.Close(_agentInputModel);
         return Task.CompletedTask;
     }
