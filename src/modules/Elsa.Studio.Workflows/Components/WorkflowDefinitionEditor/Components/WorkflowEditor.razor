@@ -25,7 +25,7 @@
                 </div>
 
                 <MudTooltip Text="Publish the current workflow." Delay="1000">
-                    <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DisableElevation="true">
+                    <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DropShadow="false">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Title="Publish" OnClick="@OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
                             @if (_workflowDefinition?.IsPublished == true)

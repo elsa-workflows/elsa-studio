@@ -50,7 +50,7 @@
                     Variant="Variant.Text"
                     HelperText="Whether to show the description in the designer."
                     Margin="Margin.None"
-                    DisableUnderLine="@false"
+                    Underline="@true"
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
@@ -62,7 +62,7 @@
                 
                 <MudField
                     Variant="Variant.Text"
-                    DisableUnderLine="@false"
+                    UnderLine="@true"
                     Margin="Margin.None"
                     HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")"
                     Disabled="IsReadOnly">
