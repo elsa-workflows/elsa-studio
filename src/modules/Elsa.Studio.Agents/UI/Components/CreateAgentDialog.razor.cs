@@ -32,6 +32,7 @@ public partial class CreateAgentDialog
         AvailableServices = response.Items;
     }
 
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         _agentInputModel.Name = AgentName;
