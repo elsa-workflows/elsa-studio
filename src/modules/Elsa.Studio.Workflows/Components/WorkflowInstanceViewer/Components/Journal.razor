@@ -9,16 +9,14 @@
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.Timer"
                     ToggledIcon="@Icons.Material.Outlined.AccessTime"
-                    Title="Show relative time"
-                    ToggledTitle="Show accumulated time"
+                    Title="@(TimeMetricMode == TimeMetricMode.Accumulated ? "Show relative time" : "Show accumulated time")"
                     Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)"
                     ToggledChanged="OnTimeMetricButtonToggleChanged"/>
 
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.DataArray"
                     ToggledIcon="@Icons.Material.Outlined.DataArray"
-                    Title="Show events scoped to current container"
-                    ToggledTitle="Showing all events"
+                    title="@(ShowScopedEvents ? "Showing all events" : "Show events scoped to current container")"
                     Color="Color.Default"
                     ToggledColor="Color.Primary"
                     Toggled="ShowScopedEvents"
@@ -28,8 +26,7 @@
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.ErrorOutline"
                     ToggledIcon="@Icons.Material.Outlined.ErrorOutline"
-                    Title="Show incidents"
-                    ToggledTitle="Showing incidents"
+                    title="@(ShowIncidents ? "Show incidents" : "Showing incidents")"
                     Color="Color.Default"
                     ToggledColor="Color.Error"
                     Toggled="ShowIncidents"
