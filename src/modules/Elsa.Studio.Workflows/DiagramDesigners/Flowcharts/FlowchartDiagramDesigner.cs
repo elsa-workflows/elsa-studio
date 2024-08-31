@@ -91,7 +91,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
             {
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(2, nameof(MudIconButton.Title), title);
+                childBuilder.AddAttribute(2, "title", title);
                 childBuilder.AddAttribute(3, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
                 childBuilder.CloseComponent();
             }));

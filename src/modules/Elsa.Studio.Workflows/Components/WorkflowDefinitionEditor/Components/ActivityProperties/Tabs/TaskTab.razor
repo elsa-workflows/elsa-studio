@@ -11,8 +11,8 @@
                 T="bool?"
                 Label="Run Asynchronously"
                 Dense="@true"
-                Checked="@(Activity?.GetRunAsynchronously() == true)"
-                CheckedChanged="OnRunAsynchronouslyChanged"
+                Value="@(Activity?.GetRunAsynchronously() == true)"
+                ValueChanged="OnRunAsynchronouslyChanged"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly"
                 />
         </MudField>

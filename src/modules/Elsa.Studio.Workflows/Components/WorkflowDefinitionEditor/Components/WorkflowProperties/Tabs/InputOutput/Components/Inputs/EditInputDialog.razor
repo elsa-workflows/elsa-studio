@@ -22,7 +22,7 @@
                     }
                 </MudSelectExtended>
                 <MudField Variant="Variant.Text" HelperText="Check this option if the variable holds an array of the selected type." Margin="Margin.None">
-                    <MudCheckBox T="bool" @bind-Checked="_model.IsArray" Label="This input is an array" Dense="true"></MudCheckBox>
+                    <MudCheckBox T="bool" @bind-Value="_model.IsArray" Label="This input is an array" Dense="true"></MudCheckBox>
                 </MudField>
                 <MudTextField Label="Display name" @bind-Value="_model.DisplayName" HelperText="The user-friendly name of this input." Variant="Variant.Outlined" />
                 <MudTextField Label="Description" @bind-Value="_model.Description" HelperText="A brief description of this input." Variant="Variant.Outlined" Lines="3" />
