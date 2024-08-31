@@ -247,14 +247,15 @@
             </MudTooltip>
         </MudTd>
         <MudTd DataLabel="SubStatus">
-            <MudChip Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
+            <MudChip T="WorkflowSubStatus" Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                 @context.SubStatus
             </MudChip>
         </MudTd>
         <MudTd DataLabel="IncidentCount">
             <MudChip
+                T="string"
                 Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
-                Text="@context.IncidentCount.ToString()"
+                Value="@context.IncidentCount.ToString()"
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
