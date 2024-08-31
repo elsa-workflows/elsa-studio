@@ -27,14 +27,6 @@ public partial class CreateAgentDialog
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
-        var response = await servicesApi.ListAsync();
-        AvailableServices = response.Items;
-    }
-
-    /// <inheritdoc />
-    protected override async Task OnParametersSetAsync()
-    {
         _agentInputModel.Name = AgentName;
         _agentInputModel.OutputVariable.Type = "object";
         _agentInputModel.OutputVariable.Description = "The output of the agent.";
@@ -42,6 +34,9 @@ public partial class CreateAgentDialog
         _editContext = new EditContext(_agentInputModel);
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
+        var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
+        var servicesResponseList = await servicesApi.ListAsync();
+        AvailableServices = servicesResponseList.Items;
         SelectedServices = _agentInputModel.Services.ToList().AsReadOnly();
     }
 

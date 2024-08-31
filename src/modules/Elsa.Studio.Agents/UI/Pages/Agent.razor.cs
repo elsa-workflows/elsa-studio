@@ -20,6 +20,9 @@ public partial class Agent : StudioComponentBase
         get => _agent.ExecutionSettings.ResponseFormat == "json_object"; 
         set => _agent.ExecutionSettings.ResponseFormat = value ? "json_object" : "string";
     }
+    
+    private ICollection<ServiceModel> AvailableServices { get; set; } = [];
+    private IReadOnlyCollection<string> SelectedServices { get; set; } = [];
 
     private MudForm _form = default!;
     private AgentInputModelValidator _validator = default!;
@@ -27,11 +30,21 @@ public partial class Agent : StudioComponentBase
     private InputVariableConfig? _inputVariableBackup;
 
     /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        var apiClient = await ApiClientProvider.GetApiAsync<IAgentsApi>();
+        _validator = new AgentInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
+        var servicesResponseList = await servicesApi.ListAsync();
+        AvailableServices = servicesResponseList.Items;
+    }
+
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         var apiClient = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _agent = await apiClient.GetAsync(AgentId);
-        _validator = new AgentInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        SelectedServices = _agent.Services.ToList().AsReadOnly();
     }
 
     private async Task OnSaveClicked()
@@ -41,6 +54,7 @@ public partial class Agent : StudioComponentBase
         if (!_form.IsValid)
             return;
         
+        _agent.Services = SelectedServices.ToList();
         var apiClient = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _agent = await apiClient.UpdateAsync(AgentId, _agent);
         Snackbar.Add("Agent successfully updated.", Severity.Success);

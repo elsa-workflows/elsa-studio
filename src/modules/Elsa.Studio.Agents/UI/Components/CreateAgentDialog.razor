@@ -1,4 +1,3 @@
-@using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 
@@ -9,12 +8,14 @@
             <MudStack>
                 <MudTextField Label="Name" @bind-Value="_agentInputModel.Name" For="@(() => _agentInputModel.Name)" HelperText="The name of the new agent." Variant="Variant.Outlined"/>
                 <MudTextField Label="Description" @bind-Value="_agentInputModel.Description" For="@(() => _agentInputModel.Description)" HelperText="A brief description of the agent." Lines="3" Variant="Variant.Outlined"/>
-                <MudList T="string" @bind-SelectedValues="SelectedServices" SelectionMode="SelectionMode.MultiSelection">
-                    @foreach (var service in AvailableServices)
-                    {
-                        <MudListItem Text="@service.Name" Value="@service.Id" />
-                    }
-                </MudList>
+                <MudField Label="Services" HelperText="The services that the agent requires.">
+                    <MudList T="string" @bind-SelectedValues="SelectedServices" SelectionMode="SelectionMode.MultiSelection">
+                        @foreach (var service in AvailableServices)
+                        {
+                            <MudListItem Text="@service.Name" Value="@service.Id"/>
+                        }
+                    </MudList>
+                </MudField>
             </MudStack>
         </EditForm>
     </DialogContent>
