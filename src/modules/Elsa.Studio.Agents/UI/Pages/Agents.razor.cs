@@ -3,6 +3,8 @@ using Elsa.Studio.Agents.Client;
 using Elsa.Studio.Agents.UI.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -19,6 +21,8 @@ public partial class Agents
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
@@ -62,7 +66,7 @@ public partial class Agents
         var dialogInstance = await DialogService.ShowAsync<CreateAgentDialog>("New Agent", parameters, options);
         var dialogResult = await dialogInstance.Result;
 
-        if (!dialogResult.Canceled)
+        if (!dialogResult!.Canceled)
         {
             var agentInputModel = (AgentInputModel)dialogResult.Data;
             await InvokeWithBlazorServiceContext(async () =>
@@ -97,7 +101,7 @@ public partial class Agents
 
     private async Task OnRowClick(TableRowClickEventArgs<AgentModel> e)
     {
-        await EditAsync(e.Item.Id);
+        await EditAsync(e.Item!.Id);
     }
 
     private async Task OnDeleteClicked(AgentModel agent)
@@ -110,6 +114,8 @@ public partial class Agents
         var agentId = agent.Id;
         var apiClient = await GetAgentsApiAsync();
         await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.DeleteAsync(agentId)));
+        ActivityRegistry.MarkStale();
+        ActivityDisplaySettingsRegistry.MarkStale();
         Reload();
     }
 
@@ -124,6 +130,8 @@ public partial class Agents
         var request = new BulkDeleteRequest { Ids = ids };
         var apiClient = await GetAgentsApiAsync();
         await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.BulkDeleteAsync(request)));
+        ActivityRegistry.MarkStale();
+        ActivityDisplaySettingsRegistry.MarkStale();
         Reload();
     }
 }

@@ -3,6 +3,8 @@ using Elsa.Agents;
 using Elsa.Studio.Agents.Client;
 using Elsa.Studio.Agents.UI.Validators;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
@@ -21,6 +23,8 @@ public partial class CreateAgentDialog
     [Parameter] public string AgentName { get; set; } = "New workflow";
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
     private ICollection<ServiceModel> AvailableServices { get; set; } = [];
     private IReadOnlyCollection<string> SelectedServices { get; set; } = [];
     private ICollection<PluginDescriptorModel> AvailablePlugins { get; set; } = [];
@@ -68,6 +72,8 @@ public partial class CreateAgentDialog
         _agentInputModel.Services = SelectedServices.ToList();
         _agentInputModel.Plugins = SelectedPlugins.ToList();
         MudDialog.Close(_agentInputModel);
+        ActivityRegistry.MarkStale();
+        ActivityDisplaySettingsRegistry.MarkStale();
         return Task.CompletedTask;
     }
 }
