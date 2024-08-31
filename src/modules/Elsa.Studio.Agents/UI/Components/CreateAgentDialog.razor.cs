@@ -2,6 +2,7 @@ using Blazored.FluentValidation;
 using Elsa.Agents;
 using Elsa.Studio.Agents.Client;
 using Elsa.Studio.Agents.UI.Validators;
+using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
@@ -19,13 +20,17 @@ public partial class CreateAgentDialog
     /// The default name of the agent to create.
     [Parameter] public string AgentName { get; set; } = "New workflow";
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IAgentsApi AgentsApi { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         _agentInputModel.Name = AgentName;
+        _agentInputModel.OutputVariable.Type = "object";
+        _agentInputModel.OutputVariable.Description = "The output of the agent.";
         _editContext = new EditContext(_agentInputModel);
+        var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
+        _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
     }
 
     private Task OnCancelClicked()

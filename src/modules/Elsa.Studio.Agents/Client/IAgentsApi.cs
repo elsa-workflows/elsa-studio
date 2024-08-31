@@ -8,8 +8,12 @@ namespace Elsa.Studio.Agents.Client;
 public interface IAgentsApi
 {
     /// Lists all agents.
-    [Post("/ai/agents/list")]
+    [Get("/ai/agents")]
     Task<ListResponse<AgentModel>> ListAsync(CancellationToken cancellationToken = default);
+    
+    /// Gets an agent by ID.
+    [Get("/ai/agents/{id}")]
+    Task<AgentModel> GetAsync(string id, CancellationToken cancellationToken = default);
     
     /// Generates a unique name for an agent.
     [Post("/ai/actions/agents/generate-unique-name")]
@@ -18,4 +22,20 @@ public interface IAgentsApi
     /// Checks if a name is unique for an agent.
     [Post("/ai/queries/agents/is-unique-name")]
     Task<IsUniqueNameResponse> GetIsNameUniqueAsync(IsUniqueNameRequest request, CancellationToken cancellationToken);
+    
+    /// Creates a new agent.
+    [Post("/ai/agents")]
+    Task<AgentModel> CreateAsync(AgentInputModel request, CancellationToken cancellationToken = default);
+    
+    /// Updates an agent.
+    [Post("/ai/agents/{id}")]
+    Task<AgentModel> UpdateAsync(string id, AgentInputModel request, CancellationToken cancellationToken = default);
+
+    /// Deletes an agent.
+    [Delete("/ai/agents/{id}")]
+    Task DeleteAsync(string id, CancellationToken cancellationToken = default);
+
+    /// Deletes multiple agents.
+    [Post("/ai/bulk-actions/agents/delete")]
+    Task<BulkDeleteAgentsResponse> BulkDeleteAsync(BulkDeleteAgentsRequest request, CancellationToken cancellationToken = default);
 }

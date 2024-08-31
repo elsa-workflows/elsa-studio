@@ -8,15 +8,15 @@ namespace Elsa.Studio.Environments.Services;
 /// <summary>
 /// An environment-aware backend connection provider that returns the URL to the currently selected environment, if any.
 /// </summary>
-public class EnvironmentRemoteBackendApiClientProvider : IRemoteBackendApiClientProvider
+public class EnvironmentBackendApiClientProvider : IBackendApiClientProvider
 {
     private readonly IEnvironmentService _environmentService;
     private readonly IRemoteBackendAccessor _remoteBackendAccessor;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EnvironmentRemoteBackendApiClientProvider"/> class.
+    /// Initializes a new instance of the <see cref="EnvironmentBackendApiClientProvider"/> class.
     /// </summary>
-    public EnvironmentRemoteBackendApiClientProvider(IEnvironmentService environmentService, IRemoteBackendAccessor remoteBackendAccessor)
+    public EnvironmentBackendApiClientProvider(IEnvironmentService environmentService, IRemoteBackendAccessor remoteBackendAccessor)
     {
         _environmentService = environmentService;
         _remoteBackendAccessor = remoteBackendAccessor;

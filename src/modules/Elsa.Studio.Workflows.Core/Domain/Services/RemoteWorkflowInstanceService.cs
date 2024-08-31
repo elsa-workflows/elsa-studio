@@ -16,14 +16,14 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteWorkflowInstanceService : IWorkflowInstanceService
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteWorkflowInstanceService"/> class.
     /// </summary>
-    public RemoteWorkflowInstanceService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteWorkflowInstanceService(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
@@ -118,5 +118,5 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         return response.Count;
     }
 
-    private async Task<IWorkflowInstancesApi> GetApiAsync(CancellationToken cancellationToken = default) => await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
+    private async Task<IWorkflowInstancesApi> GetApiAsync(CancellationToken cancellationToken = default) => await _backendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
 }

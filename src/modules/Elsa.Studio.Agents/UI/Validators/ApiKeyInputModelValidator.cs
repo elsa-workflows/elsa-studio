@@ -6,14 +6,14 @@ using FluentValidation;
 namespace Elsa.Studio.Agents.UI.Validators;
 
 /// <summary>
-/// A validator for <see cref="WorkflowMetadataModel"/> instances.
+/// A validator for <see cref="ApiKeyInputModel"/> instances.
 /// </summary>
-public class AgentInputModelValidator : AbstractValidator<AgentInputModel>
+public class ApiKeyInputModelValidator : AbstractValidator<ApiKeyInputModel>
 {
     /// <inheritdoc />
-    public AgentInputModelValidator(IAgentsApi agentsApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public ApiKeyInputModelValidator(IApiKeysApi apiKeysApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the agent.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the API key.");
         
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
@@ -23,7 +23,7 @@ public class AgentInputModelValidator : AbstractValidator<AgentInputModel>
                 {
                     Name = name!,
                 };
-                var response = await agentsApi.GetIsNameUniqueAsync(request, cancellationToken);
+                var response = await apiKeysApi.GetIsNameUniqueAsync(request, cancellationToken);
                 return response.IsUnique;
             })
             .WithMessage("A workflow with this name already exists.");

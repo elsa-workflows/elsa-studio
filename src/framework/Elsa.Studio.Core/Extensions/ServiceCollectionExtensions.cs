@@ -1,9 +1,11 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Models;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Elsa.Studio.Extensions;
 
@@ -41,15 +43,20 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds backend services to the service collection.
     /// </summary>
-    public static IServiceCollection AddRemoteBackend(this IServiceCollection services, Action<ElsaClientBuilderOptions> configureElsaClient, Action<BackendOptions>? configureBackendOptions = default)
+    public static IServiceCollection AddRemoteBackend(this IServiceCollection services, BackendApiConfig? config = null)
     {
-        services.Configure(configureBackendOptions ?? (_ => { }));
-        services.AddDefaultApiClients(configureElsaClient);
-        
-        return services
-                .AddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>()
-                .AddScoped<IRemoteBackendApiClientProvider, DefaultRemoteBackendApiClientProvider>()
-            ;
+        services.Configure(config?.ConfigureBackendOptions ?? (_ => { }));
+        services.AddDefaultApiClients(config?.ConfigureHttpClientBuilder);
+        services.TryAddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>();
+        services.TryAddScoped<IBackendApiClientProvider, DefaultBackendApiClientProvider>();
+        return services;
+    }
+    
+    public static IServiceCollection AddRemoteApi<TApi>(this IServiceCollection services, BackendApiConfig? config = null) where TApi : class
+    {
+        services.Configure(config?.ConfigureBackendOptions ?? (_ => { }));
+        services.AddApiClient<TApi>(config?.ConfigureHttpClientBuilder);
+        return services;
     }
 
     /// <summary>

@@ -15,27 +15,27 @@ public class AgentsMenu : IMenuProvider, IMenuGroupProvider
         {
             new()
             {
-                Icon = Icons.Material.Filled.Add,
+                Icon = AgentIcons.Robot,
                 Href = "ai/agents",
                 Text = "Agents",
                 GroupName = MenuItemGroups.General.Name
             },
             new()
             {
-                Icon = Icons.Material.Filled.Add,
-                Text = "AI",
+                Icon = AgentIcons.AI,
+                Text = "Agents",
                 GroupName = MenuItemGroups.Settings.Name,
                 SubMenuItems =
                 [
                     new MenuItem
                     {
-                        Icon = Icons.Material.Filled.Add,
+                        Icon = Icons.Material.Outlined.Key,
                         Href = "ai/api-keys",
                         Text = "API Keys"
                     },
                     new MenuItem
                     {
-                        Icon = Icons.Material.Filled.Add,
+                        Icon = Icons.Material.Outlined.MiscellaneousServices,
                         Href = "ai/services",
                         Text = "Services"
                     }

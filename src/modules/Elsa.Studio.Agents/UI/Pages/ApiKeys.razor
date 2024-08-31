@@ -1,16 +1,16 @@
-﻿@page "/ai/agents"
+﻿@page "/ai/api-keys"
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 
-<PageTitle>Agents</PageTitle>
+<PageTitle>API Keys</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Agents"/>
+    <PageHeading Text="API Keys"/>
 
     <MudTable
         @ref="_table"
-        T="AgentModel"
+        T="ApiKeyModel"
         ServerData="ServerReload"
         Dense="true"
         Hover="true"
@@ -28,31 +28,25 @@
             <MudSpacer/>
             
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateAgentClicked">Create Agent</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">Create API Key</MudButton>
             </MudButtonGroup>
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="AgentModel">ID</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="ID" T="ApiKeyModel">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="AgentModel">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Description" T="AgentModel" Style="text-align: right;">Description</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Value" T="ApiKeyModel">Value</MudTableSortLabel>
             </MudTh>
             <MudTh/>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Description">
-                <MudTooltip Text="@context.Description">
-                    <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                        @context.Description
-                    </div>
-                </MudTooltip>
-            </MudTd>
+            <MudTd DataLabel="Value">@context.Value</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">Edit</MudMenuItem>
@@ -61,7 +55,7 @@
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText>No agents found</MudText>
+            <MudText>No API keys found</MudText>
         </NoRecordsContent>
         <LoadingContent>
             <MudText>Loading...</MudText>

@@ -1,0 +1,42 @@
+@page "/ai/api-keys/{ApiKeyId}"
+@using Elsa.Agents
+@using Variant = MudBlazor.Variant
+@inherits StudioComponentBase
+
+<PageTitle>API Key</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="@($"API Key: {_apiKey.Name}")"/>
+
+    <MudCard>
+        <MudForm Model="@_apiKey"
+                 @ref="@_form"
+                 Validation="@((Func<ApiKeyInputModel, bool>)(x => _validator.Validate(x).IsValid))"
+                 ValidationDelay="0">
+
+            <MudTabs Border="false" PanelClass="pa-6">
+                <MudTabPanel Text="General">
+                    <MudStack Spacing="8">
+                        <MudTextField @bind-Value="_apiKey.Name"
+                                      For="@(() => _apiKey.Name)"
+                                      Immediate="true"
+                                      Label="Name"
+                                      Variant="Variant.Outlined"
+                                      HelperText="The technical name of the API key."/>
+
+                        <MudTextField @bind-Value="_apiKey.Value"
+                                      For="@(() => _apiKey.Value)"
+                                      Immediate="false"
+                                      Label="Value"
+                                      Variant="Variant.Outlined"
+                                      HelperText="The value of the API key."/>
+                        
+                    </MudStack>
+                </MudTabPanel>
+            </MudTabs>
+        </MudForm>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">Save</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudContainer>

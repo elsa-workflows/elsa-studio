@@ -3,7 +3,7 @@ namespace Elsa.Studio.Contracts;
 /// <summary>
 /// Provides connection details to the backend.
 /// </summary>
-public interface IRemoteBackendApiClientProvider
+public interface IBackendApiClientProvider
 {
     /// <summary>
     /// Gets the URL to the backend.
