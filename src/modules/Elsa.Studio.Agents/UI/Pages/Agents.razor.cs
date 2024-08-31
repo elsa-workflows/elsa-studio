@@ -121,7 +121,7 @@ public partial class Agents
             return;
 
         var ids = _selectedRows.Select(x => x.Id).ToList();
-        var request = new BulkDeleteAgentsRequest { Ids = ids };
+        var request = new BulkDeleteRequest { Ids = ids };
         var apiClient = await GetAgentsApiAsync();
         await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.BulkDeleteAsync(request)));
         Reload();

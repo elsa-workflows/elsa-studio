@@ -28,6 +28,7 @@ public partial class CreateAgentDialog
         _agentInputModel.Name = AgentName;
         _agentInputModel.OutputVariable.Type = "object";
         _agentInputModel.OutputVariable.Description = "The output of the agent.";
+        _agentInputModel.ExecutionSettings.ResponseFormat = "json_object";
         _editContext = new EditContext(_agentInputModel);
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);

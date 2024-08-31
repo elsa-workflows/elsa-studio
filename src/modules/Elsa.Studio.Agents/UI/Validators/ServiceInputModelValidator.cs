@@ -6,14 +6,14 @@ using FluentValidation;
 namespace Elsa.Studio.Agents.UI.Validators;
 
 /// <summary>
-/// A validator for <see cref="AgentInputModel"/> instances.
+/// A validator for <see cref="ServiceInputModel"/> instances.
 /// </summary>
-public class AgentInputModelValidator : AbstractValidator<AgentInputModel>
+public class ServiceInputModelValidator : AbstractValidator<ServiceInputModel>
 {
     /// <inheritdoc />
-    public AgentInputModelValidator(IAgentsApi agentsApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public ServiceInputModelValidator(IServicesApi api, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the agent.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the service.");
         
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
@@ -23,9 +23,9 @@ public class AgentInputModelValidator : AbstractValidator<AgentInputModel>
                 {
                     Name = name!,
                 };
-                var response = await agentsApi.GetIsNameUniqueAsync(request, cancellationToken);
+                var response = await api.GetIsNameUniqueAsync(request, cancellationToken);
                 return response.IsUnique;
             })
-            .WithMessage("An agent with this name already exists.");
+            .WithMessage("A service with this name already exists.");
     }
 }

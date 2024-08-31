@@ -26,6 +26,6 @@ public class ApiKeyInputModelValidator : AbstractValidator<ApiKeyInputModel>
                 var response = await apiKeysApi.GetIsNameUniqueAsync(request, cancellationToken);
                 return response.IsUnique;
             })
-            .WithMessage("A workflow with this name already exists.");
+            .WithMessage("An API key with this name already exists.");
     }
 }

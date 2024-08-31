@@ -30,7 +30,7 @@ public interface IApiKeysApi
 
     /// Deletes multiple API keys.
     [Post("/ai/bulk-actions/api-keys/delete")]
-    Task<BulkDeleteApiKeysResponse> BulkDeleteAsync(BulkDeleteApiKeysRequest request, CancellationToken cancellationToken = default);
+    Task<BulkDeleteResponse> BulkDeleteAsync(BulkDeleteRequest request, CancellationToken cancellationToken = default);
 
     /// Checks if a name is unique.
     Task<GetIsNameUniqueResponse> GetIsNameUniqueAsync(IsUniqueNameRequest request, CancellationToken cancellationToken = default);

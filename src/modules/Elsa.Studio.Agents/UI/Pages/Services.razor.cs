@@ -9,29 +9,27 @@ using MudBlazor;
 namespace Elsa.Studio.Agents.UI.Pages;
 
 [UsedImplicitly]
-public partial class ApiKeys
+public partial class Services
 {
-    private MudTable<ApiKeyModel> _table = null!;
-    private HashSet<ApiKeyModel> _selectedRows = new();
+    private MudTable<ServiceModel> _table = null!;
+    private HashSet<ServiceModel> _selectedRows = new();
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
-    private async Task<IApiKeysApi> GetApiClientAsync()
+    private async Task<IServicesApi> GetApiClientAsync()
     {
-        return await ApiClientProvider.GetApiAsync<IApiKeysApi>();
+        return await ApiClientProvider.GetApiAsync<IServicesApi>();
     }
     
-    private async Task<TableData<ApiKeyModel>> ServerReload(TableState state)
+    private async Task<TableData<ServiceModel>> ServerReload(TableState state)
     {
         var apiClient = await GetApiClientAsync();
         var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync());
 
-        return new TableData<ApiKeyModel>
+        return new TableData<ServiceModel>
         {
             TotalItems = (int)response.Count,
             Items = response.Items
@@ -40,12 +38,12 @@ public partial class ApiKeys
 
     private async Task OnCreateClicked()
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/api-keys/new"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/services/new"));
     }
 
     private async Task EditAsync(string id)
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/api-keys/{id}"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/services/{id}"));
     }
 
     private void Reload()
@@ -58,14 +56,14 @@ public partial class ApiKeys
         await EditAsync(id);
     }
 
-    private async Task OnRowClick(TableRowClickEventArgs<ApiKeyModel> e)
+    private async Task OnRowClick(TableRowClickEventArgs<ServiceModel> e)
     {
         await EditAsync(e.Item.Id);
     }
 
-    private async Task OnDeleteClicked(ApiKeyModel model)
+    private async Task OnDeleteClicked(ServiceModel model)
     {
-        var result = await DialogService.ShowMessageBox("Delete API Key?", "Are you sure you want to delete this API key?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Delete Service?", "Are you sure you want to delete this service?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
@@ -78,7 +76,7 @@ public partial class ApiKeys
 
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox("Delete Selected API keys?", "Are you sure you want to delete the selected API keys?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox("Delete Selected services?", "Are you sure you want to delete the selected services?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;

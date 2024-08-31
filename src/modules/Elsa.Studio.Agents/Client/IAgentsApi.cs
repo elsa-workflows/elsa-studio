@@ -37,5 +37,5 @@ public interface IAgentsApi
 
     /// Deletes multiple agents.
     [Post("/ai/bulk-actions/agents/delete")]
-    Task<BulkDeleteAgentsResponse> BulkDeleteAsync(BulkDeleteAgentsRequest request, CancellationToken cancellationToken = default);
+    Task<BulkDeleteResponse> BulkDeleteAsync(BulkDeleteRequest request, CancellationToken cancellationToken = default);
 }
