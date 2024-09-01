@@ -10,13 +10,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\modules\Elsa.Agents.Models\Elsa.Agents.Models.csproj" />
-        <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
-        <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
+        <PackageReference Include="Elsa.Agents.Models" />
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="UI\Pages\Agents.razor" />
+        <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
     </ItemGroup>
 
 </Project>
