@@ -1,4 +1,8 @@
+using Elsa.Studio.Agents;
+using Elsa.Studio.Agents.Client;
 using Elsa.Studio.Agents.UI.Providers;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,10 +13,17 @@ namespace Elsa.Studio.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// Adds the Agents module.
-    public static IServiceCollection AddAgentsModule(this IServiceCollection services)
+    public static IServiceCollection AddAgentsModule(this IServiceCollection services, BackendApiConfig backendApiConfig)
     {
-        services.AddActivityDisplaySettingsProvider<AgentsActivityDisplaySettingsProvider>();
-        
-        return services;
+        return services
+                .AddScoped<IFeature, Feature>()
+                .AddScoped<IMenuProvider, AgentsMenu>()
+                .AddScoped<IMenuGroupProvider, AgentsMenu>()
+                .AddRemoteApi<IAgentsApi>(backendApiConfig)
+                .AddRemoteApi<IApiKeysApi>(backendApiConfig)
+                .AddRemoteApi<IServicesApi>(backendApiConfig)
+                .AddRemoteApi<IPluginsApi>(backendApiConfig)
+                .AddActivityDisplaySettingsProvider<AgentsActivityDisplaySettingsProvider>()
+            ;
     }
 }

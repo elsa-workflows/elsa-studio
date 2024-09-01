@@ -10,20 +10,20 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteStorageDriverService : IStorageDriverService
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteStorageDriverService"/> class.
     /// </summary>
-    public RemoteStorageDriverService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteStorageDriverService(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<StorageDriverDescriptor>> GetStorageDriversAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IStorageDriversApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IStorageDriversApi>(cancellationToken);
         var response = await api.ListAsync(cancellationToken);
         
         return response.Items;

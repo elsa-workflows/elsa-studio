@@ -46,7 +46,7 @@ public class DefaultThemeService : IThemeService
             {
                 DefaultBorderRadius = "4px",
             },
-            Palette =
+            PaletteLight = 
             {
                 Primary = new MudColor("0ea5e9"),
                 DrawerBackground = new MudColor("#f8fafc"),

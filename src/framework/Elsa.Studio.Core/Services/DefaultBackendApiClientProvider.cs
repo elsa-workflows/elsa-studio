@@ -6,15 +6,15 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// Provides API clients to the remote backend.
 /// </summary>
-public class DefaultRemoteBackendApiClientProvider : IRemoteBackendApiClientProvider
+public class DefaultBackendApiClientProvider : IBackendApiClientProvider
 {
     private readonly IRemoteBackendAccessor _remoteBackendAccessor;
     private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultRemoteBackendApiClientProvider"/> class.
+    /// Initializes a new instance of the <see cref="DefaultBackendApiClientProvider"/> class.
     /// </summary>
-    public DefaultRemoteBackendApiClientProvider(IRemoteBackendAccessor remoteBackendAccessor, IServiceProvider serviceProvider)
+    public DefaultBackendApiClientProvider(IRemoteBackendAccessor remoteBackendAccessor, IServiceProvider serviceProvider)
     {
         _remoteBackendAccessor = remoteBackendAccessor;
         _serviceProvider = serviceProvider;

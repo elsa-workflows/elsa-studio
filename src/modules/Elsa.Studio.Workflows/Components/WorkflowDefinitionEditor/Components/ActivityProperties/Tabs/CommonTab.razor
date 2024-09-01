@@ -50,19 +50,19 @@
                     Variant="Variant.Text"
                     HelperText="Whether to show the description in the designer."
                     Margin="Margin.None"
-                    DisableUnderLine="@false"
+                    UnderLine="@true"
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
                         Label="Show description"
                         Dense="@true"
-                        Checked="@(Activity.GetShowDescription() == true)"
-                        CheckedChanged="OnShowDescriptionChanged"/>
+                        Value="@(Activity.GetShowDescription() == true)"
+                        ValueChanged="OnShowDescriptionChanged"/>
                 </MudField>
                 
                 <MudField
                     Variant="Variant.Text"
-                    DisableUnderLine="@false"
+                    UnderLine="@true"
                     Margin="Margin.None"
                     HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")"
                     Disabled="IsReadOnly">
@@ -70,8 +70,8 @@
                         T="bool?"
                         Label="@(IsTrigger ? "Trigger workflow" : "Start of workflow")"
                         Dense="@true"
-                        Checked="@(Activity.GetCanStartWorkflow() == true)"
-                        CheckedChanged="OnCanStartWorkflowChanged"/>
+                        Value="@(Activity.GetCanStartWorkflow() == true)"
+                        ValueChanged="OnCanStartWorkflowChanged"/>
                 </MudField>
 
             </MudStack>
