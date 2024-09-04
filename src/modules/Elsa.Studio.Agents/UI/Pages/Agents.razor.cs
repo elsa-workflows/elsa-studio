@@ -26,6 +26,8 @@ public partial class Agents
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
+    public override string HierarchicalKey { get; set; } = "Root.Agents";
+
     private async Task<IAgentsApi> GetAgentsApiAsync()
     {
         return await ApiClientProvider.GetApiAsync<IAgentsApi>();

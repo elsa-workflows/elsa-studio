@@ -7,9 +7,11 @@ namespace Elsa.Studio.Persistence;
 /// </summary>
 public interface IPersistentComponent
 {
-    /// <summary>Returns the name of the root field. For example, "Pager". </summary>
-    string GetKey();
-
+    /// <summary>
+    /// The hierarchical key for this component.
+    /// </summary>
+    string HierarchicalKey { get; set; }
+    
     /// <summary>Describes the default lifetime policy for this component's state.</summary>
     JsonNode GetLifetimePolicy();
 

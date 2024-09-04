@@ -1,12 +1,14 @@
 ﻿@page "/ai/agents"
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
-@inherits StudioComponentBase
+@inherits PersistentStudioComponentBase
 
 <PageTitle>Agents</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Agents"/>
+    
+    <MyCounter HierarchicalKey="Root.Agents.Agents.MyCounter"></MyCounter>
 
     <MudTable
         @ref="_table"

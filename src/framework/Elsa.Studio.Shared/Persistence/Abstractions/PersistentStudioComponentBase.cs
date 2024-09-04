@@ -1,12 +1,13 @@
 using System.Text.Json.Nodes;
+using Elsa.Studio.Components;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Persistence;
 
 /// <summary>
-/// Represents a layout component that can participate in state persistence.
+/// Represents a component that can participate in state persistence.
 /// </summary>
-public abstract class PersistentLayoutComponentBase : LayoutComponentBase, IPersistentComponent, IAsyncDisposable
+public abstract class PersistentStudioComponentBase : StudioComponentBase, IPersistentComponent, IAsyncDisposable
 {
     /// <summary>
     /// The <see cref="IStateManager"/>.
@@ -34,7 +35,6 @@ public abstract class PersistentLayoutComponentBase : LayoutComponentBase, IPers
         await StateManager.LoadStateAsync(this);
     }
 
-    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         await StateManager.SaveStateAsync(this);

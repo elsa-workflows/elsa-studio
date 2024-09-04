@@ -6,7 +6,7 @@ namespace Elsa.Studio.Persistence;
 /// <summary>
 /// Represents a component that can participate in state persistence.
 /// </summary>
-public abstract class PersistentComponentBase : ComponentBase, IPersistentComponent, IDisposable
+public abstract class PersistentComponentBase : ComponentBase, IPersistentComponent, IAsyncDisposable
 {
     /// <summary>
     /// The <see cref="IStateManager"/>.
@@ -14,13 +14,13 @@ public abstract class PersistentComponentBase : ComponentBase, IPersistentCompon
     [Inject] protected IStateManager StateManager { get; set; } = default!;
 
     /// <inheritdoc />
-    public virtual string GetKey() => GetType().Name;
+    [Parameter] public virtual string HierarchicalKey { get; set; } = default!;
 
     /// <inheritdoc />
-    public virtual JsonNode GetLifetimePolicy() => new JsonObject { [GetKey()] = ComponentStateLifetime.Session.ToString() };
+    public virtual JsonNode GetLifetimePolicy() => JsonValue.Create(ComponentStateLifetime.Session.ToString());
 
     /// <inheritdoc />
-    public virtual JsonNode GetState() => new JsonObject { [GetKey()] = new JsonObject() };
+    public virtual JsonNode GetState() => new JsonObject();
 
     /// <inheritdoc />
     public virtual void ApplyState(JsonNode state)
@@ -28,15 +28,15 @@ public abstract class PersistentComponentBase : ComponentBase, IPersistentCompon
     }
     
     /// <inheritdoc />
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        StateManager.RegisterComponent(this);
+        await base.OnInitializedAsync();
+        await StateManager.LoadStateAsync(this);
     }
 
     /// <inheritdoc />
-    public virtual void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        StateManager.UnregisterComponent(this);
+        await StateManager.SaveStateAsync(this);
     }
 }

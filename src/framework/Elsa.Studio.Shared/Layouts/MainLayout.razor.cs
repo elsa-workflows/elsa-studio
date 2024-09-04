@@ -32,6 +32,8 @@ public partial class MainLayout : IDisposable
     private bool IsDarkMode => ThemeService.IsDarkMode;
     private RenderFragment UnauthorizedComponent => UnauthorizedComponentProvider.GetUnauthorizedComponent();
 
+    public override string HierarchicalKey { get; set; } = "Root";
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -42,7 +44,7 @@ public partial class MainLayout : IDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        StateManager.RegisterComponent(this);
+        StateManager.LoadStateAsync(this);
         if (AuthenticationState != null)
         {
             var authState = await AuthenticationState;

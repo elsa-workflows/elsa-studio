@@ -1,12 +1,14 @@
 ﻿@page "/ai/api-keys"
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
-@inherits StudioComponentBase
+@inherits PersistentStudioComponentBase
 
 <PageTitle>API Keys</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="API Keys"/>
+
+    <MyCounter HierarchicalKey="Root.Agents.ApiKeys.MyCounter"></MyCounter>
 
     <MudTable
         @ref="_table"

@@ -21,6 +21,8 @@ public partial class ApiKeys
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
+    public override string HierarchicalKey { get; set; } = "Root.Agents.ApiKeys";
+
     private async Task<IApiKeysApi> GetApiClientAsync()
     {
         return await ApiClientProvider.GetApiAsync<IApiKeysApi>();
