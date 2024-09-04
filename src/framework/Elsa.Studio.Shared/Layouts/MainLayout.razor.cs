@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Persistence;
 using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -25,6 +26,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private IBlazorServiceAccessor BlazorServiceAccessor { get; set; } = default!;
+    [Inject] private IStateManager StateManager { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
@@ -40,6 +42,7 @@ public partial class MainLayout : IDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        StateManager.RegisterComponent(this);
         if (AuthenticationState != null)
         {
             var authState = await AuthenticationState;

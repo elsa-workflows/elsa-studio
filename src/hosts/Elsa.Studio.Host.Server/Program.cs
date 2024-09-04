@@ -1,4 +1,5 @@
 using Elsa.Studio.Core.BlazorServer.Extensions;
+using Elsa.Studio.Counter.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.BlazorServer.Extensions;
@@ -39,6 +40,7 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
+builder.Services.AddCounterModule();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

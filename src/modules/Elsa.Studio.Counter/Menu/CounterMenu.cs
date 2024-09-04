@@ -4,8 +4,12 @@ using MudBlazor;
 
 namespace Elsa.Studio.Counter.Menu;
 
+/// <summary>
+/// Provides the menu items for the Counter module.
+/// </summary>
 public class CounterMenu : IMenuProvider
 {
+    /// <inheritdoc />
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>
@@ -21,13 +25,8 @@ public class CounterMenu : IMenuProvider
                     new()
                     {
                         Href = "counter",
-                        Text = "Sub menu item 1",
-                    },
-                    new()
-                    {
-                        Href = "counter2",
-                        Text = "Sub menu item 2",
-                    },
+                        Text = "Counter",
+                    }
                 }
             }
         };

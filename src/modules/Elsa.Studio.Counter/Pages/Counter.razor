@@ -1,4 +1,5 @@
 ﻿@page "/counter"
+@inherits PersistentComponentBase
 
 <PageTitle>Counter</PageTitle>
 
@@ -15,5 +16,29 @@
     private void IncrementCount()
     {
         _currentCount++;
+    }
+
+    /// <inheritdoc />
+    public override string GetKey() => "Counter";
+
+    /// <inheritdoc />
+    public override JsonNode GetLifetimePolicy() => new JsonObject
+    {
+        ["Lifetime"] = ComponentStateLifetime.Local.ToString()
+    };
+
+    /// <inheritdoc />
+    public override JsonNode GetState()
+    {
+        return new JsonObject
+        {
+            ["CurrentCount"] = _currentCount
+        };
+    }
+
+    /// <inheritdoc />
+    public override void ApplyState(JsonNode state)
+    {
+        _currentCount = state["CurrentCount"].AsValue().GetValue<int>();
     }
 }
