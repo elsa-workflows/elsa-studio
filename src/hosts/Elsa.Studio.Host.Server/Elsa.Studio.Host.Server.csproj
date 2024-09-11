@@ -17,6 +17,7 @@
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.WorkflowContexts\Elsa.Studio.WorkflowContexts.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj"/>
