@@ -20,7 +20,7 @@ public partial class CreateAgentDialog
     private AgentInputModelValidator _validator = default!;
     
     /// The default name of the agent to create.
-    [Parameter] public string AgentName { get; set; } = "New workflow";
+    [Parameter] public string AgentName { get; set; } = "";
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
