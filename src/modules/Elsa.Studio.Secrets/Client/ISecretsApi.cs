@@ -17,6 +17,10 @@ public interface ISecretsApi
     [Get("/secrets/{id}")]
     Task<SecretModel> GetAsync(string id, CancellationToken cancellationToken = default);
     
+    /// Gets a secret input model by ID.
+    [Get("/secrets/{id}/input")]
+    Task<SecretInputModel> GetInputAsync(string id, CancellationToken cancellationToken = default);
+    
     /// Generates a unique name for a secret.
     [Post("/actions/secrets/generate-unique-name")]
     Task<GenerateUniqueNameResponse> GenerateUniqueNameAsync(CancellationToken cancellationToken = default);

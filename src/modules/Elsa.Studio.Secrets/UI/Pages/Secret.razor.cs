@@ -18,7 +18,7 @@ public partial class Secret : StudioComponentBase
 
     private MudForm _form = default!;
     private SecretInputModelValidator _validator = default!;
-    private SecretModel _model = new();
+    private SecretInputModel _model = new();
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -31,7 +31,7 @@ public partial class Secret : StudioComponentBase
     protected override async Task OnParametersSetAsync()
     {
         var apiClient = await ApiClientProvider.GetApiAsync<ISecretsApi>();
-        _model = await apiClient.GetAsync(SecretId);
+        _model = await apiClient.GetInputAsync(SecretId);
     }
 
     private async Task OnSaveClicked()
@@ -42,7 +42,7 @@ public partial class Secret : StudioComponentBase
             return;
 
         var apiClient = await ApiClientProvider.GetApiAsync<ISecretsApi>();
-        _model = await apiClient.UpdateAsync(SecretId, _model);
+        await apiClient.UpdateAsync(SecretId, _model);
         Snackbar.Add("Secret successfully updated.", Severity.Success);
         StateHasChanged();
     }
