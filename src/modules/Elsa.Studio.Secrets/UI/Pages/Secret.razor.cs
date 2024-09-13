@@ -15,6 +15,7 @@ public partial class Secret : StudioComponentBase
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private MudForm _form = default!;
     private SecretInputModelValidator _validator = default!;
@@ -45,5 +46,6 @@ public partial class Secret : StudioComponentBase
         await apiClient.UpdateAsync(SecretId, _model);
         Snackbar.Add("Secret successfully updated.", Severity.Success);
         StateHasChanged();
+        NavigationManager.NavigateTo("/secrets");
     }
 }

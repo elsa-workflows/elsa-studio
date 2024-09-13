@@ -69,7 +69,8 @@ public partial class Secrets
                 try
                 {
                     var model = await apiClient.CreateAsync(inputModel);
-                    await EditAsync(model.Id);
+                    //await EditAsync(model.Id);
+                    Reload();
                 }
                 catch (Exception e)
                 {

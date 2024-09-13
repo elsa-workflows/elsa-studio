@@ -26,7 +26,7 @@ public partial class CreateSecretDialog
     protected override async Task OnInitializedAsync()
     {
         _inputModel.Name = SecretName;
-        _inputModel.Description = "A helpful assistant.";
+        _inputModel.Description = "";
         _editContext = new EditContext(_inputModel);
         var api = await ApiClientProvider.GetApiAsync<ISecretsApi>();
         _validator = new SecretInputModelValidator(api, BlazorServiceAccessor, Services);
