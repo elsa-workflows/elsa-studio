@@ -1,43 +1,25 @@
-@using System.Text.Json
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
     var description = inputDescriptor.Description;
-    var isStatic = inputDescriptor.UISpecifications?.TryGetValue("DisableSyntaxSelection", out var disableSyntaxSelection) == true && ((JsonElement)disableSyntaxSelection).GetBoolean();
-    
-    RenderFragment RenderContent()
-    {
-        return @<MudChipField
-                    @ref="_chipField"
-                    T="string"
-                    Label="@displayName"
-                    Lines="1"
-                    WrapChips="true"
-                    Margin="Margin.Dense"
-                    Values="@_items"
-                    Variant="Variant.Outlined"
-                    HelperText="@description"
-                    Immediate="true"
-                    AutoSize="true"
-                    ChipColor="Color.Primary"
-                    ChipSize="Size.Medium"
-                    ChipVariant="Variant.Filled"
-                    OnKeyDown="@OnKeyDown"
-                    ValuesChanged="@OnValuesChanges"
-                    ReadOnly="EditorContext.IsReadOnly"
-                    Disabled="EditorContext.IsReadOnly"/>;
-    }
 }
 
-@if (isStatic)
-{
-    @RenderContent()
-}
-else
-{
-    <ExpressionInput EditorContext="@EditorContext">
-        <ChildContent>
-            @RenderContent()
-        </ChildContent>
-    </ExpressionInput>
-}
+<MudChipField
+    @ref="_chipField"
+    T="string"
+    Label="@displayName"
+    Lines="1"
+    WrapChips="true"
+    Margin="Margin.Dense"
+    Values="@_items"
+    Variant="Variant.Outlined"
+    HelperText="@description"
+    Immediate="true"
+    AutoSize="true"
+    ChipColor="Color.Primary"
+    ChipSize="Size.Medium"
+    ChipVariant="Variant.Filled"
+    OnKeyDown="@OnKeyDown"
+    ValuesChanged="@OnValuesChanges"
+    ReadOnly="EditorContext.IsReadOnly"
+    Disabled="EditorContext.IsReadOnly"/>
