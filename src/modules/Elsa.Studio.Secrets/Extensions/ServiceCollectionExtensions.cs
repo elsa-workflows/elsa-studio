@@ -5,7 +5,7 @@ using Elsa.Studio.Secrets.Client;
 using Elsa.Studio.Secrets.Menu;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Secrets.Extensions;
+namespace Elsa.Studio.Secrets;
 
 /// <summary>
 /// Contains extension methods for the <see cref="IServiceCollection"/> interface.

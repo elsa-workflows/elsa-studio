@@ -4,7 +4,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
-using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Secrets;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
