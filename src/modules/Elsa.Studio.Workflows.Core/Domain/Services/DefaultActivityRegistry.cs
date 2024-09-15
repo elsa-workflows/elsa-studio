@@ -12,6 +12,7 @@ public class DefaultActivityRegistry : IActivityRegistry
     private readonly IMediator _mediator;
     private Dictionary<(string ActivityTypeName, int Version), ActivityDescriptor> _activityDescriptors = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private bool _isStale = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultActivityRegistry"/> class.
@@ -27,6 +28,7 @@ public class DefaultActivityRegistry : IActivityRegistry
     {
         var descriptors = await _provider.ListAsync(cancellationToken);
         _activityDescriptors = descriptors.ToDictionary(x => (x.TypeName, x.Version));
+        _isStale = false;
         await _mediator.NotifyAsync(new ActivityRegistryRefreshed(), cancellationToken);
     }
 
@@ -34,12 +36,12 @@ public class DefaultActivityRegistry : IActivityRegistry
     public async Task EnsureLoadedAsync(CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
-
+        
         try
         {
-            if (_activityDescriptors.Any())
+            if (!_isStale)
                 return;
-
+            
             await RefreshAsync(cancellationToken);
         }
         finally
@@ -61,7 +63,7 @@ public class DefaultActivityRegistry : IActivityRegistry
     public ActivityDescriptor? Find(string activityType, int? version = default)
     {
         version ??= 1;
-        return _activityDescriptors.TryGetValue((activityType, version.Value), out var descriptor) ? descriptor : null;
+        return _activityDescriptors.GetValueOrDefault((activityType, version.Value));
     }
     
     /// <inheritdoc />
@@ -70,5 +72,11 @@ public class DefaultActivityRegistry : IActivityRegistry
         return _activityDescriptors
             .Where(kvp => kvp.Key.ActivityTypeName == activityType)
             .Select(kvp => kvp.Value);
+    }
+
+    /// <inheritdoc />
+    public void MarkStale()
+    {
+        _isStale = true;
     }
 }

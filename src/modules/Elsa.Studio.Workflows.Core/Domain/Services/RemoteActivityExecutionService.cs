@@ -13,14 +13,14 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteActivityExecutionService : IActivityExecutionService
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteActivityRegistryProvider"/> class.
     /// </summary>
-    public RemoteActivityExecutionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
@@ -32,7 +32,7 @@ public class RemoteActivityExecutionService : IActivityExecutionService
             WorkflowInstanceId = workflowInstanceId,
             ActivityNodeIds = activityNodeIds
         };
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         return await api.GetReportAsync(request, cancellationToken);
     }
 
@@ -45,7 +45,7 @@ public class RemoteActivityExecutionService : IActivityExecutionService
             ActivityNodeId = activityNodeId
         };
         
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         var response = await api.ListAsync(request, cancellationToken);
         return response.Items;
     }

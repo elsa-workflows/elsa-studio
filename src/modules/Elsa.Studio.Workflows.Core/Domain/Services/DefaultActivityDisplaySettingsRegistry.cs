@@ -26,6 +26,12 @@ public class DefaultActivityDisplaySettingsRegistry : IActivityDisplaySettingsRe
         return dictionary.TryGetValue(activityType, out var settings) ? settings : DefaultSettings;
     }
 
+    /// <inheritdoc />
+    public void MarkStale()
+    {
+        _settings = null;
+    }
+
     private IDictionary<string, ActivityDisplaySettings> GetSettingsDictionary()
     {
         if(_settings != null)

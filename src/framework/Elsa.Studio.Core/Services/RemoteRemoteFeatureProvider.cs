@@ -11,16 +11,16 @@ namespace Elsa.Studio.Services;
 /// </summary>
 public class RemoteRemoteFeatureProvider : IRemoteFeatureProvider
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
     private readonly IServiceProvider _serviceProvider;
     private readonly IBlazorServiceAccessor _blazorServiceAccessor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteRemoteFeatureProvider"/> class.
     /// </summary>
-    public RemoteRemoteFeatureProvider(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IServiceProvider serviceProvider, IBlazorServiceAccessor blazorServiceAccessor)
+    public RemoteRemoteFeatureProvider(IBackendApiClientProvider backendApiClientProvider, IServiceProvider serviceProvider, IBlazorServiceAccessor blazorServiceAccessor)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
         _serviceProvider = serviceProvider;
         _blazorServiceAccessor = blazorServiceAccessor;
     }
@@ -29,7 +29,7 @@ public class RemoteRemoteFeatureProvider : IRemoteFeatureProvider
     public async Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default)
     {
         _blazorServiceAccessor.Services = _serviceProvider;
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
 
         try
         {
@@ -45,7 +45,7 @@ public class RemoteRemoteFeatureProvider : IRemoteFeatureProvider
     /// <inheritdoc />
     public async Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
         var response = await api.ListAsync(cancellationToken);
         return response.Items;
     }

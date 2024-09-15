@@ -35,7 +35,7 @@ public partial class VersionHistoryTab : IDisposable
         Workspace.WorkflowDefinitionUpdated -= OnWorkflowDefinitionUpdated;
     }
 
-    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState)
+    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState, CancellationToken cancellationToken)
     {
         var page = tableState.Page;
         var pageSize = tableState.PageSize;
@@ -49,7 +49,7 @@ public partial class VersionHistoryTab : IDisposable
             PageSize = pageSize
         };
 
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All, cancellationToken));
 
         _recordCount = response.TotalCount;
         return new TableData<WorkflowDefinitionSummary>

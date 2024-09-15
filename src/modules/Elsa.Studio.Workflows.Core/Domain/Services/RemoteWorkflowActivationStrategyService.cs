@@ -10,20 +10,20 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteWorkflowActivationStrategyService : IWorkflowActivationStrategyService
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteWorkflowActivationStrategyService"/> class.
     /// </summary>
-    public RemoteWorkflowActivationStrategyService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteWorkflowActivationStrategyService(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<WorkflowActivationStrategyDescriptor>> GetWorkflowActivationStrategiesAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IWorkflowActivationStrategiesApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IWorkflowActivationStrategiesApi>(cancellationToken);
         var response = await api.ListAsync(cancellationToken);
         return response.Items;
     }

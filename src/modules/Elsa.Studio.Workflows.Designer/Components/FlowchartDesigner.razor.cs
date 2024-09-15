@@ -383,7 +383,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private async void OnDarkModeChanged()
     {
         var palette = ThemeService.CurrentPalette;
-        var gridColor = palette.BackgroundGrey;
+        var gridColor = palette.BackgroundGray;
         await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
     }
 

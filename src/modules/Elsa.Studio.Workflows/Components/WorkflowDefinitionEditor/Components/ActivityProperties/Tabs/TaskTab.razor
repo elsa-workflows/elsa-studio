@@ -6,13 +6,13 @@
             Variant="@Variant.Text"
             HelperText="When checked, the workflow will be executed asynchronously."
             Margin="Margin.None"
-            DisableUnderLine="@false">
+            Underline="true">
             <MudCheckBox
                 T="bool?"
                 Label="Run Asynchronously"
                 Dense="@true"
-                Checked="@(Activity?.GetRunAsynchronously() == true)"
-                CheckedChanged="OnRunAsynchronouslyChanged"
+                Value="@(Activity?.GetRunAsynchronously() == true)"
+                ValueChanged="OnRunAsynchronouslyChanged"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly"
                 />
         </MudField>

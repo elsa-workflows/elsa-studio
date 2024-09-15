@@ -33,7 +33,7 @@ public partial class WorkflowDefinitionList
     private bool IsReadOnlyMode { get; set; }
     private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
 
-    private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state)
+    private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var request = new ListWorkflowDefinitionsRequest
         {
@@ -49,7 +49,7 @@ public partial class WorkflowDefinitionList
 
         var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
         {
-            var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+            var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
             IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
             var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
