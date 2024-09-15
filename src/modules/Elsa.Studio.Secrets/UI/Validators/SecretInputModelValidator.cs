@@ -15,6 +15,7 @@ public class SecretInputModelValidator : AbstractValidator<SecretInputModel>
     public SecretInputModelValidator(ISecretsApi api, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the secret.");
+        RuleFor(x => x.Value).NotEmpty().WithMessage("Please enter the secret value.");
         
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
