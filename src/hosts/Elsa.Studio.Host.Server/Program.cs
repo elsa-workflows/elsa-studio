@@ -3,6 +3,7 @@ using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
+using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
@@ -23,17 +24,21 @@ builder.Services.AddServerSideBlazor(options =>
 });
 
 // Register shell services and modules.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
+};
+
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
-builder.Services.AddRemoteBackend(
-    elsaClient => elsaClient.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler),
-    options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
-builder.Services.AddAgentsModule();
+builder.Services.AddAgentsModule(backendApiConfig);
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

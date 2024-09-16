@@ -37,4 +37,9 @@ public interface IActivityRegistry
     /// <param name="activityType"></param>
     /// <returns></returns>
     IEnumerable<ActivityDescriptor> FindAll(string activityType);
+
+    /// <summary>
+    /// Marks the activity registry as stale.
+    /// </summary>
+    void MarkStale();
 }

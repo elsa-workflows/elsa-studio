@@ -104,6 +104,7 @@
                     {
                         <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">View</MudMenuItem>
                     }
+                    <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">Run</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">Delete</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
@@ -131,7 +132,7 @@
     .definitions-table .mud-table-cell .mud-checkbox {
         margin: 0;
     }
-    
+
     .definitions-table .mud-table-toolbar {
         margin-bottom: 12px; /*mb-3*/
     }

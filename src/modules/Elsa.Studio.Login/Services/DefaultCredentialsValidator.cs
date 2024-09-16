@@ -11,19 +11,19 @@ namespace Elsa.Studio.Login.Services;
 /// </summary>
 public class DefaultCredentialsValidator : ICredentialsValidator
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCredentialsValidator"/> class.
     /// </summary>
-    public DefaultCredentialsValidator(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public DefaultCredentialsValidator(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
     public async ValueTask<ValidateCredentialsResult> ValidateCredentialsAsync(string username, string password, CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<ILoginApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<ILoginApi>(cancellationToken);
 
         var request = new LoginRequest(username, password);
         var response = await api.LoginAsync(request, cancellationToken);

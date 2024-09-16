@@ -29,7 +29,7 @@ public class DefaultMenuService : IMenuService
             menu.AddRange(menuItems);
         }
 
-        return menu.OrderByDescending(x => x.Order).ToList();
+        return menu.OrderBy(x => x.Order).ToList();
     }
 
     /// <inheritdoc />
@@ -43,6 +43,6 @@ public class DefaultMenuService : IMenuService
             groups.AddRange(menuGroups);
         }
 
-        return groups.DistinctBy(x => x.Name).OrderByDescending(x => x.Order).ToList();
+        return groups.DistinctBy(x => x.Name).OrderBy(x => x.Order).ToList();
     }
 }

@@ -6,6 +6,7 @@
 @using Elsa.Api.Client.Resources.WorkflowInstances.Models
 @using Elsa.Api.Client.Shared.Enums
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
+
 @using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
@@ -251,8 +252,7 @@
             </MudChip>
         </MudTd>
         <MudTd DataLabel="IncidentCount">
-            <MudChip
-                T="string"
+            <MudChip T="string"
                 Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
                 Value="@context.IncidentCount.ToString()"
                 Variant="Variant.Text"

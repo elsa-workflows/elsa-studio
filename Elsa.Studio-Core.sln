@@ -87,6 +87,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Api.Client", "..\..\el
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Agents", "src\modules\Elsa.Studio.Agents\Elsa.Studio.Agents.csproj", "{BDAB9EEA-3083-41D8-933A-E848D346EB2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Agents.Models", "..\..\elsa-core\main\src\modules\Elsa.Agents.Models\Elsa.Agents.Models.csproj", "{FBFB1394-A495-4B70-B4B1-6871C7BDA774}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -205,6 +207,10 @@ Global
 		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -239,5 +245,6 @@ Global
 		{FAE56DEE-A51D-4FC7-AF42-D298BE59D8EE} = {D2254084-0C4A-42F3-A2D9-A2C9BCE1114E}
 		{26ECE061-0F39-4945-8356-EF14E67A8F39} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
 		{BDAB9EEA-3083-41D8-933A-E848D346EB2E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
 	EndGlobalSection
 EndGlobal

@@ -13,7 +13,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 /// <summary>
 /// A component that allows the user to pick an activity.
 /// </summary>
-public partial class ActivityPicker : IDisposable, INotificationHandler<ActivityRegistryRefreshed>
+public partial class ActivityPicker
 {
     private string _searchText = "";
 
@@ -48,14 +48,14 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
     private IEnumerable<ActivityDescriptor> ActivityDescriptors { get; set; } = new List<ActivityDescriptor>();
 
     /// <inheritdoc />
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Mediator.Subscribe<ActivityRegistryRefreshed>(this);
-        Refresh();
+        await Refresh();
     }
 
-    private void Refresh()
+    private async Task Refresh()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
         ActivityDescriptors = ActivityRegistry.ListBrowsable();
         StateHasChanged();
     }
@@ -63,16 +63,5 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
     private void OnDragStart(ActivityDescriptor activityDescriptor)
     {
         DragDropManager.Payload = activityDescriptor;
-    }
-    
-    Task INotificationHandler<ActivityRegistryRefreshed>.HandleAsync(ActivityRegistryRefreshed notification, CancellationToken cancellationToken)
-    {
-        Refresh();
-        return Task.CompletedTask;
-    }
-    
-    void IDisposable.Dispose()
-    {
-        Mediator.Unsubscribe(this);
     }
 }

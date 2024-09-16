@@ -57,7 +57,7 @@
                         Label="Show description"
                         Dense="@true"
                         Value="@(Activity.GetShowDescription() == true)"
-                        CheckedChanged="OnShowDescriptionChanged"/>
+                        ValueChanged="OnShowDescriptionChanged"/>
                 </MudField>
                 
                 <MudField
@@ -71,7 +71,7 @@
                         Label="@(IsTrigger ? "Trigger workflow" : "Start of workflow")"
                         Dense="@true"
                         Value="@(Activity.GetCanStartWorkflow() == true)"
-                        CheckedChanged="OnCanStartWorkflowChanged"/>
+                        ValueChanged="OnCanStartWorkflowChanged"/>
                 </MudField>
 
             </MudStack>
