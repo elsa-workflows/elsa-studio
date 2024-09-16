@@ -154,6 +154,20 @@ public partial class WorkflowDefinitionList
         await EditAsync(e.Item.DefinitionId);
     }
 
+    private async Task OnRunWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+
+        var request = new ExecuteWorkflowDefinitionRequest
+        {
+            VersionOptions = VersionOptions.Latest
+        };
+
+        var definitionId = workflowDefinitionRow!.DefinitionId;
+        await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
+
+        Snackbar.Add("Successfully started workflow", Severity.Success);
+    }
+
     private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
         var result = await DialogService.ShowMessageBox("Delete workflow?",
