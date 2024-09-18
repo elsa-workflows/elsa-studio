@@ -15,9 +15,10 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
     public async ValueTask InitializeAsync(MonacoContext context)
     {
         var editorContext = context.DisplayInputEditorContext;
-        var descriptor = editorContext.SelectedExpressionDescriptor;
+        var activityDescriptor = editorContext.ActivityDescriptor;
+        var expressionDescriptor = editorContext.SelectedExpressionDescriptor;
         
-        if(descriptor?.Type != "JavaScript")
+        if(expressionDescriptor?.Type != "JavaScript" && activityDescriptor.TypeName != "Elsa.RunJavaScript")
             return;
         
         var activityTypeName = editorContext.ActivityDescriptor.TypeName;
