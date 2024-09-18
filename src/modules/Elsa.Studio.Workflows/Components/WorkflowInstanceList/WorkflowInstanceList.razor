@@ -6,6 +6,8 @@
 @using Elsa.Api.Client.Resources.WorkflowInstances.Models
 @using Elsa.Api.Client.Shared.Enums
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
+
+@using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
 <PageTitle>Workflow instances</PageTitle>
@@ -245,14 +247,14 @@
             </MudTooltip>
         </MudTd>
         <MudTd DataLabel="SubStatus">
-            <MudChip T="string" Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
+            <MudChip T="WorkflowSubStatus" Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                 @context.SubStatus
             </MudChip>
         </MudTd>
         <MudTd DataLabel="IncidentCount">
             <MudChip T="string"
                 Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
-                Text="@context.IncidentCount.ToString()"
+                Value="@context.IncidentCount.ToString()"
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
