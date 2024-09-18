@@ -56,7 +56,7 @@ public partial class WorkflowDefinitionList
             var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
             {
                 DefinitionIds = unpublishedWorkflowDefinitionIds,
-            }, VersionOptions.Published);
+            }, VersionOptions.Published, cancellationToken);
 
             _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
 
