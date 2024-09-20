@@ -2,8 +2,10 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -29,6 +31,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
@@ -306,10 +309,12 @@ public partial class WorkflowDefinitionList
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
+        foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ImportFilesAsync(streamParts));
         var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
+        foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
