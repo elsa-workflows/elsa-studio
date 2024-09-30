@@ -5,6 +5,8 @@ using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Localization.Time;
+using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.WorkflowContexts.Extensions;
@@ -31,6 +33,9 @@ builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
+
+// Replace some services with other implementations.
+builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Build the application.
 var app = builder.Build();
