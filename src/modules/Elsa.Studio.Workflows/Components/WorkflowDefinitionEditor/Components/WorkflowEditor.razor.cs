@@ -10,12 +10,14 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -76,6 +78,7 @@ public partial class WorkflowEditor
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
@@ -425,6 +428,7 @@ public partial class WorkflowEditor
 
         foreach (var file in files)
         {
+            await Mediator.NotifyAsync(new ImportingFile(file));
             var stream = file.OpenReadStream();
 
             if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
@@ -453,7 +457,10 @@ public partial class WorkflowEditor
         StateHasChanged();
 
         if (importedFile != null)
+        {
+            await Mediator.NotifyAsync(new ImportedFile(importedFile));
             Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+        }
     }
 
     private async Task<bool> ImportZipFileAsync(Stream stream)
@@ -493,6 +500,7 @@ public partial class WorkflowEditor
 
         try
         {
+            await Mediator.NotifyAsync(new ImportingJson(json));
             var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
 
             // Check if this is a workflow definition file.
@@ -505,6 +513,7 @@ public partial class WorkflowEditor
             var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
+            await Mediator.NotifyAsync(new ImportedJson(json));
         }
         catch (Exception e)
         {

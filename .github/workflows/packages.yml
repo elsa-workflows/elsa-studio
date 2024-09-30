@@ -18,7 +18,7 @@ on:
   release:
     types: [ prereleased, published ]
 env:
-  base_version: '3.2.0'
+  base_version: '3.2.1'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
   npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
@@ -65,7 +65,7 @@ jobs:
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
             echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
           else
-            echo "VERSION=3.2.0-rc6.${{github.run_number}}" >> $GITHUB_ENV
+            echo "VERSION=3.2.1-preview.${{github.run_number}}" >> $GITHUB_ENV
           fi
       - name: Build workflow designer client assets
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
