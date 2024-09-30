@@ -1,0 +1,23 @@
+using Microsoft.AspNetCore.Components;
+
+namespace Elsa.Studio.Localization.Time.Components;
+
+public partial class Timestamp : ComponentBase
+{
+    /// <summary>
+    /// Gets or sets the timestamp to display.
+    /// </summary>
+    [Parameter] public DateTimeOffset? Value { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the string to display when <see cref="Value"/> is <c>null</c>.
+    /// </summary>
+    [Parameter] public string EmptyString { get; set; } = string.Empty;
+    
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
+    
+    private string GetDisplayString()
+    {
+        return Value == null ? EmptyString : TimeFormatter.Format(Value.Value);
+    }
+}
