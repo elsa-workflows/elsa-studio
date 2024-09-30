@@ -8,10 +8,13 @@ namespace Elsa.Studio.Localization.Time;
 public class DefaultTimeFormatter(ITimeZoneProvider timeZoneProvider) : ITimeFormatter
 {
     /// <inheritdoc />
-    public string Format(DateTimeOffset value, string format)
+    public string Format(DateTimeOffset? value, string format, string emptyString)
     {
+        if (value == null)
+            return emptyString;
+
         var timeZone = timeZoneProvider.GetTimeZone();
-        var localTime = TimeZoneInfo.ConvertTime(value, timeZone);
+        var localTime = TimeZoneInfo.ConvertTime(value.Value, timeZone);
         return localTime.ToString(format, CultureInfo.CurrentCulture);
     }
 }

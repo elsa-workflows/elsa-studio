@@ -10,6 +10,11 @@ public partial class Timestamp : ComponentBase
     [Parameter] public DateTimeOffset? Value { get; set; }
     
     /// <summary>
+    /// Gets or sets the format to use when displaying the timestamp.
+    /// </summary>
+    [Parameter] public string Format { get; set; } = "G";
+    
+    /// <summary>
     /// Gets or sets the string to display when <see cref="Value"/> is <c>null</c>.
     /// </summary>
     [Parameter] public string EmptyString { get; set; } = string.Empty;
@@ -18,6 +23,6 @@ public partial class Timestamp : ComponentBase
     
     private string GetDisplayString()
     {
-        return Value == null ? EmptyString : TimeFormatter.Format(Value.Value);
+        return Value == null ? EmptyString : TimeFormatter.Format(Value.Value, Format);
     }
 }

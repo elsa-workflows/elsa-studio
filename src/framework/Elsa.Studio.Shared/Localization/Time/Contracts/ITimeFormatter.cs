@@ -10,5 +10,6 @@ public interface ITimeFormatter
     /// </summary>
     /// <param name="value">The date and time value to format.</param>
     /// <param name="format">The format to use. Defaults to "G".</param>
-    string Format(DateTimeOffset value, string format = "G");
+    /// <param name="emptyString">The string to return when <paramref name="value"/> is <c>null</c>.</param>
+    string Format(DateTimeOffset? value, string format = "G", string emptyString = "");
 }
