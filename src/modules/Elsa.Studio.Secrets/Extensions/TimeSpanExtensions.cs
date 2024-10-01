@@ -1,5 +1,8 @@
 namespace Elsa.Studio.Secrets;
 
+/// <summary>
+/// Provides extension methods for <see cref="TimeSpan"/> objects.
+/// </summary>
 public static class TimeSpanExtensions
 {
     /// <summary>
@@ -10,6 +13,9 @@ public static class TimeSpanExtensions
     /// <returns></returns>
     public static string ToHumanTimeString(this TimeSpan span, int significantDigits = 3)
     {
+        if(span <= TimeSpan.Zero)
+            return "0";
+        
         var format = "G" + significantDigits;
         return span.TotalMilliseconds < 1000
             ? span.TotalMilliseconds.ToString(format) + " milliseconds"
