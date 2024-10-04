@@ -6,8 +6,7 @@
     <WorkflowDefinitionEditor DefinitionId="@DefinitionId"
                               WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                               WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
-                              ActivitySelected="ActivitySelected"
-                              />
+                              ActivitySelected="ActivitySelected"/>
 </ThemedComponentWrapper>
 
 @code
@@ -45,8 +44,11 @@
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionEditor.GetSelectedWorkflowDefinitionVersion();
 
+    /// <inheritdoc />
     protected override bool ShouldRender()
     {
-        return _shouldRender;
+        if (!_shouldRender) return false;
+        _shouldRender = false;
+        return true;
     }
 }
