@@ -24,10 +24,10 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
     
     /// Gets or sets the event that occurs when the workflow definition version is updated.
-    [Parameter] public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
+    [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }
     
     /// Gets or sets the event that occurs when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
@@ -73,8 +73,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         if(workflowDefinition.IsLatest)
             _workflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionVersionSelected.HasDelegate)
-            await WorkflowDefinitionVersionSelected.InvokeAsync(_selectedWorkflowDefinition);
+        if (WorkflowDefinitionVersionSelected != null)
+            await WorkflowDefinitionVersionSelected(_selectedWorkflowDefinition);
 
         StateHasChanged();
     }

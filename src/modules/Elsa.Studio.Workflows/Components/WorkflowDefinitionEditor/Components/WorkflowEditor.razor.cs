@@ -58,11 +58,11 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// Gets or sets a callback invoked when the workflow definition is updated.
-    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
@@ -310,9 +310,7 @@ public partial class WorkflowEditor
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
-
-        if (WorkflowDefinitionUpdated.HasDelegate)
-            await WorkflowDefinitionUpdated.InvokeAsync();
+        if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
@@ -325,7 +323,7 @@ public partial class WorkflowEditor
     private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        if(ActivitySelected != null) await ActivitySelected(activity) ;
+        if (ActivitySelected != null) await ActivitySelected(activity);
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -550,8 +548,8 @@ public partial class WorkflowEditor
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        if (WorkflowDefinitionExecuted.HasDelegate)
-            await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+        if (WorkflowDefinitionExecuted != null)
+            await WorkflowDefinitionExecuted(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
