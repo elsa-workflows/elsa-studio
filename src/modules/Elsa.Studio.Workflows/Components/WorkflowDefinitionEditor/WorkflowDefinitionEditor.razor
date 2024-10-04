@@ -44,7 +44,7 @@
     [Parameter] public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
-    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionWorkspace.GetSelectedWorkflowDefinitionVersion();

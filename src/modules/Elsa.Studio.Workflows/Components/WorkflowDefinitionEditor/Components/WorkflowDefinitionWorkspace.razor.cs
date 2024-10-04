@@ -30,7 +30,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     [Parameter] public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
     
     /// Gets or sets the event that occurs when an activity is selected.
-    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// An event that is invoked when the workflow definition is updated.
     public event Func<Task>? WorkflowDefinitionUpdated;

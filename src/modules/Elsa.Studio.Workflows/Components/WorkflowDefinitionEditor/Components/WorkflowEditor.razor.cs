@@ -65,7 +65,7 @@ public partial class WorkflowEditor
     [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
-    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -325,7 +325,7 @@ public partial class WorkflowEditor
     private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        await ActivitySelected.InvokeAsync(activity);
+        if(ActivitySelected != null) await ActivitySelected(activity) ;
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
