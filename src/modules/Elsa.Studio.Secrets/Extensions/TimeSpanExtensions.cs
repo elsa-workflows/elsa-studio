@@ -20,11 +20,11 @@ public static class TimeSpanExtensions
         return span.TotalMilliseconds < 1000
             ? span.TotalMilliseconds.ToString(format) + " milliseconds"
             : span.TotalSeconds < 60
-                ? span.TotalSeconds.ToString(format) + " seconds"
+                ? (int)span.TotalSeconds + " seconds"
                 : span.TotalMinutes < 60
-                    ? span.TotalMinutes.ToString(format) + " minutes"
+                    ? (int)span.TotalMinutes + " minutes"
                     : span.TotalHours < 24
-                        ? span.TotalHours.ToString(format) + " hours"
-                        : span.TotalDays.ToString(format) + " days";
+                        ? (int)span.TotalHours + " hours"
+                        : (int)span.TotalDays + " days";
     }
 }
