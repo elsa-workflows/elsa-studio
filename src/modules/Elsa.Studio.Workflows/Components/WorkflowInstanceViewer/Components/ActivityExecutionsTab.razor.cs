@@ -90,12 +90,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         if (SelectedItem == null)
             return;
 
-        // Check if the selected item has all of its details or not.
-        // If not, periodically check for the details until they are available.
         if (SelectedItem.IsFused())
             return;
 
-        // Start a timer to periodically check for the details.
         RefreshSelectedItemPeriodically(id);
     }
 
