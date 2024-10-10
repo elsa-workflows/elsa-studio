@@ -1,15 +1,15 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// Displays the details of an activity.
-public partial class ActivityExecutionsTab
+public partial class ActivityExecutionsTab : IAsyncDisposable
 {
     /// Represents a row in the table of activity executions.
     /// <param name="Number">The number of executions.</param>
@@ -32,6 +32,7 @@ public partial class ActivityExecutionsTab
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private Timer? _refreshTimer;
 
     /// Refreshes the component.
     public void Refresh()
@@ -70,13 +71,51 @@ public partial class ActivityExecutionsTab
         SelectedOutcomesData = outcomesData ?? new Dictionary<string, DataPanelItem>();
         SelectedOutputData = outputData;
     }
+    
+    private async Task RefreshSelectedItemAsync(string id)
+    {
+        var fullRecord = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(id));
+        SelectedItem = fullRecord;
+        CreateSelectedItemDataModels(SelectedItem);
+        await InvokeAsync(StateHasChanged);
+    }
 
     private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
     {
         var id = arg.Item.ActivityExecution.Id;
-        var fullRecord = await ActivityExecutionService.GetAsync(id);
-        SelectedItem = fullRecord;
-        CreateSelectedItemDataModels(SelectedItem);
-        StateHasChanged();
+        await RefreshSelectedItemAsync(id);
+        
+        if(SelectedItem == null)
+            return;
+        
+        // Check if the selected item has all of its details or not.
+        // If not, periodically check for the details until they are available.
+        if(SelectedItem.IsFused())
+            return;
+        
+        // Start a timer to periodically check for the details.
+        RefreshSelectedItemPeriodically(id);
+    }
+    
+    private void RefreshSelectedItemPeriodically(string id)
+    {
+        async void Callback(object? _)
+        {
+            await RefreshSelectedItemAsync(id);
+
+            if (SelectedItem == null || SelectedItem.IsFused())
+            {
+                if (_refreshTimer == null) return;
+                await _refreshTimer.DisposeAsync();
+                _refreshTimer = null;
+            }
+        }
+
+        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_refreshTimer != null) await _refreshTimer.DisposeAsync();
     }
 }
