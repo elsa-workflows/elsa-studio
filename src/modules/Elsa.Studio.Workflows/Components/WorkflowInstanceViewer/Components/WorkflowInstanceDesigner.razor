@@ -39,7 +39,7 @@
                 @if (SelectedActivity != null)
                 {
                     <MudTabPanel Text="Activity">
-                        <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                        <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" LastActivityExecution="LastActivityExecution" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
 
                     <MudTabPanel Text="Executions" BadgeData="@SelectedActivityExecutions.Count">
