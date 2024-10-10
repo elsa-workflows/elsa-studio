@@ -239,9 +239,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
             StateHasChanged();
             _activityDetailsTab?.Refresh();
-            _activityExecutionsTab?.Refresh();
+
+            if (_activityExecutionsTab != null)
+                await _activityExecutionsTab.RefreshAsync();
         });
-        
+
         if (SelectedActivityExecutions.Any())
         {
             var lastRecord = SelectedActivityExecutions.Last();
@@ -287,13 +289,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         {
             await RefreshSelectedItemAsync(id);
 
-            if (LastActivityExecution == null || LastActivityExecution.IsFused()) 
+            if (LastActivityExecution == null || LastActivityExecution.IsFused())
                 await StopRefreshActivityStatePeriodically();
         }
 
-        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
-    
+
     private async Task StopRefreshActivityStatePeriodically()
     {
         if (_refreshTimer != null)

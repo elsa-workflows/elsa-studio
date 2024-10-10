@@ -12,8 +12,6 @@ public static class ActivityExecutionRecordExtensions
     /// </summary>
     public static bool IsFused(this ActivityExecutionRecord record)
     {
-        return false; // For testing purposes.
-        
         // TODO: with blueberry, consider introducing a new property to ActivityExecutionRecord to indicate whether the record has all details or not.
         return record.ActivityState != null || record.Outputs != null || record.Exception != null || record.Payload != null || record.Properties.Count > 0;
     }

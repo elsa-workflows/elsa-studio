@@ -24,7 +24,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
 
     /// The activity execution records.
     [Parameter] public ICollection<ActivityExecutionRecordSummary> ActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
-    
+
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
@@ -35,8 +35,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     private Timer? _refreshTimer;
 
     /// Refreshes the component.
-    public void Refresh()
+    public async Task RefreshAsync()
     {
+        await StopRefreshTimerAsync();
         SelectedItem = null;
         SelectedActivityState = new Dictionary<string, DataPanelItem>();
         SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
@@ -71,7 +72,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         SelectedOutcomesData = outcomesData ?? new Dictionary<string, DataPanelItem>();
         SelectedOutputData = outputData;
     }
-    
+
     private async Task RefreshSelectedItemAsync(string id)
     {
         var fullRecord = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(id));
@@ -82,36 +83,40 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
 
     private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
     {
+        await StopRefreshTimerAsync();
         var id = arg.Item.ActivityExecution.Id;
         await RefreshSelectedItemAsync(id);
-        
-        if(SelectedItem == null)
+
+        if (SelectedItem == null)
             return;
-        
+
         // Check if the selected item has all of its details or not.
         // If not, periodically check for the details until they are available.
-        if(SelectedItem.IsFused())
+        if (SelectedItem.IsFused())
             return;
-        
+
         // Start a timer to periodically check for the details.
         RefreshSelectedItemPeriodically(id);
     }
-    
+
     private void RefreshSelectedItemPeriodically(string id)
     {
         async void Callback(object? _)
         {
             await RefreshSelectedItemAsync(id);
 
-            if (SelectedItem == null || SelectedItem.IsFused())
-            {
-                if (_refreshTimer == null) return;
-                await _refreshTimer.DisposeAsync();
-                _refreshTimer = null;
-            }
+            if (SelectedItem == null || SelectedItem.IsFused()) 
+                await StopRefreshTimerAsync();
         }
 
         _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private async Task StopRefreshTimerAsync()
+    {
+        if (_refreshTimer == null) return;
+        await _refreshTimer.DisposeAsync();
+        _refreshTimer = null;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
