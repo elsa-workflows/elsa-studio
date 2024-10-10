@@ -49,4 +49,25 @@ public class RemoteActivityExecutionService : IActivityExecutionService
         var response = await api.ListAsync(request, cancellationToken);
         return response.Items;
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<ActivityExecutionRecordSummary>> ListSummariesAsync(string workflowInstanceId, string activityNodeId, CancellationToken cancellationToken = default)
+    {
+        var request = new ListActivityExecutionsRequest
+        {
+            WorkflowInstanceId = workflowInstanceId,
+            ActivityNodeId = activityNodeId
+        };
+        
+        var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        var response = await api.ListSummariesAsync(request, cancellationToken);
+        return response.Items;
+    }
+
+    /// <inheritdoc />
+    public async Task<ActivityExecutionRecord?> GetAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var api = await _remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        return await api.GetAsync(id, cancellationToken);
+    }
 }

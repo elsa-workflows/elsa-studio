@@ -34,7 +34,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ActivityDetailsTab? _activityDetailsTab = default!;
     private ActivityExecutionsTab? _activityExecutionsTab = default!;
     private int _propertiesPaneHeight = 300;
-    private readonly IDictionary<string, ICollection<ActivityExecutionRecord>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecord>>();
+    private readonly IDictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecordSummary>>();
     private Timer? _elapsedTimer;
 
     /// The workflow instance.
@@ -70,7 +70,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
     private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
-    private ICollection<ActivityExecutionRecord> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
+    private ActivityExecutionRecord? LastActivityExecution { get; set; }
 
     private RadzenSplitterPane ActivityPropertiesPane
     {
@@ -239,12 +240,18 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         });
     }
 
-    private async Task<ICollection<ActivityExecutionRecord>> GetActivityExecutionRecordsAsync(string activityNodeId)
+    private async Task<ICollection<ActivityExecutionRecordSummary>> GetActivityExecutionRecordsAsync(string activityNodeId)
     {
         if (!_activityExecutionRecordsLookup.TryGetValue(activityNodeId, out var records))
         {
-            records = (await InvokeWithBlazorServiceContext(() => ActivityExecutionService.ListAsync(WorkflowInstance.Id, activityNodeId))).ToList();
+            records = (await InvokeWithBlazorServiceContext(() => ActivityExecutionService.ListSummariesAsync(WorkflowInstance.Id, activityNodeId))).ToList();
             _activityExecutionRecordsLookup[activityNodeId] = records;
+            
+            if (records.Any())
+            {
+                var lastRecord = records.Last();
+                LastActivityExecution = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(lastRecord.Id));
+            }
         }
 
         return records;
