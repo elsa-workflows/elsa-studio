@@ -45,7 +45,7 @@ public partial class VersionTab
     
     private IEnumerable<int> _versionsUsableAsActivity = [];
 
-    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState)
+    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState, CancellationToken cancellationToken)
     {
         if (Activity == null! || ActivityDescriptor == null!)
             return new TableData<WorkflowDefinitionSummary>();
@@ -65,7 +65,7 @@ public partial class VersionTab
 
         _versionsUsableAsActivity = ActivityRegistry.FindAll(CurrentActivityType).Select(d => d.Version);
         
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
+        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All, cancellationToken));
 
         return new TableData<WorkflowDefinitionSummary>
         {

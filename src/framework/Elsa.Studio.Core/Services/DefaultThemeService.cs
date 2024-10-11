@@ -8,7 +8,7 @@ namespace Elsa.Studio.Services;
 public class DefaultThemeService : IThemeService
 {
     private MudTheme _currentTheme = CreateDefaultTheme();
-    private bool _isDarkMode = false;
+    private bool _isDarkMode;
 
     /// <inheritdoc />
     public event Action? CurrentThemeChanged;
@@ -46,7 +46,7 @@ public class DefaultThemeService : IThemeService
             {
                 DefaultBorderRadius = "4px",
             },
-            Palette =
+            PaletteLight = 
             {
                 Primary = new MudColor("0ea5e9"),
                 DrawerBackground = new MudColor("#f8fafc"),
