@@ -23,7 +23,7 @@ public partial class ActivityDetailsTab
     /// The activity to display details for.
     [Parameter] public JsonObject Activity { get; set; } = default!;
     
-    /// The activity execution records.
+    /// The latest activity execution record. Used for displaying the last state of the activity.
     [Parameter] public ActivityExecutionRecord? LastActivityExecution { get; set; }
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
