@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -11,8 +12,8 @@ public partial class ActivityExecutionsTab
 {
     /// Represents a row in the table of activity executions.
     /// <param name="Number">The number of executions.</param>
-    /// <param name="ActivityExecution">The activity execution.</param>
-    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecord ActivityExecution);
+    /// <param name="ActivityExecutionSummary">The activity execution summary.</param>
+    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary);
 
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
@@ -20,10 +21,12 @@ public partial class ActivityExecutionsTab
     /// The activity to display executions for.
     [Parameter] public JsonObject Activity { get; set; } = default!;
 
-    /// The activity execution records.
-    [Parameter] public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    /// The activity execution record summaries.
+    [Parameter] public ICollection<ActivityExecutionRecordSummary> ActivityExecutionSummaries { get; set; } = new List<ActivityExecutionRecordSummary>();
+    
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
-    private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
+    private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
@@ -67,11 +70,11 @@ public partial class ActivityExecutionsTab
         SelectedOutputData = outputData;
     }
 
-    private Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
+    private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
     {
-        SelectedItem = arg.Item.ActivityExecution;
+        var id = arg.Item.ActivityExecutionSummary.Id;
+        SelectedItem = await ActivityExecutionService.GetAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
         StateHasChanged();
-        return Task.CompletedTask;
     }
 }
