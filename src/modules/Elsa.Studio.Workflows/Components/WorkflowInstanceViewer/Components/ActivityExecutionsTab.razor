@@ -23,7 +23,7 @@
             </HeaderContent>
             <RowTemplate>
                 @{
-                    var record = context.ActivityExecution;
+                    var record = context.ActivityExecutionSummary;
                 }
                 <MudTh>@context.Number</MudTh>
                 <MudTd><Timestamp Value="record.StartedAt"/> </MudTd>

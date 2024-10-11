@@ -43,7 +43,7 @@
                     </MudTabPanel>
 
                     <MudTabPanel Text="Executions" BadgeData="@SelectedActivityExecutions.Count">
-                        <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                        <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutionSummaries="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
                 }
 
