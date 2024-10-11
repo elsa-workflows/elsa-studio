@@ -19,8 +19,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageVersion Include="MudBlazor" Version="7.3.0" />
     <PackageVersion Include="Radzen.Blazor" Version="5.2.12" />
-    <PackageVersion Include="Refit" Version="7.1.2" />
-    <PackageVersion Include="Refit.HttpClientFactory" Version="7.1.2" />
+    <PackageVersion Include="Refit" Version="7.2.1" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="7.2.1" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.0" />
   </ItemGroup>
