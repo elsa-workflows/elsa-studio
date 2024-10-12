@@ -28,4 +28,8 @@
   <ItemGroup Label="Files">
     <None Include="..\..\..\icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
+  
+  <PropertyGroup Label="PackageVersions">
+    <ElsaVersion>3.3.0-preview.2240</ElsaVersion>
+  </PropertyGroup>
 </Project>
