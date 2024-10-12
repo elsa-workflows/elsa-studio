@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -48,6 +49,7 @@ public partial class WorkflowInstanceDetails
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
 
@@ -69,9 +71,9 @@ public partial class WorkflowInstanceDetails
                 ["Status"] = new(_workflowInstance.Status.ToString()),
                 ["Sub status"] = new(_workflowInstance.SubStatus.ToString()),
                 ["Incidents"] = new(_workflowInstance.IncidentCount.ToString()),
-                ["Created"] = new(_workflowInstance.CreatedAt.ToString("G")),
-                ["Updated"] = new(_workflowInstance.UpdatedAt.ToString("G")),
-                ["Finished"] = new(_workflowInstance.FinishedAt?.ToString("G")),
+                ["Created"] = new(TimeFormatter.Format(_workflowInstance.CreatedAt)),
+                ["Updated"] = new(TimeFormatter.Format(_workflowInstance.UpdatedAt)),
+                ["Finished"] = new(TimeFormatter.Format(_workflowInstance.FinishedAt)),
             };
         }
     }

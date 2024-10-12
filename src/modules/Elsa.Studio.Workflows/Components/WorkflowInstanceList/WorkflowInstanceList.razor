@@ -258,9 +258,9 @@
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
-        <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-        <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-        <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+        <MudTd DataLabel="CreatedAt"><Timestamp Value="context.CreatedAt"/></MudTd>
+        <MudTd DataLabel="UpdatedAt"><Timestamp Value="context.UpdatedAt"/></MudTd>
+        <MudTd DataLabel="FinishedAt"><Timestamp Value="context.FinishedAt"/></MudTd>
         <MudTd DataLabel="" Style="text-align:right">
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>

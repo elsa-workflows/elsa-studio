@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Humanizer;
@@ -14,6 +15,8 @@ public partial class JournalEntryDetailsTab
 
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
+    
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
 
     private IDictionary<string, DataPanelItem> ParsePayload(object? payload)
     {

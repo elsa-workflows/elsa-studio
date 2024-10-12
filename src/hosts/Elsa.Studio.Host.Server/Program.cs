@@ -1,6 +1,8 @@
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Localization.Time;
+using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
@@ -41,6 +43,9 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
+
+// Replace some services with other implementations.
+builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

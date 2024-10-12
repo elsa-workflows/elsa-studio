@@ -1,17 +1,17 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Wasm" type="DotNetProject" factoryName=".NET Project">
     <option name="EXE_PATH" value="$USER_HOME$/.nuget/packages/microsoft.aspnetcore.components.webassembly.devserver/7.0.20/tools/blazor-devserver.dll" />
-    <option name="PROGRAM_PARAMETERS" value="--applicationpath $PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Wasm/bin/Debug/net7.0/Elsa.Studio.Host.Wasm.dll" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Wasm" />
+    <option name="PROGRAM_PARAMETERS" value="--applicationpath $PROJECT_DIR$/src/hosts/Elsa.Studio.Host.CustomElements/bin/Debug/net7.0/Elsa.Studio.Host.CustomElements.dll" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.CustomElements" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <envs>
       <env name="ASPNETCORE_ENVIRONMENT" value="Development" />
-      <env name="ASPNETCORE_URLS" value="https://localhost:10009" />
+      <env name="ASPNETCORE_URLS" value="https://localhost:11000" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
     <option name="RUNTIME_ARGUMENTS" value="" />
-    <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Wasm/Elsa.Studio.Host.Wasm.csproj" />
+    <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.CustomElements/Elsa.Studio.Host.CustomElements.csproj" />
     <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
     <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />

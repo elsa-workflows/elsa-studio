@@ -10,12 +10,14 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -56,14 +58,14 @@ public partial class WorkflowEditor
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// Gets or sets a callback invoked when the workflow definition is updated.
-    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
-    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -76,6 +78,7 @@ public partial class WorkflowEditor
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
 
@@ -307,9 +310,7 @@ public partial class WorkflowEditor
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
-
-        if (WorkflowDefinitionUpdated.HasDelegate)
-            await WorkflowDefinitionUpdated.InvokeAsync();
+        if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
@@ -322,7 +323,7 @@ public partial class WorkflowEditor
     private async Task OnActivitySelected(JsonObject activity)
     {
         SelectActivity(activity);
-        await ActivitySelected.InvokeAsync(activity);
+        if (ActivitySelected != null) await ActivitySelected(activity);
     }
 
     private async Task OnSelectedActivityUpdated(JsonObject activity)
@@ -425,7 +426,8 @@ public partial class WorkflowEditor
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         foreach (var file in files)
         {
-            var stream = file.OpenReadStream(maxAllowedSize);
+            await Mediator.NotifyAsync(new ImportingFile(file));
+            var stream = file.OpenReadStream();
 
             if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
             {
@@ -453,7 +455,10 @@ public partial class WorkflowEditor
         StateHasChanged();
 
         if (importedFile != null)
+        {
+            await Mediator.NotifyAsync(new ImportedFile(importedFile));
             Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
+        }
     }
 
     private async Task<bool> ImportZipFileAsync(Stream stream)
@@ -493,6 +498,7 @@ public partial class WorkflowEditor
 
         try
         {
+            await Mediator.NotifyAsync(new ImportingJson(json));
             var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
 
             // Check if this is a workflow definition file.
@@ -505,6 +511,7 @@ public partial class WorkflowEditor
             var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
+            await Mediator.NotifyAsync(new ImportedJson(json));
         }
         catch (Exception e)
         {
@@ -541,8 +548,8 @@ public partial class WorkflowEditor
 
         Snackbar.Add("Successfully started workflow", Severity.Success);
 
-        if (WorkflowDefinitionExecuted.HasDelegate)
-            await WorkflowDefinitionExecuted.InvokeAsync(workflowInstanceId);
+        if (WorkflowDefinitionExecuted != null)
+            await WorkflowDefinitionExecuted(workflowInstanceId);
         else
             NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
