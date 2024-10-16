@@ -216,8 +216,7 @@ public partial class WorkflowInstanceDetails
         SelectedSubWorkflow = obj;
         SelectedSubWorkflowExecutions = obj == null
             ? null
-            : (await InvokeWithBlazorServiceContext(() =>
-                ActivityExecutionService.ListAsync(WorkflowInstance!.Id, obj.GetNodeId()!))).ToList();
+            : (await ActivityExecutionService.ListAsync(WorkflowInstance!.Id, obj.GetNodeId())).ToList();
         StateHasChanged();
     }
 

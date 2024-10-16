@@ -25,14 +25,12 @@ public partial class CreateWorkflowDialog
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
 
-    private string WorkflowDescription { get; set; } = "";
-
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _metadataModel.Name = WorkflowName;
         _editContext = new EditContext(_metadataModel);
-        _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService, BlazorServiceAccessor, Services);
+        _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService);
     }
 
     private Task OnCancelClicked()

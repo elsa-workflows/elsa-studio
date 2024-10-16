@@ -56,7 +56,7 @@ public partial class VersionTab
 
         var request = new ListWorkflowDefinitionsRequest
         {
-            DefinitionIds = new[] { definitionId },
+            DefinitionIds = [definitionId],
             OrderDirection = OrderDirection.Descending,
             OrderBy = OrderByWorkflowDefinition.Version,
             Page = page,
@@ -65,7 +65,7 @@ public partial class VersionTab
 
         _versionsUsableAsActivity = ActivityRegistry.FindAll(CurrentActivityType).Select(d => d.Version);
         
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
+        var response = await WorkflowDefinitionService.ListAsync(request, VersionOptions.All);
 
         return new TableData<WorkflowDefinitionSummary>
         {

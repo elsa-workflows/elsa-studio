@@ -80,13 +80,13 @@ public partial class WorkflowInstanceList
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
-        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
+        var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request);
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
-        var workflowDefinitionVersionsResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             Ids = definitionVersionIds,
-        }));
+        });
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 
