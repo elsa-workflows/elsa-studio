@@ -98,7 +98,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public async Task DisplayLatestWorkflowDefinitionVersionAsync()
     {
         var definitionId = _workflowDefinition!.DefinitionId;
-        var definition = (await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest)))!;
+        var definition = (await WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest))!;
         await DisplayWorkflowDefinitionVersionAsync(definition);
     }
 

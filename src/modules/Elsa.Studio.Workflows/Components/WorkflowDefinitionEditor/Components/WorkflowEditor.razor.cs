@@ -160,39 +160,10 @@ public partial class WorkflowEditor
             workflowDefinition.Root = root;
         }
 
-        var saveRequest = new SaveWorkflowDefinitionRequest
+        var result = await WorkflowDefinitionService.SaveAsync(workflowDefinition, publish, async definition =>
         {
-            Model = new WorkflowDefinitionModel
-            {
-                Id = workflowDefinition.Id,
-                Description = workflowDefinition.Description,
-                Name = workflowDefinition.Name,
-                ToolVersion = workflowDefinition.ToolVersion,
-                Inputs = workflowDefinition.Inputs,
-                Options = workflowDefinition.Options,
-                Outcomes = workflowDefinition.Outcomes,
-                Outputs = workflowDefinition.Outputs,
-                Variables = workflowDefinition.Variables.Select(x => new VariableDefinition
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    TypeName = x.TypeName,
-                    Value = x.Value?.ToString(),
-                    IsArray = x.IsArray,
-                    StorageDriverTypeName = x.StorageDriverTypeName
-                }).ToList(),
-                Version = workflowDefinition.Version,
-                CreatedAt = workflowDefinition.CreatedAt,
-                CustomProperties = workflowDefinition.CustomProperties,
-                DefinitionId = workflowDefinition.DefinitionId,
-                IsLatest = workflowDefinition.IsLatest,
-                IsPublished = workflowDefinition.IsPublished,
-                Root = workflowDefinition.Root
-            },
-            Publish = publish,
-        };
-
-        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.SaveAsync(saveRequest));
+            await SetWorkflowDefinitionAsync(definition);
+        });
         await result.OnSuccessAsync(async response => await SetWorkflowDefinitionAsync(response.WorkflowDefinition));
 
         _isDirty = false;
@@ -210,13 +181,13 @@ public partial class WorkflowEditor
 
     private async Task<int> UpdateReferencesAsync()
     {
-        var updateReferencesResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.UpdateReferencesAsync(_workflowDefinition!.DefinitionId));
+        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(_workflowDefinition!.DefinitionId);
         return updateReferencesResponse.AffectedWorkflows.Count;
     }
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.RetractAsync(_workflowDefinition!.DefinitionId));
+        var result = await WorkflowDefinitionService.RetractAsync(_workflowDefinition!.DefinitionId);
         await result.OnSuccessAsync(async definition =>
         {
             await SetWorkflowDefinitionAsync(definition);
@@ -376,7 +347,7 @@ public partial class WorkflowEditor
         }));
     }
 
-    private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
+    //private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
     private async Task OnGraphUpdated() => await HandleChangesAsync(true);
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
@@ -508,7 +479,7 @@ public partial class WorkflowEditor
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
             model.DefinitionId = _workflowDefinition!.DefinitionId;
-            var workflowDefinition = await InvokeWithBlazorServiceContext(async () => await WorkflowDefinitionService.ImportDefinitionAsync(model));
+            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
             await Mediator.NotifyAsync(new ImportedJson(json));
