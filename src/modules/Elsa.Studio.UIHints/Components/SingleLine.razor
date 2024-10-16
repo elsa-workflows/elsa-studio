@@ -52,6 +52,8 @@
     [Parameter]
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
+    [Inject] private IClipboard Clipboard { get; set; } = default!;
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -63,6 +65,11 @@
         var expression = Expression.CreateLiteral(newValue.TrimWhitespace());
 
         await EditorContext.UpdateExpressionAsync(expression);
+    }
+    private async Task OnCopyClicked()
+    {
+        string value = (_singleLineProps.AdornmentText ?? String.Empty) + EditorContext.GetLiteralValueOrDefault();
+        await Clipboard.CopyText(value);
     }
 
 }
