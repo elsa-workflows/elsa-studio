@@ -4,7 +4,6 @@ using System.Net.Http.Json;
 using Elsa.Api.Client.Resources.Identity.Responses;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
-using Elsa.Studio.Login.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Login.HttpMessageHandlers;

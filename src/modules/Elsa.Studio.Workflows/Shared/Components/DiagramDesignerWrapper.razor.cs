@@ -241,7 +241,7 @@ public partial class DiagramDesignerWrapper
         if (WorkflowInstanceId != null)
         {
             var currentContainerActivity = GetCurrentContainerActivity();
-            var report = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity));
+            var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
             _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
             {
                 Faulted = x.IsFaulted,
@@ -269,7 +269,7 @@ public partial class DiagramDesignerWrapper
 
             if (!nodeLookup.TryGetValue(activityNodeId, out var activityNode))
             {
-                activityNode = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, activityNodeId));
+                activityNode = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, activityNodeId);
                 var visitedActivityNode = await ActivityVisitor.VisitAsync(activityNode!.Activity);
                 _activityGraph.Merge(visitedActivityNode);
                 nodeLookup = _activityGraph.ActivityNodeLookup;
@@ -351,17 +351,13 @@ public partial class DiagramDesignerWrapper
             // Lazy load.
             if (activityDescriptor.CustomProperties.ContainsKey("WorkflowDefinitionVersionId"))
             {
-                await InvokeWithBlazorServiceContext(async () =>
-                {
-                    var parentNodeId = activity.GetNodeId();
-                    var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
-                    var visitedActivityNode = await ActivityVisitor.VisitAsync(selectedActivityGraph.Activity);
-                    _activityGraph.Merge(visitedActivityNode);
-
-                    var propName = portName.Camelize();
-                    var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
-                    embeddedActivity = selectedPortActivity;
-                });
+                var parentNodeId = activity.GetNodeId();
+                var selectedActivityGraph = await WorkflowDefinitionService.FindSubgraphAsync(WorkflowDefinitionVersionId, parentNodeId) ?? throw new InvalidOperationException($"Could not find selected activity graph for {parentNodeId}");
+                var visitedActivityNode = await ActivityVisitor.VisitAsync(selectedActivityGraph.Activity);
+                _activityGraph.Merge(visitedActivityNode);
+                var propName = portName.Camelize();
+                var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
+                embeddedActivity = selectedPortActivity;
             }
         }
 

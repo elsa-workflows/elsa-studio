@@ -46,7 +46,7 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Saves a workflow definition.
     /// </summary>
-    Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(SaveWorkflowDefinitionRequest request, CancellationToken cancellationToken = default);
+    Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(WorkflowDefinition workflowDefinition, bool publish, Func<WorkflowDefinition, Task>? workflowSavedCallback = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Deletes a workflow definition.

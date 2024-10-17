@@ -9,22 +9,12 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// <summary>
 /// An activity registry provider that uses a remote backend to retrieve activity descriptors.
 /// </summary>
-public class RemoteActivityRegistryProvider : IActivityRegistryProvider
+public class RemoteActivityRegistryProvider(IRemoteBackendApiClientProvider remoteBackendApiClientProvider) : IActivityRegistryProvider
 {
-    private readonly IBackendApiClientProvider _backendApiClientProvider;
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RemoteActivityRegistryProvider"/> class.
-    /// </summary>
-    public RemoteActivityRegistryProvider(IBackendApiClientProvider backendApiClientProvider)
-    {
-        _backendApiClientProvider = backendApiClientProvider;
-    }
-
     /// <inheritdoc />
     public async Task<IEnumerable<ActivityDescriptor>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _backendApiClientProvider.GetApiAsync<IActivityDescriptorsApi>(cancellationToken);
+        var api = await remoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorsApi>(cancellationToken);
         var request = new ListActivityDescriptorsRequest
         {
             Refresh = true
