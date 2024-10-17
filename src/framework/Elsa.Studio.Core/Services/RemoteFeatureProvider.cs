@@ -9,7 +9,7 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// A feature service that uses a remote backend to retrieve feature flags.
 /// </summary>
-public class RemoteRemoteFeatureProvider(IRemoteBackendApiClientProvider remoteBackendApiClientProvider) : IRemoteFeatureProvider
+public class RemoteFeatureProvider(IBackendApiClientProvider remoteBackendApiClientProvider) : IRemoteFeatureProvider
 {
     /// <inheritdoc />
     public async Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default)

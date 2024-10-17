@@ -11,14 +11,13 @@ namespace Elsa.Studio.Agents.UI.Validators;
 public class ServiceInputModelValidator : AbstractValidator<ServiceInputModel>
 {
     /// <inheritdoc />
-    public ServiceInputModelValidator(IServicesApi api, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public ServiceInputModelValidator(IServicesApi api)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the service.");
         
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
             {
-                blazorServiceAccessor.Services = serviceProvider;
                 var request = new IsUniqueNameRequest
                 {
                     Name = name!,

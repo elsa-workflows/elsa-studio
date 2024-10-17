@@ -7,7 +7,7 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// A service that provides TypeScript type definitions.
 /// </summary>
-public class TypeDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+public class TypeDefinitionService(IBackendApiClientProvider remoteBackendApiClientProvider)
 {
     /// <summary>
     /// Gets the type definition for the specified activity type.

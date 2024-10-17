@@ -7,7 +7,7 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// Provides API clients to the remote backend.
 /// </summary>
-public class DefaultRemoteBackendApiClientProvider(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider) : IRemoteBackendApiClientProvider
+public class DefaultBackendApiClientProvider(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider) : IBackendApiClientProvider
 {
     /// <inheritdoc />
     public Uri Url => remoteBackendAccessor.RemoteBackend.Url;

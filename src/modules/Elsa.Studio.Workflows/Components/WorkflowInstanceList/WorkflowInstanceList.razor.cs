@@ -88,7 +88,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             Ids = definitionVersionIds,
-        }, cancellationToken: cancellationToken));
+        }, cancellationToken: cancellationToken);
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 

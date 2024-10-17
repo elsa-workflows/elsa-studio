@@ -29,7 +29,7 @@ public partial class CreateSecretDialog
         _inputModel.Description = "";
         _editContext = new EditContext(_inputModel);
         var api = await ApiClientProvider.GetApiAsync<ISecretsApi>();
-        _validator = new SecretInputModelValidator(api, BlazorServiceAccessor, Services);
+        _validator = new SecretInputModelValidator(api);
     }
 
     private Task OnCancelClicked()

@@ -44,7 +44,7 @@ public partial class CreateAgentDialog
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
         var pluginsApi = await ApiClientProvider.GetApiAsync<IPluginsApi>();
-        _validator = new AgentInputModelValidator(agentsApi, BlazorServiceAccessor, Services);
+        _validator = new AgentInputModelValidator(agentsApi);
         var servicesResponseList = await servicesApi.ListAsync();
         var pluginsResponseList = await pluginsApi.ListAsync();
         AvailableServices = servicesResponseList.Items;

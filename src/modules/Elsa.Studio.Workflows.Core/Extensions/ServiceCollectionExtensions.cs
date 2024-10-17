@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddScoped<IRemoteFeatureProvider, RemoteRemoteFeatureProvider>()
+            .AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>()
             .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()

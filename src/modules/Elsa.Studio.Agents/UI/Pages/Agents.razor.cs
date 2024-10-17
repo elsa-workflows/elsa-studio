@@ -34,7 +34,7 @@ public partial class Agents
     private async Task<TableData<AgentModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetAgentsApiAsync();
-        var agents = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
+        var agents = await apiClient.ListAsync(cancellationToken);
 
         return new TableData<AgentModel>
         {
@@ -69,18 +69,15 @@ public partial class Agents
         if (!dialogResult!.Canceled)
         {
             var agentInputModel = (AgentInputModel)dialogResult.Data;
-            await InvokeWithBlazorServiceContext(async () =>
+            try
             {
-                try
-                {
-                    var agent = await apiClient.CreateAsync(agentInputModel);
-                    await EditAsync(agent.Id);
-                }
-                catch (Exception e)
-                {
-                    Snackbar.Add(e.Message, Severity.Error);
-                }
-            });
+                var agent = await apiClient.CreateAsync(agentInputModel);
+                await EditAsync(agent.Id);
+            }
+            catch (Exception e)
+            {
+                Snackbar.Add(e.Message, Severity.Error);
+            }
         }
     }
 
@@ -113,7 +110,7 @@ public partial class Agents
 
         var agentId = agent.Id;
         var apiClient = await GetAgentsApiAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.DeleteAsync(agentId)));
+        await apiClient.DeleteAsync(agentId);
         ActivityRegistry.MarkStale();
         ActivityDisplaySettingsRegistry.MarkStale();
         Reload();
@@ -129,7 +126,7 @@ public partial class Agents
         var ids = _selectedRows.Select(x => x.Id).ToList();
         var request = new BulkDeleteRequest { Ids = ids };
         var apiClient = await GetAgentsApiAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.BulkDeleteAsync(request)));
+        await apiClient.BulkDeleteAsync(request);
         ActivityRegistry.MarkStale();
         ActivityDisplaySettingsRegistry.MarkStale();
         Reload();

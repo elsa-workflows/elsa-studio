@@ -25,7 +25,7 @@ public partial class Secret : StudioComponentBase
     protected override async Task OnInitializedAsync()
     {
         var apiClient = await ApiClientProvider.GetApiAsync<ISecretsApi>();
-        _validator = new SecretInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        _validator = new SecretInputModelValidator(apiClient);
     }
 
     /// <inheritdoc />
