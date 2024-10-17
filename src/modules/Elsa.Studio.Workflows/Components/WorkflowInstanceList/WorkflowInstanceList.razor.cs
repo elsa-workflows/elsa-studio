@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+﻿using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
@@ -81,7 +82,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
-
+       
         var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request, cancellationToken));
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
@@ -109,9 +110,19 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
-
+        
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+    }
+    public static string GetTextDateJapan(DateTime date)
+    {
+        string result = string.Empty;
+        CultureInfo currentCulture = CultureInfo.CurrentCulture;
+        var calendarJp = currentCulture.Calendar;
+        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
+        cultureJp.DateTimeFormat.Calendar = calendarJp;
+        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
+        return result;
     }
 
     private TimestampFilter Map(TimestampFilterModel source)

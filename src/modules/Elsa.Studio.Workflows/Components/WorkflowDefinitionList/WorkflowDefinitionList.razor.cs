@@ -8,8 +8,10 @@ using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Refit;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
@@ -24,6 +26,7 @@ public partial class WorkflowDefinitionList
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private NavigationManager navigation { get; set; }
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -32,7 +35,7 @@ public partial class WorkflowDefinitionList
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
-
+    
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var request = new ListWorkflowDefinitionsRequest

@@ -1,6 +1,8 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 <div class="pa-4">
     @if (Activity != null && ActivityDescriptor != null)
@@ -10,15 +12,15 @@
                 <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
-                    HelperText="The ID of the activity."
+                    HelperText="@_localizer["IdHelperText"]"
                     Variant="Variant.Outlined">
                     <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
 
                 <MudTextField
                     T="string"
-                    Label="Name"
-                    HelperText="The name of the activity. Named activities can be referenced by other activities."
+                    Label="@_localizer["Name"]"
+                    HelperText="@_localizer["NameHelperText"]"
                     Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
                     ValueChanged="OnActivityNameChanged"

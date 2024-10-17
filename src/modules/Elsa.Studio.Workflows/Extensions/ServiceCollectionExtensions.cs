@@ -12,6 +12,9 @@ using Elsa.Studio.Workflows.Menu;
 using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.Widgets;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor.Services;
+using MudBlazor.Translations;
+
 
 namespace Elsa.Studio.Workflows.Extensions;
 
@@ -46,7 +49,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionSettingsWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
-        
+        services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
+        services.AddMudTranslations();
+        services.AddLocalization();
         return services;
     }
 }

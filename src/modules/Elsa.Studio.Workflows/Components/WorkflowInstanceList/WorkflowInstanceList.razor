@@ -6,14 +6,16 @@
 @using Elsa.Api.Client.Resources.WorkflowInstances.Models
 @using Elsa.Api.Client.Shared.Enums
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 @using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
-<PageTitle>Workflow instances</PageTitle>
+<PageTitle>@_localizer["Workflowinstances"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-<PageHeading Text="Workflow instances"/>
+<PageHeading Text="@_localizer["Workflowinstances"]"/>
 
 <div id="instance-file-upload-button-wrapper" class="d-none">
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
@@ -174,7 +176,7 @@
                         </td>
                         <td>
                             <MudTextField
-                                T="string?"
+                                T="string"
                                 Label="Time"
                                 Variant="Variant.Outlined"
                                 InputType="InputType.Time"
@@ -258,9 +260,9 @@
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
-        <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-        <MudTd DataLabel="UpdatedAt">@context.UpdatedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
-        <MudTd DataLabel="FinishedAt">@context.FinishedAt?.ToString("G", CultureInfo.InvariantCulture)</MudTd>
+        <MudTd DataLabel="CreatedAt">@GetTextDateJapan(Convert.ToDateTime(@context.CreatedAt.ToString()))</MudTd>
+            <MudTd DataLabel="UpdatedAt">@GetTextDateJapan(Convert.ToDateTime(@context.UpdatedAt?.ToString()))</MudTd>
+        <MudTd DataLabel="FinishedAt">@GetTextDateJapan(Convert.ToDateTime(@context.FinishedAt?.ToString()))</MudTd>
         <MudTd DataLabel="" Style="text-align:right">
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>

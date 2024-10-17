@@ -6,13 +6,15 @@
 @using Elsa.Studio.Workflows.Models
 @using Elsa.Studio.Workflows.UI.Contracts
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    <MudTabPanel Text="Activities">
+    <MudTabPanel Text="@_localizer["Activities"]">
         <Well>
             <MudStack Spacing="3">
                 <MudTextField @bind-Value="@_searchText"
-                              Placeholder="Search..."
+                              Placeholder="@_localizer["Search"]"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               Adornment="Adornment.End"
@@ -28,7 +30,7 @@
                             var activityDescriptors = grouping.OrderBy(x => x.DisplayName ?? x.Name).ToList();
                             var category = grouping.Key;
 
-                            <MudExpansionPanel Text="@category">
+                            <MudExpansionPanel Text="@GetTranslation(@category)">
                                 <MudStack>
                                     @foreach (var activityDescriptor in activityDescriptors)
                                     {
@@ -49,7 +51,7 @@
                                                     {
                                                         <MudIcon Icon="@icon"></MudIcon>
                                                     }
-                                                    @(activityDescriptor.DisplayName ?? activityDescriptor.Name)
+                                                    @(GetTranslation(activityDescriptor.DisplayName) ?? GetTranslation(activityDescriptor.Name))
                                                 </MudStack>
                                             </MudPaper>
                                         </MudTooltip>

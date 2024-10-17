@@ -1,7 +1,9 @@
 @page "/workflows/definitions/{definitionId}/edit"
+@using Microsoft.Extensions.Localization
 @inherits StudioComponentBase
+@inject IStringLocalizer<Resources.Resource> _localizer
 
-<PageTitle>Workflow definition</PageTitle>
+<PageTitle>@_localizer["Workflowdefinition"]</PageTitle>
 
 <WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
 

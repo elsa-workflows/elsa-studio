@@ -9,6 +9,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
 using MudBlazor;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
@@ -54,6 +55,16 @@ public partial class Journal : IAsyncDisposable
         SelectedEntry = null;
         SelectedIndex = -1;
         StateHasChanged();
+    }
+    public static string GetTextDateJapan(DateTime date)
+    {
+        string result = string.Empty;
+        CultureInfo currentCulture = CultureInfo.CurrentCulture;
+        var calendarJp = currentCulture.Calendar;
+        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
+        cultureJp.DateTimeFormat.Calendar = calendarJp;
+        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
+        return result;
     }
 
     /// <inheritdoc />

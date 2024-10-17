@@ -1,5 +1,8 @@
 @using Elsa.Studio.DomInterop.Contracts
 @using Elsa.Studio.Models
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Localization.Localization> _localizer
 
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
@@ -14,18 +17,25 @@
         @foreach (var item in data)
         {
             <tr>
-                <td style="width: 200px;">@item.Key</td>
+                <td style="width: 200px;">@_localizer[@item.Key]</td>
                 <td style="width: 50px;">
                     <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
                 </td>
                 <td>
                     @if (!string.IsNullOrWhiteSpace(item.Value.Link))
                     {
-                        <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
-                    }
-                    else
-                    {
-                        <span>@item.Value.Text</span>
+                            <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
+                        }
+                        else
+                        {
+                            @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
+                            {
+                                <span>@GetTextDateJapan(Convert.ToDateTime(@item.Value.Text))</span>
+                            }
+                            else
+                            {
+                                <span>@item.Value.Text</span>
+                            }
                     }
                 </td>
             </tr>
@@ -72,6 +82,16 @@
     private async Task OnCopyClicked(string value)
     {
         await Clipboard.CopyText(value);
+    }
+    public static string GetTextDateJapan(DateTime date)
+    {
+        string result = string.Empty;
+        CultureInfo currentCulture = CultureInfo.CurrentCulture;
+        var calendarJp = currentCulture.Calendar;
+        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
+        cultureJp.DateTimeFormat.Calendar = calendarJp;
+        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
+        return result;
     }
 
 }

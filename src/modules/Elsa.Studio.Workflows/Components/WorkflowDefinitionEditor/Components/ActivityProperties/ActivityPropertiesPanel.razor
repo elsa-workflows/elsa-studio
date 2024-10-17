@@ -3,11 +3,13 @@
 @using Elsa.Studio.Extensions
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 <CascadingValue Value="ExpressionDescriptorProvider">
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
 
-        <MudTabPanel Text="Input">
+        <MudTabPanel Text="@_localizer["Input"]">
             @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -17,12 +19,12 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@_localizer["InputProperties"]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="Output">
+        <MudTabPanel Text="@_localizer["Output"]">
             @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">

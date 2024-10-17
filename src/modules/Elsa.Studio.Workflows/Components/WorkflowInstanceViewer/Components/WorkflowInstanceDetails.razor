@@ -1,8 +1,11 @@
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
+
 @if (WorkflowDefinition != null && WorkflowInstance != null)
 {
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-        <MudTabPanel Text="Details">
+        <MudTabPanel Text="@_localizer["Details"]">
             <Well>
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Workflow</MudText>
@@ -20,7 +23,7 @@
                 </Well>
             }
         </MudTabPanel>
-        <MudTabPanel Text="Variables">
+        <MudTabPanel Text="@_localizer["Variables"]">
             <VerticalWell ExtraPadding="50">
                 <div>
                     @if (WorkflowVariableData.Any())
@@ -36,7 +39,7 @@
                 </div>
             </VerticalWell>
         </MudTabPanel>
-        <MudTabPanel Text="Input/output">
+        <MudTabPanel Text="@_localizer["Input/output"]">
             <Well>
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Inputs</MudText>

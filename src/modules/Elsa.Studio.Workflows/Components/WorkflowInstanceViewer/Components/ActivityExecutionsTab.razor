@@ -1,4 +1,6 @@
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack Row="false">
@@ -12,14 +14,14 @@
             Outlined="true"
             Hover="true"
             RowStyle="cursor: pointer;"
-            OnRowClick="@OnActivityExecutionClicked">
+            OnRowClick="@OnActivityExecutionClicked">   
             <HeaderContent>
                 <MudTh>#</MudTh>
-                <MudTh>Started</MudTh>
-                <MudTh>Completed</MudTh>
-                <MudTh>Duration</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Activity Instance ID</MudTh>
+                <MudTh>@_localizer["Started"]</MudTh>
+                <MudTh>@_localizer["Completed"]</MudTh>
+                <MudTh>@_localizer["Duration"]</MudTh>
+                <MudTh>@_localizer["Status"]</MudTh>
+                <MudTh>@_localizer["ActivityInstanceID"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 @{

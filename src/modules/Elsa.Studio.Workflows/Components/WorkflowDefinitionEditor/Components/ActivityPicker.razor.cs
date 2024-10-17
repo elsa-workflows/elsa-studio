@@ -1,12 +1,16 @@
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+﻿using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Resources;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
+using System.Resources;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -34,6 +38,27 @@ public partial class ActivityPicker
             return items
                 .GroupBy(x => x.Category);
         }
+    }
+    private string GetTranslation(string value)
+    {
+        string transletValue = string.Empty;
+
+        try
+        {
+            CultureInfo currentCulture = CultureInfo.CurrentCulture;
+            // string resourceValue = Resource.ResourceManager.GetString(value);
+            if (!string.IsNullOrEmpty(Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name))))
+            {
+                transletValue = Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name));
+            }
+        }
+        catch(Exception ex)
+        {
+            return value.ToString();
+        }
+
+
+        return transletValue;
     }
 
     /// <summary>
