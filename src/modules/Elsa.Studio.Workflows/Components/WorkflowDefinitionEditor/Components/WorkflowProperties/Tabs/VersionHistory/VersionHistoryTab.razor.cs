@@ -2,8 +2,10 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -19,6 +21,7 @@ public partial class VersionHistoryTab : IDisposable
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionHistoryService WorkflowDefinitionHistoryService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace.IsReadOnly;
@@ -124,14 +127,16 @@ public partial class VersionHistoryTab : IDisposable
             await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
     }
 
-    private async Task OnRollbackClicked(WorkflowDefinitionSummary workflowDefinition)
+    private async Task OnRollbackClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        var definitionVersionId = workflowDefinition.Id;
-        var definitionId = workflowDefinition.DefinitionId;
-        var version = workflowDefinition.Version;
+        var definitionVersionId = workflowDefinitionSummary.Id;
+        var definitionId = workflowDefinitionSummary.DefinitionId;
+        var version = workflowDefinitionSummary.Version;
         var revertingVersion = new WorkflowDefinitionVersion(definitionId, definitionVersionId, version);
         var newDefinitionVersion = await WorkflowDefinitionHistoryService.RevertAsync(revertingVersion);
         await ReloadTableAsync();
-        await ViewVersionAsync(newDefinitionVersion);
+        var newWorkflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(newDefinitionVersion.Id))!;
+        await Workspace.DisplayWorkflowDefinitionVersionAsync(newWorkflowDefinition);
+        await Mediator.NotifyAsync(new WorkflowDefinitionReverted(newWorkflowDefinition));       
     }
 }

@@ -126,10 +126,10 @@ public class WorkflowDefinitionEditorService(IRemoteBackendApiClientProvider rem
     public async Task<WorkflowDefinitionSummary> RevertAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionReverting(workflowDefinitionVersion), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionVersionReverting(workflowDefinitionVersion), cancellationToken);
         var newWorkflowDefinitionSummary = await api.RevertVersionAsync(workflowDefinitionVersion.WorkflowDefinitionId, workflowDefinitionVersion.Version, cancellationToken);
         var newWorkflowDefinitionVersion = WorkflowDefinitionVersion.FromDefinitionSummary(newWorkflowDefinitionSummary);
-        await mediator.NotifyAsync(new WorkflowDefinitionReverted(newWorkflowDefinitionVersion), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionVersionReverted(newWorkflowDefinitionVersion), cancellationToken);
         return newWorkflowDefinitionSummary;
     }
 
