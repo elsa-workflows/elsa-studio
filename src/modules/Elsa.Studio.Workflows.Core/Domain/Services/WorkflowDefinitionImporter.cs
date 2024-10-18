@@ -13,16 +13,6 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 public class WorkflowDefinitionImporter(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IMediator mediator) : IWorkflowDefinitionImporter
 {
     /// <inheritdoc />
-    public async Task<WorkflowDefinition> ImportAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default)
-    {
-        await mediator.NotifyAsync(new WorkflowDefinitionImporting(definitionModel), cancellationToken);
-        var api = await GetApiAsync(cancellationToken);
-        var newWorkflowDefinition = await api.ImportAsync(definitionModel, cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionImported(newWorkflowDefinition), cancellationToken);
-        return newWorkflowDefinition;
-    }
-    
-    /// <inheritdoc />
     public async Task<int> ImportAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);

@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
@@ -83,6 +84,7 @@ public partial class WorkflowEditor
     [Inject] private IMediator Mediator { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
+    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -280,6 +282,11 @@ public partial class WorkflowEditor
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
         if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
+    
+    private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
+    {
+        return await RemoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+    }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
     {
@@ -476,9 +483,12 @@ public partial class WorkflowEditor
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
             model.DefinitionId = _workflowDefinition!.DefinitionId;
-            var workflowDefinition = await WorkflowDefinitionImporter.ImportAsync(model);
-            await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
-            await SetWorkflowDefinitionAsync(workflowDefinition);
+            await Mediator.NotifyAsync(new WorkflowDefinitionImporting(model));
+            var api = await GetApiAsync();
+            var newWorkflowDefinition = await api.ImportAsync(model);
+            await _diagramDesigner.LoadActivityAsync(newWorkflowDefinition.Root);
+            await SetWorkflowDefinitionAsync(newWorkflowDefinition);
+            await Mediator.NotifyAsync(new WorkflowDefinitionImported(newWorkflowDefinition));
             await Mediator.NotifyAsync(new ImportedJson(json));
         }
         catch (Exception e)

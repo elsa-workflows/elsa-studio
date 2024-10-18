@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
@@ -8,11 +7,6 @@ namespace Elsa.Studio.Workflows.Domain.Contracts;
 /// </summary>
 public interface IWorkflowDefinitionImporter
 {
-    /// <summary>
-    /// Imports a workflow definition.
-    /// </summary>
-    Task<WorkflowDefinition> ImportAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default);
- 
     /// <summary>
     /// Imports a set of files containing workflow definitions.
     /// </summary>
