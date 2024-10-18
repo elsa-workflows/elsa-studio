@@ -44,11 +44,6 @@ public interface IWorkflowDefinitionService
     Task<GetPathSegmentsResponse?> GetPathSegmentsAsync(string id, string? childNodeId = null, CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Saves a workflow definition.
-    /// </summary>
-    Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(WorkflowDefinition workflowDefinition, bool publish, Func<WorkflowDefinition, Task>? workflowSavedCallback = null, CancellationToken cancellationToken = default);
-    
-    /// <summary>
     /// Deletes a workflow definition.
     /// </summary>
     Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default);
@@ -109,11 +104,6 @@ public interface IWorkflowDefinitionService
     Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Imports a workflow definition.
-    /// </summary>
-    Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default);
-    
-    /// <summary>
     /// Exports a set of workflow definitions.
     /// </summary>
     Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
@@ -124,17 +114,7 @@ public interface IWorkflowDefinitionService
     Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Reverts the specified workflow definition to the specified version.
-    /// </summary>
-    Task<WorkflowDefinitionSummary> RevertVersionAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default);
-    
-    /// <summary>
     /// Executes a workflow definition.
     /// </summary>
     Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Imports a set of files containing workflow definitions.
-    /// </summary>
-    Task<int> ImportFilesAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default);
 }

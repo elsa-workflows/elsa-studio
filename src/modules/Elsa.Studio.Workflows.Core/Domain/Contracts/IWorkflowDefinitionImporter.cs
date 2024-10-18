@@ -1,0 +1,20 @@
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Refit;
+
+namespace Elsa.Studio.Workflows.Domain.Contracts;
+
+/// <summary>
+/// A service that imports workflow definitions.
+/// </summary>
+public interface IWorkflowDefinitionImporter
+{
+    /// <summary>
+    /// Imports a workflow definition.
+    /// </summary>
+    Task<WorkflowDefinition> ImportAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default);
+ 
+    /// <summary>
+    /// Imports a set of files containing workflow definitions.
+    /// </summary>
+    Task<int> ImportAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default);
+}

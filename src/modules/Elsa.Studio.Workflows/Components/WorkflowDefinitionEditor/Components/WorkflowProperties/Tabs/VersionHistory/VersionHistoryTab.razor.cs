@@ -17,6 +17,7 @@ public partial class VersionHistoryTab : IDisposable
 
     [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionHistoryService WorkflowDefinitionHistoryService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
@@ -129,7 +130,7 @@ public partial class VersionHistoryTab : IDisposable
         var definitionId = workflowDefinition.DefinitionId;
         var version = workflowDefinition.Version;
         var revertingVersion = new WorkflowDefinitionVersion(definitionId, definitionVersionId, version);
-        var newDefinitionVersion = await WorkflowDefinitionService.RevertVersionAsync(revertingVersion);
+        var newDefinitionVersion = await WorkflowDefinitionHistoryService.RevertAsync(revertingVersion);
         await ReloadTableAsync();
         await ViewVersionAsync(newDefinitionVersion);
     }

@@ -23,8 +23,11 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddScoped<IRemoteFeatureProvider, RemoteRemoteFeatureProvider>()
-            .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
+            .AddScoped<IWorkflowDefinitionService, WorkflowDefinitionService>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
+            .AddScoped<IWorkflowDefinitionEditorService, WorkflowDefinitionEditorService>()
+            .AddScoped<IWorkflowDefinitionImporter, WorkflowDefinitionImporter>()
+            .AddScoped<IWorkflowDefinitionHistoryService, WorkflowDefinitionHistoryService>()
             .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
             .AddScoped<IActivityExecutionService, RemoteActivityExecutionService>()
             .AddScoped<IActivityRegistry, DefaultActivityRegistry>()

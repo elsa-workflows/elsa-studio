@@ -71,6 +71,8 @@ public partial class WorkflowEditor
     public string? SelectedActivityId { get; private set; }
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
@@ -160,11 +162,7 @@ public partial class WorkflowEditor
             workflowDefinition.Root = root;
         }
 
-        var result = await WorkflowDefinitionService.SaveAsync(workflowDefinition, publish, async definition =>
-        {
-            await SetWorkflowDefinitionAsync(definition);
-        });
-        await result.OnSuccessAsync(async response => await SetWorkflowDefinitionAsync(response.WorkflowDefinition));
+        var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition => await SetWorkflowDefinitionAsync(definition));
 
         _isDirty = false;
         StateHasChanged();
@@ -187,10 +185,9 @@ public partial class WorkflowEditor
 
     private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
     {
-        var result = await WorkflowDefinitionService.RetractAsync(_workflowDefinition!.DefinitionId);
-        await result.OnSuccessAsync(async definition =>
+        var result = await WorkflowDefinitionEditorService.RetractAsync(_workflowDefinition!, async definition => await SetWorkflowDefinitionAsync(definition));
+        await result.OnSuccessAsync(async _ =>
         {
-            await SetWorkflowDefinitionAsync(definition);
             if (onSuccess != null) await onSuccess();
         });
 
@@ -365,8 +362,8 @@ public partial class WorkflowEditor
 
     private async Task OnExportClicked()
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.Latest);
-        var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
+        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!);
+        var fileName = $"{_workflowDefinition!.Name.Kebaberize()}.json";
         if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -479,7 +476,7 @@ public partial class WorkflowEditor
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
             model.DefinitionId = _workflowDefinition!.DefinitionId;
-            var workflowDefinition = await WorkflowDefinitionService.ImportDefinitionAsync(model);
+            var workflowDefinition = await WorkflowDefinitionImporter.ImportAsync(model);
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
             await SetWorkflowDefinitionAsync(workflowDefinition);
             await Mediator.NotifyAsync(new ImportedJson(json));
