@@ -20,7 +20,7 @@
                                 <DataAnnotationsValidator/>
                                 <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => _model.Username)" @bind-Value="_model.Username" autocomplete="username"/>
                                 <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => _model.Password)" @bind-Value="_model.Password" InputType="InputType.Password" autocomplete="current-password"/>
-                                <MudCheckBox @bind-Checked="_model.RememberMe" Label="Remember me"/>
+                                <MudCheckBox @bind-Value="_model.RememberMe" Label="Remember me"/>
                                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
                             </div>
                         </EditForm>
