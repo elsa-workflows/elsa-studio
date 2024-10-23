@@ -100,7 +100,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         if (_designer == null) return;
         await _designer.SelectActivityAsync(nodeId);
-        //await GetActivityExecutionRecordsAsync
     }
 
     /// Sets the selected journal entry.
