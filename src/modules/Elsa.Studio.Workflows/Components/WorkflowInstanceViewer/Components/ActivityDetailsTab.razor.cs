@@ -43,6 +43,7 @@ public partial class ActivityDetailsTab
     public void Refresh()
     {
         CreateDataModels();
+        StateHasChanged();
     }
 
     /// <inheritdoc />
