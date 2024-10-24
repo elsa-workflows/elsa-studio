@@ -3,15 +3,17 @@
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resources.Resource> _localizer
 
 @if (WorkflowDefinition != null)
 {
     <div>
-        <MudText Typo="Typo.overline">Settings</MudText>
+        <MudText Typo="Typo.overline">@_localizer["Settings"]</MudText>
         <MudStack Spacing="3">
             <MudSelect
                 T="WorkflowActivationStrategyDescriptor"
-                Label="Activation strategy"
+                Label="@_localizer["Activationstrategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedActivationStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
@@ -25,7 +27,7 @@
             </MudSelect>
             <MudSelect
                 T="IncidentStrategyDescriptor?"
-                Label="Incident handling strategy"
+                Label="@_localizer["Incidenthandlingstrategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? "Default")"
@@ -38,7 +40,7 @@
                 }
             </MudSelect>
             <MudSelect
-                Label="Log Persistence Mode"
+                Label="@_localizer["Log Persistence Mode"]"
                 T="LogPersistenceMode?"
                 Variant="@Variant.Outlined"
                 Value="@_selectedLogPersistenceMode"
@@ -49,10 +51,10 @@
                     <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
                 }
             </MudSelect>
-            <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
+            <MudField Variant="Variant.Text" HelperText="@_localizer["Allowthisworkflow"]" Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
-                    Label="Usable as activity"
+                    Label="@_localizer["Usable as activity"]"
                     Value="@(WorkflowDefinition.Options.UsableAsActivity == true)"
                     ValueChanged="@OnUsableAsActivityCheckChanged"
                     Dense="true"
@@ -60,7 +62,7 @@
             </MudField>
             @if (WorkflowDefinition.Options.UsableAsActivity == true)
             {
-                <MudField Variant="Variant.Text" HelperText="When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow." Margin="Margin.None">
+                <MudField Variant="Variant.Text" HelperText="@_localizer["When you publish"]" Margin="Margin.None">
                     <MudCheckBox
                         T="bool?"
                         Label="Auto-update consuming workflows"

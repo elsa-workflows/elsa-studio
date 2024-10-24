@@ -120,6 +120,9 @@
   <data name="Acknowledge Datasource Event" xml:space="preserve">
     <value>データソースイベントの確認</value>
   </data>
+  <data name="Activationstrategy" xml:space="preserve">
+    <value>活性化戦略</value>
+  </data>
   <data name="Activities" xml:space="preserve">
     <value>活動</value>
   </data>
@@ -128,6 +131,9 @@
   </data>
   <data name="Aggregation" xml:space="preserve">
     <value>集約</value>
+  </data>
+  <data name="Allowthisworkflow" xml:space="preserve">
+    <value>このワークフローをアクティビティとして使用できるようにします。</value>
   </data>
   <data name="Autosave" xml:space="preserve">
     <value>自動保存</value>
@@ -215,6 +221,9 @@
   </data>
   <data name="Description" xml:space="preserve">
     <value>説明</value>
+  </data>
+  <data name="DescriptionPlaceHolder" xml:space="preserve">
+    <value>ワークフローの簡単な説明。</value>
   </data>
   <data name="Details" xml:space="preserve">
     <value>詳細</value>
@@ -324,6 +333,9 @@
   <data name="Incident Strategy" xml:space="preserve">
     <value>インシデント戦略</value>
   </data>
+  <data name="Incidenthandlingstrategy" xml:space="preserve">
+    <value>インシデント対応戦略</value>
+  </data>
   <data name="Incidents" xml:space="preserve">
     <value>事件</value>
   </data>
@@ -348,8 +360,14 @@
   <data name="Latestversion" xml:space="preserve">
     <value>最新バージョン</value>
   </data>
+  <data name="Log Persistence Mode" xml:space="preserve">
+    <value>ログ永続モード</value>
+  </data>
   <data name="Looping" xml:space="preserve">
     <value>ループ</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>メタデータ</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>名前</value>
@@ -447,6 +465,9 @@
   <data name="Set Workflow Context Parameter" xml:space="preserve">
     <value>ワークフローコンテキストパラメータの設定</value>
   </data>
+  <data name="Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
   <data name="Spreadsheet Instance Status Changed" xml:space="preserve">
     <value>スプレッドシート インスタンスのステータスが変更されました</value>
   </data>
@@ -504,8 +525,14 @@
   <data name="Updated" xml:space="preserve">
     <value>更新</value>
   </data>
+  <data name="Usable as activity" xml:space="preserve">
+    <value>アクティビティとして使用可能</value>
+  </data>
   <data name="Variables" xml:space="preserve">
     <value>変数</value>
+  </data>
+  <data name="When you publish" xml:space="preserve">
+    <value>新しいバージョンを公開すると、それを使用するすべてのワークフローが更新され、このワークフローの新しいバージョンを指すようになります。</value>
   </data>
   <data name="While" xml:space="preserve">
     <value>その間</value>
@@ -518,6 +545,9 @@
   </data>
   <data name="Workflowinstances" xml:space="preserve">
     <value>ワークフローインスタンス</value>
+  </data>
+  <data name="WorkflowNamePlaceHolder" xml:space="preserve">
+    <value>ワークフローの名前。</value>
   </data>
   <data name="Write Line" xml:space="preserve">
     <value>行を書く</value>

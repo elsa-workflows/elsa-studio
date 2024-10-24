@@ -14,17 +14,32 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj"/>
-        <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj"/>
+        <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- Prevents build error on GH Actions -->
-        <Content Remove="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json"/>
+        <Content Remove="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json" />
         <!--        <None Include="ClientLib\package-lock.json;ClientLib\package.json;ClientLib\tsconfig.json">-->
         <!--            <CopyToOutputDirectory>Never</CopyToOutputDirectory>-->
         <!--            <CopyToPublishDirectory>Never</CopyToPublishDirectory>-->
         <!--        </None>-->
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Localization\Localization.en-US.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Localization.en-US.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Localization\Localization.en-US.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Localization.en-US.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>
