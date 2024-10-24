@@ -282,7 +282,7 @@ public partial class WorkflowEditor
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
         if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
-    
+
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
     {
         return await RemoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
@@ -393,7 +393,7 @@ public partial class WorkflowEditor
 
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
     {
-        IBrowserFile? importedFile = null;
+        var importedFiles = new List<IBrowserFile>();
 
         _isDirty = true;
         _isProgressing = true;
@@ -402,15 +402,15 @@ public partial class WorkflowEditor
         foreach (var file in files)
         {
             await Mediator.NotifyAsync(new ImportingFile(file));
-            var stream = file.OpenReadStream();
+            await using var stream = file.OpenReadStream();
 
             if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
             {
                 var success = await ImportZipFileAsync(stream);
                 if (success)
                 {
-                    importedFile = file;
-                    break;
+                    importedFiles.Add(file);
+                    await Mediator.NotifyAsync(new ImportedFile(file));
                 }
             }
 
@@ -419,8 +419,8 @@ public partial class WorkflowEditor
                 var success = await ImportFromStreamAsync(stream);
                 if (success)
                 {
-                    importedFile = file;
-                    break;
+                    importedFiles.Add(file);
+                    await Mediator.NotifyAsync(new ImportedFile(file));
                 }
             }
         }
@@ -429,11 +429,12 @@ public partial class WorkflowEditor
         _isDirty = false;
         StateHasChanged();
 
-        if (importedFile != null)
-        {
-            await Mediator.NotifyAsync(new ImportedFile(importedFile));
-            Snackbar.Add($"Successfully imported workflow definition from file {importedFile.Name}", Severity.Success);
-        }
+        if (importedFiles.Count == 0)
+            Snackbar.Add("No files were imported.", Severity.Warning);
+        else if (importedFiles.Count == 1)
+            Snackbar.Add($"Successfully imported workflow definition from file {importedFiles[0].Name}.", Severity.Success);
+        else if (importedFiles.Count > 1)
+            Snackbar.Add($"Successfully imported {importedFiles.Count} files.", Severity.Success);
     }
 
     private async Task<bool> ImportZipFileAsync(Stream stream)
