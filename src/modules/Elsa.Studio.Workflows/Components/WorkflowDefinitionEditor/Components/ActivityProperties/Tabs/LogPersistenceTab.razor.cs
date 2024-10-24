@@ -149,7 +149,7 @@ public partial class LogPersistenceTab
     private string? GetPropertyLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, string?> properties)
     {
         var prop = propertyName.Camelize();
-        return properties[prop];
+        return properties.TryGetValue(prop, out var v) ? v : null;
     }
 
     private void SetLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, string?> properties, string? value)
