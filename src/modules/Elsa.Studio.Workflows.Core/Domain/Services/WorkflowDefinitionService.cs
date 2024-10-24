@@ -65,76 +65,12 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
 
     /// <inheritdoc />
-    public async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(WorkflowDefinition workflowDefinition, bool publish, Func<WorkflowDefinition, Task>? workflowSavedCallback = null, CancellationToken cancellationToken = default)
-    {
-        var request = new SaveWorkflowDefinitionRequest
-        {
-            Model = new WorkflowDefinitionModel
-            {
-                Id = workflowDefinition.Id,
-                Description = workflowDefinition.Description,
-                Name = workflowDefinition.Name,
-                ToolVersion = workflowDefinition.ToolVersion,
-                Inputs = workflowDefinition.Inputs,
-                Options = workflowDefinition.Options,
-                Outcomes = workflowDefinition.Outcomes,
-                Outputs = workflowDefinition.Outputs,
-                Variables = workflowDefinition.Variables.Select(x => new VariableDefinition
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    TypeName = x.TypeName,
-                    Value = x.Value?.ToString(),
-                    IsArray = x.IsArray,
-                    StorageDriverTypeName = x.StorageDriverTypeName
-                }).ToList(),
-                Version = workflowDefinition.Version,
-                CreatedAt = workflowDefinition.CreatedAt,
-                CustomProperties = workflowDefinition.CustomProperties,
-                DefinitionId = workflowDefinition.DefinitionId,
-                IsLatest = workflowDefinition.IsLatest,
-                IsPublished = workflowDefinition.IsPublished,
-                Root = workflowDefinition.Root
-            },
-            Publish = publish,
-        };
-        
-        var api = await GetApiAsync(cancellationToken);
-        
-        try
-        {
-            if (request.Publish == true) await mediator.NotifyAsync(new WorkflowDefinitionPublishing(workflowDefinition), cancellationToken);
-            await mediator.NotifyAsync(new WorkflowDefinitionSaving(workflowDefinition), cancellationToken);
-            var response = await api.SaveAsync(request, cancellationToken);
-            
-            if(workflowSavedCallback != null)
-                await workflowSavedCallback(response.WorkflowDefinition);
-            
-            await mediator.NotifyAsync(new WorkflowDefinitionSaved(response.WorkflowDefinition), cancellationToken);
-            if (request.Publish == true) await mediator.NotifyAsync(new WorkflowDefinitionPublished(response.WorkflowDefinition), cancellationToken);
-            return new(response);
-        }
-        catch (ValidationApiException e)
-        {
-            var errors = e.GetValidationErrors();
-            await mediator.NotifyAsync(new WorkflowDefinitionSavingFailed(workflowDefinition, errors), cancellationToken);
-            if (request.Publish == true) await mediator.NotifyAsync(new WorkflowDefinitionPublishingFailed(workflowDefinition, errors), cancellationToken);
-            return new(errors);
-        }
-    }
-
-    /// <inheritdoc />
     public async Task<SaveWorkflowDefinitionResponse> PublishAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var workflowDefinition = await api.GetByDefinitionIdAsync(definitionId, cancellationToken: cancellationToken);
-        
-        if(workflowDefinition == null)
-            throw new Exception($"Workflow definition with ID {definitionId} not found.");
-        
-        await mediator.NotifyAsync(new WorkflowDefinitionPublishing(workflowDefinition), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionIdPublishing(definitionId), cancellationToken);
         var response = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionPublished(workflowDefinition), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionPublished(response.WorkflowDefinition), cancellationToken);
         return response;
     }
 
@@ -144,15 +80,15 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         try
         {
             var api = await GetApiAsync(cancellationToken);
-            await mediator.NotifyAsync(new WorkflowDefinitionRetracting(definitionId), cancellationToken);
+            await mediator.NotifyAsync(new WorkflowDefinitionIdRetracting(definitionId), cancellationToken);
             var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
-            await mediator.NotifyAsync(new WorkflowDefinitionRetracted(definitionId), cancellationToken);
+            await mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
             return new(definition);
         }
         catch (ValidationApiException e)
         {
             var errors = e.GetValidationErrors();
-            await mediator.NotifyAsync(new WorkflowDefinitionRetractingFailed(definitionId, errors), cancellationToken);
+            await mediator.NotifyAsync(new WorkflowDefinitionIdRetractingFailed(definitionId, errors), cancellationToken);
             return new(errors);
         }
     }
@@ -309,25 +245,15 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionExporting(definitionId, versionOptions), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionIdExporting(definitionId, versionOptions), cancellationToken);
         var response = await api.ExportAsync(definitionId, versionOptions, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault($"workflow-definition-{definitionId}.json");
         var fileDownload = new FileDownload(fileName, response.Content!);
-        await mediator.NotifyAsync(new WorkflowDefinitionExported(definitionId, versionOptions, fileDownload), cancellationToken);
+        await mediator.NotifyAsync(new WorkflowDefinitionIdExported(definitionId, versionOptions, fileDownload), cancellationToken);
         
         return fileDownload;
     }
-
-    /// <inheritdoc />
-    public async Task<WorkflowDefinition> ImportDefinitionAsync(WorkflowDefinitionModel definitionModel, CancellationToken cancellationToken = default)
-    {
-        await mediator.NotifyAsync(new WorkflowDefinitionImporting(definitionModel), cancellationToken);
-        var api = await GetApiAsync(cancellationToken);
-        var newWorkflowDefinition = await api.ImportAsync(definitionModel, cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionImported(newWorkflowDefinition), cancellationToken);
-        return newWorkflowDefinition;
-    }
-
+    
     /// <inheritdoc />
     public async Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
@@ -344,18 +270,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         var api = await GetApiAsync(cancellationToken);
         return await api.UpdateReferencesAsync(definitionId, new UpdateConsumingWorkflowReferencesRequest(), cancellationToken);
     }
-
-    /// <inheritdoc />
-    public async Task<WorkflowDefinitionSummary> RevertVersionAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default)
-    {
-        var api = await GetApiAsync(cancellationToken);
-        await mediator.NotifyAsync(new WorkflowDefinitionReverting(workflowDefinitionVersion), cancellationToken);
-        var newWorkflowDefinitionSummary = await api.RevertVersionAsync(workflowDefinitionVersion.WorkflowDefinitionId, workflowDefinitionVersion.Version, cancellationToken);
-        var newWorkflowDefinitionVersion = WorkflowDefinitionVersion.FromDefinitionSummary(newWorkflowDefinitionSummary);
-        await mediator.NotifyAsync(new WorkflowDefinitionReverted(newWorkflowDefinitionVersion), cancellationToken);
-        return newWorkflowDefinitionSummary;
-    }
-
+    
     /// <inheritdoc />
     public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
@@ -363,14 +278,6 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
         var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
         return workflowInstanceId;
-    }
-
-    /// <inheritdoc />
-    public async Task<int> ImportFilesAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default)
-    {
-        var api = await GetApiAsync(cancellationToken);
-        var response = await api.ImportFilesAsync(streamParts.ToList(), cancellationToken);
-        return response.Count;
     }
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)

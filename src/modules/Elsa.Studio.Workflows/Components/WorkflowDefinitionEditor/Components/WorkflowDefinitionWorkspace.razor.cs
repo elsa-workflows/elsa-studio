@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -45,6 +46,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
 
     private WorkflowEditor WorkflowEditor { get; set; } = default!;
 
@@ -68,6 +70,9 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Displays the specified workflow definition version.
     public async Task DisplayWorkflowDefinitionVersionAsync(WorkflowDefinition workflowDefinition)
     {
+        if(_selectedWorkflowDefinition == workflowDefinition)
+            return;
+        
         _selectedWorkflowDefinition = workflowDefinition;
         
         if(workflowDefinition.IsLatest)

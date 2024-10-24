@@ -29,6 +29,7 @@ public partial class WorkflowDefinitionList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
@@ -321,7 +322,7 @@ public partial class WorkflowDefinitionList
         foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
-        var count = await WorkflowDefinitionService.ImportFilesAsync(streamParts);
+        var count = await WorkflowDefinitionImporter.ImportAsync(streamParts);
         var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
         foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });

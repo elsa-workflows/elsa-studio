@@ -3,4 +3,4 @@ using Elsa.Studio.Workflows.Domain.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Notifications;
 
-public record WorkflowDefinitionReverting(WorkflowDefinitionVersion WorkflowDefinitionVersion) : INotification;
+public record WorkflowDefinitionVersionReverting(WorkflowDefinitionVersion WorkflowDefinitionVersion) : INotification;
