@@ -84,7 +84,7 @@ public partial class WorkflowEditor
     [Inject] private IMediator Mediator { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
-    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -285,7 +285,7 @@ public partial class WorkflowEditor
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
     {
-        return await RemoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+        return await BackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()

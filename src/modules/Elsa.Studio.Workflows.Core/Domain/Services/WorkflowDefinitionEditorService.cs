@@ -17,7 +17,7 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// <summary>
 /// A workflow definition service that uses a remote backend to retrieve workflow definitions.
 /// </summary>
-public class WorkflowDefinitionEditorService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IMediator mediator) : IWorkflowDefinitionEditorService
+public class WorkflowDefinitionEditorService(IBackendApiClientProvider backendApiClientProvider, IMediator mediator) : IWorkflowDefinitionEditorService
 {
     /// <inheritdoc />
     public async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(WorkflowDefinition workflowDefinition, bool publish, Func<WorkflowDefinition, Task>? workflowSavedCallback = null, CancellationToken cancellationToken = default)
@@ -135,6 +135,6 @@ public class WorkflowDefinitionEditorService(IRemoteBackendApiClientProvider rem
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
     {
-        return await remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+        return await backendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
     }
 }
