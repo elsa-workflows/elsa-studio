@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, RemoteServerInformationProvider>()
             .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
             .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
+            .AddScoped<ILogPersistenceStrategyService, RemoteLogPersistenceStrategyService>()
             .AddScoped<IIncidentStrategiesProvider, RemoteIncidentStrategiesProvider>()
             .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()

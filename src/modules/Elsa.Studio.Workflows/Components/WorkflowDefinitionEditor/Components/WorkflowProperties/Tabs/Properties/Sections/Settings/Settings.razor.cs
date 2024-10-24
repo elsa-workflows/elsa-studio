@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using System.Text.Json;
+using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -34,39 +35,50 @@ public partial class Settings
 
     [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = default!;
     [Inject] private IIncidentStrategiesProvider IncidentStrategiesProvider { get; set; } = default!;
+    [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = default!;
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
     private ICollection<WorkflowActivationStrategyDescriptor> _activationStrategies = new List<WorkflowActivationStrategyDescriptor>();
     private ICollection<IncidentStrategyDescriptor?> _incidentStrategies = new List<IncidentStrategyDescriptor?>();
+    private ICollection<LogPersistenceStrategyDescriptor> _logPersistenceStrategyDescriptors = new List<LogPersistenceStrategyDescriptor>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
-    private LogPersistenceMode? _selectedLogPersistenceMode;
+    private LogPersistenceStrategyDescriptor? _selectedLogPersistenceStrategy;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        // Load activation strategies.
         _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
-
-        // Load incident strategies.
         var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
         _incidentStrategies = new IncidentStrategyDescriptor?[] { default }.Concat(incidentStrategies).ToList();
-
-        // Select the current activation strategy.
+        _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
+        
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
-
-        // Select the current incident strategy.
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
+        _selectedLogPersistenceStrategy = GetLogPersistenceStrategy();
+    }
 
-        // Select the current log persistence mode
-        var persistenceMode = LogPersistenceMode.Inherit;
+    private LogPersistenceMode? LegacyGetLogPersistenceMode()
+    {
         if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var value) && value != null!)
         {
             var persistenceString = ((JsonElement)value).GetProperty("default");
-            persistenceMode = (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
+            return (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
         }
         
-        _selectedLogPersistenceMode = persistenceMode;
+        return null;
+    }
+    
+    private LogPersistenceStrategyDescriptor? GetLogPersistenceStrategy()
+    {
+        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceStrategy", out var value) && value != null!)
+        {
+            var persistenceString = ((JsonElement)value).GetProperty("default");
+            return _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == persistenceString.ToString());
+        }
+     
+        var legacyMode = LegacyGetLogPersistenceMode();
+        return _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.DisplayName == legacyMode.ToString()) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
     }
 
     private async Task RaiseWorkflowUpdatedAsync()
@@ -88,11 +100,11 @@ public partial class Settings
         WorkflowDefinition!.Options.IncidentStrategyType = value?.TypeName;
         await RaiseWorkflowUpdatedAsync();
     }
-
-    private async Task OnLogPersistenceModeChanged(LogPersistenceMode? value)
+    
+    private async Task OnLogPersistenceStrategyChanged(LogPersistenceStrategyDescriptor? value)
     {
-        _selectedLogPersistenceMode = value;
-        WorkflowDefinition!.CustomProperties["logPersistenceMode"] = new Dictionary<string, object>() { { "default", value } };
+        _selectedLogPersistenceStrategy = value;
+        WorkflowDefinition!.CustomProperties["logPersistenceStrategy"] = new Dictionary<string, object?> { { "default", value?.TypeName } };
         await RaiseWorkflowUpdatedAsync();
     }
 

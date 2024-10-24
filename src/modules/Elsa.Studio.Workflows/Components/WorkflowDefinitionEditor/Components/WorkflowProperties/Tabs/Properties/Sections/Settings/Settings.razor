@@ -2,6 +2,7 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
+@using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
 
 @if (WorkflowDefinition != null)
@@ -38,15 +39,17 @@
                 }
             </MudSelect>
             <MudSelect
-                Label="Log Persistence Mode"
-                T="LogPersistenceMode?"
+                T="LogPersistenceStrategyDescriptor?"
+                Label="Log Persistence Strategy"
                 Variant="@Variant.Outlined"
-                Value="@_selectedLogPersistenceMode"
-                ValueChanged="@OnLogPersistenceModeChanged"
+                Value="@_selectedLogPersistenceStrategy"
+                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
+                ValueChanged="@OnLogPersistenceStrategyChanged"
+                HelperText="@(_selectedLogPersistenceStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
+                @foreach (var strategy in _logPersistenceStrategyDescriptors)
                 {
-                    <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
+                    <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
             <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
