@@ -1,0 +1,69 @@
+﻿@using Variant = MudBlazor.Variant
+@inherits StudioComponentBase
+
+@{
+    RenderFragment RenderSelectComponent(string propertyName, IDictionary<string, string?> properties) =>
+        @<MudSelect Label="@propertyName"
+                    T="string"
+                    Variant="@Variant.Outlined"
+                    Value="@GetPropertyLogPersistenceStrategyTypeName(propertyName, properties)"
+                    ValueChanged="@(value => OnPropertyStrategyChanged(propertyName, properties, value))"
+                    ToStringFunc="@(x => x.ToString())"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+            @foreach (var descriptor in _logPersistenceStrategyDescriptors)
+            {
+                <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
+            }
+        </MudSelect>;
+}
+<div class="pa-4">
+    <MudForm ReadOnly="IsReadOnly">
+        <MudStack Spacing="6">
+            <MudText Typo="Typo.overline">Default configuration</MudText>
+            <MudSelect Label="Default Strategy"
+                       T="string"
+                       Variant="@Variant.Outlined"
+                       Value="@_persistenceConfiguration.Default"
+                       ValueChanged="OnDefaultStrategyChanged"
+                       ToStringFunc="@(x => x?.ToString())"
+                       ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+                @foreach (var descriptor in _logPersistenceStrategyDescriptors)
+                {
+                    <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
+                }
+
+            </MudSelect>
+            <MudDivider/>
+            <MudText Typo="Typo.overline">Input Properties</MudText>
+            @if (!InputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                </Well>
+            }
+            else
+            {
+                foreach (var input in InputDescriptors)
+                {
+                    @RenderSelectComponent(input.Name, _persistenceConfiguration.Inputs)
+                }
+            }
+
+            <MudDivider/>
+            <MudText Typo="Typo.overline">Output Properties</MudText>
+            @if (!OutputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                </Well>
+            }
+            else
+            {
+                foreach (var output in OutputDescriptors)
+                {
+                    @RenderSelectComponent(output.Name, _persistenceConfiguration.Outputs)
+                }
+            }
+        </MudStack>
+    </MudForm>
+</div>

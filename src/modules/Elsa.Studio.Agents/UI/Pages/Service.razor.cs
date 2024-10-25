@@ -33,7 +33,7 @@ public partial class Service : StudioComponentBase
         else
             _entity = await apiClient.GetAsync(ServiceId);
 
-        _validator = new ServiceInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        _validator = new ServiceInputModelValidator(apiClient);
     }
 
     private async Task OnSaveClicked()

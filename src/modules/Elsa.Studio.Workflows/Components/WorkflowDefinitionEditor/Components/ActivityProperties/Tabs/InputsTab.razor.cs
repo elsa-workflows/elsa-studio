@@ -137,15 +137,12 @@ public partial class InputsTab
 
         var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
 
-        await InvokeWithBlazorServiceContext(async () =>
+        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
         {
-            var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
-            {
-                Context = contextDictionary
-            });
-
-            currentInputDescriptor.UISpecifications = result.Items;
+            Context = contextDictionary
         });
+
+        currentInputDescriptor.UISpecifications = result.Items;
     }
 
     private static WrappedInput? ToWrappedInput(object? value)

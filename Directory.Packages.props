@@ -12,7 +12,7 @@
     <PackageVersion Include="BlazorMonaco" Version="3.2.0" />
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="7.0.1" />
     <PackageVersion Include="FluentValidation" Version="11.10.0" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2024.2.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageVersion Include="MudBlazor" Version="7.10.0" />

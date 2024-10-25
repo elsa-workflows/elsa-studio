@@ -11,14 +11,13 @@ namespace Elsa.Studio.Agents.UI.Validators;
 public class ApiKeyInputModelValidator : AbstractValidator<ApiKeyInputModel>
 {
     /// <inheritdoc />
-    public ApiKeyInputModelValidator(IApiKeysApi apiKeysApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public ApiKeyInputModelValidator(IApiKeysApi apiKeysApi)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the API key.");
         
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
             {
-                blazorServiceAccessor.Services = serviceProvider;
                 var request = new IsUniqueNameRequest
                 {
                     Name = name!,

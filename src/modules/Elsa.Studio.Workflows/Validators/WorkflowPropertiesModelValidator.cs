@@ -11,16 +11,12 @@ namespace Elsa.Studio.Workflows.Validators;
 public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowMetadataModel>
 {
     /// <inheritdoc />
-    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the workflow.");
         
         RuleFor(x => x.Name)
-            .MustAsync((context, name, cancellationToken) =>
-            {
-                blazorServiceAccessor.Services = serviceProvider;
-                return workflowDefinitionService.GetIsNameUniqueAsync(name!, context.DefinitionId, cancellationToken);
-            })
+            .MustAsync((context, name, cancellationToken) => workflowDefinitionService.GetIsNameUniqueAsync(name!, context.DefinitionId, cancellationToken))
             .WithMessage("A workflow with this name already exists.");
     }
 }

@@ -29,6 +29,7 @@ public partial class WorkflowDefinitionList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
@@ -50,43 +51,38 @@ public partial class WorkflowDefinitionList
                 : OrderDirection.Ascending
         };
 
-        var workflowDefinitionRows = await InvokeWithBlazorServiceContext(async () =>
+        var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+        IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
+        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+
+        var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
-            var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
-            IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
-            var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+            DefinitionIds = unpublishedWorkflowDefinitionIds,
+        }, VersionOptions.Published);
 
-            var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
+
+        var workflowDefinitionRows = latestWorkflowDefinitionsResponse.Items
+            .Select(definition =>
             {
-                DefinitionIds = unpublishedWorkflowDefinitionIds,
-            }, VersionOptions.Published, cancellationToken);
+                var latestVersionNumber = definition.Version;
+                var isPublished = definition.IsPublished;
+                var publishedVersion = isPublished
+                    ? definition
+                    : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
+                var publishedVersionNumber = publishedVersion?.Version;
 
-            _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
-
-            var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items
-                .Select(definition =>
-                {
-                    var latestVersionNumber = definition.Version;
-                    var isPublished = definition.IsPublished;
-                    var publishedVersion = isPublished
-                        ? definition
-                        : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
-                    var publishedVersionNumber = publishedVersion?.Version;
-
-                    return new WorkflowDefinitionRow(
-                        definition.Id,
-                        definition.DefinitionId,
-                        latestVersionNumber,
-                        publishedVersionNumber,
-                        definition.Name,
-                        definition.Description,
-                        definition.IsPublished,
-                        (definition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);
-                })
-                .ToList();
-
-            return latestWorkflowDefinitions;
-        });
+                return new WorkflowDefinitionRow(
+                    definition.Id,
+                    definition.DefinitionId,
+                    latestVersionNumber,
+                    publishedVersionNumber,
+                    definition.Name,
+                    definition.Description,
+                    definition.IsPublished,
+                    (definition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);
+            })
+            .ToList();
 
         return new TableData<WorkflowDefinitionRow>
         {
@@ -130,7 +126,7 @@ public partial class WorkflowDefinitionList
         if (!dialogResult.Canceled)
         {
             var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!));
+            var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
 
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => Snackbar.Add(string.Join(Environment.NewLine, errors.Errors)));
@@ -180,7 +176,7 @@ public partial class WorkflowDefinitionList
             return;
 
         var definitionId = workflowDefinitionRow.DefinitionId;
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.DeleteAsync(definitionId)));
+        await WorkflowDefinitionService.DeleteAsync(definitionId);
         Reload();
     }
 
@@ -196,13 +192,13 @@ public partial class WorkflowDefinitionList
         {
             DefinitionVersionId = workflowDefinitionRow.Id
         };
-        await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.BulkCancelAsync(request));
+        await WorkflowInstanceService.BulkCancelAsync(request);
         Reload();
     }
 
     private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest));
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
         var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -216,7 +212,7 @@ public partial class WorkflowDefinitionList
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds)));
+        await WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds);
         Reload();
     }
 
@@ -229,7 +225,7 @@ public partial class WorkflowDefinitionList
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkPublishAsync(workflowDefinitionIds));
+        var response = await WorkflowDefinitionService.BulkPublishAsync(workflowDefinitionIds);
 
         if (response.Published.Count > 0)
         {
@@ -279,7 +275,7 @@ public partial class WorkflowDefinitionList
             return;
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkRetractAsync(workflowDefinitionIds));
+        var response = await WorkflowDefinitionService.BulkRetractAsync(workflowDefinitionIds);
 
         if (response.Retracted.Count > 0)
         {
@@ -311,7 +307,7 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkExportClicked()
     {
         var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
-        var download = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds));
+        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
         var fileName = download.FileName;
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
@@ -326,7 +322,7 @@ public partial class WorkflowDefinitionList
         foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
-        var count = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ImportFilesAsync(streamParts));
+        var count = await WorkflowDefinitionImporter.ImportAsync(streamParts);
         var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
         foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
@@ -344,7 +340,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnPublishClicked(string definitionId)
     {
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.PublishAsync(definitionId));
+        var response = await WorkflowDefinitionService.PublishAsync(definitionId);
         if (response.AlreadyPublished)
         {
             Snackbar.Add("Workflow was already published", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
@@ -371,7 +367,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnRetractClicked(string definitionId)
     {
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => WorkflowDefinitionService.RetractAsync(definitionId)));
+        await WorkflowDefinitionService.RetractAsync(definitionId);
         Snackbar.Add("Workflow retracted", Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }

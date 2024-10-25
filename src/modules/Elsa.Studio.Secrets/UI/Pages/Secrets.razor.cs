@@ -29,7 +29,7 @@ public partial class Secrets
     private async Task<TableData<SecretModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetApiAsync();
-        var secrets = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
+        var secrets = await apiClient.ListAsync(cancellationToken);
 
         return new TableData<SecretModel>
         {
@@ -64,19 +64,16 @@ public partial class Secrets
         if (!dialogResult!.Canceled)
         {
             var inputModel = (SecretInputModel)dialogResult.Data;
-            await InvokeWithBlazorServiceContext(async () =>
+            try
             {
-                try
-                {
-                    var model = await apiClient.CreateAsync(inputModel);
-                    //await EditAsync(model.Id);
-                    Reload();
-                }
-                catch (Exception e)
-                {
-                    Snackbar.Add(e.Message, Severity.Error);
-                }
-            });
+                var model = await apiClient.CreateAsync(inputModel);
+                //await EditAsync(model.Id);
+                Reload();
+            }
+            catch (Exception e)
+            {
+                Snackbar.Add(e.Message, Severity.Error);
+            }
         }
     }
 
@@ -109,7 +106,7 @@ public partial class Secrets
 
         var id = model.Id;
         var apiClient = await GetApiAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.DeleteAsync(id)));
+        await apiClient.DeleteAsync(id);
         Reload();
     }
 
@@ -123,7 +120,7 @@ public partial class Secrets
         var ids = _selectedRows.Select(x => x.Id).ToList();
         var request = new BulkDeleteRequest { Ids = ids };
         var apiClient = await GetApiAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.BulkDeleteAsync(request)));
+        await apiClient.BulkDeleteAsync(request);
         Reload();
     }
 }

@@ -12,7 +12,7 @@ namespace Elsa.Studio.Secrets.UI.Validators;
 public class SecretInputModelValidator : AbstractValidator<SecretInputModel>
 {
     /// <inheritdoc />
-    public SecretInputModelValidator(ISecretsApi api, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    public SecretInputModelValidator(ISecretsApi api)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the secret.");
         RuleFor(x => x.Value).NotEmpty().WithMessage("Please enter the secret value.");
@@ -20,7 +20,6 @@ public class SecretInputModelValidator : AbstractValidator<SecretInputModel>
         RuleFor(x => x.Name)
             .MustAsync(async (context, name, cancellationToken) =>
             {
-                blazorServiceAccessor.Services = serviceProvider;
                 var request = new IsUniqueNameRequest
                 {
                     Name = name!,
