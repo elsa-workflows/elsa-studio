@@ -10,6 +10,7 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.Domain.Options;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,9 @@ builder.Services.AddSignalR(options =>
     // Set MaximumReceiveMessageSize:
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
 });
+
+// Configure compatibility.
+builder.Services.Configure<CompatibilityOptions>(options => configuration.GetSection("Compatibility").Bind(options));
 
 // Build the application.
 var app = builder.Build();

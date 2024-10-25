@@ -11,6 +11,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.ActivityPortProviders.Providers;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -19,6 +20,7 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Activ
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
+using Elsa.Studio.Workflows.Domain.Options;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -26,6 +28,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
@@ -85,6 +88,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
     [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
+    [Inject] private IOptions<CompatibilityOptions> CompatibilityOptions { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -475,11 +479,12 @@ public partial class WorkflowEditor
         try
         {
             await Mediator.NotifyAsync(new ImportingJson(json));
-            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
-
+            
             // Check if this is a workflow definition file.
-            if (model.DefinitionId == null!)
-                return false;
+            if(!IsWorkflowDefinitionJson(json))
+                return true;
+            
+            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
 
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
@@ -495,6 +500,42 @@ public partial class WorkflowEditor
         catch (Exception e)
         {
             Snackbar.Add($"Failed to import workflow definition: {e.Message}", Severity.Error);
+            return false;
+        }
+
+        return true;
+    }
+
+    // Determine if this is a workflow definition JSON file.
+    private bool IsWorkflowDefinitionJson(string json)
+    {
+        var jsonDocument = JsonDocument.Parse(json);
+        var rootElement = jsonDocument.RootElement;
+        
+        if (CompatibilityOptions.Value.RequireSchemaForImport)
+        {
+            if(!rootElement.TryGetProperty("$schema", out var schemaUrl))
+                return false;
+            
+            if (schemaUrl.GetString()?.StartsWith("https://elsaworkflows.io/schemas/workflow-definition") == false)
+                return false;
+        }
+        else
+        {
+            if (!rootElement.TryGetProperty("definitionId", out _))
+                return false;
+
+            if (!rootElement.TryGetProperty("toolVersion", out _))
+                return false;
+
+            if (!rootElement.TryGetProperty("id", out _))
+                return false;
+
+            if (!rootElement.TryGetProperty("root", out _))
+                return false;
+
+            if (!rootElement.TryGetProperty("name", out _))
+                return false;
         }
 
         return true;
