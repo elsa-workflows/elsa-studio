@@ -10,7 +10,8 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Elsa.Studio.Workflows.Domain.Options;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Services;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,7 @@ builder.Services.AddWebhooksModule();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+builder.Services.AddScoped<IWorkflowJsonDetector, SchemaWorkflowJsonDetector>();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
@@ -46,9 +48,6 @@ builder.Services.AddSignalR(options =>
     // Set MaximumReceiveMessageSize:
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
 });
-
-// Configure compatibility.
-builder.Services.Configure<CompatibilityOptions>(options => configuration.GetSection("Compatibility").Bind(options));
 
 // Build the application.
 var app = builder.Build();
