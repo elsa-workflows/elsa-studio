@@ -85,6 +85,7 @@ public partial class WorkflowEditor
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
     [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
+    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -475,11 +476,12 @@ public partial class WorkflowEditor
         try
         {
             await Mediator.NotifyAsync(new ImportingJson(json));
-            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
-
+            
             // Check if this is a workflow definition file.
-            if (model.DefinitionId == null!)
-                return false;
+            if(!WorkflowJsonDetector.IsWorkflowSchema(json))
+                return true;
+            
+            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
 
             // Overwrite the definition ID with the one currently loaded.
             // This will ensure that the imported definition will be saved as a new version of the current definition. 
@@ -495,6 +497,7 @@ public partial class WorkflowEditor
         catch (Exception e)
         {
             Snackbar.Add($"Failed to import workflow definition: {e.Message}", Severity.Error);
+            return false;
         }
 
         return true;
