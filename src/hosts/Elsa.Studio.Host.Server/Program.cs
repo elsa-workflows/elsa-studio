@@ -10,8 +10,6 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Services;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -40,7 +38,6 @@ builder.Services.AddWebhooksModule();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
-builder.Services.AddScoped<IWorkflowJsonDetector, SchemaWorkflowJsonDetector>();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

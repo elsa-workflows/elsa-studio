@@ -1,8 +1,6 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Notifications;
 using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;

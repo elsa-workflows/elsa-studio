@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IActivityPortService, DefaultActivityPortService>()
             .AddScoped<IActivityVisitor, DefaultActivityVisitor>()
             .AddScoped<IActivityResolver, DefaultActivityResolver>()
-            .AddScoped<IWorkflowJsonDetector, SimpleWorkflowJsonDetector>()
+            .AddScoped<IWorkflowJsonDetector, CompatWorkflowJsonDetector>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
