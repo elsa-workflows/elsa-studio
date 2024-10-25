@@ -82,7 +82,7 @@ public partial class LogPersistenceTab
 
     private async Task OnDefaultStrategyChanged(string? value)
     {
-        _persistenceConfiguration.DefaultStrategy = value;
+        _persistenceConfiguration.Default = value;
         await PersistLogPersistenceStrategies();
     }
 
@@ -211,7 +211,7 @@ public class PersistenceActivityConfiguration
     /// <summary>
     /// Default strategy type name for the entire activity.
     /// </summary>
-    public string? DefaultStrategy { get; set; }
+    public string? Default { get; set; }
 
     /// <summary>
     /// Strategy type names for individual Input properties.

@@ -23,7 +23,7 @@
             <MudSelect Label="Default Strategy"
                        T="string"
                        Variant="@Variant.Outlined"
-                       Value="@_persistenceConfiguration.DefaultStrategy"
+                       Value="@_persistenceConfiguration.Default"
                        ValueChanged="OnDefaultStrategyChanged"
                        ToStringFunc="@(x => x?.ToString())"
                        ReadOnly="IsReadOnly" Disabled="IsReadOnly">
