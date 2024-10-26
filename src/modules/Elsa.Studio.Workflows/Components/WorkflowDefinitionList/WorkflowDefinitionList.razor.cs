@@ -5,13 +5,11 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
-using Refit;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
@@ -319,12 +317,15 @@ public partial class WorkflowDefinitionList
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
-        foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
-        var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
-        var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
-        var count = await WorkflowDefinitionImporter.ImportAsync(streamParts);
-        var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
-        foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
+        var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
+        var message = importedFiles.Count == 1 ? "Successfully imported one workflow" : $"Successfully imported {importedFiles.Count} workflows";
+        
+        // foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
+        // var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
+        // var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
+        // var count = await WorkflowDefinitionImporter.ImportAsync(streamParts);
+        // var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
+        // foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
