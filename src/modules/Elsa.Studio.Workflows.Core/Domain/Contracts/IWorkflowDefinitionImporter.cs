@@ -1,4 +1,5 @@
-using Refit;
+using Elsa.Studio.Workflows.Domain.Services;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
 
@@ -10,5 +11,5 @@ public interface IWorkflowDefinitionImporter
     /// <summary>
     /// Imports a set of files containing workflow definitions.
     /// </summary>
-    Task<int> ImportAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default);
+    Task<IEnumerable<IBrowserFile>> ImportFilesAsync(IReadOnlyList<IBrowserFile> files, ImportOptions? options = null);
 }

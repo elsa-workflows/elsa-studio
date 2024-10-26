@@ -1,9 +1,4 @@
-using System.IO.Compression;
-using System.Net.Mime;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
@@ -18,7 +13,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Domain.Notifications;
+using Elsa.Studio.Workflows.Domain.Services;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -37,7 +32,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowEditor
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateJsonSerializerOptions();
     private bool _autoSave = true;
     private bool _isDirty;
     private bool _isProgressing;
@@ -394,37 +388,25 @@ public partial class WorkflowEditor
 
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
     {
-        var importedFiles = new List<IBrowserFile>();
-
         _isDirty = true;
         _isProgressing = true;
         StateHasChanged();
 
-        foreach (var file in files)
+        var options = new ImportOptions
         {
-            await Mediator.NotifyAsync(new ImportingFile(file));
-            await using var stream = file.OpenReadStream();
-
-            if (file.ContentType == MediaTypeNames.Application.Zip || file.Name.EndsWith(".zip"))
+            DefinitionId = WorkflowDefinition?.DefinitionId,
+            ImportedCallback = async definition =>
             {
-                var success = await ImportZipFileAsync(stream);
-                if (success)
-                {
-                    importedFiles.Add(file);
-                    await Mediator.NotifyAsync(new ImportedFile(file));
-                }
-            }
-
-            else if (file.ContentType == MediaTypeNames.Application.Json || file.Name.EndsWith(".json"))
+                await SetWorkflowDefinitionAsync(definition);
+                await _diagramDesigner.LoadActivityAsync(definition.Root);
+            },
+            ErrorCallback = ex =>
             {
-                var success = await ImportFromStreamAsync(stream);
-                if (success)
-                {
-                    importedFiles.Add(file);
-                    await Mediator.NotifyAsync(new ImportedFile(file));
-                }
+                Snackbar.Add($"Failed to import workflow definition: {ex.Message}", Severity.Error);
+                return Task.CompletedTask;
             }
-        }
+        };
+        var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
 
         _isProgressing = false;
         _isDirty = false;
@@ -437,84 +419,7 @@ public partial class WorkflowEditor
         else if (importedFiles.Count > 1)
             Snackbar.Add($"Successfully imported {importedFiles.Count} files.", Severity.Success);
     }
-
-    private async Task<bool> ImportZipFileAsync(Stream stream)
-    {
-        using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        memoryStream.Seek(0, SeekOrigin.Begin);
-        var zipArchive = new ZipArchive(memoryStream);
-
-        foreach (var entry in zipArchive.Entries)
-        {
-            if (entry.FullName.EndsWith(".json"))
-            {
-                await using var entryStream = entry.Open();
-                var success = await ImportFromStreamAsync(entryStream);
-
-                if (success)
-                    return true;
-            }
-            else if (entry.FullName.EndsWith(".zip"))
-            {
-                await using var entryStream = entry.Open();
-                var success = await ImportZipFileAsync(entryStream);
-
-                if (success)
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    private async Task<bool> ImportFromStreamAsync(Stream stream)
-    {
-        using var reader = new StreamReader(stream);
-        var json = await reader.ReadToEndAsync();
-
-        try
-        {
-            await Mediator.NotifyAsync(new ImportingJson(json));
-            
-            // Check if this is a workflow definition file.
-            if(!WorkflowJsonDetector.IsWorkflowSchema(json))
-                return true;
-            
-            var model = JsonSerializer.Deserialize<WorkflowDefinitionModel>(json, _jsonSerializerOptions)!;
-
-            // Overwrite the definition ID with the one currently loaded.
-            // This will ensure that the imported definition will be saved as a new version of the current definition. 
-            model.DefinitionId = _workflowDefinition!.DefinitionId;
-            await Mediator.NotifyAsync(new WorkflowDefinitionImporting(model));
-            var api = await GetApiAsync();
-            var newWorkflowDefinition = await api.ImportAsync(model);
-            await _diagramDesigner.LoadActivityAsync(newWorkflowDefinition.Root);
-            await SetWorkflowDefinitionAsync(newWorkflowDefinition);
-            await Mediator.NotifyAsync(new WorkflowDefinitionImported(newWorkflowDefinition));
-            await Mediator.NotifyAsync(new ImportedJson(json));
-        }
-        catch (Exception e)
-        {
-            Snackbar.Add($"Failed to import workflow definition: {e.Message}", Severity.Error);
-            return false;
-        }
-
-        return true;
-    }
-
-    private static JsonSerializerOptions CreateJsonSerializerOptions()
-    {
-        JsonSerializerOptions options = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        };
-
-        options.Converters.Add(new JsonStringEnumConverter());
-        options.Converters.Add(new VersionOptionsJsonConverter());
-        return options;
-    }
-
+    
     private async Task OnRunWorkflowClicked()
     {
         var workflowInstanceId = await ProgressAsync(async () =>
