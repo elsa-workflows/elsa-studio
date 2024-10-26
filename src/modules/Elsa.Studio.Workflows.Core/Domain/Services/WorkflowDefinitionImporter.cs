@@ -56,6 +56,36 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
 
         return importedFiles;
     }
+    
+    private async Task<bool> ImportZipFileAsync(Stream stream, ImportOptions? options)
+    {
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        var zipArchive = new ZipArchive(memoryStream);
+
+        foreach (var entry in zipArchive.Entries)
+        {
+            if (entry.FullName.EndsWith(".json"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportFromStreamAsync(entryStream, options);
+
+                if (success)
+                    return true;
+            }
+            else if (entry.FullName.EndsWith(".zip"))
+            {
+                await using var entryStream = entry.Open();
+                var success = await ImportZipFileAsync(entryStream, options);
+
+                if (success)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
     private async Task<bool> ImportFromStreamAsync(Stream stream, ImportOptions? options)
     {
@@ -67,7 +97,6 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
         {
             await mediator.NotifyAsync(new ImportingJson(json));
             
-            // Check if this is a workflow definition file.
             if(!workflowJsonDetector.IsWorkflowSchema(json))
                 return true;
             
