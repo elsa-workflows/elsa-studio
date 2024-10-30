@@ -153,15 +153,20 @@ public partial class WorkflowDefinitionList
 
     private async Task OnRunWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-
         var request = new ExecuteWorkflowDefinitionRequest
         {
             VersionOptions = VersionOptions.Latest
         };
 
         var definitionId = workflowDefinitionRow!.DefinitionId;
-        await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
+        var response = await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
 
+        if(response.CannotStart)
+        {
+            Snackbar.Add("The workflow cannot be started", Severity.Error);
+            return;
+        }
+        
         Snackbar.Add("Successfully started workflow", Severity.Success);
     }
 

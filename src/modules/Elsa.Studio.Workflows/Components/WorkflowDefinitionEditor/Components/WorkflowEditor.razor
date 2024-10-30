@@ -1,7 +1,7 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
-@inherits StudioComponentBase
+@inherits WorkflowEditorComponentBase
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
@@ -9,7 +9,7 @@
             @ref="_diagramDesigner" 
             WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
             Activity="@Activity"
-            IsProgressing="@_isProgressing" 
+            IsProgressing="@IsProgressing" 
             ActivitySelected="@OnActivitySelected" 
             GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>

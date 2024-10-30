@@ -272,12 +272,13 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
     
     /// <inheritdoc />
-    public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
+    public async Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
         var api = await GetExecuteWorkflowApiAsync(cancellationToken);
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
-        var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
-        return workflowInstanceId;
+        var workflowInstanceId = response.Headers.TryGetValues("x-elsa-workflow-instance-id", out var workflowInstanceIdValues) ? workflowInstanceIdValues.FirstOrDefault() : null;
+        var cannotStart = string.Equals(response.Headers.TryGetValues("x-elsa-workflow-cannot-start", out var cannotStartValues) ? cannotStartValues.FirstOrDefault() : null, "true", StringComparison.OrdinalIgnoreCase);
+        return new ExecuteWorkflowResult(workflowInstanceId, cannotStart);
     }
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)

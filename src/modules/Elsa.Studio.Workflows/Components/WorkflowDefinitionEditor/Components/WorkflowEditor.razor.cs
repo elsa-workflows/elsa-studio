@@ -3,9 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -34,11 +32,9 @@ public partial class WorkflowEditor
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
     private bool _isDirty;
-    private bool _isProgressing;
     private RadzenSplitterPane _activityPropertiesPane = default!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = default!;
-    private WorkflowDefinition? _workflowDefinition;
 
     /// <inheritdoc />
     public WorkflowEditor()
@@ -55,24 +51,17 @@ public partial class WorkflowEditor
     /// Gets or sets a callback invoked when the workflow definition is updated.
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
 
-    /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
-    /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
-
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
-
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
@@ -205,7 +194,7 @@ public partial class WorkflowEditor
         {
             if (showLoader)
             {
-                _isProgressing = true;
+                IsProgressing = true;
                 StateHasChanged();
             }
 
@@ -231,33 +220,13 @@ public partial class WorkflowEditor
             {
                 if (showLoader)
                 {
-                    _isProgressing = false;
+                    IsProgressing = false;
                     StateHasChanged();
                 }
             }
         });
     }
-
-    private async Task ProgressAsync(Func<Task> action)
-    {
-        _isProgressing = true;
-        StateHasChanged();
-        await action.Invoke();
-        _isProgressing = false;
-        StateHasChanged();
-    }
-
-    private async Task<T> ProgressAsync<T>(Func<Task<T>> action)
-    {
-        _isProgressing = true;
-        StateHasChanged();
-        var result = await action.Invoke();
-        _isProgressing = false;
-        StateHasChanged();
-
-        return result;
-    }
-
+    
     private void SelectActivity(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
@@ -389,7 +358,7 @@ public partial class WorkflowEditor
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
     {
         _isDirty = true;
-        _isProgressing = true;
+        IsProgressing = true;
         StateHasChanged();
 
         var options = new ImportOptions
@@ -408,7 +377,7 @@ public partial class WorkflowEditor
         };
         var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
 
-        _isProgressing = false;
+        IsProgressing = false;
         _isDirty = false;
         StateHasChanged();
 
@@ -418,26 +387,5 @@ public partial class WorkflowEditor
             Snackbar.Add($"Successfully imported workflow definition from file {importedFiles[0].Name}.", Severity.Success);
         else if (importedFiles.Count > 1)
             Snackbar.Add($"Successfully imported {importedFiles.Count} files.", Severity.Success);
-    }
-    
-    private async Task OnRunWorkflowClicked()
-    {
-        var workflowInstanceId = await ProgressAsync(async () =>
-        {
-            var request = new ExecuteWorkflowDefinitionRequest
-            {
-                VersionOptions = VersionOptions.Latest
-            };
-
-            var definitionId = _workflowDefinition!.DefinitionId;
-            return await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
-        });
-
-        Snackbar.Add("Successfully started workflow", Severity.Success);
-
-        if (WorkflowDefinitionExecuted != null)
-            await WorkflowDefinitionExecuted(workflowInstanceId);
-        else
-            NavigationManager.NavigateTo($"workflows/instances/{workflowInstanceId}/view");
     }
 }
