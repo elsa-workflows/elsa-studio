@@ -78,7 +78,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     
     private async Task OnWorkflowInstanceUpdatedAsync(WorkflowInstanceUpdatedMessage message)
     {
-        var workflowInstance = (await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetAsync(_workflowInstance.Id)))!;
+        var workflowInstance = (await WorkflowInstanceService.GetAsync(_workflowInstance.Id))!;
         await InvokeAsync(async () =>
         {
             _workflowInstance = workflowInstance;
