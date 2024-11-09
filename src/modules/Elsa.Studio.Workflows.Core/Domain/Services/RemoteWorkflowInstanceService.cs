@@ -118,5 +118,13 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         return response.Count;
     }
 
+    /// <inheritdoc />
+    public async Task<IEnumerable<ResolvedVariable>> GetVariablesAsync(string instanceId, CancellationToken cancellationToken = default)
+    {
+        var api = await GetApiAsync(cancellationToken);
+        var response = await api.GetVariablesAsync(instanceId, cancellationToken);
+        return response.Items;
+    }
+
     private async Task<IWorkflowInstancesApi> GetApiAsync(CancellationToken cancellationToken = default) => await _backendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
 }
