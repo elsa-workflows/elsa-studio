@@ -17,10 +17,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageVersion Include="MudBlazor" Version="7.10.0" />
     <PackageVersion Include="Radzen.Blazor" Version="5.2.12" />
-    <PackageVersion Include="Refit.HttpClientFactory" Version="7.2.1" />
-    <PackageVersion Include="Refit" Version="7.2.1" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageVersion Include="Refit.HttpClientFactory" Version="7.0.0" />
+    <PackageVersion Include="Refit" Version="7.2.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
@@ -34,5 +36,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.10" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.JSInterop" Version="8.0.10" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
+    <PackageVersion Include="Refit" Version="8.0.0" />
   </ItemGroup>
 </Project>
