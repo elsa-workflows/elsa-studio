@@ -5,9 +5,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,6 +23,7 @@
       <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Localization\Elsa.Studio.Localization.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.WorkflowContexts\Elsa.Studio.WorkflowContexts.csproj" />
     </ItemGroup>

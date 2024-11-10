@@ -50,6 +50,12 @@ public partial class MainLayout : IDisposable
                 StateHasChanged();
             }
         }
+        else
+        {
+            BlazorServiceAccessor.Services = ServiceProvider;
+            await FeatureService.InitializeFeaturesAsync();
+            StateHasChanged();
+        }
     }
 
     /// <inheritdoc />

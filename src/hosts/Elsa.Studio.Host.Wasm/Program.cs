@@ -12,6 +12,8 @@ using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Elsa.Studio.Localization.Models;
+using Elsa.Studio.Localization.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -29,6 +31,11 @@ var backendApiConfig = new BackendApiConfig
     ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
 };
 
+var localizationConfig = new LocalizationConfig
+{
+    ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
+};
+
 builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
@@ -36,6 +43,7 @@ builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
+builder.Services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
 var app = builder.Build();

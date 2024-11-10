@@ -1,0 +1,43 @@
+﻿@using Elsa.Studio.Localization.Options
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
+@using MudBlazor
+@using System.Globalization
+@inject IOptions<LocalizationOptions> LocalizationOptions
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<MudMenu Label="@CultureInfo.CurrentUICulture.DisplayName"
+         Variant="Variant.Outlined"
+         Color="Color.Inherit"
+         AnchorOrigin="Origin.BottomRight"
+         TransformOrigin="Origin.BottomRight"
+         Dense="true"
+         StartIcon="@Icons.Material.Filled.Language"
+         EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
+    @foreach (var culture in cultures)
+    {
+        <MudMenuItem Value="@culture" OnClick="@((_)=>ChangeCulture(culture))">@culture.DisplayName</MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private List<CultureInfo> cultures = new List<CultureInfo>();
+    
+    private IJSObjectReference? module;
+    protected override void OnInitialized()
+    {
+        cultures = LocalizationOptions.Value?.SupportedCultures.Select(s => new CultureInfo(s)).ToList() ?? new List<CultureInfo>();
+    }
+
+    private async void ChangeCulture(CultureInfo culture)
+    {
+        if (CultureInfo.CurrentUICulture != culture)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Localization/blazorCulture.js");
+            await JS.InvokeVoidAsync("blazorCulture.set", culture!.Name);
+
+            Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        }
+    }
+}

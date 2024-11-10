@@ -10,8 +10,12 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Localization.Extensions;
 using MudBlazor.Translations;
 using MudBlazor.Services;
+using Elsa.Studio.Localization.Models;
+using Microsoft.Extensions.Options;
+using Elsa.Studio.Localization.Options;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +37,12 @@ var backendApiConfig = new BackendApiConfig
     ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
 };
 
+
+var localizationConfig = new LocalizationConfig
+{
+    ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
+};
+
 builder.Services.AddCore();
 //builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddShell(options => options.DisableAuthorization = true);
@@ -45,9 +55,10 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
 builder.Services.AddMudTranslations();
-builder.Services.AddLocalization();
+
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
@@ -67,13 +78,17 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-string[] supportedCultures = ["en-US", "ja-JP"];
-var localizationOptions = new RequestLocalizationOptions()
-    .SetDefaultCulture(supportedCultures[0])
-    .AddSupportedCultures(supportedCultures)
-    .AddSupportedUICultures(supportedCultures);
+var supportedCultures = app.Services.GetService<IOptions<LocalizationOptions>>()?.Value.SupportedCultures;
+if (supportedCultures != null)
+{
+    var localizationOptions = new RequestLocalizationOptions()
+        .SetDefaultCulture(supportedCultures[0])
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
 
-app.UseRequestLocalization(localizationOptions);
+    app.UseRequestLocalization(localizationOptions);
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
