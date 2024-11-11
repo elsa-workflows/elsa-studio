@@ -18,7 +18,7 @@ namespace Elsa.Studio.Localization.BlazorServer.Services
         }
         public async Task ChangeCultureAsync(CultureInfo culture)
         {
-            if (CultureInfo.CurrentUICulture != culture)
+            if (CultureInfo.CurrentUICulture.Name != culture.Name)
             {
                 // module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Localization/blazorCulture.js");
                 // await JS.InvokeVoidAsync("blazorCulture.set", culture!.Name);
