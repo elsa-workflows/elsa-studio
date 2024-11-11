@@ -1,3 +1,4 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using System.Text.Json.Nodes
@@ -7,7 +8,7 @@
 @using Elsa.Studio.Workflows.UI.Contracts
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="@_localizer["Activities"]">

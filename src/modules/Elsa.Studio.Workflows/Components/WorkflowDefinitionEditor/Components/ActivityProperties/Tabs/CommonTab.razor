@@ -1,8 +1,9 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 <div class="pa-4">
     @if (Activity != null && ActivityDescriptor != null)

@@ -1,0 +1,630 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Acknowledge Datasource Event" xml:space="preserve">
+    <value>Acknowledge Datasource Event</value>
+  </data>
+  <data name="Activationstrategy" xml:space="preserve">
+    <value>Activation strategy</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>Activities</value>
+  </data>
+  <data name="ActivityInstanceID" xml:space="preserve">
+    <value>Activity Instance ID</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Aggregation" xml:space="preserve">
+    <value>Aggregation</value>
+  </data>
+  <data name="Allowthisworkflow" xml:space="preserve">
+    <value>Allow this workflow to be used as an activity.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Autosave" xml:space="preserve">
+    <value>Auto-save</value>
+  </data>
+  <data name="Batch Parser" xml:space="preserve">
+    <value>Batch Parser</value>
+  </data>
+  <data name="Branching" xml:space="preserve">
+    <value>Branching</value>
+  </data>
+  <data name="Break" xml:space="preserve">
+    <value>Break</value>
+  </data>
+  <data name="Bulk Dispatch Workflows" xml:space="preserve">
+    <value>Bulk Dispatch Workflows</value>
+  </data>
+  <data name="Bulkactions" xml:space="preserve">
+    <value>Bulk actions</value>
+  </data>
+  <data name="Call a Program" xml:space="preserve">
+    <value>Call a Program</value>
+  </data>
+  <data name="Call SAP BAPI" xml:space="preserve">
+    <value>Call SAP BAPI</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Collect Data from Datasource" xml:space="preserve">
+    <value>Collect Data from Datasource</value>
+  </data>
+  <data name="Collect Data From PI" xml:space="preserve">
+    <value>Collect Data From PI</value>
+  </data>
+  <data name="Collect PI Tag Spot Data" xml:space="preserve">
+    <value>Collect PI Tag Spot Data</value>
+  </data>
+  <data name="Comma Separated To List" xml:space="preserve">
+    <value>Comma Separated To List</value>
+  </data>
+  <data name="Complete" xml:space="preserve">
+    <value>Complete</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Composition" xml:space="preserve">
+    <value>Composition</value>
+  </data>
+  <data name="Console" xml:space="preserve">
+    <value>Console</value>
+  </data>
+  <data name="Container" xml:space="preserve">
+    <value>Container</value>
+  </data>
+  <data name="Correlate" xml:space="preserve">
+    <value>Correlate</value>
+  </data>
+  <data name="Correlation ID" xml:space="preserve">
+    <value>Correlation ID</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="CreatedAt" xml:space="preserve">
+    <value>CreatedAt</value>
+  </data>
+  <data name="Createworkflow" xml:space="preserve">
+    <value>Create workflow</value>
+  </data>
+  <data name="Cron" xml:space="preserve">
+    <value>Cron</value>
+  </data>
+  <data name="Data Source" xml:space="preserve">
+    <value>Data Source</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Date Filters" xml:space="preserve">
+    <value>Date Filters</value>
+  </data>
+  <data name="Decision" xml:space="preserve">
+    <value>Decision</value>
+  </data>
+  <data name="Definition ID" xml:space="preserve">
+    <value>Definition ID</value>
+  </data>
+  <data name="Definition version" xml:space="preserve">
+    <value>Definition version</value>
+  </data>
+  <data name="Definition version ID" xml:space="preserve">
+    <value>Definition version ID</value>
+  </data>
+  <data name="DefinitionID" xml:space="preserve">
+    <value>Definition ID</value>
+  </data>
+  <data name="Delay" xml:space="preserve">
+    <value>Delay</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DescriptionPlaceHolder" xml:space="preserve">
+    <value>A brief description of the workflow.</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Dispatch Workflow" xml:space="preserve">
+    <value>Dispatch Workflow</value>
+  </data>
+  <data name="Download File" xml:space="preserve">
+    <value>Download File</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="Excel Parser" xml:space="preserve">
+    <value>Excel Parser</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Fault" xml:space="preserve">
+    <value>Fault</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finished</value>
+  </data>
+  <data name="FinishedAt" xml:space="preserve">
+    <value>FinishedAt</value>
+  </data>
+  <data name="Flow" xml:space="preserve">
+    <value>Flow</value>
+  </data>
+  <data name="For" xml:space="preserve">
+    <value>For</value>
+  </data>
+  <data name="Fork (flow)" xml:space="preserve">
+    <value>Fork (flow)</value>
+  </data>
+  <data name="Form Instance Status Changed" xml:space="preserve">
+    <value>Form Instance Status Changed</value>
+  </data>
+  <data name="Form Instance Submitted" xml:space="preserve">
+    <value>Form Instance Submitted</value>
+  </data>
+  <data name="Forms" xml:space="preserve">
+    <value>Forms</value>
+  </data>
+  <data name="Generate Report" xml:space="preserve">
+    <value>Generate Report</value>
+  </data>
+  <data name="Generate Spreadsheet" xml:space="preserve">
+    <value>Generate Spreadsheet</value>
+  </data>
+  <data name="Get Events from Datasource" xml:space="preserve">
+    <value>Get Events from Datasource</value>
+  </data>
+  <data name="Get Folder Details" xml:space="preserve">
+    <value>Get Folder Details</value>
+  </data>
+  <data name="Get Folder/KPI Id by Name" xml:space="preserve">
+    <value>Get Folder/KPI Id by Name</value>
+  </data>
+  <data name="Get KPI Property values" xml:space="preserve">
+    <value>Get KPI Property values</value>
+  </data>
+  <data name="Get KPI Values" xml:space="preserve">
+    <value>Get KPI Values</value>
+  </data>
+  <data name="Has Incidents" xml:space="preserve">
+    <value>Has Incidents</value>
+  </data>
+  <data name="HTTP" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="HTTP Endpoint" xml:space="preserve">
+    <value>HTTP Endpoint</value>
+  </data>
+  <data name="HTTP File Response" xml:space="preserve">
+    <value>HTTP File Response</value>
+  </data>
+  <data name="HTTP Request" xml:space="preserve">
+    <value>HTTP Request</value>
+  </data>
+  <data name="HTTP Request (flow)" xml:space="preserve">
+    <value>HTTP Request (flow)</value>
+  </data>
+  <data name="HTTP Response" xml:space="preserve">
+    <value>HTTP Response</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="IdHelperText" xml:space="preserve">
+    <value>The ID of the activity.</value>
+  </data>
+  <data name="If" xml:space="preserve">
+    <value>If</value>
+  </data>
+  <data name="Incident Strategy" xml:space="preserve">
+    <value>Incident Strategy</value>
+  </data>
+  <data name="IncidentCount" xml:space="preserve">
+    <value>IncidentCount</value>
+  </data>
+  <data name="Incidenthandlingstrategy" xml:space="preserve">
+    <value>Incident handling strategy</value>
+  </data>
+  <data name="Incidents" xml:space="preserve">
+    <value>Incidents</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Input/output" xml:space="preserve">
+    <value>Input/output</value>
+  </data>
+  <data name="InputProperties" xml:space="preserve">
+    <value>This activity does not have any input properties.</value>
+  </data>
+  <data name="Is" xml:space="preserve">
+    <value>Is</value>
+  </data>
+  <data name="Is After" xml:space="preserve">
+    <value>Is After</value>
+  </data>
+  <data name="Is Before" xml:space="preserve">
+    <value>Is Before</value>
+  </data>
+  <data name="Is Not" xml:space="preserve">
+    <value>Is Not</value>
+  </data>
+  <data name="Is on or After" xml:space="preserve">
+    <value>Is on or After</value>
+  </data>
+  <data name="Is on or Before" xml:space="preserve">
+    <value>Is on or Before</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Join</value>
+  </data>
+  <data name="KPI" xml:space="preserve">
+    <value>KPI</value>
+  </data>
+  <data name="KPI Alarm" xml:space="preserve">
+    <value>KPI Alarm</value>
+  </data>
+  <data name="Latestversion" xml:space="preserve">
+    <value>Latest version</value>
+  </data>
+  <data name="Log Persistence Mode" xml:space="preserve">
+    <value>Log Persistence Mode</value>
+  </data>
+  <data name="Looping" xml:space="preserve">
+    <value>Looping</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Metadata</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NameHelperText" xml:space="preserve">
+    <value>The name of the activity. Named activities can be referenced by other activities.</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Open File" xml:space="preserve">
+    <value>Open File</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Parser" xml:space="preserve">
+    <value>Parser</value>
+  </data>
+  <data name="Primitives" xml:space="preserve">
+    <value>Primitives</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="Publish Event" xml:space="preserve">
+    <value>Publish Event</value>
+  </data>
+  <data name="Publishedversion" xml:space="preserve">
+    <value>Published version</value>
+  </data>
+  <data name="Publishworkflow" xml:space="preserve">
+    <value>Publish the current workflow</value>
+  </data>
+  <data name="Read Data from Configuration / Runtime" xml:space="preserve">
+    <value>Read Data from Configuration / Runtime</value>
+  </data>
+  <data name="Read Data from Database" xml:space="preserve">
+    <value>Read Data from Database</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="RowsPerPage" xml:space="preserve">
+    <value>Rows Per Page</value>
+  </data>
+  <data name="Run JavaScript" xml:space="preserve">
+    <value>Run JavaScript</value>
+  </data>
+  <data name="Run Python" xml:space="preserve">
+    <value>Run Python</value>
+  </data>
+  <data name="Run Task" xml:space="preserve">
+    <value>Run Task</value>
+  </data>
+  <data name="Runworkflow" xml:space="preserve">
+    <value>Run workflow</value>
+  </data>
+  <data name="SAP" xml:space="preserve">
+    <value>SAP</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Save File" xml:space="preserve">
+    <value>Save File</value>
+  </data>
+  <data name="Scheduling" xml:space="preserve">
+    <value>Scheduling</value>
+  </data>
+  <data name="Scripting" xml:space="preserve">
+    <value>Scripting</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search...</value>
+  </data>
+  <data name="Search on name, id, definition id, definition version id, correlation id" xml:space="preserve">
+    <value>Search on name, id, definition id, definition version id, correlation id</value>
+  </data>
+  <data name="SearchPlaceHolder" xml:space="preserve">
+    <value>Search on name, description, id, definition id</value>
+  </data>
+  <data name="Send Email" xml:space="preserve">
+    <value>Send Email</value>
+  </data>
+  <data name="Set Name" xml:space="preserve">
+    <value>Set Name</value>
+  </data>
+  <data name="Set Output" xml:space="preserve">
+    <value>Set Output</value>
+  </data>
+  <data name="Set PI Tag Data Update" xml:space="preserve">
+    <value>Set PI Tag Data Update</value>
+  </data>
+  <data name="Set Variable" xml:space="preserve">
+    <value>Set Variable</value>
+  </data>
+  <data name="Set Workflow Context Parameter" xml:space="preserve">
+    <value>Set Workflow Context Parameter</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Spreadsheet Instance Status Changed" xml:space="preserve">
+    <value>Spreadsheet Instance Status Changed</value>
+  </data>
+  <data name="Spreadsheet Instance Submitted" xml:space="preserve">
+    <value>Spreadsheet Instance Submitted</value>
+  </data>
+  <data name="Spreadsheets" xml:space="preserve">
+    <value>Spreadsheets</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Start at" xml:space="preserve">
+    <value>Start at</value>
+  </data>
+  <data name="Started" xml:space="preserve">
+    <value>Started</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Storage" xml:space="preserve">
+    <value>Storage</value>
+  </data>
+  <data name="Sub status" xml:space="preserve">
+    <value>Sub status</value>
+  </data>
+  <data name="SubStatus" xml:space="preserve">
+    <value>SubStatus</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="Switch (flow)" xml:space="preserve">
+    <value>Switch (flow)</value>
+  </data>
+  <data name="Tag Aggregations" xml:space="preserve">
+    <value>Tag Aggregations</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Timer" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="Unpublish" xml:space="preserve">
+    <value>Unpublish</value>
+  </data>
+  <data name="Update Form Instance Status" xml:space="preserve">
+    <value>Update Form Instance Status</value>
+  </data>
+  <data name="Update KPI Property" xml:space="preserve">
+    <value>Update KPI Property</value>
+  </data>
+  <data name="Update Spreadsheet Instance Status" xml:space="preserve">
+    <value>Update Spreadsheet Instance Status</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="UpdatedAt" xml:space="preserve">
+    <value>UpdatedAt</value>
+  </data>
+  <data name="Usable as activity" xml:space="preserve">
+    <value>Usable as activity</value>
+  </data>
+  <data name="Variables" xml:space="preserve">
+    <value>Variables</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="When you publish" xml:space="preserve">
+    <value>When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow.</value>
+  </data>
+  <data name="Workflow Context" xml:space="preserve">
+    <value>Workflow Context</value>
+  </data>
+  <data name="Workflowdefinition" xml:space="preserve">
+    <value>Workflow definitions Editor</value>
+  </data>
+  <data name="Workflowinstances" xml:space="preserve">
+    <value>Workflow instances</value>
+  </data>
+  <data name="WorkflowNamePlaceHolder" xml:space="preserve">
+    <value>The name of the workflow.</value>
+  </data>
+  <data name="Workflows" xml:space="preserve">
+    <value>Workflows</value>
+  </data>
+  <data name="Write Line" xml:space="preserve">
+    <value>Write Line</value>
+  </data>
+  <data name="Write to Data Source" xml:space="preserve">
+    <value>Write to Data Source</value>
+  </data>
+  <data name="Write to Database" xml:space="preserve">
+    <value>Write to Database</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+</root>
