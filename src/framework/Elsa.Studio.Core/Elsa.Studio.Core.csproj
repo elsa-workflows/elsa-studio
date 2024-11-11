@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <Description>Core Elsa Studio services.</Description>
@@ -6,39 +6,39 @@
         <RootNamespace>Elsa.Studio</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
-        <PackageReference Include="Microsoft.JSInterop"/>
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
-        <PackageReference Include="Microsoft.JSInterop"/>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+        <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.JSInterop" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.FluentValidation"/>
-        <PackageReference Include="Blazored.LocalStorage"/>
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions"/>
-        <PackageReference Include="FluentValidation"/>
-        <PackageReference Include="MudBlazor"/>
-        <PackageReference Include="Radzen.Blazor"/>
-        <PackageReference Include="ShortGuid"/>
-        <PackageReference Include="ThrottleDebounce"/>
+        <PackageReference Include="Blazored.FluentValidation" />
+        <PackageReference Include="Blazored.LocalStorage" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" />
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="MudBlazor" />
+        <PackageReference Include="Radzen.Blazor" />
+        <PackageReference Include="ShortGuid" />
+        <PackageReference Include="ThrottleDebounce" />
     </ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="**\*.resx"></EmbeddedResource>
+	</ItemGroup>
 
     <!--    <ItemGroup Label="Elsa">-->
     <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
     <!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
-        <PackageReference Include="Elsa.Api.Client"/>
+        <PackageReference Include="Elsa.Api.Client" />
     </ItemGroup>
 
 </Project>

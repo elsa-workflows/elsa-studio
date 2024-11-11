@@ -36,7 +36,8 @@ public static class ServiceCollectionExtensions
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
-        
+
+        services.AddSingleton<LocalizationService>();
         return services;
     }
     

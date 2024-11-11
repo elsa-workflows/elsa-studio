@@ -1,12 +1,12 @@
-﻿using Elsa.Studio.Resources;
-using Microsoft.Extensions.Localization;
+﻿using Microsoft.Extensions.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elsa.Studio.Resources;
 
-namespace Elsa.Studio.Workflows.Services
+namespace Elsa.Studio.Services
 {
     public class LocalizationService
     {
