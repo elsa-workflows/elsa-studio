@@ -1,9 +1,10 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
+@using Elsa.Studio.Workflows.Services
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">

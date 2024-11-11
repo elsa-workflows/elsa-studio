@@ -1,6 +1,7 @@
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 @if (WorkflowDefinition != null && WorkflowInstance != null)
 {

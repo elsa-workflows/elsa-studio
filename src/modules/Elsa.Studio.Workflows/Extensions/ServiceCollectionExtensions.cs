@@ -49,9 +49,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionSettingsWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
-        services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
-        services.AddMudTranslations();
+        //services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
+        //services.AddMudTranslations();
         services.AddLocalization();
+        services.AddSingleton<LocalizationService>();
         return services;
     }
 }

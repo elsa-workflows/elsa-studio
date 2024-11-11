@@ -12,10 +12,13 @@ using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using MudBlazor.Translations;
 using MudBlazor.Services;
+using Elsa.Studio.Resources;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+CultuerOptions appOptions = builder.Configuration.GetSection("AppOptions").Get<CultuerOptions>()!;
+builder.Services.Configure<CultuerOptions>(builder.Configuration.GetSection("AppOptions"));
 
 // Register Razor services.
 builder.Services.AddRazorPages();
@@ -45,8 +48,8 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
-builder.Services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
-builder.Services.AddMudTranslations();
+//builder.Services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
+//builder.Services.AddMudTranslations();
 builder.Services.AddLocalization();
 
 // Configure SignalR.
@@ -67,13 +70,12 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-string[] supportedCultures = ["en-US", "ja-JP"];
-var localizationOptions = new RequestLocalizationOptions()
-    .SetDefaultCulture(supportedCultures[0])
-    .AddSupportedCultures(supportedCultures)
-    .AddSupportedUICultures(supportedCultures);
-
-app.UseRequestLocalization(localizationOptions);
+app.UseRequestLocalization(
+new RequestLocalizationOptions()
+        .SetDefaultCulture(appOptions.SupportedCultures[0])
+        .AddSupportedCultures(appOptions.SupportedCultures)
+        .AddSupportedUICultures(appOptions.SupportedCultures)
+);
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

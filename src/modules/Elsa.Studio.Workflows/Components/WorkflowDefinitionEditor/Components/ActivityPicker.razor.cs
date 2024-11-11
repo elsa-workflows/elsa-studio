@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Resources;
+using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
@@ -39,6 +40,7 @@ public partial class ActivityPicker
                 .GroupBy(x => x.Category);
         }
     }
+    [Inject] LocalizationService _localizerService { get; set; }
     private string GetTranslation(string value)
     {
         string transletValue = string.Empty;
@@ -47,10 +49,11 @@ public partial class ActivityPicker
         {
             CultureInfo currentCulture = CultureInfo.CurrentCulture;
             // string resourceValue = Resource.ResourceManager.GetString(value);
-            if (!string.IsNullOrEmpty(Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name))))
-            {
-                transletValue = Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name));
-            }
+            //if (!string.IsNullOrEmpty(Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name))))
+            //{
+            //    transletValue = Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name));
+            //}
+            transletValue = _localizerService[value];
         }
         catch(Exception ex)
         {

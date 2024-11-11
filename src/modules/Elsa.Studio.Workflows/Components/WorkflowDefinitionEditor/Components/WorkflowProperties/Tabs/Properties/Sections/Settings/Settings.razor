@@ -1,10 +1,11 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 @if (WorkflowDefinition != null)
 {
