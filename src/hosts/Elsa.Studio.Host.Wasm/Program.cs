@@ -43,7 +43,7 @@ builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
-builder.Services.AddLocalizationModule(localizationConfig);
+builder.Services.AddLocalizationModuleCore(localizationConfig);
 
 // Build the application.
 var app = builder.Build();

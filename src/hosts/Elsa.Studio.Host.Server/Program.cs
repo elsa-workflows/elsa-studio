@@ -10,12 +10,15 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
-using Elsa.Studio.Localization.Extensions;
+using Elsa.Studio.Localization.BlazorServer.Extensions;
 using MudBlazor.Translations;
 using MudBlazor.Services;
 using Elsa.Studio.Localization.Models;
 using Microsoft.Extensions.Options;
 using Elsa.Studio.Localization.Options;
+using Microsoft.Extensions.Hosting;
+using Microsoft.JSInterop;
+using System.Globalization;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -75,17 +78,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-var supportedCultures = app.Services.GetService<IOptions<LocalizationOptions>>()?.Value.SupportedCultures;
-if (supportedCultures != null)
-{
-    var localizationOptions = new RequestLocalizationOptions()
-        .SetDefaultCulture(supportedCultures[0])
-        .AddSupportedCultures(supportedCultures)
-        .AddSupportedUICultures(supportedCultures);
 
-    app.UseRequestLocalization(localizationOptions);
-}
-
+app.UseElsaLocalization();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

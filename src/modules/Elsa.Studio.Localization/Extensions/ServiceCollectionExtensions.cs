@@ -12,7 +12,7 @@ namespace Elsa.Studio.Localization.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddLocalizationModule(this IServiceCollection services,LocalizationConfig localizationConfig)
+    public static IServiceCollection AddLocalizationModuleCore(this IServiceCollection services,LocalizationConfig localizationConfig)
     {
         services.AddLocalization();
 
