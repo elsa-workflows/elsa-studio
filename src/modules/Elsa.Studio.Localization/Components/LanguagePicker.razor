@@ -7,7 +7,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<MudMenu Label="@CultureInfo.CurrentUICulture.DisplayName"
+<MudMenu Label="@CultureInfo.CurrentUICulture.NativeName"
          Variant="Variant.Outlined"
          Color="Color.Inherit"
          AnchorOrigin="Origin.BottomRight"
@@ -17,7 +17,7 @@
          EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
     @foreach (var culture in cultures)
     {
-        <MudMenuItem Value="@culture" OnClick="@((_)=>ChangeCulture(culture))">@culture.DisplayName</MudMenuItem>
+        <MudMenuItem Value="@culture" OnClick="@((_)=>ChangeCulture(culture))">@culture.NativeName</MudMenuItem>
     }
 </MudMenu>
 

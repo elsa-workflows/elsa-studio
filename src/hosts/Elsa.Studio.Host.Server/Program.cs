@@ -44,8 +44,7 @@ var localizationConfig = new LocalizationConfig
 };
 
 builder.Services.AddCore();
-//builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
-builder.Services.AddShell(options => options.DisableAuthorization = true);
+builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
@@ -56,8 +55,6 @@ builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
-builder.Services.AddLocalizationInterceptor<MudTranslationsInterceptor>();
-builder.Services.AddMudTranslations();
 
 
 // Configure SignalR.
