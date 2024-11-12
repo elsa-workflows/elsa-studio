@@ -78,7 +78,7 @@ public partial class InputsTab
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
-        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).ToList();
+        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
 
         foreach (var inputDescriptor in browsableInputDescriptors)
         {
