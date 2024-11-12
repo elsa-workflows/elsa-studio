@@ -1,7 +1,8 @@
 @page "/workflows/definitions/{definitionId}/edit"
 @using Microsoft.Extensions.Localization
 @inherits StudioComponentBase
-@inject IStringLocalizer<Resources.Resource> _localizer
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
 <PageTitle>@_localizer["Workflowdefinition"]</PageTitle>
 
