@@ -66,7 +66,7 @@
                 <MudField Variant="Variant.Text" HelperText="@_localizer["When you publish"]" Margin="Margin.None">
                     <MudCheckBox
                         T="bool?"
-                        Label="Auto-update consuming workflows"
+                        Label="@_localizer["Auto-update consuming workflows"]"
                         Dense="@true"
                         Value="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
                         ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
@@ -85,8 +85,8 @@
                 <MudTextField
                     T="string"
                     Variant="Variant.Outlined"
-                    Label="Category"
-                    HelperText="A custom activity category to assign this workflow-as-an-activity to."
+                    Label="@_localizer["Category"]"
+                    HelperText="@_localizer["A custom activity category to assign this workflow-as-an-activity to."]"
                     Value="@WorkflowDefinition.Options.ActivityCategory"
                     ValueChanged="OnCategoryChanged" ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
             }

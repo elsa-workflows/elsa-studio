@@ -30,7 +30,7 @@
 
                 <MudTextField
                     T="string"
-                    Label="Display text"
+                    Label="@_localizer["Display text"]"
                     HelperText="The text to display in the designer."
                     Value="@Activity.GetDisplayText()"
                     Variant="Variant.Outlined"
@@ -40,8 +40,8 @@
 
                 <MudTextField
                     T="string"
-                    Label="Description"
-                    HelperText="A description of this activity to be displayed in the designer."
+                    Label="@_localizer["Description"]"
+                    HelperText="@_localizer["A description of this activity to be displayed in the designer."]"
                     Value="@Activity.GetDescription()"
                     Variant="Variant.Outlined"
                     Lines="3"
@@ -51,7 +51,7 @@
 
                 <MudField
                     Variant="Variant.Text"
-                    HelperText="Whether to show the description in the designer."
+                    HelperText="@_localizer["Whether to show the description in the designer."]"
                     Margin="Margin.None"
                     Underline="@true"
                     Disabled="IsReadOnly">
@@ -71,7 +71,7 @@
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
-                        Label="@(IsTrigger ? "Trigger workflow" : "Start of workflow")"
+                        Label="@(IsTrigger ? @_localizer["Trigger workflow"] : @_localizer["Start of workflow"])"
                         Dense="@true"
                         Value="@(Activity.GetCanStartWorkflow() == true)"
                         ValueChanged="OnCanStartWorkflowChanged"/>

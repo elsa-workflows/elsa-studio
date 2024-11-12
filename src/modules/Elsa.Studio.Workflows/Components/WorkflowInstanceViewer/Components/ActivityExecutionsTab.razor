@@ -1,6 +1,7 @@
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Resource> _localizer
+@inject LocalizationService _localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack Row="false">
@@ -43,16 +44,16 @@
         {
             <div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
-                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="No state associated with this execution."/>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["State"]</MudText>
+                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No state associated with this execution."]"/>
                 </div>
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
-                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="No outcomes associated with this execution."/>
+                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@_localizer["No outcomes associated with this execution."]"/>
                 </div>
                 <div>
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
-                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="No output associated with this execution."/>
+                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No output associated with this execution."]"/>
                 </div>
             </div>
         }

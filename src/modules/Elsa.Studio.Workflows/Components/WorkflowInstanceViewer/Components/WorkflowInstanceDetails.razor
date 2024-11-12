@@ -34,7 +34,7 @@
                     else
                     {
                         <Well>
-                            No variables
+                            @_localizer["No variables"]
                         </Well>
                     }
                 </div>
@@ -43,7 +43,7 @@
         <MudTabPanel Text="@_localizer["Input/output"]">
             <Well>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Inputs</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Inputs"]</MudText>
                     @if (WorkflowInputData.Any())
                     {
                         <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
@@ -51,12 +51,12 @@
                     else
                     {
                         <Well>
-                            No inputs
+                            @_localizer["No inputs"]
                         </Well>
                     }
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outputs</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outputs"]</MudText>
                     @if (WorkflowOutputData.Any())
                     {
                         <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
@@ -64,7 +64,7 @@
                     else
                     {
                         <Well>
-                            No outputs
+                             @_localizer["No outputs"]
                         </Well>
                     }
                 </div>
@@ -73,14 +73,14 @@
                 @if (SubWorkflowInputData.Any())
                 {
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Inputs</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow Inputs"]</MudText>
                         <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
                     </div>
                 }
                 @if (SubWorkflowOutputData.Any())
                 {
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Outputs</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow Outputs"]</MudText>
                         <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
                     </div>
                 }

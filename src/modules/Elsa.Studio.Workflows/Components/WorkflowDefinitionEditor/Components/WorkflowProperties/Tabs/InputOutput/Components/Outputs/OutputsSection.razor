@@ -1,7 +1,9 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
-<MudText Typo="Typo.overline">Outputs</MudText>
+<MudText Typo="Typo.overline">@_localizer["Outputs"]</MudText>
 <MudStack>
 
     <MudButton
@@ -11,20 +13,20 @@
         Class="align-self-end"
         OnClick="OnAddOutputClicked"
         Disabled="IsReadonly">
-        Add output
+        @_localizer["Add output"]
     </MudButton>
 
     @if (!Outputs.Any())
     {
-        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">There are currently no outputs defined.</MudAlert>
+        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@_localizer["There are currently no outputs defined."]</MudAlert>
     }
     else
     {
         <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Type</th>
+                <th>@_localizer["Name"]</th>
+                <th>@_localizer["Type"]</th>
                 <th></th>
             </tr>
             </thead>
@@ -40,8 +42,8 @@
                     <td>@typeName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">Edit</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">Delete</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">@_localizer["Edit"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">@_localizer["Delete"]</MudMenuItem>
                         </MudMenu>
                     </td>
                 </tr>

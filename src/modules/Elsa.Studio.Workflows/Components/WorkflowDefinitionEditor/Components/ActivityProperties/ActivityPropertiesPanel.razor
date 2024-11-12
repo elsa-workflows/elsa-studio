@@ -35,12 +35,12 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@_localizer["This activity does not have any output properties."]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="Common">
+        <MudTabPanel Text="@_localizer["Common"]">
             @if (Activity != null && ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -50,28 +50,28 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any common properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@_localizer["This activity does not have any common properties."]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
         
         @if (IsTaskActivity)
         {
-            <MudTabPanel Text="Task">
+            <MudTabPanel Text="@_localizer["Task"]">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <TaskTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>
             </MudTabPanel>
         }
 
-        <MudTabPanel Text="Persistence">
+        <MudTabPanel Text="@_localizer["Persistence"]">
               <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <PersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
               </ScrollableWell>
          </MudTabPanel> 
                
 
-        <MudTabPanel Text="Info">
+        <MudTabPanel Text="@_localizer["Info"]">
             @if (ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -82,7 +82,7 @@
 
         @if (IsWorkflowAsActivity)
         {
-            <MudTabPanel Text="Version">
+            <MudTabPanel Text="@_localizer["Version"]">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>

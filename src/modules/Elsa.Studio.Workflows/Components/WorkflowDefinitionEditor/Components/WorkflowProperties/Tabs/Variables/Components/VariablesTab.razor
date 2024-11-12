@@ -1,9 +1,11 @@
 @using Variant = MudBlazor.Variant
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 @inherits StudioComponentBase
 
 <Well>
 
-    <MudText Typo="Typo.overline">Variables</MudText>
+    <MudText Typo="Typo.overline">@_localizer["Variables"]</MudText>
     <MudStack>
 
         <MudButton
@@ -13,12 +15,12 @@
             Class="align-self-end"
             OnClick="OnAddVariableClicked"
             Disabled="IsReadOnly">
-            Add variable
+            @_localizer["Add variable"]
         </MudButton>
 
         @if (!Variables.Any())
         {
-            <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">There are currently no variables defined.</MudAlert>
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info"> @_localizer["There are currently no variables defined."]</MudAlert>
         }
         else
         {
@@ -26,9 +28,9 @@
                 <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Storage</th>
+                        <th>@_localizer["Name"]</th>
+                        <th>@_localizer["Type"]</th>
+                        <th>@_localizer["Storage"]</th>
                         <th></th>
                     </tr>
                     </thead>
@@ -44,8 +46,8 @@
                             <td>@storageDriverName</td>
                             <td style="text-align: right;">
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadOnly">
-                                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">Edit</MudMenuItem>
-                                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">Delete</MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">@_localizer["Edit"]</MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(variable))">@_localizer["Delete"]</MudMenuItem>
                                 </MudMenu>
                             </td>
                         </tr>

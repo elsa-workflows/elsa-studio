@@ -1,16 +1,18 @@
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack>
         <div>
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Activity</MudText>
+            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Activity"]</MudText>
             <DataPanel Data="ActivityInfo" HideEmptyValues="true"/>
         </div>
 
         @if (ActivityData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">State</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["State"]</MudText>
                 <DataPanel Data="@ActivityData" HideEmptyValues="false"/>
             </div>
         }
@@ -18,7 +20,7 @@
         @if (OutcomesData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outcomes"]</MudText>
                 <DataPanel Data="OutcomesData" HideEmptyValues="true"/>
             </div>
         }
@@ -26,7 +28,7 @@
         @if (OutputData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Output"]</MudText>
                 <DataPanel Data="OutputData" HideEmptyValues="false"/>
             </div>
         }
@@ -34,7 +36,7 @@
         @if (ExceptionData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Fault</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Fault"]</MudText>
                 <DataPanel Data="ExceptionData" HideEmptyValues="true"/>
             </div>
         }
