@@ -266,9 +266,9 @@
         <MudTd DataLabel="@_localizer["FinishedAt"]">@GetTextDateJapan(Convert.ToDateTime(@context.FinishedAt?.ToString()))</MudTd>
         <MudTd DataLabel="" Style="text-align:right">
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">View</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">Cancel</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@_localizer["View"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@_localizer["Delete"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">@_localizer["Cancel"]</MudMenuItem>
                 @* Disabled until we fix an issue with Workflow Instance Exports. *@
                 @* <MudDivider DividerType="DividerType.FullWidth"></MudDivider> *@
                 @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem> *@
@@ -276,13 +276,13 @@
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
-        <MudText>No workflow instances found</MudText>
+        <MudText>@_localizer["No workflow instances found"]</MudText>
     </NoRecordsContent>
     <LoadingContent>
-        <MudText>Loading...</MudText>
+        <MudText>@_localizer["Loading"]...</MudText>
     </LoadingContent>
     <PagerContent>
-        <MudTablePager/>
+            <MudTablePager RowsPerPageString="@_localizer["RowsPerPage"]" />
     </PagerContent>
 </MudTable>
 </MudContainer>

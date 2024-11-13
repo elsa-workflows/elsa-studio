@@ -18,7 +18,6 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Activ
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Resources;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;

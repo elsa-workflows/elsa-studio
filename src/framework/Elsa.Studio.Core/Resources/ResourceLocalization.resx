@@ -117,6 +117,30 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>A brief description of the workflow.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>A brief description of this input.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>A brief description of this output.</value>
+  </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>A custom activity category to assign this workflow-as-an-activity to.</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>A custom category by which to group this input.</value>
+  </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>A custom category by which to group this output.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>A default value.</value>
+  </data>
+  <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
+    <value>A description of this activity to be displayed in the designer.</value>
+  </data>
   <data name="Acknowledge Datasource Event" xml:space="preserve">
     <value>Acknowledge Datasource Event</value>
   </data>
@@ -126,11 +150,26 @@
   <data name="Activities" xml:space="preserve">
     <value>Activities</value>
   </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
   <data name="ActivityInstanceID" xml:space="preserve">
     <value>Activity Instance ID</value>
   </data>
   <data name="Add" xml:space="preserve">
     <value>Add</value>
+  </data>
+  <data name="Add input" xml:space="preserve">
+    <value>Add input</value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value>Add output</value>
+  </data>
+  <data name="Add variable" xml:space="preserve">
+    <value>Add variable</value>
+  </data>
+  <data name="Agents" xml:space="preserve">
+    <value>Agents</value>
   </data>
   <data name="Aggregation" xml:space="preserve">
     <value>Aggregation</value>
@@ -140,6 +179,9 @@
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
+  </data>
+  <data name="Auto-update consuming workflows" xml:space="preserve">
+    <value>Auto-update consuming workflows</value>
   </data>
   <data name="Autosave" xml:space="preserve">
     <value>Auto-save</value>
@@ -153,6 +195,9 @@
   <data name="Break" xml:space="preserve">
     <value>Break</value>
   </data>
+  <data name="Bulk actions" xml:space="preserve">
+    <value>Bulk actions</value>
+  </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
     <value>Bulk Dispatch Workflows</value>
   </data>
@@ -165,11 +210,26 @@
   <data name="Call SAP BAPI" xml:space="preserve">
     <value>Call SAP BAPI</value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Check this option if the variable holds an array of the selected type." xml:space="preserve">
+    <value>Check this option if the variable holds an array of the selected type.</value>
+  </data>
   <data name="Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <data name="Click to open a new workflow tab" xml:space="preserve">
+    <value>Click to open a new workflow tab</value>
+  </data>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
+  </data>
+  <data name="Close workflow" xml:space="preserve">
+    <value>Close workflow</value>
   </data>
   <data name="Collect Data from Datasource" xml:space="preserve">
     <value>Collect Data from Datasource</value>
@@ -182,6 +242,9 @@
   </data>
   <data name="Comma Separated To List" xml:space="preserve">
     <value>Comma Separated To List</value>
+  </data>
+  <data name="Common" xml:space="preserve">
+    <value>Common</value>
   </data>
   <data name="Complete" xml:space="preserve">
     <value>Complete</value>
@@ -216,6 +279,9 @@
   <data name="Cron" xml:space="preserve">
     <value>Cron</value>
   </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
   <data name="Data Source" xml:space="preserve">
     <value>Data Source</value>
   </data>
@@ -228,6 +294,12 @@
   <data name="Decision" xml:space="preserve">
     <value>Decision</value>
   </data>
+  <data name="Default configuration" xml:space="preserve">
+    <value>Default configuration</value>
+  </data>
+  <data name="Default value" xml:space="preserve">
+    <value>Default value</value>
+  </data>
   <data name="Definition ID" xml:space="preserve">
     <value>Definition ID</value>
   </data>
@@ -239,6 +311,9 @@
   </data>
   <data name="DefinitionID" xml:space="preserve">
     <value>Definition ID</value>
+  </data>
+  <data name="Definitions" xml:space="preserve">
+    <value>Definitions</value>
   </data>
   <data name="Delay" xml:space="preserve">
     <value>Delay</value>
@@ -258,17 +333,29 @@
   <data name="Dispatch Workflow" xml:space="preserve">
     <value>Dispatch Workflow</value>
   </data>
+  <data name="Display name" xml:space="preserve">
+    <value>Display name</value>
+  </data>
+  <data name="Display text" xml:space="preserve">
+    <value>Display text</value>
+  </data>
   <data name="Download File" xml:space="preserve">
     <value>Download File</value>
   </data>
   <data name="Duration" xml:space="preserve">
     <value>Duration</value>
   </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
   <data name="Email" xml:space="preserve">
     <value>Email</value>
   </data>
   <data name="End" xml:space="preserve">
     <value>End</value>
+  </data>
+  <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
+    <value>Enter a list of possible outcomes for this workflow.</value>
   </data>
   <data name="Event" xml:space="preserve">
     <value>Event</value>
@@ -279,8 +366,17 @@
   <data name="Excel Parser" xml:space="preserve">
     <value>Excel Parser</value>
   </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Executions</value>
+  </data>
   <data name="Export" xml:space="preserve">
     <value>Export</value>
+  </data>
+  <data name="Export the current workflow as a JSON file" xml:space="preserve">
+    <value>Export the current workflow as a JSON file.</value>
+  </data>
+  <data name="Export this version as a JSON file." xml:space="preserve">
+    <value>Export this version as a JSON file.</value>
   </data>
   <data name="Fault" xml:space="preserve">
     <value>Fault</value>
@@ -363,6 +459,12 @@
   <data name="If" xml:space="preserve">
     <value>If</value>
   </data>
+  <data name="Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
+    <value>Import a JSON file containing workflow data to override the current workflow's contents.</value>
+  </data>
   <data name="Incident Strategy" xml:space="preserve">
     <value>Incident Strategy</value>
   </data>
@@ -375,8 +477,17 @@
   <data name="Incidents" xml:space="preserve">
     <value>Incidents</value>
   </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
   <data name="Input" xml:space="preserve">
     <value>Input</value>
+  </data>
+  <data name="Input Properties" xml:space="preserve">
+    <value>Input Properties</value>
   </data>
   <data name="Input/output" xml:space="preserve">
     <value>Input/output</value>
@@ -384,11 +495,20 @@
   <data name="InputProperties" xml:space="preserve">
     <value>This activity does not have any input properties.</value>
   </data>
+  <data name="Inputs" xml:space="preserve">
+    <value>Inputs</value>
+  </data>
+  <data name="Instances" xml:space="preserve">
+    <value>Instances</value>
+  </data>
   <data name="Is" xml:space="preserve">
     <value>Is</value>
   </data>
   <data name="Is After" xml:space="preserve">
     <value>Is After</value>
+  </data>
+  <data name="Is array" xml:space="preserve">
+    <value>Is array</value>
   </data>
   <data name="Is Before" xml:space="preserve">
     <value>Is Before</value>
@@ -405,6 +525,9 @@
   <data name="Join" xml:space="preserve">
     <value>Join</value>
   </data>
+  <data name="Journal" xml:space="preserve">
+    <value>Journal</value>
+  </data>
   <data name="KPI" xml:space="preserve">
     <value>KPI</value>
   </data>
@@ -414,11 +537,17 @@
   <data name="Latestversion" xml:space="preserve">
     <value>Latest version</value>
   </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
   <data name="Log Persistence Mode" xml:space="preserve">
     <value>Log Persistence Mode</value>
   </data>
   <data name="Looping" xml:space="preserve">
     <value>Looping</value>
+  </data>
+  <data name="Manage all the things" xml:space="preserve">
+    <value>Manage all the things</value>
   </data>
   <data name="Metadata" xml:space="preserve">
     <value>Metadata</value>
@@ -432,23 +561,68 @@
   <data name="No" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="No inputs" xml:space="preserve">
+    <value>No inputs</value>
+  </data>
+  <data name="No outcomes associated with this execution." xml:space="preserve">
+    <value>No outcomes associated with this execution.</value>
+  </data>
+  <data name="No output associated with this execution." xml:space="preserve">
+    <value>No output associated with this execution.</value>
+  </data>
+  <data name="No outputs" xml:space="preserve">
+    <value>No outputs</value>
+  </data>
+  <data name="No state associated with this execution." xml:space="preserve">
+    <value>No state associated with this execution.</value>
+  </data>
+  <data name="No variables" xml:space="preserve">
+    <value>No variables</value>
+  </data>
+  <data name="No workflow definitions found" xml:space="preserve">
+    <value>No workflow definitions found</value>
+  </data>
+  <data name="No workflow instances found" xml:space="preserve">
+    <value>No workflow instances found</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
   <data name="Open File" xml:space="preserve">
     <value>Open File</value>
+  </data>
+  <data name="Outcomes" xml:space="preserve">
+    <value>Outcomes</value>
   </data>
   <data name="Output" xml:space="preserve">
     <value>Output</value>
   </data>
+  <data name="Output Properties" xml:space="preserve">
+    <value>Output Properties</value>
+  </data>
+  <data name="Outputs" xml:space="preserve">
+    <value>Outputs</value>
+  </data>
   <data name="Parser" xml:space="preserve">
     <value>Parser</value>
   </data>
+  <data name="Persistence" xml:space="preserve">
+    <value>Persistence</value>
+  </data>
   <data name="Primitives" xml:space="preserve">
     <value>Primitives</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
   </data>
   <data name="Publish" xml:space="preserve">
     <value>Publish</value>
   </data>
   <data name="Publish Event" xml:space="preserve">
     <value>Publish Event</value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value>Published</value>
   </data>
   <data name="Publishedversion" xml:space="preserve">
     <value>Published version</value>
@@ -465,8 +639,17 @@
   <data name="Reports" xml:space="preserve">
     <value>Reports</value>
   </data>
+  <data name="Rollback to this version" xml:space="preserve">
+    <value>Rollback to this version</value>
+  </data>
   <data name="RowsPerPage" xml:space="preserve">
     <value>Rows Per Page</value>
+  </data>
+  <data name="Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="Run Asynchronously" xml:space="preserve">
+    <value>Run Asynchronously</value>
   </data>
   <data name="Run JavaScript" xml:space="preserve">
     <value>Run JavaScript</value>
@@ -476,6 +659,9 @@
   </data>
   <data name="Run Task" xml:space="preserve">
     <value>Run Task</value>
+  </data>
+  <data name="Run workflow" xml:space="preserve">
+    <value>Run workflow</value>
   </data>
   <data name="Runworkflow" xml:space="preserve">
     <value>Run workflow</value>
@@ -504,6 +690,9 @@
   <data name="SearchPlaceHolder" xml:space="preserve">
     <value>Search on name, description, id, definition id</value>
   </data>
+  <data name="Secrets" xml:space="preserve">
+    <value>Secrets</value>
+  </data>
   <data name="Send Email" xml:space="preserve">
     <value>Send Email</value>
   </data>
@@ -525,6 +714,24 @@
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="Show accumulated time" xml:space="preserve">
+    <value>Show accumulated time</value>
+  </data>
+  <data name="Show events scoped to current container" xml:space="preserve">
+    <value>Show events scoped to current container</value>
+  </data>
+  <data name="Show incidents" xml:space="preserve">
+    <value>Show incidents</value>
+  </data>
+  <data name="Show relative time" xml:space="preserve">
+    <value>Show relative time</value>
+  </data>
+  <data name="Showing all events" xml:space="preserve">
+    <value>Showing all events</value>
+  </data>
+  <data name="Showing incidents" xml:space="preserve">
+    <value>Showing incidents</value>
+  </data>
   <data name="Spreadsheet Instance Status Changed" xml:space="preserve">
     <value>Spreadsheet Instance Status Changed</value>
   </data>
@@ -540,8 +747,14 @@
   <data name="Start at" xml:space="preserve">
     <value>Start at</value>
   </data>
+  <data name="Start of workflow" xml:space="preserve">
+    <value>Start of workflow</value>
+  </data>
   <data name="Started" xml:space="preserve">
     <value>Started</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>State</value>
   </data>
   <data name="Status" xml:space="preserve">
     <value>Status</value>
@@ -552,6 +765,12 @@
   <data name="Sub status" xml:space="preserve">
     <value>Sub status</value>
   </data>
+  <data name="Sub-Workflow Inputs" xml:space="preserve">
+    <value>Sub-Workflow Inputs</value>
+  </data>
+  <data name="Sub-Workflow Outputs" xml:space="preserve">
+    <value>Sub-Workflow Outputs</value>
+  </data>
   <data name="SubStatus" xml:space="preserve">
     <value>SubStatus</value>
   </data>
@@ -561,8 +780,53 @@
   <data name="Switch (flow)" xml:space="preserve">
     <value>Switch (flow)</value>
   </data>
-  <data name="Tag Aggregations" xml:space="preserve">
+  <data name="Tag Aggregation" xml:space="preserve">
     <value>Tag Aggregations</value>
+  </data>
+  <data name="Task" xml:space="preserve">
+    <value>Task</value>
+  </data>
+  <data name="The name of the new workflow." xml:space="preserve">
+    <value>The name of the new workflow.</value>
+  </data>
+  <data name="The name of the variable." xml:space="preserve">
+    <value>The name of the variable.</value>
+  </data>
+  <data name="The technical name of the input." xml:space="preserve">
+    <value>The technical name of the input.</value>
+  </data>
+  <data name="The user-friendly name of this input." xml:space="preserve">
+    <value>The user-friendly name of this input.</value>
+  </data>
+  <data name="The user-friendly name of this output." xml:space="preserve">
+    <value>The user-friendly name of this output.</value>
+  </data>
+  <data name="There are currently no inputs defined." xml:space="preserve">
+    <value>There are currently no inputs defined.</value>
+  </data>
+  <data name="There are currently no outputs defined." xml:space="preserve">
+    <value>There are currently no outputs defined.</value>
+  </data>
+  <data name="There are currently no variables defined." xml:space="preserve">
+    <value>There are currently no variables defined.</value>
+  </data>
+  <data name="This activity does not have any common properties." xml:space="preserve">
+    <value>This activity does not have any common properties.</value>
+  </data>
+  <data name="This activity does not have any input properties." xml:space="preserve">
+    <value>This activity does not have any input properties.</value>
+  </data>
+  <data name="This activity does not have any output properties." xml:space="preserve">
+    <value>This activity does not have any output properties.</value>
+  </data>
+  <data name="This input is an array" xml:space="preserve">
+    <value>This input is an array</value>
+  </data>
+  <data name="This output is an array" xml:space="preserve">
+    <value>This output is an array</value>
+  </data>
+  <data name="This variable is an array" xml:space="preserve">
+    <value>This variable is an array</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Time</value>
@@ -570,8 +834,23 @@
   <data name="Timer" xml:space="preserve">
     <value>Timer</value>
   </data>
+  <data name="Trigger workflow" xml:space="preserve">
+    <value>Trigger workflow</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="UI Hint" xml:space="preserve">
+    <value>UI Hint</value>
+  </data>
+  <data name="Unable to make changes as the workflow or application is currently in read-only mode" xml:space="preserve">
+    <value>Unable to make changes as the workflow or application is currently in read-only mode</value>
+  </data>
   <data name="Unpublish" xml:space="preserve">
     <value>Unpublish</value>
+  </data>
+  <data name="Unpublish the current workflow" xml:space="preserve">
+    <value>Unpublish the current workflow.</value>
   </data>
   <data name="Update Form Instance Status" xml:space="preserve">
     <value>Update Form Instance Status</value>
@@ -591,14 +870,35 @@
   <data name="Usable as activity" xml:space="preserve">
     <value>Usable as activity</value>
   </data>
+  <data name="Use this version" xml:space="preserve">
+    <value>Use this version</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Used</value>
+  </data>
   <data name="Variables" xml:space="preserve">
     <value>Variables</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
   </data>
+  <data name="Version history" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Webhooks</value>
+  </data>
+  <data name="When checked, the workflow will be executed asynchronously." xml:space="preserve">
+    <value>When checked, the workflow will be executed asynchronously.</value>
+  </data>
   <data name="When you publish" xml:space="preserve">
     <value>When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow.</value>
+  </data>
+  <data name="Whether to show the description in the designer." xml:space="preserve">
+    <value>Whether to show the description in the designer.</value>
   </data>
   <data name="Workflow Context" xml:space="preserve">
     <value>Workflow Context</value>
@@ -626,5 +926,11 @@
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
+  </data>
+  <data name="You are running in read-only mode. Workflow operations are disabled" xml:space="preserve">
+    <value>You are running in read-only mode. Workflow operations are disabled</value>
+  </data>
+  <data name="You can find documentation and examples here" xml:space="preserve">
+    <value>You can find documentation and examples here</value>
   </data>
 </root>

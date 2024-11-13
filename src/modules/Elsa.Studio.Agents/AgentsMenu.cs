@@ -1,6 +1,7 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
+using Elsa.Studio.Workflows.Services;
 using MudBlazor;
 
 namespace Elsa.Studio.Agents;
@@ -8,6 +9,11 @@ namespace Elsa.Studio.Agents;
 /// A menu provider for the Agents module.
 public class AgentsMenu : IMenuProvider, IMenuGroupProvider
 {
+    private readonly LocalizationService _localizer;
+    public AgentsMenu(LocalizationService localizer)
+    {
+        _localizer = localizer;
+    }
     /// <inheritdoc />
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
@@ -17,13 +23,13 @@ public class AgentsMenu : IMenuProvider, IMenuGroupProvider
             {
                 Icon = AgentIcons.Robot,
                 Href = "ai/agents",
-                Text = "Agents",
+                Text = _localizer["Agents"],
                 GroupName = MenuItemGroups.General.Name
             },
             new()
             {
                 Icon = AgentIcons.AI,
-                Text = "Agents",
+                Text = _localizer["Agents"],
                 GroupName = MenuItemGroups.Settings.Name,
                 SubMenuItems =
                 [
@@ -31,13 +37,13 @@ public class AgentsMenu : IMenuProvider, IMenuGroupProvider
                     {
                         Icon = Icons.Material.Outlined.Key,
                         Href = "ai/api-keys",
-                        Text = "API Keys"
+                        Text = _localizer["API Keys"]
                     },
                     new MenuItem
                     {
                         Icon = Icons.Material.Outlined.MiscellaneousServices,
                         Href = "ai/services",
-                        Text = "Services"
+                        Text = _localizer["Services"]
                     }
                 ]
             }

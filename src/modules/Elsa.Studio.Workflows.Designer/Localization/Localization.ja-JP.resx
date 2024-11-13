@@ -138,7 +138,7 @@
   <data name="Autosave" xml:space="preserve">
     <value>自動保存</value>
   </data>
-  <data name="Batch Parser" xml:space="preserve">
+  <data name="BatchParser" xml:space="preserve">
     <value>Batch Parser</value>
   </data>
   <data name="Branching" xml:space="preserve">

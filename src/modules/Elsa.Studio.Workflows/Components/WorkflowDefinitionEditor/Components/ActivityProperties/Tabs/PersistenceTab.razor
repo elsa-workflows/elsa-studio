@@ -2,6 +2,8 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
 
 @{
@@ -26,8 +28,8 @@
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">Default configuration</MudText>
-            <MudSelect Label="Default Configuration"
+            <MudText Typo="Typo.overline">@_localizer["Default configuration"]</MudText>
+            <MudSelect Label="@_localizer["Default Configuration"]"
                        T=LogPersistenceMode
                        Variant="@MudBlazor.Variant.Outlined"
                        Value="@_persistenceConfiguration.Default"
@@ -42,11 +44,11 @@
 
             </MudSelect>
             <MudDivider />
-            <MudText Typo="Typo.overline">Input Properties</MudText>
+            <MudText Typo="Typo.overline">@_localizer["Input Properties"]</MudText>
             @if(!InputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@_localizer["This activity does not have any input properties."]</MudAlert>
                 </Well>
             }
             @foreach(var input in InputDescriptors)
@@ -55,11 +57,11 @@
             }
 
             <MudDivider />
-            <MudText Typo="Typo.overline">Output Properties</MudText>
+            <MudText Typo="Typo.overline">@_localizer["Output Properties"]</MudText>
             @if (!OutputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@_localizer["This activity does not have any output properties."]</MudAlert>
                 </Well>
             }
             @foreach (var output in OutputDescriptors)
