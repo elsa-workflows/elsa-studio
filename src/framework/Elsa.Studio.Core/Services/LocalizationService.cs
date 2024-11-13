@@ -5,17 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Elsa.Studio.Resources;
+using System.Globalization;
 
 namespace Elsa.Studio.Services
 {
     public class LocalizationService
     {
-        private readonly IStringLocalizer _localizer;
-        public LocalizationService(IStringLocalizerFactory factory)
+        public LocalizedString this[string key]
         {
-            var type = typeof(ResourceLocalization);
-            _localizer = factory.Create(type);
+            get
+            {
+                bool notFound = false;
+
+                var translation = ResourceLocalization.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
+
+                if(translation is null)
+                {
+                    translation = key;
+                    notFound = true;
+                }
+
+                return new LocalizedString(key, translation, notFound);
+            }
         }
-        public LocalizedString this[string key] => _localizer[key];
     }
 }
