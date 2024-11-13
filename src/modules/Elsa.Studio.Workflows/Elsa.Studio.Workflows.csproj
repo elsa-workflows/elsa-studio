@@ -10,13 +10,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNet.Mvc" />
-        <PackageReference Include="Microsoft.AspNetCore.Localization" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj" />
       <ProjectReference Include="..\Elsa.Studio.ActivityPortProviders\Elsa.Studio.ActivityPortProviders.csproj" />
@@ -24,23 +17,5 @@
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="Resources\Resource.en-US.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Resource.en-US.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Update="Resources\Resource.en-US.resx">
-        <Generator>PublicResXFileCodeGenerator</Generator>
-        <LastGenOutput>Resource.en-US.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-      <EmbeddedResource Update="Resources\Resource.ja-JP.resx">
-        <Generator>PublicResXFileCodeGenerator</Generator>
-      </EmbeddedResource>
-    </ItemGroup>
-
+	
 </Project>
