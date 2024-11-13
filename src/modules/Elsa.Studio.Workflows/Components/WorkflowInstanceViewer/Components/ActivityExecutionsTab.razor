@@ -48,11 +48,11 @@
                     <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No state associated with this execution."]"/>
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outcomes</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outcomes"]</MudText>
                     <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@_localizer["No outcomes associated with this execution."]"/>
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Output</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Output"]</MudText>
                     <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No output associated with this execution."]"/>
                 </div>
             </div>
