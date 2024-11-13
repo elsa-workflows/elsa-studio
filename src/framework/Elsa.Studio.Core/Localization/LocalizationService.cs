@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Elsa.Studio.Resources;
 using System.Globalization;
 
-namespace Elsa.Studio.Services
+namespace Elsa.Studio.Localization
 {
     public class LocalizationService
     {
@@ -19,7 +19,7 @@ namespace Elsa.Studio.Services
 
                 var translation = ResourceLocalization.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
 
-                if(translation is null)
+                if (translation is null)
                 {
                     translation = key;
                     notFound = true;

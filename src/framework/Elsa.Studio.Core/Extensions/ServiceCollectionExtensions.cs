@@ -1,6 +1,7 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
