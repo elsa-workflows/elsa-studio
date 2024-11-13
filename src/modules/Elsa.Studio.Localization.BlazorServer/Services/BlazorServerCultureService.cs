@@ -11,7 +11,7 @@ namespace Elsa.Studio.Localization.BlazorServer.Services
 {
     public class BlazorServerCultureService : ICultureService
     {
-        private NavigationManager _navigationManager { get; set; }
+        private readonly NavigationManager _navigationManager;
         public BlazorServerCultureService(NavigationManager navigationManager)
         {
             _navigationManager = navigationManager;
@@ -19,12 +19,7 @@ namespace Elsa.Studio.Localization.BlazorServer.Services
         public async Task ChangeCultureAsync(CultureInfo culture)
         {
             if (CultureInfo.CurrentUICulture.Name != culture.Name)
-            {
-                // module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Localization/blazorCulture.js");
-                // await JS.InvokeVoidAsync("blazorCulture.set", culture!.Name);
-
-                // Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
-
+            {   
                 var cultureString = culture.Name;
                 var uri = new Uri(_navigationManager.Uri)
                 .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);

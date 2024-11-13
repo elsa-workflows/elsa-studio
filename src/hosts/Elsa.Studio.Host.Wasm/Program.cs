@@ -13,7 +13,7 @@ using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Elsa.Studio.Localization.Models;
-using Elsa.Studio.Localization.Extensions;
+using Elsa.Studio.Localization.BlazorWasm.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -43,10 +43,12 @@ builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
-builder.Services.AddLocalizationModuleCore(localizationConfig);
+builder.Services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
 var app = builder.Build();
+
+await app.UseElsaLocalization();
 
 // Run each startup task.
 var startupTaskRunner = app.Services.GetRequiredService<IStartupTaskRunner>();
