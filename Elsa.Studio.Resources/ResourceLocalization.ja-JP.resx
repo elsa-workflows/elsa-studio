@@ -768,6 +768,9 @@
   <data name="Sub status" xml:space="preserve">
     <value>サブステータス</value>
   </data>
+  <data name="Sub-Workflow" xml:space="preserve">
+    <value>サブワークフロー</value>
+  </data>
   <data name="Sub-Workflow Inputs" xml:space="preserve">
     <value>サブワークフロー入力</value>
   </data>
@@ -907,6 +910,9 @@
     <value>その間</value>
   </data>
   <data name="Workflow Context" xml:space="preserve">
+    <value>ワークフローコンテキスト</value>
+  </data>
+  <data name="Workflow Contexts" xml:space="preserve">
     <value>ワークフローコンテキスト</value>
   </data>
   <data name="Workflowdefinition" xml:space="preserve">

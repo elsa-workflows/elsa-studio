@@ -2,7 +2,6 @@
 @using Elsa.Studio.Models
 @using System.Globalization
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Localization.Localization> _localizer
 
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
@@ -17,7 +16,7 @@
         @foreach (var item in data)
         {
             <tr>
-                <td style="width: 200px;">@_localizer[@item.Key]</td>
+                <td style="width: 200px;">@item.Key</td>
                 <td style="width: 50px;">
                     <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
                 </td>

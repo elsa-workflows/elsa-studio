@@ -9,7 +9,7 @@
         <MudTabPanel Text="@_localizer["Details"]">
             <Well>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Workflow</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Workflow"]</MudText>
                     <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
                 </div>
             </Well>
@@ -18,7 +18,7 @@
             {
                 <Well>
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow"]</MudText>
                         <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
                     </div>
                 </Well>
