@@ -5,7 +5,7 @@
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<ResourceLocalization> _localizer
+@inject LocalizationService _localizer
 @{
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
