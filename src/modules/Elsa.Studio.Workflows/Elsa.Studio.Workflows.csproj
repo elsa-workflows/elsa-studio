@@ -8,6 +8,10 @@
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client"/>
+	</ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />

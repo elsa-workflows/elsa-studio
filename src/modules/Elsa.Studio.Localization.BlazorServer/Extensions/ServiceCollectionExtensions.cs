@@ -10,6 +10,8 @@ namespace Elsa.Studio.Localization.BlazorServer.Extensions
     {
         public static IServiceCollection AddLocalizationModule(this IServiceCollection services, LocalizationConfig localizationConfig)
         {
+            services.AddControllers();
+
             services.AddLocalizationModuleCore(localizationConfig);
 
             services.AddScoped<ICultureService, BlazorServerCultureService>();
