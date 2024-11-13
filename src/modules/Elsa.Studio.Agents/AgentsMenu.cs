@@ -9,8 +9,8 @@ namespace Elsa.Studio.Agents;
 /// A menu provider for the Agents module.
 public class AgentsMenu : IMenuProvider, IMenuGroupProvider
 {
-    private readonly LocalizationService _localizer;
-    public AgentsMenu(LocalizationService localizer)
+    private readonly ElsaLocalization _localizer;
+    public AgentsMenu(ElsaLocalization localizer)
     {
         _localizer = localizer;
     }

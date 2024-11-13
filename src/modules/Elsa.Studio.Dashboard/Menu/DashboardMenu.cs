@@ -9,8 +9,8 @@ namespace Elsa.Studio.Dashboard.Menu;
 
 public class DashboardMenu : IMenuProvider
 {
-    private readonly LocalizationService _localizer;
-    public DashboardMenu(LocalizationService localizer)
+    private readonly ElsaLocalization _localizer;
+    public DashboardMenu(ElsaLocalization localizer)
     {
         _localizer = localizer;
     }

@@ -9,7 +9,7 @@ using System.Globalization;
 
 namespace Elsa.Studio.Localization
 {
-    public class LocalizationService
+    public class ElsaLocalization
     {
         public LocalizedString this[string key]
         {
