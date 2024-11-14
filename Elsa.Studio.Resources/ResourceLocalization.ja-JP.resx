@@ -117,6 +117,27 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="14 days" xml:space="preserve">
+    <value>14日間</value>
+  </data>
+  <data name="180 days" xml:space="preserve">
+    <value>180日</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30日間</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7日間</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90日間</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>エージェントの簡単な説明。</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>秘密の簡単な説明。</value>
+  </data>
   <data name="A brief description of the workflow." xml:space="preserve">
     <value>ワークフローの簡単な説明。</value>
   </data>
@@ -138,8 +159,20 @@
   <data name="A default value." xml:space="preserve">
     <value>デフォルト値。</value>
   </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>このエージェントの役割と目的についての説明。</value>
+  </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>この入力変数の役割と目的についての説明。</value>
+  </data>
+  <data name="A description about the secret." xml:space="preserve">
+    <value>秘密についての説明。</value>
+  </data>
   <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
     <value>デザイナーに表示されるこのアクティビティの説明。</value>
+  </data>
+  <data name="A technical name for the function" xml:space="preserve">
+    <value>このエージェントが実行する機能の技術的な名前。例: WriteCode</value>
   </data>
   <data name="Acknowledge Datasource Event" xml:space="preserve">
     <value>データソースイベントの確認</value>
@@ -168,6 +201,9 @@
   <data name="Add variable" xml:space="preserve">
     <value>変数を追加</value>
   </data>
+  <data name="Agent" xml:space="preserve">
+    <value>エージェント</value>
+  </data>
   <data name="Agents" xml:space="preserve">
     <value>エージェント</value>
   </data>
@@ -176,6 +212,12 @@
   </data>
   <data name="Allowthisworkflow" xml:space="preserve">
     <value>このワークフローをアクティビティとして使用できるようにします。</value>
+  </data>
+  <data name="API Key" xml:space="preserve">
+    <value>APIキー</value>
+  </data>
+  <data name="API Keys" xml:space="preserve">
+    <value>APIキー</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>適用する</value>
@@ -252,6 +294,9 @@
   <data name="Composition" xml:space="preserve">
     <value>構成</value>
   </data>
+  <data name="Connection Strings" xml:space="preserve">
+    <value>接続文字列</value>
+  </data>
   <data name="Console" xml:space="preserve">
     <value>コンソール</value>
   </data>
@@ -263,6 +308,18 @@
   </data>
   <data name="Correlation ID" xml:space="preserve">
     <value>相関ID</value>
+  </data>
+  <data name="Create Agent" xml:space="preserve">
+    <value>エージェントを作成</value>
+  </data>
+  <data name="Create API Key" xml:space="preserve">
+    <value>APIキーを作成する</value>
+  </data>
+  <data name="Create Secret" xml:space="preserve">
+    <value>シークレットを作成</value>
+  </data>
+  <data name="Create Service" xml:space="preserve">
+    <value>サービスの作成</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>作成</value>
@@ -363,8 +420,17 @@
   <data name="Excel Parser" xml:space="preserve">
     <value>Excel パーサー</value>
   </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>実行設定</value>
+  </data>
   <data name="Executions" xml:space="preserve">
     <value>処刑</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="Expires In" xml:space="preserve">
+    <value>有効期限</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>輸出</value>
@@ -404,6 +470,18 @@
   </data>
   <data name="Forms" xml:space="preserve">
     <value>フォーム</value>
+  </data>
+  <data name="Frequency Penalty" xml:space="preserve">
+    <value>頻度ペナルティ</value>
+  </data>
+  <data name="Function" xml:space="preserve">
+    <value>関数</value>
+  </data>
+  <data name="Function Name" xml:space="preserve">
+    <value>関数名</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>一般的な</value>
   </data>
   <data name="Generate Report" xml:space="preserve">
     <value>レポートを生成する</value>
@@ -498,6 +576,9 @@
   <data name="Instances" xml:space="preserve">
     <value>インスタンス</value>
   </data>
+  <data name="int" xml:space="preserve">
+    <value>整数</value>
+  </data>
   <data name="Is" xml:space="preserve">
     <value>は</value>
   </data>
@@ -546,6 +627,9 @@
   <data name="Manage all the things" xml:space="preserve">
     <value>すべてを管理する</value>
   </data>
+  <data name="Max Tokens" xml:space="preserve">
+    <value>最大トークン</value>
+  </data>
   <data name="Metadata" xml:space="preserve">
     <value>メタデータ</value>
   </data>
@@ -555,8 +639,17 @@
   <data name="NameHelperText" xml:space="preserve">
     <value>アクティビティの名前。名前付きアクティビティは他のアクティビティから参照できます。</value>
   </data>
+  <data name="Never" xml:space="preserve">
+    <value>一度もない</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>いいえ</value>
+  </data>
+  <data name="No agents found" xml:space="preserve">
+    <value>エージェントが見つかりません</value>
+  </data>
+  <data name="No API keys found" xml:space="preserve">
+    <value>API キーが見つかりません</value>
   </data>
   <data name="No inputs" xml:space="preserve">
     <value>入力なし</value>
@@ -570,6 +663,12 @@
   <data name="No outputs" xml:space="preserve">
     <value>出力なし</value>
   </data>
+  <data name="No secrets found" xml:space="preserve">
+    <value>秘密は見つかりませんでした</value>
+  </data>
+  <data name="No services found" xml:space="preserve">
+    <value>サービスが見つかりません</value>
+  </data>
   <data name="No state associated with this execution." xml:space="preserve">
     <value>この実行に関連付けられた状態はありません。</value>
   </data>
@@ -582,11 +681,20 @@
   <data name="No workflow instances found" xml:space="preserve">
     <value>ワークフローインスタンスが見つかりません</value>
   </data>
+  <data name="object" xml:space="preserve">
+    <value>物体</value>
+  </data>
   <data name="Ok" xml:space="preserve">
     <value>わかりました</value>
   </data>
   <data name="Open File" xml:space="preserve">
     <value>ファイルを開く</value>
+  </data>
+  <data name="OpenAIChatCompletion" xml:space="preserve">
+    <value>オープンAIチャット完了</value>
+  </data>
+  <data name="OpenAITextToImage" xml:space="preserve">
+    <value>OpenAIテキストから画像へ</value>
   </data>
   <data name="Outcomes" xml:space="preserve">
     <value>成果</value>
@@ -609,8 +717,17 @@
   <data name="Persistence" xml:space="preserve">
     <value>持続性</value>
   </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>プラグイン</value>
+  </data>
+  <data name="Presence Penalty" xml:space="preserve">
+    <value>プレゼンスペナルティ</value>
+  </data>
   <data name="Primitives" xml:space="preserve">
     <value>プリミティブ</value>
+  </data>
+  <data name="Prompt Template" xml:space="preserve">
+    <value>プロンプトテンプレート</value>
   </data>
   <data name="Properties" xml:space="preserve">
     <value>プロパティ</value>
@@ -678,6 +795,9 @@
   <data name="Scheduling" xml:space="preserve">
     <value>スケジュール</value>
   </data>
+  <data name="Scope" xml:space="preserve">
+    <value>範囲</value>
+  </data>
   <data name="Scripting" xml:space="preserve">
     <value>スクリプト</value>
   </data>
@@ -690,11 +810,17 @@
   <data name="SearchPlaceHolder" xml:space="preserve">
     <value>名前、説明、ID、定義IDで検索</value>
   </data>
+  <data name="Secret" xml:space="preserve">
+    <value>秘密</value>
+  </data>
   <data name="Secrets" xml:space="preserve">
     <value>秘密</value>
   </data>
   <data name="Send Email" xml:space="preserve">
     <value>メールを送信</value>
+  </data>
+  <data name="Services" xml:space="preserve">
+    <value>サービス</value>
   </data>
   <data name="Set Name" xml:space="preserve">
     <value>名前を設定</value>
@@ -765,6 +891,9 @@
   <data name="Storage" xml:space="preserve">
     <value>ストレージ</value>
   </data>
+  <data name="string" xml:space="preserve">
+    <value>弦</value>
+  </data>
   <data name="Sub status" xml:space="preserve">
     <value>サブステータス</value>
   </data>
@@ -792,20 +921,89 @@
   <data name="Task" xml:space="preserve">
     <value>タスク</value>
   </data>
+  <data name="Temperature" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="The .NET type of the input variable." xml:space="preserve">
+    <value>入力変数の .NET 型。</value>
+  </data>
+  <data name="The .NET type of the output variable." xml:space="preserve">
+    <value>出力変数の .NET 型。</value>
+  </data>
+  <data name="The description of the output variable." xml:space="preserve">
+    <value>出力変数の説明。</value>
+  </data>
+  <data name="The lifetime of this secret" xml:space="preserve">
+    <value>この秘密の生涯</value>
+  </data>
+  <data name="The maximum number" xml:space="preserve">
+    <value>生成するトークンの最大数。最大値にするには空白のままにします。</value>
+  </data>
+  <data name="The name of the agent." xml:space="preserve">
+    <value>エージェントの名前。</value>
+  </data>
+  <data name="The name of the function that the agent will execute." xml:space="preserve">
+    <value>エージェントが実行する関数の名前。</value>
+  </data>
+  <data name="The name of the new agent." xml:space="preserve">
+    <value>新しいエージェントの名前。</value>
+  </data>
+  <data name="The name of the new secret." xml:space="preserve">
+    <value>新しいシークレットの名前。</value>
+  </data>
   <data name="The name of the new workflow." xml:space="preserve">
     <value>新しいワークフローの名前。</value>
   </data>
   <data name="The name of the variable." xml:space="preserve">
     <value>変数の名前。</value>
   </data>
+  <data name="The penalty for repeating" xml:space="preserve">
+    <value>いずれかのトークンを繰り返す場合のペナルティ。プレゼンス ペナルティを大きくすると、トークンが繰り返される可能性が低くなり、より多様なテキスト生成が促進されます。</value>
+  </data>
+  <data name="The penalty for repeating any one token" xml:space="preserve">
+    <value>いずれかのトークンを繰り返す場合のペナルティ。頻度の高いペナルティは、トークンの繰り返しの可能性を減らし、より多様なテキスト生成を促進します。</value>
+  </data>
+  <data name="The plugins that the agent can use." xml:space="preserve">
+    <value>エージェントが使用できるプラグイン。</value>
+  </data>
+  <data name="The scope of the secret helps the UI to filter available options from dropdown lists." xml:space="preserve">
+    <value>シークレットのスコープは、UI がドロップダウン リストから利用可能なオプションをフィルター処理するのに役立ちます。</value>
+  </data>
+  <data name="The secret value." xml:space="preserve">
+    <value>秘密の値。</value>
+  </data>
+  <data name="The services that the agent requires." xml:space="preserve">
+    <value>エージェントが必要とするサービス。</value>
+  </data>
+  <data name="The settings of the service in JSON format." xml:space="preserve">
+    <value>JSON 形式のサービス設定。</value>
+  </data>
+  <data name="The system prompt template that the agent will use." xml:space="preserve">
+    <value>エージェントが使用するシステム プロンプト テンプレート。</value>
+  </data>
+  <data name="The technical name of the API key." xml:space="preserve">
+    <value>API キーの技術的な名前。</value>
+  </data>
   <data name="The technical name of the input." xml:space="preserve">
     <value>入力の技術的な名前。</value>
+  </data>
+  <data name="The technical name of the service." xml:space="preserve">
+    <value>サービスの技術的な名前。</value>
+  </data>
+  <data name="The temperature of the model" xml:space="preserve">
+    <value>モデルの温度。値が高いほど、モデルはより多くのリスクを取ることになります。モデルのトレーニングに非常に近い結果を得るには、0.1 を試してください。非常にクリエイティブな結果を得るには、0.9 を試してください。</value>
+  </data>
+  <data name="The type of the service." xml:space="preserve">
+    <value>サービスのタイプ。</value>
   </data>
   <data name="The user-friendly name of this input." xml:space="preserve">
     <value>この入力のユーザーフレンドリな名前。</value>
   </data>
   <data name="The user-friendly name of this output." xml:space="preserve">
     <value>この出力のユーザーフレンドリな名前。</value>
+  </data>
+  <data name="The value of the API key." xml:space="preserve">
+    <value>API キーの値。</value>
   </data>
   <data name="There are currently no inputs defined." xml:space="preserve">
     <value>現在、入力は定義されていません。</value>
@@ -839,6 +1037,12 @@
   </data>
   <data name="Timer" xml:space="preserve">
     <value>タイマー</value>
+  </data>
+  <data name="Top Probability determines" xml:space="preserve">
+    <value>上位確率は、テキスト生成中にトークンを選択するための累積確率しきい値を決定します。値が低いほど多様性が低くなり、モデルは最も可能性の高いトークンのみを選択します。値が高いほど、モデルはより広い範囲のトークンを考慮するため、より多様な出力が可能になります。</value>
+  </data>
+  <data name="TopP" xml:space="preserve">
+    <value>トップP</value>
   </data>
   <data name="Trigger workflow" xml:space="preserve">
     <value>ワークフローをトリガーする</value>
@@ -876,11 +1080,17 @@
   <data name="Usable as activity" xml:space="preserve">
     <value>アクティビティとして使用可能</value>
   </data>
+  <data name="Use JSON Response" xml:space="preserve">
+    <value>JSONレスポンスを使用する</value>
+  </data>
   <data name="Use this version" xml:space="preserve">
     <value>このバージョンを使用する</value>
   </data>
   <data name="Used" xml:space="preserve">
     <value>使用済み</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>価値</value>
   </data>
   <data name="Variables" xml:space="preserve">
     <value>変数</value>
@@ -911,6 +1121,9 @@
   </data>
   <data name="Workflow Context" xml:space="preserve">
     <value>ワークフローコンテキスト</value>
+  </data>
+  <data name="Workflow Context Settings" xml:space="preserve">
+    <value>ワークフローコンテキスト設定</value>
   </data>
   <data name="Workflow Contexts" xml:space="preserve">
     <value>ワークフローコンテキスト</value>

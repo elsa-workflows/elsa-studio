@@ -2,8 +2,10 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
-<PageTitle>API Key</PageTitle>
+<PageTitle>@_localizer["API Key"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="@($"API Key: {_apiKey.Name}")"/>
@@ -15,28 +17,28 @@
                  ValidationDelay="0">
 
             <MudTabs Border="false" PanelClass="pa-6">
-                <MudTabPanel Text="General">
+                <MudTabPanel Text="@_localizer["General"]">
                     <MudStack Spacing="8">
                         <MudTextField @bind-Value="_apiKey.Name"
                                       For="@(() => _apiKey.Name)"
                                       Immediate="true"
-                                      Label="Name"
+                                      Label="@_localizer["Name"]"
                                       Variant="Variant.Outlined"
-                                      HelperText="The technical name of the API key."/>
+                                      HelperText="@_localizer["The technical name of the API key."]"/>
 
                         <MudTextField @bind-Value="_apiKey.Value"
                                       For="@(() => _apiKey.Value)"
                                       Immediate="false"
-                                      Label="Value"
+                                      Label="@_localizer["Value"]"
                                       Variant="Variant.Outlined"
-                                      HelperText="The value of the API key."/>
+                                      HelperText="@_localizer["The value of the API key."]"/>
                         
                     </MudStack>
                 </MudTabPanel>
             </MudTabs>
         </MudForm>
         <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">Save</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">@_localizer["Save"]</MudButton>
         </MudCardActions>
     </MudCard>
 </MudContainer>
