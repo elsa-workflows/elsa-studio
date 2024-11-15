@@ -6,13 +6,20 @@ namespace Elsa.Studio.Localization
 {
     public class ElsaLocalization
     {
+        private readonly ILocalizationProvider _provider;
+
+        public ElsaLocalization(ILocalizationProvider provider)
+        {
+            _provider = provider;
+        }
+
         public LocalizedString this[string key]
         {
             get
             {
                 bool notFound = false;
 
-                var translation = ResourceLocalization.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
+                var translation = _provider.GetTranslation(key);
 
                 if (translation is null)
                 {
