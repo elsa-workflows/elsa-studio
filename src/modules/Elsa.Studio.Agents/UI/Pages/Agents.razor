@@ -2,11 +2,13 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject LocalizationService _localizer
 
-<PageTitle>Agents</PageTitle>
+<PageTitle>@_localizer["Agents"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Agents"/>
+    <PageHeading Text="@_localizer["Agents"]"/>
 
     <MudTable
         @ref="_table"
@@ -22,13 +24,13 @@
         Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">@_localizer["Delete"]</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
             
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateAgentClicked">Create Agent</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateAgentClicked">@_localizer["Create Agent"]</MudButton>
             </MudButtonGroup>
         </ToolBarContent>
         <HeaderContent>
@@ -36,10 +38,10 @@
                 <MudTableSortLabel SortLabel="ID" T="AgentModel">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="AgentModel">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="AgentModel">@_localizer["Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Description" T="AgentModel" Style="text-align: right;">Description</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Description" T="AgentModel" Style="text-align: right;">@_localizer["Description"]</MudTableSortLabel>
             </MudTh>
             <MudTh/>
         </HeaderContent>
@@ -55,16 +57,16 @@
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">@_localizer["Edit"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@_localizer["Delete"]</MudMenuItem>
                 </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText>No agents found</MudText>
+            <MudText>@_localizer["No agents found"]</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText>Loading...</MudText>
+            <MudText>@_localizer["Loading"]...</MudText>
         </LoadingContent>
         <PagerContent>
             <MudTablePager/>
