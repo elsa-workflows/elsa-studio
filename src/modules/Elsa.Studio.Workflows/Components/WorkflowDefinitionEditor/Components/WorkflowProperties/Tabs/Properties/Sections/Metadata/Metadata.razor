@@ -8,8 +8,8 @@
     <EditForm EditContext="@_editContext" OnValidSubmit="OnValidSubmit">
         <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator"/>
         <MudStack Spacing="3">
-            <MudTextField T="string" Label="@_localizer["Name"]" Required="true" Variant="Variant.Outlined" HelperText="@_localizer["WorkflowNamePlaceHolder"]" @bind-Value="@_model.Name" For="@(() => _model.Name)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
-            <MudTextField T="string" Label="@_localizer["Description"]" Variant="Variant.Outlined" HelperText="@_localizer["DescriptionPlaceHolder"]" Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+            <MudTextField T="string" Label="@_localizer["Name"]" Required="true" Variant="Variant.Outlined" HelperText="@_localizer["The name of the workflow."]" @bind-Value="@_model.Name" For="@(() => _model.Name)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+            <MudTextField T="string" Label="@_localizer["Description"]" Variant="Variant.Outlined" HelperText="@_localizer["A brief description of the workflow."]" Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
         </MudStack>
     </EditForm>
 </div>

@@ -13,7 +13,7 @@
                 <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
-                    HelperText="@_localizer["IdHelperText"]"
+                    HelperText="@_localizer["The ID of the activity."]"
                     Variant="Variant.Outlined">
                     <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
@@ -21,7 +21,7 @@
                 <MudTextField
                     T="string"
                     Label="@_localizer["Name"]"
-                    HelperText="@_localizer["NameHelperText"]"
+                    HelperText="@_localizer["The name of the activity. Named activities can be referenced by other activities."]"
                     Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
                     ValueChanged="OnActivityNameChanged"

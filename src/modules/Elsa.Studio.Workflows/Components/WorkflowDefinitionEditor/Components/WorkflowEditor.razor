@@ -16,7 +16,7 @@
             ActivitySelected="@OnActivitySelected" 
             GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>
-                <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@_localizer["Autosave"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
+                <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@_localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
                 <MudTooltip Text="@_localizer["Save"]" Delay="1000">
                     <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                         <MudIconButton Icon="@Icons.Material.Outlined.Save" title="@_localizer["Save"]" OnClick="@OnSaveClick" />
@@ -27,7 +27,7 @@
                     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
                 </div>
 
-                <MudTooltip Text="@_localizer["Publishworkflow"]" Delay="1000">
+                <MudTooltip Text="@_localizer["Publish the current workflow"]" Delay="1000">
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DropShadow="false">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" title="@_localizer["Publish"]" OnClick="@OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
@@ -47,7 +47,7 @@
                         </MudMenu>
                     </MudButtonGroup>
                 </MudTooltip>
-                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@_localizer["Runworkflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@_localizer["Run workflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>

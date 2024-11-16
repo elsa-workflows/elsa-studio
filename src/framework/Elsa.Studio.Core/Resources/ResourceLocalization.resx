@@ -177,7 +177,7 @@
   <data name="Acknowledge Datasource Event" xml:space="preserve">
     <value>Acknowledge Datasource Event</value>
   </data>
-  <data name="Activationstrategy" xml:space="preserve">
+  <data name="Activation strategy" xml:space="preserve">
     <value>Activation strategy</value>
   </data>
   <data name="Activities" xml:space="preserve">
@@ -186,7 +186,7 @@
   <data name="Activity" xml:space="preserve">
     <value>Activity</value>
   </data>
-  <data name="ActivityInstanceID" xml:space="preserve">
+  <data name="Activity Instance ID" xml:space="preserve">
     <value>Activity Instance ID</value>
   </data>
   <data name="Add" xml:space="preserve">
@@ -210,7 +210,7 @@
   <data name="Aggregation" xml:space="preserve">
     <value>Aggregation</value>
   </data>
-  <data name="Allowthisworkflow" xml:space="preserve">
+  <data name="Allow this workflow to be used as an activity." xml:space="preserve">
     <value>Allow this workflow to be used as an activity.</value>
   </data>
   <data name="API Key" xml:space="preserve">
@@ -225,11 +225,8 @@
   <data name="Auto-update consuming workflows" xml:space="preserve">
     <value>Auto-update consuming workflows</value>
   </data>
-  <data name="Autosave" xml:space="preserve">
+  <data name="Auto-save" xml:space="preserve">
     <value>Auto-save</value>
-  </data>
-  <data name="Batch Parser" xml:space="preserve">
-    <value>Batch Parser</value>
   </data>
   <data name="Branching" xml:space="preserve">
     <value>Branching</value>
@@ -242,15 +239,6 @@
   </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
     <value>Bulk Dispatch Workflows</value>
-  </data>
-  <data name="Bulkactions" xml:space="preserve">
-    <value>Bulk actions</value>
-  </data>
-  <data name="Call a Program" xml:space="preserve">
-    <value>Call a Program</value>
-  </data>
-  <data name="Call SAP BAPI" xml:space="preserve">
-    <value>Call SAP BAPI</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
@@ -272,18 +260,6 @@
   </data>
   <data name="Close workflow" xml:space="preserve">
     <value>Close workflow</value>
-  </data>
-  <data name="Collect Data from Datasource" xml:space="preserve">
-    <value>Collect Data from Datasource</value>
-  </data>
-  <data name="Collect Data From PI" xml:space="preserve">
-    <value>Collect Data From PI</value>
-  </data>
-  <data name="Collect PI Tag Spot Data" xml:space="preserve">
-    <value>Collect PI Tag Spot Data</value>
-  </data>
-  <data name="Comma Separated To List" xml:space="preserve">
-    <value>Comma Separated To List</value>
   </data>
   <data name="Common" xml:space="preserve">
     <value>Common</value>
@@ -330,7 +306,7 @@
   <data name="CreatedAt" xml:space="preserve">
     <value>CreatedAt</value>
   </data>
-  <data name="Createworkflow" xml:space="preserve">
+  <data name="Create workflow" xml:space="preserve">
     <value>Create workflow</value>
   </data>
   <data name="Cron" xml:space="preserve">
@@ -338,9 +314,6 @@
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Dashboard</value>
-  </data>
-  <data name="Data Source" xml:space="preserve">
-    <value>Data Source</value>
   </data>
   <data name="Date" xml:space="preserve">
     <value>Date</value>
@@ -380,9 +353,6 @@
   </data>
   <data name="Description" xml:space="preserve">
     <value>Description</value>
-  </data>
-  <data name="DescriptionPlaceHolder" xml:space="preserve">
-    <value>A brief description of the workflow.</value>
   </data>
   <data name="Details" xml:space="preserve">
     <value>Details</value>
@@ -465,15 +435,6 @@
   <data name="Fork (flow)" xml:space="preserve">
     <value>Fork (flow)</value>
   </data>
-  <data name="Form Instance Status Changed" xml:space="preserve">
-    <value>Form Instance Status Changed</value>
-  </data>
-  <data name="Form Instance Submitted" xml:space="preserve">
-    <value>Form Instance Submitted</value>
-  </data>
-  <data name="Forms" xml:space="preserve">
-    <value>Forms</value>
-  </data>
   <data name="Frequency Penalty" xml:space="preserve">
     <value>Frequency Penalty</value>
   </data>
@@ -485,27 +446,6 @@
   </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
-  </data>
-  <data name="Generate Report" xml:space="preserve">
-    <value>Generate Report</value>
-  </data>
-  <data name="Generate Spreadsheet" xml:space="preserve">
-    <value>Generate Spreadsheet</value>
-  </data>
-  <data name="Get Events from Datasource" xml:space="preserve">
-    <value>Get Events from Datasource</value>
-  </data>
-  <data name="Get Folder Details" xml:space="preserve">
-    <value>Get Folder Details</value>
-  </data>
-  <data name="Get Folder/KPI Id by Name" xml:space="preserve">
-    <value>Get Folder/KPI Id by Name</value>
-  </data>
-  <data name="Get KPI Property values" xml:space="preserve">
-    <value>Get KPI Property values</value>
-  </data>
-  <data name="Get KPI Values" xml:space="preserve">
-    <value>Get KPI Values</value>
   </data>
   <data name="Has Incidents" xml:space="preserve">
     <value>Has Incidents</value>
@@ -531,7 +471,7 @@
   <data name="ID" xml:space="preserve">
     <value>ID</value>
   </data>
-  <data name="IdHelperText" xml:space="preserve">
+  <data name="The ID of the activity." xml:space="preserve">
     <value>The ID of the activity.</value>
   </data>
   <data name="If" xml:space="preserve">
@@ -570,9 +510,6 @@
   <data name="Input/output" xml:space="preserve">
     <value>Input/output</value>
   </data>
-  <data name="InputProperties" xml:space="preserve">
-    <value>This activity does not have any input properties.</value>
-  </data>
   <data name="Inputs" xml:space="preserve">
     <value>Inputs</value>
   </data>
@@ -609,13 +546,7 @@
   <data name="Journal" xml:space="preserve">
     <value>Journal</value>
   </data>
-  <data name="KPI" xml:space="preserve">
-    <value>KPI</value>
-  </data>
-  <data name="KPI Alarm" xml:space="preserve">
-    <value>KPI Alarm</value>
-  </data>
-  <data name="Latestversion" xml:space="preserve">
+  <data name="Latest version" xml:space="preserve">
     <value>Latest version</value>
   </data>
   <data name="Loading" xml:space="preserve">
@@ -639,7 +570,7 @@
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="NameHelperText" xml:space="preserve">
+  <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
     <value>The name of the activity. Named activities can be referenced by other activities.</value>
   </data>
   <data name="Never" xml:space="preserve">
@@ -741,10 +672,10 @@
   <data name="Published" xml:space="preserve">
     <value>Published</value>
   </data>
-  <data name="Publishedversion" xml:space="preserve">
+  <data name="Published version" xml:space="preserve">
     <value>Published version</value>
   </data>
-  <data name="Publishworkflow" xml:space="preserve">
+  <data name="Publish the current workflow" xml:space="preserve">
     <value>Publish the current workflow</value>
   </data>
   <data name="Read Data from Configuration / Runtime" xml:space="preserve">
@@ -753,13 +684,10 @@
   <data name="Read Data from Database" xml:space="preserve">
     <value>Read Data from Database</value>
   </data>
-  <data name="Reports" xml:space="preserve">
-    <value>Reports</value>
-  </data>
   <data name="Rollback to this version" xml:space="preserve">
     <value>Rollback to this version</value>
   </data>
-  <data name="RowsPerPage" xml:space="preserve">
+  <data name="Rows Per Page" xml:space="preserve">
     <value>Rows Per Page</value>
   </data>
   <data name="Run" xml:space="preserve">
@@ -779,12 +707,6 @@
   </data>
   <data name="Run workflow" xml:space="preserve">
     <value>Run workflow</value>
-  </data>
-  <data name="Runworkflow" xml:space="preserve">
-    <value>Run workflow</value>
-  </data>
-  <data name="SAP" xml:space="preserve">
-    <value>SAP</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
@@ -807,7 +729,7 @@
   <data name="Search on name, id, definition id, definition version id, correlation id" xml:space="preserve">
     <value>Search on name, id, definition id, definition version id, correlation id</value>
   </data>
-  <data name="SearchPlaceHolder" xml:space="preserve">
+  <data name="Search on name, description, id, definition id" xml:space="preserve">
     <value>Search on name, description, id, definition id</value>
   </data>
   <data name="Secret" xml:space="preserve">
@@ -827,9 +749,6 @@
   </data>
   <data name="Set Output" xml:space="preserve">
     <value>Set Output</value>
-  </data>
-  <data name="Set PI Tag Data Update" xml:space="preserve">
-    <value>Set PI Tag Data Update</value>
   </data>
   <data name="Set Variable" xml:space="preserve">
     <value>Set Variable</value>
@@ -857,15 +776,6 @@
   </data>
   <data name="Showing incidents" xml:space="preserve">
     <value>Showing incidents</value>
-  </data>
-  <data name="Spreadsheet Instance Status Changed" xml:space="preserve">
-    <value>Spreadsheet Instance Status Changed</value>
-  </data>
-  <data name="Spreadsheet Instance Submitted" xml:space="preserve">
-    <value>Spreadsheet Instance Submitted</value>
-  </data>
-  <data name="Spreadsheets" xml:space="preserve">
-    <value>Spreadsheets</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>Start</value>
@@ -911,9 +821,6 @@
   </data>
   <data name="Switch (flow)" xml:space="preserve">
     <value>Switch (flow)</value>
-  </data>
-  <data name="Tag Aggregation" xml:space="preserve">
-    <value>Tag Aggregations</value>
   </data>
   <data name="Task" xml:space="preserve">
     <value>Task</value>
@@ -1062,15 +969,6 @@
   <data name="Unpublish the current workflow" xml:space="preserve">
     <value>Unpublish the current workflow.</value>
   </data>
-  <data name="Update Form Instance Status" xml:space="preserve">
-    <value>Update Form Instance Status</value>
-  </data>
-  <data name="Update KPI Property" xml:space="preserve">
-    <value>Update KPI Property</value>
-  </data>
-  <data name="Update Spreadsheet Instance Status" xml:space="preserve">
-    <value>Update Spreadsheet Instance Status</value>
-  </data>
   <data name="Updated" xml:space="preserve">
     <value>Updated</value>
   </data>
@@ -1128,13 +1026,13 @@
   <data name="Workflow Contexts" xml:space="preserve">
     <value>Workflow Contexts</value>
   </data>
-  <data name="Workflowdefinition" xml:space="preserve">
+  <data name="Workflow definitions Editor" xml:space="preserve">
     <value>Workflow definitions Editor</value>
   </data>
-  <data name="Workflowinstances" xml:space="preserve">
+  <data name="Workflow instances" xml:space="preserve">
     <value>Workflow instances</value>
   </data>
-  <data name="WorkflowNamePlaceHolder" xml:space="preserve">
+  <data name="The name of the workflow." xml:space="preserve">
     <value>The name of the workflow.</value>
   </data>
   <data name="Workflows" xml:space="preserve">
@@ -1142,12 +1040,6 @@
   </data>
   <data name="Write Line" xml:space="preserve">
     <value>Write Line</value>
-  </data>
-  <data name="Write to Data Source" xml:space="preserve">
-    <value>Write to Data Source</value>
-  </data>
-  <data name="Write to Database" xml:space="preserve">
-    <value>Write to Database</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
@@ -1157,5 +1049,14 @@
   </data>
   <data name="You can find documentation and examples here" xml:space="preserve">
     <value>You can find documentation and examples here</value>
+  </data>
+  <data name="For Each" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Parallel for Each" xml:space="preserve">
+    <value />
+  </data>
+  <data name="While" xml:space="preserve">
+    <value />
   </data>
 </root>

@@ -13,10 +13,10 @@
 @using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
-<PageTitle>@_localizer["Workflowinstances"]</PageTitle>
+<PageTitle>@_localizer["Workflow instances"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-<PageHeading Text="@_localizer["Workflowinstances"]"/>
+    <PageHeading Text="@_localizer["Workflow instances"]" />
 
 <div id="instance-file-upload-button-wrapper" class="d-none">
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
@@ -37,7 +37,7 @@
     @bind-SelectedItems="_selectedRows">
 <ToolBarContent>
     <MudPaper Class="gap-3 d-flex" Elevation="0">
-        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulkactions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
+        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
             <MudMenuItem OnClick="@OnBulkDeleteClicked">@_localizer["Delete"]</MudMenuItem>
             <MudMenuItem OnClick="@OnBulkCancelClicked">@_localizer["Cancel"]</MudMenuItem>
             <MudMenuItem Disabled="true">@_localizer["Retry"]</MudMenuItem>
@@ -282,7 +282,7 @@
         <MudText>@_localizer["Loading"]...</MudText>
     </LoadingContent>
     <PagerContent>
-            <MudTablePager RowsPerPageString="@_localizer["RowsPerPage"]" />
+            <MudTablePager RowsPerPageString="@_localizer["Rows Per Page"]" />
     </PagerContent>
 </MudTable>
 </MudContainer>

@@ -177,7 +177,7 @@
   <data name="Acknowledge Datasource Event" xml:space="preserve">
     <value>データソースイベントの確認</value>
   </data>
-  <data name="Activationstrategy" xml:space="preserve">
+  <data name="Activation Strategy" xml:space="preserve">
     <value>活性化戦略</value>
   </data>
   <data name="Activities" xml:space="preserve">
@@ -186,7 +186,7 @@
   <data name="Activity" xml:space="preserve">
     <value>活動</value>
   </data>
-  <data name="ActivityInstanceID" xml:space="preserve">
+  <data name="Activity Instance ID" xml:space="preserve">
     <value>アクティビティインスタンスID</value>
   </data>
   <data name="Add" xml:space="preserve">
@@ -210,7 +210,7 @@
   <data name="Aggregation" xml:space="preserve">
     <value>集約</value>
   </data>
-  <data name="Allowthisworkflow" xml:space="preserve">
+  <data name="Allow this workflow to be used as an activity." xml:space="preserve">
     <value>このワークフローをアクティビティとして使用できるようにします。</value>
   </data>
   <data name="API Key" xml:space="preserve">
@@ -225,11 +225,8 @@
   <data name="Auto-update consuming workflows" xml:space="preserve">
     <value>消費ワークフローの自動更新</value>
   </data>
-  <data name="Autosave" xml:space="preserve">
+  <data name="Auto-save" xml:space="preserve">
     <value>自動保存</value>
-  </data>
-  <data name="BatchParser" xml:space="preserve">
-    <value>Batch Parser</value>
   </data>
   <data name="Branching" xml:space="preserve">
     <value>分岐</value>
@@ -242,15 +239,6 @@
   </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
     <value>一括ディスパッチワークフロー</value>
-  </data>
-  <data name="Bulkactions" xml:space="preserve">
-    <value>一括操作</value>
-  </data>
-  <data name="Call a Program" xml:space="preserve">
-    <value>プログラムを呼び出す</value>
-  </data>
-  <data name="Call SAP BAPI" xml:space="preserve">
-    <value>SAP BAPIを呼び出す</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>キャンセル</value>
@@ -272,15 +260,6 @@
   </data>
   <data name="Close workflow" xml:space="preserve">
     <value>ワークフローを閉じる</value>
-  </data>
-  <data name="Collect Data from Datasource" xml:space="preserve">
-    <value>データソースからデータを収集する</value>
-  </data>
-  <data name="Collect Data From PI" xml:space="preserve">
-    <value>PIからデータを収集する</value>
-  </data>
-  <data name="Comma Separated To List" xml:space="preserve">
-    <value>カンマ区切りリスト</value>
   </data>
   <data name="Common" xml:space="preserve">
     <value>一般</value>
@@ -327,7 +306,7 @@
   <data name="CreatedAt" xml:space="preserve">
     <value>作成日時</value>
   </data>
-  <data name="Createworkflow" xml:space="preserve">
+  <data name="Create workflow" xml:space="preserve">
     <value>ワークフローを作成する</value>
   </data>
   <data name="Cron" xml:space="preserve">
@@ -335,9 +314,6 @@
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>ダッシュボード</value>
-  </data>
-  <data name="Data Source" xml:space="preserve">
-    <value>データソース</value>
   </data>
   <data name="Date" xml:space="preserve">
     <value>日付</value>
@@ -377,9 +353,6 @@
   </data>
   <data name="Description" xml:space="preserve">
     <value>説明</value>
-  </data>
-  <data name="DescriptionPlaceHolder" xml:space="preserve">
-    <value>ワークフローの簡単な説明。</value>
   </data>
   <data name="Details" xml:space="preserve">
     <value>詳細</value>
@@ -462,15 +435,6 @@
   <data name="Fork (flow)" xml:space="preserve">
     <value>フォーク（流れ）</value>
   </data>
-  <data name="Form Instance Status Changed" xml:space="preserve">
-    <value>フォームインスタンスのステータスが変更されました</value>
-  </data>
-  <data name="Form Instance Submitted" xml:space="preserve">
-    <value>フォームインスタンスが送信されました</value>
-  </data>
-  <data name="Forms" xml:space="preserve">
-    <value>フォーム</value>
-  </data>
   <data name="Frequency Penalty" xml:space="preserve">
     <value>頻度ペナルティ</value>
   </data>
@@ -482,27 +446,6 @@
   </data>
   <data name="General" xml:space="preserve">
     <value>一般的な</value>
-  </data>
-  <data name="Generate Report" xml:space="preserve">
-    <value>レポートを生成する</value>
-  </data>
-  <data name="Generate Spreadsheet" xml:space="preserve">
-    <value>スプレッドシートを生成する</value>
-  </data>
-  <data name="Get Events from Datasource" xml:space="preserve">
-    <value>データソースからイベントを取得する</value>
-  </data>
-  <data name="Get Folder Details" xml:space="preserve">
-    <value>フォルダの詳細を取得</value>
-  </data>
-  <data name="Get Folder/KPI Id by Name" xml:space="preserve">
-    <value>名前でフォルダー/KPI ID を取得する</value>
-  </data>
-  <data name="Get KPI Property values" xml:space="preserve">
-    <value>KPIプロパティ値を取得する</value>
-  </data>
-  <data name="Get KPI Values" xml:space="preserve">
-    <value>KPI値を取得する</value>
   </data>
   <data name="Has Incidents" xml:space="preserve">
     <value>事件あり</value>
@@ -528,7 +471,7 @@
   <data name="ID" xml:space="preserve">
     <value>ID</value>
   </data>
-  <data name="IdHelperText" xml:space="preserve">
+  <data name="The ID of the activity." xml:space="preserve">
     <value>アクティビティの ID。</value>
   </data>
   <data name="If" xml:space="preserve">
@@ -567,9 +510,6 @@
   <data name="Input/output" xml:space="preserve">
     <value>入力/出力</value>
   </data>
-  <data name="InputProperties" xml:space="preserve">
-    <value>このアクティビティには入力プロパティがありません。</value>
-  </data>
   <data name="Inputs" xml:space="preserve">
     <value>入力</value>
   </data>
@@ -606,13 +546,7 @@
   <data name="Journal" xml:space="preserve">
     <value>ジャーナル</value>
   </data>
-  <data name="KPI" xml:space="preserve">
-    <value>重要業績評価指標</value>
-  </data>
-  <data name="KPI Alarm" xml:space="preserve">
-    <value>KPIアラーム</value>
-  </data>
-  <data name="Latestversion" xml:space="preserve">
+  <data name="Latest version" xml:space="preserve">
     <value>最新バージョン</value>
   </data>
   <data name="Loading" xml:space="preserve">
@@ -636,7 +570,7 @@
   <data name="Name" xml:space="preserve">
     <value>名前</value>
   </data>
-  <data name="NameHelperText" xml:space="preserve">
+  <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
     <value>アクティビティの名前。名前付きアクティビティは他のアクティビティから参照できます。</value>
   </data>
   <data name="Never" xml:space="preserve">
@@ -741,10 +675,10 @@
   <data name="Published" xml:space="preserve">
     <value>公開済み</value>
   </data>
-  <data name="Publishedversion" xml:space="preserve">
+  <data name="Published version" xml:space="preserve">
     <value>公開版</value>
   </data>
-  <data name="Publishworkflow" xml:space="preserve">
+  <data name="Publish the current workflow" xml:space="preserve">
     <value>現在のワークフローを公開する</value>
   </data>
   <data name="Read Data from Configuration / Runtime" xml:space="preserve">
@@ -753,13 +687,10 @@
   <data name="Read Data from Database" xml:space="preserve">
     <value>データベースからデータを読み取る</value>
   </data>
-  <data name="Reports" xml:space="preserve">
-    <value>レポート</value>
-  </data>
   <data name="Rollback to this version" xml:space="preserve">
     <value>このバージョンにロールバック</value>
   </data>
-  <data name="RowsPerPage" xml:space="preserve">
+  <data name="Rows Per Page" xml:space="preserve">
     <value>ページあたりの行数</value>
   </data>
   <data name="Run" xml:space="preserve">
@@ -779,12 +710,6 @@
   </data>
   <data name="Run workflow" xml:space="preserve">
     <value>ワークフローを実行する</value>
-  </data>
-  <data name="Runworkflow" xml:space="preserve">
-    <value>ワークフローを実行する</value>
-  </data>
-  <data name="SAP" xml:space="preserve">
-    <value>財務諸表</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
@@ -807,7 +732,7 @@
   <data name="Search on name, id, definition id, definition version id, correlation id" xml:space="preserve">
     <value>名前、ID、定義ID、定義バージョンID、相関IDで検索</value>
   </data>
-  <data name="SearchPlaceHolder" xml:space="preserve">
+  <data name="Search on name, description, id, definition id" xml:space="preserve">
     <value>名前、説明、ID、定義IDで検索</value>
   </data>
   <data name="Secret" xml:space="preserve">
@@ -827,9 +752,6 @@
   </data>
   <data name="Set Output" xml:space="preserve">
     <value>出力を設定する</value>
-  </data>
-  <data name="Set PI Tag Data Update" xml:space="preserve">
-    <value>PIタグデータの更新を設定する</value>
   </data>
   <data name="Set Variable" xml:space="preserve">
     <value>変数を設定する</value>
@@ -857,18 +779,6 @@
   </data>
   <data name="Showing incidents" xml:space="preserve">
     <value>インシデントを表示</value>
-  </data>
-  <data name="Spreadsheet Instance Status Changed" xml:space="preserve">
-    <value>スプレッドシート インスタンスのステータスが変更されました</value>
-  </data>
-  <data name="Spreadsheet Instance Submitted" xml:space="preserve">
-    <value>スプレッドシートインスタンスが送信されました</value>
-  </data>
-  <data name="Spreadsheets" xml:space="preserve">
-    <value>スプレッドシート</value>
-  </data>
-  <data name="SQL Query Parser" xml:space="preserve">
-    <value>SQL クエリパーサー</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>始める</value>
@@ -914,9 +824,6 @@
   </data>
   <data name="Switch (flow)" xml:space="preserve">
     <value>スイッチ（フロー）</value>
-  </data>
-  <data name="Tag Aggregation" xml:space="preserve">
-    <value>タグ集約</value>
   </data>
   <data name="Task" xml:space="preserve">
     <value>タスク</value>
@@ -1062,15 +969,6 @@
   <data name="Unpublish the current workflow" xml:space="preserve">
     <value>現在のワークフローを非公開にする.</value>
   </data>
-  <data name="Update Form Instance Status" xml:space="preserve">
-    <value>フォームインスタンスのステータスの更新</value>
-  </data>
-  <data name="Update KPI Property" xml:space="preserve">
-    <value>KPIプロパティの更新</value>
-  </data>
-  <data name="Update Spreadsheet Instance Status" xml:space="preserve">
-    <value>スプレッドシートインスタンスのステータスの更新</value>
-  </data>
   <data name="Updated" xml:space="preserve">
     <value>更新</value>
   </data>
@@ -1128,13 +1026,13 @@
   <data name="Workflow Contexts" xml:space="preserve">
     <value>ワークフローコンテキスト</value>
   </data>
-  <data name="Workflowdefinition" xml:space="preserve">
+  <data name="Workflow definitions Editor" xml:space="preserve">
     <value>ワークフロー定義</value>
   </data>
-  <data name="Workflowinstances" xml:space="preserve">
+  <data name="Workflow instances" xml:space="preserve">
     <value>ワークフローインスタンス</value>
   </data>
-  <data name="WorkflowNamePlaceHolder" xml:space="preserve">
+  <data name="The name of the workflow." xml:space="preserve">
     <value>ワークフローの名前。</value>
   </data>
   <data name="Workflows" xml:space="preserve">
@@ -1142,15 +1040,6 @@
   </data>
   <data name="Write Line" xml:space="preserve">
     <value>行を書く</value>
-  </data>
-  <data name="Write to Data Source" xml:space="preserve">
-    <value>データソースへの書き込み</value>
-  </data>
-  <data name="Write to Database" xml:space="preserve">
-    <value>データベースへの書き込み</value>
-  </data>
-  <data name="XML Parser" xml:space="preserve">
-    <value>XMLパーサー</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>はい</value>

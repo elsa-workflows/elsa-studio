@@ -14,7 +14,7 @@
         <MudStack Spacing="3">
             <MudSelect
                 T="WorkflowActivationStrategyDescriptor"
-                Label="@_localizer["Activationstrategy"]"
+                Label="@_localizer["Activation strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedActivationStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
@@ -52,7 +52,7 @@
                     <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
                 }
             </MudSelect>
-            <MudField Variant="Variant.Text" HelperText="@_localizer["Allowthisworkflow"]" Margin="Margin.None">
+            <MudField Variant="Variant.Text" HelperText="@_localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
                     Label="@_localizer["Usable as activity"]"

@@ -10,7 +10,7 @@
 }
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="@_localizer["Workflowdefinition"]" />
+    <PageHeading Text="@_localizer["Workflow definitions Editor"]" />
 
     <div id="workflow-file-upload-button-wrapper" class="d-none">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
@@ -30,7 +30,7 @@
         Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulkactions"]" Color="Color.Default" Variant="Variant.Filled">
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
                 <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkDeleteClicked">@_localizer["Delete"]</MudMenuItem>
                 <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkPublishClicked">@_localizer["Publish"]</MudMenuItem>
                 <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkRetractClicked">@_localizer["Unpublish"]</MudMenuItem>
@@ -41,7 +41,7 @@
             <MudTextField
                 T="string"
                 Text="@SearchTerm"
-                Placeholder="@_localizer["SearchPlaceHolder"]"
+                Placeholder="@_localizer["Search on name, description, id, definition id"]"
                 Variant="Variant.Outlined"
                 AdornmentIcon="@Icons.Material.Outlined.Search"
                 Adornment="Adornment.End"
@@ -53,7 +53,7 @@
                 ValueChanged="@OnSearchTermChanged"/>
 
             <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DropShadow="true">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@_localizer["Createworkflow"]</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@_localizer["Create workflow"]</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode">
                     <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
                         <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@_localizer["Import"]</MudMenuItem>
@@ -69,10 +69,10 @@
                 <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">@_localizer["Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Latestversion"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Latest version"]</MudTableSortLabel>
             </MudTh>
             <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Publishedversion"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Published version"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 @_localizer["Description"]
@@ -126,7 +126,7 @@
             <MudText>@_localizer["Loading"]...</MudText>
         </LoadingContent>
         <PagerContent>
-            <MudTablePager RowsPerPageString="@_localizer["RowsPerPage"]" />
+            <MudTablePager RowsPerPageString="@_localizer["Rows Per Page"]" />
         </PagerContent>
     </MudTable>
 </MudContainer>
