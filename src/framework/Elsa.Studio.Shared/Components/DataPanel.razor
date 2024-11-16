@@ -29,7 +29,7 @@
                         {
                             @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
                             {
-                                <span>Convert.ToDateTime(@item.Value.Text)</span>
+                                <span>@Convert.ToDateTime(@item.Value.Text)</span>
                             }
                             else
                             {
