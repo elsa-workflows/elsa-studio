@@ -29,7 +29,7 @@
                         {
                             @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
                             {
-                                <span>@GetTextDateJapan(Convert.ToDateTime(@item.Value.Text))</span>
+                                <span>Convert.ToDateTime(@item.Value.Text)</span>
                             }
                             else
                             {
@@ -82,15 +82,4 @@
     {
         await Clipboard.CopyText(value);
     }
-    public static string GetTextDateJapan(DateTime date)
-    {
-        string result = string.Empty;
-        CultureInfo currentCulture = CultureInfo.CurrentCulture;
-        var calendarJp = currentCulture.Calendar;
-        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
-        cultureJp.DateTimeFormat.Calendar = calendarJp;
-        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
-        return result;
-    }
-
 }
