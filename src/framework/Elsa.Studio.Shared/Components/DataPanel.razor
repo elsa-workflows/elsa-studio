@@ -1,4 +1,5 @@
 @using Elsa.Studio.DomInterop.Contracts
+@using Elsa.Studio.Localization.Time.Components
 @using Elsa.Studio.Models
 @using System.Globalization
 @using Microsoft.Extensions.Localization
@@ -29,7 +30,7 @@
                         {
                             @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
                             {
-                                <span>@Convert.ToDateTime(@item.Value.Text)</span>
+                                <span><Timestamp Value="@Convert.ToDateTime(item.Value.Text)"></Timestamp></span>
                             }
                             else
                             {
