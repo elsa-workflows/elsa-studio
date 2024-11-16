@@ -339,9 +339,6 @@
   <data name="Definition version ID" xml:space="preserve">
     <value>定義バージョンID</value>
   </data>
-  <data name="DefinitionID" xml:space="preserve">
-    <value>定義ID</value>
-  </data>
   <data name="Definitions" xml:space="preserve">
     <value>定義</value>
   </data>
@@ -489,7 +486,7 @@
   <data name="IncidentCount" xml:space="preserve">
     <value>事件数</value>
   </data>
-  <data name="Incidenthandlingstrategy" xml:space="preserve">
+  <data name="Incident handling strategy" xml:space="preserve">
     <value>インシデント対応戦略</value>
   </data>
   <data name="Incidents" xml:space="preserve">

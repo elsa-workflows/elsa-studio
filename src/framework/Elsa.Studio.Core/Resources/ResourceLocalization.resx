@@ -339,9 +339,6 @@
   <data name="Definition version ID" xml:space="preserve">
     <value>Definition version ID</value>
   </data>
-  <data name="DefinitionID" xml:space="preserve">
-    <value>Definition ID</value>
-  </data>
   <data name="Definitions" xml:space="preserve">
     <value>Definitions</value>
   </data>
@@ -489,7 +486,7 @@
   <data name="IncidentCount" xml:space="preserve">
     <value>IncidentCount</value>
   </data>
-  <data name="Incidenthandlingstrategy" xml:space="preserve">
+  <data name="Incident handling strategy" xml:space="preserve">
     <value>Incident handling strategy</value>
   </data>
   <data name="Incidents" xml:space="preserve">
