@@ -56,16 +56,6 @@ public partial class Journal : IAsyncDisposable
         SelectedIndex = -1;
         StateHasChanged();
     }
-    public static string GetTextDateJapan(DateTime date)
-    {
-        string result = string.Empty;
-        CultureInfo currentCulture = CultureInfo.CurrentCulture;
-        var calendarJp = currentCulture.Calendar;
-        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
-        cultureJp.DateTimeFormat.Calendar = calendarJp;
-        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
-        return result;
-    }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()

@@ -114,16 +114,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }
-    public static string GetTextDateJapan(DateTime date)
-    {
-        string result = string.Empty;
-        CultureInfo currentCulture = CultureInfo.CurrentCulture;
-        var calendarJp = currentCulture.Calendar;
-        CultureInfo cultureJp = new System.Globalization.CultureInfo(currentCulture.Name, false);
-        cultureJp.DateTimeFormat.Calendar = calendarJp;
-        result = date.ToString(currentCulture.DateTimeFormat.FullDateTimePattern, cultureJp);
-        return result;
-    }
 
     private TimestampFilter Map(TimestampFilterModel source)
     {

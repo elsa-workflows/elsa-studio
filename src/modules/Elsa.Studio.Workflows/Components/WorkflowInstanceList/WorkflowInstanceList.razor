@@ -261,9 +261,9 @@
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
-        <MudTd DataLabel="@_localizer["CreatedAt"]">@GetTextDateJapan(Convert.ToDateTime(@context.CreatedAt.ToString()))</MudTd>
-            <MudTd DataLabel="@_localizer["UpdatedAt"]">@GetTextDateJapan(Convert.ToDateTime(@context.UpdatedAt?.ToString()))</MudTd>
-        <MudTd DataLabel="@_localizer["FinishedAt"]">@GetTextDateJapan(Convert.ToDateTime(@context.FinishedAt?.ToString()))</MudTd>
+        <MudTd DataLabel="@_localizer["CreatedAt"]">@(Convert.ToDateTime(@context.CreatedAt.ToString()))</MudTd>
+            <MudTd DataLabel="@_localizer["UpdatedAt"]">@(Convert.ToDateTime(@context.UpdatedAt?.ToString()))</MudTd>
+        <MudTd DataLabel="@_localizer["FinishedAt"]">@(Convert.ToDateTime(@context.FinishedAt?.ToString()))</MudTd>
         <MudTd DataLabel="" Style="text-align:right">
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                 <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@_localizer["View"]</MudMenuItem>
