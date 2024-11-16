@@ -22,9 +22,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddScoped<IRemoteFeatureProvider, RemoteRemoteFeatureProvider>()
+            .AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>()
             .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
+            .AddScoped<IWorkflowDefinitionEditorService, WorkflowDefinitionEditorService>()
+            .AddScoped<IWorkflowDefinitionImporter, WorkflowDefinitionImporter>()
+            .AddScoped<IWorkflowDefinitionHistoryService, WorkflowDefinitionHistoryService>()
             .AddScoped<IActivityRegistryProvider, RemoteActivityRegistryProvider>()
             .AddScoped<IActivityExecutionService, RemoteActivityExecutionService>()
             .AddScoped<IActivityRegistry, DefaultActivityRegistry>()
@@ -35,12 +38,14 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, RemoteServerInformationProvider>()
             .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
             .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
+            .AddScoped<ILogPersistenceStrategyService, RemoteLogPersistenceStrategyService>()
             .AddScoped<IIncidentStrategiesProvider, RemoteIncidentStrategiesProvider>()
             .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddScoped<IActivityPortService, DefaultActivityPortService>()
             .AddScoped<IActivityVisitor, DefaultActivityVisitor>()
             .AddScoped<IActivityResolver, DefaultActivityResolver>()
+            .AddScoped<IWorkflowJsonDetector, CompatWorkflowJsonDetector>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();

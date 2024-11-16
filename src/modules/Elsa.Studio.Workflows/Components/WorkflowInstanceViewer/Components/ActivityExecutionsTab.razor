@@ -26,11 +26,11 @@
             </HeaderContent>
             <RowTemplate>
                 @{
-                    var record = context.ActivityExecution;
+                    var record = context.ActivityExecutionSummary;
                 }
                 <MudTh>@context.Number</MudTh>
-                <MudTd>@record.StartedAt.ToString("g")</MudTd>
-                <MudTd>@record.CompletedAt?.ToString("g")</MudTd>
+                <MudTd><Timestamp Value="record.StartedAt"/> </MudTd>
+                <MudTd><Timestamp Value="record.CompletedAt"/> </MudTd>
                 <MudTd>@(record.CompletedAt != null ? (record.CompletedAt - record.StartedAt).Value.ToString("g") : "")</MudTd>
                 <MudTd>@record.Status</MudTd>
                 <MudTd>@record.Id</MudTd>

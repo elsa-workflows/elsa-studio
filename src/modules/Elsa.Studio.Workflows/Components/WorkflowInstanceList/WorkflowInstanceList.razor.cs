@@ -82,14 +82,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             OrderDirection = state.SortDirection == SortDirection.Descending ? OrderDirection.Descending : OrderDirection.Ascending,
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
-       
-        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request, cancellationToken));
+
+        var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request, cancellationToken);
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
-        var workflowDefinitionVersionsResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             Ids = definitionVersionIds,
-        }, cancellationToken: cancellationToken));
+        }, cancellationToken: cancellationToken);
 
         var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 

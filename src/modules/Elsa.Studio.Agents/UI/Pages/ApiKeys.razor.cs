@@ -29,7 +29,7 @@ public partial class ApiKeys
     private async Task<TableData<ApiKeyModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetApiClientAsync();
-        var response = await InvokeWithBlazorServiceContext(() => apiClient.ListAsync(cancellationToken));
+        var response = await apiClient.ListAsync(cancellationToken);
 
         return new TableData<ApiKeyModel>
         {
@@ -72,7 +72,7 @@ public partial class ApiKeys
 
         var id = model.Id;
         var apiClient = await GetApiClientAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.DeleteAsync(id)));
+        await apiClient.DeleteAsync(id);
         Reload();
     }
 
@@ -86,7 +86,7 @@ public partial class ApiKeys
         var ids = _selectedRows.Select(x => x.Id).ToList();
         var request = new BulkDeleteRequest { Ids = ids };
         var apiClient = await GetApiClientAsync();
-        await InvokeWithBlazorServiceContext((Func<Task>)(() => apiClient.BulkDeleteAsync(request)));
+        await apiClient.BulkDeleteAsync(request);
         Reload();
     }
 }

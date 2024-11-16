@@ -33,9 +33,9 @@
 		<EmbeddedResource Update="**\*.resx"></EmbeddedResource>
 	</ItemGroup>
 
-    <!--    <ItemGroup Label="Elsa">-->
-    <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
-    <!--    </ItemGroup>-->
+<!--    <ItemGroup Label="Elsa">-->
+<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+<!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
         <PackageReference Include="Elsa.Api.Client" />

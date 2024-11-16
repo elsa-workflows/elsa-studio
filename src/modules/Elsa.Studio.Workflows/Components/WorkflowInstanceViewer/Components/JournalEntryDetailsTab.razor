@@ -12,7 +12,7 @@
         var eventInfo = new Dictionary<string, DataPanelItem>
         {
             ["Name"] = new(record.EventName),
-            ["Timestamp"] = new(record.Timestamp.ToString("s")),
+            ["Timestamp"] = new(TimeFormatter.Format(record.Timestamp, "s")),
             ["Message"] = new(record.Message)
         };
 

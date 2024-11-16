@@ -30,7 +30,8 @@
                 <MudSelect T="StorageDriverDescriptor" @bind-Value="_model.StorageDriver" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Dense="false" Label="@_localizer["Storage"]">
                     @foreach (var storageDriver in _storageDriverDescriptors)
                     {
-                        <MudSelectItem T="StorageDriverDescriptor" Value="@storageDriver">@storageDriver.DisplayName</MudSelectItem>
+                        var displayName = storageDriver.Deprecated ? $"{storageDriver.DisplayName} (Deprecated)" : storageDriver.DisplayName;
+                        <MudSelectItem T="StorageDriverDescriptor" Value="@storageDriver">@displayName</MudSelectItem>
                     }
                 </MudSelect>
             </MudStack>

@@ -1,7 +1,7 @@
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 
 namespace Elsa.Studio.Workflows.Domain.Notifications;
 
-public record WorkflowDefinitionExported(string WorkflowDefinitionId, VersionOptions? VersionOptions, FileDownload FileDownload) : INotification;
+public record WorkflowDefinitionExported(WorkflowDefinition WorkflowDefinition, FileDownload FileDownload) : INotification;

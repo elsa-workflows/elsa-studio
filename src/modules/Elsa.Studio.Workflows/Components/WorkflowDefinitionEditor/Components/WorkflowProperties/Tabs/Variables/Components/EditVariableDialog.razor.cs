@@ -44,7 +44,7 @@ public partial class EditVariableDialog
         _editContext = new EditContext(_model);
         _validator = new VariableModelValidator(WorkflowDefinition);
         
-        _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
+        _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).OrderByDescending(x => x.Priority).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
 

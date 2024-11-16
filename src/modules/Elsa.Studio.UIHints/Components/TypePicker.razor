@@ -1,0 +1,32 @@
+@using Elsa.Api.Client.Resources.VariableTypes.Models
+@inherits StudioComponentBase
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+    var selectedValue = GetSelectedValue();
+    var searchBox = _variableTypes.Count > 10;
+}
+
+<MudSelectExtended
+    T="VariableTypeDescriptor"
+    Label="@displayName"
+    Variant="Variant.Outlined"
+    HelperText="@description"
+    Margin="Margin.Dense"
+    Value="@selectedValue"
+    SearchBox="@searchBox"
+    ToStringFunc="@(item => item?.DisplayName ?? "")"
+    ValueChanged="OnValueChanged"
+    ReadOnly="EditorContext.IsReadOnly"
+    Disabled="EditorContext.IsReadOnly">
+    @foreach (var grouping in _groupedVariableTypes)
+    {
+        <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
+            @foreach (var variableType in grouping)
+            {
+                <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType">@variableType.DisplayName</MudSelectItemExtended>
+            }
+        </MudSelectItemGroupExtended>
+    }
+</MudSelectExtended>

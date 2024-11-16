@@ -32,7 +32,7 @@ public partial class ApiKey : StudioComponentBase
         else
             _apiKey = await apiClient.GetAsync(ApiKeyId);
 
-        _validator = new ApiKeyInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        _validator = new ApiKeyInputModelValidator(apiClient);
     }
 
     private async Task OnSaveClicked()

@@ -78,7 +78,7 @@ public partial class InputsTab
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
-        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).ToList();
+        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
 
         foreach (var inputDescriptor in browsableInputDescriptors)
         {
@@ -137,15 +137,12 @@ public partial class InputsTab
 
         var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
 
-        await InvokeWithBlazorServiceContext(async () =>
+        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
         {
-            var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
-            {
-                Context = contextDictionary
-            });
-
-            currentInputDescriptor.UISpecifications = result.Items;
+            Context = contextDictionary
         });
+
+        currentInputDescriptor.UISpecifications = result.Items;
     }
 
     private static WrappedInput? ToWrappedInput(object? value)

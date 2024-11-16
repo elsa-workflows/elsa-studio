@@ -4,17 +4,6 @@ on:
   push:
     branches:
       - 'main'
-      - 'feature/*'
-      - 'feat/*'
-      - 'issue/*'
-      - 'bug/*'
-      - 'enhancement/*'
-      - 'enh/*'
-      - 'patch/*'
-      - 'fix/*'
-      - 'perf/*'
-      - 'hotfix/*'
-      - 'chore/*'
   release:
     types: [ prereleased, published ]
 env:
@@ -51,16 +40,16 @@ jobs:
         uses: actions/checkout@v3
       - name: Verify commit exists in remote branch
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && "${{ github.event.action }}" == "published" ]]; then
+          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-            git branch --remote --contains | grep origin/patch/main
+            git branch --remote --contains | grep origin/main
           else
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
             git branch --remote --contains | grep origin/${BRANCH_NAME}
           fi
       - name: Set VERSION variable
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && "${{ github.event.action }}" == "published" ]]; then
+          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             TAG_NAME=${{ github.ref }} # e.g., refs/tags/3.0.0
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
             echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
@@ -84,7 +73,7 @@ jobs:
       - name: Pack nuget packages
         run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages/nuget
       - name: Publish Custom Elements packages # This generates client assets that we then package as an NPM package.
-        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION} -f net7.0
+        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION} -f net8.0
       
       # Pack npm wasm package
       - name: Pack elsa-studio-wasm npm package

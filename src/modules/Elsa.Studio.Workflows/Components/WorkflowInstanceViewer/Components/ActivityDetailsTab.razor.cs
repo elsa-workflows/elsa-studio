@@ -23,17 +23,10 @@ public partial class ActivityDetailsTab
     /// The activity to display details for.
     [Parameter] public JsonObject Activity { get; set; } = default!;
     
-    /// The activity execution records.
-    [Parameter] public ICollection<ActivityExecutionRecord> ActivityExecutions { get; set; } = new List<ActivityExecutionRecord>();
+    /// The latest activity execution record. Used for displaying the last state of the activity.
+    [Parameter] public ActivityExecutionRecord? LastActivityExecution { get; set; }
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-
-    private ActivityExecutionRecord? LastActivityExecution => ActivityExecutions.LastOrDefault();
-
-    private IEnumerable<ActivityExecutionRecordTableRow> Items
-    {
-        get { return ActivityExecutions.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x)); }
-    }
 
     private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
 

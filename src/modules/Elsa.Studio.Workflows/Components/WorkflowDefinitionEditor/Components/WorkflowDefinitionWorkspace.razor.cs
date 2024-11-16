@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -24,13 +25,13 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter] public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
+    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
     
     /// Gets or sets the event that occurs when the workflow definition version is updated.
-    [Parameter] public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
+    [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }
     
     /// Gets or sets the event that occurs when an activity is selected.
-    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// An event that is invoked when the workflow definition is updated.
     public event Func<Task>? WorkflowDefinitionUpdated;
@@ -45,6 +46,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IMediator Mediator { get; set; } = default!;
 
     private WorkflowEditor WorkflowEditor { get; set; } = default!;
 
@@ -68,13 +70,16 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Displays the specified workflow definition version.
     public async Task DisplayWorkflowDefinitionVersionAsync(WorkflowDefinition workflowDefinition)
     {
+        if(_selectedWorkflowDefinition == workflowDefinition)
+            return;
+        
         _selectedWorkflowDefinition = workflowDefinition;
         
         if(workflowDefinition.IsLatest)
             _workflowDefinition = workflowDefinition;
 
-        if (WorkflowDefinitionVersionSelected.HasDelegate)
-            await WorkflowDefinitionVersionSelected.InvokeAsync(_selectedWorkflowDefinition);
+        if (WorkflowDefinitionVersionSelected != null)
+            await WorkflowDefinitionVersionSelected(_selectedWorkflowDefinition);
 
         StateHasChanged();
     }
@@ -98,7 +103,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public async Task DisplayLatestWorkflowDefinitionVersionAsync()
     {
         var definitionId = _workflowDefinition!.DefinitionId;
-        var definition = (await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest)))!;
+        var definition = (await WorkflowDefinitionService.FindByDefinitionIdAsync(definitionId, VersionOptions.Latest))!;
         await DisplayWorkflowDefinitionVersionAsync(definition);
     }
 

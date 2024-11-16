@@ -1,13 +1,13 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
 @using Orientation = Radzen.Orientation
-@inherits StudioComponentBase
+@inherits WorkflowEditorComponentBase
 @using Variant = MudBlazor.Variant
 @using Elsa.Studio.Workflows.Services
 @inject ElsaLocalization _localizer
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@_workflowDefinition!.Id" Activity="Activity" IsProgressing="_isProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
+        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@_workflowDefinition!.Id" Activity="Activity" IsProgressing="IsProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
             <CustomToolbarItems>
                 <MudTooltip Text="@_localizer["Export this version as a JSON file."]" Inline="false">
                     <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">@_localizer["Export"]</MudIconButton>

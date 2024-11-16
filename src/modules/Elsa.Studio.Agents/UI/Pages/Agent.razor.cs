@@ -39,7 +39,7 @@ public partial class Agent : StudioComponentBase
     protected override async Task OnInitializedAsync()
     {
         var apiClient = await ApiClientProvider.GetApiAsync<IAgentsApi>();
-        _validator = new AgentInputModelValidator(apiClient, BlazorServiceAccessor, Services);
+        _validator = new AgentInputModelValidator(apiClient);
         var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
         var pluginsApi = await ApiClientProvider.GetApiAsync<IPluginsApi>();
         var servicesResponseList = await servicesApi.ListAsync();

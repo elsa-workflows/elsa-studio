@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Authors>Elsa Workflows Community</Authors>
     <Copyright>2023</Copyright>
@@ -28,4 +28,8 @@
   <ItemGroup Label="Files">
     <None Include="..\..\..\icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
+  
+  <PropertyGroup Label="PackageVersions">
+    <ElsaVersion>3.3.0-rc2</ElsaVersion>
+  </PropertyGroup>
 </Project>

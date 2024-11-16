@@ -64,9 +64,9 @@
             </MudTabPanel>
         }
 
-        <MudTabPanel Text="@_localizer["Persistence"]">
+        <MudTabPanel Text="@_localizer["Log Persistence"]">
               <ScrollableWell MaxHeight="VisiblePaneHeight">
-                <PersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
+                <LogPersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
               </ScrollableWell>
          </MudTabPanel> 
                

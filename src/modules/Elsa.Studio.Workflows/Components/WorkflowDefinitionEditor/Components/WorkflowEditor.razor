@@ -2,7 +2,7 @@
 @using Elsa.Studio.Workflows.Services
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
-@inherits StudioComponentBase
+@inherits WorkflowEditorComponentBase
 @using Microsoft.Extensions.Localization
 @inject ElsaLocalization _localizer
 
@@ -12,7 +12,7 @@
             @ref="_diagramDesigner" 
             WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
             Activity="@Activity"
-            IsProgressing="@_isProgressing" 
+            IsProgressing="@IsProgressing" 
             ActivitySelected="@OnActivitySelected" 
             GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>

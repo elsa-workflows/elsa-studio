@@ -41,11 +41,11 @@
                 @if (SelectedActivity != null)
                 {
                     <MudTabPanel Text="@_localizer["Activity"]">
-                        <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                        <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" LastActivityExecution="LastActivityExecution" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
 
                     <MudTabPanel Text="@_localizer["Executions"]" BadgeData="@SelectedActivityExecutions.Count">
-                        <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutions="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
+                        <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutionSummaries="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
                 }
 

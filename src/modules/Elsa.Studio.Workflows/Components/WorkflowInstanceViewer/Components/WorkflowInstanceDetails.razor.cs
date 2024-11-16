@@ -5,10 +5,9 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -23,6 +22,7 @@ public partial class WorkflowInstanceDetails
     private WorkflowInstance? _workflowInstance;
 
     private ActivityExecutionRecord? _workflowActivityExecutionRecord;
+    private ICollection<ResolvedVariable> _variables = [];
 
     /// <summary>
     /// Gets or sets the workflow instance to display.
@@ -48,6 +48,7 @@ public partial class WorkflowInstanceDetails
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
 
@@ -69,9 +70,9 @@ public partial class WorkflowInstanceDetails
                 ["Status"] = new(_workflowInstance.Status.ToString()),
                 ["Sub status"] = new(_workflowInstance.SubStatus.ToString()),
                 ["Incidents"] = new(_workflowInstance.IncidentCount.ToString()),
-                ["Created"] = new(_workflowInstance.CreatedAt.ToString("G")),
-                ["Updated"] = new(_workflowInstance.UpdatedAt.ToString("G")),
-                ["Finished"] = new(_workflowInstance.FinishedAt?.ToString("G")),
+                ["Created"] = new(TimeFormatter.Format(_workflowInstance.CreatedAt)),
+                ["Updated"] = new(TimeFormatter.Format(_workflowInstance.UpdatedAt)),
+                ["Finished"] = new(TimeFormatter.Format(_workflowInstance.FinishedAt)),
             };
         }
     }
@@ -214,8 +215,7 @@ public partial class WorkflowInstanceDetails
         SelectedSubWorkflow = obj;
         SelectedSubWorkflowExecutions = obj == null
             ? null
-            : (await InvokeWithBlazorServiceContext(() =>
-                ActivityExecutionService.ListAsync(WorkflowInstance!.Id, obj.GetNodeId()!))).ToList();
+            : (await ActivityExecutionService.ListAsync(WorkflowInstance!.Id, obj.GetNodeId())).ToList();
         StateHasChanged();
     }
 
@@ -233,13 +233,22 @@ public partial class WorkflowInstanceDetails
         {
             _workflowInstance = WorkflowInstance;
 
-            if (_workflowInstance != null) await GetWorkflowActivityExecutionRecordAsync(_workflowInstance.Id);
+            if (_workflowInstance != null)
+            {
+                await GetWorkflowActivityExecutionRecordAsync(_workflowInstance.Id);
+                await GetVariablesAsync(_workflowInstance.Id);
+            }
         }
     }
 
     private async Task GetWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
     {
         _workflowActivityExecutionRecord = await GetLastWorkflowActivityExecutionRecordAsync(workflowInstanceId);
+    }
+    
+    private async Task GetVariablesAsync(string workflowInstanceId)
+    {
+        _variables = (await WorkflowInstanceService.GetVariablesAsync(workflowInstanceId)).ToList();
     }
 
     private async Task<ActivityExecutionRecord?> GetLastWorkflowActivityExecutionRecordAsync(string workflowInstanceId)
@@ -264,23 +273,8 @@ public partial class WorkflowInstanceDetails
     [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(JsonSerializerOptions)")]
     private string GetVariableValue(Variable variable)
     {
-        // TODO: Implement a REST API that returns values from the various storage providers, instead of hardcoding it here with hardcoded support for workflow storage only.
-        var defaultValue = variable.Value?.ToString() ?? string.Empty;
-
-        if (_workflowActivityExecutionRecord == null)
-            return defaultValue;
-
-        var variablesDictionaryObject = _workflowActivityExecutionRecord.Properties.TryGetValue("PersistentVariablesDictionary", out var v1) 
-            ? v1 : _workflowActivityExecutionRecord.Properties.TryGetValue("Variables", out var v2) 
-                ? v2 
-                : null;  
-        
-        if (variablesDictionaryObject == null)
-            return defaultValue;
-
-        var dictionary = ((JsonElement)variablesDictionaryObject).Deserialize<IDictionary<string, object>>()!;
-        var key = variable.Id;
-        return dictionary.TryGetValue(key, out var value) ? value.ToString() ?? string.Empty : defaultValue;
+        var resolvedVariable = _variables.FirstOrDefault(x => x.Id == variable.Id);
+        return resolvedVariable?.Value?.ToString() ?? string.Empty;
     }
 
     private static string GetIncidentStrategyDisplayName(string? incidentStrategyTypeName)

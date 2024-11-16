@@ -3,6 +3,7 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
+@using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
 @inject ElsaLocalization _localizer
@@ -41,15 +42,17 @@
                 }
             </MudSelect>
             <MudSelect
-                Label="@_localizer["Log Persistence Mode"]"
-                T="LogPersistenceMode?"
+                T="LogPersistenceStrategyDescriptor?"
+                Label="@_localizer["Log Persistence Strategy"]"
                 Variant="@Variant.Outlined"
-                Value="@_selectedLogPersistenceMode"
-                ValueChanged="@OnLogPersistenceModeChanged"
+                Value="@_selectedLogPersistenceStrategy"
+                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
+                ValueChanged="@OnLogPersistenceStrategyChanged"
+                HelperText="@(_selectedLogPersistenceStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
+                @foreach (var strategy in _logPersistenceStrategyDescriptors)
                 {
-                    <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
+                    <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
             <MudField Variant="Variant.Text" HelperText="@_localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
@@ -72,16 +75,6 @@
                         ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
                         ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
                 </MudField>
-                @* <MudSelect *@
-                @*     T="string" *@
-                @*     Label="Resolution Strategy" *@
-                @*     Variant="@Variant.Outlined" *@
-                @*     HelperText="What should we do when a consuming workflow is published and also has a draft version?" *@
-                @*     ReadOnly="IsReadOnly" Disabled="IsReadOnly"> *@
-                @*     <MudSelectItem T="string">Update Draft</MudSelectItem> *@
-                @*     <MudSelectItem T="string">Update Draft and Publish</MudSelectItem> *@
-                @*     <MudSelectItem T="string">Discard Draft and Publish</MudSelectItem> *@
-                @* </MudSelect> *@
                 <MudTextField
                     T="string"
                     Variant="Variant.Outlined"
