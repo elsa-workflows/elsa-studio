@@ -251,7 +251,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (records.Any())
         {
             var lastRecord = records.Last();
-            LastActivityExecution = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(lastRecord.Id));
+            LastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
         }
 
         return records;
