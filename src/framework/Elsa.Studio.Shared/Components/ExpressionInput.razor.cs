@@ -37,7 +37,7 @@ public partial class ExpressionInput : IDisposable
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
-    
+
     /// <inheritdoc />
     public ExpressionInput()
     {
@@ -47,30 +47,33 @@ public partial class ExpressionInput : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     /// <summary>
     /// The content to render inside the editor.
     /// </summary>
-    [Parameter]
-    public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    
+    /// <summary>
+    /// A flag indicating whether the editor should only display code.
+    /// </summary>
+    [Parameter] public bool IsCodeOnly { get; set; }
 
     [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = default!;
     [Inject] private IExpressionService ExpressionService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
-    private IEnumerable<ExpressionDescriptor> BrowseableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
+    private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
-    private bool IsUISyntax => _selectedExpressionType == UISyntax;
+    private bool IsUISyntax => !IsCodeOnly && _selectedExpressionType == UISyntax;
     private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
     private string? ButtonLabel => IsUISyntax ? default : _selectedExpressionTypeDisplayName;
     private Variant ButtonVariant => IsUISyntax ? default : Variant.Filled;
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
     private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => IsUISyntax ? default : Color.Secondary;
-    private bool ShowMonacoEditor => !IsUISyntax && EditorContext.InputDescriptor.IsWrapped && MonacoSyntaxExist;
+    private bool ShowMonacoEditor => IsCodeOnly || (!IsUISyntax && EditorContext.InputDescriptor.IsWrapped && MonacoSyntaxExist);
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
@@ -82,9 +85,12 @@ public partial class ExpressionInput : IDisposable
     protected override async Task OnInitializedAsync()
     {
         var defaultDescriptor = new ExpressionDescriptor(UISyntax, "Default");
-        var expressionDescriptors = (await ExpressionService.ListDescriptorsAsync())
-            .ExceptBy(_uiSyntaxes, x => x.Type)
-            .Prepend(defaultDescriptor);
+        var expressionDescriptors = (await ExpressionService.ListDescriptorsAsync()).ExceptBy(_uiSyntaxes, x => x.Type).ToList();
+
+        if (IsCodeOnly)
+            _selectedExpressionType = expressionDescriptors.First().Type;
+        else
+            expressionDescriptors = expressionDescriptors.Prepend(defaultDescriptor).ToList();
 
         _expressionDescriptors = expressionDescriptors.ToList();
     }
@@ -105,7 +111,7 @@ public partial class ExpressionInput : IDisposable
 
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
-        
+
         var model = await _monacoEditor.GetModel();
         await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
         await RunMonacoHandlersAsync(_monacoEditor);
@@ -156,39 +162,36 @@ public partial class ExpressionInput : IDisposable
 
         var value = InputValue;
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-        
+
         input.Expression = new Expression(_selectedExpressionType, value);
         await InvokeValueChangedCallbackAsync(input);
         await UpdateMonacoLanguageAsync(syntax);
-        
     }
-    
+
     /// <summary>
     /// This Method is used to Display the UI Hint when use select other choice than a Language that need monaco editor
     /// </summary>
     /// <param name="editorContext">the editor context</param>
     private void UpdateUIHintAsync(DisplayInputEditorContext editorContext)
     {
-        if(_selectedExpressionType =="Variable")
+        if (_selectedExpressionType == "Variable")
         {
             var uiHintHandler = UIHintService.GetHandler("variable-picker");
             var editor = uiHintHandler.DisplayInputEditor(editorContext);
             ChildContent = editor;
             return;
         }
-        if (MonacoSyntax == null
-            && _selectedExpressionType == editorContext?.SelectedExpressionDescriptor?.Type
-            && editorContext.SelectedExpressionDescriptor.Properties.ContainsKey("UIHint"))
-        {
-            var uiHint = editorContext.SelectedExpressionDescriptor.Properties["UIHint"];
 
-            //Create ChildContent
+        if (MonacoSyntax == null
+            && _selectedExpressionType == editorContext.SelectedExpressionDescriptor?.Type
+            && editorContext.SelectedExpressionDescriptor.Properties.TryGetValue("UIHint", out var uiHint))
+        {
             var uiHintHandler = UIHintService.GetHandler(uiHint);
             var editor = uiHintHandler.DisplayInputEditor(editorContext);
             _selectedExpressionTypeDisplayName = editorContext.SelectedExpressionDescriptor.DisplayName;
 
             ChildContent = editor;
-        }        
+        }
     }
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)

@@ -31,14 +31,14 @@
             }</div>;
         <div class="flex-none pt-1">
             <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true" Disabled="EditorContext.IsReadOnly">
-                @DisplayContent(BrowseableExpressionDescriptors.First())
+                @DisplayContent(BrowsableExpressionDescriptors.First())
                 <MudDivider />
-                @foreach (var item in BrowseableExpressionDescriptors.Where(i=>!string.IsNullOrEmpty(i.GetMonacoLanguage())))
+                @foreach (var item in BrowsableExpressionDescriptors.Where(i=>!string.IsNullOrEmpty(i.GetMonacoLanguage())))
                 {
                     @DisplayContent(item);                   
                 }
                 <MudDivider />
-                @foreach (var item in BrowseableExpressionDescriptors.Skip(1).Where(i=>string.IsNullOrEmpty(i.GetMonacoLanguage())))
+                @foreach (var item in BrowsableExpressionDescriptors.Skip(1).Where(i=>string.IsNullOrEmpty(i.GetMonacoLanguage())))
                 {
                     @DisplayContent(item);                   
                 }
