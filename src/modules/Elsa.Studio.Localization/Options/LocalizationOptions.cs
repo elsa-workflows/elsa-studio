@@ -17,5 +17,5 @@ public class LocalizationOptions
     /// <summary>
     /// Gets or sets the culture picker formatter
     /// </summary>
-    public Func<CultureInfo, string> CulturePickerFormatter { get; set; } = info => info.DisplayName;
+    public Func<CultureInfo, string> CulturePickerFormatter { get; set; } = info => info.Name;
 }
