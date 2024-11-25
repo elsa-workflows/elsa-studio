@@ -1,7 +1,7 @@
 ﻿@inject IOptions<LocalizationOptions> LocalizationOptions
 @inject ICultureService CultureService
 
-<MudMenu Label="@CultureInfo.CurrentUICulture.NativeName"
+<MudMenu Label="@LocalizationOptions.Value.CulturePickerFormatter(CultureInfo.CurrentUICulture)"
          Variant="Variant.Outlined"
          Color="Color.Inherit"
          AnchorOrigin="Origin.BottomRight"
@@ -11,7 +11,8 @@
          EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
     @foreach (var culture in _cultures)
     {
-        <MudMenuItem Value="@culture" OnClick="@(_=>ChangeCulture(culture))">@culture.NativeName</MudMenuItem>
+        <MudMenuItem
+            OnClick="@(_ => ChangeCulture(culture))">@LocalizationOptions.Value.CulturePickerFormatter(culture)</MudMenuItem>
     }
 </MudMenu>
 

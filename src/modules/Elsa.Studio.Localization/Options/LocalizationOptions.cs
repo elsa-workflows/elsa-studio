@@ -1,4 +1,6 @@
-﻿namespace Elsa.Studio.Localization.Options;
+﻿using System.Globalization;
+
+namespace Elsa.Studio.Localization.Options;
 
 /// <summary>
 /// Options for localization settings.
@@ -11,4 +13,9 @@ public class LocalizationOptions
     /// Gets or sets the supported cultures.
     /// </summary>
     public string[] SupportedCultures { get; set; } = ["en-US"];
+    
+    /// <summary>
+    /// Gets or sets the culture picker formatter
+    /// </summary>
+    public Func<CultureInfo, string> CulturePickerFormatter { get; set; } = info => info.DisplayName;
 }
