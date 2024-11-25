@@ -7,8 +7,12 @@ using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Menu;
 
+/// <summary>
+/// Provides the menu items for the Dashboard module.
+/// </summary>
 public class DashboardMenu(ILocalizer localizer) : IMenuProvider
 {
+    /// <inheritdoc />
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>
