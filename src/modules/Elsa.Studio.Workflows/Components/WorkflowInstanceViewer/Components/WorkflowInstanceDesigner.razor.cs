@@ -10,6 +10,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -72,6 +73,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
+    private Timer? _refreshTimer;
 
     private RadzenSplitterPane ActivityPropertiesPane
     {
@@ -190,7 +192,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private async Task OnActivityExecutionLogUpdated(ActivityExecutionLogUpdatedMessage message)
     {
         if (_designer == null) return;
-        
+
         foreach (var stats in message.Stats)
         {
             var activityNodeId = stats.ActivityNodeId;
@@ -228,6 +230,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
     {
+        await StopRefreshActivityStatePeriodically();
         await InvokeAsync(async () =>
         {
             var activityNodeId = activity.GetNodeId();
@@ -236,8 +239,19 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(activityNodeId);
             StateHasChanged();
             _activityDetailsTab?.Refresh();
-            _activityExecutionsTab?.Refresh();
+
+            if (_activityExecutionsTab != null)
+                await _activityExecutionsTab.RefreshAsync();
         });
+
+        if (SelectedActivityExecutions.Any())
+        {
+            var lastRecord = SelectedActivityExecutions.Last();
+            LastActivityExecution = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(lastRecord.Id));
+
+            if (LastActivityExecution != null)
+                RefreshActivityStatePeriodically(LastActivityExecution.Id);
+        }
     }
 
     private async Task<ICollection<ActivityExecutionRecordSummary>> GetActivityExecutionRecordsAsync(string activityNodeId)
@@ -262,6 +276,39 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         var paneQuerySelector = $"#{ActivityPropertiesPane.UniqueID}";
         var visibleHeight = await DomAccessor.GetVisibleHeightAsync(paneQuerySelector);
         _propertiesPaneHeight = (int)visibleHeight - 50;
+    }
+
+    private async Task RefreshSelectedItemAsync(string id)
+    {
+        var record = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(id));
+        LastActivityExecution = record;
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+            _activityDetailsTab?.Refresh();
+        });
+    }
+
+    private void RefreshActivityStatePeriodically(string id)
+    {
+        async void Callback(object? _)
+        {
+            await RefreshSelectedItemAsync(id);
+
+            if (LastActivityExecution == null || LastActivityExecution.IsFused())
+                await StopRefreshActivityStatePeriodically();
+        }
+
+        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private async Task StopRefreshActivityStatePeriodically()
+    {
+        if (_refreshTimer != null)
+        {
+            await _refreshTimer.DisposeAsync();
+            _refreshTimer = null;
+        }
     }
 
     private static ActivityStats Map(ActivityExecutionStats source)
@@ -322,5 +369,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         StopElapsedTimer();
         await DisposeObserverAsync();
+
+        if (_refreshTimer != null)
+            await _refreshTimer.DisposeAsync();
     }
 }

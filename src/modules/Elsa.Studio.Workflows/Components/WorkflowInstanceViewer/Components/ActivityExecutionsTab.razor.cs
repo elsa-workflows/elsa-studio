@@ -2,13 +2,14 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// Displays the details of an activity.
-public partial class ActivityExecutionsTab
+public partial class ActivityExecutionsTab : IAsyncDisposable
 {
     /// Represents a row in the table of activity executions.
     /// <param name="Number">The number of executions.</param>
@@ -31,10 +32,12 @@ public partial class ActivityExecutionsTab
     private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private Timer? _refreshTimer;
 
     /// Refreshes the component.
-    public void Refresh()
+    public async Task RefreshAsync()
     {
+        await StopRefreshTimerAsync();
         SelectedItem = null;
         SelectedActivityState = new Dictionary<string, DataPanelItem>();
         SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
@@ -70,11 +73,51 @@ public partial class ActivityExecutionsTab
         SelectedOutputData = outputData;
     }
 
-    private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
+    private async Task RefreshSelectedItemAsync(string id)
     {
         var id = arg.Item.ActivityExecutionSummary.Id;
         SelectedItem = await ActivityExecutionService.GetAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
+    {
+        await StopRefreshTimerAsync();
+        var id = arg.Item.ActivityExecution.Id;
+        await RefreshSelectedItemAsync(id);
+
+        if (SelectedItem == null)
+            return;
+
+        if (SelectedItem.IsFused())
+            return;
+
+        RefreshSelectedItemPeriodically(id);
+    }
+
+    private void RefreshSelectedItemPeriodically(string id)
+    {
+        async void Callback(object? _)
+        {
+            await RefreshSelectedItemAsync(id);
+
+            if (SelectedItem == null || SelectedItem.IsFused()) 
+                await StopRefreshTimerAsync();
+        }
+
+        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private async Task StopRefreshTimerAsync()
+    {
+        if (_refreshTimer == null) return;
+        await _refreshTimer.DisposeAsync();
+        _refreshTimer = null;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_refreshTimer != null) await _refreshTimer.DisposeAsync();
     }
 }
