@@ -105,14 +105,14 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
             if(options?.DefinitionId != null)
                 model.DefinitionId = options.DefinitionId;
             
-            await mediator.NotifyAsync(new WorkflowDefinitionImporting(model));
+            await mediator.NotifyAsync(new ImportingWorkflowDefinition(model));
             var api = await GetApiAsync();
             var newWorkflowDefinition = await api.ImportAsync(model);
             
             if(options?.ImportedCallback != null)
                 await options.ImportedCallback(newWorkflowDefinition);
             
-            await mediator.NotifyAsync(new WorkflowDefinitionImported(newWorkflowDefinition));
+            await mediator.NotifyAsync(new ImportedWorkflowDefinition(newWorkflowDefinition));
             await mediator.NotifyAsync(new ImportedJson(json));
         }
         catch (Exception e)

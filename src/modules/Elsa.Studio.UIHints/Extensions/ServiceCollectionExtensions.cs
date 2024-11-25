@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<MultiLineHandler>()
             .AddUIHintHandler<DropDownHandler>()
             .AddUIHintHandler<CodeEditorHandler>()
+            .AddUIHintHandler<ExpressionEditorHandler>()
             .AddUIHintHandler<JsonEditorHandler>()
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()

@@ -326,13 +326,6 @@ public partial class WorkflowDefinitionList
     {
         var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
         var message = importedFiles.Count == 1 ? "Successfully imported one workflow" : $"Successfully imported {importedFiles.Count} workflows";
-        
-        // foreach (var file in files) await Mediator.NotifyAsync(new ImportingFile(file));
-        // var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
-        // var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
-        // var count = await WorkflowDefinitionImporter.ImportAsync(streamParts);
-        // var message = count == 1 ? "Successfully imported one workflow" : $"Successfully imported {count} workflows";
-        // foreach (var file in files) await Mediator.NotifyAsync(new ImportedFile(file));
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }

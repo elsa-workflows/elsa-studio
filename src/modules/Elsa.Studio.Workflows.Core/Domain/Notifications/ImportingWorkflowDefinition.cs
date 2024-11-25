@@ -3,4 +3,4 @@ using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Workflows.Domain.Notifications;
 
-public record WorkflowDefinitionImported(WorkflowDefinition WorkflowDefinition) : INotification;
+public record ImportingWorkflowDefinition(WorkflowDefinitionModel WorkflowDefinition) : INotification;
