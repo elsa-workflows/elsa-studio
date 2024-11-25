@@ -8,8 +8,8 @@ namespace Elsa.Studio.Webhooks.Menu;
 
 public class WebhooksMenu : IMenuProvider
 {
-    private readonly ElsaLocalization _localizer;
-    public WebhooksMenu(ElsaLocalization localizer)
+    private readonly DefaultLocalizer _localizer;
+    public WebhooksMenu(DefaultLocalizer localizer)
     {
         _localizer = localizer;
     }

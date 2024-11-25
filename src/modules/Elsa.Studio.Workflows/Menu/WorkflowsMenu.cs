@@ -8,8 +8,8 @@ namespace Elsa.Studio.Workflows.Menu;
 
 public class WorkflowsMenu : IMenuProvider
 {
-    private readonly ElsaLocalization _localizer;
-    public WorkflowsMenu(ElsaLocalization localizer)
+    private readonly DefaultLocalizer _localizer;
+    public WorkflowsMenu(DefaultLocalizer localizer)
     {
         _localizer = localizer;
     }

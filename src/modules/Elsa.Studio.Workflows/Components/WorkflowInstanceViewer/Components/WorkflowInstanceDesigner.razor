@@ -1,7 +1,7 @@
 @using Orientation = Radzen.Orientation
 @using Elsa.Api.Client.Resources.WorkflowInstances.Enums
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 @inherits StudioComponentBase
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
@@ -33,18 +33,18 @@
             <MudTabs Elevation="0" ApplyEffectsToContainer="true" @ref="PropertyTabs">
                 @if (SelectedWorkflowExecutionLogRecord != null)
                 {
-                    <MudTabPanel Text="@_localizer["Event"]" @ref="EventsTabPanel">
+                    <MudTabPanel Text="@Localizer["Event"]" @ref="EventsTabPanel">
                         <JournalEntryDetailsTab VisiblePaneHeight="@_propertiesPaneHeight" JournalEntry="SelectedWorkflowExecutionLogRecord"/>
                     </MudTabPanel>
                 }
 
                 @if (SelectedActivity != null)
                 {
-                    <MudTabPanel Text="@_localizer["Activity"]">
+                    <MudTabPanel Text="@Localizer["Activity"]">
                         <ActivityDetailsTab @ref="_activityDetailsTab" Activity="@SelectedActivity" LastActivityExecution="LastActivityExecution" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
 
-                    <MudTabPanel Text="@_localizer["Executions"]" BadgeData="@SelectedActivityExecutions.Count">
+                    <MudTabPanel Text="@Localizer["Executions"]" BadgeData="@SelectedActivityExecutions.Count">
                         <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutionSummaries="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
                 }

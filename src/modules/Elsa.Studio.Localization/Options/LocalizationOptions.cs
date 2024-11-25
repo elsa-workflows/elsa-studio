@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Elsa.Studio.Localization.Options;
+﻿namespace Elsa.Studio.Localization.Options;
 
 /// <summary>
 /// Options for localization settings.
@@ -16,5 +10,5 @@ public class LocalizationOptions
     /// <summary>
     /// Gets or sets the supported cultures.
     /// </summary>
-    public string[] SupportedCultures { get; set; } = { "en-US" };
+    public string[] SupportedCultures { get; set; } = ["en-US"];
 }

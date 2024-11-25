@@ -1,6 +1,5 @@
 using Elsa.Agents;
 using Elsa.Studio.Agents.Client;
-using Elsa.Studio.Contracts;
 using FluentValidation;
 
 namespace Elsa.Studio.Agents.UI.Validators;

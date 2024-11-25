@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
-namespace Elsa.Studio.Localization.Services
+namespace Elsa.Studio.Localization.Services;
+
+/// <summary>
+/// Service to change the culture of the application.
+/// </summary>
+public interface ICultureService
 {
-    public interface ICultureService
-    {
-        Task ChangeCultureAsync(CultureInfo culture);
-    }
+    /// <summary>
+    /// Change the culture of the application.
+    /// </summary>
+    Task ChangeCultureAsync(CultureInfo culture);
 }

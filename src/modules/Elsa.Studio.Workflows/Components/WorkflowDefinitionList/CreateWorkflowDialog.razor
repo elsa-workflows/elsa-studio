@@ -1,20 +1,20 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <MudDialog>
     <DialogContent>
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
-                <MudTextField Label="@_localizer["Name"]" @bind-Value="_metadataModel.Name" For="@(() => _metadataModel.Name)" HelperText="@_localizer["The name of the new workflow."]" Variant="Variant.Outlined" />
-                <MudTextField Label="@_localizer["Description"]" @bind-Value="_metadataModel.Description" For="@(() => _metadataModel.Description)" HelperText="@_localizer["A brief description of the workflow."]" Lines="3" Variant="Variant.Outlined"/>
+                <MudTextField Label="@Localizer["Name"]" @bind-Value="_metadataModel.Name" For="@(() => _metadataModel.Name)" HelperText="@Localizer["The name of the new workflow."]" Variant="Variant.Outlined" />
+                <MudTextField Label="@Localizer["Description"]" @bind-Value="_metadataModel.Description" For="@(() => _metadataModel.Description)" HelperText="@Localizer["A brief description of the workflow."]" Lines="3" Variant="Variant.Outlined"/>
             </MudStack>
         </EditForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="OnCancelClicked">@_localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">@_localizer["Ok"]</MudButton>
+        <MudButton OnClick="OnCancelClicked">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>

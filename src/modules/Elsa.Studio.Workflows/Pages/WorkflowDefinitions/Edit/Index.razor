@@ -2,9 +2,9 @@
 @using Microsoft.Extensions.Localization
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
-<PageTitle>@_localizer["Workflow definitions Editor"]</PageTitle>
+<PageTitle>@Localizer["Workflow definitions Editor"]</PageTitle>
 
 <WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
 

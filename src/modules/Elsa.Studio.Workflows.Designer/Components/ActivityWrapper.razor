@@ -5,7 +5,7 @@
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 @{
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
@@ -25,7 +25,7 @@
                     <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
                 }
                 <MudStack Style="height:100%" Justify="Justify.Center">
-                    <MudText Typo="Typo.body1" Style="@colorStyle">@_localizer[@_label]</MudText>
+                    <MudText Typo="Typo.body1" Style="@colorStyle">@Localizer[@_label]</MudText>
                     @{
                         var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
                     }

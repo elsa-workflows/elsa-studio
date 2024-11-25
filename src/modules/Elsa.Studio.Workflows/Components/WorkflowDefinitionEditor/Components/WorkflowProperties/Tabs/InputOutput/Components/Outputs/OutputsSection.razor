@@ -1,9 +1,9 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
-<MudText Typo="Typo.overline">@_localizer["Outputs"]</MudText>
+<MudText Typo="Typo.overline">@Localizer["Outputs"]</MudText>
 <MudStack>
 
     <MudButton
@@ -13,20 +13,20 @@
         Class="align-self-end"
         OnClick="OnAddOutputClicked"
         Disabled="IsReadonly">
-        @_localizer["Add output"]
+        @Localizer["Add output"]
     </MudButton>
 
     @if (!Outputs.Any())
     {
-        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@_localizer["There are currently no outputs defined."]</MudAlert>
+        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@Localizer["There are currently no outputs defined."]</MudAlert>
     }
     else
     {
         <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
             <thead>
             <tr>
-                <th>@_localizer["Name"]</th>
-                <th>@_localizer["Type"]</th>
+                <th>@Localizer["Name"]</th>
+                <th>@Localizer["Type"]</th>
                 <th></th>
             </tr>
             </thead>
@@ -42,8 +42,8 @@
                     <td>@typeName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">@_localizer["Edit"]</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">@_localizer["Delete"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">@Localizer["Edit"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">@Localizer["Delete"]</MudMenuItem>
                         </MudMenu>
                     </td>
                 </tr>

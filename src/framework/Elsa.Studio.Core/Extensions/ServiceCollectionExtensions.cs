@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
 
         //Localization
         services.AddSingleton<ILocalizationProvider, DefaultLocalizationProvider>();
-        services.AddSingleton<ElsaLocalization>();
+        services.AddSingleton<ILocalizer, DefaultLocalizer>();
         return services;
     }
     

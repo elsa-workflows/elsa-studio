@@ -1,6 +1,4 @@
 ﻿@inject IOptions<LocalizationOptions> LocalizationOptions
-@inject IJSRuntime JS
-@inject NavigationManager Navigation
 @inject ICultureService CultureService
 
 <MudMenu Label="@CultureInfo.CurrentUICulture.NativeName"
@@ -11,18 +9,19 @@
          Dense="true"
          StartIcon="@Icons.Material.Filled.Language"
          EndIcon="@Icons.Material.Filled.KeyboardArrowDown">
-    @foreach (var culture in cultures)
+    @foreach (var culture in _cultures)
     {
-        <MudMenuItem Value="@culture" OnClick="@((_)=>ChangeCulture(culture))">@culture.NativeName</MudMenuItem>
+        <MudMenuItem Value="@culture" OnClick="@(_=>ChangeCulture(culture))">@culture.NativeName</MudMenuItem>
     }
 </MudMenu>
 
 @code {
-    private List<CultureInfo> cultures = new List<CultureInfo>();
+    private List<CultureInfo> _cultures = [];
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
-        cultures = LocalizationOptions.Value?.SupportedCultures.Select(s => new CultureInfo(s)).ToList() ?? new List<CultureInfo>();
+        _cultures = LocalizationOptions.Value?.SupportedCultures.Select(s => new CultureInfo(s)).ToList() ?? [];
     }
 
     private async void ChangeCulture(CultureInfo culture)

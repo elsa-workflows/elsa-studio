@@ -1,9 +1,9 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
-<MudText Typo="Typo.overline">@_localizer["Inputs"]</MudText>
+<MudText Typo="Typo.overline">@Localizer["Inputs"]</MudText>
 <MudStack>
 
     <MudButton
@@ -13,21 +13,21 @@
         Class="align-self-end"
         OnClick="OnAddInputClicked"
         Disabled="IsReadonly">
-        @_localizer["Add input"]
+        @Localizer["Add input"]
     </MudButton>
 
     @if (!Inputs.Any())
     {
-        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@_localizer["There are currently no inputs defined."]</MudAlert>
+        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@Localizer["There are currently no inputs defined."]</MudAlert>
     }
     else
     {
         <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
             <thead>
             <tr>
-                <th>@_localizer["Name"]</th>
-                <th>@_localizer["Type"]</th>
-                <th>@_localizer["Storage"]</th>
+                <th>@Localizer["Name"]</th>
+                <th>@Localizer["Type"]</th>
+                <th>@Localizer["Storage"]</th>
                 <th></th>
             </tr>
             </thead>
@@ -46,8 +46,8 @@
                     <td>@storageDriverName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(input))">@_localizer["Edit"]</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(input))">@_localizer["Delete"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(input))">@Localizer["Edit"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(input))">@Localizer["Delete"]</MudMenuItem>
                         </MudMenu>
                     </td>
                 </tr>

@@ -11,8 +11,8 @@ namespace Elsa.Studio.Secrets.Menu;
 /// </summary>
 public class SecretsMenu : IMenuProvider
 {
-    private readonly ElsaLocalization _localizer;
-    public SecretsMenu(ElsaLocalization localizer)
+    private readonly DefaultLocalizer _localizer;
+    public SecretsMenu(DefaultLocalizer localizer)
     {
         _localizer = localizer;
     }

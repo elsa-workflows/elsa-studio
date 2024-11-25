@@ -40,7 +40,7 @@ public partial class ActivityPicker
                 .GroupBy(x => x.Category);
         }
     }
-    [Inject] ElsaLocalization _localizerService { get; set; }
+    [Inject] DefaultLocalizer _localizerService { get; set; }
     private string GetTranslation(string value)
     {
         string transletValue = string.Empty;

@@ -8,14 +8,14 @@
 @using Elsa.Studio.Workflows.UI.Contracts
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    <MudTabPanel Text="@_localizer["Activities"]">
+    <MudTabPanel Text="@Localizer["Activities"]">
         <Well>
             <MudStack Spacing="3">
                 <MudTextField @bind-Value="@_searchText"
-                              Placeholder="@_localizer["Search"]"
+                              Placeholder="@Localizer["Search"]"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               Adornment="Adornment.End"

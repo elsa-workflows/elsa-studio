@@ -1,15 +1,15 @@
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 @if (WorkflowDefinition != null && WorkflowInstance != null)
 {
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-        <MudTabPanel Text="@_localizer["Details"]">
+        <MudTabPanel Text="@Localizer["Details"]">
             <Well>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Workflow"]</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Workflow"]</MudText>
                     <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
                 </div>
             </Well>
@@ -18,13 +18,13 @@
             {
                 <Well>
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow"]</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow"]</MudText>
                         <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
                     </div>
                 </Well>
             }
         </MudTabPanel>
-        <MudTabPanel Text="@_localizer["Variables"]">
+        <MudTabPanel Text="@Localizer["Variables"]">
             <VerticalWell ExtraPadding="50">
                 <div>
                     @if (WorkflowVariableData.Any())
@@ -34,16 +34,16 @@
                     else
                     {
                         <Well>
-                            @_localizer["No variables"]
+                            @Localizer["No variables"]
                         </Well>
                     }
                 </div>
             </VerticalWell>
         </MudTabPanel>
-        <MudTabPanel Text="@_localizer["Input/output"]">
+        <MudTabPanel Text="@Localizer["Input/output"]">
             <Well>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Inputs"]</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Inputs"]</MudText>
                     @if (WorkflowInputData.Any())
                     {
                         <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
@@ -51,12 +51,12 @@
                     else
                     {
                         <Well>
-                            @_localizer["No inputs"]
+                            @Localizer["No inputs"]
                         </Well>
                     }
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outputs"]</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outputs"]</MudText>
                     @if (WorkflowOutputData.Any())
                     {
                         <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
@@ -64,7 +64,7 @@
                     else
                     {
                         <Well>
-                             @_localizer["No outputs"]
+                             @Localizer["No outputs"]
                         </Well>
                     }
                 </div>
@@ -73,14 +73,14 @@
                 @if (SubWorkflowInputData.Any())
                 {
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow Inputs"]</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Inputs"]</MudText>
                         <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
                     </div>
                 }
                 @if (SubWorkflowOutputData.Any())
                 {
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Sub-Workflow Outputs"]</MudText>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Outputs"]</MudText>
                         <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
                     </div>
                 }

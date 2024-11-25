@@ -3,7 +3,7 @@
 @using Elsa.Api.Client.Extensions
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <div class="pa-4">
     @if (Activity != null && ActivityDescriptor != null)
@@ -13,15 +13,15 @@
                 <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
-                    HelperText="@_localizer["The ID of the activity."]"
+                    HelperText="@Localizer["The ID of the activity."]"
                     Variant="Variant.Outlined">
                     <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
 
                 <MudTextField
                     T="string"
-                    Label="@_localizer["Name"]"
-                    HelperText="@_localizer["The name of the activity. Named activities can be referenced by other activities."]"
+                    Label="@Localizer["Name"]"
+                    HelperText="@Localizer["The name of the activity. Named activities can be referenced by other activities."]"
                     Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
                     ValueChanged="OnActivityNameChanged"
@@ -30,7 +30,7 @@
 
                 <MudTextField
                     T="string"
-                    Label="@_localizer["Display text"]"
+                    Label="@Localizer["Display text"]"
                     HelperText="The text to display in the designer."
                     Value="@Activity.GetDisplayText()"
                     Variant="Variant.Outlined"
@@ -40,8 +40,8 @@
 
                 <MudTextField
                     T="string"
-                    Label="@_localizer["Description"]"
-                    HelperText="@_localizer["A description of this activity to be displayed in the designer."]"
+                    Label="@Localizer["Description"]"
+                    HelperText="@Localizer["A description of this activity to be displayed in the designer."]"
                     Value="@Activity.GetDescription()"
                     Variant="Variant.Outlined"
                     Lines="3"
@@ -51,7 +51,7 @@
 
                 <MudField
                     Variant="Variant.Text"
-                    HelperText="@_localizer["Whether to show the description in the designer."]"
+                    HelperText="@Localizer["Whether to show the description in the designer."]"
                     Margin="Margin.None"
                     Underline="@true"
                     Disabled="IsReadOnly">
@@ -71,7 +71,7 @@
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
-                        Label="@(IsTrigger ? @_localizer["Trigger workflow"] : @_localizer["Start of workflow"])"
+                        Label="@(IsTrigger ? @Localizer["Trigger workflow"] : @Localizer["Start of workflow"])"
                         Dense="@true"
                         Value="@(Activity.GetCanStartWorkflow() == true)"
                         ValueChanged="OnCanStartWorkflowChanged"/>

@@ -1,7 +1,6 @@
 using Elsa.Agents;
 using Elsa.Studio.Agents.Client;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.DomInterop.Contracts;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;

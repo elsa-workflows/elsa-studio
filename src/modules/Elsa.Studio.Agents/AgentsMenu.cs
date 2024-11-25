@@ -1,7 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Services;
 using MudBlazor;
 
 namespace Elsa.Studio.Agents;
@@ -9,8 +8,8 @@ namespace Elsa.Studio.Agents;
 /// A menu provider for the Agents module.
 public class AgentsMenu : IMenuProvider, IMenuGroupProvider
 {
-    private readonly ElsaLocalization _localizer;
-    public AgentsMenu(ElsaLocalization localizer)
+    private readonly DefaultLocalizer _localizer;
+    public AgentsMenu(DefaultLocalizer localizer)
     {
         _localizer = localizer;
     }

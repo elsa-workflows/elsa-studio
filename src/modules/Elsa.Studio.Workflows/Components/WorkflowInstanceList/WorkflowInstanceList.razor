@@ -8,15 +8,15 @@
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
 @using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 @using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 
-<PageTitle>@_localizer["Workflow instances"]</PageTitle>
+<PageTitle>@Localizer["Workflow instances"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="@_localizer["Workflow instances"]" />
+    <PageHeading Text="@Localizer["Workflow instances"]" />
 
 <div id="instance-file-upload-button-wrapper" class="d-none">
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
@@ -37,27 +37,27 @@
     @bind-SelectedItems="_selectedRows">
 <ToolBarContent>
     <MudPaper Class="gap-3 d-flex" Elevation="0">
-        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-            <MudMenuItem OnClick="@OnBulkDeleteClicked">@_localizer["Delete"]</MudMenuItem>
-            <MudMenuItem OnClick="@OnBulkCancelClicked">@_localizer["Cancel"]</MudMenuItem>
-            <MudMenuItem Disabled="true">@_localizer["Retry"]</MudMenuItem>
+        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
+            <MudMenuItem OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+            <MudMenuItem OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
+            <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem>
             <!--<MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>-->
         </MudMenu>
-        <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">@_localizer["Import"]</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">@Localizer["Import"]</MudButton>
     </MudPaper>
 
     <MudSpacer/>
 
-    <MudSelect T="@(bool?)" Label="@_localizer["Has Incidents"]" ValueChanged="@OnHasIncidentsChanged" Class="me-3" PopoverClass="mw-300" Value="@HasIncidents" Variant="Variant.Outlined" OuterClass="mud-select-has-incidents">
+    <MudSelect T="@(bool?)" Label="@Localizer["Has Incidents"]" ValueChanged="@OnHasIncidentsChanged" Class="me-3" PopoverClass="mw-300" Value="@HasIncidents" Variant="Variant.Outlined" OuterClass="mud-select-has-incidents">
         <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
-        <MudSelectItem T="@(bool?)" Value="@(true)">@_localizer["Yes"]</MudSelectItem>
-        <MudSelectItem T="@(bool?)" Value="@(false)">@_localizer["No"]</MudSelectItem>
+        <MudSelectItem T="@(bool?)" Value="@(true)">@Localizer["Yes"]</MudSelectItem>
+        <MudSelectItem T="@(bool?)" Value="@(false)">@Localizer["No"]</MudSelectItem>
     </MudSelect>
     
     <MudTextField
         T="string"
         Text="@SearchTerm"
-        Placeholder="@_localizer["Search on name, id, definition id, definition version id, correlation id"]"
+        Placeholder="@Localizer["Search on name, id, definition id, definition version id, correlation id"]"
         Variant="Variant.Outlined"
         AdornmentIcon="@Icons.Material.Outlined.Search"
         Adornment="Adornment.End"
@@ -69,7 +69,7 @@
 
     <MudSelectExtended
         T="WorkflowDefinitionSummary"
-        Label="@_localizer["Workflows"]"
+        Label="@Localizer["Workflows"]"
         AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
         MultiSelection="true"
         ItemCollection="@WorkflowDefinitions"
@@ -98,7 +98,7 @@
 
     <MudSelectExtended
         T="WorkflowStatus"
-        Label="@_localizer["Status"]"
+        Label="@Localizer["Status"]"
         AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
         ValuePresenter="ValuePresenter.Chip"
         MultiSelection="true"
@@ -119,7 +119,7 @@
 
     <MudSelectExtended
         T="WorkflowSubStatus"
-        Label="@_localizer["Sub status"]"
+        Label="@Localizer["Sub status"]"
         AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
         ValuePresenter="ValuePresenter.Chip"
         MultiSelection="true"
@@ -143,7 +143,7 @@
 
         <MudBadge Content="@TimestampFilters.Count" Color="Color.Primary" Overlap="true" Visible="@(TimestampFilters.Any())">
             <MudButton StartIcon="@Icons.Material.Outlined.DateRange" IconSize="Size.Large" OnClick="@ToggleDateRangePopover">
-                @_localizer["Date Filters"]
+                @Localizer["Date Filters"]
             </MudButton>
         </MudBadge>
         <MudPopover Open="@IsDateRangePopoverOpen" AnchorOrigin="Origin.BottomRight" OverflowBehavior="OverflowBehavior.FlipAlways" Class="px-4 pt-4">
@@ -157,28 +157,28 @@
                         </td>
                         <td>
                             <MudSelect Label="Column" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Column">
-                                <MudSelectItem Value="@nameof(WorkflowInstance.CreatedAt)">@_localizer["Created"]</MudSelectItem>
-                                <MudSelectItem Value="@nameof(WorkflowInstance.UpdatedAt)">@_localizer["Updated"]</MudSelectItem>
-                                <MudSelectItem Value="@nameof(WorkflowInstance.FinishedAt)">@_localizer["Finished"]</MudSelectItem>
+                                <MudSelectItem Value="@nameof(WorkflowInstance.CreatedAt)">@Localizer["Created"]</MudSelectItem>
+                                <MudSelectItem Value="@nameof(WorkflowInstance.UpdatedAt)">@Localizer["Updated"]</MudSelectItem>
+                                <MudSelectItem Value="@nameof(WorkflowInstance.FinishedAt)">@Localizer["Finished"]</MudSelectItem>
                             </MudSelect>
                         </td>
                         <td>
                             <MudSelect Label="Operator" Variant="Variant.Outlined" @bind-Value="@timestampFilter.Operator" Class="timespan-operator">
-                                <MudSelectItem Value="@TimestampFilterOperator.Is">@_localizer["Is"]</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.IsNot">@_localizer["Is Not"]</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThan">@_localizer["Is After"]</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThanOrEqual">@_localizer["Is on or After"]</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.LessThan">@_localizer["Is Before"]</MudSelectItem>
-                                <MudSelectItem Value="@TimestampFilterOperator.LessThanOrEqual">@_localizer["Is on or Before"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.Is">@Localizer["Is"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.IsNot">@Localizer["Is Not"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThan">@Localizer["Is After"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.GreaterThanOrEqual">@Localizer["Is on or After"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.LessThan">@Localizer["Is Before"]</MudSelectItem>
+                                <MudSelectItem Value="@TimestampFilterOperator.LessThanOrEqual">@Localizer["Is on or Before"]</MudSelectItem>
                             </MudSelect>
                         </td>
                         <td>
-                            <MudDatePicker Label="@_localizer["Date"]" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
+                            <MudDatePicker Label="@Localizer["Date"]" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Date"/>
                         </td>
                         <td>
                             <MudTextField
                                 T="string"
-                                Label="@_localizer["Time"]"
+                                Label="@Localizer["Time"]"
                                 Variant="Variant.Outlined"
                                 InputType="InputType.Time"
                                 Format="hh:mm:ss:mm"
@@ -192,83 +192,83 @@
                 </tbody>
             </table>
             <MudStack Row="true" Class="ma-3 pa-3">
-                <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="@OnAddTimestampFilterClicked">@_localizer["Add"]</MudButton>
-                <MudButton StartIcon="@Icons.Material.Outlined.Clear" OnClick="@OnClearTimestampFiltersClicked" Disabled="@(!TimestampFilters.Any())">@_localizer["Clear"]</MudButton>
+                <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="@OnAddTimestampFilterClicked">@Localizer["Add"]</MudButton>
+                <MudButton StartIcon="@Icons.Material.Outlined.Clear" OnClick="@OnClearTimestampFiltersClicked" Disabled="@(!TimestampFilters.Any())">@Localizer["Clear"]</MudButton>
                 <MudSpacer/>
-                <MudButton OnClick="@OnApplyTimestampFiltersClicked" Class="ml-auto mr-n3 mb-1" Variant="Variant.Filled" Color="Color.Primary">@_localizer["Apply"]</MudButton>
-                <MudButton OnClick="@ToggleDateRangePopover" Class="ml-auto mr-n3 mb-1" Variant="Variant.Text" Color="Color.Default">@_localizer["Close"]</MudButton>
+                <MudButton OnClick="@OnApplyTimestampFiltersClicked" Class="ml-auto mr-n3 mb-1" Variant="Variant.Filled" Color="Color.Primary">@Localizer["Apply"]</MudButton>
+                <MudButton OnClick="@ToggleDateRangePopover" Class="ml-auto mr-n3 mb-1" Variant="Variant.Text" Color="Color.Default">@Localizer["Close"]</MudButton>
             </MudStack>
         </MudPopover>
 </ToolBarContent>
     <HeaderContent>
-        <MudTh>@_localizer["ID"]</MudTh>
-        <MudTh>@_localizer["Correlation ID"]</MudTh>
-        <MudTh>@_localizer["Workflows"]</MudTh>
-        <MudTh>@_localizer["Version"]</MudTh>
+        <MudTh>@Localizer["ID"]</MudTh>
+        <MudTh>@Localizer["Correlation ID"]</MudTh>
+        <MudTh>@Localizer["Workflows"]</MudTh>
+        <MudTh>@Localizer["Version"]</MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">@_localizer["Name"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="Name" T="WorkflowInstanceRow">@Localizer["Name"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">@_localizer["Status"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="SubStatus" T="WorkflowInstanceRow">@Localizer["Status"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="IncidentCount" T="WorkflowInstanceRow">@_localizer["Incidents"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="IncidentCount" T="WorkflowInstanceRow">@Localizer["Incidents"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">@_localizer["Created"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="CreatedAt" T="WorkflowInstanceRow" InitialDirection="SortDirection.Descending">@Localizer["Created"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">@_localizer["Updated"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="UpdatedAt" T="WorkflowInstanceRow">@Localizer["Updated"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">@_localizer["Finished"]</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="FinishedAt" T="WorkflowInstanceRow">@Localizer["Finished"]</MudTableSortLabel>
         </MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="@_localizer["ID"]">@context.WorkflowInstanceId</MudTd>
-        <MudTd DataLabel="@_localizer["Correlation ID"]">
+        <MudTd DataLabel="@Localizer["ID"]">@context.WorkflowInstanceId</MudTd>
+        <MudTd DataLabel="@Localizer["Correlation ID"]">
             <MudTooltip Text="@context.CorrelationId">
                 <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
                     @context.CorrelationId
                 </div>
             </MudTooltip>
         </MudTd>
-        <MudTd DataLabel="@_localizer["Workflows"]">
+        <MudTd DataLabel="@Localizer["Workflows"]">
             <MudTooltip Text="@context.WorkflowDefinition.Name">
                 <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
                     @context.WorkflowDefinition.Name
                 </div>
             </MudTooltip>
         </MudTd>
-        <MudTd DataLabel="@_localizer["Version"]">@context.Version</MudTd>
-        <MudTd DataLabel="@_localizer["Name"]">
+        <MudTd DataLabel="@Localizer["Version"]">@context.Version</MudTd>
+        <MudTd DataLabel="@Localizer["Name"]">
             <MudTooltip Text="@context.Name">
                 <div style="text-overflow: ellipsis; overflow: hidden; max-width: 200px; white-space: nowrap;">
                     @context.Name
                 </div>
             </MudTooltip>
         </MudTd>
-        <MudTd DataLabel="@_localizer["SubStatus"]">
+        <MudTd DataLabel="@Localizer["SubStatus"]">
             <MudChip T="WorkflowSubStatus" Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
                 @context.SubStatus
             </MudChip>
         </MudTd>
-        <MudTd DataLabel="@_localizer["IncidentCount"]">
+        <MudTd DataLabel="@Localizer["IncidentCount"]">
             <MudChip T="string"
                 Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
                 Value="@context.IncidentCount.ToString()"
                 Variant="Variant.Text"
                 Size="Size.Small"/>
         </MudTd>
-        <MudTd DataLabel="@_localizer["CreatedAt"]"><Timestamp Value="context.CreatedAt"/></MudTd>
-        <MudTd DataLabel="@_localizer["UpdatedAt"]"><Timestamp Value="context.UpdatedAt"/></MudTd>
-        <MudTd DataLabel="@_localizer["FinishedAt"]"><Timestamp Value="context.FinishedAt"/></MudTd>
+        <MudTd DataLabel="@Localizer["CreatedAt"]"><Timestamp Value="context.CreatedAt"/></MudTd>
+        <MudTd DataLabel="@Localizer["UpdatedAt"]"><Timestamp Value="context.UpdatedAt"/></MudTd>
+        <MudTd DataLabel="@Localizer["FinishedAt"]"><Timestamp Value="context.FinishedAt"/></MudTd>
         <MudTd DataLabel="" Style="text-align:right">
             <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@_localizer["View"]</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@_localizer["Delete"]</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">@_localizer["Cancel"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@Localizer["View"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
                 @* Disabled until we fix an issue with Workflow Instance Exports. *@
                 @* <MudDivider DividerType="DividerType.FullWidth"></MudDivider> *@
                 @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem> *@
@@ -276,13 +276,13 @@
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
-        <MudText>@_localizer["No workflow instances found"]</MudText>
+        <MudText>@Localizer["No workflow instances found"]</MudText>
     </NoRecordsContent>
     <LoadingContent>
-        <MudText>@_localizer["Loading"]...</MudText>
+        <MudText>@Localizer["Loading"]...</MudText>
     </LoadingContent>
     <PagerContent>
-            <MudTablePager RowsPerPageString="@_localizer["Rows Per Page"]" />
+            <MudTablePager RowsPerPageString="@Localizer["Rows Per Page"]" />
     </PagerContent>
 </MudTable>
 </MudContainer>

@@ -2,7 +2,7 @@
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <CascadingValue Value="this">
     <RadzenSplitter Orientation="Orientation.Horizontal">
@@ -14,7 +14,7 @@
                                 Style="height: 100%"
                                 ActivePanelIndex="0"
                                 AddIconClass="d-none"
-                                AddIconToolTip="@_localizer["Click to open a new workflow tab"]" CloseIconToolTip="@_localizer["Close workflow"]"
+                                AddIconToolTip="@Localizer["Click to open a new workflow tab"]" CloseIconToolTip="@Localizer["Close workflow"]"
                                 Elevation="0"
                                 ApplyEffectsToContainer>
 

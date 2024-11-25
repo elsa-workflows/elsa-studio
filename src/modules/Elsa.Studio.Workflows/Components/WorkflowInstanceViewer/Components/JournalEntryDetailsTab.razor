@@ -1,7 +1,7 @@
 @using Elsa.Studio.Models
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     @if (JournalEntry != null!)
@@ -21,7 +21,7 @@
         <div class="pa-4">
             <MudStack>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Event"]</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Event"]</MudText>
                     <DataPanel Data="eventInfo" HideEmptyValues="true"/>
                 </div>
             </MudStack>

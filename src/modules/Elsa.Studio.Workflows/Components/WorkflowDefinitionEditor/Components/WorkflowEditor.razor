@@ -4,7 +4,7 @@
 @using Variant = MudBlazor.Variant
 @inherits WorkflowEditorComponentBase
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
@@ -16,10 +16,10 @@
             ActivitySelected="@OnActivitySelected" 
             GraphUpdated="@OnGraphUpdated">
             <CustomToolbarItems>
-                <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@_localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
-                <MudTooltip Text="@_localizer["Save"]" Delay="1000">
+                <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
+                <MudTooltip Text="@Localizer["Save"]" Delay="1000">
                     <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
-                        <MudIconButton Icon="@Icons.Material.Outlined.Save" title="@_localizer["Save"]" OnClick="@OnSaveClick" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Save" title="@Localizer["Save"]" OnClick="@OnSaveClick" />
                     </MudBadge>
                 </MudTooltip>
 
@@ -27,27 +27,27 @@
                     <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
                 </div>
 
-                <MudTooltip Text="@_localizer["Publish the current workflow"]" Delay="1000">
+                <MudTooltip Text="@Localizer["Publish the current workflow"]" Delay="1000">
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DropShadow="false">
-                        <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" title="@_localizer["Publish"]" OnClick="@OnPublishClicked"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" title="@Localizer["Publish"]" OnClick="@OnPublishClicked"/>
                         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
                             @if (_workflowDefinition?.IsPublished == true)
                             {
-                                <MudTooltip Text="@_localizer["Unpublish the current workflow"]" Inline="false" Delay="1000">
-                                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="@OnRetractClicked">@_localizer["Unpublish"]</MudMenuItem>
+                                <MudTooltip Text="@Localizer["Unpublish the current workflow"]" Inline="false" Delay="1000">
+                                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" OnClick="@OnRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
                                 </MudTooltip>
                                 <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                             }
-                            <MudTooltip Text="@_localizer["Export the current workflow as a JSON file"]" Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnExportClicked">@_localizer["Export"]</MudMenuItem>
+                            <MudTooltip Text="@Localizer["Export the current workflow as a JSON file"]" Inline="false" Delay="1000">
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnExportClicked">@Localizer["Export"]</MudMenuItem>
                             </MudTooltip>
-                            <MudTooltip Text="@_localizer["Import a JSON file containing workflow data to override the current workflow's contents."]" Inline="false" Delay="1000">
-                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@_localizer["Import"]</MudMenuItem>
+                            <MudTooltip Text="@Localizer["Import a JSON file containing workflow data to override the current workflow's contents."]" Inline="false" Delay="1000">
+                                <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
                             </MudTooltip>
                         </MudMenu>
                     </MudButtonGroup>
                 </MudTooltip>
-                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@_localizer["Run workflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@Localizer["Run workflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>

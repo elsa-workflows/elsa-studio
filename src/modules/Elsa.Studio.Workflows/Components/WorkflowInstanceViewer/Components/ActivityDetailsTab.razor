@@ -1,18 +1,18 @@
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack>
         <div>
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Activity"]</MudText>
+            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Activity"]</MudText>
             <DataPanel Data="ActivityInfo" HideEmptyValues="true"/>
         </div>
 
         @if (ActivityData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["State"]</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["State"]</MudText>
                 <DataPanel Data="@ActivityData" HideEmptyValues="false"/>
             </div>
         }
@@ -20,7 +20,7 @@
         @if (OutcomesData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outcomes"]</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outcomes"]</MudText>
                 <DataPanel Data="OutcomesData" HideEmptyValues="true"/>
             </div>
         }
@@ -28,7 +28,7 @@
         @if (OutputData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Output"]</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
                 <DataPanel Data="OutputData" HideEmptyValues="false"/>
             </div>
         }
@@ -36,7 +36,7 @@
         @if (ExceptionData.Any())
         {
             <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Fault"]</MudText>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Fault"]</MudText>
                 <DataPanel Data="ExceptionData" HideEmptyValues="true"/>
             </div>
         }

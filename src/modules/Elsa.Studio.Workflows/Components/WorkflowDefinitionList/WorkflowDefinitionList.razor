@@ -2,15 +2,15 @@
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 @if (IsReadOnlyMode)
 {
-    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">@_localizer["You are running in read-only mode. Workflow operations are disabled"].</MudAlert>
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">@Localizer["You are running in read-only mode. Workflow operations are disabled"].</MudAlert>
 }
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="@_localizer["Workflow definitions Editor"]" />
+    <PageHeading Text="@Localizer["Workflow definitions Editor"]" />
 
     <div id="workflow-file-upload-button-wrapper" class="d-none">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
@@ -30,18 +30,18 @@
         Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@_localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkDeleteClicked">@_localizer["Delete"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkPublishClicked">@_localizer["Publish"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkRetractClicked">@_localizer["Unpublish"]</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkExportClicked">@_localizer["Export"]</MudMenuItem>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
+                <MudMenuItem OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
 
             <MudTextField
                 T="string"
                 Text="@SearchTerm"
-                Placeholder="@_localizer["Search on name, description, id, definition id"]"
+                Placeholder="@Localizer["Search on name, description, id, definition id"]"
                 Variant="Variant.Outlined"
                 AdornmentIcon="@Icons.Material.Outlined.Search"
                 Adornment="Adornment.End"
@@ -53,29 +53,29 @@
                 ValueChanged="@OnSearchTermChanged"/>
 
             <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DropShadow="true">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@_localizer["Create workflow"]</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@Localizer["Create workflow"]</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode">
                     <MudTooltip Text="Upload JSON and/or ZIP files containing workflow data to import." Inline="false" Delay="1000">
-                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@_localizer["Import"]</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
                     </MudTooltip>
                 </MudMenu>
             </MudButtonGroup>
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">@_localizer["Definition ID"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">@Localizer["Definition ID"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">@_localizer["Name"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="WorkflowDefinitionRow">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Latest version"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="LatestVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@Localizer["Latest version"]</MudTableSortLabel>
             </MudTh>
             <MudTh Style="text-align:left">
-                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@_localizer["Published version"]</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="PublishedVersion" T="WorkflowDefinitionRow" Style="text-align: right;">@Localizer["Published version"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                @_localizer["Description"]
+                @Localizer["Description"]
             </MudTh>
             <MudTh></MudTh>
         </HeaderContent>
@@ -101,32 +101,32 @@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
                     @if (!IsReadOnlyMode && !context.IsReadOnlyMode)
                     {
-                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">@_localizer["Edit"]</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["Edit"]</MudMenuItem>
                     }
                     else
                     {
-                        <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">@_localizer["View"]</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["View"]</MudMenuItem>
                     }
-                    <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">@_localizer["Run"]</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@_localizer["Delete"]</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">@_localizer["Cancel"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">@Localizer["Run"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@_localizer["Publish"]</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@_localizer["Unpublish"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">@_localizer["Export"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">@Localizer["Export"]</MudMenuItem>
 
                 </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText>@_localizer["No workflow definitions found"]</MudText>
+            <MudText>@Localizer["No workflow definitions found"]</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText>@_localizer["Loading"]...</MudText>
+            <MudText>@Localizer["Loading"]...</MudText>
         </LoadingContent>
         <PagerContent>
-            <MudTablePager RowsPerPageString="@_localizer["Rows Per Page"]" />
+            <MudTablePager RowsPerPageString="@Localizer["Rows Per Page"]" />
         </PagerContent>
     </MudTable>
 </MudContainer>

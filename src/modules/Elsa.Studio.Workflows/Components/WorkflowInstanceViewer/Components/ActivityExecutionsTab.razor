@@ -1,7 +1,7 @@
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject ElsaLocalization _localizer
+@inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack Row="false">
@@ -18,11 +18,11 @@
             OnRowClick="@OnActivityExecutionClicked">   
             <HeaderContent>
                 <MudTh>#</MudTh>
-                <MudTh>@_localizer["Started"]</MudTh>
-                <MudTh>@_localizer["Completed"]</MudTh>
-                <MudTh>@_localizer["Duration"]</MudTh>
-                <MudTh>@_localizer["Status"]</MudTh>
-                <MudTh>@_localizer["Activity Instance ID"]</MudTh>
+                <MudTh>@Localizer["Started"]</MudTh>
+                <MudTh>@Localizer["Completed"]</MudTh>
+                <MudTh>@Localizer["Duration"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Activity Instance ID"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 @{
@@ -44,16 +44,16 @@
         {
             <div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["State"]</MudText>
-                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No state associated with this execution."]"/>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["State"]</MudText>
+                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No state associated with this execution."]"/>
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Outcomes"]</MudText>
-                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@_localizer["No outcomes associated with this execution."]"/>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outcomes"]</MudText>
+                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@Localizer["No outcomes associated with this execution."]"/>
                 </div>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Output"]</MudText>
-                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@_localizer["No output associated with this execution."]"/>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
+                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output associated with this execution."]"/>
                 </div>
             </div>
         }

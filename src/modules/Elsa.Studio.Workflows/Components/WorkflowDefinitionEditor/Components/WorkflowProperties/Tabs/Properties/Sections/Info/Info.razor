@@ -1,4 +1,4 @@
 @using Elsa.Studio.Workflows.Services
-@inject ElsaLocalization _localizer
-<MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@_localizer["Information"]</MudText>
+@inject ILocalizer Localizer
+<MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Information"]</MudText>
 <DataPanel Data="_workflowInfo"/>
