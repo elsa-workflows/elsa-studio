@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+﻿using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
@@ -109,7 +110,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             x.CreatedAt,
             x.UpdatedAt,
             x.FinishedAt));
-
+        
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
     }

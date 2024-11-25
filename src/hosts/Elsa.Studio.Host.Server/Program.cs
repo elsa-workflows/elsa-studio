@@ -12,6 +12,15 @@ using Elsa.Studio.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Localization.BlazorServer.Extensions;
+using MudBlazor.Translations;
+using MudBlazor.Services;
+using Elsa.Studio.Localization.Models;
+using Microsoft.Extensions.Options;
+using Elsa.Studio.Localization.Options;
+using Microsoft.Extensions.Hosting;
+using Microsoft.JSInterop;
+using System.Globalization;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -33,8 +42,15 @@ var backendApiConfig = new BackendApiConfig
     ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
 };
 
+
+var localizationConfig = new LocalizationConfig
+{
+    ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
+};
+
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
+
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
 builder.Services.AddDashboardModule();
@@ -43,6 +59,8 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddLocalizationModule(localizationConfig);
+
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
@@ -66,10 +84,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseElsaLocalization();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

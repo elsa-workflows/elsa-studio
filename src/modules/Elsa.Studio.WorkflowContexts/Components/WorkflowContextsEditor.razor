@@ -1,6 +1,8 @@
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
-<MudText Typo="Typo.overline">Workflow Contexts</MudText>
+<MudText Typo="Typo.overline">@Localizer["Workflow Contexts"]</MudText>
 <MudPaper>
     <MudStack Spacing="0">
         @foreach (var descriptor in WorkflowContextDescriptors)

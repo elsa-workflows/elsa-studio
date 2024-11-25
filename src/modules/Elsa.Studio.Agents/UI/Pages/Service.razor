@@ -2,8 +2,9 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
-<PageTitle>Service</PageTitle>
+<PageTitle>@Localizer["Service"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="@($"Service: {_entity.Name}")"/>
@@ -15,40 +16,40 @@
                  ValidationDelay="0">
 
             <MudTabs Border="false" PanelClass="pa-6">
-                <MudTabPanel Text="General">
+                <MudTabPanel Text="@Localizer["General"]">
                     <MudStack Spacing="8">
                         <MudTextField @bind-Value="_entity.Name"
                                       For="@(() => _entity.Name)"
                                       Immediate="true"
-                                      Label="Name"
+                                      Label="@Localizer["Name"]"
                                       Variant="Variant.Outlined"
-                                      HelperText="The technical name of the service."/>
+                                      HelperText="@Localizer["The technical name of the service."]"/>
 
                         <MudSelect T="string" @bind-Value="_entity.Type"
                                    For="@(() => _entity.Type)"
                                    Immediate="false"
-                                   Label="Type"
+                                   Label="@Localizer["Type"]"
                                    Variant="Variant.Outlined"
-                                   HelperText="The type of the service.">
-                            <MudSelectItem T="string" Value="@("OpenAIChatCompletion")">OpenAIChatCompletion</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("OpenAITextToImage")">OpenAITextToImage</MudSelectItem>
+                                   HelperText="@Localizer["The type of the service."]">
+                            <MudSelectItem T="string" Value="@("OpenAIChatCompletion")">@Localizer["OpenAIChatCompletion"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("OpenAITextToImage")">@Localizer["OpenAITextToImage"]</MudSelectItem>
                         </MudSelect>
 
                         <MudTextField @bind-Value="_entity.Settings"
                                       For="@(() => _entity.Settings)"
                                       Immediate="false"
                                       Lines="10"
-                                      Label="Settings"
+                                      Label="@Localizer["Settings"]"
                                       Variant="Variant.Outlined"
                                       Converter="GetSettingsConverter()"
-                                      HelperText="The settings of the service in JSON format."/>
+                                      HelperText="@Localizer["The settings of the service in JSON format."]"/>
                         
                     </MudStack>
                 </MudTabPanel>
             </MudTabs>
         </MudForm>
         <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">Save</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">@Localizer["Save"]</MudButton>
         </MudCardActions>
     </MudCard>
 </MudContainer>

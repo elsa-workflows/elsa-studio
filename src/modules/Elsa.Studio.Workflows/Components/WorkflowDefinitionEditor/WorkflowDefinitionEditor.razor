@@ -6,12 +6,14 @@
 @using Elsa.Studio.Workflows.Domain.Contracts
 @using Elsa.Studio.Workflows.Extensions
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
 @inject IWorkflowDefinitionService WorkflowDefinitionService
 
 @if (IsReadOnly)
 {
-    <MudAlert Severity="Severity.Warning" Variant="MudBlazor.Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">Unable to make changes as the workflow or application is currently in read-only mode.</MudAlert>
+    <MudAlert Severity="Severity.Warning" Variant="MudBlazor.Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">@Localizer["Unable to make changes as the workflow or application is currently in read-only mode"].</MudAlert>
 }
 
 <CascadingValue Value="_dragDropManager">

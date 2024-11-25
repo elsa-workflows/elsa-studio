@@ -1,18 +1,21 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
 @using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
 
 @if (WorkflowDefinition != null)
 {
     <div>
-        <MudText Typo="Typo.overline">Settings</MudText>
+        <MudText Typo="Typo.overline">@Localizer["Settings"]</MudText>
         <MudStack Spacing="3">
             <MudSelect
                 T="WorkflowActivationStrategyDescriptor"
-                Label="Activation strategy"
+                Label="@Localizer["Activation strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedActivationStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
@@ -26,7 +29,7 @@
             </MudSelect>
             <MudSelect
                 T="IncidentStrategyDescriptor?"
-                Label="Incident handling strategy"
+                Label="@Localizer["Incident handling strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? "Default")"
@@ -40,7 +43,7 @@
             </MudSelect>
             <MudSelect
                 T="LogPersistenceStrategyDescriptor?"
-                Label="Log Persistence Strategy"
+                Label="@Localizer["Log Persistence Strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedLogPersistenceStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? "Default")"
@@ -52,10 +55,10 @@
                     <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
-            <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
+            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
-                    Label="Usable as activity"
+                    Label="@Localizer["Usable as activity"]"
                     Value="@(WorkflowDefinition.Options.UsableAsActivity == true)"
                     ValueChanged="@OnUsableAsActivityCheckChanged"
                     Dense="true"
@@ -63,10 +66,10 @@
             </MudField>
             @if (WorkflowDefinition.Options.UsableAsActivity == true)
             {
-                <MudField Variant="Variant.Text" HelperText="When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow." Margin="Margin.None">
+                <MudField Variant="Variant.Text" HelperText="@Localizer["When you publish"]" Margin="Margin.None">
                     <MudCheckBox
                         T="bool?"
-                        Label="Auto-update consuming workflows"
+                        Label="@Localizer["Auto-update consuming workflows"]"
                         Dense="@true"
                         Value="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
                         ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
@@ -75,8 +78,8 @@
                 <MudTextField
                     T="string"
                     Variant="Variant.Outlined"
-                    Label="Category"
-                    HelperText="A custom activity category to assign this workflow-as-an-activity to."
+                    Label="@Localizer["Category"]"
+                    HelperText="@Localizer["A custom activity category to assign this workflow-as-an-activity to."]"
                     Value="@WorkflowDefinition.Options.ActivityCategory"
                     ValueChanged="OnCategoryChanged" ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
             }

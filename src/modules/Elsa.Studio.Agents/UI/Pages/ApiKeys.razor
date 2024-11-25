@@ -2,11 +2,12 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
-<PageTitle>API Keys</PageTitle>
+<PageTitle>@Localizer["API Keys"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="API Keys"/>
+    <PageHeading Text="@Localizer["API Keys"]"/>
 
     <MudTable
         @ref="_table"
@@ -22,13 +23,13 @@
         Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
                 <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
             
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">Create API Key</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">@Localizer["Create API Key"]</MudButton>
             </MudButtonGroup>
         </ToolBarContent>
         <HeaderContent>
@@ -36,10 +37,10 @@
                 <MudTableSortLabel SortLabel="ID" T="ApiKeyModel">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Value" T="ApiKeyModel">Value</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Value" T="ApiKeyModel">@Localizer["Value"]</MudTableSortLabel>
             </MudTh>
             <MudTh/>
         </HeaderContent>
@@ -49,16 +50,16 @@
             <MudTd DataLabel="Value">@context.Value</MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">@Localizer["Edit"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
                 </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText>No API keys found</MudText>
+            <MudText>@Localizer["No API keys found"]</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText>Loading...</MudText>
+            <MudText>@Localizer["Loading"]...</MudText>
         </LoadingContent>
         <PagerContent>
             <MudTablePager/>

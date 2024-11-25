@@ -48,6 +48,11 @@ public partial class MainLayout : IDisposable
                 StateHasChanged();
             }
         }
+        else
+        {
+            await FeatureService.InitializeFeaturesAsync();
+            StateHasChanged();
+        }
     }
 
     /// <inheritdoc />

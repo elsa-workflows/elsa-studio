@@ -2,7 +2,6 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using JetBrains.Annotations;
-using MudBlazor;
 
 namespace Elsa.Studio.Agents.UI.Providers;
 

@@ -1,16 +1,17 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
 <MudDialog>
     <DialogContent>
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
-                <MudTextField Label="Name" @bind-Value="_agentInputModel.Name" For="@(() => _agentInputModel.Name)" HelperText="The name of the new agent." Variant="Variant.Outlined"/>
-                <MudTextField Label="Function" @bind-Value="_agentInputModel.FunctionName" For="@(() => _agentInputModel.FunctionName)" HelperText="The name of the function that the agent will execute." Variant="Variant.Outlined"/>
-                <MudTextField Label="Prompt Template" @bind-Value="_agentInputModel.PromptTemplate" For="@(() => _agentInputModel.PromptTemplate)" HelperText="The system prompt template that the agent will use." Variant="Variant.Outlined" Lines="4"/>
-                <MudTextField Label="Description" @bind-Value="_agentInputModel.Description" For="@(() => _agentInputModel.Description)" HelperText="A brief description of the agent." Lines="3" Variant="Variant.Outlined"/>
-                <MudField Label="Services" HelperText="The services that the agent requires.">
+                <MudTextField Label="@Localizer["Name"]" @bind-Value="_agentInputModel.Name" For="@(() => _agentInputModel.Name)" HelperText="@Localizer["The name of the new agent."]" Variant="Variant.Outlined" />
+                <MudTextField Label="@Localizer["Function"]" @bind-Value="_agentInputModel.FunctionName" For="@(() => _agentInputModel.FunctionName)" HelperText="@Localizer["The name of the function that the agent will execute."]" Variant="Variant.Outlined"/>
+                <MudTextField Label="@Localizer["Prompt Template"]" @bind-Value="_agentInputModel.PromptTemplate" For="@(() => _agentInputModel.PromptTemplate)" HelperText="@Localizer["The system prompt template that the agent will use."]" Variant="Variant.Outlined" Lines="4"/>
+                <MudTextField Label="@Localizer["Description"]" @bind-Value="_agentInputModel.Description" For="@(() => _agentInputModel.Description)" HelperText="@Localizer["A brief description of the agent."]" Lines="3" Variant="Variant.Outlined"/>
+                <MudField Label="@Localizer["Services"]" HelperText="@Localizer["The services that the agent requires."]">
                     <MudList T="string" @bind-SelectedValues="SelectedServices" SelectionMode="SelectionMode.MultiSelection">
                         @foreach (var service in AvailableServices)
                         {
@@ -18,7 +19,7 @@
                         }
                     </MudList>
                 </MudField>
-                <MudField Label="Plugins" HelperText="The plugins that the agent can use.">
+                <MudField Label="@Localizer["Plugins"]" HelperText="@Localizer["The plugins that the agent can use."]">
                     <MudList T="string" @bind-SelectedValues="SelectedPlugins" SelectionMode="SelectionMode.MultiSelection">
                         @foreach (var plugin in AvailablePlugins)
                         {
@@ -30,7 +31,7 @@
         </EditForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="OnCancelClicked">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">Ok</MudButton>
+        <MudButton OnClick="OnCancelClicked">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>

@@ -3,11 +3,12 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
-<PageTitle>Services</PageTitle>
+<PageTitle>@Localizer["Services"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Services"/>
+    <PageHeading Text="@Localizer["Services"]"/>
 
     <MudTable
         @ref="_table"
@@ -23,13 +24,13 @@
         Class="definitions-table"
         @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
-            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem OnClick="@OnBulkDeleteClicked">Delete</MudMenuItem>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
             </MudMenu>
             <MudSpacer/>
             
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">Create Service</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">@Localizer["Create Service"]</MudButton>
             </MudButtonGroup>
         </ToolBarContent>
         <HeaderContent>
@@ -37,10 +38,10 @@
                 <MudTableSortLabel SortLabel="ID" T="ApiKeyModel">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">@Localizer["Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Settings" T="ApiKeyModel">Settings</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Settings" T="ApiKeyModel">@Localizer["Settings"]</MudTableSortLabel>
             </MudTh>
             <MudTh/>
         </HeaderContent>
@@ -54,16 +55,16 @@
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">@Localizer["Edit"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
                 </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText>No services found</MudText>
+            <MudText>@Localizer["No services found"]</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText>Loading...</MudText>
+            <MudText>@Localizer["Loading"]...</MudText>
         </LoadingContent>
         <PagerContent>
             <MudTablePager/>

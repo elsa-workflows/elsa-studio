@@ -1,6 +1,7 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
@@ -36,7 +37,10 @@ public static class ServiceCollectionExtensions
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
-        
+
+        //Localization
+        services.AddSingleton<ILocalizationProvider, DefaultLocalizationProvider>();
+        services.AddSingleton<ILocalizer, DefaultLocalizer>();
         return services;
     }
     

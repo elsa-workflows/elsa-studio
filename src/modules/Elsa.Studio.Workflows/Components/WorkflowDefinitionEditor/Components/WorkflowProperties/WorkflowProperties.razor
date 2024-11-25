@@ -3,19 +3,21 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.VersionHistory
 @using Elsa.Studio.Workflows.Shared.Args
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 @inherits StudioComponentBase
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    <MudTabPanel Text="Properties">
+    <MudTabPanel Text="@Localizer["Properties"]">
         <PropertiesTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
-    <MudTabPanel Text="Variables">
+    <MudTabPanel Text="@Localizer["Variables"]">
         <VariablesTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
-    <MudTabPanel Text="Input/output">
+    <MudTabPanel Text="@Localizer["Input/output"]">
         <InputOutputTab WorkflowDefinition="@WorkflowDefinition" WorkflowDefinitionUpdated="WorkflowDefinitionUpdated"/>
     </MudTabPanel>
-    <MudTabPanel Text="Version history">
+    <MudTabPanel Text="@Localizer["Version history"]">
         <VersionHistoryTab DefinitionId="@WorkflowDefinition.DefinitionId"/>
     </MudTabPanel>
 </MudTabs>

@@ -7,12 +7,8 @@ namespace Elsa.Studio.DomInterop.Interop;
 /// <summary>
 /// Provides access to the dom JavaScript module.
 /// </summary>
-public class DomJsInterop : JsInteropBase, IDomAccessor
+public class DomJsInterop(IJSRuntime jsRuntime) : JsInteropBase(jsRuntime), IDomAccessor
 {
-    public DomJsInterop(IJSRuntime jsRuntime) : base(jsRuntime)
-    {
-    }
-
     protected override string ModuleName => "dom";
     
     public async Task<DomRect> GetBoundingClientRectAsync(ElementRef element, CancellationToken cancellationToken = default) => await InvokeAsync(async module => await module.InvokeAsync<DomRect>("getBoundingClientRect", cancellationToken, element.Match()));

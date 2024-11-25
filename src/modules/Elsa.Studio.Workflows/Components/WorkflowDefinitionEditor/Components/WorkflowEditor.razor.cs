@@ -23,6 +23,7 @@ using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 using ThrottleDebounce;
+using static MudBlazor.Colors;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 

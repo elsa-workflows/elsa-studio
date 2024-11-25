@@ -2,8 +2,9 @@
 @using Elsa.Agents
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
-<PageTitle>Agent</PageTitle>
+<PageTitle>@Localizer["Agent"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
 <PageHeading Text="@($"Agent: {_agent.Name}")"/>
@@ -15,39 +16,39 @@
          ValidationDelay="0">
 
 <MudTabs Border="false" PanelClass="pa-6">
-<MudTabPanel Text="General">
+<MudTabPanel Text="@Localizer["General"]">
     <MudStack Spacing="8">
         <MudTextField @bind-Value="_agent.Name"
                       For="@(() => _agent.Name)"
                       Immediate="true"
-                      Label="Name"
+                      Label="@Localizer["Name"]"
                       Variant="Variant.Outlined"
-                      HelperText="The name of the agent."/>
+                      HelperText="@Localizer["The name of the agent."]"/>
 
         <MudTextField @bind-Value="_agent.Description"
                       For="@(() => _agent.Description)"
                       Immediate="false"
-                      Label="Description"
+                      Label="@Localizer["Description"]"
                       Variant="Variant.Outlined"
-                      HelperText="A description about the role and purpose of this agent."/>
+                      HelperText="@Localizer["A description about the role and purpose of this agent."]"/>
 
         <MudTextField @bind-Value="_agent.FunctionName"
                       For="@(() => _agent.FunctionName)"
                       Immediate="false"
-                      Label="Function Name"
+                      Label="@Localizer["Function Name"]"
                       Variant="Variant.Outlined"
-                      HelperText="A technical name for the function that this agent perform. For example: WriteCode"/>
+                      HelperText="@Localizer["A technical name for the function"]"/>
 
         <MudTextField @bind-Value="_agent.PromptTemplate"
                       For="@(() => _agent.PromptTemplate)"
                       Immediate="false"
                       Lines="10"
-                      Label="Prompt Template"
+                      Label="@Localizer["Prompt Template"]"
                       Variant="Variant.Outlined"
-                      HelperText="Used to define the initial instructions or context that the Semantic Kernel agent will use to generate responses. This template guides the agent's behavior and helps it understand the role it needs to play or the tasks it needs to perform."/>
+                      HelperText="@Localizer["Used to define the initial instructions"]" />
     </MudStack>
 </MudTabPanel>
-<MudTabPanel Text="Input">
+<MudTabPanel Text="@Localizer["Input"]">
     <MudTable T="InputVariableConfig"
               @ref="@_inputVariableTable"
               Items="_agent.InputVariables"
@@ -68,9 +69,9 @@
             <col style="width:50px;"/>
         </ColGroup>
         <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Type</MudTh>
-            <MudTh>Description</MudTh>
+            <MudTh>@Localizer["Name"]</MudTh>
+            <MudTh>@Localizer["Type"]</MudTh>
+            <MudTh>@Localizer["Description"]</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -86,60 +87,60 @@
                 <MudTextField @bind-Value="@context.Name"
                               For="@(() => context.Name)"
                               Immediate="false"
-                              Label="Name"
+                              Label="@Localizer["Name"]"
                               Variant="Variant.Outlined"
-                              HelperText="The technical name of the input variable. When referencing this variable in the prompt template, use this name."/>
+                              HelperText="@Localizer["The technical name of the input variable"]"/>
             </MudTd>
             <MudTd DataLabel="Type">
                 <MudSelect @bind-Value="@context.Type"
                            T="string"
                            For="@(() => context.Type)"
                            Immediate="false"
-                           Label="Type"
+                           Label="@Localizer["Type"]"
                            Variant="Variant.Outlined"
-                           HelperText="The .NET type of the input variable.">
-                    <MudSelectItem T="string" Value="@("string")">string</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("int")">int</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("object")">object</MudSelectItem>
+                           HelperText="@Localizer["The .NET type of the input variable."]">
+                    <MudSelectItem T="string" Value="@("string")">@Localizer["string"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("int")">@Localizer["int"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("object")">@Localizer["object"]</MudSelectItem>
                 </MudSelect>
             </MudTd>
-            <MudTd DataLabel="Description">
+            <MudTd DataLabel="@Localizer["Description"]">
                 <MudTextField @bind-Value="@context.Description"
                               For="@(() => context.Description)"
                               Immediate="false"
-                              Label="Description"
+                              Label="@Localizer["Description"]"
                               Variant="Variant.Outlined"
-                              HelperText="A description about the role and purpose of this input variable."/>
+                              HelperText="@Localizer["A description about the role and purpose of this input variable."]"/>
             </MudTd>
             <MudTd></MudTd>
         </RowEditingTemplate>
     </MudTable>
-    <MudButton Class="mt-2" Color="Color.Secondary" Variant="Variant.Filled" OnClick="@OnAddInputVariableClicked">Add</MudButton>
+    <MudButton Class="mt-2" Color="Color.Secondary" Variant="Variant.Filled" OnClick="@OnAddInputVariableClicked">@Localizer["Add"]</MudButton>
 </MudTabPanel>
-<MudTabPanel Text="Output">
+<MudTabPanel Text="@Localizer["Output"]">
     <MudStack Spacing="8">
         <MudTextField @bind-Value="_agent.OutputVariable.Description"
                       For="@(() => _agent.OutputVariable.Description)"
                       Immediate="false"
-                      Label="Description"
+                      Label="@Localizer["Description"]"
                       Variant="Variant.Outlined"
-                      HelperText="The description of the output variable."/>
+                      HelperText="@Localizer["The description of the output variable."]"/>
         <MudSelect @bind-Value="@_agent.OutputVariable.Type"
                    T="string"
                    For="@(() => _agent.OutputVariable.Type)"
                    Immediate="false"
-                   Label="Type"
+                   Label="@Localizer["Type"]"
                    Variant="Variant.Outlined"
-                   HelperText="The .NET type of the output variable.">
-            <MudSelectItem T="string" Value="@("string")">string</MudSelectItem>
-            <MudSelectItem T="string" Value="@("int")">int</MudSelectItem>
-            <MudSelectItem T="string" Value="@("object")">object</MudSelectItem>
+                   HelperText="@Localizer["The .NET type of the output variable."]">
+            <MudSelectItem T="string" Value="@("string")">@Localizer["string"]</MudSelectItem>
+            <MudSelectItem T="string" Value="@("int")">@Localizer["int"]</MudSelectItem>
+            <MudSelectItem T="string" Value="@("object")">@Localizer["object"]</MudSelectItem>
         </MudSelect>
     </MudStack>
 </MudTabPanel>
-<MudTabPanel Text="Services">
+<MudTabPanel Text="@Localizer["Services"]">
     <MudStack Spacing="8">
-        <MudField Label="Services" HelperText="The services that the agent requires.">
+        <MudField Label="@Localizer["Services"]" HelperText="@Localizer["The services that the agent requires."]">
             <MudList T="string" @bind-SelectedValues="SelectedServices" SelectionMode="SelectionMode.MultiSelection">
                 @foreach (var service in AvailableServices)
                 {
@@ -149,9 +150,9 @@
         </MudField>
     </MudStack>
 </MudTabPanel>
-<MudTabPanel Text="Plugins">
+<MudTabPanel Text="@Localizer["Plugins"]">
     <MudStack Spacing="8">
-        <MudField Label="Plugins" HelperText="The plugins that the agent can use.">
+        <MudField Label="@Localizer["Plugins"]" HelperText="@Localizer["The plugins that the agent can use."]">
             <MudList T="string" @bind-SelectedValues="SelectedPlugins" SelectionMode="SelectionMode.MultiSelection">
                 @foreach (var plugin in AvailablePlugins)
                 {
@@ -161,10 +162,10 @@
         </MudField>
     </MudStack>
 </MudTabPanel>
-<MudTabPanel Text="Execution Settings">
+<MudTabPanel Text="@Localizer["Execution Settings"]">
     <MudStack Spacing="8">
-        <MudField HelperText="The temperature of the model. Higher values mean the model will take more risks. Try 0.1 for results that are very close to what the model was trained on. Try 0.9 for very creative results."
-                  Label="Temperature"
+        <MudField HelperText="@Localizer["The temperature of the model"]"
+                  Label="@Localizer["Temperature"]"
                   Variant="Variant.Outlined">
             <MudSlider T="double" @bind-Value="_agent.ExecutionSettings.Temperature"
                        Immediate="true"
@@ -177,8 +178,8 @@
                 @_agent.ExecutionSettings.Temperature
             </MudSlider>
         </MudField>
-        <MudField Label="TopP"
-                  HelperText="Top Probability determines the cumulative probability threshold for token selection during text generation. Lower values will result in less diversity, making the model pick from the most probable tokens only. Higher values will allow for more diverse outputs, as the model will consider a wider range of tokens."
+        <MudField Label="@Localizer["TopP"]"
+                  HelperText="@Localizer["Top Probability determines"]"
                   Variant="Variant.Outlined">
             <MudSlider T="double" @bind-Value="_agent.ExecutionSettings.TopP"
                        Immediate="true"
@@ -189,8 +190,8 @@
                 @_agent.ExecutionSettings.TopP
             </MudSlider>
         </MudField>
-        <MudField Label="Frequency Penalty"
-                  HelperText="The penalty for repeating any one token. A higher frequency penalty will reduce the likelihood of token repetition, fostering more varied text generation."
+        <MudField Label="@Localizer["Frequency Penalty"]"
+                  HelperText="@Localizer["The penalty for repeating any one token"]"
                   Variant="Variant.Outlined">
             <MudSlider T="double" @bind-Value="_agent.ExecutionSettings.FrequencyPenalty"
                        Immediate="true"
@@ -201,8 +202,8 @@
                 @_agent.ExecutionSettings.FrequencyPenalty
             </MudSlider>
         </MudField>
-        <MudField Label="Presence Penalty"
-                  HelperText="The penalty for repeating any one token. A higher presence penalty will reduce the likelihood of token repetition, fostering more varied text generation."
+        <MudField Label="@Localizer["Presence Penalty"]"
+                  HelperText="@Localizer["The penalty for repeating"]"
                   Variant="Variant.Outlined">
             <MudSlider T="double" @bind-Value="_agent.ExecutionSettings.PresencePenalty"
                        Immediate="true"
@@ -215,20 +216,20 @@
         </MudField>
         <MudNumericField T="int?" @bind-Value="_agent.ExecutionSettings.MaxTokens"
                          Immediate="true"
-                         Label="Max Tokens"
-                         HelperText="The maximum number of tokens to generate. Leave empty for maximum."
+                         Label="@Localizer["Max Tokens"]"
+                         HelperText="@Localizer["The maximum number"]"
                          Clearable="true"
                          Step="20"
                          Variant="Variant.Outlined">
         </MudNumericField>
         <MudCheckBox T="bool" @bind-Value="UseJsonResponse"
-                     Label="Use JSON Response"/>
+                     Label="@Localizer["Use JSON Response"]"/>
     </MudStack>
 </MudTabPanel>
 </MudTabs>
 </MudForm>
 <MudCardActions>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">Save</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await OnSaveClicked())">@Localizer["Save"]</MudButton>
 </MudCardActions>
 </MudCard>
 </MudContainer>
