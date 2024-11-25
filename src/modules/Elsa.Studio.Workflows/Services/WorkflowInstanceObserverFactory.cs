@@ -15,8 +15,6 @@ public class WorkflowInstanceObserverFactory(
     IRemoteBackendApiClientProvider remoteBackendApiClientProvider,
     IRemoteFeatureProvider remoteFeatureProvider,
     IHttpMessageHandlerFactory httpMessageHandlerFactory,
-    IBlazorServiceAccessor blazorServiceAccessor,
-    IServiceProvider serviceProvider,
     ILogger<WorkflowInstanceObserverFactory> logger) : IWorkflowInstanceObserverFactory
 {
     /// <inheritdoc />
@@ -44,8 +42,6 @@ public class WorkflowInstanceObserverFactory(
             // Fall back to regular polling.
             return new PollingWorkflowInstanceObserver(
                 context,
-                blazorServiceAccessor,
-                serviceProvider,
                 workflowInstancesApi,
                 activityExecutionsApi);
         }
@@ -68,8 +64,6 @@ public class WorkflowInstanceObserverFactory(
             logger.LogWarning("The workflow instance observer hub was not found, but the RealTimeWorkflows feature was enabled. Please make sure to call `app.UseWorkflowsSignalRHubs()` from the workflow server to install the required SignalR middleware component. Falling back to polling observer");
             return new PollingWorkflowInstanceObserver(
                 context,
-                blazorServiceAccessor,
-                serviceProvider,
                 workflowInstancesApi,
                 activityExecutionsApi);
         }

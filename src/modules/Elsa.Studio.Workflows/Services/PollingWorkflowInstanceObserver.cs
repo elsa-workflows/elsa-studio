@@ -15,8 +15,6 @@ namespace Elsa.Studio.Workflows.Services;
 /// Observes a workflow instance by periodically polling for updates and raising corresponding events.
 public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
-    private readonly IBlazorServiceAccessor _blazorServiceAccessor;
-    private readonly IServiceProvider _serviceProvider;
     private readonly IWorkflowInstancesApi _workflowInstancesApi;
     private readonly IActivityExecutionsApi _activityExecutionsApi;
     private readonly string _workflowInstanceId;
@@ -28,13 +26,9 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
     /// Observes a workflow instance by periodically polling for updates and raising corresponding events.
     public PollingWorkflowInstanceObserver(
         WorkflowInstanceObserverContext context,
-        IBlazorServiceAccessor blazorServiceAccessor,
-        IServiceProvider serviceProvider,
         IWorkflowInstancesApi workflowInstancesApi,
         IActivityExecutionsApi activityExecutionsApi)
     {
-        _blazorServiceAccessor = blazorServiceAccessor;
-        _serviceProvider = serviceProvider;
         _workflowInstancesApi = workflowInstancesApi;
         _activityExecutionsApi = activityExecutionsApi;
         _workflowInstanceId = context.WorkflowInstanceId;
@@ -58,7 +52,6 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
         {
             try
             {
-                _blazorServiceAccessor.Services = _serviceProvider;
                 var response = await _workflowInstancesApi.GetExecutionStateAsync(_workflowInstanceId);
                 var lastUpdateAt = response.UpdatedAt;
 

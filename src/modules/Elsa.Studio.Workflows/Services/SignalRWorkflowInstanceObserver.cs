@@ -8,7 +8,6 @@ namespace Elsa.Studio.Workflows.Services;
 public class SignalRWorkflowInstanceObserver : IWorkflowInstanceObserver
 {
     private readonly HubConnection _connection;
-    private string _id = Guid.NewGuid().ToString();
 
     /// A wrapper around a SignalR connection that receives notifications about workflow instance updates.
     public SignalRWorkflowInstanceObserver(HubConnection connection)
