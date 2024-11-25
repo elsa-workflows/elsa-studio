@@ -1,7 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Services;
 using MudBlazor;
 
 namespace Elsa.Studio.Secrets.Menu;
@@ -9,13 +8,8 @@ namespace Elsa.Studio.Secrets.Menu;
 /// <summary>
 /// Provides the menu items for the Secrets module.
 /// </summary>
-public class SecretsMenu : IMenuProvider
+public class SecretsMenu(ILocalizer localizer) : IMenuProvider
 {
-    private readonly DefaultLocalizer _localizer;
-    public SecretsMenu(DefaultLocalizer localizer)
-    {
-        _localizer = localizer;
-    }
     /// <inheritdoc />
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
@@ -25,7 +19,7 @@ public class SecretsMenu : IMenuProvider
             {
                 Icon = Icons.Material.Filled.Key,
                 Href = "secrets",
-                Text = _localizer["Secrets"],
+                Text = localizer["Secrets"],
                 GroupName = MenuItemGroups.Settings.Name
             }
         };

@@ -4,18 +4,11 @@ using Elsa.Studio.Environments.Components;
 
 namespace Elsa.Studio.Environments;
 
-public class Feature : FeatureBase
+public class Feature(IAppBarService appBarService) : FeatureBase
 {
-    private readonly IAppBarService _appBarService;
-
-    public Feature(IAppBarService appBarService)
-    {
-        _appBarService = appBarService;
-    }
-    
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        _appBarService.AddAppBarItem<EnvironmentPicker>();
+        appBarService.AddAppBarItem<EnvironmentPicker>();
         
         return ValueTask.CompletedTask;
     }

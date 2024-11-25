@@ -7,13 +7,8 @@ using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Menu;
 
-public class DashboardMenu : IMenuProvider
+public class DashboardMenu(ILocalizer localizer) : IMenuProvider
 {
-    private readonly DefaultLocalizer _localizer;
-    public DashboardMenu(DefaultLocalizer localizer)
-    {
-        _localizer = localizer;
-    }
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>
@@ -22,7 +17,7 @@ public class DashboardMenu : IMenuProvider
             {
                 Icon = Icons.Material.Outlined.SpaceDashboard,
                 Href = "",
-                Text = _localizer["Dashboard"],
+                Text = localizer["Dashboard"],
                 GroupName = MenuItemGroups.General.Name,
                 Match = NavLinkMatch.All
             }

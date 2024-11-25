@@ -6,13 +6,8 @@ using MudBlazor;
 
 namespace Elsa.Studio.Webhooks.Menu;
 
-public class WebhooksMenu : IMenuProvider
+public class WebhooksMenu(ILocalizer localizer) : IMenuProvider
 {
-    private readonly DefaultLocalizer _localizer;
-    public WebhooksMenu(DefaultLocalizer localizer)
-    {
-        _localizer = localizer;
-    }
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>
@@ -21,7 +16,7 @@ public class WebhooksMenu : IMenuProvider
             {
                 Icon = Icons.Material.Filled.Http,
                 Href = "webhooks",
-                Text = _localizer["Webhooks"],
+                Text = localizer["Webhooks"],
                 GroupName = MenuItemGroups.Settings.Name
             }
         };
