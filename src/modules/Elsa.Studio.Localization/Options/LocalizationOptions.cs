@@ -13,7 +13,12 @@ public class LocalizationOptions
     /// Gets or sets the supported cultures.
     /// </summary>
     public string[] SupportedCultures { get; set; } = ["en-US"];
-    
+
+    /// <summary>
+    /// Gets or sets the default culture.
+    /// </summary>
+    public string DefaultCulture { get; set; } = "en-US";
+
     /// <summary>
     /// Gets or sets the culture picker formatter
     /// </summary>

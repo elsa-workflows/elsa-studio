@@ -1,7 +1,6 @@
-﻿namespace Elsa.Studio.Localization
+﻿namespace Elsa.Studio.Localization;
+
+public interface ILocalizationProvider
 {
-    public interface ILocalizationProvider
-    {
-        string? GetTranslation(string key);
-    }
+    string GetTranslation(string key);
 }

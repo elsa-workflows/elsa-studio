@@ -21,6 +21,7 @@ using Elsa.Studio.Localization.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.JSInterop;
 using System.Globalization;
+using Elsa.Studio.Translations;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -45,7 +46,7 @@ var backendApiConfig = new BackendApiConfig
 
 var localizationConfig = new LocalizationConfig
 {
-    ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
+    ConfigureLocalizationOptions = options => configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options),
 };
 
 builder.Services.AddCore();
@@ -60,7 +61,7 @@ builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
-
+builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
