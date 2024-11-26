@@ -68,924 +68,924 @@
     <value>Een korte omschrijving van deze output.</value>
   </data>
   <data name="90 days" xml:space="preserve">
-    <value></value>
+    <value>90 dagen</value>
   </data>
   <data name="A brief description of the secret." xml:space="preserve">
-    <value></value>
+    <value>Een korte omschrijving van de secret.</value>
   </data>
   <data name="A default value." xml:space="preserve">
-    <value></value>
+    <value>Een standaardwaarde.</value>
   </data>
   <data name="Activity Instance ID" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Agents" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="CreatedAt" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No output associated with this execution." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Is on or After" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the agent." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Temperature" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Started" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The description of the output variable." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Status" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Task" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="string" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Show incidents" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="SubStatus" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Showing all events" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Start of workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Showing incidents" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The system prompt template that the agent will use." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The penalty for repeating" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The services that the agent requires." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The penalty for repeating any one token" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The scope of the secret helps the UI to filter available options from dropdown lists." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the new agent." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The secret value." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the variable." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The plugins that the agent can use." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the new workflow." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the new secret." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The settings of the service in JSON format." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The technical name of the API key." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The type of the service." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The technical name of the input variable" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The user-friendly name of this output." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The user-friendly name of this input." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="There are currently no outputs defined." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="View" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Time" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="This output is an array" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="This activity does not have any output properties." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="UI Hint" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The name of the workflow." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflow Context Settings" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflows" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Write Line" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="When checked, the workflow will be executed asynchronously." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Yes" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflow instances" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflow Context" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="You are running in read-only mode. Workflow operations are disabled" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="When you publish" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="You can find documentation and examples here" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflow Contexts" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Whether to show the description in the designer." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Incident handling strategy" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Workflow definitions Editor" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Read Data from Database" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Function Name" xml:space="preserve">
-    <value></value>
+    <value>Functienaam</value>
   </data>
   <data name="Events" xml:space="preserve">
-    <value></value>
+    <value>Gebeurtenissen</value>
   </data>
   <data name="Looping" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The ID of the activity." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Inputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Scheduling" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Display text" xml:space="preserve">
-    <value></value>
+    <value>Weergave tekst</value>
   </data>
   <data name="Run workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Scope" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Manage all the things" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Fault" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Publish" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The value of the API key." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="General" xml:space="preserve">
-    <value></value>
+    <value>Algemeen</value>
   </data>
   <data name="Publish the current workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Is array" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Finish" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Export" xml:space="preserve">
-    <value></value>
+    <value>Exporteren</value>
   </data>
   <data name="Event" xml:space="preserve">
-    <value></value>
+    <value>Gebeurtenis</value>
   </data>
   <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Click to open a new workflow tab" xml:space="preserve">
-    <value></value>
+    <value>Klik om een nieuw workflowtabblad te openen</value>
   </data>
   <data name="Agent" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Join" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP Request" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="ID" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="End" xml:space="preserve">
-    <value></value>
+    <value>Einde</value>
   </data>
   <data name="Default configuration" xml:space="preserve">
-    <value></value>
+    <value>Standaardconfiguratie</value>
   </data>
   <data name="Loading" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No services found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Composition" xml:space="preserve">
-    <value></value>
+    <value>Compositie</value>
   </data>
   <data name="Max Tokens" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Common" xml:space="preserve">
-    <value></value>
+    <value>Algemeen</value>
   </data>
   <data name="Is Before" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Cron" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Parser" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP File Response" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Output" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Set Output" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No state associated with this execution." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="7 days" xml:space="preserve">
-    <value></value>
+    <value>7 dagen</value>
   </data>
   <data name="Set Name" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A description about the secret." xml:space="preserve">
-    <value></value>
+    <value>Een beschrijving van de secret.</value>
   </data>
   <data name="Type" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Info" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="int" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Published version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Run Task" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Expires" xml:space="preserve">
-    <value></value>
+    <value>Verloopt</value>
   </data>
   <data name="No agents found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Duration" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="This variable is an array" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Run Asynchronously" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="API Keys" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Unpublish" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The .NET type of the input variable." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Delete" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Close workflow" xml:space="preserve">
-    <value></value>
+    <value>Workflow sluiten</value>
   </data>
   <data name="Sub status" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Definition ID" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Run JavaScript" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Dispatch Workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No variables" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Usable as activity" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Bulk actions" xml:space="preserve">
-    <value></value>
+    <value>Bulk acties</value>
   </data>
   <data name="API Key" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Search" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No inputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Import" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Used to define the initial instructions" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Input Properties" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Secrets" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Apply" xml:space="preserve">
-    <value></value>
+    <value>Toepassen</value>
   </data>
   <data name="Incident Strategy" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Set Workflow Context Parameter" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A brief description of the agent." xml:space="preserve">
-    <value></value>
+    <value>Een korte omschrijving van de agent.</value>
   </data>
   <data name="The name of the function that the agent will execute." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Function" xml:space="preserve">
-    <value></value>
+    <value>Functie</value>
   </data>
   <data name="Never" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Search on name, description, id, definition id" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Activities" xml:space="preserve">
-    <value></value>
+    <value>Activities</value>
   </data>
   <data name="The temperature of the model" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP Response" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Activation strategy" xml:space="preserve">
-    <value></value>
+    <value>Activeringsstrategie</value>
   </data>
   <data name="Search on name, id, definition id, definition version id, correlation id" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Show relative time" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Show accumulated time" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Completed" xml:space="preserve">
-    <value></value>
+    <value>Voltooid</value>
   </data>
   <data name="Is Not" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Container" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Allow this workflow to be used as an activity." xml:space="preserve">
-    <value></value>
+    <value>Toestaan dat deze workflow als activity gebruikt kan worden.</value>
   </data>
   <data name="For" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP Endpoint" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Unable to make changes as the workflow or application is currently in read-only mode" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Create Agent" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="OpenAIChatCompletion" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Flow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Name" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Rows Per Page" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Is After" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Add output" xml:space="preserve">
-    <value></value>
+    <value>Output toevoegen</value>
   </data>
   <data name="Journal" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Edit" xml:space="preserve">
-    <value></value>
+    <value>Bewerken</value>
   </data>
   <data name="The technical name of the input." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Open File" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Send Email" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="object" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Break" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No API keys found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
-    <value></value>
+    <value>Een beschrijving van deze activity die in de designer moet worden weergegeven.</value>
   </data>
   <data name="Create API Key" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Acknowledge Datasource Event" xml:space="preserve">
-    <value></value>
+    <value>Erken Datasource-event</value>
   </data>
   <data name="Console" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Is on or Before" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Published" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Export the current workflow as a JSON file" xml:space="preserve">
-    <value></value>
+    <value>Exporteer de huidige workflow als een JSON-bestand.</value>
   </data>
   <data name="Correlate" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Create Service" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="HTTP Request (flow)" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Execution Settings" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Services" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="IncidentCount" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Output Properties" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Information" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Switch (flow)" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="State" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Connection Strings" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Activity" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="UpdatedAt" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Save File" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Close" xml:space="preserve">
-    <value></value>
+    <value>Sluiten</value>
   </data>
   <data name="The lifetime of this secret" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A technical name for the function" xml:space="preserve">
-    <value></value>
+    <value>Een technische naam voor de functie die deze agent uitvoert. Bijvoorbeeld: WriteCode</value>
   </data>
   <data name="No workflow definitions found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A custom category by which to group this output." xml:space="preserve">
-    <value></value>
+    <value>Een aangepaste categorie om deze output te groeperen.</value>
   </data>
   <data name="Incidents" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Create Secret" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Value" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Switch" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Rollback to this version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Executions" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Sub-Workflow Outputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="FinishedAt" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Prompt Template" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Cancel" xml:space="preserve">
-    <value></value>
+    <value>Annuleren</value>
   </data>
   <data name="180 days" xml:space="preserve">
-    <value></value>
+    <value>180 dagen</value>
   </data>
   <data name="Input" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="If" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Start" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="TopP" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="30 days" xml:space="preserve">
-    <value></value>
+    <value>30 dagen</value>
   </data>
   <data name="This input is an array" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Aggregation" xml:space="preserve">
-    <value></value>
+    <value>Aggregatie</value>
   </data>
   <data name="Run" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A custom category by which to group this input." xml:space="preserve">
-    <value></value>
+    <value>Een aangepaste categorie waarin deze invoer wordt gegroepeerd.</value>
   </data>
   <data name="Definitions" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Excel Parser" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Run Python" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="There are currently no inputs defined." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Show events scoped to current container" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Details" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Presence Penalty" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Branching" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Unpublish the current workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Storage" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Create workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A description about the role and purpose of this input variable." xml:space="preserve">
-    <value></value>
+    <value>Een beschrijving van de rol en het doel van deze invoervariabele.</value>
   </data>
   <data name="Scripting" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Top Probability determines" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Add variable" xml:space="preserve">
-    <value></value>
+    <value>Variable toevoegen</value>
   </data>
   <data name="Expires In" xml:space="preserve">
-    <value></value>
+    <value>Verloopt over</value>
   </data>
   <data name="Display name" xml:space="preserve">
-    <value></value>
+    <value>Weergave naam</value>
   </data>
   <data name="A brief description of the workflow." xml:space="preserve">
-    <value></value>
+    <value>Een korte omschrijving van de workflow.</value>
   </data>
   <data name="Timer" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Metadata" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Auto-save" xml:space="preserve">
-    <value></value>
+    <value>Automatisch opslaan</value>
   </data>
   <data name="Read Data from Configuration / Runtime" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Fork (flow)" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Decision" xml:space="preserve">
-    <value></value>
+    <value>Beslissing</value>
   </data>
   <data name="Complete" xml:space="preserve">
-    <value></value>
+    <value>Voltooien</value>
   </data>
   <data name="The .NET type of the output variable." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Trigger workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Instances" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Date Filters" xml:space="preserve">
-    <value></value>
+    <value>Datum filters</value>
   </data>
   <data name="This activity does not have any common properties." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Email" xml:space="preserve">
-    <value></value>
+    <value>E-mail</value>
   </data>
   <data name="OpenAITextToImage" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Properties" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Log Persistence Strategy" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="This activity does not have any input properties." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Sub-Workflow Inputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Variables" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Definition version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="A description about the role and purpose of this agent." xml:space="preserve">
-    <value></value>
+    <value>Een beschrijving van de rol en het doel van deze agent.</value>
   </data>
   <data name="Created" xml:space="preserve">
-    <value></value>
+    <value>Gemaakt</value>
   </data>
   <data name="The maximum number" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Webhooks" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No workflow instances found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Ok" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Plugins" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Finished" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Download File" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Outcomes" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="There are currently no variables defined." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Definition version ID" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="The technical name of the service." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Settings" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Used" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Outputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Correlation ID" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Dashboard" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Save" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Version history" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Primitives" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Date" xml:space="preserve">
-    <value></value>
+    <value>Datum</value>
   </data>
   <data name="Latest version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Start at" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="No outputs" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Publish Event" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Description" xml:space="preserve">
-    <value></value>
+    <value>Omschrijving</value>
   </data>
   <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
-    <value></value>
+    <value>Een aangepaste activity categorie om aan deze workflow-als-activity toe te wijzen.</value>
   </data>
   <data name="No secrets found" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
-    <value></value>
+    <value>Voer een lijst in met mogelijke uitkomsten voor deze workflow.</value>
   </data>
   <data name="Updated" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Auto-update consuming workflows" xml:space="preserve">
-    <value></value>
+    <value>Gebruikende workflows automatisch bijwerken</value>
   </data>
   <data name="Check this option if the variable holds an array of the selected type." xml:space="preserve">
-    <value></value>
+    <value>Selecteer deze optie als de variabele een array van het geselecteerde type bevat.</value>
   </data>
   <data name="Set Variable" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Sub-Workflow" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Secret" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Use this version" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Use JSON Response" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Log Persistence" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Frequency Penalty" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Is" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Delay" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Add input" xml:space="preserve">
-    <value></value>
+    <value>Input toevoegen</value>
   </data>
   <data name="Clear" xml:space="preserve">
-    <value></value>
+    <value>Leegmaken</value>
   </data>
   <data name="Has Incidents" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Category" xml:space="preserve">
-    <value></value>
+    <value>Categorie</value>
   </data>
   <data name="Add" xml:space="preserve">
-    <value></value>
+    <value>Toevoegen</value>
   </data>
   <data name="Default value" xml:space="preserve">
-    <value></value>
+    <value>Standaardwaarde</value>
   </data>
   <data name="No outcomes associated with this execution." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Export this version as a JSON file." xml:space="preserve">
-    <value></value>
+    <value>Exporteer deze versie als een JSON-bestand.</value>
   </data>
   <data name="Input/output" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
 </root>
