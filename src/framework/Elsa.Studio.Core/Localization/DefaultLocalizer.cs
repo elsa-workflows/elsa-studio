@@ -6,5 +6,20 @@ namespace Elsa.Studio.Localization;
 public class DefaultLocalizer(ILocalizationProvider provider) : ILocalizer
 {
     /// <inheritdoc />
-    public LocalizedString this[string key] => new(key, key, false);
+    public LocalizedString this[string key]
+    {
+        get
+        {
+            var notFound = false;
+            var translation = provider.GetTranslation(key);
+
+            if (translation == null!)
+            {
+                translation = key;
+                notFound = true;
+            }
+
+            return new LocalizedString(key, translation, notFound);
+        }
+    }
 }
