@@ -30,6 +30,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.SetOutput"] = new (DefaultActivityColors.Composition),
         ["Elsa.DispatchWorkflow"] = new (DefaultActivityColors.Composition),
         ["Elsa.BulkDispatchWorkflows"] = new (DefaultActivityColors.Composition),
+        ["Elsa.ExecuteWorkflow"] = new (DefaultActivityColors.Composition),
         
         // Console
         ["Elsa.WriteLine"] = new(DefaultActivityColors.Console, ElsaStudioIcons.Tabler.Pencil),
