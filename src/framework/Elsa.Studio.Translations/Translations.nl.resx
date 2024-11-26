@@ -61,4 +61,7 @@
   <data name="14 days" xml:space="preserve">
     <value>14 dagen</value>
   </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>Een korte omschrijving van deze input.</value>
+  </data>
 </root>
