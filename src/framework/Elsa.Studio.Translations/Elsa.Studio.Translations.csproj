@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Update="**\*.resx">
+        <EmbeddedResource Update="*.resx">
             <Public>true</Public>
             <AsConstants>true</AsConstants>
         </EmbeddedResource>
