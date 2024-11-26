@@ -10,10 +10,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
         <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
-        <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.JSInterop" />
     </ItemGroup>
@@ -28,10 +24,6 @@
         <PackageReference Include="ShortGuid" />
         <PackageReference Include="ThrottleDebounce" />
     </ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Update="**\*.resx"></EmbeddedResource>
-	</ItemGroup>
 
 <!--    <ItemGroup Label="Elsa">-->
 <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
