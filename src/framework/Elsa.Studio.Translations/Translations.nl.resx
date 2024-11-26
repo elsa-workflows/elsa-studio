@@ -64,4 +64,7 @@
   <data name="A brief description of this input." xml:space="preserve">
     <value>Een korte omschrijving van deze input.</value>
   </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>Een korte omschrijving van deze output.</value>
+  </data>
 </root>
