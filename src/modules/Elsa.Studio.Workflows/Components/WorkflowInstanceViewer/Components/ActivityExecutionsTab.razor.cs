@@ -75,7 +75,6 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
 
     private async Task RefreshSelectedItemAsync(string id)
     {
-        var id = arg.Item.ActivityExecutionSummary.Id;
         SelectedItem = await ActivityExecutionService.GetAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
         await InvokeAsync(StateHasChanged);
@@ -84,7 +83,11 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
     {
         await StopRefreshTimerAsync();
-        var id = arg.Item.ActivityExecution.Id;
+        var id = arg.Item?.ActivityExecutionSummary.Id;
+        
+        if (id == null)
+            return;
+        
         await RefreshSelectedItemAsync(id);
 
         if (SelectedItem == null)
