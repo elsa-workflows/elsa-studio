@@ -13,7 +13,7 @@ public class DefaultLocalizer(ILocalizationProvider provider) : ILocalizer
             var notFound = false;
             var translation = provider.GetTranslation(key);
 
-            if (translation == null!)
+            if (string.IsNullOrEmpty(translation))
             {
                 translation = key;
                 notFound = true;
