@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -58,4 +58,262 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="180 days" xml:space="preserve">
+    <value>180天</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30天</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7天</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90天</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>workflow的描述</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>agent的描述</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>默认值。</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>节点</value>
+  </data>
+  <data name="Activity Instance ID" xml:space="preserve">
+    <value>节点实例ID</value>
+  </data>
+  <data name="Add input" xml:space="preserve">
+    <value>添加input</value>
+  </data>
+  <data name="Add variable" xml:space="preserve">
+    <value>添加变量</value>
+  </data>
+  <data name="Aggregation" xml:space="preserve">
+    <value>聚合</value>
+  </data>
+  <data name="Allow this workflow to be used as an activity." xml:space="preserve">
+    <value>允许该工作流作为一个节点</value>
+  </data>
+  <data name="Bulk actions" xml:space="preserve">
+    <value>批量操作</value>
+  </data>
+  <data name="Bulk Dispatch Workflows" xml:space="preserve">
+    <value>批量调度工作流</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="Click to open a new workflow tab" xml:space="preserve">
+    <value>点击打开一个新的工作流标签页</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Close workflow" xml:space="preserve">
+    <value>关闭工作流</value>
+  </data>
+  <data name="Common" xml:space="preserve">
+    <value>公共</value>
+  </data>
+  <data name="Break" xml:space="preserve">
+    <value>Break</value>
+  </data>
+  <data name="Composition" xml:space="preserve">
+    <value>混合</value>
+  </data>
+  <data name="Console" xml:space="preserve">
+    <value>控制台</value>
+  </data>
+  <data name="Container" xml:space="preserve">
+    <value>容器</value>
+  </data>
+  <data name="Correlate" xml:space="preserve">
+    <value>关联</value>
+  </data>
+  <data name="Correlation ID" xml:space="preserve">
+    <value>关联ID</value>
+  </data>
+  <data name="Create API Key" xml:space="preserve">
+    <value>创建 API Key</value>
+  </data>
+  <data name="Create Service" xml:space="preserve">
+    <value>创建 Service</value>
+  </data>
+  <data name="CreatedAt" xml:space="preserve">
+    <value>创建于</value>
+  </data>
+  <data name="Cron" xml:space="preserve">
+    <value>Cron表达式</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>仪表板</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="Date Filters" xml:space="preserve">
+    <value>日期筛选器</value>
+  </data>
+  <data name="Decision" xml:space="preserve">
+    <value>决策</value>
+  </data>
+  <data name="Default configuration" xml:space="preserve">
+    <value>默认配置</value>
+  </data>
+  <data name="Default value" xml:space="preserve">
+    <value>默认值</value>
+  </data>
+  <data name="Definition version ID" xml:space="preserve">
+    <value>工作流定义版本ID</value>
+  </data>
+  <data name="Definitions" xml:space="preserve">
+    <value>工作流定义列表</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="Dispatch Workflow" xml:space="preserve">
+    <value>调度工作流</value>
+  </data>
+  <data name="Display name" xml:space="preserve">
+    <value>显示名称</value>
+  </data>
+  <data name="Display text" xml:space="preserve">
+    <value>显示文本</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>事件</value>
+  </data>
+  <data name="Excel Parser" xml:space="preserve">
+    <value>Excel 解析器</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Execution 列表</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="Export this version as a JSON file." xml:space="preserve">
+    <value>导出该版本到JSON文件</value>
+  </data>
+  <data name="Fault" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="Flow" xml:space="preserve">
+    <value>Flow</value>
+  </data>
+  <data name="14 days" xml:space="preserve">
+    <value>14天</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>output的描述</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>input的描述</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>secret的描述</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>节点列表</value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value>添加output</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Auto-save" xml:space="preserve">
+    <value>自动保存</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>分类</value>
+  </data>
+  <data name="Complete" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="Definition ID" xml:space="preserve">
+    <value>工作流定义ID</value>
+  </data>
+  <data name="For" xml:space="preserve">
+    <value>For</value>
+  </data>
+  <data name="Definition version" xml:space="preserve">
+    <value>工作流定义版本</value>
+  </data>
+  <data name="Delay" xml:space="preserve">
+    <value>延迟</value>
+  </data>
+  <data name="Create Secret" xml:space="preserve">
+    <value>创建 Secret</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>已创建</value>
+  </data>
+  <data name="Create workflow" xml:space="preserve">
+    <value>创建工作流</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="Download File" xml:space="preserve">
+    <value>下载文件</value>
+  </data>
+  <data name="Branching" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>Execution 设置</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>间隔</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>邮件</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>事件列表</value>
+  </data>
+  <data name="Export the current workflow as a JSON file" xml:space="preserve">
+    <value>导出当前工作流到JSON文件</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="If" xml:space="preserve">
+    <value>If</value>
+  </data>
+  <data name="FinishedAt" xml:space="preserve">
+    <value>完成与</value>
+  </data>
 </root>
