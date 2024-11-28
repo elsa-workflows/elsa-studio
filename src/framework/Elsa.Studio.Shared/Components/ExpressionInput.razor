@@ -27,7 +27,7 @@
                 var isChecked = item.Type == _selectedExpressionType;
                 var iconColor = isChecked ? Color.Secondary : Color.Transparent;
 
-                <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelectedAsync(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>;
+                <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelectedAsync(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>
             }</div>;
         <div class="flex-none pt-1">
             <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true" Disabled="EditorContext.IsReadOnly">

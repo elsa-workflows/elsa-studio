@@ -1,7 +1,7 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.MonacoHandlers;
+using Elsa.Studio.Monaco.Handlers;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
 

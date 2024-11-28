@@ -13,15 +13,8 @@ using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
-using MudBlazor.Translations;
-using MudBlazor.Services;
 using Elsa.Studio.Localization.Models;
-using Microsoft.Extensions.Options;
 using Elsa.Studio.Localization.Options;
-using Microsoft.Extensions.Hosting;
-using Microsoft.JSInterop;
-using System.Globalization;
-using Elsa.Studio.Translations;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -60,8 +53,8 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
-builder.Services.AddLocalizationModule(localizationConfig);
-builder.Services.AddTranslations();
+// builder.Services.AddLocalizationModule(localizationConfig);
+// builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();

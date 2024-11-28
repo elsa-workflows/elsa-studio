@@ -9,7 +9,11 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
+using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Shared.Enums;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Serialization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
@@ -48,22 +52,15 @@ public partial class LogPersistenceTab
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
     private LegacyPersistenceActivityConfiguration _legacyPersistenceConfiguration = new();
     private PersistenceActivityConfiguration _persistenceConfiguration = new();
-    private JsonSerializerOptions _serializerOptions = default!;
     private ICollection<LogPersistenceStrategyDescriptor> _logPersistenceStrategyDescriptors = new List<LogPersistenceStrategyDescriptor>();
     private const string LogPersistenceModeKey = "logPersistenceMode";
-    private const string LogPersistenceStrategyKey = "logPersistenceStrategy";
+    private const string LogPersistenceConfigKey = "logPersistenceConfig";
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         _legacyPersistenceConfiguration = new LegacyPersistenceActivityConfiguration();
         _persistenceConfiguration = new PersistenceActivityConfiguration();
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        _serializerOptions.Converters.Add(new JsonStringEnumConverter());
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
         await base.OnInitializedAsync();
     }
@@ -82,20 +79,40 @@ public partial class LogPersistenceTab
 
     private async Task OnDefaultStrategyChanged(string? value)
     {
-        _persistenceConfiguration.Default = value;
+        _persistenceConfiguration.Default = new LogPersistenceConfiguration
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+            StrategyType = value
+        };
+        await PersistLogPersistenceStrategies();
+    }
+    
+    private async Task OnDefaultExpressionChanged(Expression? expression)
+    {
+        _persistenceConfiguration.Default = new LogPersistenceConfiguration
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Expression,
+            Expression = expression
+        };
         await PersistLogPersistenceStrategies();
     }
 
-    private async Task OnPropertyStrategyChanged(string propertyName, IDictionary<string, string?> properties, string? value)
+    private async Task OnPropertyStrategyChanged(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties, string? value)
     {
         SetLogPersistenceStrategyTypeName(propertyName, properties, value);
         await PersistLogPersistenceStrategies();
     }
 
+    private async Task OnPropertyExpressionChanged(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties, Expression expression)
+    {
+        SetLogPersistenceExpression(propertyName, properties, expression);
+        await PersistLogPersistenceStrategies();
+    }
+
     private async Task PersistLogPersistenceStrategies()
     {
-        var props = _persistenceConfiguration.SerializeToNode(_serializerOptions);
-        Activity?.SetProperty(props, "customProperties", LogPersistenceStrategyKey);
+        var props = _persistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
+        Activity?.SetProperty(props, "customProperties", LogPersistenceConfigKey);
 
         await RaiseActivityUpdated();
     }
@@ -103,20 +120,20 @@ public partial class LogPersistenceTab
     private void SetPersistenceProperties()
     {
         var customProperties = GetCustomProperties();
-        var legacyPersistence = ((JsonObject)customProperties).GetProperty<LegacyPersistenceActivityConfiguration>(_serializerOptions, LogPersistenceModeKey) ?? new LegacyPersistenceActivityConfiguration();
-        var persistence = ((JsonObject)customProperties).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, LogPersistenceStrategyKey) ?? new PersistenceActivityConfiguration();
+        var legacyPersistence = ((JsonObject)customProperties).GetProperty<LegacyPersistenceActivityConfiguration>(SerializerOptions.LogPersistenceConfigSerializerOptions, LogPersistenceModeKey) ?? new LegacyPersistenceActivityConfiguration();
+        var persistence = ((JsonObject)customProperties).GetProperty<PersistenceActivityConfiguration>(SerializerOptions.LogPersistenceConfigSerializerOptions, LogPersistenceConfigKey) ?? new PersistenceActivityConfiguration();
 
         _legacyPersistenceConfiguration = legacyPersistence;
         _persistenceConfiguration = persistence;
         UpgradeLegacyModel(_persistenceConfiguration, _legacyPersistenceConfiguration);
-        
+
         if (Activity == null)
             return;
 
-        var serializedLegacyPersistenceConfiguration = _legacyPersistenceConfiguration.SerializeToNode(_serializerOptions);
-        var serializedPersistenceConfiguration = _persistenceConfiguration.SerializeToNode(_serializerOptions);
+        var serializedLegacyPersistenceConfiguration = _legacyPersistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
+        var serializedPersistenceConfiguration = _persistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
         Activity.SetProperty(serializedLegacyPersistenceConfiguration, "customProperties", LogPersistenceModeKey);
-        Activity.SetProperty(serializedPersistenceConfiguration, "customProperties", LogPersistenceStrategyKey);
+        Activity.SetProperty(serializedPersistenceConfiguration, "customProperties", LogPersistenceConfigKey);
     }
 
     private void UpgradeLegacyModel(PersistenceActivityConfiguration newModel, LegacyPersistenceActivityConfiguration oldModel)
@@ -126,14 +143,22 @@ public partial class LogPersistenceTab
         {
             if (newModel.Inputs.ContainsKey(input.Key))
                 continue;
-            newModel.Inputs[input.Key] = input.Value.ToString();
+            newModel.Inputs[input.Key] = new LogPersistenceConfiguration
+            {
+                EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+                StrategyType = input.Value.ToString()
+            };
         }
 
         foreach (var output in oldModel.Outputs)
         {
             if (newModel.Outputs.ContainsKey(output.Key))
                 continue;
-            newModel.Outputs[output.Key] = output.Value.ToString();
+            newModel.Outputs[output.Key] = new LogPersistenceConfiguration
+            {
+                EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+                StrategyType = output.Value.ToString()
+            };
         }
     }
 
@@ -146,16 +171,46 @@ public partial class LogPersistenceTab
         return customProperties;
     }
 
-    private string? GetPropertyLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, string?> properties)
+    private string? GetPropertyLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties)
+    {
+        return GetLogPersistenceConfig(propertyName, properties)?.StrategyType;
+    }
+    
+    private Expression? GetPropertyLogPersistenceExpression(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties)
+    {
+        return GetLogPersistenceConfig(propertyName, properties)?.Expression;
+    }
+    
+    private LogPersistenceConfiguration? GetLogPersistenceConfig(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties)
     {
         var prop = propertyName.Camelize();
         return properties.TryGetValue(prop, out var v) ? v : null;
     }
 
-    private void SetLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, string?> properties, string? value)
+    private void SetLogPersistenceStrategyTypeName(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties, string? value)
     {
+        var currentConfig = GetLogPersistenceConfig(propertyName, properties);
         var prop = propertyName.Camelize();
-        properties[prop] = value;
+        var config = new LogPersistenceConfiguration
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+            StrategyType = value,
+            Expression = currentConfig?.Expression
+        };
+        properties[prop] = config;
+    }
+    
+    private void SetLogPersistenceExpression(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties, Expression expression)
+    {
+        var currentConfig = GetLogPersistenceConfig(propertyName, properties);
+        var prop = propertyName.Camelize();
+        var config = new LogPersistenceConfiguration
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Expression,
+            Expression = expression,
+            StrategyType = currentConfig?.StrategyType
+        };
+        properties[prop] = config;
     }
 
     [Obsolete]
@@ -178,6 +233,17 @@ public partial class LogPersistenceTab
     {
         if (OnActivityUpdated != null)
             await OnActivityUpdated(Activity!);
+    }
+
+    private IDictionary<string, object> GetExpressionEditorProps(PropertyDescriptor? propertyDescriptor)
+    {
+        var props = new Dictionary<string, object>();
+        
+        if(ActivityDescriptor != null) props[nameof(ActivityDescriptor)] = ActivityDescriptor;
+        if(propertyDescriptor != null) props[nameof(PropertyDescriptor)] = propertyDescriptor;
+        props["WorkflowDefinitionId"] = WorkflowDefinition!.DefinitionId;
+        
+        return props;
     }
 }
 
@@ -211,15 +277,15 @@ public class PersistenceActivityConfiguration
     /// <summary>
     /// Default strategy type name for the entire activity.
     /// </summary>
-    public string? Default { get; set; }
+    public LogPersistenceConfiguration? Default { get; set; }
 
     /// <summary>
     /// Strategy type names for individual Input properties.
     /// </summary>
-    public IDictionary<string, string?> Inputs { get; set; } = new Dictionary<string, string?>();
+    public IDictionary<string, LogPersistenceConfiguration?> Inputs { get; set; } = new Dictionary<string, LogPersistenceConfiguration?>();
 
     /// <summary>
     /// Strategy type names for individual Output properties.
     /// </summary>
-    public IDictionary<string, string?> Outputs { get; set; } = new Dictionary<string, string?>();
+    public IDictionary<string, LogPersistenceConfiguration?> Outputs { get; set; } = new Dictionary<string, LogPersistenceConfiguration?>();
 }
