@@ -227,13 +227,13 @@
     <value>14天</value>
   </data>
   <data name="A brief description of this output." xml:space="preserve">
-    <value>output的描述</value>
+    <value>这个输出的简要描述。</value>
   </data>
   <data name="Add" xml:space="preserve">
     <value>添加</value>
   </data>
   <data name="A brief description of this input." xml:space="preserve">
-    <value>input的描述</value>
+    <value>这个输入的简要描述。</value>
   </data>
   <data name="A brief description of the secret." xml:space="preserve">
     <value>secret的描述</value>
@@ -287,7 +287,7 @@
     <value>下载文件</value>
   </data>
   <data name="Branching" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="Execution Settings" xml:space="preserve">
     <value>Execution 设置</value>
