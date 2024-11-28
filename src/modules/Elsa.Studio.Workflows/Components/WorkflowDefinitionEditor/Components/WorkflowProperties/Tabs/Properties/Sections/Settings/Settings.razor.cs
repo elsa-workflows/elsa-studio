@@ -6,11 +6,11 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Workflows.Shared.Serialization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -19,19 +19,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 /// </summary>
 public partial class Settings
 {
-    private readonly JsonSerializerOptions _serializerOptions;
-
-    /// <inheritdoc />
-    public Settings()
-    {
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        _serializerOptions.Converters.Add(new JsonStringEnumConverter());
-        
-    }
+    private readonly JsonSerializerOptions _serializerOptions = SerializerOptions.LogPersistenceConfigSerializerOptions;
     
     /// <summary>
     /// The workflow definition.

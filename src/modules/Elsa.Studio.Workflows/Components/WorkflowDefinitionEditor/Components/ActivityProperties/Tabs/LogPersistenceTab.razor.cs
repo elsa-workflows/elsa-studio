@@ -13,6 +13,7 @@ using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Serialization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
@@ -51,7 +52,6 @@ public partial class LogPersistenceTab
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
     private LegacyPersistenceActivityConfiguration _legacyPersistenceConfiguration = new();
     private PersistenceActivityConfiguration _persistenceConfiguration = new();
-    private JsonSerializerOptions _serializerOptions = default!;
     private ICollection<LogPersistenceStrategyDescriptor> _logPersistenceStrategyDescriptors = new List<LogPersistenceStrategyDescriptor>();
     private const string LogPersistenceModeKey = "logPersistenceMode";
     private const string LogPersistenceConfigKey = "logPersistenceConfig";
@@ -61,12 +61,6 @@ public partial class LogPersistenceTab
     {
         _legacyPersistenceConfiguration = new LegacyPersistenceActivityConfiguration();
         _persistenceConfiguration = new PersistenceActivityConfiguration();
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        _serializerOptions.Converters.Add(new JsonStringEnumConverter());
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
         await base.OnInitializedAsync();
     }
@@ -117,7 +111,7 @@ public partial class LogPersistenceTab
 
     private async Task PersistLogPersistenceStrategies()
     {
-        var props = _persistenceConfiguration.SerializeToNode(_serializerOptions);
+        var props = _persistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
         Activity?.SetProperty(props, "customProperties", LogPersistenceConfigKey);
 
         await RaiseActivityUpdated();
@@ -126,8 +120,8 @@ public partial class LogPersistenceTab
     private void SetPersistenceProperties()
     {
         var customProperties = GetCustomProperties();
-        var legacyPersistence = ((JsonObject)customProperties).GetProperty<LegacyPersistenceActivityConfiguration>(_serializerOptions, LogPersistenceModeKey) ?? new LegacyPersistenceActivityConfiguration();
-        var persistence = ((JsonObject)customProperties).GetProperty<PersistenceActivityConfiguration>(_serializerOptions, LogPersistenceConfigKey) ?? new PersistenceActivityConfiguration();
+        var legacyPersistence = ((JsonObject)customProperties).GetProperty<LegacyPersistenceActivityConfiguration>(SerializerOptions.LogPersistenceConfigSerializerOptions, LogPersistenceModeKey) ?? new LegacyPersistenceActivityConfiguration();
+        var persistence = ((JsonObject)customProperties).GetProperty<PersistenceActivityConfiguration>(SerializerOptions.LogPersistenceConfigSerializerOptions, LogPersistenceConfigKey) ?? new PersistenceActivityConfiguration();
 
         _legacyPersistenceConfiguration = legacyPersistence;
         _persistenceConfiguration = persistence;
@@ -136,8 +130,8 @@ public partial class LogPersistenceTab
         if (Activity == null)
             return;
 
-        var serializedLegacyPersistenceConfiguration = _legacyPersistenceConfiguration.SerializeToNode(_serializerOptions);
-        var serializedPersistenceConfiguration = _persistenceConfiguration.SerializeToNode(_serializerOptions);
+        var serializedLegacyPersistenceConfiguration = _legacyPersistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
+        var serializedPersistenceConfiguration = _persistenceConfiguration.SerializeToNode(SerializerOptions.LogPersistenceConfigSerializerOptions);
         Activity.SetProperty(serializedLegacyPersistenceConfiguration, "customProperties", LogPersistenceModeKey);
         Activity.SetProperty(serializedPersistenceConfiguration, "customProperties", LogPersistenceConfigKey);
     }
