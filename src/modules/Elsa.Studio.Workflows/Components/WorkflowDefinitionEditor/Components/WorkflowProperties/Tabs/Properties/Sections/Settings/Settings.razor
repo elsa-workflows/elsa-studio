@@ -44,6 +44,7 @@
             <ExpressionEditor
                 ExpressionChanged="@OnLogPersistenceExpressionChanged"
                 Expression="_logPersistenceConfiguration?.Expression"
+                CustomProperties="GetExpressionEditorProps()"
                 DisplayName="@Localizer["Log Persistence Strategy"]"
                 Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
                 ReadOnly="IsReadOnly">

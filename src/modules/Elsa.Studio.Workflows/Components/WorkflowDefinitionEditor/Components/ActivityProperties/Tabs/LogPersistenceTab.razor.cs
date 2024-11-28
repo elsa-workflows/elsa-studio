@@ -240,6 +240,17 @@ public partial class LogPersistenceTab
         if (OnActivityUpdated != null)
             await OnActivityUpdated(Activity!);
     }
+
+    private IDictionary<string, object> GetExpressionEditorProps(PropertyDescriptor? propertyDescriptor)
+    {
+        var props = new Dictionary<string, object>();
+        
+        if(ActivityDescriptor != null) props[nameof(ActivityDescriptor)] = ActivityDescriptor;
+        if(propertyDescriptor != null) props[nameof(PropertyDescriptor)] = propertyDescriptor;
+        props["WorkflowDefinitionId"] = WorkflowDefinition!.DefinitionId;
+        
+        return props;
+    }
 }
 
 /// <summary>

@@ -1,5 +1,5 @@
-﻿@using Elsa.Api.Client.Resources.Scripting.Models
-@using Elsa.Api.Client.Shared.Enums
+﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.Models
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
@@ -7,12 +7,14 @@
 @{
     RenderFragment RenderSelectComponent(
         string label,
+        PropertyDescriptor? propertyDescriptor,
         LogPersistenceConfiguration? logPersistenceConfig,
         EventCallback<Expression> onExpressionChanged,
         EventCallback<string> onStrategyTypeChanged)
     {
         var expression = logPersistenceConfig?.Expression;
         var strategyType = logPersistenceConfig?.StrategyType;
+        var props = GetExpressionEditorProps(propertyDescriptor);
 
         return @<ExpressionEditor
             ExpressionChanged="@(async expr =>
@@ -21,6 +23,7 @@
                                        await onExpressionChanged.InvokeAsync(expr);
                                })"
             Expression="expression"
+            CustomProperties="props"
             DisplayName="@label"
             Description="Enter the expression that will be used to determine the log persistence strategy for this property."
             ReadOnly="IsReadOnly">
@@ -49,6 +52,7 @@
             <MudText Typo="Typo.overline">Default configuration</MudText>
             @RenderSelectComponent(
                 "Default Strategy",
+                null,
                 _persistenceConfiguration.Default,
                 EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
@@ -70,6 +74,7 @@
                     var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
                     @RenderSelectComponent(
                         input.Name,
+                        input,
                         config,
                         EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
                         EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
@@ -93,6 +98,7 @@
                     var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
                     @RenderSelectComponent(
                         output.Name,
+                        output,
                         config,
                         EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
                         EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))

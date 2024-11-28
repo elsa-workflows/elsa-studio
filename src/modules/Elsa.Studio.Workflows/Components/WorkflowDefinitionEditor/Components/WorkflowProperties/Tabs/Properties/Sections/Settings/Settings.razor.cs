@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Elsa.Api.Client.Resources.IncidentStrategies.Models;
 using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
@@ -7,14 +6,11 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -120,8 +116,20 @@ public partial class Settings
     private async Task UpdateLogPersistenceConfigAsync(LogPersistenceConfiguration newConfig)
     {
         _logPersistenceConfiguration = newConfig;
-        WorkflowDefinition!.CustomProperties["logPersistenceConfig"] = new Dictionary<string, object?> { { "default", newConfig } };
+        var dictionary = new Dictionary<string, object?> { { "default", newConfig } };
+        var dictionaryJson = JsonSerializer.SerializeToElement(dictionary, _serializerOptions);
+        WorkflowDefinition!.CustomProperties["logPersistenceConfig"] = dictionaryJson;
         await RaiseWorkflowUpdatedAsync();
+    }
+    
+    private IDictionary<string, object> GetExpressionEditorProps()
+    {
+        var props = new Dictionary<string, object>
+        {
+            ["WorkflowDefinitionId"] = WorkflowDefinition!.DefinitionId
+        };
+
+        return props;
     }
 
     private async Task OnActivationStrategyChanged(WorkflowActivationStrategyDescriptor value)

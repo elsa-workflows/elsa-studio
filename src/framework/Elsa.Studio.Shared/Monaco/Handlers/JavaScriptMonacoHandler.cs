@@ -16,7 +16,7 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
     public async ValueTask InitializeAsync(MonacoContext context)
     {
         var activityDescriptor = context.CustomProperties.TryGetValue(nameof(ActivityDescriptor), out var activityDescriptorObj) ? (ActivityDescriptor)activityDescriptorObj : null;
-        var inputDescriptor = context.CustomProperties.TryGetValue(nameof(InputDescriptor), out var inputDescriptorObj) ? (InputDescriptor)inputDescriptorObj : null;
+        var propertyDescriptor = context.CustomProperties.TryGetValue(nameof(PropertyDescriptor), out var propertyDescriptorObj) ? (PropertyDescriptor)propertyDescriptorObj : null;
         var workflowDefinitionId = context.CustomProperties.TryGetValue("WorkflowDefinitionId", out var workflowDefinitionIdObj) ? (string)workflowDefinitionIdObj : null;
         var expressionDescriptor = context.ExpressionDescriptor;
         
@@ -24,7 +24,7 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
             return;
         
         var activityTypeName = activityDescriptor?.TypeName;
-        var propertyName = inputDescriptor?.Name;
+        var propertyName = propertyDescriptor?.Name;
         
         if (activityTypeName == null || propertyName == null || workflowDefinitionId == null)
             return;

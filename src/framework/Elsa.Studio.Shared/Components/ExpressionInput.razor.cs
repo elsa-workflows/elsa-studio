@@ -233,7 +233,7 @@ public partial class ExpressionInput : IDisposable
         var customProps = new Dictionary<string, object>
         {
             { nameof(ActivityDescriptor), EditorContext.ActivityDescriptor },
-            { nameof(InputDescriptor), EditorContext.InputDescriptor },
+            { nameof(PropertyDescriptor), EditorContext.InputDescriptor },
             { "WorkflowDefinitionId", EditorContext.WorkflowDefinition.DefinitionId }
         };
         var expressionDescriptor = SelectedExpressionDescriptor?? new ExpressionDescriptor("Literal", "Default");
