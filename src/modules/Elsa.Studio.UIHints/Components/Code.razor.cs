@@ -1,4 +1,5 @@
 using BlazorMonaco.Editor;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.UIHints.CodeEditor;
 using Elsa.Studio.Contracts;
@@ -23,7 +24,7 @@ public partial class Code : IDisposable
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private CodeEditorOptions _codeEditorOptions = new();
     private bool _isInternalContentChange;
-    
+
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
 
@@ -44,7 +45,8 @@ public partial class Code : IDisposable
     protected override void OnInitialized()
     {
         _codeEditorOptions = EditorContext.InputDescriptor.GetCodeEditorOptions();
-        _monacoLanguage = _codeEditorOptions.Language ?? "javascript";;
+        _monacoLanguage = _codeEditorOptions.Language ?? "javascript";
+        ;
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
@@ -73,7 +75,7 @@ public partial class Code : IDisposable
             DomReadOnly = EditorContext.IsReadOnly
         };
     }
-    
+
     private async Task OnMonacoInitializedAsync()
     {
         _isInternalContentChange = true;
@@ -89,7 +91,7 @@ public partial class Code : IDisposable
     {
         if (_isInternalContentChange)
             return;
-        
+
         await _throttledValueChanged.InvokeAsync();
     }
 
@@ -107,10 +109,18 @@ public partial class Code : IDisposable
 
         await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
     }
-    
+
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
     {
-        var context = new MonacoContext(editor, EditorContext);
+        var customProps = new Dictionary<string, object>
+        {
+            { nameof(ActivityDescriptor), EditorContext.ActivityDescriptor },
+            { nameof(InputDescriptor), EditorContext.InputDescriptor },
+            { "WorkflowDefinitionId", EditorContext.WorkflowDefinition.DefinitionId }
+        };
+
+        var expressionDescriptor = EditorContext.SelectedExpressionDescriptor ?? new ExpressionDescriptor("Default", "Default");
+        var context = new MonacoContext(editor, expressionDescriptor, customProps);
 
         foreach (var handler in MonacoHandlers)
             await handler.InitializeAsync(context);

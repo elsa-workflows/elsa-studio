@@ -1,51 +1,78 @@
-﻿@using Variant = MudBlazor.Variant
+﻿@using Elsa.Api.Client.Resources.Scripting.Models
+@using Elsa.Api.Client.Shared.Enums
+@using Elsa.Api.Client.Shared.Models
+@using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 
 @{
-    RenderFragment RenderSelectComponent(string propertyName, IDictionary<string, string?> properties) =>
-        @<MudSelect Label="@propertyName"
-                    T="string"
-                    Variant="@Variant.Outlined"
-                    Value="@GetPropertyLogPersistenceStrategyTypeName(propertyName, properties)"
-                    ValueChanged="@(value => OnPropertyStrategyChanged(propertyName, properties, value))"
-                    ToStringFunc="@(x => x.ToString())"
-                    ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-            @foreach (var descriptor in _logPersistenceStrategyDescriptors)
-            {
-                <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
-            }
-        </MudSelect>;
+    RenderFragment RenderSelectComponent(
+        string label,
+        LogPersistenceConfiguration? logPersistenceConfig,
+        EventCallback<Expression> onExpressionChanged,
+        EventCallback<string> onStrategyTypeChanged)
+    {
+        var expression = logPersistenceConfig?.Expression;
+        var strategyType = logPersistenceConfig?.StrategyType;
+
+        return @<ExpressionEditor
+            ExpressionChanged="@(async expr =>
+                               {
+                                   if (onExpressionChanged.HasDelegate)
+                                       await onExpressionChanged.InvokeAsync(expr);
+                               })"
+            Expression="expression"
+            DisplayName="@label"
+            Description="Enter the expression that will be used to determine the log persistence strategy for this property."
+            ReadOnly="IsReadOnly">
+            <MudSelect Label="@label"
+                       T="string"
+                       Variant="@Variant.Outlined"
+                       Value="@strategyType"
+                       ValueChanged="@(async type =>
+                                     {
+                                         if (onStrategyTypeChanged.HasDelegate)
+                                             await onStrategyTypeChanged.InvokeAsync(type);
+                                     })"
+                       ReadOnly="IsReadOnly"
+                       Disabled="IsReadOnly">
+                @foreach (var descriptor in _logPersistenceStrategyDescriptors)
+                {
+                    <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
+                }
+            </MudSelect>
+        </ExpressionEditor>;
+    }
 }
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
             <MudText Typo="Typo.overline">Default configuration</MudText>
-            <MudSelect Label="Default Strategy"
-                       T="string"
-                       Variant="@Variant.Outlined"
-                       Value="@_persistenceConfiguration.Default"
-                       ValueChanged="OnDefaultStrategyChanged"
-                       ToStringFunc="@(x => x?.ToString())"
-                       ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-                @foreach (var descriptor in _logPersistenceStrategyDescriptors)
-                {
-                    <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
-                }
-
-            </MudSelect>
+            @RenderSelectComponent(
+                "Default Strategy",
+                _persistenceConfiguration.Default,
+                EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
+            )
             <MudDivider/>
             <MudText Typo="Typo.overline">Input Properties</MudText>
             @if (!InputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input
+                        properties.
+                    </MudAlert>
                 </Well>
             }
             else
             {
                 foreach (var input in InputDescriptors)
                 {
-                    @RenderSelectComponent(input.Name, _persistenceConfiguration.Inputs)
+                    var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
+                    @RenderSelectComponent(
+                        input.Name,
+                        config,
+                        EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
+                        EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
                 }
             }
 
@@ -54,14 +81,21 @@
             @if (!OutputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output
+                        properties.
+                    </MudAlert>
                 </Well>
             }
             else
             {
                 foreach (var output in OutputDescriptors)
                 {
-                    @RenderSelectComponent(output.Name, _persistenceConfiguration.Outputs)
+                    var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
+                    @RenderSelectComponent(
+                        output.Name,
+                        config,
+                        EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
+                        EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))
                 }
             }
         </MudStack>

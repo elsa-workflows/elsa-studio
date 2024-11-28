@@ -41,20 +41,28 @@
                     <MudSelectItem T="IncidentStrategyDescriptor" Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
                 }
             </MudSelect>
-            <MudSelect
-                T="LogPersistenceStrategyDescriptor?"
-                Label="@Localizer["Log Persistence Strategy"]"
-                Variant="@Variant.Outlined"
-                Value="@_selectedLogPersistenceStrategy"
-                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
-                ValueChanged="@OnLogPersistenceStrategyChanged"
-                HelperText="@(_selectedLogPersistenceStrategy?.Description)"
-                ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-                @foreach (var strategy in _logPersistenceStrategyDescriptors)
-                {
-                    <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName)</MudSelectItem>
-                }
-            </MudSelect>
+            <ExpressionEditor
+                ExpressionChanged="@OnLogPersistenceExpressionChanged"
+                Expression="_logPersistenceConfiguration?.Expression"
+                DisplayName="@Localizer["Log Persistence Strategy"]"
+                Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
+                ReadOnly="IsReadOnly">
+                <MudSelect
+                    T="string"
+                    Label="@Localizer["Log Persistence Strategy"]"
+                    Variant="@Variant.Outlined"
+                    Value="@_logPersistenceConfiguration?.StrategyType"
+                    ValueChanged="@OnLogPersistenceStrategyChanged"
+                    ReadOnly="IsReadOnly" 
+                    Disabled="IsReadOnly"
+                    HelperText="@Localizer["Select the log persistence strategy to use for activity properties of this workflow."]"
+                    >
+                    @foreach (var strategy in _logPersistenceStrategyDescriptors)
+                    {
+                        <MudSelectItem T="string" Value="@strategy.TypeName">@(strategy.DisplayName)</MudSelectItem>
+                    }
+                </MudSelect>
+            </ExpressionEditor>
             <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"

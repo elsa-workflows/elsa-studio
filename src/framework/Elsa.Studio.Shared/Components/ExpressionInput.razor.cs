@@ -30,7 +30,6 @@ public partial class ExpressionInput : IDisposable
     private readonly string[] _uiSyntaxes = ["Literal", "Object"];
     private string _selectedExpressionType = DefaultSyntax;
     private string _selectedExpressionTypeDisplayName = DefaultSyntax;
-    private string _monacoLanguage = "";
     private StandaloneCodeEditor? _monacoEditor = default!;
     private bool _isInternalContentChange;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
@@ -65,6 +64,8 @@ public partial class ExpressionInput : IDisposable
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
+    private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
+    private string MonacoLanguage => SelectedExpressionDescriptor?.GetMonacoLanguage() ?? string.Empty;
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
     private bool IsUISyntax => !IsCodeOnly && _selectedExpressionType == UISyntax;
     private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
@@ -79,7 +80,7 @@ public partial class ExpressionInput : IDisposable
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
 
     private string? MonacoSyntax { get; set; }
-    private bool MonacoSyntaxExist => !string.IsNullOrEmpty(_monacoLanguage);
+    private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -95,18 +96,17 @@ public partial class ExpressionInput : IDisposable
         _expressionDescriptors = expressionDescriptors.ToList();
     }
 
-    private async Task UpdateMonacoLanguageAsync(string expressionType)
+    private async Task UpdateMonacoLanguageAsync()
     {
         if (_monacoEditor == null)
             return;
 
-        var expressionDescriptor = await ExpressionService.GetByTypeAsync(expressionType);
+        var expressionDescriptor = SelectedExpressionDescriptor;
 
         if (expressionDescriptor == null)
             return;
 
         var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
-        _monacoLanguage = monacoLanguage;
         _selectedExpressionTypeDisplayName = expressionDescriptor.DisplayName;
 
         if (string.IsNullOrWhiteSpace(monacoLanguage))
@@ -123,8 +123,7 @@ public partial class ExpressionInput : IDisposable
         var selectedExpressionDescriptor = EditorContext.SelectedExpressionDescriptor;
         _selectedExpressionType = selectedExpressionDescriptor?.Type ?? UISyntax;
         _selectedExpressionTypeDisplayName = selectedExpressionDescriptor?.DisplayName ?? UISyntax;
-
-        _monacoLanguage = selectedExpressionDescriptor?.GetMonacoLanguage() ?? "";
+        
         UpdateUIHintAsync(EditorContext);
         return base.OnParametersSetAsync();
     }
@@ -133,7 +132,7 @@ public partial class ExpressionInput : IDisposable
     {
         return new StandaloneEditorConstructionOptions
         {
-            Language = _monacoLanguage,
+            Language = MonacoLanguage,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
@@ -165,13 +164,12 @@ public partial class ExpressionInput : IDisposable
 
         input.Expression = new Expression(_selectedExpressionType, value);
         await InvokeValueChangedCallbackAsync(input);
-        await UpdateMonacoLanguageAsync(syntax);
+        await UpdateMonacoLanguageAsync();
     }
 
     /// <summary>
-    /// This Method is used to Display the UI Hint when use select other choice than a Language that need monaco editor
+    /// Used to display the UI hint when the user selects any other choice than a language supported by the monaco editor.
     /// </summary>
-    /// <param name="editorContext">the editor context</param>
     private void UpdateUIHintAsync(DisplayInputEditorContext editorContext)
     {
         if (_selectedExpressionType == "Variable")
@@ -226,13 +224,20 @@ public partial class ExpressionInput : IDisposable
         _lastMonacoEditorContent = InputValue;
         await model.SetValue(InputValue);
         _isInternalContentChange = false;
-        await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
         await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
     {
-        var context = new MonacoContext(editor, EditorContext);
+        var customProps = new Dictionary<string, object>
+        {
+            { nameof(ActivityDescriptor), EditorContext.ActivityDescriptor },
+            { nameof(InputDescriptor), EditorContext.InputDescriptor },
+            { "WorkflowDefinitionId", EditorContext.WorkflowDefinition.DefinitionId }
+        };
+        var expressionDescriptor = SelectedExpressionDescriptor?? new ExpressionDescriptor("Literal", "Default");
+        var context = new MonacoContext(editor, expressionDescriptor, customProps);
 
         foreach (var handler in MonacoHandlers)
             await handler.InitializeAsync(context);
