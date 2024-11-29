@@ -247,7 +247,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (SelectedActivityExecutions.Any())
         {
             var lastRecord = SelectedActivityExecutions.Last();
-            LastActivityExecution = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(lastRecord.Id));
+            LastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
 
             if (LastActivityExecution != null)
                 RefreshActivityStatePeriodically(LastActivityExecution.Id);
@@ -280,7 +280,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task RefreshSelectedItemAsync(string id)
     {
-        var record = await InvokeWithBlazorServiceContext(() => ActivityExecutionService.GetAsync(id));
+        var record = await ActivityExecutionService.GetAsync(id);
         LastActivityExecution = record;
         await InvokeAsync(() =>
         {
