@@ -79,4 +79,28 @@
   <data name="A brief description of the secret." xml:space="preserve">
     <value>وصف مختصر للسر.</value>
   </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>شرح مختصر لهذا المدخل.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>شرح مختصر لسير العمل.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>شرح مختصر لهذا المُخرج.</value>
+  </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>تصنيف خاص يتم تعيينه لسير العمل هذا.</value>
+  </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>تصنيف خاص يتم تحديده لهذا المُخرج.</value>
+  </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>وصف لدور وهدف هذا العامل.</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>تصنيف خاص يتم تحديده لهذا المدخل.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>قيمة افتراضية.</value>
+  </data>
 </root>
