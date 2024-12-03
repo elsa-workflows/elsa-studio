@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -58,4 +58,136 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="14 days" xml:space="preserve">
+    <value>14 jours</value>
+  </data>
+  <data name="180 days" xml:space="preserve">
+    <value>180 jours</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30 jours</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7 jours</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90 jours</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>Description courte de l'agent.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>Description courte du secret.</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activité</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="Add variable" xml:space="preserve">
+    <value>Ajouter variable</value>
+  </data>
+  <data name="API Key" xml:space="preserve">
+    <value>Clé d'API</value>
+  </data>
+  <data name="API Keys" xml:space="preserve">
+    <value>Clés d'API</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Appliquer</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Console" xml:space="preserve">
+    <value>Console</value>
+  </data>
+  <data name="Default value" xml:space="preserve">
+    <value>Valeur par défaut</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Durée</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editer</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>Paramètres d'éxécution</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Exécutions</value>
+  </data>
+  <data name="Expires In" xml:space="preserve">
+    <value>Expire dans</value>
+  </data>
+  <data name="Function Name" xml:space="preserve">
+    <value>Nom de la Fonction</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Valeur</value>
+  </data>
+  <data name="Variables" xml:space="preserve">
+    <value>Variables</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Version history" xml:space="preserve">
+    <value>Historique de version</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>Voir</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>Valeur par défaut.</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Catégorie</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Tableau de bord</value>
+  </data>
+  <data name="Connection Strings" xml:space="preserve">
+    <value>Chaine de connexion</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Evènement</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Evènements</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expiration</value>
+  </data>
+  <data name="Function" xml:space="preserve">
+    <value>Fonction</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Mis à jour</value>
+  </data>
+  <data name="Use this version" xml:space="preserve">
+    <value>Utiliser cette version</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Utilisé</value>
+  </data>
 </root>
