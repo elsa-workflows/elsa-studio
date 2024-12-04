@@ -961,4 +961,25 @@
   <data name="The temperature of the model" xml:space="preserve">
     <value>模型的温度。值越高，意味着模型将承担更大的风险。尝试0.1以获得与模型训练内容非常接近的结果。尝试0.9以获得极具创意的结果。</value>
   </data>
+  <data name="Journal" xml:space="preserve">
+    <value>期刊</value>
+  </data>
+  <data name="Primitives" xml:space="preserve">
+    <value>基本元素</value>
+  </data>
+  <data name="Scripting" xml:space="preserve">
+    <value>脚本编写</value>
+  </data>
+  <data name="Show events scoped to current container" xml:space="preserve">
+    <value>显示当前容器范围内的事件</value>
+  </data>
+  <data name="Show relative time" xml:space="preserve">
+    <value>显示相对时间</value>
+  </data>
+  <data name="The settings of the service in JSON format." xml:space="preserve">
+    <value>服务的设置以JSON格式表示。</value>
+  </data>
+  <data name="The system prompt template that the agent will use." xml:space="preserve">
+    <value>系统提示模板，代理将使用该模板。</value>
+  </data>
 </root>
