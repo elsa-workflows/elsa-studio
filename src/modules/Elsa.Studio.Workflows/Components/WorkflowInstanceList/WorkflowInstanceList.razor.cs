@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
-using System.Globalization;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
@@ -35,6 +36,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
@@ -83,7 +85,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
-        var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request, cancellationToken);
+        var workflowInstancesResponse = await TryListWorkflowDefinitionsAsync(request, cancellationToken);
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
         var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
@@ -113,6 +115,19 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         
         _totalCount = (int)workflowInstancesResponse.TotalCount;
         return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+    }
+
+    private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await WorkflowInstanceService.ListAsync(request, cancellationToken);
+        }
+        catch (ApiException ex) when (ex.InnerException is TaskCanceledException)
+        {
+            Logger.LogWarning("Failed to list workflow instances due to a timeout.");
+            return new PagedListResponse<WorkflowInstanceSummary>();
+        }
     }
 
     private TimestampFilter Map(TimestampFilterModel source)
@@ -158,7 +173,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         var sources = new[]
         {
-            workflowDefinition.Name,
+            (string?)workflowDefinition.Name
         };
 
         return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
@@ -189,7 +204,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     }
 
     private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item.WorkflowInstanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -333,13 +348,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private void StartElapsedTimer()
     {
         if (_elapsedTimer == null)
-            _elapsedTimer = new Timer((_) =>
-                    {
-                        InvokeAsync( async ()  =>
-                            {
-                                _table.ReloadServerData();
-                            });
-                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+            _elapsedTimer = new Timer(_ => InvokeAsync( async ()  => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
     }
 
     private void StopElapsedTimer()

@@ -15,6 +15,7 @@ using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
+using Elsa.Studio.Translations;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +37,6 @@ var backendApiConfig = new BackendApiConfig
     ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
 };
 
-
 var localizationConfig = new LocalizationConfig
 {
     ConfigureLocalizationOptions = options => configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options),
@@ -53,8 +53,8 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
-// builder.Services.AddLocalizationModule(localizationConfig);
-// builder.Services.AddTranslations();
+builder.Services.AddLocalizationModule(localizationConfig);
+builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
