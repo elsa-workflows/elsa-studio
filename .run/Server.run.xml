@@ -7,6 +7,7 @@
     <envs>
       <env name="ASPNETCORE_ENVIRONMENT" value="Development" />
       <env name="ASPNETCORE_URLS" value="https://localhost:9009" />
+      <env name="BACKEND__URL" value="https://localhost:5001/elsa/api" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
