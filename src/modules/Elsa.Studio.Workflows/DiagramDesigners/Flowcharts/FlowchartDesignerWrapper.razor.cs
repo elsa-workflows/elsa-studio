@@ -152,6 +152,14 @@ public partial class FlowchartDesignerWrapper
             newActivity.SetProperty(valueNode, propertyName);
         }
 
+        // Copy Custom properties values from the activity descriptor.
+        foreach (var property in activityDescriptor.CustomProperties)
+        {
+            var valueNode = JsonSerializer.SerializeToNode(property.Value);
+            var propertyName = property.Key.Camelize();
+            newActivity.SetProperty(valueNode, "customProperties", propertyName);
+        }
+
         // If the activity is a trigger, and it's the first trigger on the flowchart, set the trigger property to true.
         if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
             newActivity.SetCanStartWorkflow(true);
