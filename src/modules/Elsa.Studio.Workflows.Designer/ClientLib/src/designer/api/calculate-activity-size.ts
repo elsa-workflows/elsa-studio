@@ -16,6 +16,12 @@ export function calculateActivitySize(activity: Activity): Promise<Size> {
     return new Promise((resolve, reject) => {
         const checkSize = () => {
             const activityElement: Element = wrapper.getElementsByTagName(activityTagName)[0];
+            
+            if(activityElement == null) {
+                reject('Activity element not found.');
+                return;
+            }
+            
             const activityElementRect = activityElement.getBoundingClientRect();
             
             // If the custom element has no width or height yet, it means it has not yet rendered.
