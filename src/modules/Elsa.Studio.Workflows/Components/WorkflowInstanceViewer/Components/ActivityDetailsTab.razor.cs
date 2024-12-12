@@ -21,14 +21,14 @@ public partial class ActivityDetailsTab
     [Parameter] public int VisiblePaneHeight { get; set; }
     
     /// The activity to display details for.
-    [Parameter] public JsonObject Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = null!;
     
     /// The latest activity execution record. Used for displaying the last state of the activity.
     [Parameter] public ActivityExecutionRecord? LastActivityExecution { get; set; }
 
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
 
-    private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
+    private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
 
     private IDictionary<string, DataPanelItem> ActivityInfo { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> ActivityData { get; set; } = new Dictionary<string, DataPanelItem>();
@@ -66,9 +66,9 @@ public partial class ActivityDetailsTab
         var activityName = activity.GetName();
         var activityType = activity.GetTypeName();
         var execution = LastActivityExecution;
-        var activityVersion = execution?.ActivityTypeVersion;
+        var activityVersion = activity.GetVersion();
         var exception = execution?.Exception;
-        var workflowDefinitionId = activity.GetIsWorkflowDefinitionActivity() ? activity.GetWorkflowDefinitionId() : default;
+        var workflowDefinitionId = activity.GetIsWorkflowDefinitionActivity() ? activity.GetWorkflowDefinitionId() : null;
 
         var activityInfo = new Dictionary<string, DataPanelItem>
         {
@@ -99,10 +99,14 @@ public partial class ActivityDetailsTab
             foreach (var outputDescriptor in outputDescriptors)
             {
                 var outputValue = outputs != null
-                    ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default
-                    : default;
+                    ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
+                    : null;
                 outputData[outputDescriptor.Name] = new(outputValue?.ToString());
             }
+        }
+        else
+        {
+            activityInfo["Status"] = new("Not executed");
         }
 
         var exceptionData = new Dictionary<string, DataPanelItem>();
@@ -112,7 +116,7 @@ public partial class ActivityDetailsTab
             exceptionData["Message"] = new(exception.Message);
             exceptionData["InnerException"] = new(exception.InnerException != null
                 ? exception.InnerException.Type + ": " + exception.InnerException.Message
-                : default);
+                : null);
             exceptionData["StackTrace"] = new(exception.StackTrace);
         }
 
@@ -123,7 +127,7 @@ public partial class ActivityDetailsTab
         {
             foreach (var inputDescriptor in activityDescriptor.Inputs)
             {
-                var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : default;
+                var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
                 activityStateData[inputDescriptor.Name] = new(inputValue?.ToString());
             }
         }
@@ -151,7 +155,7 @@ public partial class ActivityDetailsTab
 
         var outcomesData = record.Payload?.TryGetValue("Outcomes", out var outcomesValue) == true
             ? new Dictionary<string, string?> { ["Outcomes"] = outcomesValue.ToString()! }
-            : default;
+            : null;
 
         var outputData = new Dictionary<string, string?>();
 
