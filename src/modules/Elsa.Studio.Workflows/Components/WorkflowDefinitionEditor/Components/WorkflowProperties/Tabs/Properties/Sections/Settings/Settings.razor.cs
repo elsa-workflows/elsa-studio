@@ -46,6 +46,7 @@ public partial class Settings
     private ICollection<LogPersistenceStrategyDescriptor> _logPersistenceStrategyDescriptors = new List<LogPersistenceStrategyDescriptor>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
+    private LogPersistenceStrategyDescriptor? _selectedLogPersistenceStrategy;
     private LogPersistenceConfiguration? _logPersistenceConfiguration;
 
     /// <inheritdoc />
@@ -55,15 +56,10 @@ public partial class Settings
         var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
         _incidentStrategies = new IncidentStrategyDescriptor?[] { default }.Concat(incidentStrategies).ToList();
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
-
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
-    }
-
-    protected override Task OnParametersSetAsync()
-    {
         _logPersistenceConfiguration = GetLogPersistenceConfiguration();
-        return base.OnParametersSetAsync();
+        _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
     }
 
     private LogPersistenceMode? GetLegacyGetLogPersistenceMode()
@@ -134,13 +130,14 @@ public partial class Settings
         await RaiseWorkflowUpdatedAsync();
     }
 
-    private async Task OnLogPersistenceStrategyChanged(string? value)
+    private async Task OnLogPersistenceStrategyChanged(LogPersistenceStrategyDescriptor? value)
     {
+        _selectedLogPersistenceStrategy = value;
         var currentConfig = _logPersistenceConfiguration;
         var newConfig = new LogPersistenceConfiguration
         {
             EvaluationMode = LogPersistenceEvaluationMode.Strategy,
-            StrategyType = value,
+            StrategyType = value?.TypeName,
             Expression = currentConfig?.Expression
         };
         await UpdateLogPersistenceConfigAsync(newConfig);
