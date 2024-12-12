@@ -95,23 +95,23 @@ jobs:
       
       # Upload nuget packages
       - name: Upload nuget packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: ./packages/nuget/*nupkg
       
       # Upload npm wasm package
       - name: Upload npm wasm package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: ./packages/wasm/wwwroot/*.tgz
       
       # Upload npm react wrapper package
       - name: Upload npm react wrapper package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: elsa-studio-npm-packages
+          name: elsa-studio-npm-react-packages
           path: ./src/wrappers/wrappers/react-wrapper/*.tgz
 
   publish_npm_preview_feedzio:
@@ -121,19 +121,36 @@ jobs:
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
     steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-npm-packages
-          path: elsa-studio-npm-packages
-
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
           registry-url: ${{ env.npm_feed_feedzio }}
 
-      - run: |
+      - name: Download npm Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-packages
+          path: elsa-studio-npm-packages
+
+      - name: Publish npm packages to feedz.io
+        run: |
           for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
+          
+      - name: Download npm react Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-react-packages
+          path: elsa-studio-npm-react-packages
+
+      - name: Publish npm react packages to feedz.io
+        run: |
+          for file in ./elsa-studio-npm-react-packages/*.tgz
           do
             npm publish "$file" --access public
           done
@@ -147,19 +164,34 @@ jobs:
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v3
-        with:
-          name: elsa-studio-npm-packages
-          path: elsa-studio-npm-packages
-
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
           registry-url: ${{ env.npm_feed_npm }}
 
+      - name: Download npm Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-packages
+          path: elsa-studio-npm-packages
+
       - run: |
           for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
+          
+      - name: Download npm react Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-react-packages
+          path: elsa-studio-npm-react-packages
+
+      - run: |
+          for file in ./elsa-studio-npm-react-packages/*.tgz
           do
             npm publish "$file" --access public
           done
@@ -174,7 +206,7 @@ jobs:
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: elsa-studio-nuget-packages
@@ -190,7 +222,7 @@ jobs:
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: elsa-studio-nuget-packages

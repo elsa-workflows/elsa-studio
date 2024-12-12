@@ -58,7 +58,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
-        StartElapsedTimer();
+        
+        // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
+        //StartElapsedTimer();
     }
 
     private async Task LoadWorkflowDefinitionsAsync()

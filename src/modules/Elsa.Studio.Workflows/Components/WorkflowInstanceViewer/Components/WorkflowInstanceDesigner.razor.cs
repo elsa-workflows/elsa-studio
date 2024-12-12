@@ -267,6 +267,10 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             var lastRecord = records.Last();
             LastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
         }
+        else
+        {
+            LastActivityExecution = null;
+        }
 
         return records;
     }
