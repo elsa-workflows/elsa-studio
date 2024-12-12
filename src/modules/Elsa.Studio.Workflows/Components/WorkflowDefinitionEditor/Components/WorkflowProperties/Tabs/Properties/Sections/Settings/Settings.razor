@@ -28,7 +28,7 @@
                 }
             </MudSelect>
             <MudSelect
-                T="IncidentStrategyDescriptor?"
+                T="IncidentStrategyDescriptor"
                 Label="@Localizer["Incident handling strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
@@ -48,11 +48,12 @@
                 DisplayName="@Localizer["Log Persistence Strategy"]"
                 Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
                 ReadOnly="IsReadOnly">
-                <MudSelect
-                    T="string"
+                <MudSelect 
+                    T="LogPersistenceStrategyDescriptor"
                     Label="@Localizer["Log Persistence Strategy"]"
                     Variant="@Variant.Outlined"
-                    Value="@_logPersistenceConfiguration?.StrategyType"
+                    Value="@_selectedLogPersistenceStrategy"
+                    ToStringFunc="@(x => x?.DisplayName ?? "Inherit")"
                     ValueChanged="@OnLogPersistenceStrategyChanged"
                     ReadOnly="IsReadOnly" 
                     Disabled="IsReadOnly"
@@ -60,7 +61,7 @@
                     >
                     @foreach (var strategy in _logPersistenceStrategyDescriptors)
                     {
-                        <MudSelectItem T="string" Value="@strategy.TypeName">@(strategy.DisplayName)</MudSelectItem>
+                        <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName ?? "Inherit")</MudSelectItem>
                     }
                 </MudSelect>
             </ExpressionEditor>
