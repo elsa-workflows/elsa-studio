@@ -20,6 +20,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />

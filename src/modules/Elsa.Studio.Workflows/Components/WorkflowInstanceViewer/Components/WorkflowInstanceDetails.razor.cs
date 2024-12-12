@@ -3,12 +3,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Serialization;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
@@ -19,6 +23,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceDetails
 {
+    private readonly JsonSerializerOptions _serializerOptions = SerializerOptions.LogPersistenceConfigSerializerOptions;
+
     private WorkflowInstance? _workflowInstance;
 
     private ActivityExecutionRecord? _workflowActivityExecutionRecord;
@@ -73,16 +79,28 @@ public partial class WorkflowInstanceDetails
                 ["Created"] = new(TimeFormatter.Format(_workflowInstance.CreatedAt)),
                 ["Updated"] = new(TimeFormatter.Format(_workflowInstance.UpdatedAt)),
                 ["Finished"] = new(TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                ["Log Persistence Strategy"] = new(GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
             };
         }
+    }
+
+    private LogPersistenceConfiguration? GetLogPersistenceConfiguration()
+    {
+        if (!WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceConfig", out var value) || value == null!)
+            return null;
+
+
+        var configJson = ((JsonElement)value).GetProperty("default");
+        var config = JsonSerializer.Deserialize<LogPersistenceConfiguration>(configJson, _serializerOptions);
+        return config;
     }
 
     private Dictionary<string, DataPanelItem> WorkflowVariableData
     {
         get
         {
-            return WorkflowDefinition == null 
-                ? new Dictionary<string, DataPanelItem>() 
+            return WorkflowDefinition == null
+                ? new Dictionary<string, DataPanelItem>()
                 : WorkflowDefinition.Variables.ToDictionary(entry => entry.Name, entry => new DataPanelItem(GetVariableValue(entry)));
         }
     }
@@ -245,7 +263,7 @@ public partial class WorkflowInstanceDetails
     {
         _workflowActivityExecutionRecord = await GetLastWorkflowActivityExecutionRecordAsync(workflowInstanceId);
     }
-    
+
     private async Task GetVariablesAsync(string workflowInstanceId)
     {
         _variables = (await WorkflowInstanceService.GetVariablesAsync(workflowInstanceId)).ToList();
@@ -284,5 +302,11 @@ public partial class WorkflowInstanceDetails
             .Split(".", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last()
             .Replace("Strategy", "")
             .Humanize() ?? "Default";
+    }
+
+    private static string? GetLogPersistenceConfigurationDisplayName(string? logPersistenceConfigurationTypeName)
+    {
+        //"Elsa.Workflows.LogPersistence.Strategies.Include, Elsa.Workflows.Core"
+        return logPersistenceConfigurationTypeName?.Split(",")[0].Split(".")[^1] ;
     }
 }
