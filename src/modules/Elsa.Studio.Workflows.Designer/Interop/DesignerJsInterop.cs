@@ -24,7 +24,7 @@ internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceP
     /// <returns>The ID of the graph.</returns>
     public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef, bool isReadOnly = false)
     {
-        return await InvokeAsync(async module =>
+        return await TryInvokeAsync(async module =>
         {
             await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
             return new X6GraphApi(module, serviceProvider, containerId);
