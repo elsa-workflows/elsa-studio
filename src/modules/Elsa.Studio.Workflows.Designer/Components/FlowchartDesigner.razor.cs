@@ -15,6 +15,7 @@ using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MudBlazor.Utilities;
 using ThrottleDebounce;
@@ -28,9 +29,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 {
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
     private DotNetObjectReference<FlowchartDesigner>? _componentRef;
-    private IFlowchartMapper? _flowchartMapper = default!;
-    private IActivityMapper? _activityMapper = default!;
-    private X6GraphApi _graphApi = default!;
+    private IFlowchartMapper? _flowchartMapper = null!;
+    private IActivityMapper? _activityMapper = null!;
+    private X6GraphApi _graphApi = null!;
     private readonly PendingActionsQueue _pendingGraphActions;
     private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
@@ -39,12 +40,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     public FlowchartDesigner()
     {
-        _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!));
+        _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!), () => Logger);
         _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () => { await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats)); }, TimeSpan.FromMilliseconds(100));
     }
 
     /// The flowchart to render.
-    [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = null!;
 
     /// The activity stats to render.
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
@@ -67,12 +68,13 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// An event raised when the graph is updated.
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
-    [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = default!;
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IMapperFactory MapperFactory { get; set; } = default!;
-    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
-    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
+    [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = null!;
+    [Inject] private IThemeService ThemeService { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IMapperFactory MapperFactory { get; set; } = null!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
+    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
+    [Inject] private ILogger<FlowchartDesigner> Logger { get; set; } = null!;
 
     /// <summary>
     /// Invoked from JavaScript when an activity is selected.
