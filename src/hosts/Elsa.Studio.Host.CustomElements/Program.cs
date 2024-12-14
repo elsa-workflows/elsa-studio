@@ -6,6 +6,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
+using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Designer.Extensions;
@@ -27,6 +28,7 @@ builder.RootComponents.RegisterCustomElement<WorkflowDefinitionListWrapper>("els
 
 // Register local services.
 builder.Services.AddSingleton<BackendService>();
+builder.Services.AddScoped<IJwtAccessor, BlazorWasmJwtAccessor>();
 
 // Register the modules.
 var backendApiConfig = new BackendApiConfig
