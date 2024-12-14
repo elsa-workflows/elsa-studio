@@ -6,7 +6,7 @@ on:
       - 'main'
       - 'bug/*'
   release:
-    types: [ prereleased, published ]
+    types: [ prereleased ]
 env:
   base_version: '3.3.0'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
