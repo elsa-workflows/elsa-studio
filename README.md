@@ -12,6 +12,10 @@
 [![Stack Overflow questions](https://img.shields.io/badge/stackoverflow-elsa_workflows-orange.svg)]( http://stackoverflow.com/questions/tagged/elsa-workflows )
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/elsaworkflows?style=social)](https://www.reddit.com/r/elsaworkflows/)
 
+<a href="https://hosted.weblate.org/engage/elsa-studio/">
+<img src="https://hosted.weblate.org/widget/elsa-studio/multi-green.svg" alt="Translation status" />
+</a>
+
 Elsa Studio is a modular, extensible application framework built with MudBlazor and is used to manage Elsa workflows and related entities.
 
 ## Prerequisites
