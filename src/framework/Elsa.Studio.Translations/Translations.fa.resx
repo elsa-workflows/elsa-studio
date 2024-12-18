@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -58,4 +58,61 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="14 days" xml:space="preserve">
+    <value>14 روز</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>گروه سفارشی این ورودی.</value>
+  </data>
+  <data name="180 days" xml:space="preserve">
+    <value>180 روز</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>توضیح مختصر خروجی.</value>
+  </data>
+  <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
+    <value>توضیحی از این فعالیت که در ویرایشگر نمایش داده میشود.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>توضیح مختصر کلید.</value>
+  </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>گروه سفارشی این خروجی.</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7 روز</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90 روز</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>توضیح مختصر رابط.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>توضیح مختصر فرآیند.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>توضیح مختصر ورودی.</value>
+  </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>گروه سفارشی فعالیت جهت اتصال فرآیند به آن.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>مقدار پیشفرض.</value>
+  </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>توضیح نقش و هدف این متغیر ورودی.</value>
+  </data>
+  <data name="A description about the secret." xml:space="preserve">
+    <value>توضیح کلید.</value>
+  </data>
+  <data name="A technical name for the function" xml:space="preserve">
+    <value>نام فنی تابعی که این رابط انجام میدهد. مانند: WriteCode</value>
+  </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>توضیح نقش و هدف این رابط.</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30 روز</value>
+  </data>
 </root>
