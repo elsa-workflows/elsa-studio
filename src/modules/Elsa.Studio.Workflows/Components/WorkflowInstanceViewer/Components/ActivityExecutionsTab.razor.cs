@@ -33,6 +33,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
     private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
     private Timer? _refreshTimer;
+    private bool _isRefreshing;
 
     /// Refreshes the component.
     public async Task RefreshAsync()
@@ -75,9 +76,11 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
 
     private async Task RefreshSelectedItemAsync(string id)
     {
+        _isRefreshing = true;
         SelectedItem = await ActivityExecutionService.GetAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
         await InvokeAsync(StateHasChanged);
+        _isRefreshing = false;
     }
 
     private async Task OnActivityExecutionClicked(TableRowClickEventArgs<ActivityExecutionRecordTableRow> arg)
@@ -103,6 +106,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     {
         async void Callback(object? _)
         {
+            if (_isRefreshing)
+                return;
+            
             await RefreshSelectedItemAsync(id);
 
             if (SelectedItem == null || SelectedItem.IsFused()) 
