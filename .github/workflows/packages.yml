@@ -6,6 +6,7 @@ on:
       - 'main'
       - 'raspberry'
       - 'bug/*'
+      - 'fix/*'
   release:
     types: [ prereleased, published ]
 env:
