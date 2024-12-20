@@ -232,4 +232,142 @@
   <data name="Container" xml:space="preserve">
     <value>Recipiente</value>
   </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Limpiar</value>
+  </data>
+  <data name="Create Secret" xml:space="preserve">
+    <value>Crear Secreto</value>
+  </data>
+  <data name="Create Service" xml:space="preserve">
+    <value>Crear Servicio</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="Create workflow" xml:space="preserve">
+    <value>Crear flujo de trabajo</value>
+  </data>
+  <data name="Cron" xml:space="preserve">
+    <value>Cron</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Escritorio</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Date Filters" xml:space="preserve">
+    <value>Filtros de Fecha</value>
+  </data>
+  <data name="Decision" xml:space="preserve">
+    <value>Decisión</value>
+  </data>
+  <data name="Default configuration" xml:space="preserve">
+    <value>Configuración por defecto</value>
+  </data>
+  <data name="Default value" xml:space="preserve">
+    <value>Valor por defecto</value>
+  </data>
+  <data name="Definition ID" xml:space="preserve">
+    <value>ID de Definición</value>
+  </data>
+  <data name="Definition version ID" xml:space="preserve">
+    <value>ID de Versión de Definición</value>
+  </data>
+  <data name="Delay" xml:space="preserve">
+    <value>Suspensión</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Dispatch Workflow" xml:space="preserve">
+    <value>Enviar flujo de trabajo</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo electrónico</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
+    <value>Ingrese una lista de posibles salidas para este flujo de trabajo.</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Evento</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Eventos</value>
+  </data>
+  <data name="Excel Parser" xml:space="preserve">
+    <value>Procesar Excel</value>
+  </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>Configuración de Ejecución</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Ejecuciones</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expira</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Export the current workflow as a JSON file" xml:space="preserve">
+    <value>Exportar el flujo de trabajo actual como archivo JSON.</value>
+  </data>
+  <data name="Fault" xml:space="preserve">
+    <value>Fallo</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finalizar</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="Flow" xml:space="preserve">
+    <value>Flujo</value>
+  </data>
+  <data name="Frequency Penalty" xml:space="preserve">
+    <value>Penalización de Frecuencia</value>
+  </data>
+  <data name="CreatedAt" xml:space="preserve">
+    <value>Creación</value>
+  </data>
+  <data name="Export this version as a JSON file." xml:space="preserve">
+    <value>Exportar esta versión como un archivo JSON.</value>
+  </data>
+  <data name="Definitions" xml:space="preserve">
+    <value>Definiciones</value>
+  </data>
+  <data name="Download File" xml:space="preserve">
+    <value>Descargar Archivo</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duración</value>
+  </data>
+  <data name="Expires In" xml:space="preserve">
+    <value>Expira en</value>
+  </data>
+  <data name="Display text" xml:space="preserve">
+    <value>Texto mostrado</value>
+  </data>
+  <data name="Display name" xml:space="preserve">
+    <value>Nombre para mostrar</value>
+  </data>
+  <data name="FinishedAt" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="Definition version" xml:space="preserve">
+    <value>Versión de Definición</value>
+  </data>
 </root>
