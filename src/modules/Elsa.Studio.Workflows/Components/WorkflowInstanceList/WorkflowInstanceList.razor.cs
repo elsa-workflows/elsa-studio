@@ -65,7 +65,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task LoadWorkflowDefinitionsAsync()
     {
-        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.Published);
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.LatestOrPublished);
 
         WorkflowDefinitions = workflowDefinitionsResponse.Items;
     }
