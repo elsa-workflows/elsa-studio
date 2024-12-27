@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
@@ -37,7 +38,16 @@ builder.Services.AddServerSideBlazor(options =>
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
-    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
+    ConfigureHttpClientBuilder = options =>
+    {
+        options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
+        options.ConfigureHttpClient = (_, client) =>
+        {
+            // if debugging is enabled, set a long timeout
+            if (Debugger.IsAttached)
+                client.Timeout = TimeSpan.FromHours(1);
+        };
+    },
 };
 
 var localizationConfig = new LocalizationConfig
