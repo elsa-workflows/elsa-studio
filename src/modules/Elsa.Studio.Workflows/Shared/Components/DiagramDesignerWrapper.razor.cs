@@ -26,7 +26,7 @@ public partial class DiagramDesignerWrapper
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats = new Dictionary<string, ActivityStats>();
     private ActivityGraph _activityGraph = null!;
-    private IDictionary<string, ActivityNode> _loadedActivityNodes = new Dictionary<string, ActivityNode>();
+    private IDictionary<string, ActivityNode> _indexedActivityNodes = new Dictionary<string, ActivityNode>();
 
     /// The workflow definition version ID.
     [Parameter] public string WorkflowDefinitionVersionId { get; set; } = null!;
@@ -142,7 +142,7 @@ public partial class DiagramDesignerWrapper
         Activity = activity;
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(activity);
         _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(activity);
-        await UpdateActivityNodes(_activityGraph.Activity);
+        await IndexActivityNodes(_activityGraph.Activity);
         await UpdatePathSegmentsAsync(segments => segments.Clear());
         await UpdateBreadcrumbItemsAsync();
         StateHasChanged();
@@ -186,17 +186,17 @@ public partial class DiagramDesignerWrapper
             var selectedPortActivity = (JsonObject?)selectedActivityGraph!.Activity[propName];
             activity = selectedPortActivity;
             _currentContainerActivity = activity;
-            await UpdateActivityNodes(selectedActivityGraph.Activity);
+            await IndexActivityNodes(selectedActivityGraph.Activity);
         }
 
         return activity ?? Activity;
     }
 
-    private async Task UpdateActivityNodes(JsonObject activity)
+    private async Task IndexActivityNodes(JsonObject activity)
     {
         var visitedNode = await ActivityVisitor.VisitAsync(activity);
         var nodes = visitedNode.Flatten();
-        foreach (var node in nodes) _loadedActivityNodes[node.NodeId] = node;
+        foreach (var node in nodes) _indexedActivityNodes[node.NodeId] = node;
     }
 
     private JsonObject? GetCurrentContainerActivity()
@@ -213,7 +213,7 @@ public partial class DiagramDesignerWrapper
         }
 
         var nodeId = lastSegment.ActivityNodeId;
-        var node = _loadedActivityNodes.TryGetValue(nodeId, out var activityNode) ? activityNode : null;
+        var node = _indexedActivityNodes.TryGetValue(nodeId, out var activityNode) ? activityNode : null;
 
         if (node is null)
             return null;
@@ -233,7 +233,7 @@ public partial class DiagramDesignerWrapper
     {
         var lastSegment = _pathSegments.FirstOrDefault();
         var nodeId = lastSegment?.ActivityNodeId;
-        var node = nodeId != null ? _loadedActivityNodes.TryGetValue(nodeId, out var activityNode) ? activityNode : null : null;
+        var node = nodeId != null ? _indexedActivityNodes.TryGetValue(nodeId, out var activityNode) ? activityNode : null : null;
         return node?.Activity ?? Activity;
     }
 
@@ -302,7 +302,7 @@ public partial class DiagramDesignerWrapper
         if (_pathSegments.Any())
             breadcrumbItems.Add(new BreadcrumbItem("Root", "#_root_", false, Icons.Material.Outlined.Home));
 
-        var nodeLookup = _loadedActivityNodes;
+        var nodeLookup = _indexedActivityNodes;
         var firstSegment = _pathSegments.FirstOrDefault();
 
         foreach (var segment in _pathSegments.Reverse())
@@ -374,7 +374,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
     {
-        var nodes = _loadedActivityNodes;
+        var nodes = _indexedActivityNodes;
         var selectedActivity = args.Activity;
         var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode) ? selectedActivityNode.Activity : null;
 
@@ -400,7 +400,7 @@ public partial class DiagramDesignerWrapper
                 var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
                 embeddedActivity = selectedPortActivity;
                 portProvider.AssignPort(args.PortName, embeddedActivity, new PortProviderContext(activityDescriptor, activity));
-                await UpdateActivityNodes(selectedActivityGraph.Activity);
+                await IndexActivityNodes(selectedActivityGraph.Activity);
             }
         }
 
@@ -459,7 +459,7 @@ public partial class DiagramDesignerWrapper
         if (currentSegment == null) // Root activity was updated.
         {
             _activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(embeddedActivity);
-            await UpdateActivityNodes(_activityGraph.Activity);
+            await IndexActivityNodes(_activityGraph.Activity);
         }
         else
         {
@@ -474,7 +474,7 @@ public partial class DiagramDesignerWrapper
 
             portProvider.AssignPort(portName, embeddedActivity, portProviderContext);
             await _activityGraph.IndexAsync();
-            await UpdateActivityNodes(_activityGraph.Activity);
+            await IndexActivityNodes(_activityGraph.Activity);
         }
 
         if (GraphUpdated.HasDelegate)
