@@ -33,9 +33,9 @@ public partial class WorkflowEditor
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
     private bool _isDirty;
-    private RadzenSplitterPane _activityPropertiesPane = default!;
+    private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
-    private DiagramDesignerWrapper _diagramDesigner = default!;
+    private DiagramDesignerWrapper _diagramDesigner = null!;
 
     /// <inheritdoc />
     public WorkflowEditor()
@@ -44,7 +44,7 @@ public partial class WorkflowEditor
     }
 
     /// Gets or sets the drag and drop manager via property injection.
-    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
+    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = null!;
 
     /// Gets or sets the workflow definition.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -58,18 +58,18 @@ public partial class WorkflowEditor
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
     
-    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
-    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
-    [Inject] private IMediator Mediator { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
-    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
-    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = default!;
-    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IFiles Files { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
+    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
+    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -157,20 +157,12 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
 
-    private bool ShouldUpdateReferences() => _workflowDefinition!.Options.AutoUpdateConsumingWorkflows;
-
-    private async Task<int> UpdateReferencesAsync()
-    {
-        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(_workflowDefinition!.DefinitionId);
-        return updateReferencesResponse.AffectedWorkflows.Count;
-    }
-
-    private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task RetractAsync(Func<Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         var result = await WorkflowDefinitionEditorService.RetractAsync(_workflowDefinition!, async definition => await SetWorkflowDefinitionAsync(definition));
         await result.OnSuccessAsync(async _ =>
@@ -189,7 +181,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         await InvokeAsync(async () =>
         {
