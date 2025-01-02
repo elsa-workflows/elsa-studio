@@ -207,7 +207,7 @@ jobs:
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
-          name: elsa-studio-nuget-packages
+          name: elsa-studio-nuget-package
           path: elsa-studio-nuget-packages
 
       - name: Publish to feedz.io
