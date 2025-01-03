@@ -104,7 +104,7 @@
     <value>توضیح نقش و هدف این متغیر ورودی.</value>
   </data>
   <data name="A description about the secret." xml:space="preserve">
-    <value>توضیح کلید.</value>
+    <value>توضیحی در مورد کلید.</value>
   </data>
   <data name="A technical name for the function" xml:space="preserve">
     <value>نام فنی تابعی که این رابط انجام میدهد. مانند: WriteCode</value>
@@ -114,5 +114,50 @@
   </data>
   <data name="30 days" xml:space="preserve">
     <value>30 روز</value>
+  </data>
+  <data name="Timer" xml:space="preserve">
+    <value>تایمر</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>افزودن</value>
+  </data>
+  <data name="Add input" xml:space="preserve">
+    <value>افزودن ورودی</value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value>افزودن خروجی</value>
+  </data>
+  <data name="Add variable" xml:space="preserve">
+    <value>افزودن متغیر</value>
+  </data>
+  <data name="Activation strategy" xml:space="preserve">
+    <value>استراتژی فعالسازی</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>اکتیویتی</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>اکتیویتی‌ها</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>زمان</value>
+  </data>
+  <data name="This output is an array" xml:space="preserve">
+    <value>این خروجی یک آرایه است</value>
+  </data>
+  <data name="This input is an array" xml:space="preserve">
+    <value>این وروددی یک آرایه است</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>نوع</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>مقدار</value>
+  </data>
+  <data name="Variables" xml:space="preserve">
+    <value>متغیرها</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>بله</value>
   </data>
 </root>
