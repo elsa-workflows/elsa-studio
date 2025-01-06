@@ -19,7 +19,7 @@
     <PageHeading Text="@Localizer["Workflow instances"]" />
 
 <div id="instance-file-upload-button-wrapper" class="d-none">
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected" MaximumFileCount="Int32.MaxValue"/>
 </div>
 
 <MudTable
