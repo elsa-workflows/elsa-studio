@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Elsa.Studio.Branding;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
@@ -23,6 +24,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IBrandingProvider  BrandingProvider { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;

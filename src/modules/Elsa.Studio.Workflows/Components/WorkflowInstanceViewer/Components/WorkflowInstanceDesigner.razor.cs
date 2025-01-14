@@ -169,7 +169,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             return;
 
         await DisposeObserverAsync();
-        var container = _designer.GetCurrentContainerActivity();
+        var container = _designer.GetCurrentContainerActivityOrRoot();
         var observerContext = new WorkflowInstanceObserverContext
         {
             WorkflowInstanceId = _workflowInstance.Id,

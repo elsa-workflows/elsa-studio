@@ -11,6 +11,7 @@
 [![Discord](https://img.shields.io/discord/814605913783795763?label=chat&logo=discord)](https://discord.gg/hhChk5H472)
 [![Stack Overflow questions](https://img.shields.io/badge/stackoverflow-elsa_workflows-orange.svg)]( http://stackoverflow.com/questions/tagged/elsa-workflows )
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/elsaworkflows?style=social)](https://www.reddit.com/r/elsaworkflows/)
+[![Translation status](https://hosted.weblate.org/widget/elsa-studio/svg-badge.svg)](https://hosted.weblate.org/engage/elsa-studio/)
 
 Elsa Studio is a modular, extensible application framework built with MudBlazor and is used to manage Elsa workflows and related entities.
 
@@ -44,3 +45,11 @@ steps but should you run into any issues or want to build these ahead of time, t
 1. **For Blazor Server WASM**: `dotnet run --project .\src\hosts\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj --framework net8.0`
 
 Explore the [Elsa Studio GitHub repository](https://github.com/elsa-workflows/elsa-studio) for more detailed information.
+
+## Localization
+
+Elsa Studio is translated using [Weblate](https://hosted.weblate.org/engage/elsa-studio/)
+
+<a href="https://hosted.weblate.org/engage/elsa-studio/">
+<img src="https://hosted.weblate.org/widget/elsa-studio/multi-green.svg" alt="Translation status" />
+</a>
