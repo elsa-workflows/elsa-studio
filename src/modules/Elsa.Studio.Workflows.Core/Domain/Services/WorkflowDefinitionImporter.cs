@@ -63,6 +63,7 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
         await stream.CopyToAsync(memoryStream);
         memoryStream.Seek(0, SeekOrigin.Begin);
         var zipArchive = new ZipArchive(memoryStream);
+        var hasErrors = false;
 
         foreach (var entry in zipArchive.Entries)
         {
@@ -71,20 +72,20 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
                 await using var entryStream = entry.Open();
                 var success = await ImportFromStreamAsync(entryStream, options);
 
-                if (success)
-                    return true;
+                if (!success) 
+                    hasErrors = true;
             }
             else if (entry.FullName.EndsWith(".zip"))
             {
                 await using var entryStream = entry.Open();
                 var success = await ImportZipFileAsync(entryStream, options);
 
-                if (success)
-                    return true;
+                if (!success)
+                    hasErrors = true;
             }
         }
 
-        return false;
+        return !hasErrors;
     }
 
     private async Task<bool> ImportFromStreamAsync(Stream stream, ImportOptions? options)

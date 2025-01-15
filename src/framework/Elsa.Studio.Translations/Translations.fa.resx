@@ -415,4 +415,7 @@
   <data name="Frequency Penalty" xml:space="preserve">
     <value>جریمه تکرار</value>
   </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>جدیدترین نسخه</value>
+  </data>
 </root>
