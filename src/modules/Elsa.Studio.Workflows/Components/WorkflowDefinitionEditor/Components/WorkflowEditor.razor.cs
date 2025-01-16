@@ -11,7 +11,6 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Domain.Services;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -23,7 +22,7 @@ using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 using ThrottleDebounce;
-using static MudBlazor.Colors;
+using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -378,17 +377,26 @@ public partial class WorkflowEditor
 
         if (importResults.Count == 0)
         {
-            Snackbar.Add("No workflows were imported.", Severity.Warning);
+            Snackbar.Add("No workflows were imported.", Severity.Info);
             return;
         }
 
         if (successfulImports.Count == 1)
-            Snackbar.Add($"Successfully imported 1 workflow definition from file {successfulImports[0].FileName}", Severity.Success);
+            Snackbar.Add($"Successfully imported 1 workflow definition.", Severity.Success, ConfigureSnackbar);
         else if (importResults.Count > 1)
-            Snackbar.Add($"Successfully imported {importResults.Count} workflow definitions.", Severity.Success);
+            Snackbar.Add($"Successfully imported {importResults.Count} workflow definitions.", Severity.Success, ConfigureSnackbar);
 
         if (failedImports.Count == 1)
-            Snackbar.Add($"Failed to import 1 workflow definition from file {failedImports[0].FileName}: {failedImports[0].Failure!.ErrorMessage}", Severity.Error);
-        else if (failedImports.Count > 1) Snackbar.Add($"Failed to import {failedImports.Count} workflow definitions. Errors: {string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))}", Severity.Error);
+            Snackbar.Add($"Failed to import 1 workflow definition: {failedImports[0].Failure!.ErrorMessage}", Severity.Error, ConfigureSnackbar);
+        else if (failedImports.Count > 1) 
+            Snackbar.Add($"Failed to import {failedImports.Count} workflow definitions. Errors: {string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))}", Severity.Error, ConfigureSnackbar);
+
+        return;
+        void ConfigureSnackbar(SnackbarOptions snackbarOptions)
+        {
+            snackbarOptions.SnackbarVariant = Variant.Filled;
+            snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
+            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+        }
     }
 }
