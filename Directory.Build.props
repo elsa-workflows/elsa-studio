@@ -30,6 +30,6 @@
   </ItemGroup>
   
   <PropertyGroup Label="PackageVersions">
-    <ElsaVersion>3.3.0-rc7</ElsaVersion>
+    <ElsaVersion>3.3.0-signaler-race-condition.2386</ElsaVersion>
   </PropertyGroup>
 </Project>
