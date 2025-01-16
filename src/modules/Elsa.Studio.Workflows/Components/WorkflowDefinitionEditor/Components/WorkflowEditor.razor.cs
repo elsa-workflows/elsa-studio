@@ -57,7 +57,7 @@ public partial class WorkflowEditor
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
-    
+
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
@@ -219,7 +219,7 @@ public partial class WorkflowEditor
             }
         });
     }
-    
+
     private void SelectActivity(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
@@ -368,17 +368,27 @@ public partial class WorkflowEditor
                 return Task.CompletedTask;
             }
         };
-        var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
+        var importResults = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
+        var failedImports = importResults.Where(x => !x.IsSuccess).ToList();
+        var successfulImports = importResults.Where(x => x.IsSuccess).ToList();
 
         IsProgressing = false;
         _isDirty = false;
         StateHasChanged();
 
-        if (importedFiles.Count == 0)
-            Snackbar.Add("No files were imported.", Severity.Warning);
-        else if (importedFiles.Count == 1)
-            Snackbar.Add($"Successfully imported workflow definition from file {importedFiles[0].Name}.", Severity.Success);
-        else if (importedFiles.Count > 1)
-            Snackbar.Add($"Successfully imported {importedFiles.Count} files.", Severity.Success);
+        if (importResults.Count == 0)
+        {
+            Snackbar.Add("No workflows were imported.", Severity.Warning);
+            return;
+        }
+
+        if (successfulImports.Count == 1)
+            Snackbar.Add($"Successfully imported 1 workflow definition from file {successfulImports[0].FileName}", Severity.Success);
+        else if (importResults.Count > 1)
+            Snackbar.Add($"Successfully imported {importResults.Count} workflow definitions.", Severity.Success);
+
+        if (failedImports.Count == 1)
+            Snackbar.Add($"Failed to import 1 workflow definition from file {failedImports[0].FileName}: {failedImports[0].Failure!.ErrorMessage}", Severity.Error);
+        else if (failedImports.Count > 1) Snackbar.Add($"Failed to import {failedImports.Count} workflow definitions. Errors: {string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))}", Severity.Error);
     }
 }
