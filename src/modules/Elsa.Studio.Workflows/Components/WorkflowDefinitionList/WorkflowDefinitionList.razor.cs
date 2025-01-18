@@ -36,7 +36,7 @@ public partial class WorkflowDefinitionList
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private const string ReadonlyWorkflowsExcluded = "The read-only workflows will not be affected.";
-    
+
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var request = new ListWorkflowDefinitionsRequest
@@ -163,12 +163,12 @@ public partial class WorkflowDefinitionList
         var definitionId = workflowDefinitionRow!.DefinitionId;
         var response = await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
 
-        if(response.CannotStart)
+        if (response.CannotStart)
         {
             Snackbar.Add("The workflow cannot be started", Severity.Error);
             return;
         }
-        
+
         Snackbar.Add("Successfully started workflow", Severity.Success);
     }
 
@@ -324,9 +324,21 @@ public partial class WorkflowDefinitionList
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
-        var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
-        var message = importedFiles.Count == 1 ? "Successfully imported one workflow" : $"Successfully imported {importedFiles.Count} workflows";
-        Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        var results = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
+        var successfulResultCount = results.Count(x => x.IsSuccess);
+        var failedResultCount = results.Count(x => !x.IsSuccess);
+        var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
+        var failedWorkflowsTerm = failedResultCount == 1 ? "workflow" : "workflows";
+        var message = results.Count == 0 ? "No workflows found to import." :
+            successfulResultCount > 0 && failedResultCount == 0 ? $"{successfulResultCount} {successfulWorkflowsTerm} imported successfully." :
+            successfulResultCount == 0 && failedResultCount > 0 ? $"Failed to import {failedResultCount} {failedWorkflowsTerm}." : $"{successfulResultCount} {successfulWorkflowsTerm} imported successfully. {failedResultCount} {failedWorkflowsTerm} failed to import.";
+        var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
+        Snackbar.Add(message, severity, options =>
+        {
+            options.SnackbarVariant = Variant.Filled;
+            options.CloseAfterNavigation = failedResultCount > 0;
+            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 3000;
+        });
         Reload();
     }
 
