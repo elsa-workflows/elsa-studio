@@ -9,7 +9,7 @@
         <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)"/>
         <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0"/>
         <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0"/>
-        <PackageVersion Include="BlazorMonaco" Version="3.2.0"/>
+        <PackageVersion Include="BlazorMonaco" Version="3.3.0"/>
         <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="7.0.1"/>
         <PackageVersion Include="FluentValidation" Version="11.10.0"/>
         <PackageVersion Include="JetBrains.Annotations" Version="2024.3.0"/>
