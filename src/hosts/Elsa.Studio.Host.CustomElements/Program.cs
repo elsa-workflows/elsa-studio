@@ -6,7 +6,6 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
@@ -35,7 +34,7 @@ var backendApiConfig = new BackendApiConfig
     ConfigureHttpClientBuilder = options =>
     {
         options.ApiKey = configuration["Backend:ApiKey"];
-        options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
+        options.AuthenticationHandler = typeof(AuthHttpMessageHandler);
     }, 
 };
 
