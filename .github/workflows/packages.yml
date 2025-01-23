@@ -6,6 +6,9 @@ on:
       - 'main'
       - 'raspberry'
       - 'bug/*'
+      - 'enh/*'
+      - 'feature/*'
+      - 'issue/*'
   release:
     types: [ prereleased, published ]
 env:
