@@ -79,7 +79,7 @@ public partial class Secrets
 
     private async Task EditAsync(string id)
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/secrets/{id}"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"secrets/{id}"));
     }
 
     private void Reload()
