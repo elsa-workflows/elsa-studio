@@ -1,11 +1,8 @@
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
-@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
 @using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
 @if (WorkflowDefinition != null)
@@ -24,7 +21,8 @@
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _activationStrategies)
                 {
-                    <MudSelectItem T="WorkflowActivationStrategyDescriptor" Value="@strategy">@strategy.DisplayName</MudSelectItem>
+                    <MudSelectItem T="WorkflowActivationStrategyDescriptor"
+                                   Value="@strategy">@strategy.DisplayName</MudSelectItem>
                 }
             </MudSelect>
             <MudSelect
@@ -38,7 +36,8 @@
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _incidentStrategies)
                 {
-                    <MudSelectItem T="IncidentStrategyDescriptor" Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
+                    <MudSelectItem T="IncidentStrategyDescriptor"
+                                   Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
                 }
             </MudSelect>
             <ExpressionEditor
@@ -48,24 +47,62 @@
                 DisplayName="@Localizer["Log Persistence Strategy"]"
                 Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
                 ReadOnly="IsReadOnly">
-                <MudSelect 
+                <MudSelect
                     T="LogPersistenceStrategyDescriptor"
                     Label="@Localizer["Log Persistence Strategy"]"
                     Variant="@Variant.Outlined"
                     Value="@_selectedLogPersistenceStrategy"
                     ToStringFunc="@(x => x?.DisplayName ?? "Inherit")"
                     ValueChanged="@OnLogPersistenceStrategyChanged"
-                    ReadOnly="IsReadOnly" 
+                    ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"
                     HelperText="@Localizer["Select the log persistence strategy to use for activity properties of this workflow."]"
-                    >
+                >
                     @foreach (var strategy in _logPersistenceStrategyDescriptors)
                     {
-                        <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName ?? "Inherit")</MudSelectItem>
+                        <MudSelectItem T="LogPersistenceStrategyDescriptor"
+                                       Value="@strategy">@(strategy.DisplayName ?? "Inherit")</MudSelectItem>
                     }
                 </MudSelect>
             </ExpressionEditor>
-            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Commit Behavior"]</MudText>
+        <MudStack Spacing="3">
+            <MudTooltip Text="@Localizer["Commit the workflow state before this workflow starts executing"]"
+                        delay="200">
+                <MudCheckBox
+                    T="bool?"
+                    Label="@Localizer["Before workflow starts"]"
+                    Value="@(WorkflowDefinition.Options.CommitStateOptions.Starting)"
+                    ValueChanged="@OnCommitWhenStartingCheckChanged"
+                    Dense="true"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
+            </MudTooltip>
+            <MudTooltip Text="@Localizer["Commit the workflow state before an activity starts executing"]"
+                        delay="200">
+                <MudCheckBox
+                    T="bool?"
+                    Label="@Localizer["Before activity executes"]"
+                    Value="@(WorkflowDefinition.Options.CommitStateOptions.ActivityExecuting)"
+                    ValueChanged="@OnCommitWhenActivityExecutingCheckChanged"
+                    Dense="true"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
+            </MudTooltip>
+            <MudTooltip Text="@Localizer["Commit the workflow state before an activity finishes executing"]"
+                        delay="200">
+                <MudCheckBox
+                    T="bool?"
+                    Label="@Localizer["After activity executed"]"
+                    Value="@(WorkflowDefinition.Options.CommitStateOptions.ActivityExecuted)"
+                    ValueChanged="@OnCommitWhenActivityExecutedCheckChanged"
+                    Dense="true"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
+            </MudTooltip>
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Activity"]</MudText>
+        <MudStack Spacing="3">
+            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]"
+                      Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
                     Label="@Localizer["Usable as activity"]"
