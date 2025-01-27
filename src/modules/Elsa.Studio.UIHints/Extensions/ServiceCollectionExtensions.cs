@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<CodeEditorHandler>()
             .AddUIHintHandler<ExpressionEditorHandler>()
             .AddUIHintHandler<JsonEditorHandler>()
+            .AddUIHintHandler<SqlEditorHandler>()
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()
             .AddUIHintHandler<VariablePickerHandler>()
