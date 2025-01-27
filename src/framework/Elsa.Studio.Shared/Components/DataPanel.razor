@@ -7,34 +7,33 @@
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
     @{
-        var data = (HideEmptyValues
-                ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value.Text))
-                : Data)
-            .ToDictionary(x => x.Key, x => x.Value);
+        var data = HideEmptyValues
+            ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList()
+            : Data;
     }
     @if (data.Any())
     {
         @foreach (var item in data)
         {
             <tr>
-                <td style="width: 200px;">@item.Key</td>
+                <td style="width: 200px;">@item.Label</td>
                 <td style="width: 50px;">
-                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
+                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))"/>
                 </td>
                 <td>
-                    @if (!string.IsNullOrWhiteSpace(item.Value.Link))
+                    @if (!string.IsNullOrWhiteSpace(item.Link))
                     {
-                            <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
+                            <MudLink Href="@item.Link">@item.Text</MudLink>
                         }
                         else
                         {
-                            @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
+                            @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
                             {
-                                <span><Timestamp Value="@Convert.ToDateTime(item.Value.Text)"></Timestamp></span>
+                                <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
                             }
                             else
                             {
-                                <span>@item.Value.Text</span>
+                                <span>@item.Text</span>
                             }
                     }
                 </td>
@@ -57,7 +56,7 @@
     /// The data to display.
     /// </summary>
     [Parameter]
-    public IDictionary<string, DataPanelItem> Data { get; set; } = new Dictionary<string, DataPanelItem>();
+    public DataPanelModel Data { get; set; } = new ();
 
     /// <summary>
     /// If true, empty values will be hidden.
@@ -77,7 +76,7 @@
     [Parameter]
     public string NoDataMessage { get; set; } = "No data available.";
 
-    [Inject] private IClipboard Clipboard { get; set; } = default!;
+    [Inject] private IClipboard Clipboard { get; set; } = null!;
 
     private async Task OnCopyClicked(string value)
     {
