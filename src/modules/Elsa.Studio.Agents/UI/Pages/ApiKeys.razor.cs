@@ -40,12 +40,12 @@ public partial class ApiKeys
 
     private async Task OnCreateClicked()
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/api-keys/new"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"ai/api-keys/new"));
     }
 
     private async Task EditAsync(string id)
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/api-keys/{id}"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"ai/api-keys/{id}"));
     }
 
     private void Reload()

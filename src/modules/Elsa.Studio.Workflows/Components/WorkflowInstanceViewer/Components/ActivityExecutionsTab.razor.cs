@@ -20,18 +20,18 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     [Parameter] public int VisiblePaneHeight { get; set; }
 
     /// The activity to display executions for.
-    [Parameter] public JsonObject Activity { get; set; } = default!;
+    [Parameter] public JsonObject Activity { get; set; } = null!;
 
     /// The activity execution record summaries.
     [Parameter] public ICollection<ActivityExecutionRecordSummary> ActivityExecutionSummaries { get; set; } = new List<ActivityExecutionRecordSummary>();
-    
-    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-    private ActivityExecutionRecord? SelectedItem { get; set; } = default!;
-    private IDictionary<string, DataPanelItem> SelectedActivityState { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> SelectedOutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> SelectedOutputData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
+    private DataPanelModel SelectedActivityState { get; set; } = new();
+    private DataPanelModel SelectedOutcomesData { get; set; } = new();
+    private DataPanelModel SelectedOutputData { get; set; } = new();
     private Timer? _refreshTimer;
 
     /// Refreshes the component.
@@ -39,37 +39,38 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     {
         await StopRefreshTimerAsync();
         SelectedItem = null;
-        SelectedActivityState = new Dictionary<string, DataPanelItem>();
-        SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
-        SelectedOutputData = new Dictionary<string, DataPanelItem>();
+        SelectedActivityState = new();
+        SelectedOutcomesData = new();
+        SelectedOutputData = new();
     }
 
     private void CreateSelectedItemDataModels(ActivityExecutionRecord? record)
     {
         if (record == null)
         {
-            SelectedActivityState = new Dictionary<string, DataPanelItem>();
-            SelectedOutcomesData = new Dictionary<string, DataPanelItem>();
-            SelectedOutputData = new Dictionary<string, DataPanelItem>();
+            SelectedActivityState = new();
+            SelectedOutcomesData = new();
+            SelectedOutputData = new();
             return;
         }
 
         var activityState = record.ActivityState?
             .Where(x => !x.Key.StartsWith("_"))
-            .ToDictionary(x => x.Key, x => new DataPanelItem(x.Value?.ToString()));
+            .Select(x => new DataPanelItem(x.Key, x.Value?.ToString()))
+            .ToDataPanelModel();
 
         var outcomesData = record.Payload?.TryGetValue("Outcomes", out var outcomesValue) == true
-            ? new Dictionary<string, DataPanelItem> { ["Outcomes"] = new(outcomesValue!.ToString()!) }
-            : default;
+            ? new DataPanelModel { new DataPanelItem("Outcomes", outcomesValue!.ToString()!) }
+            : null;
 
-        var outputData = new Dictionary<string, DataPanelItem>();
+        var outputData = new DataPanelModel();
 
         if (record.Outputs != null)
             foreach (var (key, value) in record.Outputs)
-                outputData[key] = new(value?.ToString());
+                outputData.Add(key, value?.ToString());
 
-        SelectedActivityState = activityState ?? new Dictionary<string, DataPanelItem>();
-        SelectedOutcomesData = outcomesData ?? new Dictionary<string, DataPanelItem>();
+        SelectedActivityState = activityState ?? new();
+        SelectedOutcomesData = outcomesData ?? new();
         SelectedOutputData = outputData;
     }
 
@@ -84,10 +85,10 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     {
         await StopRefreshTimerAsync();
         var id = arg.Item?.ActivityExecutionSummary.Id;
-        
+
         if (id == null)
             return;
-        
+
         await RefreshSelectedItemAsync(id);
 
         if (SelectedItem == null)
@@ -105,7 +106,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         {
             await RefreshSelectedItemAsync(id);
 
-            if (SelectedItem == null || SelectedItem.IsFused()) 
+            if (SelectedItem == null || SelectedItem.IsFused())
                 await StopRefreshTimerAsync();
         }
 

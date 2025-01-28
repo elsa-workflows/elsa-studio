@@ -57,10 +57,10 @@ public partial class Service : StudioComponentBase
         }
 
         StateHasChanged();
-        NavigationManager.NavigateTo("/ai/services");
+        NavigationManager.NavigateTo("ai/services");
     }
 
-    private MudBlazor.Converter<IDictionary<string,object>,string> GetSettingsConverter()
+    private MudBlazor.Converter<IDictionary<string, object>, string> GetSettingsConverter()
     {
         return new MudBlazor.Converter<IDictionary<string, object>, string>
         {
