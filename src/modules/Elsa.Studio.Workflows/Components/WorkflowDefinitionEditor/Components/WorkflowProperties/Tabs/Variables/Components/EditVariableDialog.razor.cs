@@ -17,9 +17,9 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class EditVariableDialog
 {
     private readonly VariableModel _model = new();
-    private EditContext _editContext = default!;
-    private VariableModelValidator _validator = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
+    private EditContext _editContext = null!;
+    private VariableModelValidator _validator = null!;
+    private FluentValidationValidator _fluentValidationValidator = null!;
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<IGrouping<string, VariableTypeDescriptor>> _groupedVariableTypes = new List<IGrouping<string, VariableTypeDescriptor>>();
@@ -27,22 +27,22 @@ public partial class EditVariableDialog
     /// <summary>
     /// The workflow definition that the variable belongs to.
     /// </summary>
-    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
     /// <summary>
     /// The variable to edit. If null, a new variable will be created.
     /// </summary>
     [Parameter] public Variable? Variable { get; set; }
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
-    [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
-    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
+    [Inject] private IVariableTypeService VariableTypeService { get; set; } = null!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         // Instantiate the edit context first, so that it is available when rendering (which happens as soon as we call an async method on the next lines). 
-        _editContext = new EditContext(_model);
-        _validator = new VariableModelValidator(WorkflowDefinition);
+        _editContext = new(_model);
+        _validator = new(WorkflowDefinition);
         
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).OrderByDescending(x => x.Priority).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
