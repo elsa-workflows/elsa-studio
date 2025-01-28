@@ -36,9 +36,9 @@ public partial class Settings
     /// </summary>
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
-    [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = default!;
-    [Inject] private IIncidentStrategiesProvider IncidentStrategiesProvider { get; set; } = default!;
-    [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = default!;
+    [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = null!;
+    [Inject] private IIncidentStrategiesProvider IncidentStrategiesProvider { get; set; } = null!;
+    [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = null!;
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
     private ICollection<WorkflowActivationStrategyDescriptor> _activationStrategies = new List<WorkflowActivationStrategyDescriptor>();
@@ -54,7 +54,7 @@ public partial class Settings
     {
         _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
         var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
-        _incidentStrategies = new IncidentStrategyDescriptor?[] { default }.Concat(incidentStrategies).ToList();
+        _incidentStrategies = new IncidentStrategyDescriptor?[] { null }.Concat(incidentStrategies).ToList();
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
@@ -170,6 +170,24 @@ public partial class Settings
     private async Task OnCategoryChanged(string value)
     {
         WorkflowDefinition!.Options.ActivityCategory = value;
+        await RaiseWorkflowUpdatedAsync();
+    }
+    
+    private async Task OnCommitWhenStartingCheckChanged(bool? value)
+    {
+        WorkflowDefinition!.Options.CommitStateOptions.Starting = value == true;
+        await RaiseWorkflowUpdatedAsync();
+    }
+    
+    private async Task OnCommitWhenActivityExecutingCheckChanged(bool? value)
+    {
+        WorkflowDefinition!.Options.CommitStateOptions.ActivityExecuting = value == true;
+        await RaiseWorkflowUpdatedAsync();
+    }
+    
+    private async Task OnCommitWhenActivityExecutedCheckChanged(bool? value)
+    {
+        WorkflowDefinition!.Options.CommitStateOptions.ActivityExecuted = value == true;
         await RaiseWorkflowUpdatedAsync();
     }
 }

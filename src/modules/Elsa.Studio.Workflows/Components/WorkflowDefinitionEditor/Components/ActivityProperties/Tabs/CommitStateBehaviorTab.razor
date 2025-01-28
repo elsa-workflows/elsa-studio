@@ -1,0 +1,23 @@
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@inject ILocalizer Localizer
+<MudForm>
+    <MudStack Spacing="5">
+        <MudSelect
+            T="ActivityCommitStateBehavior"
+            Label="@Localizer["Commit State Behavior"]"
+            Variant="@Variant.Outlined"
+            Value="@(Activity?.GetCommitStateBehavior() ?? ActivityCommitStateBehavior.Default)"
+            ToStringFunc="@(x => x.ToString())"
+            ValueChanged="@OnCommitBehaviorChanged"
+            HelperText="The behavior to use that controls when the workflow state should be committed."
+            ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+            <MudSelectItem Value="@ActivityCommitStateBehavior.Default">Default</MudSelectItem>
+            <MudSelectItem Value="@ActivityCommitStateBehavior.Never">Never</MudSelectItem>
+            <MudSelectItem Value="@ActivityCommitStateBehavior.Executing">Before Executing</MudSelectItem>
+            <MudSelectItem Value="@ActivityCommitStateBehavior.Executed">After Executed</MudSelectItem>
+            <MudSelectItem Value="@ActivityCommitStateBehavior.BeforeAndAfterExecution">Before and After Execution</MudSelectItem>
+        </MudSelect>
+    </MudStack>
+</MudForm>
