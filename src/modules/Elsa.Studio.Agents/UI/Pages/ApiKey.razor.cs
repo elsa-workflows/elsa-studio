@@ -56,6 +56,6 @@ public partial class ApiKey : StudioComponentBase
         }
 
         StateHasChanged();
-        NavigationManager.NavigateTo("/ai/api-keys");
+        NavigationManager.NavigateTo("ai/api-keys");
     }
 }

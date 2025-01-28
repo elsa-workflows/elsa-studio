@@ -37,12 +37,12 @@ public partial class Services
 
     private async Task OnCreateClicked()
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/services/new"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"ai/services/new"));
     }
 
     private async Task EditAsync(string id)
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/services/{id}"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"ai/services/{id}"));
     }
 
     private void Reload()
