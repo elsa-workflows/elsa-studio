@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Elsa.Studio.Components;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
@@ -18,33 +19,38 @@ public partial class JournalEntryDetailsTab
     
     [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
 
-    private IDictionary<string, DataPanelItem> ParsePayload(object? payload)
+    private DataPanelModel ParsePayload(object? payload)
     {
         if (payload == null)
-            return new Dictionary<string, DataPanelItem>();
+            return new();
 
         if (payload is not JsonElement jsonElement)
-            return new Dictionary<string, DataPanelItem>
-            {
-                ["Payload"] = new(payload.ToString())
-            };
+            return [new DataPanelItem("Payload", payload.ToString())];
 
         var properties = jsonElement.EnumerateObject().Where(x => !x.Name.StartsWith("_"));
-        var result = new Dictionary<string, DataPanelItem>();
+        var result = new DataPanelModel();
 
         foreach (var property in properties)
         {
             var propertyName = property.Name.Pascalize();
             var propertyValue = property.Value;
             var propertyValueAsString = propertyValue.ToString();
-            result[propertyName] = new(propertyValueAsString);
+            result.Add(propertyName, propertyValueAsString);
         }
 
         return result;
     }
 
-    private static void Merge(IDictionary<string, DataPanelItem> target, IDictionary<string, DataPanelItem> input)
+    private static void Merge(DataPanelModel target, DataPanelModel input)
     {
-        foreach (var (key, value) in input) target[key] = value;
+        foreach (var item in input)
+        {
+            var existingItem = target.FirstOrDefault(x => x.Label == item.Label);
+            
+            if (existingItem != null) 
+                target.Remove(existingItem);
+            
+            target.Add(item);
+        }
     }
 }
