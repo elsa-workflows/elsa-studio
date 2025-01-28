@@ -204,7 +204,8 @@ public partial class WorkflowEditor
                 await result.OnFailedAsync(errors =>
                 {
                     onFailure?.Invoke(errors);
-                    Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
+                    foreach (var error in errors.Errors) 
+                        Snackbar.Add(error.ErrorMessage, Severity.Error, options => options.VisibleStateDuration = 5000);
                     return Task.CompletedTask;
                 });
             }

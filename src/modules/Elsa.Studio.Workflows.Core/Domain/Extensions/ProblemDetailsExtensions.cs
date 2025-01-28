@@ -13,7 +13,10 @@ public static class ProblemDetailsExtensions
     /// </summary>
     public static ValidationErrors ToValidationErrors(this ProblemDetails problemDetails)
     {
-        var validationErrors = problemDetails.Errors.Select(x => new ValidationError(string.Join(", ", x.Value))).ToList();
-        return new ValidationErrors(validationErrors);
+        var validationErrors =
+            from pair in problemDetails.Errors
+            from message in pair.Value
+            select new ValidationError(message);
+        return new(validationErrors.ToList());
     }
 }
