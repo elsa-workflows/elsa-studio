@@ -10,13 +10,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// Displays the details of an activity.
 public partial class ActivityDetailsTab
 {
-    /// <summary>
-    /// Represents a row in the table of activity executions.
-    /// </summary>
-    /// <param name="Number">The number of executions.</param>
-    /// <param name="ActivityExecution">The activity execution.</param>
-    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecord ActivityExecution);
-    
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
     
@@ -30,11 +23,11 @@ public partial class ActivityDetailsTab
 
     private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
 
-    private IDictionary<string, DataPanelItem> ActivityInfo { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> ActivityData { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> OutcomesData { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> OutputData { get; set; } = new Dictionary<string, DataPanelItem>();
-    private IDictionary<string, DataPanelItem> ExceptionData { get; set; } = new Dictionary<string, DataPanelItem>();
+    private DataPanelModel ActivityInfo { get; set; } = new();
+    private DataPanelModel ActivityData { get; set; } = new();
+    private DataPanelModel OutcomesData { get; set; } = new();
+    private DataPanelModel OutputData { get; set; } = new();
+    private DataPanelModel ExceptionData { get; set; } = new();
     private IDictionary<string, string?> SelectedActivityState { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
     private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
@@ -70,28 +63,28 @@ public partial class ActivityDetailsTab
         var exception = execution?.Exception;
         var workflowDefinitionId = activity.GetIsWorkflowDefinitionActivity() ? activity.GetWorkflowDefinitionId() : null;
 
-        var activityInfo = new Dictionary<string, DataPanelItem>
+        var activityInfo = new DataPanelModel
         {
-            ["ID"] = new(activityId),
-            ["Name"] = new(activityName),
-            ["Type"] = new(activityType,
+            new DataPanelItem("ID", activityId),
+            new DataPanelItem("Name", activityName),
+            new DataPanelItem("Type", activityType,
                 string.IsNullOrWhiteSpace(workflowDefinitionId)
                     ? null
                     : $"/workflows/definitions/{workflowDefinitionId}/edit"),
-            ["Version"] = new(activityVersion.ToString())
+            new DataPanelItem("Version", activityVersion.ToString())
         };
 
-        var outcomesData = new Dictionary<string, DataPanelItem>();
-        var outputData = new Dictionary<string, DataPanelItem>();
+        var outcomesData = new DataPanelModel();
+        var outputData = new DataPanelModel();
 
         if (execution != null)
         {
-            activityInfo["Status"] = new(execution.Status.ToString());
-            activityInfo["Instance ID"] = new(execution.Id);
+            activityInfo.Add("Status", execution.Status.ToString());
+            activityInfo.Add("Instance ID", execution.Id);
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
-                    outcomesData["Outcomes"] = new(outcomes.ToString());
+                    outcomesData.Add("Outcomes", outcomes.ToString());
 
             var outputDescriptors = activityDescriptor.Outputs;
             var outputs = execution.Outputs;
@@ -101,26 +94,26 @@ public partial class ActivityDetailsTab
                 var outputValue = outputs != null
                     ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
                     : null;
-                outputData[outputDescriptor.Name] = new(outputValue?.ToString());
+                outputData.Add(outputDescriptor.Name, outputValue?.ToString());
             }
         }
         else
         {
-            activityInfo["Status"] = new("Not executed");
+            activityInfo.Add("Status", "Not executed");
         }
 
-        var exceptionData = new Dictionary<string, DataPanelItem>();
+        var exceptionData = new DataPanelModel();
 
         if (exception != null)
         {
-            exceptionData["Message"] = new(exception.Message);
-            exceptionData["InnerException"] = new(exception.InnerException != null
+            exceptionData.Add("Message", exception.Message);
+            exceptionData.Add("InnerException", exception.InnerException != null
                 ? exception.InnerException.Type + ": " + exception.InnerException.Message
                 : null);
-            exceptionData["StackTrace"] = new(exception.StackTrace);
+            exceptionData.Add("StackTrace", exception.StackTrace);
         }
 
-        var activityStateData = new Dictionary<string, DataPanelItem>();
+        var activityStateData = new DataPanelModel();
         var activityState = execution?.ActivityState;
 
         if (activityState != null)
@@ -128,7 +121,7 @@ public partial class ActivityDetailsTab
             foreach (var inputDescriptor in activityDescriptor.Inputs)
             {
                 var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
-                activityStateData[inputDescriptor.Name] = new(inputValue?.ToString());
+                activityStateData.Add(inputDescriptor.Name, inputValue?.ToString());
             }
         }
 
