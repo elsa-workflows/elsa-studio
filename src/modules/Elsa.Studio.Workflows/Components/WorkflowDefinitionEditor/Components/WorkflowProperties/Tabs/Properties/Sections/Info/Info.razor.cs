@@ -7,19 +7,20 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 
 public partial class Info
 {
-    private IDictionary<string, DataPanelItem> _workflowInfo = new Dictionary<string, DataPanelItem>();
+    private DataPanelModel _workflowInfo = new ();
 
-    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _workflowInfo = new Dictionary<string, DataPanelItem>
-        {
-            ["Definition ID"] = new(WorkflowDefinition.DefinitionId),
-            ["Version ID"] = new(WorkflowDefinition.Id),
-            ["Version"] = new(WorkflowDefinition.Version.ToString()),
-            ["Status"] = new(WorkflowDefinition.IsPublished ? "Published" : "Draft"),
-            ["Readonly"] = new(WorkflowDefinition.IsReadonly ? "Yes" : "No")
-        };
+        _workflowInfo =
+        [
+            new DataPanelItem("Definition ID", WorkflowDefinition.DefinitionId),
+            new DataPanelItem("Version ID", WorkflowDefinition.Id),
+            new DataPanelItem("Version", WorkflowDefinition.Version.ToString()),
+            new DataPanelItem("Status", WorkflowDefinition.IsPublished ? "Published" : "Draft"),
+            new DataPanelItem("Readonly", WorkflowDefinition.IsReadonly ? "Yes" : "No")
+        ];
     }
 }

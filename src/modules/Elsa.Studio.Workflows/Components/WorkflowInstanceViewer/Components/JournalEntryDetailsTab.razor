@@ -1,6 +1,5 @@
 @using Elsa.Studio.Models
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -9,11 +8,11 @@
         var record = JournalEntry.Record;
         var payload = ParsePayload(record.Payload);
 
-        var eventInfo = new Dictionary<string, DataPanelItem>
+        var eventInfo = new DataPanelModel
         {
-            ["Name"] = new(record.EventName),
-            ["Timestamp"] = new(TimeFormatter.Format(record.Timestamp, "s")),
-            ["Message"] = new(record.Message)
+            new DataPanelItem("Name", record.EventName),
+            new DataPanelItem("Timestamp", TimeFormatter.Format(record.Timestamp, "s")),
+            new DataPanelItem("Message", record.Message)
         };
 
         Merge(eventInfo, payload);
