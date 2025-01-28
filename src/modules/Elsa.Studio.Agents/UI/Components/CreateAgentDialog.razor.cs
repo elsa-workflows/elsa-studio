@@ -15,16 +15,16 @@ namespace Elsa.Studio.Agents.UI.Components;
 public partial class CreateAgentDialog
 {
     private readonly AgentInputModel _agentInputModel = new();
-    private EditContext _editContext = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
-    private AgentInputModelValidator _validator = default!;
+    private EditContext _editContext = null!;
+    private FluentValidationValidator _fluentValidationValidator = null!;
+    private AgentInputModelValidator _validator = null!;
     
     /// The default name of the agent to create.
     [Parameter] public string AgentName { get; set; } = "";
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
     private ICollection<ServiceModel> AvailableServices { get; set; } = [];
     private IReadOnlyCollection<string> SelectedServices { get; set; } = [];
     private ICollection<PluginDescriptorModel> AvailablePlugins { get; set; } = [];
@@ -40,11 +40,11 @@ public partial class CreateAgentDialog
         _agentInputModel.OutputVariable.Type = "object";
         _agentInputModel.OutputVariable.Description = "The output of the agent.";
         _agentInputModel.ExecutionSettings.ResponseFormat = "json_object";
-        _editContext = new EditContext(_agentInputModel);
+        _editContext = new(_agentInputModel);
         var agentsApi = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         var servicesApi = await ApiClientProvider.GetApiAsync<IServicesApi>();
         var pluginsApi = await ApiClientProvider.GetApiAsync<IPluginsApi>();
-        _validator = new AgentInputModelValidator(agentsApi);
+        _validator = new(agentsApi);
         var servicesResponseList = await servicesApi.ListAsync();
         var pluginsResponseList = await pluginsApi.ListAsync();
         AvailableServices = servicesResponseList.Items;

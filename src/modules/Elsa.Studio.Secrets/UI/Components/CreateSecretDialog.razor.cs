@@ -13,23 +13,23 @@ namespace Elsa.Studio.Secrets.UI.Components;
 public partial class CreateSecretDialog
 {
     private readonly SecretInputModel _inputModel = new();
-    private EditContext _editContext = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
-    private SecretInputModelValidator _validator = default!;
+    private EditContext _editContext = null!;
+    private FluentValidationValidator _fluentValidationValidator = null!;
+    private SecretInputModelValidator _validator = null!;
     
     /// The default name of the agent to create.
     [Parameter] public string SecretName { get; set; } = "";
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         _inputModel.Name = SecretName;
         _inputModel.Description = "";
-        _editContext = new EditContext(_inputModel);
+        _editContext = new(_inputModel);
         var api = await ApiClientProvider.GetApiAsync<ISecretsApi>();
-        _validator = new SecretInputModelValidator(api);
+        _validator = new(api);
     }
 
     private Task OnCancelClicked()
