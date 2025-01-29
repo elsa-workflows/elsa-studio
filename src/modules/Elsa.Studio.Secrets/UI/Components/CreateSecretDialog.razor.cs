@@ -19,7 +19,7 @@ public partial class CreateSecretDialog
     
     /// The default name of the agent to create.
     [Parameter] public string SecretName { get; set; } = "";
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = null!;
 
     /// <inheritdoc />
