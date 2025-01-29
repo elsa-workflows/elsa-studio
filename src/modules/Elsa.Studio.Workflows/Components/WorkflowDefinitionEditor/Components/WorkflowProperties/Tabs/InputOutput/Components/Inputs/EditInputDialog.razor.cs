@@ -25,7 +25,7 @@ public partial class EditInputDialog
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public InputDefinition? Input { get; set; }
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
