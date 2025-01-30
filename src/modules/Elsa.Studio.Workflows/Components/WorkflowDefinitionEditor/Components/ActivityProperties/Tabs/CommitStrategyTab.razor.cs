@@ -29,7 +29,7 @@ public partial class CommitStrategyTab
         var commitStrategies = (await CommitStrategiesProvider.GetActivityCommitStrategiesAsync()).ToList();
         commitStrategies.Insert(0, null!);
         _commitStrategies = commitStrategies!;
-        _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x.Name == Activity!.GetCommitStrategy());
+        _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x?.Name == Activity!.GetCommitStrategy());
         await base.OnInitializedAsync();
     }
     
