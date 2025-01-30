@@ -21,7 +21,7 @@ public partial class CreateAgentDialog
     
     /// The default name of the agent to create.
     [Parameter] public string AgentName { get; set; } = "";
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;

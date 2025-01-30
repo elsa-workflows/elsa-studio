@@ -34,7 +34,7 @@ public partial class EditOutputDialog
     /// The output to edit.
     /// </summary>
     [Parameter] public OutputDefinition? Output { get; set; }
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = null!;
 

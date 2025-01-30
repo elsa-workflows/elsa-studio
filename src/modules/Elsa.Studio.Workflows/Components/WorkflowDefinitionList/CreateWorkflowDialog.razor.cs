@@ -22,7 +22,7 @@ public partial class CreateWorkflowDialog
     /// The name of the workflow to create.
     /// </summary>
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
 
     /// <inheritdoc />

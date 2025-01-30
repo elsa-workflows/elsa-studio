@@ -32,7 +32,7 @@ public partial class EditVariableDialog
     /// The variable to edit. If null, a new variable will be created.
     /// </summary>
     [Parameter] public Variable? Variable { get; set; }
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
