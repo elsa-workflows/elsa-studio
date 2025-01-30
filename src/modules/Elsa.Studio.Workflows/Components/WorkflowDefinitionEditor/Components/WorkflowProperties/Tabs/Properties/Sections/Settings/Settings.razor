@@ -74,14 +74,14 @@
                 Label="@Localizer["Commit Strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedCommitStrategy"
-                ToStringFunc="@(x => x?.DisplayName ?? "-")"
+                ToStringFunc="@(x => string.IsNullOrWhiteSpace(x?.DisplayName) ? "-" : x.DisplayName)"
                 ValueChanged="@OnCommitStrategySelectionChanged"
                 HelperText="@(_selectedCommitStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _commitStrategies)
                 {
                     <MudSelectItem T="CommitStrategyDescriptor"
-                                   Value="@strategy">@(strategy?.DisplayName ?? "-")</MudSelectItem>
+                                   Value="@strategy">@(string.IsNullOrWhiteSpace(strategy?.DisplayName) ? "-" : strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>
