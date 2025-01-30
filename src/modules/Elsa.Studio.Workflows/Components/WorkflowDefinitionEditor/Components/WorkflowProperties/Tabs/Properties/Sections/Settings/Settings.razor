@@ -81,7 +81,7 @@
                 @foreach (var strategy in _commitStrategies)
                 {
                     <MudSelectItem T="CommitStrategyDescriptor"
-                                   Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
+                                   Value="@strategy">@(strategy?.DisplayName ?? "-")</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>

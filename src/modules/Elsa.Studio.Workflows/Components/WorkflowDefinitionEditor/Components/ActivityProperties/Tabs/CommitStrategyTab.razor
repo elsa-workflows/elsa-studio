@@ -8,7 +8,7 @@
             Label="@Localizer["Commit Strategy"]"
             Variant="@Variant.Outlined"
             Value="_selectedCommitStrategy"
-            ToStringFunc="@(x => x?.DisplayName.ToString())"
+            ToStringFunc="@(x => x?.DisplayName.ToString() ?? "-")"
             ValueChanged="@OnCommitStrategySelectionChanged"
             HelperText="The commit strategy to use that controls when the workflow state should be committed."
             ReadOnly="IsReadOnly" Disabled="IsReadOnly">

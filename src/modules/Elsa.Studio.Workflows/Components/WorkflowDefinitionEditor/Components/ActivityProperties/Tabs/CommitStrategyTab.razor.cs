@@ -41,6 +41,7 @@ public partial class CommitStrategyTab
 
     private async Task OnCommitStrategySelectionChanged(CommitStrategyDescriptor? value)
     {
+        _selectedCommitStrategy = value;
         Activity!.SetCommitStrategy(value?.Name);
         await RaiseActivityUpdated();
     }
