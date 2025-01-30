@@ -64,6 +64,7 @@ public partial class Settings
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
+        _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x?.Name == WorkflowDefinition!.Options.CommitStrategyName) ?? _commitStrategies.FirstOrDefault();
         _logPersistenceConfiguration = GetLogPersistenceConfiguration();
         _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
     }
