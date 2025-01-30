@@ -53,11 +53,11 @@
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="@Localizer["Commit Behavior"]">
+        <MudTabPanel Text="@Localizer["Commit Strategy"]">
             @if (Activity != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <CommitStateBehaviorTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"/>
+                    <CommitStrategyTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>
             }
             else

@@ -1,3 +1,4 @@
+@using Elsa.Api.Client.Resources.CommitStrategies.Models
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
@@ -53,7 +54,7 @@
                     Variant="@Variant.Outlined"
                     Value="@_selectedLogPersistenceStrategy"
                     ToStringFunc="@(x => x?.DisplayName ?? "Inherit")"
-                    ValueChanged="@OnLogPersistenceStrategyChanged"
+                    ValueChanged="@OnLogPersistenceStrategySelectionChanged"
                     ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"
                     HelperText="@Localizer["Select the log persistence strategy to use for activity properties of this workflow."]"
@@ -61,43 +62,28 @@
                     @foreach (var strategy in _logPersistenceStrategyDescriptors)
                     {
                         <MudSelectItem T="LogPersistenceStrategyDescriptor"
-                                       Value="@strategy">@(strategy.DisplayName ?? "Inherit")</MudSelectItem>
+                                       Value="@strategy">@(strategy?.DisplayName ?? "Inherit")</MudSelectItem>
                     }
                 </MudSelect>
             </ExpressionEditor>
         </MudStack>
-        <MudText Typo="Typo.overline">@Localizer["Commit Behavior"]</MudText>
+        <MudText Typo="Typo.overline">@Localizer["Commit Strategy"]</MudText>
         <MudStack Spacing="3">
-            <MudTooltip Text="@Localizer["Commit the workflow state before this workflow starts executing"]"
-                        delay="200">
-                <MudCheckBox
-                    T="bool?"
-                    Label="@Localizer["Before workflow starts"]"
-                    Value="@(WorkflowDefinition.Options.CommitStateOptions.Starting)"
-                    ValueChanged="@OnCommitWhenStartingCheckChanged"
-                    Dense="true"
-                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
-            </MudTooltip>
-            <MudTooltip Text="@Localizer["Commit the workflow state before an activity starts executing"]"
-                        delay="200">
-                <MudCheckBox
-                    T="bool?"
-                    Label="@Localizer["Before activity executes"]"
-                    Value="@(WorkflowDefinition.Options.CommitStateOptions.ActivityExecuting)"
-                    ValueChanged="@OnCommitWhenActivityExecutingCheckChanged"
-                    Dense="true"
-                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
-            </MudTooltip>
-            <MudTooltip Text="@Localizer["Commit the workflow state before an activity finishes executing"]"
-                        delay="200">
-                <MudCheckBox
-                    T="bool?"
-                    Label="@Localizer["After activity executed"]"
-                    Value="@(WorkflowDefinition.Options.CommitStateOptions.ActivityExecuted)"
-                    ValueChanged="@OnCommitWhenActivityExecutedCheckChanged"
-                    Dense="true"
-                    ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
-            </MudTooltip>
+            <MudSelect
+                T="CommitStrategyDescriptor"
+                Label="@Localizer["Commit Strategy"]"
+                Variant="@Variant.Outlined"
+                Value="@_selectedCommitStrategy"
+                ToStringFunc="@(x => x?.DisplayName ?? "-")"
+                ValueChanged="@OnCommitStrategySelectionChanged"
+                HelperText="@(_selectedCommitStrategy?.Description)"
+                ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+                @foreach (var strategy in _commitStrategies)
+                {
+                    <MudSelectItem T="CommitStrategyDescriptor"
+                                   Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
+                }
+            </MudSelect>
         </MudStack>
         <MudText Typo="Typo.overline">@Localizer["Activity"]</MudText>
         <MudStack Spacing="3">

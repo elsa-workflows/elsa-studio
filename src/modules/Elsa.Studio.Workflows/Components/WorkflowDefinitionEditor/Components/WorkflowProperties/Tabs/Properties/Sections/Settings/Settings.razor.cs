@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using System.Text.Json;
+using Elsa.Api.Client.Resources.CommitStrategies.Models;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Enums;
@@ -39,22 +40,27 @@ public partial class Settings
     [Inject] private IWorkflowActivationStrategyService WorkflowActivationStrategyService { get; set; } = null!;
     [Inject] private IIncidentStrategiesProvider IncidentStrategiesProvider { get; set; } = null!;
     [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = null!;
+    [Inject] private ICommitStrategiesProvider CommitStrategiesProvider { get; set; } = null!;
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
     private ICollection<WorkflowActivationStrategyDescriptor> _activationStrategies = new List<WorkflowActivationStrategyDescriptor>();
     private ICollection<IncidentStrategyDescriptor?> _incidentStrategies = new List<IncidentStrategyDescriptor?>();
     private ICollection<LogPersistenceStrategyDescriptor> _logPersistenceStrategyDescriptors = new List<LogPersistenceStrategyDescriptor>();
+    private ICollection<CommitStrategyDescriptor?> _commitStrategies = new List<CommitStrategyDescriptor?>();
     private WorkflowActivationStrategyDescriptor? _selectedActivationStrategy;
     private IncidentStrategyDescriptor? _selectedIncidentStrategy;
     private LogPersistenceStrategyDescriptor? _selectedLogPersistenceStrategy;
     private LogPersistenceConfiguration? _logPersistenceConfiguration;
+    private CommitStrategyDescriptor? _selectedCommitStrategy;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
         var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
+        var commitStrategies = (await CommitStrategiesProvider.GetWorkflowCommitStrategiesAsync()).ToList();
         _incidentStrategies = new IncidentStrategyDescriptor?[] { null }.Concat(incidentStrategies).ToList();
+        _commitStrategies = new CommitStrategyDescriptor?[] { null }.Concat(commitStrategies).ToList();
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
         _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
         _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
@@ -130,7 +136,7 @@ public partial class Settings
         await RaiseWorkflowUpdatedAsync();
     }
 
-    private async Task OnLogPersistenceStrategyChanged(LogPersistenceStrategyDescriptor? value)
+    private async Task OnLogPersistenceStrategySelectionChanged(LogPersistenceStrategyDescriptor? value)
     {
         _selectedLogPersistenceStrategy = value;
         var currentConfig = _logPersistenceConfiguration;
@@ -173,21 +179,10 @@ public partial class Settings
         await RaiseWorkflowUpdatedAsync();
     }
     
-    private async Task OnCommitWhenStartingCheckChanged(bool? value)
+    private async Task OnCommitStrategySelectionChanged(CommitStrategyDescriptor? value)
     {
-        WorkflowDefinition!.Options.CommitStateOptions.Starting = value == true;
-        await RaiseWorkflowUpdatedAsync();
-    }
-    
-    private async Task OnCommitWhenActivityExecutingCheckChanged(bool? value)
-    {
-        WorkflowDefinition!.Options.CommitStateOptions.ActivityExecuting = value == true;
-        await RaiseWorkflowUpdatedAsync();
-    }
-    
-    private async Task OnCommitWhenActivityExecutedCheckChanged(bool? value)
-    {
-        WorkflowDefinition!.Options.CommitStateOptions.ActivityExecuted = value == true;
+        _selectedCommitStrategy = value;
+        WorkflowDefinition!.Options.CommitStrategyName = value?.Name;
         await RaiseWorkflowUpdatedAsync();
     }
 }
