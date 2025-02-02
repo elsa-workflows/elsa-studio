@@ -21,13 +21,131 @@
     <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" >
     <link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet">
     <link href="Elsa.Studio.Host.CustomElements.styles.css" rel="stylesheet">
+
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Form container styling */
+        #loginForm {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 2rem; /* Add space below the form */
+        }
+
+        /* Form title styling */
+        #loginForm h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        /* Input field styling */
+        #loginForm input[type="text"],
+        #loginForm input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Input field focus styling */
+        #loginForm input[type="text"]:focus,
+        #loginForm input[type="password"]:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Label styling */
+        #loginForm label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        /* Button styling */
+        #loginForm button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Button hover effect */
+        #loginForm button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Button focus styling */
+        #loginForm button:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* Container for dependent components */
+        #elsaComponentsContainer {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem; /* Add space above the container */
+        }
+    </style>
 </head>
 
 <body>
-<elsa-backend-provider remote-endpoint="https://localhost:5001/elsa/api" access-token="eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwOi8vZWxzYS5hcGkiLCJpc3MiOiJodHRwOi8vZWxzYS5hcGkiLCJleHAiOjE3MzQyMDgxMTUsImlhdCI6MTczNDEyMTcxNSwibmFtZSI6ImFkbWluIiwicGVybWlzc2lvbnMiOiIqIiwicm9sZSI6IkFkbWluaXN0cmF0b3IiLCJuYmYiOjE3MzQxMjE3MTV9.YkIlgdxOHDRZhxlmrSvs-AlL5XKlTuI8yGQZtltdNZ4"></elsa-backend-provider>
-<elsa-workflow-definition-list ></elsa-workflow-definition-list>
-<elsa-workflow-instance-list></elsa-workflow-instance-list>
-<elsa-workflow-definition-editor definition-id="1f13ad58d120b2fa"></elsa-studio-workflow-definition-editor>
+<form id="loginForm">
+    <h1>Login</h1>
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+    
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+    
+    <button type="submit">Login</button>
+    
+    <!-- Error message placeholder -->
+    <div id="errorMessage" class="error-message"></div>
+</form>
+
+<elsa-backend-provider id="backendProvider" remote-endpoint="https://localhost:5001/elsa/api" ></elsa-backend-provider>
+
+<div id="elsaComponentsContainer">
+    <!-- Elsa components will be dynamically added here -->
+</div>
 
 
 <div id="blazor-error-ui">
@@ -42,6 +160,111 @@
 <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+        // Flag to track if dependent components have already been loaded
+        let componentsLoaded = false;
+
+        // Function to handle the login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // Make a POST request to the login API
+                const response = await fetch('https://localhost:5001/elsa/api/identity/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                const bearerToken = data.accessToken; // Assuming the API returns a token in the response
+
+                console.log('Login successful! Token:', bearerToken);
+
+                // Store the bearer token (e.g., in localStorage or sessionStorage)
+                localStorage.setItem('bearerToken', bearerToken);
+
+               // Set the access-token property on the elsa component
+               const backendProvider = document.getElementById('backendProvider');
+                if (backendProvider) {
+                    backendProvider.setAttribute('access-token', bearerToken); // Set the attribute
+                    console.log('Token set on backendProvider:', bearerToken);
+                } else {
+                    console.error('backendProvider element not found!');
+                }
+
+                console.log('Login successful! Token:', bearerToken);
+
+                    // Load or create elsa components (only if not already loaded)
+                    if (!componentsLoaded) {
+                        loadElsaComponents(bearerToken);
+                        componentsLoaded = true; // Mark components as loaded
+                    }
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Function to load or create elsa components
+        function loadElsaComponents(token) {
+            const container = document.getElementById('elsaComponentsContainer');
+
+            const loadDefinitionList = false;
+            const loadDefinitionEditor = false;
+            const loadInstanceList = false;
+            const loadInstanceViewer = true;
+
+            const definitionId = '103fba76b4a95f5d';
+            const instanceId = '3ebd093e7ba09124';
+
+            // Example: Create a new elsa component
+            if (loadDefinitionList)
+            {
+                const definitionList = document.createElement('elsa-workflow-definition-list');
+                definitionList.setAttribute('access-token', token); // Set the attribute
+                container.appendChild(definitionList);
+            }
+
+            if (loadDefinitionEditor)
+            {
+                const definitionEditor = document.createElement('elsa-workflow-definition-editor');
+                definitionEditor.setAttribute('access-token', token); // Set the attribute
+                definitionEditor.setAttribute('definition-id', definitionId); // Set the attribute
+                container.appendChild(definitionEditor);
+            }
+
+            if (loadInstanceList)
+            {
+                const instanceList = document.createElement('elsa-workflow-instance-list');
+                instanceList.setAttribute('access-token', token); // Set the attribute
+                container.appendChild(instanceList);
+            }
+
+            if (loadInstanceViewer)
+            {
+                const instanceViewer = document.createElement('elsa-workflow-instance-viewer');
+                instanceViewer.setAttribute('access-token', token); // Set the attribute
+                instanceViewer.setAttribute('instance-id', instanceId); // Set the attribute
+                container.appendChild(instanceViewer);
+            }
+
+            console.log('Elsa component loaded with token:', token);
+        }
+    </script>
 </body>
 
 </html>
