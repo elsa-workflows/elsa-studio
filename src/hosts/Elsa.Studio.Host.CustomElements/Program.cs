@@ -53,7 +53,6 @@ builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
-// Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Build the application.
