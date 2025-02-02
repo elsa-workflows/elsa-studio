@@ -19,7 +19,7 @@
     <PageHeading Text="@Localizer["Workflow instances"]" />
 
 <div id="instance-file-upload-button-wrapper" class="d-none">
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected"/>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected" MaximumFileCount="Int32.MaxValue"/>
 </div>
 
 <MudTable
@@ -40,8 +40,8 @@
         <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
             <MudMenuItem OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
             <MudMenuItem OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
-            <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem>
-            <!--<MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem>-->
+            @* <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem> *@
+            @* <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
         </MudMenu>
         <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">@Localizer["Import"]</MudButton>
     </MudPaper>

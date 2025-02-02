@@ -3,12 +3,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Serialization;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
@@ -19,6 +23,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceDetails
 {
+    private readonly JsonSerializerOptions _serializerOptions = SerializerOptions.LogPersistenceConfigSerializerOptions;
+
     private WorkflowInstance? _workflowInstance;
 
     private ActivityExecutionRecord? _workflowActivityExecutionRecord;
@@ -44,88 +50,100 @@ public partial class WorkflowInstanceDetails
     /// </summary>
     [Parameter] public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
 
-    [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
-    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
+    [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = null!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
 
-    private IDictionary<string, DataPanelItem> WorkflowInstanceData
+    private DataPanelModel WorkflowInstanceData
     {
         get
         {
             if (_workflowInstance == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new();
 
-            return new Dictionary<string, DataPanelItem>
+            return new()
             {
-                ["ID"] = new(_workflowInstance.Id),
-                ["Definition ID"] = new(_workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
-                ["Definition version"] = new(_workflowInstance.Version.ToString()),
-                ["Definition version ID"] = new(_workflowInstance.DefinitionVersionId),
-                ["Correlation ID"] = new(_workflowInstance.CorrelationId),
-                ["Incident Strategy"] = new(GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
-                ["Status"] = new(_workflowInstance.Status.ToString()),
-                ["Sub status"] = new(_workflowInstance.SubStatus.ToString()),
-                ["Incidents"] = new(_workflowInstance.IncidentCount.ToString()),
-                ["Created"] = new(TimeFormatter.Format(_workflowInstance.CreatedAt)),
-                ["Updated"] = new(TimeFormatter.Format(_workflowInstance.UpdatedAt)),
-                ["Finished"] = new(TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem("ID", _workflowInstance.Id),
+                new DataPanelItem("Definition ID", _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
+                new DataPanelItem("Definition version", _workflowInstance.Version.ToString()),
+                new DataPanelItem("Definition version ID", _workflowInstance.DefinitionVersionId),
+                new DataPanelItem("Correlation ID", _workflowInstance.CorrelationId),
+                new DataPanelItem("Incident Strategy", GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
+                new DataPanelItem("Status", _workflowInstance.Status.ToString()),
+                new DataPanelItem("Sub status", _workflowInstance.SubStatus.ToString()),
+                new DataPanelItem("Incidents", _workflowInstance.IncidentCount.ToString()),
+                new DataPanelItem("Created", TimeFormatter.Format(_workflowInstance.CreatedAt)),
+                new DataPanelItem("Updated", TimeFormatter.Format(_workflowInstance.UpdatedAt)),
+                new DataPanelItem("Finished", TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem("Log Persistence Strategy", GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
             };
         }
     }
 
-    private Dictionary<string, DataPanelItem> WorkflowVariableData
+    private LogPersistenceConfiguration? GetLogPersistenceConfiguration()
+    {
+        if (!WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceConfig", out var value) || value == null!)
+            return null;
+
+
+        var configJson = ((JsonElement)value).GetProperty("default");
+        var config = JsonSerializer.Deserialize<LogPersistenceConfiguration>(configJson, _serializerOptions);
+        return config;
+    }
+
+    private DataPanelModel WorkflowVariableData
     {
         get
         {
-            return WorkflowDefinition == null 
-                ? new Dictionary<string, DataPanelItem>() 
-                : WorkflowDefinition.Variables.ToDictionary(entry => entry.Name, entry => new DataPanelItem(GetVariableValue(entry)));
+            return WorkflowDefinition == null
+                ? new DataPanelModel()
+                : new DataPanelModel(WorkflowDefinition.Variables.Select(entry => new DataPanelItem(entry.Name, GetVariableValue(entry))));
         }
     }
 
-    private Dictionary<string, DataPanelItem> WorkflowInputData
+    private DataPanelModel WorkflowInputData
     {
         get
         {
             if (_workflowInstance == null || WorkflowDefinition == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new();
 
-            var inputData = new Dictionary<string, DataPanelItem>();
+            var inputData = new DataPanelModel();
             foreach (var input in WorkflowDefinition.Inputs)
             {
                 _workflowInstance.WorkflowState.Input.TryGetValue(input.Name, out object? inputFromInstance);
                 var inputName = !string.IsNullOrWhiteSpace(input.DisplayName) ? input.DisplayName : input.Name;
-                inputData.Add(inputName, new DataPanelItem(inputFromInstance?.ToString()));
+                inputData.Add(inputName, inputFromInstance?.ToString());
             }
 
             return inputData;
         }
     }
 
-    private Dictionary<string, DataPanelItem> WorkflowOutputData
+    private DataPanelModel WorkflowOutputData
     {
         get
         {
             if (_workflowInstance == null || WorkflowDefinition == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new DataPanelModel();
 
-            var outputData = new Dictionary<string, DataPanelItem>();
+            var outputData = new DataPanelModel();
             foreach (var output in WorkflowDefinition.Outputs)
             {
                 _workflowInstance.WorkflowState.Output.TryGetValue(output.Name, out object? outputFromInstance);
                 var outputName = !string.IsNullOrWhiteSpace(output.DisplayName) ? output.DisplayName : output.Name;
-                outputData.Add(outputName, new DataPanelItem(outputFromInstance?.ToString()));
+                outputData.Add(outputName, outputFromInstance?.ToString());
             }
 
             return outputData;
         }
     }
 
-    private Dictionary<string, DataPanelItem> WorkflowInstanceSubWorkflowData
+    private DataPanelModel WorkflowInstanceSubWorkflowData
     {
         get
         {
@@ -138,40 +156,39 @@ public partial class WorkflowInstanceDetails
             var isWorkflowActivity = descriptor != null &&
                                      descriptor.CustomProperties.TryGetValue("RootType", out var rootTypeNameElement) &&
                                      ((JsonElement)rootTypeNameElement).GetString() == "WorkflowDefinitionActivity";
-            var workflowDefinitionId = isWorkflowActivity ? SelectedSubWorkflow.GetWorkflowDefinitionId() : default;
+            var workflowDefinitionId = isWorkflowActivity ? SelectedSubWorkflow.GetWorkflowDefinitionId() : null;
 
             if (workflowDefinitionId == null)
                 return new();
 
             return new()
             {
-                ["ID"] = new(SelectedSubWorkflow.GetId()),
-                ["Name"] = new(SelectedSubWorkflow.GetName()),
-                ["Type"] = new(SelectedSubWorkflow.GetTypeName()),
-                ["Definition ID"] = new(workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
-                ["Definition version"] = new(SelectedSubWorkflow.GetVersion().ToString()),
+                new DataPanelItem("ID", SelectedSubWorkflow.GetId()),
+                new DataPanelItem("Name", SelectedSubWorkflow.GetName()),
+                new DataPanelItem("Type", SelectedSubWorkflow.GetTypeName()),
+                new DataPanelItem("Definition ID", workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
+                new DataPanelItem("Definition version", SelectedSubWorkflow.GetVersion().ToString()),
             };
         }
     }
 
-    private Dictionary<string, DataPanelItem> SubWorkflowInputData
+    private DataPanelModel SubWorkflowInputData
     {
         get
         {
             if (SelectedSubWorkflowExecutions == null || SelectedSubWorkflow == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new();
 
             var execution = SelectedSubWorkflowExecutions.LastOrDefault();
-            var inputData = new Dictionary<string, DataPanelItem>();
+            var inputData = new DataPanelModel();
             var activityState = execution?.ActivityState;
             if (activityState != null)
             {
-                var activityDescriptor =
-                    ActivityRegistry.Find(SelectedSubWorkflow.GetTypeName(), SelectedSubWorkflow.GetVersion())!;
+                var activityDescriptor = ActivityRegistry.Find(SelectedSubWorkflow.GetTypeName(), SelectedSubWorkflow.GetVersion())!;
                 foreach (var inputDescriptor in activityDescriptor.Inputs)
                 {
-                    var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : default;
-                    inputData[inputDescriptor.DisplayName ?? inputDescriptor.Name] = new(inputValue?.ToString());
+                    var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
+                    inputData.Add(inputDescriptor.DisplayName ?? inputDescriptor.Name, inputValue?.ToString());
                 }
             }
 
@@ -179,15 +196,15 @@ public partial class WorkflowInstanceDetails
         }
     }
 
-    private Dictionary<string, DataPanelItem> SubWorkflowOutputData
+    private DataPanelModel SubWorkflowOutputData
     {
         get
         {
             if (SelectedSubWorkflowExecutions == null || SelectedSubWorkflow == null)
-                return new Dictionary<string, DataPanelItem>();
+                return new();
 
             var execution = SelectedSubWorkflowExecutions.LastOrDefault();
-            var outputData = new Dictionary<string, DataPanelItem>();
+            var outputData = new DataPanelModel();
 
             if (execution != null)
             {
@@ -199,9 +216,9 @@ public partial class WorkflowInstanceDetails
                 foreach (var outputDescriptor in outputDescriptors)
                 {
                     var outputValue = outputs != null
-                        ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : default
-                        : default;
-                    outputData[outputDescriptor.DisplayName ?? outputDescriptor.Name] = new(outputValue?.ToString());
+                        ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
+                        : null;
+                    outputData.Add(outputDescriptor.DisplayName ?? outputDescriptor.Name, outputValue?.ToString());
                 }
             }
 
@@ -245,7 +262,7 @@ public partial class WorkflowInstanceDetails
     {
         _workflowActivityExecutionRecord = await GetLastWorkflowActivityExecutionRecordAsync(workflowInstanceId);
     }
-    
+
     private async Task GetVariablesAsync(string workflowInstanceId)
     {
         _variables = (await WorkflowInstanceService.GetVariablesAsync(workflowInstanceId)).ToList();
@@ -284,5 +301,11 @@ public partial class WorkflowInstanceDetails
             .Split(".", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last()
             .Replace("Strategy", "")
             .Humanize() ?? "Default";
+    }
+
+    private static string? GetLogPersistenceConfigurationDisplayName(string? logPersistenceConfigurationTypeName)
+    {
+        //"Elsa.Workflows.LogPersistence.Strategies.Include, Elsa.Workflows.Core"
+        return logPersistenceConfigurationTypeName?.Split(",")[0].Split(".")[^1] ;
     }
 }

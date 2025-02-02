@@ -83,7 +83,7 @@ public partial class Agents
 
     private async Task EditAsync(string id)
     {
-        await InvokeAsync(() => NavigationManager.NavigateTo($"/ai/agents/{id}"));
+        await InvokeAsync(() => NavigationManager.NavigateTo($"ai/agents/{id}"));
     }
 
     private void Reload()

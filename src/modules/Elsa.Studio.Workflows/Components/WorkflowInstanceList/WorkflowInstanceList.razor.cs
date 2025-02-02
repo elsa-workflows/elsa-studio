@@ -65,7 +65,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task LoadWorkflowDefinitionsAsync()
     {
-        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.Published);
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.LatestOrPublished);
 
         WorkflowDefinitions = workflowDefinitionsResponse.Items;
     }
@@ -90,7 +90,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         try
         {
             var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request, cancellationToken);
-            var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
+            var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).Distinct().ToList();
 
             var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
             {

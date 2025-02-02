@@ -11,7 +11,6 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Domain.Services;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -23,7 +22,7 @@ using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 using ThrottleDebounce;
-using static MudBlazor.Colors;
+using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -33,9 +32,9 @@ public partial class WorkflowEditor
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
     private bool _isDirty;
-    private RadzenSplitterPane _activityPropertiesPane = default!;
+    private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
-    private DiagramDesignerWrapper _diagramDesigner = default!;
+    private DiagramDesignerWrapper _diagramDesigner = null!;
 
     /// <inheritdoc />
     public WorkflowEditor()
@@ -44,7 +43,7 @@ public partial class WorkflowEditor
     }
 
     /// Gets or sets the drag and drop manager via property injection.
-    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = default!;
+    [CascadingParameter] public DragDropManager DragDropManager { get; set; } = null!;
 
     /// Gets or sets the workflow definition.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -57,19 +56,19 @@ public partial class WorkflowEditor
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
-    
-    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
-    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
-    [Inject] private IMediator Mediator { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
-    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = default!;
-    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = default!;
-    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+
+    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IFiles Files { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
+    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
+    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -157,20 +156,12 @@ public partial class WorkflowEditor
         return result;
     }
 
-    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task PublishAsync(Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         await SaveChangesAsync(true, true, true, onSuccess, onFailure);
     }
 
-    private bool ShouldUpdateReferences() => _workflowDefinition!.Options.AutoUpdateConsumingWorkflows;
-
-    private async Task<int> UpdateReferencesAsync()
-    {
-        var updateReferencesResponse = await WorkflowDefinitionService.UpdateReferencesAsync(_workflowDefinition!.DefinitionId);
-        return updateReferencesResponse.AffectedWorkflows.Count;
-    }
-
-    private async Task RetractAsync(Func<Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task RetractAsync(Func<Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         var result = await WorkflowDefinitionEditorService.RetractAsync(_workflowDefinition!, async definition => await SetWorkflowDefinitionAsync(definition));
         await result.OnSuccessAsync(async _ =>
@@ -189,7 +180,7 @@ public partial class WorkflowEditor
         await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = default, Func<ValidationErrors, Task>? onFailure = default)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
         await InvokeAsync(async () =>
         {
@@ -213,7 +204,8 @@ public partial class WorkflowEditor
                 await result.OnFailedAsync(errors =>
                 {
                     onFailure?.Invoke(errors);
-                    Snackbar.Add(string.Join(Environment.NewLine, errors.Errors.Select(x => x.ErrorMessage)), Severity.Error, options => options.VisibleStateDuration = 5000);
+                    foreach (var error in errors.Errors) 
+                        Snackbar.Add(error.ErrorMessage, Severity.Error, options => options.VisibleStateDuration = 5000);
                     return Task.CompletedTask;
                 });
             }
@@ -227,7 +219,7 @@ public partial class WorkflowEditor
             }
         });
     }
-    
+
     private void SelectActivity(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
@@ -376,17 +368,36 @@ public partial class WorkflowEditor
                 return Task.CompletedTask;
             }
         };
-        var importedFiles = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
+        var importResults = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
+        var failedImports = importResults.Where(x => !x.IsSuccess).ToList();
+        var successfulImports = importResults.Where(x => x.IsSuccess).ToList();
 
         IsProgressing = false;
         _isDirty = false;
         StateHasChanged();
 
-        if (importedFiles.Count == 0)
-            Snackbar.Add("No files were imported.", Severity.Warning);
-        else if (importedFiles.Count == 1)
-            Snackbar.Add($"Successfully imported workflow definition from file {importedFiles[0].Name}.", Severity.Success);
-        else if (importedFiles.Count > 1)
-            Snackbar.Add($"Successfully imported {importedFiles.Count} files.", Severity.Success);
+        if (importResults.Count == 0)
+        {
+            Snackbar.Add("No workflows were imported.", Severity.Info);
+            return;
+        }
+
+        if (successfulImports.Count == 1)
+            Snackbar.Add($"Successfully imported 1 workflow definition.", Severity.Success, ConfigureSnackbar);
+        else if (importResults.Count > 1)
+            Snackbar.Add($"Successfully imported {importResults.Count} workflow definitions.", Severity.Success, ConfigureSnackbar);
+
+        if (failedImports.Count == 1)
+            Snackbar.Add($"Failed to import 1 workflow definition: {failedImports[0].Failure!.ErrorMessage}", Severity.Error, ConfigureSnackbar);
+        else if (failedImports.Count > 1) 
+            Snackbar.Add($"Failed to import {failedImports.Count} workflow definitions. Errors: {string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))}", Severity.Error, ConfigureSnackbar);
+
+        return;
+        void ConfigureSnackbar(SnackbarOptions snackbarOptions)
+        {
+            snackbarOptions.SnackbarVariant = Variant.Filled;
+            snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
+            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+        }
     }
 }

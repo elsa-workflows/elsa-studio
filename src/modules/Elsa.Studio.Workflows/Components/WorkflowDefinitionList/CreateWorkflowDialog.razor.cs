@@ -14,23 +14,23 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 public partial class CreateWorkflowDialog
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
-    private EditContext _editContext = default!;
-    private WorkflowPropertiesModelValidator _validator = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
+    private EditContext _editContext = null!;
+    private WorkflowPropertiesModelValidator _validator = null!;
+    private FluentValidationValidator _fluentValidationValidator = null!;
 
     /// <summary>
     /// The name of the workflow to create.
     /// </summary>
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _metadataModel.Name = WorkflowName;
-        _editContext = new EditContext(_metadataModel);
-        _validator = new WorkflowPropertiesModelValidator(WorkflowDefinitionService);
+        _editContext = new(_metadataModel);
+        _validator = new(WorkflowDefinitionService);
     }
 
     private Task OnCancelClicked()

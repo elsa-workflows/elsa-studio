@@ -43,9 +43,7 @@ public static class ActivityVisitorExtensions
     /// Creates an activity graph based on the provided JSON activity.
     public static async Task<ActivityGraph> VisitAndCreateGraphAsync(this IActivityVisitor visitor, JsonObject activity)
     {
-        var lookup = await visitor.VisitAndMapAsync(activity);
-        var activityGraph = new ActivityGraph(activity, lookup);
-        return activityGraph;
+        return await new ActivityGraph(activity, visitor).IndexAsync();
     }
     
     /// Creates an activity from the specified workflow definition.
