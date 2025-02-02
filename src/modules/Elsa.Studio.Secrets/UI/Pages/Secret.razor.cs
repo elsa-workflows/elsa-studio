@@ -46,6 +46,6 @@ public partial class Secret : StudioComponentBase
         await apiClient.UpdateAsync(SecretId, _model);
         Snackbar.Add("Secret successfully updated.", Severity.Success);
         StateHasChanged();
-        NavigationManager.NavigateTo("/secrets");
+        NavigationManager.NavigateTo("secrets");
     }
 }
