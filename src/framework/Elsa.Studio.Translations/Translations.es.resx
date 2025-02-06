@@ -370,4 +370,85 @@
   <data name="Definition version" xml:space="preserve">
     <value>Versión de Definición</value>
   </data>
+  <data name="Function" xml:space="preserve">
+    <value>Función</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="HTTP" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="Incident Strategy" xml:space="preserve">
+    <value>Estrategia de incidentes</value>
+  </data>
+  <data name="Incidents" xml:space="preserve">
+    <value>Incidentes</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Información</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Instances" xml:space="preserve">
+    <value>Instancias</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>Última versión</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Cargando</value>
+  </data>
+  <data name="Max Tokens" xml:space="preserve">
+    <value>Tokens máximos</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Metadata</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
+    <value>El nombre de la actividad. Otras actividades pueden hacer referencia a las actividades nombradas.</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="No agents found" xml:space="preserve">
+    <value>No se han encontrado agentes</value>
+  </data>
+  <data name="No API keys found" xml:space="preserve">
+    <value>No se han encontrado API keys</value>
+  </data>
+  <data name="No outcomes associated with this execution." xml:space="preserve">
+    <value>No hay resultados asociados con esta ejecución.</value>
+  </data>
+  <data name="No output associated with this execution." xml:space="preserve">
+    <value>No hay salidas asociadas con esta ejecución.</value>
+  </data>
+  <data name="Open File" xml:space="preserve">
+    <value>Abrir archivo</value>
+  </data>
+  <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
+    <value>Importar un archivo JSON que contenga datos del flujo de trabajo para anular el contenido del flujo de trabajo actual.</value>
+  </data>
+  <data name="Looping" xml:space="preserve">
+    <value>Bucles</value>
+  </data>
+  <data name="Log Persistence Strategy" xml:space="preserve">
+    <value>Estrategia de persistencia de logs</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
 </root>
