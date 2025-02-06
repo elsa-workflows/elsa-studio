@@ -1,10 +1,8 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
 @using Elsa.Studio.Extensions
-@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
 <CascadingValue Value="ExpressionDescriptorProvider">
@@ -54,6 +52,21 @@
                 </Well>
             }
         </MudTabPanel>
+
+        <MudTabPanel Text="@Localizer["Commit Strategy"]">
+            @if (Activity != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <CommitStrategyTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"/>
+                </ScrollableWell>
+            }
+            else
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["This activity does not have any common properties."]</MudAlert>
+                </Well>
+            }
+        </MudTabPanel>
         
         @if (IsTaskActivity)
         {
@@ -64,7 +77,7 @@
             </MudTabPanel>
         }
 
-        <MudTabPanel Text="@Localizer["Log Persistence"]">
+        <MudTabPanel Text="@Localizer["Log"]">
               <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <LogPersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
               </ScrollableWell>
