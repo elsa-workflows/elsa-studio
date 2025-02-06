@@ -25,23 +25,25 @@ public partial class EditInputDialog
 
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
     [Parameter] public InputDefinition? Input { get; set; }
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
+    /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        _editContext = new EditContext(_model);
+        _editContext = new(_model);
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
     }
 
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _editContext = new EditContext(_model);
-        _validator = new InputModelValidator(WorkflowDefinition);
+        _editContext = new(_model);
+        _validator = new(WorkflowDefinition);
         
         if (Input == null)
         {
