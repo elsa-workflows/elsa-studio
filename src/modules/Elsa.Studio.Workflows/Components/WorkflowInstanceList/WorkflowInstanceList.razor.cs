@@ -65,9 +65,16 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task LoadWorkflowDefinitionsAsync()
     {
-        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.LatestOrPublished);
-
-        WorkflowDefinitions = workflowDefinitionsResponse.Items;
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new(), VersionOptions.LatestOrPublished);
+        var workflowDefinitions = workflowDefinitionsResponse.Items;
+        
+        // Filter the definitions to ensure only the one with the highest version for each DefinitionId remains
+        var filteredWorkflowDefinitions = workflowDefinitions
+            .GroupBy(definition => definition.DefinitionId) // Group by DefinitionId
+            .Select(group => group.OrderByDescending(definition => definition.Version).First()) // Get the highest version in each group
+            .ToList();
+        
+        WorkflowDefinitions = filteredWorkflowDefinitions;
     }
 
     private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)

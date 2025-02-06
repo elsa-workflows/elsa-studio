@@ -22,14 +22,14 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendApiClientProvider, IIdentityGenerator identityGenerator, IMediator mediator) : IWorkflowDefinitionService
 {
     /// <inheritdoc />
-    public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         return await api.ListAsync(request, versionOptions, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         return await api.GetByDefinitionIdAsync(definitionId, versionOptions, cancellationToken);
@@ -178,7 +178,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
 
     /// <inheritdoc />
-    public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default)
+    public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         var response = await api.GetIsNameUniqueAsync(name, definitionId, cancellationToken);
@@ -205,7 +205,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
 
     /// <inheritdoc />
-    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = null, CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
@@ -242,7 +242,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
 
     /// <inheritdoc />
-    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionIdExporting(definitionId, versionOptions), cancellationToken);
