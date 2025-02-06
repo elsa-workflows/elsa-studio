@@ -99,7 +99,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request, cancellationToken);
             var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).Distinct().ToList();
 
-            var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+            var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new()
             {
                 Ids = definitionVersionIds,
             }, cancellationToken: cancellationToken);
@@ -125,19 +125,19 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                 x.FinishedAt));
 
             _totalCount = (int)workflowInstancesResponse.TotalCount;
-            return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+            return new() { TotalItems = _totalCount, Items = rows };
         }
         catch(TaskCanceledException)
         {
             Logger.LogWarning("Failed to list workflow instances due to a cancellation.");
             _totalCount = 0;
-            return new TableData<WorkflowInstanceRow> { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
+            return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
         }
         catch (ApiException ex) when (ex.InnerException is TaskCanceledException)
         {
             Logger.LogWarning("Failed to list workflow instances due to a cancellation.");
             _totalCount = 0;
-            return new TableData<WorkflowInstanceRow> { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
+            return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
         }
         
     }
@@ -151,7 +151,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         catch (ApiException ex) when (ex.InnerException is TaskCanceledException)
         {
             Logger.LogWarning("Failed to list workflow instances due to a timeout.");
-            return new PagedListResponse<WorkflowInstanceSummary>
+            return new()
             {
                 Items = []
             };
@@ -163,9 +163,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var date = !string.IsNullOrWhiteSpace(source.Date) ? DateTime.Parse(source.Date) : DateTime.MinValue;
         var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
         var dateTime = date.Add(time);
-        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
+        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new(dateTime);
 
-        return new TimestampFilter
+        return new()
         {
             Column = source.Column,
             Operator = source.Operator,
@@ -351,7 +351,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private void OnAddTimestampFilterClicked()
     {
-        TimestampFilters.Add(new TimestampFilterModel());
+        TimestampFilters.Add(new());
         StateHasChanged();
     }
 
@@ -375,7 +375,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private void StartElapsedTimer()
     {
-        _elapsedTimer ??= new Timer(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
     }
 
     private void StopElapsedTimer()
