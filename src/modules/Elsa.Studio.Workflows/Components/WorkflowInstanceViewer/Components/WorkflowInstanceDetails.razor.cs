@@ -171,6 +171,25 @@ public partial class WorkflowInstanceDetails
             };
         }
     }
+    
+    private IEnumerable<IDictionary<string, DataPanelItem>> IncidentsData
+    {
+        get
+        {
+            if (_workflowInstance == null)
+                return new List<IDictionary<string, DataPanelItem>>();
+            
+            return _workflowInstance.WorkflowState.Incidents
+                .Select(i => new Dictionary<string, DataPanelItem>()
+                {
+                    ["Message"] = new DataPanelItem(i.Exception?.Message),
+                    ["InnerException"] = new(i.Exception?.InnerException != null
+                    ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
+                    : default),
+                    ["StackTrace"] = new(i.Exception?.StackTrace)
+                });
+        }
+    }
 
     private DataPanelModel SubWorkflowInputData
     {
