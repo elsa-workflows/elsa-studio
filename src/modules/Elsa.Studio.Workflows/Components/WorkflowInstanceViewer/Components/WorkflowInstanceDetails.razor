@@ -18,6 +18,27 @@
                         <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
                     </div>
                 </Well>
+            } 
+        </MudTabPanel>
+        <MudTabPanel Text="Incidents">
+            @if (IncidentsData.Any())
+            {
+                <VerticalWell ExtraPadding="50">
+                @foreach (var incident in IncidentsData)
+                {
+                    <Well>
+                        <div>
+                            <DataPanel Data="incident" HideEmptyValues="true"/>
+                        </div>
+                    </Well>
+                }
+                </VerticalWell>
+            }
+            else
+            {
+                <Well>
+                    No incidents
+                </Well>
             }
         </MudTabPanel>
         <MudTabPanel Text="Variables">
