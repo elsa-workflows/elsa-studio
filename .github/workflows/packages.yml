@@ -109,7 +109,7 @@ jobs:
       - name: Upload npm react wrapper package
         uses: actions/upload-artifact@v4
         with:
-          name: elsa-studio-npm-packages
+          name: elsa-studio-npm-react-packages
           path: ./src/wrappers/wrappers/react-wrapper/*.tgz
 
   publish_npm_preview_feedzio:
