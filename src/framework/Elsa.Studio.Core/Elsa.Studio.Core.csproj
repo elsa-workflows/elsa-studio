@@ -6,14 +6,6 @@
         <RootNamespace>Elsa.Studio</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'">
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
-        <PackageReference Include="Microsoft.JSInterop"/>
-    </ItemGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
         <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
