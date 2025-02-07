@@ -14,8 +14,17 @@ public class RedirectToLogin : ComponentBase
 
     /// <inheritdoc />
     protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        NavigationManager.NavigateTo("login", true);
+    { 
+        var returnUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            NavigationManager.NavigateTo("login", true);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"login?returnUrl={returnUrl}", true);
+        }
+        
         return Task.CompletedTask;
     }
 }
