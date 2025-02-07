@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
@@ -33,7 +34,7 @@ public partial class WorkflowInstanceList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IAlterationsApi AlterationsApi { get; set; } = default!;
+    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
 
@@ -61,7 +62,7 @@ public partial class WorkflowInstanceList
 
     private async Task LoadWorkflowDefinitionsAsync()
     {
-        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.Published);
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new(), VersionOptions.Published);
 
         WorkflowDefinitions = workflowDefinitionsResponse.Items;
     }
@@ -86,7 +87,7 @@ public partial class WorkflowInstanceList
         var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request);
         var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
 
-        var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new()
         {
             Ids = definitionVersionIds,
         });
@@ -112,7 +113,7 @@ public partial class WorkflowInstanceList
             x.FinishedAt));
 
         _totalCount = (int)workflowInstancesResponse.TotalCount;
-        return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+        return new() { TotalItems = _totalCount, Items = rows };
     }
 
     private TimestampFilter Map(TimestampFilterModel source)
@@ -120,9 +121,9 @@ public partial class WorkflowInstanceList
         var date = !string.IsNullOrWhiteSpace(source.Date) ? DateTime.Parse(source.Date) : DateTime.MinValue;
         var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
         var dateTime = date.Add(time);
-        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
+        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new(dateTime);
 
-        return new TimestampFilter
+        return new()
         {
             Column = source.Column,
             Operator = source.Operator,
@@ -260,7 +261,8 @@ public partial class WorkflowInstanceList
                 }
             };
 
-            await AlterationsApi.Submit(plan);
+            var alterationsApi = await RemoteBackendApiClientProvider.GetApiAsync<IAlterationsApi>();
+            await alterationsApi.Submit(plan);
             Snackbar.Add("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
         else
@@ -334,7 +336,7 @@ public partial class WorkflowInstanceList
 
     private void OnAddTimestampFilterClicked()
     {
-        TimestampFilters.Add(new TimestampFilterModel());
+        TimestampFilters.Add(new());
         StateHasChanged();
     }
 
