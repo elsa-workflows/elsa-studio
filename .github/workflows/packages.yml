@@ -112,7 +112,7 @@ jobs:
           name: elsa-studio-npm-react-packages
           path: ./src/wrappers/wrappers/react-wrapper/*.tgz
 
-    publish_npm_preview_feedzio:
+  publish_npm_preview_feedzio:
     name: Publish npm packages to feedz.io
     needs: build
     runs-on: ubuntu-latest
