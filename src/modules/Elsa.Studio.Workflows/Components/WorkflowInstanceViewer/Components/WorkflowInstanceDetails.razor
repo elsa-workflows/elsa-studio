@@ -31,7 +31,7 @@
                     <MudExpansionPanels>
                     @foreach (var incident in IncidentsData)
                     {
-                        <MudExpansionPanel Text="@incident["Message"].Text" Dense="false" Gutters="false" Class="incidents-custom-spacing">
+                        <MudExpansionPanel Text="@incident.SingleOrDefault(i=>i.Label == "Message")?.Text" Dense="false" Gutters="false" Class="incidents-custom-spacing">
                             <Well>
                                 <DataPanel Data="incident" HideEmptyValues="true"/>
                             </Well>

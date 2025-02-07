@@ -177,22 +177,22 @@ public partial class WorkflowInstanceDetails
         }
     }
     
-    private IEnumerable<IDictionary<string, DataPanelItem>> IncidentsData
+    private IEnumerable<DataPanelModel> IncidentsData
     {
         get
         {
             if (_workflowInstance == null)
-                return new List<IDictionary<string, DataPanelItem>>();
-            
+                return new List<DataPanelModel>();
+
             return _workflowInstance.WorkflowState.Incidents
-                .Select(i => new Dictionary<string, DataPanelItem>()
+                .Select(i => new DataPanelModel
                 {
-                    ["ActivityId"] = new(i.ActivityId,null, () => OnIncidentActivityIdClicked(i.ActivityId)),
-                    ["Message"] = new(i.Exception?.Message ?? ""),
-                    ["InnerException"] = new(i.Exception?.InnerException != null
-                    ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
-                    : default),
-                    ["StackTrace"] = new(i.Exception?.StackTrace)
+                    new DataPanelItem("ActivityId", i.ActivityId, null, () => OnIncidentActivityIdClicked(i.ActivityId)),
+                    new DataPanelItem("Message", i.Exception?.Message ?? ""),
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
+                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
+                        : ""),
+                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
                 });
         }
     }
