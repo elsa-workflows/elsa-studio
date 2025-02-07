@@ -7,80 +7,84 @@
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
     @{
-        var data = (HideEmptyValues
-                ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value.Text))
-                : Data)
-            .ToDictionary(x => x.Key, x => x.Value);
+    var data = (HideEmptyValues
+    ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Value.Text))
+    : Data)
+    .ToDictionary(x => x.Key, x => x.Value);
     }
     @if (data.Any())
     {
-        @foreach (var item in data)
-        {
-            <tr>
-                <td style="width: 200px;">@item.Key</td>
-                <td style="width: 50px;">
-                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
-                </td>
-                <td>
-                    @if (!string.IsNullOrWhiteSpace(item.Value.Link))
-                    {
-                            <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
-                        }
-                        else
-                        {
-                            @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
-                            {
-                                <span><Timestamp Value="@Convert.ToDateTime(item.Value.Text)"></Timestamp></span>
-                            }
-                            else
-                            {
-                                <span>@item.Value.Text</span>
-                            }
-                    }
-                </td>
-            </tr>
-        }
+    @foreach (var item in data)
+    {
+    <tr>
+        <td style="width: 200px;">@item.Key</td>
+        <td style="width: 50px;">
+            <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Value.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Value.Text))"/>
+        </td>
+        <td>
+            @if (!string.IsNullOrWhiteSpace(item.Value.Link))
+            {
+                <MudLink Typo="Typo.body2" Href="@item.Value.Link">@item.Value.Text</MudLink>
+            }
+            else if (item.Value.OnClick != null)
+            {
+                <MudLink Typo="Typo.body2" OnClick="@item.Value.OnClick">@item.Value.Text</MudLink>
+            }
+            else
+            {
+            @if (@item.Key == "Created" || @item.Key == "Updated" || item.Key == "Finished")
+            {
+            <span><Timestamp Value="@Convert.ToDateTime(item.Value.Text)"></Timestamp></span>
+            }
+            else
+            {
+            <span>@item.Value.Text</span>
+            }
+            }
+        </td>
+    </tr>
+    }
     }
     else
     {
-        if (ShowNoDataAlert)
-        {
-            <MudAlert Severity="Severity.Normal" Dense="true" Variant="Variant.Text">@NoDataMessage</MudAlert>
-        }
+    if (ShowNoDataAlert)
+    {
+    <MudAlert Severity="Severity.Normal" Dense="true" Variant="Variant.Text">@NoDataMessage</MudAlert>
+    }
     }
     </tbody>
 </MudSimpleTable>
 
 @code {
 
-    /// <summary>
-    /// The data to display.
-    /// </summary>
-    [Parameter]
-    public IDictionary<string, DataPanelItem> Data { get; set; } = new Dictionary<string, DataPanelItem>();
+/// <summary>
+/// The data to display.
+/// </summary>
+[Parameter]
+public IDictionary<string, DataPanelItem> Data { get; set; } = new Dictionary<string, DataPanelItem>();
 
-    /// <summary>
-    /// If true, empty values will be hidden.
-    /// </summary>
-    [Parameter]
-    public bool HideEmptyValues { get; set; }
+/// <summary>
+/// If true, empty values will be hidden.
+/// </summary>
+[Parameter]
+public bool HideEmptyValues { get; set; }
 
-    /// <summary>
-    /// If true, a message will be displayed when there is no data.
-    /// </summary>
-    [Parameter]
-    public bool ShowNoDataAlert { get; set; }
+/// <summary>
+/// If true, a message will be displayed when there is no data.
+/// </summary>
+[Parameter]
+public bool ShowNoDataAlert { get; set; }
 
-    /// <summary>
-    /// The message to display when there is no data.
-    /// </summary>
-    [Parameter]
-    public string NoDataMessage { get; set; } = "No data available.";
+/// <summary>
+/// The message to display when there is no data.
+/// </summary>
+[Parameter]
+public string NoDataMessage { get; set; } = "No data available.";
 
-    [Inject] private IClipboard Clipboard { get; set; } = default!;
+[Inject] private IClipboard Clipboard { get; set; } = default!;
 
-    private async Task OnCopyClicked(string value)
-    {
-        await Clipboard.CopyText(value);
-    }
+private async Task OnCopyClicked(string value)
+{
+await Clipboard.CopyText(value);
+}
 }

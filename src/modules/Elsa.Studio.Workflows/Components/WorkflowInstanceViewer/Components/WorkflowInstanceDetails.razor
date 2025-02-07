@@ -22,6 +22,29 @@
                         <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
                     </div>
                 </Well>
+            } 
+        </MudTabPanel>
+        <MudTabPanel Text="Incidents">
+            @if (IncidentsData.Any())
+            {
+                <VerticalWell ExtraPadding="50">
+                    <MudExpansionPanels>
+                    @foreach (var incident in IncidentsData)
+                    {
+                        <MudExpansionPanel Text="@incident["Message"].Text" Dense="false" Gutters="false" Class="incidents-custom-spacing">
+                            <Well>
+                                <DataPanel Data="incident" HideEmptyValues="true"/>
+                            </Well>
+                        </MudExpansionPanel>
+                    }
+                    </MudExpansionPanels>
+                </VerticalWell>
+            }
+            else
+            {
+                <Well>
+                    No incidents
+                </Well>
             }
         </MudTabPanel>
         <MudTabPanel Text="@Localizer["Variables"]">
@@ -88,3 +111,15 @@
         </MudTabPanel>
     </MudTabs>
 }
+
+<style>
+    .incidents-custom-spacing .mud-expand-panel-content,
+    .incidents-custom-spacing .mud-expand-panel-content .pa-4
+    {
+        padding: 0 !important;
+    }
+
+    .incidents-custom-spacing .mud-expand-panel-header {
+        padding: 6px 16px !important;
+    }
+</style>
