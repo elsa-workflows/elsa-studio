@@ -93,21 +93,21 @@ jobs:
       
       # Upload nuget packages
       - name: Upload nuget packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: ./packages/nuget/*nupkg
       
       # Upload npm wasm package
       - name: Upload npm wasm package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: ./packages/wasm/wwwroot/*.tgz
       
       # Upload npm react wrapper package
       - name: Upload npm react wrapper package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: ./src/wrappers/wrappers/react-wrapper/*.tgz
@@ -120,7 +120,7 @@ jobs:
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
@@ -146,7 +146,7 @@ jobs:
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
@@ -172,7 +172,7 @@ jobs:
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: elsa-studio-nuget-packages
@@ -188,7 +188,7 @@ jobs:
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: elsa-studio-nuget-packages
           path: elsa-studio-nuget-packages
