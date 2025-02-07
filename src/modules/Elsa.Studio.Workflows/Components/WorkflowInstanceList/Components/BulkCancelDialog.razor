@@ -1,0 +1,15 @@
+<MudDialog>
+    <TitleContent>
+        @MudDialog.Title
+    </TitleContent>
+    <DialogContent>
+        <MudStack>
+            <MudText>Are you sure you want to cancel the selected workflow instances?</MudText>
+            <MudCheckBox @bind-Value="ApplyToAllMatches" Label="Apply to all matches"/>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">No</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Yes</MudButton>
+    </DialogActions>
+</MudDialog>
