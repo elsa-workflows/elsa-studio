@@ -49,6 +49,11 @@ public partial class WorkflowInstanceDetails
     /// Gets or sets the current selected sub-workflow executions.
     /// </summary>
     [Parameter] public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the current selected incident activity id.
+    /// </summary>
+    [Parameter] public Func<string, Task>? IncidentActivityIdClicked { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
@@ -170,6 +175,32 @@ public partial class WorkflowInstanceDetails
                 ["Definition version"] = new(SelectedSubWorkflow.GetVersion().ToString()),
             };
         }
+    }
+    
+    private IEnumerable<DataPanelModel> IncidentsData
+    {
+        get
+        {
+            if (_workflowInstance == null)
+                return new List<DataPanelModel>();
+
+            return _workflowInstance.WorkflowState.Incidents
+                .Select(i => new DataPanelModel
+                {
+                    new DataPanelItem("ActivityId", i.ActivityId, null, () => OnIncidentActivityIdClicked(i.ActivityId)),
+                    new DataPanelItem("Message", i.Exception?.Message ?? ""),
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
+                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
+                        : ""),
+                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
+                });
+        }
+    }
+    
+    private async Task OnIncidentActivityIdClicked(string? activityId)
+    {
+        if (IncidentActivityIdClicked != null && !string.IsNullOrWhiteSpace(activityId))
+            await IncidentActivityIdClicked(activityId);
     }
 
     private Dictionary<string, DataPanelItem> SubWorkflowInputData
