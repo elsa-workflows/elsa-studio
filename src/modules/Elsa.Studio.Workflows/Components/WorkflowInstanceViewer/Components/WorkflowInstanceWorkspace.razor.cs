@@ -29,7 +29,6 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
-
     /// <inheritdoc />
     public bool IsReadOnly => true;
 
@@ -42,6 +41,12 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
         await _workflowInstanceDesigner.SelectWorkflowExecutionLogRecordAsync(entry);
     }
 
+    /// Selects the associated activity in the designer and activates its Event tab.
+    public async Task OnIncidentActivityIdClicked(string activityId)
+    {
+        await _workflowInstanceDesigner.SelectActivityByIdAsync(activityId);
+    }
+    
     private async Task OnPathChanged(DesignerPathChangedArgs args)
     {
         await _workflowInstanceDetails.UpdateSubWorkflowAsync(args.ParentActivity);
