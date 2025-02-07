@@ -21,7 +21,11 @@
                 <td>
                     @if (!string.IsNullOrWhiteSpace(item.Value.Link))
                     {
-                        <MudLink Href="@item.Value.Link">@item.Value.Text</MudLink>
+                        <MudLink Typo="Typo.body2" Href="@item.Value.Link">@item.Value.Text</MudLink>
+                    }
+                    else if (item.Value.OnClick != null)
+                    {
+                        <MudLink Typo="Typo.body2" OnClick="@item.Value.OnClick">@item.Value.Text</MudLink>
                     }
                     else
                     {
@@ -73,5 +77,4 @@
     {
         await Clipboard.CopyText(value);
     }
-
 }

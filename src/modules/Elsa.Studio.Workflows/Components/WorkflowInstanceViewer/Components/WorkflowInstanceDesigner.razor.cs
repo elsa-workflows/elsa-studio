@@ -103,6 +103,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (_designer == null) return;
         await _designer.SelectActivityAsync(nodeId);
     }
+    
+    /// Selects the activity by its ID.
+    public async Task SelectActivityByIdAsync(string activityId)
+    {
+        if (_designer == null) return;
+        await _designer.SelectActivityByActivityIdAsync(activityId);
+    }
 
     /// Sets the selected journal entry.
     public async Task SelectWorkflowExecutionLogRecordAsync(JournalEntry entry)
