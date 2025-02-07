@@ -1,8 +1,6 @@
 @using Elsa.Studio.DomInterop.Contracts
 @using Elsa.Studio.Localization.Time.Components
 @using Elsa.Studio.Models
-@using System.Globalization
-@using Microsoft.Extensions.Localization
 
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
@@ -23,18 +21,22 @@
                 <td>
                     @if (!string.IsNullOrWhiteSpace(item.Link))
                     {
-                            <MudLink Href="@item.Link">@item.Text</MudLink>
+                        <MudLink Typo="Typo.body2" Href="@item.Link">@item.Text</MudLink>
+                    }
+                    else if (item.OnClick != null)
+                    {
+                        <MudLink Typo="Typo.body2" OnClick="@item.OnClick">@item.Text</MudLink>
+                    }
+                    else
+                    {
+                        @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
+                        {
+                            <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
                         }
                         else
                         {
-                            @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
-                            {
-                                <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
-                            }
-                            else
-                            {
-                                <span>@item.Text</span>
-                            }
+                            <span>@item.Text</span>
+                        }
                     }
                 </td>
             </tr>
