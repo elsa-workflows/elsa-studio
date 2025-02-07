@@ -165,7 +165,8 @@ public partial class WorkflowInstanceDetails
             return _workflowInstance.WorkflowState.Incidents
                 .Select(i => new Dictionary<string, DataPanelItem>()
                 {
-                    ["Message"] = new DataPanelItem(i.Exception?.Message),
+                    ["ActivityId"] = new DataPanelItem(i.ActivityId),
+                    ["Message"] = new DataPanelItem(i.Exception?.Message ?? ""),
                     ["InnerException"] = new(i.Exception?.InnerException != null
                     ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
                     : default),

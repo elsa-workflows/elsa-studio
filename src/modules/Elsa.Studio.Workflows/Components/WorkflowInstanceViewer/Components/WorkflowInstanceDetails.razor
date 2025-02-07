@@ -24,14 +24,16 @@
             @if (IncidentsData.Any())
             {
                 <VerticalWell ExtraPadding="50">
-                @foreach (var incident in IncidentsData)
-                {
-                    <Well>
-                        <div>
-                            <DataPanel Data="incident" HideEmptyValues="true"/>
-                        </div>
-                    </Well>
-                }
+                    <MudExpansionPanels>
+                    @foreach (var incident in IncidentsData)
+                    {
+                        <MudExpansionPanel Text="@incident["Message"].Text" Dense="false" Gutters="false" Class="no-padding-margin">
+                            <Well>
+                                <DataPanel Data="incident" HideEmptyValues="true"/>
+                            </Well>
+                        </MudExpansionPanel>
+                    }
+                    </MudExpansionPanels>
                 </VerticalWell>
             }
             else
@@ -105,3 +107,11 @@
         </MudTabPanel>
     </MudTabs>
 }
+
+<style>
+    .no-padding-margin .mud-expand-panel-content,
+    .no-padding-margin .mud-expand-panel-content .pa-4
+    {
+        padding: 0 !important;
+    }
+</style>
