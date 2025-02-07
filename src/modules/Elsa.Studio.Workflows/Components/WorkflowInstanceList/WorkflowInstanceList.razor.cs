@@ -249,15 +249,16 @@ public partial class WorkflowInstanceList
         {
             var plan = new AlterationPlanParams
             {
+                Alterations = [new Cancel()],
                 Filter = new()
                 {
                     HasIncidents = HasIncidents,
                     IsSystem = false,
                     SearchTerm = SearchTerm,
-                    Statuses = SelectedStatuses,
-                    SubStatuses = SelectedSubStatuses,
-                    TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList(),
-                    DefinitionIds = SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList()
+                    Statuses = SelectedStatuses.Any() ? SelectedStatuses : null,
+                    SubStatuses = SelectedSubStatuses.Any() ? SelectedSubStatuses : null,
+                    TimestampFilters = TimestampFilters.Any() ? TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList() : null,
+                    DefinitionIds = SelectedWorkflowDefinitions.Any() ? SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList() : null
                 }
             };
 
