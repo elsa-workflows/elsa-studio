@@ -256,6 +256,7 @@ public partial class WorkflowInstanceList
                 }],
                 Filter = new()
                 {
+                    EmptyFilterSelectsAll = true,
                     HasIncidents = HasIncidents,
                     IsSystem = false,
                     SearchTerm = SearchTerm,

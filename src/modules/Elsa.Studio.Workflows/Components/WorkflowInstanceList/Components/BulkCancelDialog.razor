@@ -1,10 +1,10 @@
 <MudDialog>
     <TitleContent>
-        @MudDialog.Title
+        <MudText Typo="Typo.h6">@MudDialog.Title</MudText>
     </TitleContent>
     <DialogContent>
         <MudStack>
-            <MudText>Are you sure you want to cancel the selected workflow instances?</MudText>
+            <MudText Typo="Typo.body1">Are you sure you want to cancel the selected workflow instances?</MudText>
             <MudCheckBox @bind-Value="ApplyToAllMatches" Label="Apply to all matches"/>
         </MudStack>
     </DialogContent>
