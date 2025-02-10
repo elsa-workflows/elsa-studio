@@ -9,8 +9,11 @@ public abstract class BackendComponentBase : StudioComponentBase
     [Parameter] public string? RemoteEndpoint { get; set; }
     [Parameter] public string? ApiKey { get; set; }
     [Parameter] public string? AccessToken { get; set; }
-    [Inject] private BackendService BackendService { get; set; } = default!;
+    [Parameter] public string? TenantId { get; set; }
+    [Parameter] public string? TenantIdHeaderName { get; set; }
+    [Inject] private BackendService BackendService { get; set; } = null!;
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         if (!string.IsNullOrWhiteSpace(RemoteEndpoint))
@@ -21,5 +24,11 @@ public abstract class BackendComponentBase : StudioComponentBase
 
         if (!string.IsNullOrWhiteSpace(AccessToken))
             BackendService.AccessToken = AccessToken;
+        
+        if(!string.IsNullOrWhiteSpace(TenantId))
+            BackendService.TenantId = TenantId;
+        
+        if(!string.IsNullOrWhiteSpace(TenantIdHeaderName))
+            BackendService.TenantIdHeaderName = TenantIdHeaderName;
     }
 }
