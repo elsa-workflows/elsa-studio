@@ -20,7 +20,7 @@ public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBa
         var sp = blazorServiceAccessor.Services;
         var jwtAccessor = sp.GetRequiredService<IJwtAccessor>();
         var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization = new("Bearer", accessToken);
 
         var response = await base.SendAsync(request, cancellationToken);
 
@@ -28,7 +28,7 @@ public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBa
         {
             // Refresh token and retry once.
             var tokens = await RefreshTokenAsync(jwtAccessor, cancellationToken);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+            request.Headers.Authorization = new("Bearer", tokens.AccessToken);
 
             // Retry.
             response = await base.SendAsync(request, cancellationToken);
@@ -45,14 +45,14 @@ public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBa
         // Setup request to get new tokens.
         var url = remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
         var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
-        refreshRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", refreshToken);
+        refreshRequestMessage.Headers.Authorization = new("Bearer", refreshToken);
         
         // Send request.
         var response = await base.SendAsync(refreshRequestMessage, cancellationToken);
 
         // If the refresh token is invalid, we can't do anything.
         if (response.StatusCode == HttpStatusCode.Unauthorized)
-            return new LoginResponse(false, null, null);
+            return new(false, null, null);
 
         // Parse response into tokens.
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
