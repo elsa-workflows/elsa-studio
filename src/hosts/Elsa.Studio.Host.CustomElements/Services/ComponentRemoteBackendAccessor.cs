@@ -2,7 +2,6 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.Options;
 using Elsa.Studio.Services;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Host.CustomElements.Services;
 
@@ -22,5 +21,5 @@ public class ComponentRemoteBackendAccessor : IRemoteBackendAccessor
     }
 
     /// <inheritdoc />
-    public RemoteBackend RemoteBackend => new(new Uri(_backendService.RemoteEndpoint));
+    public RemoteBackend RemoteBackend => new(new(_backendService.RemoteEndpoint));
 }
