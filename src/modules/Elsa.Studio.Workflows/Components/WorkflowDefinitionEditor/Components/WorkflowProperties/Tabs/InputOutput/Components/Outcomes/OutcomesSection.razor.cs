@@ -10,15 +10,16 @@ public partial class OutcomesSection
 {
     private MudChipField<string> _chipField = default!;
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
-    
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
+    [Parameter] public bool IsReadonly { get; set; } = default;
+
     private List<string> Outcomes => WorkflowDefinition.Outcomes.ToList();
-    
+
     private async Task OnValuesChanges(List<string> values)
     {
         WorkflowDefinition.Outcomes = values;
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 
     private void OnKeyDown(KeyboardEventArgs arg)
@@ -26,7 +27,7 @@ public partial class OutcomesSection
         // TODO: This is a hack to get the chips to update when the user presses enter.
         // Ideally, we can configure this on MudChipField, but this is not currently supported. 
         if (arg.Key is not ("Enter" or "Tab")) return;
-        
+
         var setChipsMethod = _chipField.GetType().GetMethod("SetChips", BindingFlags.Instance | BindingFlags.NonPublic);
         setChipsMethod!.Invoke(_chipField, null);
     }

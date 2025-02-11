@@ -4,19 +4,8 @@ using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-internal class MapperFactory : IMapperFactory
+internal class MapperFactory(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry) : IMapperFactory
 {
-    private readonly IActivityRegistry _activityRegistry;
-    private readonly IActivityPortService _activityPortService;
-    private readonly IActivityDisplaySettingsRegistry _activityDisplaySettingsRegistry;
-
-    public MapperFactory(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
-    {
-        _activityRegistry = activityRegistry;
-        _activityPortService = activityPortService;
-        _activityDisplaySettingsRegistry = activityDisplaySettingsRegistry;
-    }
-    
     public async Task<IFlowchartMapper> CreateFlowchartMapperAsync(CancellationToken cancellationToken = default)
     {
         var activityMapper = await CreateActivityMapperAsync(cancellationToken);
@@ -25,7 +14,7 @@ internal class MapperFactory : IMapperFactory
 
     public async Task<IActivityMapper> CreateActivityMapperAsync(CancellationToken cancellationToken = default)
     {
-        await _activityRegistry.EnsureLoadedAsync(cancellationToken);
-        return new ActivityMapper(_activityRegistry, _activityPortService, _activityDisplaySettingsRegistry);
+        await activityRegistry.EnsureLoadedAsync(cancellationToken);
+        return new ActivityMapper(activityRegistry, activityPortService, activityDisplaySettingsRegistry);
     }
 }

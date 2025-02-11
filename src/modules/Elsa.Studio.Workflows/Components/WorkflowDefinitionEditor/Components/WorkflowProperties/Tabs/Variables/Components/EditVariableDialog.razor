@@ -1,6 +1,8 @@
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.StorageDrivers.Models
 @using Elsa.Api.Client.Resources.VariableTypes.Models
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 @inherits StudioComponentBase
 
 <MudDialog>
@@ -9,8 +11,8 @@
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
                 <MudField Label="Id" HelperText="The ID of the variable." Variant="Variant.Outlined">@_model.Id</MudField>
-                <MudTextField Label="Name" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="The name of the variable." Variant="Variant.Outlined"/>
-                <MudSelectExtended T="VariableTypeDescriptor" @bind-Value="_model.VariableType" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Label="Type" Dense="false" Margin="Margin.Normal">
+                <MudTextField Label="@Localizer["Name"]" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="@Localizer["The name of the variable."]" Variant="Variant.Outlined" />
+                <MudSelectExtended T="VariableTypeDescriptor" @bind-Value="_model.VariableType" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Label="@Localizer["Type"]" Dense="false" Margin="Margin.Normal">
                     @foreach (var grouping in _groupedVariableTypes)
                     {
                         <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
@@ -21,21 +23,22 @@
                         </MudSelectItemGroupExtended>
                     }
                 </MudSelectExtended>
-                <MudField Variant="Variant.Outlined" Label="Is array" HelperText="Check this option if the variable holds an array of the selected type.">
-                    <MudCheckBox T="bool" @bind-Checked="_model.IsArray" Label="This variable is an array"></MudCheckBox>
+                <MudField Variant="Variant.Outlined" Label="@Localizer["Is array"]" HelperText="@Localizer["Check this option if the variable holds an array of the selected type."]">
+                    <MudCheckBox T="bool" @bind-Value="_model.IsArray" Label="@Localizer["This variable is an array"]"></MudCheckBox>
                 </MudField>
-                <MudTextField Label="Default value" @bind-Value="_model.DefaultValue" HelperText="A default value." Variant="Variant.Outlined"/>
-                <MudSelect T="StorageDriverDescriptor" @bind-Value="_model.StorageDriver" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Dense="false" Label="Storage">
+                <MudTextField Label="@Localizer["Default value"]" @bind-Value="_model.DefaultValue" HelperText="@Localizer["A default value."]" Variant="Variant.Outlined"/>
+                <MudSelect T="StorageDriverDescriptor" @bind-Value="_model.StorageDriver" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Dense="false" Label="@Localizer["Storage"]">
                     @foreach (var storageDriver in _storageDriverDescriptors)
                     {
-                        <MudSelectItem T="StorageDriverDescriptor" Value="@storageDriver">@storageDriver.DisplayName</MudSelectItem>
+                        var displayName = storageDriver.Deprecated ? $"{storageDriver.DisplayName} (Deprecated)" : storageDriver.DisplayName;
+                        <MudSelectItem T="StorageDriverDescriptor" Value="@storageDriver">@displayName</MudSelectItem>
                     }
                 </MudSelect>
             </MudStack>
         </EditForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="OnCancelClicked">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">Ok</MudButton>
+        <MudButton OnClick="OnCancelClicked">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>

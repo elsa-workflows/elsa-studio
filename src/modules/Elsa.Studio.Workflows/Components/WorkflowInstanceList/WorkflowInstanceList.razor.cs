@@ -1,4 +1,4 @@
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+﻿using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
@@ -11,15 +11,18 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Refit;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
 /// Represents the workflow instances list page.
-public partial class WorkflowInstanceList
+public partial class WorkflowInstanceList : IAsyncDisposable
 {
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
+    private Timer? _elapsedTimer;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -33,6 +36,7 @@ public partial class WorkflowInstanceList
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
@@ -46,7 +50,7 @@ public partial class WorkflowInstanceList
 
     /// The selected sub-statuses to filter by.
     private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
-    
+
     // The selected timestamp filters to filter by.
     private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
 
@@ -54,16 +58,26 @@ public partial class WorkflowInstanceList
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
+        
+        // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
+        //StartElapsedTimer();
     }
 
     private async Task LoadWorkflowDefinitionsAsync()
     {
-        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest(), VersionOptions.Published);
-
-        WorkflowDefinitions = workflowDefinitionsResponse.Items;
+        var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new(), VersionOptions.LatestOrPublished);
+        var workflowDefinitions = workflowDefinitionsResponse.Items;
+        
+        // Filter the definitions to ensure only the one with the highest version for each DefinitionId remains
+        var filteredWorkflowDefinitions = workflowDefinitions
+            .GroupBy(definition => definition.DefinitionId) // Group by DefinitionId
+            .Select(group => group.OrderByDescending(definition => definition.Version).First()) // Get the highest version in each group
+            .ToList();
+        
+        WorkflowDefinitions = filteredWorkflowDefinitions;
     }
 
-    private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state)
+    private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
         var request = new ListWorkflowInstancesRequest
         {
@@ -80,36 +94,68 @@ public partial class WorkflowInstanceList
             TimestampFilters = TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList()
         };
 
-        var workflowInstancesResponse = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.ListAsync(request));
-        var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).ToList();
-
-        var workflowDefinitionVersionsResponse = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
+        try
         {
-            Ids = definitionVersionIds,
-        }));
+            var workflowInstancesResponse = await WorkflowInstanceService.ListAsync(request, cancellationToken);
+            var definitionVersionIds = workflowInstancesResponse.Items.Select(x => x.DefinitionVersionId).Distinct().ToList();
 
-        var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
+            var workflowDefinitionVersionsResponse = await WorkflowDefinitionService.ListAsync(new()
+            {
+                Ids = definitionVersionIds,
+            }, cancellationToken: cancellationToken);
 
-        // Select any workflow instances for which no corresponding workflow definition version was found.
-        // This can happen when a workflow definition is deleted.
-        var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
-        var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
+            var workflowDefinitionVersionsLookup = workflowDefinitionVersionsResponse.Items.ToDictionary(x => x.Id);
 
-        var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
-            x.Id,
-            x.CorrelationId,
-            workflowDefinitionVersionsLookup[x.DefinitionVersionId],
-            x.Version,
-            x.Name,
-            x.Status,
-            x.SubStatus,
-            x.IncidentCount,
-            x.CreatedAt,
-            x.UpdatedAt,
-            x.FinishedAt));
+            // Select any workflow instances for which no corresponding workflow definition version was found.
+            // This can happen when a workflow definition is deleted.
+            var missingWorkflowDefinitionVersionIds = definitionVersionIds.Except(workflowDefinitionVersionsLookup.Keys).ToList();
+            var filteredWorkflowInstances = workflowInstancesResponse.Items.Where(x => !missingWorkflowDefinitionVersionIds.Contains(x.DefinitionVersionId));
+
+            var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
+                x.Id,
+                x.CorrelationId,
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId],
+                x.Version,
+                x.Name,
+                x.Status,
+                x.SubStatus,
+                x.IncidentCount,
+                x.CreatedAt,
+                x.UpdatedAt,
+                x.FinishedAt));
+
+            _totalCount = (int)workflowInstancesResponse.TotalCount;
+            return new() { TotalItems = _totalCount, Items = rows };
+        }
+        catch(TaskCanceledException)
+        {
+            Logger.LogWarning("Failed to list workflow instances due to a cancellation.");
+            _totalCount = 0;
+            return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
+        }
+        catch (ApiException ex) when (ex.InnerException is TaskCanceledException)
+        {
+            Logger.LogWarning("Failed to list workflow instances due to a cancellation.");
+            _totalCount = 0;
+            return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
+        }
         
-        _totalCount = (int)workflowInstancesResponse.TotalCount;
-        return new TableData<WorkflowInstanceRow> { TotalItems = _totalCount, Items = rows };
+    }
+
+    private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await WorkflowInstanceService.ListAsync(request, cancellationToken);
+        }
+        catch (ApiException ex) when (ex.InnerException is TaskCanceledException)
+        {
+            Logger.LogWarning("Failed to list workflow instances due to a timeout.");
+            return new()
+            {
+                Items = []
+            };
+        }
     }
 
     private TimestampFilter Map(TimestampFilterModel source)
@@ -117,9 +163,9 @@ public partial class WorkflowInstanceList
         var date = !string.IsNullOrWhiteSpace(source.Date) ? DateTime.Parse(source.Date) : DateTime.MinValue;
         var time = !string.IsNullOrWhiteSpace(source.Time) ? TimeSpan.Parse(source.Time) : TimeSpan.Zero;
         var dateTime = date.Add(time);
-        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new DateTimeOffset(dateTime);
-        
-        return new TimestampFilter
+        var timestamp = dateTime == DateTime.MinValue ? DateTimeOffset.MinValue : new(dateTime);
+
+        return new()
         {
             Column = source.Column,
             Operator = source.Operator,
@@ -155,7 +201,7 @@ public partial class WorkflowInstanceList
 
         var sources = new[]
         {
-            workflowDefinition.Name,
+            (string?)workflowDefinition.Name
         };
 
         return sources.Any(x => x?.Contains(trimmedTerm, StringComparison.OrdinalIgnoreCase) == true);
@@ -174,7 +220,7 @@ public partial class WorkflowInstanceList
             _ => Color.Default,
         };
     }
-    
+
     private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
     {
         return definition?.Name;
@@ -186,7 +232,7 @@ public partial class WorkflowInstanceList
     }
 
     private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item.WorkflowInstanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -199,7 +245,7 @@ public partial class WorkflowInstanceList
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
     }
-    
+
     private async Task OnCancelClicked(WorkflowInstanceRow row)
     {
         var result = await DialogService.ShowMessageBox("Cancel workflow instance?", "Are you sure you want to cancel this workflow instance?", yesText: "Yes", cancelText: "No");
@@ -290,37 +336,60 @@ public partial class WorkflowInstanceList
 
     private async Task OnSearchTermChanged(string text)
     {
-        SearchTerm = text;
-        await _table.ReloadServerData();
+        if(text != SearchTerm)
+        {
+            SearchTerm = text;
+            await _table.ReloadServerData();
+        }
     }
-    
+
     private async Task OnHasIncidentsChanged(bool? value)
     {
         HasIncidents = value;
         await _table.ReloadServerData();
     }
-    
+
     private void OnAddTimestampFilterClicked()
     {
-        TimestampFilters.Add(new TimestampFilterModel());
+        TimestampFilters.Add(new());
         StateHasChanged();
     }
-    
+
     private void OnRemoveTimestampFilterClicked(TimestampFilterModel filter)
     {
         TimestampFilters.Remove(filter);
         StateHasChanged();
     }
-    
+
     private void OnClearTimestampFiltersClicked()
     {
         TimestampFilters.Clear();
         StateHasChanged();
     }
-    
+
     private async Task OnApplyTimestampFiltersClicked()
     {
         await _table.ReloadServerData();
         ToggleDateRangePopover();
+    }
+
+    private void StartElapsedTimer()
+    {
+        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+    }
+
+    private void StopElapsedTimer()
+    {
+        if (_elapsedTimer != null)
+        {
+            _elapsedTimer.Dispose();
+            _elapsedTimer = null;
+        }
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        StopElapsedTimer();
+        return ValueTask.CompletedTask;
     }
 }

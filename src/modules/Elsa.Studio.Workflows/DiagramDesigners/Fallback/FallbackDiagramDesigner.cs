@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 
-/// <summary>
 /// A fallback diagram designer that displays a simplified view of the workflow.
-/// </summary>
 public class FallbackDiagramDesigner : IDiagramDesigner
 {
     private JsonObject _activity = default!;

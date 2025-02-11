@@ -8,12 +8,10 @@
     <RadzenSplitterPane Size="80%">
         <WorkflowInstanceWorkspace 
             @ref="_workspace" 
-            WorkflowInstances="@_workflowInstances" 
-            WorkflowDefinitions="_workflowDefinitions" 
-            SelectedWorkflowInstanceChanged="OnSelectedWorkflowInstanceChanged" 
+            WorkflowInstance="@_workflowInstance" 
+            WorkflowDefinition="@_workflowDefinition"
             PathChanged="OnDesignerPathChanged" 
             ActivitySelected="OnActivitySelected"
-            SelectedWorkflowExecutionLogRecord="SelectedJournalEntry"
             EditWorkflowDefinition="EditWorkflowDefinition"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

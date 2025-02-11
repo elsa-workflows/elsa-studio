@@ -1,29 +1,34 @@
+using Microsoft.Extensions.Logging;
+
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-public class PendingActionsQueue
+/// <summary>
+/// A queue for pending actions that can be processed in a FIFO manner.
+/// </summary>
+public class PendingActionsQueue(Func<ValueTask<bool>> shortCircuit, Func<ILogger> logger)
 {
     private readonly Queue<Func<Task>> _pendingActions = new();
-    private readonly Func<ValueTask<bool>> _shortCircuit;
 
-    public PendingActionsQueue(Func<ValueTask<bool>> shortCircuit)
-    {
-        _shortCircuit = shortCircuit;
-    }
-    
+    /// <summary>
+    /// Processes all pending actions.
+    /// </summary>
     public async Task ProcessAsync()
     {
         while (_pendingActions.Any())
         {
             var action = _pendingActions.Dequeue();
-            await action();
+            await TryExecuteActionAsync(action);
         }
     }
 
+    /// <summary>
+    /// Enqueues an action to be executed.
+    /// </summary>
     public async Task EnqueueAsync(Func<Task> action)
     {
-        if(await _shortCircuit())
+        if(await shortCircuit())
         {
-            await action();
+            await TryExecuteActionAsync(action);
             return;
         }
 
@@ -36,9 +41,12 @@ public class PendingActionsQueue
         await tsc.Task;
     }
 
+    /// <summary>
+    /// Enqueues an action to be executed.
+    /// </summary>
     public async Task<T> EnqueueAsync<T>(Func<Task<T>> action)
     {
-        if(await _shortCircuit())
+        if(await shortCircuit())
             return await action();
         
         var tsc = new TaskCompletionSource<T>();
@@ -48,5 +56,17 @@ public class PendingActionsQueue
             tsc.SetResult(result);
         });
         return await tsc.Task;
+    }
+
+    private async Task TryExecuteActionAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch(Exception ex)
+        {
+            logger().LogWarning(ex, "An error occurred while executing a pending action.");
+        }
     }
 }

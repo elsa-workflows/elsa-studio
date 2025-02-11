@@ -14,21 +14,37 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
+    private readonly Guid _id = Guid.NewGuid();
 
     /// <inheritdoc />
-    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await _designerWrapper!.LoadFlowchartAsync(activity, activityStatsMap);
+    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
+    {
+        await InvokeDesignerActionAsync(x => x.LoadFlowchartAsync(activity, activityStatsMap));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityAsync(string id, JsonObject activity) => await _designerWrapper!.UpdateActivityAsync(id, activity);
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
+    }
 
     /// <inheritdoc />
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await _designerWrapper!.UpdateActivityStatsAsync(id, stats);
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateActivityStatsAsync(id, stats));
+    }
 
     /// <inheritdoc />
-    public async Task SelectActivityAsync(string id) => await _designerWrapper!.SelectActivityAsync(id);
+    public async Task SelectActivityAsync(string id)
+    {
+        await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
+    }
 
     /// <inheritdoc />
-    public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
+    public async Task<JsonObject> ReadRootActivityAsync()
+    {
+        return await _designerWrapper!.ReadRootActivityAsync();
+    }
 
     /// <inheritdoc />
     public RenderFragment DisplayDesigner(DisplayContext context)
@@ -39,7 +55,8 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         return builder =>
         {
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
-            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart), flowchart);
+            builder.SetKey(_id);
+            builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.Flowchart),  flowchart);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.IsReadOnly), context.IsReadOnly);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(FlowchartDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
@@ -53,11 +70,15 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     }
 
     /// <inheritdoc />
-    public IEnumerable<RenderFragment> GetToolboxItems()
+    public IEnumerable<RenderFragment> GetToolboxItems(bool isReadonly)
     {
         yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, "Zoom to fit the screen", OnZoomToFitClicked);
         yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, "Center", OnCenterClicked);
-        yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout", OnAutoLayoutClicked);
+
+        if (!isReadonly)
+        {
+            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, "Auto layout", OnAutoLayoutClicked);
+        }
     }
 
     private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)
@@ -70,7 +91,7 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
             {
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(2, nameof(MudIconButton.Title), title);
+                childBuilder.AddAttribute(2, "title", title);
                 childBuilder.AddAttribute(3, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
                 childBuilder.CloseComponent();
             }));
@@ -79,8 +100,12 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
         };
     }
 
-    private async Task OnZoomToFitClicked() => await _designerWrapper!.ZoomToFitAsync();
-    private async Task OnCenterClicked() => await _designerWrapper!.CenterContentAsync();
+    private async Task InvokeDesignerActionAsync(Func<FlowchartDesignerWrapper, Task> action)
+    {
+        if (_designerWrapper != null) await action(_designerWrapper);
+    }
 
-    private async Task OnAutoLayoutClicked() => await _designerWrapper!.AutoLayoutAsync();
+    private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
+    private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper!.CenterContentAsync() : Task.CompletedTask;
+    private Task OnAutoLayoutClicked() => _designerWrapper != null ? _designerWrapper!.AutoLayoutAsync() : Task.CompletedTask;
 }

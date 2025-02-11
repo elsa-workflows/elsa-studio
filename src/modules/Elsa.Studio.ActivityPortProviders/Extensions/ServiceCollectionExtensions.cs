@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddActivityPortProvider<FlowSwitchPortProvider>();
         services.AddActivityPortProvider<HttpEndpointPortProvider>();
         services.AddActivityPortProvider<SendHttpRequestPortProvider>();
-        services.AddActivityPortProvider<FlowSendHttpRequestPortProvider>();
+        services.AddActivityPortProvider<FlowHttpRequestPortProvider>();
         
         return services;
     }

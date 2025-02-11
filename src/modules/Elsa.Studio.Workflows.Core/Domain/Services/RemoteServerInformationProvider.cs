@@ -9,20 +9,20 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteServerInformationProvider : IServerInformationProvider
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteServerInformationProvider"/> class.
     /// </summary>
-    public RemoteServerInformationProvider(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteServerInformationProvider(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
     
     /// <inheritdoc />
     public async ValueTask<ServerInformation> GetInfoAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IPackageApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IPackageApi>(cancellationToken);
         var response = await api.GetAsync(cancellationToken);
         var packageVersion = response.PackageVersion.ToString();
 

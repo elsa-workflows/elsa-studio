@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0D17508F
 		.github\workflows\packages.yml = .github\workflows\packages.yml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hosts", "hosts", "{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{D66B9A40-8608-46F3-9868-625C50EACE43}"
 EndProject
@@ -81,9 +81,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{D225
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "samples\BlazorApp1\BlazorApp1.csproj", "{FAE56DEE-A51D-4FC7-AF42-D298BE59D8EE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{F4B408E1-5169-4FA9-B2D7-2377634C4DEE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{F4B408E1-5169-4FA9-B2D7-2377634C4DEE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Api.Client", "..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj", "{26ECE061-0F39-4945-8356-EF14E67A8F39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Agents", "src\modules\Elsa.Studio.Agents\Elsa.Studio.Agents.csproj", "{BDAB9EEA-3083-41D8-933A-E848D346EB2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Agents.Models", "..\..\elsa-core\main\src\modules\Elsa.Agents.Models\Elsa.Agents.Models.csproj", "{FBFB1394-A495-4B70-B4B1-6871C7BDA774}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Secrets.Models", "..\..\elsa-core\main\src\modules\Elsa.Secrets.Models\Elsa.Secrets.Models.csproj", "{C3681176-1FB1-4B63-BEC7-34DB9813E88D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -199,6 +205,18 @@ Global
 		{26ECE061-0F39-4945-8356-EF14E67A8F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26ECE061-0F39-4945-8356-EF14E67A8F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26ECE061-0F39-4945-8356-EF14E67A8F39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDAB9EEA-3083-41D8-933A-E848D346EB2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -232,5 +250,8 @@ Global
 		{2C40C5CB-634B-45DA-8F65-F0D460C1CB63} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{FAE56DEE-A51D-4FC7-AF42-D298BE59D8EE} = {D2254084-0C4A-42F3-A2D9-A2C9BCE1114E}
 		{26ECE061-0F39-4945-8356-EF14E67A8F39} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
+		{BDAB9EEA-3083-41D8-933A-E848D346EB2E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{FBFB1394-A495-4B70-B4B1-6871C7BDA774} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
+		{C3681176-1FB1-4B63-BEC7-34DB9813E88D} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
 	EndGlobalSection
 EndGlobal

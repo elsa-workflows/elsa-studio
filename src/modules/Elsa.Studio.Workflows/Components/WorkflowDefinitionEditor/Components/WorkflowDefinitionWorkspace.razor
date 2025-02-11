@@ -1,29 +1,39 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
 <CascadingValue Value="this">
     <RadzenSplitter Orientation="Orientation.Horizontal">
         <RadzenSplitterPane Size="65%">
 
-            @if (SelectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null)
             {
                 <MudDynamicTabs @ref="@_dynamicTabs"
                                 Style="height: 100%"
                                 ActivePanelIndex="0"
                                 AddIconClass="d-none"
-                                AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
+                                AddIconToolTip="@Localizer["Click to open a new workflow tab"]" CloseIconToolTip="@Localizer["Close workflow"]"
                                 Elevation="0"
                                 ApplyEffectsToContainer>
 
-                    <MudTabPanel Text="@SelectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
+                    <MudTabPanel Text="@_selectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
-                            <WorkflowEditor @key="SelectedWorkflowDefinition.DefinitionId" @ref="WorkflowEditor" WorkflowDefinition="SelectedWorkflowDefinition" WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
+                            <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId"
+                                            @ref="WorkflowEditor"
+                                            WorkflowDefinition="_selectedWorkflowDefinition"
+                                            WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"
+                                            WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
+                                            ActivitySelected="ActivitySelected"/>
                         }
                         else
                         {
-                            <WorkflowDefinitionVersionViewer WorkflowDefinition="SelectedWorkflowDefinition"/>
+                            <WorkflowDefinitionVersionViewer @key="_selectedWorkflowDefinition.DefinitionId"
+                                                             WorkflowDefinition="_selectedWorkflowDefinition" 
+                                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" 
+                                                             ActivitySelected="ActivitySelected"/>
                         }
 
                     </MudTabPanel>
@@ -33,9 +43,11 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            @if (SelectedWorkflowDefinition != null!)
+            @if (_selectedWorkflowDefinition != null)
             {
-                <WorkflowProperties WorkflowDefinition="@SelectedWorkflowDefinition" OnWorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
+                <WorkflowProperties
+                    WorkflowDefinition="@_selectedWorkflowDefinition"
+                    WorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
             }
         </RadzenSplitterPane>
 

@@ -3,20 +3,11 @@ using Elsa.Studio.Environments.Contracts;
 
 namespace Elsa.Studio.Environments.Tasks;
 
-public class LoadEnvironmentsStartupTask : IStartupTask
+public class LoadEnvironmentsStartupTask(IEnvironmentsClient environmentsClient, IEnvironmentService environmentService) : IStartupTask
 {
-    private readonly IEnvironmentsClient _environmentsClient;
-    private readonly IEnvironmentService _environmentService;
-
-    public LoadEnvironmentsStartupTask(IEnvironmentsClient environmentsClient, IEnvironmentService environmentService)
-    {
-        _environmentsClient = environmentsClient;
-        _environmentService = environmentService;
-    }
-
     public async ValueTask ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _environmentsClient.ListEnvironmentsAsync(cancellationToken);
-        _environmentService.SetEnvironments(response.Environments, response.DefaultEnvironmentName);
+        var response = await environmentsClient.ListEnvironmentsAsync(cancellationToken);
+        environmentService.SetEnvironments(response.Environments, response.DefaultEnvironmentName);
     }
 }

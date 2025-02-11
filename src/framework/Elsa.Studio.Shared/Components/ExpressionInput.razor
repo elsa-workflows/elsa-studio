@@ -1,15 +1,17 @@
-@using MudBlazor
+@using Elsa.Api.Client.Resources.Scripting.Extensions;
+@using Elsa.Api.Client.Resources.Scripting.Models;
+
 <div class="d-flex flex-grow-1 gap-4 align-content-start relative">
     <div class="flex-1">
 
-        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")">
+        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")" Disabled="EditorContext.IsReadOnly">
             <StandaloneCodeEditor
                 @ref="_monacoEditor"
                 Id="@_monacoEditorId"
                 ConstructionOptions="ConfigureMonacoEditor"
                 CssClass="studio-expression-input-monaco-editor"
-                OnDidInit="OnMonacoInitialized"
-                OnDidChangeModelContent="OnMonacoContentChanged"/>
+                OnDidInit="OnMonacoInitializedAsync"
+                OnDidChangeModelContent="OnMonacoContentChangedAsync"/>
         </MudField>
 
         @if (!ShowMonacoEditor)
@@ -20,17 +22,27 @@
     </div>
     @if (EditorContext.InputDescriptor.IsWrapped)
     {
+        RenderFragment DisplayContent(ExpressionDescriptor item) => @<div>
+            @{
+                var isChecked = item.Type == _selectedExpressionType;
+                var iconColor = isChecked ? Color.Secondary : Color.Transparent;
+
+                <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelectedAsync(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>
+            }</div>;
         <div class="flex-none pt-1">
-            <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true">
-                @foreach (var item in BrowseableExpressionDescriptors)
+            <MudMenu Label="@ButtonLabel" Icon="@ButtonIcon" Variant="@ButtonVariant" Color="@ButtonColor" EndIcon="@ButtonEndIcon" IconColor="@ButtonEndColor" Dense="true" Disabled="EditorContext.IsReadOnly">
+                @DisplayContent(BrowsableExpressionDescriptors.First())
+                <MudDivider />
+                @foreach (var item in BrowsableExpressionDescriptors.Where(i=>!string.IsNullOrEmpty(i.GetMonacoLanguage())))
                 {
-                    var isChecked = item.Type == _selectedExpressionType;
-                    var iconColor = isChecked ? Color.Secondary : Color.Transparent;
-                    <MudMenuItem Class="studio-expression-input-menu-item" OnClick="@(() => OnSyntaxSelected(item.Type))" Icon="@Icons.Material.Filled.Check" IconSize="Size.Small" IconColor="iconColor">@item.DisplayName</MudMenuItem>
+                    @DisplayContent(item);                   
+                }
+                <MudDivider />
+                @foreach (var item in BrowsableExpressionDescriptors.Skip(1).Where(i=>string.IsNullOrEmpty(i.GetMonacoLanguage())))
+                {
+                    @DisplayContent(item);                   
                 }
             </MudMenu>
         </div>
     }
-
-    <MudOverlay Visible="EditorContext.IsReadOnly" Absolute="true"/>
 </div>

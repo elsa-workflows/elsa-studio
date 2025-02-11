@@ -20,7 +20,9 @@
             SearchBox="@searchBox"
             ItemCollection="@_items"
             ToStringFunc="@(item => item?.Text ?? "")"
-            ValueChanged="OnValueChanged">
+            ValueChanged="OnValueChanged"
+            ReadOnly="EditorContext.IsReadOnly"
+            Disabled="EditorContext.IsReadOnly">
         </MudSelectExtended>
     </ChildContent>
 </ExpressionInput>

@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Elsa.Studio.Branding;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
@@ -23,8 +24,8 @@ public partial class MainLayout : IDisposable
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IBrandingProvider  BrandingProvider { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
-    [Inject] private IBlazorServiceAccessor BlazorServiceAccessor { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
@@ -45,10 +46,14 @@ public partial class MainLayout : IDisposable
             var authState = await AuthenticationState;
             if (authState.User.Identity?.IsAuthenticated == true && !authState.User.Claims.IsExpired())
             {
-                BlazorServiceAccessor.Services = ServiceProvider;
                 await FeatureService.InitializeFeaturesAsync();
                 StateHasChanged();
             }
+        }
+        else
+        {
+            await FeatureService.InitializeFeaturesAsync();
+            StateHasChanged();
         }
     }
 

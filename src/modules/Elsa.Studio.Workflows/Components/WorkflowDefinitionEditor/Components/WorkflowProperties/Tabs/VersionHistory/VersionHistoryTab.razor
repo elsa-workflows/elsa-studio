@@ -1,12 +1,14 @@
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Variant = MudBlazor.Variant
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 @inherits StudioComponentBase
 <div class="pa-4">
 
-    <MudText Typo="Typo.overline">Version history</MudText>
+    <MudText Typo="Typo.overline">@Localizer["Version history"]</MudText>
     <MudStack>
-        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="Bulk actions" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft">
-            <MudMenuItem OnClick="OnBulkDeleteClicked">Delete</MudMenuItem>
+        <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft" Disabled="!HasWorkflowEditPermission">
+            <MudMenuItem OnClick="OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
         </MudMenu>
         <VerticalWell ExtraPadding="160">
             <MudTable
@@ -26,9 +28,9 @@
                 Outlined="true"
                 FixedHeader="true">
                 <HeaderContent>
-                    <MudTh>Published</MudTh>
-                    <MudTh>Version</MudTh>
-                    <MudTh>Created</MudTh>
+                    <MudTh>@Localizer["Published"]</MudTh>
+                    <MudTh>@Localizer["Version"]</MudTh>
+                    <MudTh>@Localizer["Created"]</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -42,9 +44,9 @@
                     <MudTd>@context.CreatedAt.ToString("g")</MudTd>
                     <MudTd style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context))">View</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Undo" OnClick="@(() => OnRollbackClicked(context))">Rollback to this version</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">Delete</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context))">@Localizer["View"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Undo" OnClick="@(() => OnRollbackClicked(context))" Disabled="@(!CanRollback(context))">@Localizer["Rollback to this version"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="@(!CanDelete(context))">@Localizer["Delete"]</MudMenuItem>
                         </MudMenu>
                     </MudTd>
                 </RowTemplate>

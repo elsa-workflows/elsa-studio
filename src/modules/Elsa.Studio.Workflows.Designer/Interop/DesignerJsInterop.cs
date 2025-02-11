@@ -11,15 +11,8 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Provides access to the designer JavaScript module.
 /// </summary>
-internal class DesignerJsInterop : JsInteropBase
+internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : base(jsRuntime)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     protected override string ModuleName => "designer";
 
     /// <summary>
@@ -31,10 +24,10 @@ internal class DesignerJsInterop : JsInteropBase
     /// <returns>The ID of the graph.</returns>
     public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef, bool isReadOnly = false)
     {
-        return await InvokeAsync(async module =>
+        return await TryInvokeAsync(async module =>
         {
             await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
-            return new X6GraphApi(module, _serviceProvider, containerId);
+            return new X6GraphApi(module, serviceProvider, containerId);
         });
     }
 

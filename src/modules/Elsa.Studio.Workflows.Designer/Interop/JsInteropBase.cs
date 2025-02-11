@@ -10,13 +10,13 @@ public abstract class JsInteropBase : IAsyncDisposable
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
 
     protected abstract string ModuleName { get; }
-    
+
+    /// Initializes a new instance of <see cref="JsInteropBase"/>
     protected JsInteropBase(IJSRuntime jsRuntime)
     {
-        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask());
+        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask());
     }
-    
+
     public async ValueTask DisposeAsync()
     {
         if (_moduleTask.IsValueCreated)
@@ -48,18 +48,18 @@ public abstract class JsInteropBase : IAsyncDisposable
             var module = await _moduleTask.Value;
             await func(module);
         }
-        catch (JSException )
+        catch (JSException)
         {
             // Ignore.
         }
     }
-    
+
     protected async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
     {
         var module = await _moduleTask.Value;
         return await func(module);
     }
-    
+
     protected async Task<T> TryInvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
     {
         try
@@ -67,7 +67,11 @@ public abstract class JsInteropBase : IAsyncDisposable
             var module = await _moduleTask.Value;
             return await func(module);
         }
-        catch (JSException )
+        catch (JSException)
+        {
+            // Ignore.
+        }
+        catch(ObjectDisposedException)
         {
             // Ignore.
         }

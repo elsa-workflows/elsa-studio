@@ -1,8 +1,11 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 @using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Models
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
 
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
@@ -28,7 +31,8 @@
                     AdornmentText="@propertyTypeName"
                     Adornment="Adornment.End"
                     ToStringFunc="@(x => x?.Text!)"
-                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))">
+                    ValueChanged="@(bindingOption => OnBindingChanged(bindingOption, outputDescriptor))"
+                    ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                     <MudSelectItem T="BindingTargetOption?" Value="@null">-</MudSelectItem>
                     @foreach (var bindingTargetGroup in _bindingTargetGroups)
                     {
@@ -44,6 +48,4 @@
             }
         </MudStack>
     </MudForm>
-    
-    <MudOverlay Visible="@IsReadOnly" Absolute="true"/>
 </div>

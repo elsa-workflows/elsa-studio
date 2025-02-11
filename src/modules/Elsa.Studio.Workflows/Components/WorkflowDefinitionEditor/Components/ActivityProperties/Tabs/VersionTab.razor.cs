@@ -6,6 +6,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -17,7 +18,10 @@ public partial class VersionTab
     [Parameter] public JsonObject Activity { get; set; } = default!;
     [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
+    [CascadingParameter] private IWorkspace? Workspace { get; set; }
+    private bool IsReadOnly => Workspace?.IsReadOnly == true;
 
     private string DefinitionId
     {
@@ -36,8 +40,12 @@ public partial class VersionTab
         get => Activity.GetProperty("version")!.GetValue<int>();
         set => Activity.SetProperty(value, "version");
     }
+    
+    private string CurrentActivityType => Activity.GetTypeName();
+    
+    private IEnumerable<int> _versionsUsableAsActivity = [];
 
-    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState)
+    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState, CancellationToken cancellationToken)
     {
         if (Activity == null! || ActivityDescriptor == null!)
             return new TableData<WorkflowDefinitionSummary>();
@@ -48,14 +56,16 @@ public partial class VersionTab
 
         var request = new ListWorkflowDefinitionsRequest
         {
-            DefinitionIds = new[] { definitionId },
+            DefinitionIds = [definitionId],
             OrderDirection = OrderDirection.Descending,
             OrderBy = OrderByWorkflowDefinition.Version,
             Page = page,
             PageSize = pageSize
         };
 
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowDefinitionService.ListAsync(request, VersionOptions.All));
+        _versionsUsableAsActivity = ActivityRegistry.FindAll(CurrentActivityType).Select(d => d.Version);
+        
+        var response = await WorkflowDefinitionService.ListAsync(request, VersionOptions.All);
 
         return new TableData<WorkflowDefinitionSummary>
         {

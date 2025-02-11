@@ -1,32 +1,30 @@
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
+
 <CascadingValue Value="this">
     <RadzenSplitter Orientation="Orientation.Horizontal">
         <RadzenSplitterPane Size="65%">
 
-            <MudDynamicTabs @ref="@_dynamicTabs"
-                            Style="height: 100%"
-                            AddTab="@AddTabCallback"
-                            CloseTab="@CloseTabCallback"
-                            ActivePanelIndexChanged="OnActivePanelIndexChanged"
-                            bind-ActivePanelIndex="@ActiveTabIndex"
-                            AddIconClass="d-none"
-                            AddIconToolTip="Click to open a new workflow tab" CloseIconToolTip="Close workflow"
-                            Elevation="0"
-                            ApplyEffectsToContainer>
-                @foreach (var workflowInstance in WorkflowInstances)
+            <MudDynamicTabs
+                @ref="@_dynamicTabs"
+                Style="height: 100%"
+                AddIconClass="d-none"
+                AddIconToolTip="@Localizer["Click to open a new workflow tab"]" CloseIconToolTip="@Localizer["Close workflow"]"
+                Elevation="0"
+                ApplyEffectsToContainer>
+
+                @if (WorkflowInstance != null)
                 {
-                    var definition = WorkflowDefinitions.First(x => x.Id == workflowInstance.DefinitionVersionId);
-                    <MudTabPanel Text="@workflowInstance.Id" ShowCloseIcon="false" Style="height: 100%">
+                    <MudTabPanel Text="@WorkflowInstance.Id" ShowCloseIcon="false" Style="height: 100%">
                         <WorkflowInstanceDesigner
-                             @ref="@_workflowInstanceDesigner"
-                            WorkflowInstance="workflowInstance" 
-                            WorkflowDefinition="definition" 
-                            PathChanged="OnPathChanged" 
-                            ActivitySelected="@ActivitySelected"
-                            SelectedWorkflowExecutionLogRecord="SelectedWorkflowExecutionLogRecord"
-                            EditWorkflowDefinition="EditWorkflowDefinition"
-                            />
+                            @ref="@_workflowInstanceDesigner"
+                            WorkflowInstance="WorkflowInstance"
+                            WorkflowDefinition="WorkflowDefinition"
+                            PathChanged="OnPathChanged"
+                            ActivitySelected="ActivitySelected"
+                            EditWorkflowDefinition="EditWorkflowDefinition"/>
                     </MudTabPanel>
                 }
 
@@ -34,7 +32,7 @@
 
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="35%" Min="100px">
-            <WorkflowInstanceDetails @ref="@_workflowInstanceDetails" WorkflowInstance="@SelectedWorkflowInstance" WorkflowDefinition="SelectedWorkflowDefinition"/>
+            <WorkflowInstanceDetails @ref="@_workflowInstanceDetails" WorkflowInstance="WorkflowInstance" WorkflowDefinition="WorkflowDefinition" IncidentActivityIdClicked="OnIncidentActivityIdClicked"/>
         </RadzenSplitterPane>
 
     </RadzenSplitter>

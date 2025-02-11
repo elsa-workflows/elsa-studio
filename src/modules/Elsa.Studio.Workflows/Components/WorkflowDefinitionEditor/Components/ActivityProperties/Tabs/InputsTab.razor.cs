@@ -59,7 +59,7 @@ public partial class InputsTab
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
 
-    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
@@ -344,17 +344,14 @@ public partial class InputsTab
                 contextDictionary.Add(inputName, value);
         }
 
-        var api = await RemoteBackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
+        var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
 
-        await InvokeWithBlazorServiceContext(async () =>
+        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
         {
-            var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
-            {
-                Context = contextDictionary
-            });
-
-            currentInputDescriptor.UISpecifications = result.Items;
+            Context = contextDictionary
         });
+
+        currentInputDescriptor.UISpecifications = result.Items;
     }
 
     private static WrappedInput? ToWrappedInput(object? value)

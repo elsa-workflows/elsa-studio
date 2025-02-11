@@ -26,7 +26,7 @@ public partial class Metadata
     /// <summary>
     /// Gets or sets the callback that is invoked when the workflow definition is updated.
     /// </summary>
-    [Parameter] public Func<Task>? OnWorkflowDefinitionUpdated { get; set; }
+    [Parameter] public EventCallback WorkflowDefinitionUpdated { get; set; }
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     
     private bool IsReadOnly => Workspace?.IsReadOnly ?? false;
@@ -53,7 +53,7 @@ public partial class Metadata
         WorkflowDefinition.Description = _model.Description;
         WorkflowDefinition.Name = _model.Name;
 
-        if (OnWorkflowDefinitionUpdated != null)
-            await OnWorkflowDefinitionUpdated();
+        if (WorkflowDefinitionUpdated.HasDelegate)
+            await WorkflowDefinitionUpdated.InvokeAsync();
     }
 }

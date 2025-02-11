@@ -5,6 +5,7 @@ using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
 
 namespace Elsa.Studio.Login.Pages.Login;
@@ -47,7 +48,16 @@ public partial class Login
         }
 
         ((AccessTokenAuthenticationStateProvider)AuthenticationStateProvider).NotifyAuthenticationStateChanged();
-        NavigationManager.NavigateTo("", true);
+
+        var uri = new Uri(NavigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
+        {
+            NavigationManager.NavigateTo(returnUrl.FirstOrDefault() ?? "", true);
+        }
+        else
+        {
+            NavigationManager.NavigateTo("", true);
+        }
     }
 
     private async Task<bool> ValidateCredentials(string username, string password)

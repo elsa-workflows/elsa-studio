@@ -24,37 +24,37 @@ public partial class FlowchartDesignerWrapper
     /// The flowchart to display.
     /// </summary>
     [Parameter] public JsonObject Flowchart { get; set; } = default!;
-    
+
     /// <summary>
     /// A map of activity stats.
     /// </summary>
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
-    
+
     /// <summary>
     /// Whether the designer is read-only.
     /// </summary>
     [Parameter] public bool IsReadOnly { get; set; }
-    
+
     /// <summary>
     /// An event raised when an activity is selected.
     /// </summary>
-    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
-    
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
-    [Parameter] public Func<ActivityEmbeddedPortSelectedArgs, Task>? ActivityEmbeddedPortSelected { get; set; }
-    
+    [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
+
     /// <summary>
     /// An event raised when an activity is double-clicked.
     /// </summary>
-    [Parameter] public Func<JsonObject, Task>? ActivityDoubleClick { get; set; }
-    
+    [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
+
     /// <summary>
     /// An event raised when the graph is updated.
     /// </summary>
-    [Parameter] public Func<Task>? GraphUpdated { get; set; }
-    
+    [Parameter] public EventCallback GraphUpdated { get; set; }
+
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = default!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
@@ -67,11 +67,14 @@ public partial class FlowchartDesignerWrapper
     /// <param name="activityStats">A map of activity stats.</param>
     public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = default)
     {
+        if (activity.GetTypeName() != "Elsa.Flowchart")
+            throw new ArgumentException("Activity must be an Elsa.Flowchart", nameof(activity));
+
         Flowchart = activity;
         ActivityStats = activityStats;
         await Designer.LoadFlowchartAsync(activity, activityStats);
     }
-    
+
     /// <summary>
     /// Updates the specified activity in the flowchart.
     /// </summary>
@@ -82,7 +85,7 @@ public partial class FlowchartDesignerWrapper
     {
         if (IsReadOnly)
             throw new InvalidOperationException("Cannot update activity because the designer is read-only.");
-        
+
         if (activity != Flowchart)
             await Designer.UpdateActivityAsync(id, activity);
     }
@@ -93,7 +96,7 @@ public partial class FlowchartDesignerWrapper
     /// <param name="id">The ID of the activity to update.</param>
     /// <param name="stats">The stats to update.</param>
     public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await Designer.UpdateActivityStatsAsync(id, stats);
-    
+
     /// <summary>
     /// Selects the specified activity in the flowchart.
     /// </summary>
@@ -105,12 +108,12 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     /// <returns>The root activity.</returns>
     public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
-    
+
     /// <summary>
     /// Zooms the designer to fit the content.
     /// </summary>
     public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
-    
+
     /// <summary>
     /// Centers the content of the designer.
     /// </summary>
@@ -120,39 +123,42 @@ public partial class FlowchartDesignerWrapper
     /// Auto layouts the flowchart.
     /// </summary>
     public async Task AutoLayoutAsync() => await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
-    
+
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {
         var activities = Flowchart.GetActivities().ToList();
-        
+        var newActivityId = IdentityGenerator.GenerateId();
+
         var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
         {
-            ["id"] = IdentityGenerator.GenerateId(),
+            ["id"] = newActivityId,
+            ["nodeId"] = $"{Flowchart.GetNodeId()}:{newActivityId}",
             ["name"] = ActivityNameGenerator.GenerateNextName(activities, activityDescriptor),
             ["type"] = activityDescriptor.TypeName,
             ["version"] = activityDescriptor.Version,
         });
-        
+
         newActivity.SetDesignerMetadata(new ActivityDesignerMetadata
         {
             Position = new Position(x, y)
         });
-        
+
         // Copy constructor values from the activity descriptor.
         foreach (var property in activityDescriptor.ConstructionProperties)
         {
             var valueNode = JsonSerializer.SerializeToNode(property.Value);
             var propertyName = property.Key.Camelize();
-            newActivity.SetProperty( valueNode, propertyName);
+            newActivity.SetProperty(valueNode, propertyName);
         }
-        
-        // If the activity is a trigger and it's the first trigger on the flowchart, set the trigger property to true.
+
+        // If the activity is a trigger, and it's the first trigger on the flowchart, set the trigger property to true.
         if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
             newActivity.SetCanStartWorkflow(true);
 
         await Designer.AddActivityAsync(newActivity);
-        
-        ActivitySelected?.Invoke(newActivity);
+
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(newActivity);
     }
 
     private void OnDragOver(DragEventArgs e)
@@ -179,8 +185,8 @@ public partial class FlowchartDesignerWrapper
 
     private async Task OnCanvasSelected()
     {
-        if (ActivitySelected != null)
-            await ActivitySelected(Flowchart);
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(Flowchart);
     }
 
     private async Task OnZoomToFitClick() => await Designer.ZoomToFitAsync();

@@ -1,3 +1,4 @@
+using Elsa.Api.Client.RealTime.Messages;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
@@ -7,26 +8,20 @@ using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
-/// <summary>
 /// Displays the journal for a workflow instance.
-/// </summary>
 public partial class Journal : IAsyncDisposable
 {
     private MudTimeline _timeline = default!;
     private IList<JournalEntry> _currentEntries = default!;
-    private HubConnection? _hubConnection;
     private WorkflowInstance? _workflowInstance;
 
-    /// <summary>
-    /// Gets or sets a callback that is invoked when a journal entry is selected.
-    /// </summary>
-    [Parameter]
-    public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
+    /// Gets or sets a callback invoked when a journal entry is selected.
+    [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -34,7 +29,7 @@ public partial class Journal : IAsyncDisposable
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
 
     private WorkflowInstance? WorkflowInstance { get; set; }
-    private IWorkflowInstanceObserver WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
     private bool ShowIncidents { get; set; }
@@ -43,21 +38,18 @@ public partial class Journal : IAsyncDisposable
     private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
     private int SelectedIndex { get; set; } = -1;
 
-    /// <summary>
     /// Sets the workflow instance to display the journal for.
-    /// </summary>
     public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
     {
-        WorkflowInstance = workflowInstance;
+        WorkflowInstance = _workflowInstance = workflowInstance;
         JournalFilter = filter;
         await EnsureActivityDescriptorsAsync();
         await RefreshJournalAsync();
+        await UpdateObserverAsync();
         StateHasChanged();
     }
 
-    /// <summary>
     /// Clears the selection.
-    /// </summary>
     public void ClearSelection()
     {
         SelectedEntry = null;
@@ -74,22 +66,14 @@ public partial class Journal : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        var hasDifferentState = _workflowInstance?.Id != WorkflowInstance?.Id || _workflowInstance?.Status != WorkflowInstance?.Status;
+
         if (_workflowInstance != WorkflowInstance)
         {
             _workflowInstance = WorkflowInstance;
 
-            // If the workflow instance is still running, observe it.
-            if (WorkflowInstance?.Status == WorkflowStatus.Running)
-                await ObserveWorkflowInstanceAsync();
-        }
-    }
-
-    /// <inheritdoc />
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            UpdateJournalHack();
+            if (hasDifferentState) 
+                await UpdateObserverAsync();
         }
     }
 
@@ -99,6 +83,12 @@ public partial class Journal : IAsyncDisposable
     {
         if (VirtualizeComponent != null!)
             await VirtualizeComponent.RefreshDataAsync();
+    }
+    
+    private async Task UpdateObserverAsync()
+    {
+        if (WorkflowInstance?.Status == WorkflowStatus.Running)
+            await ObserveWorkflowInstanceAsync();
     }
 
     private TimeSpan GetTimeMetric(WorkflowExecutionLogRecord current, WorkflowExecutionLogRecord? previous)
@@ -116,21 +106,20 @@ public partial class Journal : IAsyncDisposable
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
     {
         if (WorkflowInstance == null)
-            return new ItemsProviderResult<JournalEntry>(Enumerable.Empty<JournalEntry>(), 0);
+            return new ItemsProviderResult<JournalEntry>([], 0);
 
-        await InvokeWithBlazorServiceContext(EnsureActivityDescriptorsAsync);
+        await EnsureActivityDescriptorsAsync();
 
         var take = request.Count == 0 ? 10 : request.Count;
         var skip = request.StartIndex > 0 ? request.StartIndex - 1 : 0;
         var filter = new JournalFilter();
 
-        if (ShowScopedEvents)
-            filter.ActivityIds = JournalFilter?.ActivityIds;
+        if (ShowScopedEvents) filter.ActivityNodeIds = JournalFilter?.ActivityNodeIds;
+        if (ShowIncidents) filter.EventNames = ["Faulted"];
 
-        if (ShowIncidents)
-            filter.EventNames = new[] { "Faulted" };
+        filter.ExcludedActivityTypes = ["Elsa.Workflow", "Elsa.Flowchart"];
 
-        var response = await InvokeWithBlazorServiceContext(() => WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take));
+        var response = await WorkflowInstanceService.GetJournalAsync(WorkflowInstance.Id, filter, skip, take);
         var totalCount = request.StartIndex > 0 ? response.TotalCount - 1 : response.TotalCount;
         var records = response.Items.ToArray();
         var localSkip = request.StartIndex > 0 ? 1 : 0;
@@ -153,30 +142,33 @@ public partial class Journal : IAsyncDisposable
 
         var selectedEntry = SelectedEntry;
         _currentEntries = entries;
-        
+
         // If the selected entry is still in the list, select it again.
         SelectedEntry = entries.FirstOrDefault(x => x.Record.Id == selectedEntry?.Record.Id);
 
         return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
     }
 
-    private void UpdateJournalHack()
+    private async Task DisposeObserverAsync()
     {
-        // A little hack to ensure the journal is refreshed.
-        // Sometimes the journal doesn't update on first load, until a UI refresh is triggered.
-        // We do it a few times, first quickly, but if that was too soon, try it again a few times, but slower.
-        foreach (var timeout in new[] { 10, 100, 500, 1000 })
-            _ = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, timeout, Timeout.Infinite);
+        if (WorkflowInstanceObserver != null)
+        {
+            WorkflowInstanceObserver.WorkflowJournalUpdated -= OnWorkflowJournalUpdatedAsync;
+            await WorkflowInstanceObserver.DisposeAsync();
+            WorkflowInstanceObserver = null;
+        }
     }
 
     private async Task ObserveWorkflowInstanceAsync()
     {
+        await DisposeObserverAsync();
         WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(WorkflowInstance!.Id);
-        WorkflowInstanceObserver.WorkflowJournalUpdated += async _ => await InvokeAsync(async () =>
-        {
-            await RefreshJournalAsync();
-            UpdateJournalHack();
-        });
+        WorkflowInstanceObserver.WorkflowJournalUpdated += OnWorkflowJournalUpdatedAsync;
+    }
+
+    private async Task OnWorkflowJournalUpdatedAsync(WorkflowExecutionLogUpdatedMessage message)
+    {
+        await InvokeAsync(RefreshJournalAsync);
     }
 
     private async Task OnTimeMetricButtonToggleChanged(bool value)
@@ -215,7 +207,6 @@ public partial class Journal : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (_hubConnection != null)
-            await _hubConnection.DisposeAsync();
+        await DisposeObserverAsync();
     }
 }

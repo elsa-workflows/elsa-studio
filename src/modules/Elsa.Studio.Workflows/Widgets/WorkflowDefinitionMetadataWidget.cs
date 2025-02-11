@@ -18,7 +18,7 @@ public class WorkflowDefinitionMetadataWidget : WorkflowDefinitionPropertiesWidg
         {
             builder.OpenComponent<Metadata>(0);
             builder.AddAttribute(1, nameof(Metadata.WorkflowDefinition), attributes["WorkflowDefinition"]);
-            builder.AddAttribute(2, nameof(Metadata.OnWorkflowDefinitionUpdated), attributes["OnWorkflowDefinitionUpdated"]);
+            builder.AddAttribute(2, nameof(Metadata.WorkflowDefinitionUpdated), attributes["WorkflowDefinitionUpdated"]);
             builder.CloseComponent();
         };
     };

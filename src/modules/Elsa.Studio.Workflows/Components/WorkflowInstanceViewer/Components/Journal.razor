@@ -1,26 +1,25 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
-@using AlignItems = MudBlazor.AlignItems
-@using Elsa.Api.Client.Resources.WorkflowInstances.Models
 @using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    <MudTabPanel Text="Journal">
+    <MudTabPanel Text="@Localizer["Journal"]">
         <MudPaper Class="mx-2 mt-2 mb-0" Elevation="0" Outlined="true">
             <MudToolBar Dense="true">
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.Timer"
                     ToggledIcon="@Icons.Material.Outlined.AccessTime"
-                    Title="Show relative time"
-                    ToggledTitle="Show accumulated time"
+                    Title="@(TimeMetricMode == TimeMetricMode.Accumulated ? @Localizer["Show relative time"] : @Localizer["Show accumulated time"])"
                     Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)"
                     ToggledChanged="OnTimeMetricButtonToggleChanged"/>
 
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.DataArray"
                     ToggledIcon="@Icons.Material.Outlined.DataArray"
-                    Title="Show events scoped to current container"
-                    ToggledTitle="Showing all events"
+                    title="@(ShowScopedEvents ? @Localizer["Showing all events"] : @Localizer["Show events scoped to current container"])"
                     Color="Color.Default"
                     ToggledColor="Color.Primary"
                     Toggled="ShowScopedEvents"
@@ -30,8 +29,7 @@
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.ErrorOutline"
                     ToggledIcon="@Icons.Material.Outlined.ErrorOutline"
-                    Title="Show incidents"
-                    ToggledTitle="Showing incidents"
+                    title="@(ShowIncidents ? @Localizer["Show incidents"] : @Localizer["Showing incidents"])"
                     Color="Color.Default"
                     ToggledColor="Color.Error"
                     Toggled="ShowIncidents"
@@ -52,7 +50,7 @@
                         var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
                         var timeMetric = context.TimeMetric;
                         var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
-                        var bgClass = journalEntry == SelectedEntry ? "grey lighten-3 rounded" : "";
+                        var bgClass = journalEntry == SelectedEntry ? "gray lighten-3 rounded" : "";
 
                         var statusColor =
                             record.EventName switch
@@ -75,7 +73,7 @@
                         </ItemContent>
                         <ItemOpposite>
                             <div class="d-flex justify-end gap-4">
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@record.Timestamp.ToString("G")</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary"><Timestamp Value="record.Timestamp"/></MudText>
                             </div>
                             <div class="d-flex justify-end gap-4">
                                 <MudIcon Icon="@(TimeMetricMode == TimeMetricMode.Relative ? Icons.Material.Outlined.Timer : Icons.Material.Outlined.AccessTime)" Size="Size.Small"></MudIcon>

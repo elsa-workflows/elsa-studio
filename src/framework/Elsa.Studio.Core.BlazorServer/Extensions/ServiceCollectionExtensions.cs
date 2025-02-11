@@ -14,10 +14,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        // Register core.
         services.AddCoreInternal();
-        
-        // Register hosted services.
+        services.AddSharedServices();
         services.AddHostedService<RunStartupTasksHostedService>();
         
         return services;

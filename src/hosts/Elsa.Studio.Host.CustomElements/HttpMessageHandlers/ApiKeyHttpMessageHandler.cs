@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using Elsa.Studio.Host.CustomElements.Services;
 
 namespace Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
@@ -23,11 +22,16 @@ public class AuthHttpMessageHandler : DelegatingHandler
     {
         var apiKey = _backendService.ApiKey;
         var accessToken = _backendService.AccessToken;
+        var tenantId = _backendService.TenantId;
+        var tenantIdHeaderName = _backendService.TenantIdHeaderName;
         
         if(!string.IsNullOrEmpty(apiKey))
-            request.Headers.Authorization = new AuthenticationHeaderValue("ApiKey", apiKey);
+            request.Headers.Authorization = new("ApiKey", apiKey);
         else if(!string.IsNullOrEmpty(accessToken))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.Authorization = new("Bearer", accessToken);
+        
+        if(!string.IsNullOrEmpty(tenantId))
+            request.Headers.Add(tenantIdHeaderName, tenantId);
 
         return await base.SendAsync(request, cancellationToken);
     }

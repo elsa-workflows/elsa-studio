@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;

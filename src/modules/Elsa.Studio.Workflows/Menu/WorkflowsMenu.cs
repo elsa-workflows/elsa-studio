@@ -1,10 +1,12 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Services;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Menu;
 
-public class WorkflowsMenu : IMenuProvider
+public class WorkflowsMenu(ILocalizer localizer) : IMenuProvider
 {
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
@@ -13,18 +15,18 @@ public class WorkflowsMenu : IMenuProvider
             new()
             {
                 Icon = Icons.Material.Outlined.Schema,
-                Text = "Workflows",
+                Text = localizer["Workflows"],
                 GroupName = MenuItemGroups.General.Name,
                 SubMenuItems =
                 {
                     new MenuItem()
                     {
-                        Text = "Definitions",
+                        Text = localizer["Definitions"],
                         Href = "workflows/definitions"
                     },
                     new MenuItem()
                     {
-                        Text = "Instances",
+                        Text = localizer["Instances"],
                         Href = "workflows/instances"
                     },
                 }

@@ -1,12 +1,11 @@
 @using Elsa.Studio.Workflows.UI.Contracts
-@using Elsa.Studio.Workflows.UI.Contexts
 @inherits StudioComponentBase
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
     <MudToolBar Dense="true">
         @{
             if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
             {
-                foreach (var toolboxComponent in toolboxProvider.GetToolboxItems())
+                foreach (var toolboxComponent in toolboxProvider.GetToolboxItems(IsReadOnly))
                 {
                     @toolboxComponent
                 }
@@ -36,11 +35,4 @@
         </SeparatorTemplate>
     </MudBreadcrumbs>
 </div>
-@_diagramDesigner?.DisplayDesigner(new DisplayContext(
-    GetCurrentContainerActivity(), 
-    ActivitySelected, 
-    OnActivityEmbeddedPortSelected, 
-    OnActivityDoubleClick,
-    OnGraphUpdated, 
-    IsReadOnly, 
-    _activityStats))
+@DisplayDesigner()

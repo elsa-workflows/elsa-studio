@@ -6,6 +6,11 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
+using Elsa.Studio.Localization.Time;
+using Elsa.Studio.Localization.Time.Providers;
+using Elsa.Studio.Localization.Models;
+using Elsa.Studio.Localization.BlazorWasm.Extensions;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -27,21 +32,33 @@ builder.RootComponents.RegisterCustomElement<WorkflowDefinitionListWrapper>("els
 builder.Services.AddSingleton<BackendService>();
 
 // Register the modules.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
+    ConfigureHttpClientBuilder = options =>
+    {
+        options.ApiKey = configuration["Backend:ApiKey"];
+        options.AuthenticationHandler = typeof(AuthHttpMessageHandler);
+    }, 
+};
+
+var localizationConfig = new LocalizationConfig
+{
+    ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
+};
+
 builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddRemoteBackend(
-    elsaClient =>
-    {
-        elsaClient.ApiKey = configuration["Backend:ApiKey"];
-        elsaClient.AuthenticationHandler = typeof(AuthHttpMessageHandler);
-    },
-    options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
 builder.Services.AddWorkflowsModule();
+builder.Services.AddLocalizationModule(localizationConfig);
+builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Build the application.
 var app = builder.Build();
 
+await app.UseElsaLocalization();
 // Run each startup task.
 var startupTask = app.Services.GetServices<IStartupTask>();
 foreach (var task in startupTask) await task.ExecuteAsync();

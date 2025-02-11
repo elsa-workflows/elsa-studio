@@ -4,6 +4,7 @@ using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
+using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Extensions;
@@ -20,15 +21,19 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<BackendService>();
 
 // Register the modules.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
+    ConfigureHttpClientBuilder = options =>
+    {
+        options.ApiKey = configuration["Backend:ApiKey"];
+        options.AuthenticationHandler = typeof(AuthHttpMessageHandler);
+    }
+};
+
 builder.Services.AddCore();
 builder.Services.AddShell();
-builder.Services.AddRemoteBackend(
-    elsaClient =>
-    {
-        elsaClient.ApiKey = configuration["Backend:ApiKey"];
-        elsaClient.AuthenticationHandler = typeof(AuthHttpMessageHandler);
-    },
-    options => configuration.GetSection("Backend").Bind(options));
+builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
 builder.Services.AddWorkflowsModule();
 

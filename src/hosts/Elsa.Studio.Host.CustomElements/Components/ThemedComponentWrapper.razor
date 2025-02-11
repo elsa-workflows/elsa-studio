@@ -3,7 +3,9 @@
 @inject IThemeService ThemeService
 
 <MudThemeProvider IsDarkMode="false" Theme="@ThemeService.CurrentTheme"/>
+<MudPopoverProvider/>
 <MudDialogProvider/>
+<MudSnackbarProvider/>
 @ChildContent
 
 @code

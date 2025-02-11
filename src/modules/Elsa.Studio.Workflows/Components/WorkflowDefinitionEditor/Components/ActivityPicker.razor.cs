@@ -1,19 +1,24 @@
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+﻿using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
+using System.Resources;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// <summary>
 /// A component that allows the user to pick an activity.
 /// </summary>
-public partial class ActivityPicker : IDisposable, INotificationHandler<ActivityRegistryRefreshed>
+public partial class ActivityPicker
 {
     private string _searchText = "";
 
@@ -35,6 +40,29 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
                 .GroupBy(x => x.Category);
         }
     }
+    [Inject] ILocalizer _localizerService { get; set; }
+    private string GetTranslation(string value)
+    {
+        string transletValue = string.Empty;
+
+        try
+        {
+            CultureInfo currentCulture = CultureInfo.CurrentCulture;
+            // string resourceValue = Resource.ResourceManager.GetString(value);
+            //if (!string.IsNullOrEmpty(Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name))))
+            //{
+            //    transletValue = Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name));
+            //}
+            transletValue = _localizerService[value];
+        }
+        catch(Exception ex)
+        {
+            return value.ToString();
+        }
+
+
+        return transletValue;
+    }
 
     /// <summary>
     /// The drag and drop manager.
@@ -48,14 +76,14 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
     private IEnumerable<ActivityDescriptor> ActivityDescriptors { get; set; } = new List<ActivityDescriptor>();
 
     /// <inheritdoc />
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Mediator.Subscribe<ActivityRegistryRefreshed>(this);
-        Refresh();
+        await Refresh();
     }
 
-    private void Refresh()
+    private async Task Refresh()
     {
+        await ActivityRegistry.EnsureLoadedAsync();
         ActivityDescriptors = ActivityRegistry.ListBrowsable();
         StateHasChanged();
     }
@@ -63,16 +91,5 @@ public partial class ActivityPicker : IDisposable, INotificationHandler<Activity
     private void OnDragStart(ActivityDescriptor activityDescriptor)
     {
         DragDropManager.Payload = activityDescriptor;
-    }
-    
-    Task INotificationHandler<ActivityRegistryRefreshed>.HandleAsync(ActivityRegistryRefreshed notification, CancellationToken cancellationToken)
-    {
-        Refresh();
-        return Task.CompletedTask;
-    }
-    
-    void IDisposable.Dispose()
-    {
-        Mediator.Unsubscribe(this);
     }
 }

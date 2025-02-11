@@ -1,34 +1,54 @@
+@using System.Text.Json.Nodes
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
-@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"/>
+    <WorkflowDefinitionEditor DefinitionId="@DefinitionId"
+                              WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
+                              WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
+                              ActivitySelected="ActivitySelected"/>
 </ThemedComponentWrapper>
 
 @code
 {
-    /// <summary>
+    private bool _shouldRender;
+    private string _definitionId = default!;
+
     /// The ID of the workflow definition to edit.
-    /// </summary>
-    [Parameter]
-    public string DefinitionId { get; set; } = default!;
+    [Parameter] public string DefinitionId
+    {
+        get => _definitionId;
+        set
+        {
+            if (_definitionId == value) return;
+            _definitionId = value;
+            _shouldRender = true;
+        }
+    }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
-    [Parameter]
-    public EventCallback<string> WorkflowDefinitionExecuted { get; set; }
-    
-    /// <summary>
+    [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
+
     /// Gets or sets the event that occurs when the workflow definition version is updated.
-    /// </summary>
-    [Parameter]
-    public EventCallback<WorkflowDefinition> WorkflowDefinitionVersionSelected { get; set; }
-    
+    [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }
+
+    /// Gets or sets the event triggered when an activity is selected.
+    [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    /// Gets the currently selected activity ID.
+    public string? SelectedActivityId => WorkflowDefinitionEditor.SelectedActivityId;
+
     private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
-    
-    /// <summary>
+
     /// Gets the currently selected workflow definition version.
-    /// </summary>
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionEditor.GetSelectedWorkflowDefinitionVersion();
+
+    /// <inheritdoc />
+    protected override bool ShouldRender()
+    {
+        if (!_shouldRender) return false;
+        _shouldRender = false;
+        return true;
+    }
 }
