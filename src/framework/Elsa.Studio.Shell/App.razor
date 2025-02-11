@@ -1,7 +1,3 @@
-@using System.Reflection
-@using Elsa.Studio.Contracts
-@using Elsa.Studio.Shell.Options
-@using Microsoft.Extensions.Options
 @inherits StudioComponentBase
 <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@AdditionalAssemblies">
     <Found Context="routeData">
@@ -30,28 +26,7 @@
     <NotFound>
         <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <MudAlert Severity="Severity.Info">Sorry, there's nothing at this address.</MudAlert>
         </LayoutView>
     </NotFound>
 </Router>
-
-@code {
-    
-    [Inject]
-    private IEnumerable<IFeature> Modules { get; set; } = default!;
-
-    [Inject]private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
-    
-    [Inject] private IOptions<ShellOptions> ShellOptions { get; set; } = default!;
-
-    private IEnumerable<Assembly> AdditionalAssemblies { get; set; } = default!;
-    
-    private bool AuthorizationIsDisabled => ShellOptions.Value.DisableAuthorization;
-
-    /// <inheritdoc />
-    protected override void OnInitialized()
-    {
-        AdditionalAssemblies = Modules.Select(x => x.GetType().Assembly).Distinct().ToList();
-    }
-
-}
