@@ -2,8 +2,12 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IConfiguration Configuration;
 @{
-    var baseUrl = Configuration["Hosting:BaseUrl"];
-    var apiUrl = $"{baseUrl.TrimEnd('/')}/{(Configuration["Hosting:ApiPrefix"] ?? "elsa/api").TrimStart('/')}";
+    var apiUrl = Configuration["Hosting:ApiUrl"];
+    
+    // Get the first segment of the request path, which represents the tenant ID.
+    var segments = Request.Path.Value!.Split('/', StringSplitOptions.RemoveEmptyEntries);
+    var tenantId = segments.Length is 1 or > 2 ? segments[0] : null;
+    var baseRef = tenantId != null ? $"/{tenantId}/" : "/";
 }
 
 <!DOCTYPE html>
@@ -13,7 +17,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Elsa Studio 3</title>
-    <base href="/tenant-1/"/>
+    <base href="@baseRef"/>
     <link rel="apple-touch-icon" sizes="180x180" href="_content/Elsa.Studio.Shell/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="_content/Elsa.Studio.Shell/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="_content/Elsa.Studio.Shell/favicon-16x16.png">
@@ -28,7 +32,6 @@
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet"/>
     <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet">
     <link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet">
-    <link href="Elsa.Studio.Host.HostedWasm.styles.css" rel="stylesheet">
 </head>
 
 <body>
