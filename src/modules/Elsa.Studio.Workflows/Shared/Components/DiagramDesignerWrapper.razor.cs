@@ -97,6 +97,9 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
+        if (nodeId == null)
+            return;
+        
         // Load the selected node path from the backend.
         var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
 
