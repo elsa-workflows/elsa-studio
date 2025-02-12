@@ -27,10 +27,17 @@
                     <MudExpansionPanels>
                     @foreach (var incident in IncidentsData)
                     {
-                        <MudExpansionPanel Text="@incident["Message"].Text" Dense="false" Gutters="false" Class="incidents-custom-spacing">
-                            <Well>
-                                <DataPanel Data="incident" HideEmptyValues="true"/>
-                            </Well>
+                        <MudExpansionPanel Dense="false" Gutters="false" Class="incidents-custom-spacing">
+                            <TitleContent>
+                                <div class="truncate-text">
+                                    @incident["Message"].Text
+                                </div>
+                            </TitleContent>
+                            <ChildContent>
+                                <Well>
+                                    <DataPanel Data="incident" HideEmptyValues="true"/>
+                                </Well>
+                            </ChildContent>
                         </MudExpansionPanel>
                     }
                     </MudExpansionPanels>
@@ -117,5 +124,17 @@
 
     .incidents-custom-spacing .mud-expand-panel-header {
         padding: 6px 16px !important;
+    }
+
+    .incidents-custom-spacing .truncate-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .incidents-custom-spacing .mud-expand-panel-text {
+        width: 90%;
     }
 </style>

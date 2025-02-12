@@ -83,10 +83,10 @@ public partial class DiagramDesignerWrapper
         var activities = containerActivity.GetActivities();
         var activityToSelect = activities.FirstOrDefault(x => x.GetNodeId() == nodeId);
 
-        await SelectActivityAsync(activityToSelect);
+        await SelectActivityAsync(activityToSelect, nodeId);
     }
 
-    private async Task SelectActivityAsync(JsonObject? activityToSelect)
+    private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
     {
         if (activityToSelect != null)
         {
@@ -94,8 +94,11 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
+        if (nodeId == null)
+            return;
+        
         // Load the selected node path from the backend.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, activityToSelect!.GetNodeId());
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
 
         if (pathSegmentsResponse == null)
             return;
