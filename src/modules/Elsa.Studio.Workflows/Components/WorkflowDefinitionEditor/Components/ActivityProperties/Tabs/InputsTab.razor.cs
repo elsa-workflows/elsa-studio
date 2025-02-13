@@ -64,9 +64,9 @@ public partial class InputsTab
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
 
-    private List<string> _selectedStates = [];
+    private Dictionary<string, string> _selectedStates = [];
     private static Dictionary<string, ConditionalDescriptor> _conditionalDescriptors = new();
-    private static Dictionary<string, string> _previousStates = new();
+    //private static Dictionary<string, string> _previousStates = new();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -82,14 +82,13 @@ public partial class InputsTab
     
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
-        var models = new List<ActivityInputDisplayModel>();
+        List<ActivityInputDisplayModel> models = [];
 
-        foreach (var inputDescriptor in inputDescriptors)
+        foreach (InputDescriptor inputDescriptor in inputDescriptors)
         {
             var inputName = inputDescriptor.Name.Camelize();
-            var value = activity.GetProperty(inputName);
-            var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
-            var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : default;
+            JsonNode? value = activity.GetProperty(inputName);
+            WrappedInput? wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : null;
 
             // Check if we have a custom  input
             if (inputDescriptor.ConditionalDescriptor is not null)
@@ -97,28 +96,25 @@ public partial class InputsTab
                 SetConditionalDescriptor(inputDescriptor);
                 ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
 
-                if (conditionalDescriptor is not null)
+                InputType? inputType = conditionalDescriptor?.InputType;
+                if (inputType == InputType.StateDropdown)
                 {
-                    InputType inputType = conditionalDescriptor.InputType;
-                    if (inputType == InputType.StateDropdown)
+                    if (wrappedInput is not null)
                     {
-                        if (wrappedInput is not null)
-                        {
-                            AddSelectedState(inputDescriptor, wrappedInput);
-                            //UpdateDescription(inputDescriptor, wrappedInput);
-                        }
-                        else if (wrappedInput is null && inputDescriptor.DefaultValue is not null)
-                        {
-                            // Add the default value to the selected states
-                            AddSelectedState(inputDescriptor, inputDescriptor.DefaultValue);
-                            //UpdateDescription(inputDescriptor, inputDescriptor.DefaultValue);
-                        }
-                        // else if (wrappedInput is null || (string.IsNullOrEmpty(wrappedInput.Expression.ToString())))
-                        // {
-                        //     // Empty state && InputDescriptor exists, therefore we hide the description
-                        //     inputDescriptor.Description = "";
-                        // }
+                        UpdateSelectState(inputDescriptor, wrappedInput);
+                        //UpdateDescription(inputDescriptor, wrappedInput);
                     }
+                    else if (wrappedInput is null && inputDescriptor.DefaultValue is not null)
+                    {
+                        // Add the default value to the selected states
+                        UpdateSelectState(inputDescriptor, inputDescriptor.DefaultValue);
+                        //UpdateDescription(inputDescriptor, inputDescriptor.DefaultValue);
+                    }
+                    // else if (wrappedInput is null || (string.IsNullOrEmpty(wrappedInput.Expression.ToString())))
+                    // {
+                    //     // Empty state && InputDescriptor exists, therefore we hide the description
+                    //     inputDescriptor.Description = "";
+                    // }
                 }
             }
 
@@ -127,15 +123,16 @@ public partial class InputsTab
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
             {
-                var task = _rateLimitedInputPropertyRefreshAsync.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
+                Task? task = _rateLimitedInputPropertyRefreshAsync.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
                 if (task != null)
                     await task;
             }
 
-            var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
+            IUIHintHandler uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
             var input = inputDescriptor.IsWrapped ? wrappedInput : (object?)value;
+            ExpressionDescriptor? syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : null;
 
-            var context = new DisplayInputEditorContext
+            DisplayInputEditorContext context = new()
             {
                 WorkflowDefinition = WorkflowDefinition!,
                 Activity = activity,
@@ -147,11 +144,10 @@ public partial class InputsTab
                 IsReadOnly = Workspace?.IsReadOnly ?? false
             };
 
-            context.OnValueChanged = HandleValueChangedAsync(context, inputDescriptor);
-            var editor = uiHintHandler.DisplayInputEditor(context);
+            context.OnValueChanged = CreateHandleValueChangedCallback(context, inputDescriptor);
+            RenderFragment editor = uiHintHandler.DisplayInputEditor(context);
             models.Add(new ActivityInputDisplayModel(editor, inputDescriptor));
         }
-
         return models;
     }
 
@@ -176,79 +172,60 @@ public partial class InputsTab
         _conditionalDescriptors[key] = cond;
     }
 
-    private void AddSelectedState(InputDescriptor inputDescriptor, WrappedInput? wrappedInput)
+    private void UpdateSelectState(InputDescriptor inputDescriptor, WrappedInput? wrappedInput)
     {
         if (wrappedInput is null) return;
         ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
         if (conditionalDescriptor is null) return;
 
         var valueAsString = wrappedInput.Expression.ToString();
-        AddSelectedState(inputDescriptor, valueAsString);
+        UpdateSelectState(inputDescriptor, valueAsString);
         //UpdateDescription(inputDescriptor, wrappedInput);
     }
 
-    private void AddSelectedState(InputDescriptor inputDescriptor, object? value)
+    private void UpdateSelectState(InputDescriptor inputDescriptor, object? value)
     {
         if (value is null) return;
         ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
         if (conditionalDescriptor is null) return;
 
-        var inputDescriptorKey = CreateConditionalDescriptorKey(inputDescriptor);
-
-        var previousState = _previousStates.GetValueOrDefault(inputDescriptorKey, string.Empty);
-        if (!string.IsNullOrEmpty(previousState))
-        {
-            RemoveSelectedState(previousState);
-        }
-
+        var descriptorKey = CreateConditionalDescriptorKey(inputDescriptor);
+        
+        // Remove old state
+        _selectedStates.Remove(descriptorKey);
+        
         var valueAsString = value as string;
-        if (value is JsonElement)
+        if (value is JsonElement jsonElement)
         {
-            valueAsString = ((JsonElement)value).GetString();
+            valueAsString = jsonElement.GetString();
         }
 
-        List<string> stateNames = conditionalDescriptor.DropDownStates!.Options;
+        List<string> stateValues = conditionalDescriptor.DropDownStates!.Options;
         List<string> stateIds = conditionalDescriptor.DropDownStates.Ids;
 
-        for (var i = 0; i < stateNames.Count; ++i)
+        for (var i = 0; i < stateValues.Count; ++i)
         {
-            var current = stateNames.ElementAt(i);
-            if (current == valueAsString)
-            {
-                var id = stateIds.ElementAt(i);
-
-                // Ensure that we have no duplicates
-                RemoveSelectedState(id);
-
-                _selectedStates.Add(id);
-                _previousStates[inputDescriptorKey] = id;
-                break;
-            }
+            var current = stateValues.ElementAt(i);
+            if (current != valueAsString) continue;
+            var id = stateIds.ElementAt(i);
+            _selectedStates.Add(descriptorKey, id);
+            break;
         }
         StateHasChanged();
     }
 
-    private void RemoveSelectedState(string name)
+    private  Func<object?, Task> CreateHandleValueChangedCallback(DisplayInputEditorContext context, InputDescriptor inputDescriptor)
     {
-        _selectedStates.Remove(name);
-    }
-
-    private Func<object?, Task> HandleValueChangedAsync(DisplayInputEditorContext context, InputDescriptor inputDescriptor)
-    {
-        return async v =>
+        return async value =>
         {
-            await HandleValueChangedAsync(context, v);
+            await HandleValueChangedAsync(context, value);
 
             ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
-            // Check if we have a custom input descriptor
             if (conditionalDescriptor is null)
                 return;
-
-            // Update the selected states
+            
             if (conditionalDescriptor.InputType == InputType.StateDropdown)
-            {
-                AddSelectedState(inputDescriptor, v as WrappedInput);
-            }
+                UpdateSelectState(inputDescriptor, value as WrappedInput);
         };
     }
 
@@ -287,21 +264,16 @@ public partial class InputsTab
     private bool IsVisibleInput(ActivityInputDisplayModel model)
     {
         ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(model.InputDescriptor);
-
+        // If the input has no conditional input, it's a normal input and
+        // has to be shown
         if (conditionalDescriptor == null) return true;
 
-        // Check we have a match for the selected state
-        if (conditionalDescriptor.InputType == InputType.ConditionalInput)
-        {
-            var validStates = conditionalDescriptor.ShowForStates;
-            foreach (var validState in validStates)
-            {
-                if (_selectedStates.Contains(validState)) return true;
-            }
-            return false;
-        }
+        // Always show normal inputs
+        if (conditionalDescriptor.InputType != InputType.ConditionalInput)
+            return true;
 
-        return true;
+        var validStates = conditionalDescriptor.ShowForStates;
+        return validStates.Any(x => _selectedStates.ContainsValue(x));     
     }
 
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
