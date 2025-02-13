@@ -37,6 +37,8 @@ public partial class InputsTab
     /// </summary>
     [Parameter]
     public WorkflowDefinition? WorkflowDefinition { get; set; }
+    
+    /// <summary>
     /// Gets or sets the activity to edit.
     /// </summary>
     [Parameter]
@@ -57,7 +59,6 @@ public partial class InputsTab
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     [Inject] private IUIHintService UIHintService { get; set; } = default!;
-
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
@@ -274,10 +275,10 @@ public partial class InputsTab
 
         // Embed all props value in the context.
         Dictionary<string, object> contextDictionary = new Dictionary<string, object>();
-        foreach (var inputDescriptor in inputDescriptors)
+        foreach (InputDescriptor inputDescriptor in inputDescriptors)
         {
             var inputName = inputDescriptor.Name.Camelize();
-            var value = activity.GetProperty(inputName);
+            JsonNode? value = activity.GetProperty(inputName);
             if (value != null)
                 contextDictionary.Add(inputName, value);
         }
