@@ -1,7 +1,6 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
+
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Contracts;
 using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Requests;
@@ -66,7 +65,6 @@ public partial class InputsTab
 
     private Dictionary<string, string> _selectedStates = [];
     private static Dictionary<string, ConditionalDescriptor> _conditionalDescriptors = new();
-    //private static Dictionary<string, string> _previousStates = new();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -163,10 +161,8 @@ public partial class InputsTab
 
     private void SetConditionalDescriptor(InputDescriptor inputDescriptor)
     {
-        
         ConditionalDescriptor? cond = inputDescriptor.ConditionalDescriptor;
-        if (cond is null)
-            return;
+        if (cond is null) return;
         
         var key = CreateConditionalDescriptorKey(inputDescriptor);
         _conditionalDescriptors[key] = cond;
@@ -185,7 +181,6 @@ public partial class InputsTab
 
     private void UpdateSelectState(InputDescriptor inputDescriptor, object? value)
     {
-        if (value is null) return;
         ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
         if (conditionalDescriptor is null) return;
 
@@ -199,18 +194,14 @@ public partial class InputsTab
         {
             valueAsString = jsonElement.GetString();
         }
-
+        if (valueAsString is null) return;
+        
         List<string> stateValues = conditionalDescriptor.DropDownStates!.Options;
         List<string> stateIds = conditionalDescriptor.DropDownStates.Ids;
-
-        for (var i = 0; i < stateValues.Count; ++i)
-        {
-            var current = stateValues.ElementAt(i);
-            if (current != valueAsString) continue;
-            var id = stateIds.ElementAt(i);
-            _selectedStates.Add(descriptorKey, id);
-            break;
-        }
+        
+        var valueIndex = stateValues.IndexOf(valueAsString);
+        var id = stateIds[valueIndex];
+        _selectedStates.Add(descriptorKey, id);
         StateHasChanged();
     }
 
