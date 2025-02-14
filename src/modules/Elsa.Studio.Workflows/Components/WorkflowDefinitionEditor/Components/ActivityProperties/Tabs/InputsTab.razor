@@ -2,9 +2,12 @@
 
 <MudForm>
     <MudStack Spacing="5">
-        @foreach (var inputModel in InputDisplayModels)
+        @foreach (ActivityInputDisplayModel inputModel in InputDisplayModels)
         {
-            @inputModel.Editor
+            if (IsVisibleInput(inputModel))
+            {
+                @inputModel.Editor
+            }
         }
     </MudStack>
 </MudForm>
