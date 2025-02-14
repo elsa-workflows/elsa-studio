@@ -99,19 +99,12 @@ public partial class InputsTab
                     if (wrappedInput is not null)
                     {
                         UpdateSelectState(inputDescriptor, wrappedInput);
-                        //UpdateDescription(inputDescriptor, wrappedInput);
                     }
                     else if (wrappedInput is null && inputDescriptor.DefaultValue is not null)
                     {
                         // Add the default value to the selected states
                         UpdateSelectState(inputDescriptor, inputDescriptor.DefaultValue);
-                        //UpdateDescription(inputDescriptor, inputDescriptor.DefaultValue);
                     }
-                    // else if (wrappedInput is null || (string.IsNullOrEmpty(wrappedInput.Expression.ToString())))
-                    // {
-                    //     // Empty state && InputDescriptor exists, therefore we hide the description
-                    //     inputDescriptor.Description = "";
-                    // }
                 }
             }
 
@@ -175,7 +168,6 @@ public partial class InputsTab
 
         var valueAsString = wrappedInput.Expression.ToString();
         UpdateSelectState(inputDescriptor, valueAsString);
-        //UpdateDescription(inputDescriptor, wrappedInput);
     }
 
     private void UpdateSelectState(InputDescriptor inputDescriptor, object? value)
@@ -215,38 +207,6 @@ public partial class InputsTab
                 UpdateSelectState(inputDescriptor, value as WrappedInput);
         };
     }
-
-    // private void UpdateDescription(InputDescriptor inputDescriptor, object? value)
-    // {
-    //     if (value is null) return;
-
-    //     var valueAsString = value switch
-    //     {
-    //         WrappedInput wrappedInput => wrappedInput.Expression.ToString(),
-    //         JsonElement jsonElement => jsonElement.GetString(),
-    //         _ => ""
-    //     };
-
-    //     ConditionalDescriptor conditionalDescriptor = GetConditionalDescriptor(inputDescriptor)!;
-
-    //     List<string> options = conditionalDescriptor.DropDownStates!.Options;
-    //     List<string> descriptions = conditionalDescriptor.DropDownStates.Descriptions;
-    //     var foundDescription = false;
-    //     for (var i = 0; i < options.Count(); ++i)
-    //     {
-    //         if (options.ElementAt(i) == valueAsString)
-    //         {
-    //             inputDescriptor.Description = descriptions.ElementAt(i);
-    //             foundDescription = true;
-    //             break;
-    //         }
-    //     }
-
-    //     if (!foundDescription)
-    //     {
-    //         inputDescriptor.Description = "";
-    //     }
-    // }
 
     private bool IsVisibleInput(ActivityInputDisplayModel model)
     {
