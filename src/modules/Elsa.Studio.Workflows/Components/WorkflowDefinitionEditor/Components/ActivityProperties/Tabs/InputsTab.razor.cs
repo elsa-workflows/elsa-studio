@@ -63,7 +63,6 @@ public partial class InputsTab
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
-
     private Dictionary<string, string> _selectedStates = [];
     private static Dictionary<string, ConditionalDescriptor> _conditionalDescriptors = new();
 
@@ -95,8 +94,7 @@ public partial class InputsTab
                 SetConditionalDescriptor(inputDescriptor);
                 ConditionalDescriptor? conditionalDescriptor = GetConditionalDescriptor(inputDescriptor);
 
-                InputType? inputType = conditionalDescriptor?.InputType;
-                if (inputType == InputType.StateDropdown)
+                if (conditionalDescriptor?.InputType == InputType.StateDropdown)
                 {
                     if (wrappedInput is not null)
                     {
@@ -197,12 +195,9 @@ public partial class InputsTab
         }
         if (valueAsString is null) return;
         
-        List<string> stateValues = conditionalDescriptor.DropDownStates!.Options;
-        List<string> stateIds = conditionalDescriptor.DropDownStates.Ids;
-        
-        var valueIndex = stateValues.IndexOf(valueAsString);
-        var id = stateIds[valueIndex];
-        _selectedStates.Add(descriptorKey, id);
+        List<string> stateValues = conditionalDescriptor.DropDownStates!;
+        if(stateValues.Contains(valueAsString)) 
+            _selectedStates.Add(descriptorKey, valueAsString);
         StateHasChanged();
     }
 
