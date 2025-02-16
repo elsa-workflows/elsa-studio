@@ -3,10 +3,16 @@
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
-    <WorkflowDefinitionEditor DefinitionId="@DefinitionId"
-                              WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
-                              WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
-                              ActivitySelected="ActivitySelected"/>
+    @* <WorkflowDefinitionEditor DefinitionId="@DefinitionId" *@
+    @*                           WorkflowDefinitionExecuted="WorkflowDefinitionExecuted" *@
+    @*                           WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected" *@
+    @*                           ActivitySelected="ActivitySelected"/> *@
+
+    <h1>
+        Hello @Name
+    </h1>
+
+    <button @onclick="OnClicked">Click me!</button>
 </ThemedComponentWrapper>
 
 @code

@@ -12,6 +12,12 @@ public partial class WorkflowDefinitionEditorWrapper
     {
         WorkflowDefinitionExecuted = async e => await OnWorkflowDefinitionExecuted.InvokeAsync(e);
     }
+    
+    [Parameter]
+    public string Name { get;set; } = "Alice";
+
+    [Parameter]
+    public EventCallback OnClicked { get; set; }
 
     /// The ID of the workflow definition to edit.
     [Parameter] public string DefinitionId { get; set; } = null!;

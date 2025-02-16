@@ -6,7 +6,7 @@
 
 <PageTitle>@Localizer["Workflow definitions Editor"]</PageTitle>
 
-<WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
+<WorkflowDefinitionEditor DefinitionId="@DefinitionId" WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"/>
 
 @code
 {
@@ -15,4 +15,9 @@
     /// </summary>
     [Parameter]
     public string DefinitionId { get; set; } = default!;
+
+    private Task WorkflowDefinitionExecuted(string arg)
+    {
+        return Task.CompletedTask;
+    }
 }
