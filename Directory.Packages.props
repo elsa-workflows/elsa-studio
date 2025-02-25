@@ -17,9 +17,9 @@
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all"/>
         <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8"/>
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.24605.2"/>
         <PackageVersion Include="MudBlazor" Version="8.3.0"/>
-        <PackageVersion Include="MudBlazor.Translations" Version="2.0.0"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.24629.2"/>
+        <PackageVersion Include="MudBlazor.Translations" Version="2.1.0"/>
         <PackageVersion Include="Radzen.Blazor" Version="5.9.6"/>
         <PackageVersion Include="ShortGuid" Version="2.0.1"/>
         <PackageVersion Include="ThrottleDebounce" Version="2.0.0"/>
