@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
@@ -15,7 +14,7 @@ public partial class OutcomePicker
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private ICollection<string> Outcomes => EditorContext.WorkflowDefinition.Outcomes;
 
@@ -30,11 +29,10 @@ public partial class OutcomePicker
         var value = EditorContext.GetLiteralValueOrDefault();
         return _items.FirstOrDefault(x => x.Value == value);
     }
-    
+
     private async Task OnValueChanged(SelectListItem? value)
     {
         var outcome = value?.Value ?? "";
-        var expression = Expression.CreateLiteral(outcome);
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(outcome);
     }
 }

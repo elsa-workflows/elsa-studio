@@ -67,11 +67,7 @@ public partial class CheckList
         // Get selected values.
         var selectedValues = _checkListItems.Where(x => x.IsChecked).Select(x => x.Value).ToList();
 
-        // Serialize to JSON.
-        var json = JsonSerializer.Serialize(selectedValues);
-
-        // Update expression.
-        var expression = Expression.CreateObject(json);
-        await EditorContext.UpdateExpressionAsync(expression);
+        // Update state.
+        await EditorContext.UpdateValueOrObjectExpressionAsync(selectedValues);
     }
 }

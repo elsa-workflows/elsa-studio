@@ -137,13 +137,61 @@ public class DisplayInputEditorContext
         var wrappedInput = Value as WrappedInput;
         
         // Update input.
-        wrappedInput ??= new WrappedInput();
+        wrappedInput ??= new();
         wrappedInput.Expression = expression;
 
         Value = wrappedInput;
 
         // Notify that the input has changed.
         await OnValueChanged(wrappedInput);
+    }
+
+    /// <summary>
+    /// Updates the input value or sets it as a literal expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as a literal expression.</param>
+    public Task UpdateValueOrLiteralExpressionAsync(string value)
+    {
+        return UpdateValueOrExpressionAsync(value, "Literal");
+    }
+    
+    /// <summary>
+    /// Updates the input value or sets it as an object expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as an object expression.</param>
+    public async Task UpdateValueOrObjectExpressionAsync(object value)
+    {
+        if(InputDescriptor.IsWrapped)
+        {
+            var json = JsonSerializer.Serialize(value);
+            var expression = Expression.CreateObject(json);
+
+            await UpdateExpressionAsync(expression);
+            return;
+        }
+
+        await UpdateValueAsync(value);
+    }
+
+    /// <summary>
+    /// Updates the input value or sets it as an expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as an expression.</param>
+    /// <param name="expressionType">The expression type</param>
+    public async Task UpdateValueOrExpressionAsync(string? value, string expressionType)
+    {
+        if(InputDescriptor.IsWrapped)
+        {
+            var expression = new Expression(expressionType, value);
+
+            await UpdateExpressionAsync(expression);
+            return;
+        }
+
+        await UpdateValueAsync(value);
     }
     
     private static string Serialize(object? value)

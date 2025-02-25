@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
@@ -18,10 +17,9 @@ public partial class WorkflowDefinitionPicker
     /// <summary>
     /// Gets or sets the editor context.
     /// </summary>
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
 
 
     /// <inheritdoc />
@@ -46,7 +44,6 @@ public partial class WorkflowDefinitionPicker
 
     private async Task OnValueChanged(SelectListItem? value)
     {
-        var expression = Expression.CreateLiteral(value?.Value ?? "");
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(value?.Value ?? "");
     }
 }
