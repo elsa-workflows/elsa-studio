@@ -1,14 +1,17 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Validators;
 
 public class InputModelValidator : AbstractValidator<InputDefinitionModel>
 {
+    [Inject] private ILocalizer _localizer { get; set; } = default!;
     public InputModelValidator(WorkflowDefinition workflowDefinition)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Please enter a name for the input.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage(_localizer["Please enter a name for the input."]);
         
         RuleFor(x => x.Name)
             .Must((context, name, cancellationToken) =>
@@ -16,6 +19,6 @@ public class InputModelValidator : AbstractValidator<InputDefinitionModel>
                 var existingInput = workflowDefinition.Inputs.FirstOrDefault(x => x.Name == name);
                 return existingInput == null || existingInput.Name == context.Name;
             })
-            .WithMessage("An input with this name already exists.");
+            .WithMessage(_localizer["An input with this name already exists."]);
     }
 }

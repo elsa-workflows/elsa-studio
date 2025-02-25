@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -8,7 +9,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class Info
 {
     private DataPanelModel _workflowInfo = new ();
-
+    [Inject] private ILocalizer _localizer { get; set; } = default!;
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
 
     /// <inheritdoc />
@@ -16,11 +17,11 @@ public partial class Info
     {
         _workflowInfo =
         [
-            new DataPanelItem("Definition ID", WorkflowDefinition.DefinitionId),
-            new DataPanelItem("Version ID", WorkflowDefinition.Id),
-            new DataPanelItem("Version", WorkflowDefinition.Version.ToString()),
-            new DataPanelItem("Status", WorkflowDefinition.IsPublished ? "Published" : "Draft"),
-            new DataPanelItem("Readonly", WorkflowDefinition.IsReadonly ? "Yes" : "No")
+            new DataPanelItem(_localizer["Definition ID"], WorkflowDefinition.DefinitionId),
+            new DataPanelItem(_localizer["Version ID"], WorkflowDefinition.Id),
+            new DataPanelItem(_localizer["Version"], WorkflowDefinition.Version.ToString()),
+            new DataPanelItem(_localizer["Status"], WorkflowDefinition.IsPublished ? _localizer["Published"] : _localizer["Draft"]),
+            new DataPanelItem(_localizer["Readonly"], WorkflowDefinition.IsReadonly ? _localizer["Yes"] : _localizer["No"])
         ];
     }
 }

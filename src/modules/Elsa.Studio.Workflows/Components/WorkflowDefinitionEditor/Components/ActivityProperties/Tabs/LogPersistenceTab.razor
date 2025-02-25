@@ -3,6 +3,7 @@
 @using Elsa.Api.Client.Shared.Models
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
 @{
     RenderFragment RenderSelectComponent(
@@ -25,7 +26,7 @@
             Expression="expression"
             CustomProperties="props"
             DisplayName="@label"
-            Description="Enter the expression that will be used to determine the log persistence strategy for this property."
+            Description="@Localizer["Enter the expression that"]"
             ReadOnly="IsReadOnly">
             <MudSelect Label="@label"
                        T="string"
@@ -49,16 +50,16 @@
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">Default configuration</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Default configuration"]</MudText>
             @RenderSelectComponent(
-                "Default Strategy",
+                @Localizer["Default Strategy"],
                 null,
                 _persistenceConfiguration.Default,
                 EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
             )
             <MudDivider/>
-            <MudText Typo="Typo.overline">Input Properties</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
             @if (!InputDescriptors.Any())
             {
                 <Well>
@@ -82,12 +83,12 @@
             }
 
             <MudDivider/>
-            <MudText Typo="Typo.overline">Output Properties</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Output Properties"]</MudText>
             @if (!OutputDescriptors.Any())
             {
                 <Well>
                     <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
-                        This activity does not have any output properties.
+                        @Localizer["This activity does not have any output properties."]
                     </MudAlert>
                 </Well>
             }

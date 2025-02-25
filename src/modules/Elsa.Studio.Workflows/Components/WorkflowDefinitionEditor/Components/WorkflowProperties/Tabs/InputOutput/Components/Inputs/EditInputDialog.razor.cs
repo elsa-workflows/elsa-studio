@@ -2,6 +2,7 @@ using Blazored.FluentValidation;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Validators;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -28,6 +29,7 @@ public partial class EditInputDialog
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
+    [Inject] private ILocalizer _localizer { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -84,19 +86,19 @@ public partial class EditInputDialog
         // TODO: Get these from the backend.
         var descriptors = new[]
         {
-            new UIHintDescriptor("singleline", "Single line", "A single line of text input"),
-            new UIHintDescriptor("multiline", "Multi line", "Multiple lines of text input"),
-            new UIHintDescriptor("checkbox", "Checkbox", "A checkbox"),
-            new UIHintDescriptor("checklist", "Checklist", "A list of checkboxes"),
-            new UIHintDescriptor("radiolist", "Radio list", "A list of radio buttons"),
-            new UIHintDescriptor("dropdown", "Dropdown", "A dropdown list"),
-            new UIHintDescriptor("multitext", "Multi text", "An input for multiple words, like a tagging input"),
-            new UIHintDescriptor("code-editor", "Code editor", "A code editor"),
-            new UIHintDescriptor("variable-picker", "Variable picker", "A variable picker"),
-            new UIHintDescriptor("workflow-definition-picker", "Workflow definition picker", "A workflow definition picker"),
-            new UIHintDescriptor("output-picker", "Output picker", "A workflow output definition picker"),
-            new UIHintDescriptor("outcome-picker", "Outcome picker", "An outcome picker"),
-            new UIHintDescriptor("json-editor", "JSON editor", "A JSON editor"),
+            new UIHintDescriptor("singleline", _localizer["Single line"], _localizer["A single line of text input"]),
+            new UIHintDescriptor("multiline", _localizer["Multi line"], _localizer["Multiple lines of text input"]),
+            new UIHintDescriptor("checkbox", _localizer["Checkbox"], _localizer["A checkbox"]),
+            new UIHintDescriptor("checklist", _localizer["Checklist"], _localizer["A list of checkboxes"]),
+            new UIHintDescriptor("radiolist", _localizer["Radio list"], _localizer["A list of radio buttons"]),
+            new UIHintDescriptor("dropdown", _localizer["Dropdown"], _localizer["A dropdown list"]),
+            new UIHintDescriptor("multitext", _localizer["Multi text"], _localizer["An input for multiple words, like a tagging input"]),
+            new UIHintDescriptor("code-editor", _localizer["Code editor"], _localizer["A code editor"]),
+            new UIHintDescriptor("variable-picker", _localizer["Variable picker"], _localizer["A variable picker"]),
+            new UIHintDescriptor("workflow-definition-picker", _localizer["Workflow definition picker"], _localizer["A workflow definition picker"]),
+            new UIHintDescriptor("output-picker", _localizer["Output picker"], _localizer["A workflow output definition picker"]),
+            new UIHintDescriptor("outcome-picker", _localizer["Outcome picker"], _localizer["An outcome picker"]),
+            new UIHintDescriptor("json-editor", _localizer["JSON editor"], _localizer["A JSON editor"]),
         };
         
         return Task.FromResult(descriptors.AsEnumerable());

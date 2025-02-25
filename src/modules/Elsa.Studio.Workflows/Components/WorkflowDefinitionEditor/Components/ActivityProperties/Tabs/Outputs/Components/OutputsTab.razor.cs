@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -47,6 +48,7 @@ public partial class OutputsTab
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
+    [Inject] private ILocalizer _localizer { get; set; } = default!;
 
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
@@ -75,9 +77,9 @@ public partial class OutputsTab
             .Select(outputDefinition => new BindingTargetOption(outputDefinition.DisplayName, outputDefinition.Name))
             .ToList();
 
-        if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
+        if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup(_localizer["Variables"], BindingKind.Variable, variableBindingTargets));
         
-        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
+        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup(_localizer["Outputs"], BindingKind.Output, outputBindingTargets));
 
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();

@@ -17,7 +17,7 @@ public partial class CreateWorkflowDialog
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
     private FluentValidationValidator _fluentValidationValidator = null!;
-
+   
     /// <summary>
     /// The name of the workflow to create.
     /// </summary>
