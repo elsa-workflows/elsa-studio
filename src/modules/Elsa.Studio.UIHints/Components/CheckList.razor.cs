@@ -71,7 +71,6 @@ public partial class CheckList
         var json = JsonSerializer.Serialize(selectedValues);
 
         // Update expression.
-        var expression = Expression.CreateObject(json);
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrObjectExpressionAsync(json);
     }
 }

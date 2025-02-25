@@ -49,8 +49,7 @@ public partial class DynamicOutcomes
     private async Task OnValuesChanges(List<string> arg)
     { 
         var json = JsonSerializer.Serialize(_items);
-        var expression = Expression.CreateObject(json);
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrObjectExpressionAsync(json);
     }
 
     private void OnKeyDown(KeyboardEventArgs arg)

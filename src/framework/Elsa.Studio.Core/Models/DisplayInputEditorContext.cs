@@ -137,7 +137,7 @@ public class DisplayInputEditorContext
         var wrappedInput = Value as WrappedInput;
         
         // Update input.
-        wrappedInput ??= new WrappedInput();
+        wrappedInput ??= new();
         wrappedInput.Expression = expression;
 
         Value = wrappedInput;
@@ -151,11 +151,32 @@ public class DisplayInputEditorContext
     /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
     /// </summary>
     /// <param name="value">The new value to be set, either directly or wrapped as a literal expression.</param>
-    public async Task UpdateValueOrLiteralExpressionAsync(string value)
+    public Task UpdateValueOrLiteralExpressionAsync(string value)
+    {
+        return UpdateValueOrExpressionAsync(value, "Literal");
+    }
+    
+    /// <summary>
+    /// Updates the input value or sets it as an object expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as an object expression.</param>
+    public Task UpdateValueOrObjectExpressionAsync(string value)
+    {
+        return UpdateValueOrExpressionAsync(value, "Object");
+    }
+
+    /// <summary>
+    /// Updates the input value or sets it as an expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as an expression.</param>
+    /// <param name="expressionType">The expression type</param>
+    public async Task UpdateValueOrExpressionAsync(string? value, string expressionType)
     {
         if(InputDescriptor.IsWrapped)
         {
-            var expression = Expression.CreateLiteral(value);
+            var expression = new Expression(expressionType, value);
 
             await UpdateExpressionAsync(expression);
             return;
