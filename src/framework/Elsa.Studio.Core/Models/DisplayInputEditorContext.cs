@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Resources.Scripting.Contracts;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -18,43 +17,43 @@ public class DisplayInputEditorContext
     /// <summary>
     /// The workflow definition.
     /// </summary>
-    public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
-    
+    public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
+
     /// <summary>
     /// The activity.
     /// </summary>
-    public JsonObject Activity { get; set; } = default!;
-    
+    public JsonObject Activity { get; set; } = null!;
+
     /// <summary>
     /// The activity descriptor.
     /// </summary>
-    public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
-    
+    public ActivityDescriptor ActivityDescriptor { get; set; } = null!;
+
     /// <summary>
     /// The input descriptor.
     /// </summary>
-    public InputDescriptor InputDescriptor { get; set; } = default!;
-    
+    public InputDescriptor InputDescriptor { get; set; } = null!;
+
     /// <summary>
     /// The input value.
     /// </summary>
     public object? Value { get; set; }
-    
+
     /// <summary>
     /// The UI hint handler.
     /// </summary>
-    public IUIHintHandler UIHintHandler { get; set; } = default!;
-    
+    public IUIHintHandler UIHintHandler { get; set; } = null!;
+
     /// <summary>
     /// The syntax provider.
     /// </summary>
     public ExpressionDescriptor? SelectedExpressionDescriptor { get; set; }
-    
+
     /// <summary>
     /// A delegate that is invoked when the input value changes.
     /// </summary>
-    public Func<object?, Task> OnValueChanged { get; set; } = default!;
-    
+    public Func<object?, Task> OnValueChanged { get; set; } = null!;
+
     /// <summary>
     /// A value indicating whether the input is read-only.
     /// </summary>
@@ -67,7 +66,7 @@ public class DisplayInputEditorContext
     {
         return (Value ?? InputDescriptor.DefaultValue).ConvertTo<T>();
     }
-    
+
     /// <summary>
     /// Returns the wrapped input literal value.
     /// </summary>
@@ -76,10 +75,10 @@ public class DisplayInputEditorContext
     {
         if (!InputDescriptor.IsWrapped)
             return Value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
-        
+
         var wrappedInput = Value as WrappedInput;
         var expression = wrappedInput?.Expression;
-        
+
         if (expression?.Type != "Literal")
             return InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
 
@@ -98,14 +97,14 @@ public class DisplayInputEditorContext
 
         var wrappedInput = Value as WrappedInput;
         var expression = wrappedInput?.Expression;
-        
+
         if (expression?.Type != "Object")
             return Serialize(InputDescriptor.DefaultValue);
 
         var value = expression.Value;
         return value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
     }
-    
+
     /// <summary>
     /// Returns the input expression value if this is a wrapped input (i.e. Input{T}) or naked value otherwise. If either value is null, the default value is returned.
     /// </summary>
@@ -113,7 +112,7 @@ public class DisplayInputEditorContext
     {
         if (!InputDescriptor.IsWrapped)
             return Value?.ToString() ?? InputDescriptor.DefaultValue?.ToString() ?? string.Empty;
-        
+
         var wrappedInput = Value as WrappedInput;
         var expression = wrappedInput?.Expression;
         var value = expression?.ToString();
@@ -135,7 +134,7 @@ public class DisplayInputEditorContext
     public async Task UpdateExpressionAsync(Expression expression)
     {
         var wrappedInput = Value as WrappedInput;
-        
+
         // Update input.
         wrappedInput ??= new();
         wrappedInput.Expression = expression;
@@ -153,26 +152,17 @@ public class DisplayInputEditorContext
     /// <param name="value">The new value to be set, either directly or wrapped as a literal expression.</param>
     public Task UpdateValueOrLiteralExpressionAsync(string value)
     {
-        return UpdateValueOrExpressionAsync(value, "Literal");
+        return UpdateValueOrExpressionAsync(value, _ => value, "Literal");
     }
-    
+
     /// <summary>
     /// Updates the input value or sets it as an object expression,
     /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
     /// </summary>
     /// <param name="value">The new value to be set, either directly or wrapped as an object expression.</param>
-    public async Task UpdateValueOrObjectExpressionAsync(object value)
+    public Task UpdateValueOrObjectExpressionAsync(object value)
     {
-        if(InputDescriptor.IsWrapped)
-        {
-            var json = JsonSerializer.Serialize(value);
-            var expression = Expression.CreateObject(json);
-
-            await UpdateExpressionAsync(expression);
-            return;
-        }
-
-        await UpdateValueAsync(value);
+        return UpdateValueOrExpressionAsync(value, Serialize, "Object");
     }
 
     /// <summary>
@@ -180,12 +170,14 @@ public class DisplayInputEditorContext
     /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
     /// </summary>
     /// <param name="value">The new value to be set, either directly or wrapped as an expression.</param>
+    /// <param name="toString">A delegate to a function that stringifies the value for storing inside an <see cref="Expression"/> object.</param>
     /// <param name="expressionType">The expression type</param>
-    public async Task UpdateValueOrExpressionAsync(string? value, string expressionType)
+    public async Task UpdateValueOrExpressionAsync(object? value, Func<object?, string?> toString, string expressionType)
     {
-        if(InputDescriptor.IsWrapped)
+        if (InputDescriptor.IsWrapped)
         {
-            var expression = new Expression(expressionType, value);
+            var stringValue = toString(value);
+            var expression = new Expression(expressionType, stringValue);
 
             await UpdateExpressionAsync(expression);
             return;
@@ -193,7 +185,7 @@ public class DisplayInputEditorContext
 
         await UpdateValueAsync(value);
     }
-    
+
     private static string Serialize(object? value)
     {
         var options = new JsonSerializerOptions
