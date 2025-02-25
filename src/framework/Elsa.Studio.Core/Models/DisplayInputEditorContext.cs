@@ -161,9 +161,18 @@ public class DisplayInputEditorContext
     /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
     /// </summary>
     /// <param name="value">The new value to be set, either directly or wrapped as an object expression.</param>
-    public Task UpdateValueOrObjectExpressionAsync(string value)
+    public async Task UpdateValueOrObjectExpressionAsync(object value)
     {
-        return UpdateValueOrExpressionAsync(value, "Object");
+        if(InputDescriptor.IsWrapped)
+        {
+            var json = JsonSerializer.Serialize(value);
+            var expression = Expression.CreateObject(json);
+
+            await UpdateExpressionAsync(expression);
+            return;
+        }
+
+        await UpdateValueAsync(value);
     }
 
     /// <summary>
