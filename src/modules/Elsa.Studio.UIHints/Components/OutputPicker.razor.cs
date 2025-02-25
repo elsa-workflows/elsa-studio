@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
@@ -16,7 +15,7 @@ public partial class OutputPicker
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private ICollection<OutputDefinition> Outputs => EditorContext.WorkflowDefinition.Outputs;
 
@@ -24,7 +23,7 @@ public partial class OutputPicker
     protected override void OnParametersSet()
     {
         var items = Outputs.Select(x => new SelectListItem(x.DisplayName, x.Name)).OrderBy(x => x.Text).ToList();
-        items.Insert(0, new SelectListItem("(None)", ""));
+        items.Insert(0, new("(None)", ""));
         _items = items;
     }
 
@@ -33,10 +32,10 @@ public partial class OutputPicker
         var outputName = EditorContext.GetExpressionValueOrDefault();
         return _items.FirstOrDefault(x => x.Value == outputName);
     }
-    
+
     private async Task OnValueChanged(SelectListItem? value)
     {
         var outputName = value?.Value ?? "";
-        await EditorContext.UpdateExpressionAsync(Expression.CreateLiteral(outputName));
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(outputName);
     }
 }

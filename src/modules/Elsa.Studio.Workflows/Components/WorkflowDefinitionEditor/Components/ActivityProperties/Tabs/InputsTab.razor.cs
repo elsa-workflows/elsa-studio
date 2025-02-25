@@ -56,10 +56,10 @@ public partial class InputsTab
     public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
 
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
-    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
-    [Inject] private IUIHintService UIHintService { get; set; } = default!;
+    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = null!;
+    [Inject] private IUIHintService UIHintService { get; set; } = null!;
 
-    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
@@ -84,8 +84,8 @@ public partial class InputsTab
         {
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
-            var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : default;
-            var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : default;
+            var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : null;
+            var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : null;
 
             // Check if refresh is needed.
             if (inputDescriptor.UISpecifications != null
@@ -114,7 +114,7 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            models.Add(new ActivityInputDisplayModel(editor));
+            models.Add(new(editor));
         }
 
         return models;
@@ -137,7 +137,7 @@ public partial class InputsTab
 
         var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
 
-        var result = await api.GetAsync(activityTypeName, propertyName, new GetActivityDescriptorOptionsRequest()
+        var result = await api.GetAsync(activityTypeName, propertyName, new()
         {
             Context = contextDictionary
         });

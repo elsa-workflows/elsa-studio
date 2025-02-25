@@ -145,6 +145,24 @@ public class DisplayInputEditorContext
         // Notify that the input has changed.
         await OnValueChanged(wrappedInput);
     }
+
+    /// <summary>
+    /// Updates the input value or sets it as a literal expression,
+    /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
+    /// </summary>
+    /// <param name="value">The new value to be set, either directly or wrapped as a literal expression.</param>
+    public async Task UpdateValueOrLiteralExpressionAsync(string value)
+    {
+        if(InputDescriptor.IsWrapped)
+        {
+            var expression = Expression.CreateLiteral(value);
+
+            await UpdateExpressionAsync(expression);
+            return;
+        }
+
+        await UpdateValueAsync(value);
+    }
     
     private static string Serialize(object? value)
     {
