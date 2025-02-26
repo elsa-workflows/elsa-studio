@@ -29,7 +29,7 @@ public partial class Json : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
 
@@ -43,13 +43,13 @@ public partial class Json : IDisposable
     {
         var language = _codeEditorOptions.Language ?? "javascript";
         
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
             Language = language,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            Minimap = new()
             {
                 Enabled = false
             },
