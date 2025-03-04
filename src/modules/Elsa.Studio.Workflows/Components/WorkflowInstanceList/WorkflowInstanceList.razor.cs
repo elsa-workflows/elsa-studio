@@ -305,7 +305,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await WorkflowInstanceService.BulkImportAsync(streamParts);
-        var message = count == 1 ? _localizer["Successfully imported one instance"] : _localizer["Successfully imported"] +count+ _localizer["instances"];
+        var message = count == 1 ? _localizer["Successfully imported one instance"] : string.Format(_localizer["Successfully imported {0} instances"],count);
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }

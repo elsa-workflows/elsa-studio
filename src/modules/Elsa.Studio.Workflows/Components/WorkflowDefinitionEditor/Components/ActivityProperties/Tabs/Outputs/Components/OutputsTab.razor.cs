@@ -77,9 +77,9 @@ public partial class OutputsTab
             .Select(outputDefinition => new BindingTargetOption(outputDefinition.DisplayName, outputDefinition.Name))
             .ToList();
 
-        if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup(_localizer["Variables"], BindingKind.Variable, variableBindingTargets));
+        if (variableBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Variables", BindingKind.Variable, variableBindingTargets));
         
-        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup(_localizer["Outputs"], BindingKind.Output, outputBindingTargets));
+        if (outputBindingTargets.Any()) bindingTargetGroups.Add(new BindingTargetGroup("Outputs", BindingKind.Output, outputBindingTargets));
 
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();

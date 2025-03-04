@@ -1,4 +1,5 @@
 using Blazored.FluentValidation;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;
@@ -24,13 +25,14 @@ public partial class CreateWorkflowDialog
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private ILocalizer _localizer { get; set; } = default!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _metadataModel.Name = WorkflowName;
         _editContext = new(_metadataModel);
-        _validator = new(WorkflowDefinitionService);
+        _validator = new(WorkflowDefinitionService, _localizer);
     }
 
     private Task OnCancelClicked()

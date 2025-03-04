@@ -1392,4 +1392,49 @@
   <data name="workflows consuming published workflows have been updated" xml:space="preserve">
     <value>workflows consuming published workflows have been updated</value>
   </data>
+  <data name="Delete version {workflowDefinitionSummary.Version}" xml:space="preserve">
+    <value>Delete version {workflowDefinitionSummary.Version}</value>
+  </data>
+  <data name="Successfully imported {count} instances" xml:space="preserve">
+    <value>Successfully imported {count} instances</value>
+  </data>
+  <data name="Successfully imported {importResults.Count} workflow definitions." xml:space="preserve">
+    <value>Successfully imported {importResults.Count} workflow definitions.</value>
+  </data>
+  <data name="{response.AlreadyPublished.Count} workflows are already published" xml:space="preserve">
+    <value>{response.AlreadyPublished.Count} workflows are already published</value>
+  </data>
+  <data name="{response.AlreadyRetracted.Count} workflows are already unpublished" xml:space="preserve">
+    <value>{response.AlreadyRetracted.Count} workflows are already unpublished</value>
+  </data>
+  <data name="{response.NotFound.Count} workflows are not found" xml:space="preserve">
+    <value>{response.NotFound.Count} workflows are not found</value>
+  </data>
+  <data name="{response.Published.Count} workflows are published" xml:space="preserve">
+    <value>{response.Published.Count} workflows are published</value>
+  </data>
+  <data name="{response.Retracted.Count} workflows are unpublished" xml:space="preserve">
+    <value>{response.Retracted.Count} workflows are unpublished</value>
+  </data>
+  <data name="{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated</value>
+  </data>
+  <data name="{successfulResultCount} {successfulWorkflowsTerm} imported successfully." xml:space="preserve">
+    <value>{successfulResultCount} {successfulWorkflowsTerm} imported successfully.</value>
+  </data>
+  <data name="Get Availability" xml:space="preserve">
+    <value>Get Availability</value>
+  </data>
+  <data name="Get OEE" xml:space="preserve">
+    <value>Get OEE</value>
+  </data>
+  <data name="Get Performance" xml:space="preserve">
+    <value>Get Performance</value>
+  </data>
+  <data name="Get Quality" xml:space="preserve">
+    <value>Get Quality</value>
+  </data>
+  <data name="OEE Library" xml:space="preserve">
+    <value>OEE Library</value>
+  </data>
 </root>

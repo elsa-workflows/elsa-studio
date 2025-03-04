@@ -95,7 +95,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        var confirmed = await DialogService.ShowMessageBox(_localizer["Delete version"] + " {workflowDefinitionSummary.Version}", _localizer["Are you sure you want to delete this version?"]);
+        var confirmed = await DialogService.ShowMessageBox(string.Format(_localizer["Delete version {0}"], workflowDefinitionSummary.Version), _localizer["Are you sure you want to delete this version?"]);
 
         if (confirmed != true)
             return;

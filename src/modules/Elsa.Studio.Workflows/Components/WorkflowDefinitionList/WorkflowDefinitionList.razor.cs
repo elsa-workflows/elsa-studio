@@ -239,7 +239,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.Published.Count == 1
                 ? _localizer["One workflow is published"]
-                : $"{response.Published.Count}"+ _localizer["workflows are published"];
+                : string.Format(_localizer["{0} workflows are published"], response.Published.Count);
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -247,7 +247,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.AlreadyPublished.Count == 1
                 ? _localizer["One workflow is already published"]
-                : $"{response.AlreadyPublished.Count}"+ _localizer["workflows are already published"];
+                : string.Format(_localizer["{0} workflows are already published"], response.AlreadyPublished.Count);
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -255,7 +255,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.UpdatedConsumers.Count == 1
                 ? _localizer["One workflow consuming a published workflow has been updated"]
-                : $"{response.UpdatedConsumers.Count}"+ _localizer["workflows consuming published workflows have been updated"];
+                : string.Format(_localizer["{0} workflows consuming published workflows have been updated"], response.UpdatedConsumers.Count);
             Snackbar.Add(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
@@ -267,7 +267,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.NotFound.Count == 1
                 ? _localizer["One workflow is not found"]
-                : $"{response.NotFound.Count}"+ _localizer["workflows are not found"];
+                : _localizer["{0} workflows are not found"];
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -289,7 +289,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.Retracted.Count == 1
                 ? _localizer["One workflow is unpublished"]
-                : $"{response.Retracted.Count}"+ _localizer["workflows are unpublished"];
+                : string.Format(_localizer["{0} workflows are unpublished"], response.Retracted.Count);
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -297,7 +297,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.AlreadyRetracted.Count == 1
                 ? _localizer["One workflow is already unpublished"]
-                : $"{response.AlreadyRetracted.Count}"+ _localizer["workflows are already unpublished"];
+                : string.Format(_localizer["{0} workflows are already unpublished"], response.AlreadyRetracted.Count);
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -305,7 +305,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.NotFound.Count == 1
                 ? _localizer["One workflow is not found"]
-                : $"{response.NotFound.Count}"+ _localizer["workflows are not found"];
+                : string.Format(_localizer["{0} workflows are not found"], response.NotFound.Count);
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -333,7 +333,7 @@ public partial class WorkflowDefinitionList
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? "workflow" : "workflows";
         var message = results.Count == 0 ? _localizer["No workflows found to import."] :
-            successfulResultCount > 0 && failedResultCount == 0 ? $"{successfulResultCount} {successfulWorkflowsTerm}"+ _localizer["imported successfully."] :
+            successfulResultCount > 0 && failedResultCount == 0 ? string.Format(_localizer["{0} {1} imported successfully."], successfulResultCount, successfulWorkflowsTerm) :
             successfulResultCount == 0 && failedResultCount > 0 ? _localizer["Failed to import"]+" {failedResultCount} {failedWorkflowsTerm}." : $"{successfulResultCount} {successfulWorkflowsTerm}"+ _localizer["imported successfully."]+" {failedResultCount} {failedWorkflowsTerm}"+ _localizer["failed to import."];
         var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         Snackbar.Add(message, severity, options =>
@@ -370,7 +370,7 @@ public partial class WorkflowDefinitionList
         {
             var message = response.ConsumingWorkflowCount == 1
                 ? _localizer["One workflow consuming a published workflow has been updated"]
-                : $"{response.ConsumingWorkflowCount}"+ _localizer["workflows consuming published workflows have been updated"];
+                : string.Format(_localizer["{0} workflows consuming published workflows have been updated"], response.ConsumingWorkflowCount);
             Snackbar.Add(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;

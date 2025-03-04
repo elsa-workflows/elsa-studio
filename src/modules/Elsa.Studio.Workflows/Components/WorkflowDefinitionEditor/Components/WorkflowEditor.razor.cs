@@ -387,7 +387,7 @@ public partial class WorkflowEditor
         if (successfulImports.Count == 1)
             Snackbar.Add(_localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
         else if (importResults.Count > 1)
-            Snackbar.Add(_localizer["Successfully imported"]+" {importResults.Count} "+ _localizer["workflow definitions."], Severity.Success, ConfigureSnackbar);
+            Snackbar.Add(string.Format(_localizer["Successfully imported {0}workflow definitions."], importResults.Count), Severity.Success, ConfigureSnackbar);
 
         if (failedImports.Count == 1)
             Snackbar.Add($"Failed to import 1 workflow definition: {failedImports[0].Failure!.ErrorMessage}", Severity.Error, ConfigureSnackbar);
