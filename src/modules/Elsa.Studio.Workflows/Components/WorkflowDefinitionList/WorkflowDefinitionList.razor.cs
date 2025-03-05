@@ -189,7 +189,7 @@ public partial class WorkflowDefinitionList
     private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
         var result = await DialogService.ShowMessageBox(Localizer["Cancel running workflow instances?"],
-            Localizer["Are you sure you want to cancel"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
+            Localizer["Are you sure you want to cancel all running workflow instances of this workflow definition?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (result != true)
             return;
@@ -330,7 +330,7 @@ public partial class WorkflowDefinitionList
         var successfulResultCount = results.Count(x => x.IsSuccess);
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
-        var failedWorkflowsTerm = failedResultCount == 1 ? "workflow" : "workflows";
+        var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
         var message = results.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
             successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm];

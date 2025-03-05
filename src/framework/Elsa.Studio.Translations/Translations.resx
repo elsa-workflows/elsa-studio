@@ -1080,8 +1080,8 @@
   <data name="A workflow output definition picker" xml:space="preserve">
     <value>A workflow output definition picker</value>
   </data>
-  <data name="A workflow with this name already exists" xml:space="preserve">
-    <value>A workflow with this name already exists</value>
+  <data name="A workflow with this name already exists." xml:space="preserve">
+    <value>A workflow with this name already exists.</value>
   </data>
   <data name="An input for multiple words, like a tagging input" xml:space="preserve">
     <value>An input for multiple words, like a tagging input</value>
@@ -1092,7 +1092,7 @@
   <data name="An outcome picker" xml:space="preserve">
     <value>An outcome picker</value>
   </data>
-  <data name="Are you sure you want to cancel" xml:space="preserve">
+  <data name="Are you sure you want to cancel all running workflow instances of this workflow definition?" xml:space="preserve">
     <value>Are you sure you want to cancel all running workflow instances of this workflow definition?</value>
   </data>
   <data name="Are you sure you want to cancel the selected workflow instances?" xml:space="preserve">
@@ -1152,8 +1152,8 @@
   <data name="Code editor" xml:space="preserve">
     <value>Code editor</value>
   </data>
-  <data name="consuming workflow(s) updated" xml:space="preserve">
-    <value>consuming workflow(s) updated</value>
+  <data name="{0} consuming workflow(s) updated" xml:space="preserve">
+    <value>{0} consuming workflow(s) updated</value>
   </data>
   <data name="Create input" xml:space="preserve">
     <value>Create input</value>
@@ -1209,11 +1209,11 @@
   <data name="Edit Workflow Definition" xml:space="preserve">
     <value>Edit Workflow Definition</value>
   </data>
-  <data name="Enter the expression that" xml:space="preserve">
+  <data name="Enter the expression that will be used to determine the log persistence strategy for this property." xml:space="preserve">
     <value>Enter the expression that will be used to determine the log persistence strategy for this property.</value>
   </data>
-  <data name="Failed to import" xml:space="preserve">
-    <value>Failed to import</value>
+  <data name="Failed to import {0} workflow definitions. Errors: {1}" xml:space="preserve">
+    <value>Failed to import {0} workflow definitions. Errors: {1}</value>
   </data>
   <data name="imported successfully." xml:space="preserve">
     <value>imported successfully.</value>
@@ -1287,8 +1287,8 @@
   <data name="Please enter a name for the variable." xml:space="preserve">
     <value>Please enter a name for the variable.</value>
   </data>
-  <data name="Please enter a name for the workflow" xml:space="preserve">
-    <value>Please enter a name for the workflow</value>
+  <data name="Please enter a name for the workflow." xml:space="preserve">
+    <value>Please enter a name for the workflow.</value>
   </data>
   <data name="Publish selected workflows?" xml:space="preserve">
     <value>Publish selected workflows?</value>
@@ -1317,7 +1317,7 @@
   <data name="Successfully started workflow" xml:space="preserve">
     <value>Successfully started workflow</value>
   </data>
-  <data name="The commit strategy to use" xml:space="preserve">
+  <data name="The commit strategy to use that controls when the workflow state should be committed." xml:space="preserve">
     <value>The commit strategy to use that controls when the workflow state should be committed.</value>
   </data>
   <data name="The ID of the variable." xml:space="preserve">
@@ -1392,49 +1392,37 @@
   <data name="workflows consuming published workflows have been updated" xml:space="preserve">
     <value>workflows consuming published workflows have been updated</value>
   </data>
-  <data name="Delete version {workflowDefinitionSummary.Version}" xml:space="preserve">
-    <value>Delete version {workflowDefinitionSummary.Version}</value>
+  <data name="Delete version {0}" xml:space="preserve">
+    <value>Delete version {0}</value>
   </data>
-  <data name="Successfully imported {count} instances" xml:space="preserve">
-    <value>Successfully imported {count} instances</value>
+  <data name="Successfully imported {0} instances" xml:space="preserve">
+    <value>Successfully imported {0} instances</value>
   </data>
-  <data name="Successfully imported {importResults.Count} workflow definitions." xml:space="preserve">
-    <value>Successfully imported {importResults.Count} workflow definitions.</value>
+  <data name="Successfully imported {0} workflow definitions." xml:space="preserve">
+    <value>Successfully imported {0} workflow definitions.</value>
   </data>
-  <data name="{response.AlreadyPublished.Count} workflows are already published" xml:space="preserve">
-    <value>{response.AlreadyPublished.Count} workflows are already published</value>
+  <data name="{0} workflows are already published" xml:space="preserve">
+    <value>{0} workflows are already published</value>
   </data>
-  <data name="{response.AlreadyRetracted.Count} workflows are already unpublished" xml:space="preserve">
-    <value>{response.AlreadyRetracted.Count} workflows are already unpublished</value>
+  <data name="{0} workflows are already unpublished" xml:space="preserve">
+    <value>{0} workflows are already unpublished</value>
   </data>
-  <data name="{response.NotFound.Count} workflows are not found" xml:space="preserve">
-    <value>{response.NotFound.Count} workflows are not found</value>
+  <data name="{0} workflows are not found" xml:space="preserve">
+    <value>{0} workflows are not found</value>
   </data>
-  <data name="{response.Published.Count} workflows are published" xml:space="preserve">
-    <value>{response.Published.Count} workflows are published</value>
+  <data name="{0} workflows are published" xml:space="preserve">
+    <value>{0} workflows are published</value>
   </data>
-  <data name="{response.Retracted.Count} workflows are unpublished" xml:space="preserve">
-    <value>{response.Retracted.Count} workflows are unpublished</value>
+  <data name="{0} workflows are unpublished" xml:space="preserve">
+    <value>{0} workflows are unpublished</value>
   </data>
-  <data name="{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated" xml:space="preserve">
-    <value>{response.UpdatedConsumers.Count} workflows consuming published workflows have been updated</value>
+  <data name="{0} workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>{0} workflows consuming published workflows have been updated</value>
   </data>
-  <data name="{successfulResultCount} {successfulWorkflowsTerm} imported successfully." xml:space="preserve">
-    <value>{successfulResultCount} {successfulWorkflowsTerm} imported successfully.</value>
+  <data name="{0} {1} imported successfully." xml:space="preserve">
+    <value>{0} {1} imported successfully.</value>
   </data>
-  <data name="Get Availability" xml:space="preserve">
-    <value>Get Availability</value>
-  </data>
-  <data name="Get OEE" xml:space="preserve">
-    <value>Get OEE</value>
-  </data>
-  <data name="Get Performance" xml:space="preserve">
-    <value>Get Performance</value>
-  </data>
-  <data name="Get Quality" xml:space="preserve">
-    <value>Get Quality</value>
-  </data>
-  <data name="OEE Library" xml:space="preserve">
-    <value>OEE Library</value>
+  <data name="Failed to import {0} {1}." xml:space="preserve">
+    <value>Failed to import {0} {1}.</value>
   </data>
 </root>

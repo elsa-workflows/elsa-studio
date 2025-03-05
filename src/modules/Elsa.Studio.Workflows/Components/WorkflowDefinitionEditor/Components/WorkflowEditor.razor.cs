@@ -291,7 +291,7 @@ public partial class WorkflowEditor
 
             if (response.ConsumingWorkflowCount > 0)
             {
-                Snackbar.Add($"{response.ConsumingWorkflowCount}"+ Localizer["consuming workflow(s) updated"], Severity.Success, options => options.VisibleStateDuration = 3000);
+                Snackbar.Add(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success, options => options.VisibleStateDuration = 3000);
             }
         }));
     }
