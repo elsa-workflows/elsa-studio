@@ -15,7 +15,6 @@ public partial class InfoTab
     /// </summary>
     [Parameter]
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
 
     private DataPanelModel ActivityInfo { get; } = new();
 
@@ -24,7 +23,7 @@ public partial class InfoTab
     {
         ActivityDescriptor.ConstructionProperties.TryGetValue("WorkflowDefinitionId", out var link);
 
-        ActivityInfo.Add(_localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
-        ActivityInfo.Add(_localizer["Description"], ActivityDescriptor.Description);
+        ActivityInfo.Add(Localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
+        ActivityInfo.Add(Localizer["Description"], ActivityDescriptor.Description);
     }
 }

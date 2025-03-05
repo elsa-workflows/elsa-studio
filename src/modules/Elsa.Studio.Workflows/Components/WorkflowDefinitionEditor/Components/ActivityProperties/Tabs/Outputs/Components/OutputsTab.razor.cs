@@ -48,7 +48,6 @@ public partial class OutputsTab
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
 
     [Inject] IVariableTypeService VariableTypeService { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
 
     private IReadOnlyCollection<OutputDescriptor> OutputDescriptors => ActivityDescriptor.Outputs;
     private bool IsReadOnly => Workspace?.IsReadOnly == true;

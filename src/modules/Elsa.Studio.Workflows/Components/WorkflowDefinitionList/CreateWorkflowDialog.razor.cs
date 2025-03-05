@@ -24,15 +24,14 @@ public partial class CreateWorkflowDialog
     /// </summary>
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;    
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         _metadataModel.Name = WorkflowName;
         _editContext = new(_metadataModel);
-        _validator = new(WorkflowDefinitionService, _localizer);
+        _validator = new(WorkflowDefinitionService);
     }
 
     private Task OnCancelClicked()

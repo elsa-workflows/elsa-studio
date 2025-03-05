@@ -61,7 +61,6 @@ public partial class WorkflowInstanceDetails
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
     [Inject] private ITimeFormatter TimeFormatter { get; set; } = null!;
-    [Inject] private ILocalizer _localizer { get; set; } = null!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
 
@@ -75,18 +74,18 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", _workflowInstance.Id),
-                new DataPanelItem(_localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
-                new DataPanelItem(_localizer["Definition version"], _workflowInstance.Version.ToString()),
-                new DataPanelItem(_localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
-                new DataPanelItem(_localizer["Correlation ID"], _workflowInstance.CorrelationId),
-                new DataPanelItem(_localizer["Incident Strategy"], GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
-                new DataPanelItem(_localizer["Status"], _workflowInstance.Status.ToString()),
-                new DataPanelItem(_localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
-                new DataPanelItem(_localizer["Incidents"], _workflowInstance.IncidentCount.ToString()),
-                new DataPanelItem(_localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
-                new DataPanelItem(_localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
-                new DataPanelItem(_localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
-                new DataPanelItem(_localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
+                new DataPanelItem(Localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
+                new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
+                new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
+                new DataPanelItem(Localizer["Correlation ID"], _workflowInstance.CorrelationId),
+                new DataPanelItem(Localizer["Incident Strategy"], GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
+                new DataPanelItem(Localizer["Status"], _workflowInstance.Status.ToString()),
+                new DataPanelItem(Localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
+                new DataPanelItem(Localizer["Incidents"], _workflowInstance.IncidentCount.ToString()),
+                new DataPanelItem(Localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
+                new DataPanelItem(Localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
+                new DataPanelItem(Localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
             };
         }
     }
@@ -171,10 +170,10 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", SelectedSubWorkflow.GetId()),
-                new DataPanelItem(_localizer["Name"], SelectedSubWorkflow.GetName()),
-                new DataPanelItem(_localizer["Type"], SelectedSubWorkflow.GetTypeName()),
-                new DataPanelItem(_localizer["Definition ID"], workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
-                new DataPanelItem(_localizer["Definition version"], SelectedSubWorkflow.GetVersion().ToString()),
+                new DataPanelItem(Localizer["Name"], SelectedSubWorkflow.GetName()),
+                new DataPanelItem(Localizer["Type"], SelectedSubWorkflow.GetTypeName()),
+                new DataPanelItem(Localizer["Definition ID"], workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
+                new DataPanelItem(Localizer["Definition version"], SelectedSubWorkflow.GetVersion().ToString()),
             };
         }
     }

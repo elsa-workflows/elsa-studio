@@ -12,10 +12,10 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public class VariableModelValidator : AbstractValidator<VariableModel>
 {
     /// <inheritdoc />
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
+    [Inject] private ILocalizer Localizer { get; set; } = default!;
     public VariableModelValidator(WorkflowDefinition workflowDefinition)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage(_localizer["Please enter a name for the variable."]);
+        RuleFor(x => x.Name).NotEmpty().WithMessage(Localizer["Please enter a name for the variable."]);
         
         RuleFor(x => x.Name)
             .Must((context, name, cancellationToken) =>
@@ -23,6 +23,6 @@ public class VariableModelValidator : AbstractValidator<VariableModel>
                 var existingVariable = workflowDefinition.Variables.FirstOrDefault(x => x.Name == name && x.Id != context.Id);
                 return existingVariable == null || existingVariable.Id == context.Name;
             })
-            .WithMessage(_localizer["A variable with this name already exists in the current scope."]);
+            .WithMessage(Localizer["A variable with this name already exists in the current scope."]);
     }
 }

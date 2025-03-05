@@ -22,7 +22,7 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
     /// The injected workflow definition service.
     /// </summary>
     [Inject] protected IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
+    [Inject] private ILocalizer Localizer { get; set; } = default!;
 
     /// <summary>
     /// The injected snackbar service.
@@ -52,7 +52,7 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
 
         if (executeResult.CannotStart)
         {
-            Snackbar.Add(_localizer["The workflow cannot be started"], Severity.Error);
+            Snackbar.Add(Localizer["The workflow cannot be started"], Severity.Error);
             return;
         }
 
@@ -60,7 +60,7 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
         
         if(workflowInstanceId != null)
         {
-            Snackbar.Add(_localizer["Successfully started workflow"], Severity.Success);
+            Snackbar.Add(Localizer["Successfully started workflow"], Severity.Success);
             
             if (WorkflowDefinitionExecuted != null)
                 await WorkflowDefinitionExecuted(workflowInstanceId);

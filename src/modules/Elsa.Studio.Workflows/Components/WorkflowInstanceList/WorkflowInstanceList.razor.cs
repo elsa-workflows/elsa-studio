@@ -54,13 +54,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     // The selected timestamp filters to filter by.
     private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
+
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
-        
+
         // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
         //StartElapsedTimer();
     }
@@ -69,13 +69,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         var workflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(new(), VersionOptions.LatestOrPublished);
         var workflowDefinitions = workflowDefinitionsResponse.Items;
-        
+
         // Filter the definitions to ensure only the one with the highest version for each DefinitionId remains
         var filteredWorkflowDefinitions = workflowDefinitions
             .GroupBy(definition => definition.DefinitionId) // Group by DefinitionId
             .Select(group => group.OrderByDescending(definition => definition.Version).First()) // Get the highest version in each group
             .ToList();
-        
+
         WorkflowDefinitions = filteredWorkflowDefinitions;
     }
 
@@ -129,7 +129,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _totalCount = (int)workflowInstancesResponse.TotalCount;
             return new() { TotalItems = _totalCount, Items = rows };
         }
-        catch(TaskCanceledException)
+        catch (TaskCanceledException)
         {
             Logger.LogWarning("Failed to list workflow instances due to a cancellation.");
             _totalCount = 0;
@@ -141,7 +141,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _totalCount = 0;
             return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
         }
-        
+
     }
 
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
@@ -238,7 +238,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Delete workflow instance?"], _localizer["Are you sure you want to delete this workflow instance?"], yesText: _localizer["Delete"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Delete workflow instance?"], Localizer["Are you sure you want to delete this workflow instance?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -250,7 +250,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnCancelClicked(WorkflowInstanceRow row)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Cancel workflow instance?"], _localizer["Are you sure you want to cancel this workflow instance?"], yesText: _localizer["Yes"], cancelText: _localizer["No"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Cancel workflow instance?"], Localizer["Are you sure you want to cancel this workflow instance?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (result != true)
             return;
@@ -269,7 +269,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Delete selected workflow instances?"], _localizer["Are you sure you want to delete the selected workflow instances?"], yesText: _localizer["Delete"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected workflow instances?"], Localizer["Are you sure you want to delete the selected workflow instances?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -281,7 +281,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkCancelClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox(_localizer["Cancel selected workflow instances?"], _localizer["Are you sure you want to cancel the selected workflow instances?"], yesText: _localizer["Yes"], cancelText: _localizer["No"]);
+        var confirmed = await DialogService.ShowMessageBox(Localizer["Cancel selected workflow instances?"], Localizer["Are you sure you want to cancel the selected workflow instances?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (confirmed != true)
             return;
@@ -305,7 +305,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var maxAllowedSize = 1024 * 1024 * 10; // 10 MB
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await WorkflowInstanceService.BulkImportAsync(streamParts);
-        var message = count == 1 ? _localizer["Successfully imported one instance"] : string.Format(_localizer["Successfully imported {0} instances"],count);
+        var message = count == 1 ? Localizer["Successfully imported one instance"] : Localizer["Successfully imported {0} instances", count];
         Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
@@ -338,7 +338,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnSearchTermChanged(string text)
     {
-        if(text != SearchTerm)
+        if (text != SearchTerm)
         {
             SearchTerm = text;
             await _table.ReloadServerData();

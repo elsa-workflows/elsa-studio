@@ -19,7 +19,6 @@ public partial class InputsSection
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = null!;
 
     private ICollection<InputDefinition> Inputs => WorkflowDefinition.Inputs;
 
@@ -60,7 +59,7 @@ public partial class InputsSection
             CloseOnEscapeKey = true
         };
 
-        var title = inputDefinition == null ? _localizer["Create input"] : _localizer["Edit input"];
+        var title = inputDefinition == null ? Localizer["Create input"] : Localizer["Edit input"];
         var dialog = await DialogService.ShowAsync<EditInputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
@@ -83,7 +82,7 @@ public partial class InputsSection
 
     private async Task OnDeleteClicked(InputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Delete selected input?"], _localizer["Are you sure you want to delete the selected input?"], yesText: _localizer["Delete"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected input?"], Localizer["Are you sure you want to delete the selected input?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;

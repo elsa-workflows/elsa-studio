@@ -70,7 +70,6 @@ public partial class WorkflowEditor
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
     [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
-    [Inject] private ILocalizer _localizer { get; set; } = null!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -271,7 +270,7 @@ public partial class WorkflowEditor
     {
         await SaveChangesAsync(true, true, false, _ =>
         {
-            Snackbar.Add(_localizer["Workflow saved"], Severity.Success);
+            Snackbar.Add(Localizer["Workflow saved"], Severity.Success);
             return Task.CompletedTask;
         });
     }
@@ -286,13 +285,13 @@ public partial class WorkflowEditor
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
 
             if (hasNotFoundActivities)
-                Snackbar.Add(_localizer["Workflow published with Not Found activities"], Severity.Warning, options => options.VisibleStateDuration = 5000);
+                Snackbar.Add(Localizer["Workflow published with Not Found activities"], Severity.Warning, options => options.VisibleStateDuration = 5000);
             else
-                Snackbar.Add(_localizer["Workflow published"], Severity.Success);
+                Snackbar.Add(Localizer["Workflow published"], Severity.Success);
 
             if (response.ConsumingWorkflowCount > 0)
             {
-                Snackbar.Add($"{response.ConsumingWorkflowCount}"+ _localizer["consuming workflow(s) updated"], Severity.Success, options => options.VisibleStateDuration = 3000);
+                Snackbar.Add($"{response.ConsumingWorkflowCount}"+ Localizer["consuming workflow(s) updated"], Severity.Success, options => options.VisibleStateDuration = 3000);
             }
         }));
     }
@@ -301,7 +300,7 @@ public partial class WorkflowEditor
     {
         await ProgressAsync(async () => await RetractAsync(() =>
         {
-            Snackbar.Add(_localizer["Workflow unpublished"], Severity.Success);
+            Snackbar.Add(Localizer["Workflow unpublished"], Severity.Success);
             return Task.CompletedTask;
         }, errors =>
         {
@@ -380,19 +379,19 @@ public partial class WorkflowEditor
 
         if (importResults.Count == 0)
         {
-            Snackbar.Add(_localizer["No workflows were imported."], Severity.Info);
+            Snackbar.Add(Localizer["No workflows were imported."], Severity.Info);
             return;
         }
 
         if (successfulImports.Count == 1)
-            Snackbar.Add(_localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
+            Snackbar.Add(Localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
         else if (importResults.Count > 1)
-            Snackbar.Add(string.Format(_localizer["Successfully imported {0}workflow definitions."], importResults.Count), Severity.Success, ConfigureSnackbar);
+            Snackbar.Add(Localizer["Successfully imported {0} workflow definitions.", importResults.Count], Severity.Success, ConfigureSnackbar);
 
         if (failedImports.Count == 1)
-            Snackbar.Add($"Failed to import 1 workflow definition: {failedImports[0].Failure!.ErrorMessage}", Severity.Error, ConfigureSnackbar);
+            Snackbar.Add(Localizer["Failed to import 1 workflow definition: {0}", failedImports[0].Failure!.ErrorMessage], Severity.Error, ConfigureSnackbar);
         else if (failedImports.Count > 1) 
-            Snackbar.Add($"Failed to import {failedImports.Count} workflow definitions. Errors: {string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))}", Severity.Error, ConfigureSnackbar);
+            Snackbar.Add(Localizer["Failed to import {0} workflow definitions. Errors: {1}", failedImports.Count, string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))], Severity.Error, ConfigureSnackbar);
 
         return;
         void ConfigureSnackbar(SnackbarOptions snackbarOptions)

@@ -23,7 +23,7 @@ public partial class VersionHistoryTab : IDisposable
     [Inject] private IWorkflowDefinitionHistoryService WorkflowDefinitionHistoryService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
+    
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace.IsReadOnly;
@@ -95,7 +95,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        var confirmed = await DialogService.ShowMessageBox(string.Format(_localizer["Delete version {0}"], workflowDefinitionSummary.Version), _localizer["Are you sure you want to delete this version?"]);
+        var confirmed = await DialogService.ShowMessageBox(Localizer["Delete version {0}", workflowDefinitionSummary.Version], Localizer["Are you sure you want to delete this version?"]);
 
         if (confirmed != true)
             return;
@@ -115,7 +115,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnBulkDeleteClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox(_localizer["Delete selected versions"], _localizer["Are you sure you want to delete the selected versions?"]);
+        var confirmed = await DialogService.ShowMessageBox(Localizer["Delete selected versions"], Localizer["Are you sure you want to delete the selected versions?"]);
 
         if (confirmed != true)
             return;

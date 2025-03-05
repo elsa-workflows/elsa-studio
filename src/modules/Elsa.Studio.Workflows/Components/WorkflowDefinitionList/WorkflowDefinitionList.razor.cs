@@ -34,10 +34,9 @@ public partial class WorkflowDefinitionList
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
-    private string ReadonlyWorkflowsExcluded => _localizer["The read-only workflows will not be affected."];
+    private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
@@ -122,7 +121,7 @@ public partial class WorkflowDefinitionList
             MaxWidth = MaxWidth.Small
         };
 
-        var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>(_localizer["New workflow"], parameters, options);
+        var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>(Localizer["New workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
 
         if (!dialogResult.Canceled)
@@ -167,17 +166,17 @@ public partial class WorkflowDefinitionList
 
         if (response.CannotStart)
         {
-            Snackbar.Add(_localizer["The workflow cannot be started"], Severity.Error);
+            Snackbar.Add(Localizer["The workflow cannot be started"], Severity.Error);
             return;
         }
 
-        Snackbar.Add(_localizer["Successfully started workflow"], Severity.Success);
+        Snackbar.Add(Localizer["Successfully started workflow"], Severity.Success);
     }
 
     private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Delete workflow?"],
-            _localizer["Are you sure you want to delete this workflow?"], yesText: _localizer["Delete"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Delete workflow?"],
+            Localizer["Are you sure you want to delete this workflow?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -189,8 +188,8 @@ public partial class WorkflowDefinitionList
 
     private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Cancel running workflow instances?"],
-            _localizer["Are you sure you want to cancel"], yesText: _localizer["Yes"], cancelText: _localizer["No"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Cancel running workflow instances?"],
+            Localizer["Are you sure you want to cancel"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (result != true)
             return;
@@ -213,8 +212,8 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkDeleteClicked()
     {
         var result = await DialogService.ShowMessageBox(
-    _localizer["Delete selected workflows?"],
-    _localizer["Are you sure you want to delete the selected workflows?"] +(_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""),yesText: _localizer["Delete"],cancelText: _localizer["Cancel"]);
+    Localizer["Delete selected workflows?"],
+    Localizer["Are you sure you want to delete the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -226,8 +225,8 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkPublishClicked()
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Publish selected workflows?"],
-            _localizer["Are you sure you want to publish the selected workflows?"]+ (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: _localizer["Publish"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Publish selected workflows?"],
+            Localizer["Are you sure you want to publish the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Publish"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -238,24 +237,24 @@ public partial class WorkflowDefinitionList
         if (response.Published.Count > 0)
         {
             var message = response.Published.Count == 1
-                ? _localizer["One workflow is published"]
-                : string.Format(_localizer["{0} workflows are published"], response.Published.Count);
+                ? Localizer["One workflow is published"]
+                : Localizer["{0} workflows are published", response.Published.Count];
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.AlreadyPublished.Count > 0)
         {
             var message = response.AlreadyPublished.Count == 1
-                ? _localizer["One workflow is already published"]
-                : string.Format(_localizer["{0} workflows are already published"], response.AlreadyPublished.Count);
+                ? Localizer["One workflow is already published"]
+                : Localizer["{0} workflows are already published", response.AlreadyPublished.Count];
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.UpdatedConsumers.Count > 0)
         {
             var message = response.UpdatedConsumers.Count == 1
-                ? _localizer["One workflow consuming a published workflow has been updated"]
-                : string.Format(_localizer["{0} workflows consuming published workflows have been updated"], response.UpdatedConsumers.Count);
+                ? Localizer["One workflow consuming a published workflow has been updated"]
+                : Localizer["{0} workflows consuming published workflows have been updated", response.UpdatedConsumers.Count];
             Snackbar.Add(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
@@ -266,8 +265,8 @@ public partial class WorkflowDefinitionList
         if (response.NotFound.Count > 0)
         {
             var message = response.NotFound.Count == 1
-                ? _localizer["One workflow is not found"]
-                : _localizer["{0} workflows are not found"];
+                ? Localizer["One workflow is not found"]
+                : Localizer["{0} workflows are not found", response.NotFound.Count];
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -276,8 +275,8 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkRetractClicked()
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Unpublish selected workflows?"],
-            _localizer["Are you sure you want to unpublish the selected workflows?"] +(_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: _localizer["Unpublish"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Unpublish selected workflows?"],
+            Localizer["Are you sure you want to unpublish the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Unpublish"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -288,24 +287,24 @@ public partial class WorkflowDefinitionList
         if (response.Retracted.Count > 0)
         {
             var message = response.Retracted.Count == 1
-                ? _localizer["One workflow is unpublished"]
-                : string.Format(_localizer["{0} workflows are unpublished"], response.Retracted.Count);
+                ? Localizer["One workflow is unpublished"]
+                : Localizer["{0} workflows are unpublished", response.Retracted.Count];
             Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.AlreadyRetracted.Count > 0)
         {
             var message = response.AlreadyRetracted.Count == 1
-                ? _localizer["One workflow is already unpublished"]
-                : string.Format(_localizer["{0} workflows are already unpublished"], response.AlreadyRetracted.Count);
+                ? Localizer["One workflow is already unpublished"]
+                : Localizer["{0} workflows are already unpublished", response.AlreadyRetracted.Count];
             Snackbar.Add(message, Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.NotFound.Count > 0)
         {
             var message = response.NotFound.Count == 1
-                ? _localizer["One workflow is not found"]
-                : string.Format(_localizer["{0} workflows are not found"], response.NotFound.Count);
+                ? Localizer["One workflow is not found"]
+                : Localizer["{0} workflows are not found", response.NotFound.Count];
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
@@ -332,9 +331,9 @@ public partial class WorkflowDefinitionList
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? "workflow" : "workflows";
-        var message = results.Count == 0 ? _localizer["No workflows found to import."] :
-            successfulResultCount > 0 && failedResultCount == 0 ? string.Format(_localizer["{0} {1} imported successfully."], successfulResultCount, successfulWorkflowsTerm) :
-            successfulResultCount == 0 && failedResultCount > 0 ? _localizer["Failed to import"]+" {failedResultCount} {failedWorkflowsTerm}." : $"{successfulResultCount} {successfulWorkflowsTerm}"+ _localizer["imported successfully."]+" {failedResultCount} {failedWorkflowsTerm}"+ _localizer["failed to import."];
+        var message = results.Count == 0 ? Localizer["No workflows found to import."] :
+            successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
+            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm];
         var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         Snackbar.Add(message, severity, options =>
         {
@@ -359,18 +358,18 @@ public partial class WorkflowDefinitionList
         var response = await WorkflowDefinitionService.PublishAsync(definitionId);
         if (response.AlreadyPublished)
         {
-            Snackbar.Add(_localizer["Workflow was already published"], Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
+            Snackbar.Add(Localizer["Workflow was already published"], Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
         else
         {
-            Snackbar.Add(_localizer["Workflow published"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+            Snackbar.Add(Localizer["Workflow published"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         }
 
         if (response.ConsumingWorkflowCount > 0)
         {
             var message = response.ConsumingWorkflowCount == 1
-                ? _localizer["One workflow consuming a published workflow has been updated"]
-                : string.Format(_localizer["{0} workflows consuming published workflows have been updated"], response.ConsumingWorkflowCount);
+                ? Localizer["One workflow consuming a published workflow has been updated"]
+                : Localizer["{0} workflows consuming published workflows have been updated", response.ConsumingWorkflowCount];
             Snackbar.Add(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
@@ -384,7 +383,7 @@ public partial class WorkflowDefinitionList
     private async Task OnRetractClicked(string definitionId)
     {
         await WorkflowDefinitionService.RetractAsync(definitionId);
-        Snackbar.Add(_localizer["Workflow retracted"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        Snackbar.Add(Localizer["Workflow retracted"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
 

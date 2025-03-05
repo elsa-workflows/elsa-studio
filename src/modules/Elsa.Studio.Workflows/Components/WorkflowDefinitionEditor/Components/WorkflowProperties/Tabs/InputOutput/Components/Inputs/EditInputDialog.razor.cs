@@ -29,7 +29,6 @@ public partial class EditInputDialog
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -86,19 +85,19 @@ public partial class EditInputDialog
         // TODO: Get these from the backend.
         var descriptors = new[]
         {
-            new UIHintDescriptor("singleline", _localizer["Single line"], _localizer["A single line of text input"]),
-            new UIHintDescriptor("multiline", _localizer["Multi line"], _localizer["Multiple lines of text input"]),
-            new UIHintDescriptor("checkbox", _localizer["Checkbox"], _localizer["A checkbox"]),
-            new UIHintDescriptor("checklist", _localizer["Checklist"], _localizer["A list of checkboxes"]),
-            new UIHintDescriptor("radiolist", _localizer["Radio list"], _localizer["A list of radio buttons"]),
-            new UIHintDescriptor("dropdown", _localizer["Dropdown"], _localizer["A dropdown list"]),
-            new UIHintDescriptor("multitext", _localizer["Multi text"], _localizer["An input for multiple words, like a tagging input"]),
-            new UIHintDescriptor("code-editor", _localizer["Code editor"], _localizer["A code editor"]),
-            new UIHintDescriptor("variable-picker", _localizer["Variable picker"], _localizer["A variable picker"]),
-            new UIHintDescriptor("workflow-definition-picker", _localizer["Workflow definition picker"], _localizer["A workflow definition picker"]),
-            new UIHintDescriptor("output-picker", _localizer["Output picker"], _localizer["A workflow output definition picker"]),
-            new UIHintDescriptor("outcome-picker", _localizer["Outcome picker"], _localizer["An outcome picker"]),
-            new UIHintDescriptor("json-editor", _localizer["JSON editor"], _localizer["A JSON editor"]),
+            new UIHintDescriptor("singleline", Localizer["Single line"], Localizer["A single line of text input"]),
+            new UIHintDescriptor("multiline", Localizer["Multi line"], Localizer["Multiple lines of text input"]),
+            new UIHintDescriptor("checkbox", Localizer["Checkbox"], Localizer["A checkbox"]),
+            new UIHintDescriptor("checklist", Localizer["Checklist"], Localizer["A list of checkboxes"]),
+            new UIHintDescriptor("radiolist", Localizer["Radio list"], Localizer["A list of radio buttons"]),
+            new UIHintDescriptor("dropdown", Localizer["Dropdown"], Localizer["A dropdown list"]),
+            new UIHintDescriptor("multitext", Localizer["Multi text"], Localizer["An input for multiple words, like a tagging input"]),
+            new UIHintDescriptor("code-editor", Localizer["Code editor"], Localizer["A code editor"]),
+            new UIHintDescriptor("variable-picker", Localizer["Variable picker"], Localizer["A variable picker"]),
+            new UIHintDescriptor("workflow-definition-picker", Localizer["Workflow definition picker"], Localizer["A workflow definition picker"]),
+            new UIHintDescriptor("output-picker", Localizer["Output picker"], Localizer["A workflow output definition picker"]),
+            new UIHintDescriptor("outcome-picker", Localizer["Outcome picker"], Localizer["An outcome picker"]),
+            new UIHintDescriptor("json-editor", Localizer["JSON editor"], Localizer["A JSON editor"]),
         };
         
         return Task.FromResult(descriptors.AsEnumerable());

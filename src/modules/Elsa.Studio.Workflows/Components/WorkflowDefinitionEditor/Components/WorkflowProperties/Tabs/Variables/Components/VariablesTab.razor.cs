@@ -18,7 +18,6 @@ public partial class VariablesTab
     [CascadingParameter] public IWorkspace? Workspace { get; set; }
     [Inject] IStorageDriverService StorageDriverService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
-    [Inject] private ILocalizer _localizer { get; set; } = default!;
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? true;
     private ICollection<Variable> Variables => WorkflowDefinition.Variables;
@@ -59,7 +58,7 @@ public partial class VariablesTab
             CloseOnEscapeKey = true
         };
 
-        var title = variable == null ? _localizer["Create variable"] : _localizer["Edit variable"];
+        var title = variable == null ? Localizer["Create variable"] : Localizer["Edit variable"];
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
 
@@ -82,7 +81,7 @@ public partial class VariablesTab
 
     private async Task OnDeleteClicked(Variable variable)
     {
-        var result = await DialogService.ShowMessageBox(_localizer["Delete selected variable?"], _localizer["Are you sure you want to delete the selected variable?"], yesText: _localizer["Delete"], cancelText: _localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected variable?"], Localizer["Are you sure you want to delete the selected variable?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
