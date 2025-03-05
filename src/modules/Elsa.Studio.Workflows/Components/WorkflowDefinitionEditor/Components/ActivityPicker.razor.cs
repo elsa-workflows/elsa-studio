@@ -40,29 +40,6 @@ public partial class ActivityPicker
                 .GroupBy(x => x.Category);
         }
     }
-    [Inject] ILocalizer _localizerService { get; set; }
-    private string GetTranslation(string value)
-    {
-        string transletValue = string.Empty;
-
-        try
-        {
-            CultureInfo currentCulture = CultureInfo.CurrentCulture;
-            // string resourceValue = Resource.ResourceManager.GetString(value);
-            //if (!string.IsNullOrEmpty(Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name))))
-            //{
-            //    transletValue = Resource.ResourceManager.GetString(value, CultureInfo.GetCultureInfo(currentCulture.Name));
-            //}
-            transletValue = _localizerService[value];
-        }
-        catch(Exception ex)
-        {
-            return value.ToString();
-        }
-
-
-        return transletValue;
-    }
 
     /// <summary>
     /// The drag and drop manager.

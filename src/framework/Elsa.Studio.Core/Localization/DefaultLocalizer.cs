@@ -10,6 +10,9 @@ public class DefaultLocalizer(ILocalizationProvider provider) : ILocalizer
     {
         get
         {
+            if (string.IsNullOrWhiteSpace(key))
+                return new LocalizedString(string.Empty, string.Empty, true);
+
             var notFound = false;
             var translation = provider.GetTranslation(key);
 
