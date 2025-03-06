@@ -5,11 +5,18 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Handlers;
 
+/// <summary>
+/// Provides a handler for the <see cref="UIHint.CheckList"/> UI hint.
+/// </summary>
 public class CheckListHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "checklist";
+    /// <inheritdoc />
+    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.CheckList;
+
+    /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Object;
 
+    /// <inheritdoc />
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>

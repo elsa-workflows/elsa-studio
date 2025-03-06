@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Handlers;
 
+/// <summary>
+/// Provides a handler for the <see cref="UIHint.ExpressionEditor"/> UI hint.
+/// </summary>
 public class ExpressionEditorHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "expression-editor";
+    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.ExpressionEditor;
 
     /// <inheritdoc />
     public string UISyntax => "JavaScript";

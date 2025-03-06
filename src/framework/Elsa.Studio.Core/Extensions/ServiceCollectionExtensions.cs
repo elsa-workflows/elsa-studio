@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IAppBarService, DefaultAppBarService>()
             .AddScoped<IFeatureService, DefaultFeatureService>()
             .AddScoped<IUIHintService, DefaultUIHintService>()
+            .AddScoped<IUIFieldExtensionService, DefaultUIFieldExtensionService>()
             .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
@@ -77,5 +78,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUIHintHandler<T>(this IServiceCollection services) where T : class, IUIHintHandler
     {
         return services.AddScoped<IUIHintHandler, T>();
+    }
+
+    /// <summary>
+    /// Adds the specified <see cref="IUIFieldExtensionHandler"/>.
+    /// </summary>
+    public static IServiceCollection AddUIFieldEnhancerHandler<T>(this IServiceCollection services) where T : class, IUIFieldExtensionHandler
+    {
+        return services.AddScoped<IUIFieldExtensionHandler, T>();
     }
 }

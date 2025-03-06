@@ -1,22 +1,28 @@
 @using Elsa.Api.Client.Resources.Scripting.Extensions;
 @using Elsa.Api.Client.Resources.Scripting.Models;
+@using Elsa.Studio.Enums
 
 <div class="d-flex flex-grow-1 gap-4 align-content-start relative">
     <div class="flex-1">
 
-        <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Class="@(ShowMonacoEditor ? "d-block" : "d-none")" Disabled="EditorContext.IsReadOnly">
-            <StandaloneCodeEditor
-                @ref="_monacoEditor"
-                Id="@_monacoEditorId"
-                ConstructionOptions="ConfigureMonacoEditor"
-                CssClass="studio-expression-input-monaco-editor"
-                OnDidInit="OnMonacoInitializedAsync"
-                OnDidChangeModelContent="OnMonacoContentChangedAsync"/>
-        </MudField>
-
-        @if (!ShowMonacoEditor)
+        @if (ShowMonacoEditor)
         {
-            @ChildContent
+            <FieldExtension UIHintComponent=@ComponentType EditorContext="@EditorContext">
+                <ChildContent>
+                    <MudField Variant="Variant.Outlined" Label="@DisplayName" HelperText="@Description" Margin="Margin.Dense" Disabled="EditorContext.IsReadOnly">
+                        <StandaloneCodeEditor @ref="_monacoEditor"
+                                              Id="@_monacoEditorId"
+                                              ConstructionOptions="ConfigureMonacoEditor"
+                                              OnDidInit="OnMonacoInitializedAsync"
+                                              OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                              CssClass="studio-expression-input-monaco-editor" />
+                    </MudField>
+                </ChildContent>
+            </FieldExtension>
+        }
+        else
+        {
+            <FieldExtension UIHintComponent=@ComponentType EditorContext="@EditorContext" ChildContent="@ChildContent" />
         }
         
     </div>

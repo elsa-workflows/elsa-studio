@@ -6,12 +6,15 @@
     var description = inputDescriptor.Description;
 }
 
-<MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
-    <StandaloneCodeEditor
-        @ref="_monacoEditor"
-        Id="@_monacoEditorId"
-        ConstructionOptions="ConfigureMonacoEditor"
-        OnDidInit="OnMonacoInitializedAsync"
-        CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large"
-        OnDidChangeModelContent="OnMonacoContentChanged"/>
-</MudField>
+<FieldExtension UIHintComponent="@UIHint.Code" EditorContext="@EditorContext">
+    <ChildContent>
+        <MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
+            <StandaloneCodeEditor @ref="_monacoEditor"
+                                  Id="@_monacoEditorId"
+                                  ConstructionOptions="ConfigureMonacoEditor"
+                                  OnDidInit="OnMonacoInitializedAsync"
+                                  OnDidChangeModelContent="OnMonacoContentChanged"
+                                  CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
+        </MudField>
+    </ChildContent>
+</FieldExtension>
