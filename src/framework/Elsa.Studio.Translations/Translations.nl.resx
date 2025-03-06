@@ -86,79 +86,79 @@
     <value>Gemaakt op</value>
   </data>
   <data name="No output associated with this execution." xml:space="preserve">
-    <value />
+    <value>Geen uitkomst gekoppeld aan deze uitvoering.</value>
   </data>
   <data name="Is on or After" xml:space="preserve">
     <value>Is op of na</value>
   </data>
   <data name="The name of the agent." xml:space="preserve">
-    <value />
+    <value>De naam van de agent.</value>
   </data>
   <data name="Temperature" xml:space="preserve">
-    <value />
+    <value>Temperatuur</value>
   </data>
   <data name="Started" xml:space="preserve">
-    <value />
+    <value>Gestart</value>
   </data>
   <data name="The description of the output variable." xml:space="preserve">
-    <value />
+    <value>De omschrijving van de outputvariabele.</value>
   </data>
   <data name="Status" xml:space="preserve">
-    <value />
+    <value>Status</value>
   </data>
   <data name="Task" xml:space="preserve">
-    <value />
+    <value>Taak</value>
   </data>
   <data name="string" xml:space="preserve">
-    <value />
+    <value>string</value>
   </data>
   <data name="Show incidents" xml:space="preserve">
-    <value />
+    <value>Toon incidenten</value>
   </data>
   <data name="SubStatus" xml:space="preserve">
-    <value />
+    <value>Substatus</value>
   </data>
   <data name="Showing all events" xml:space="preserve">
-    <value />
+    <value>Alle evenementen</value>
   </data>
   <data name="Start of workflow" xml:space="preserve">
-    <value />
+    <value>Start van de workflow</value>
   </data>
   <data name="Showing incidents" xml:space="preserve">
-    <value />
+    <value>Incidenten</value>
   </data>
   <data name="The system prompt template that the agent will use." xml:space="preserve">
     <value />
   </data>
   <data name="The penalty for repeating" xml:space="preserve">
-    <value />
+    <value>De straf voor het herhalen van een token. Een hogere straf vermindert de kans op herhaling en bevordert meer variatie in de gegenereerde tekst.</value>
   </data>
   <data name="The services that the agent requires." xml:space="preserve">
     <value />
   </data>
   <data name="The penalty for repeating any one token" xml:space="preserve">
-    <value />
+    <value>De straf voor het herhalen van een token. Een hogere straf vermindert de kans op herhaling en bevordert meer variatie in de gegenereerde tekst.</value>
   </data>
   <data name="The scope of the secret helps the UI to filter available options from dropdown lists." xml:space="preserve">
     <value />
   </data>
   <data name="The name of the new agent." xml:space="preserve">
-    <value />
+    <value>De naam van de nieuwe agent.</value>
   </data>
   <data name="The secret value." xml:space="preserve">
     <value />
   </data>
   <data name="The name of the variable." xml:space="preserve">
-    <value />
+    <value>De naam van de variabele.</value>
   </data>
   <data name="The plugins that the agent can use." xml:space="preserve">
-    <value />
+    <value>De plugin die de agent kan gebruiken.</value>
   </data>
   <data name="The name of the new workflow." xml:space="preserve">
-    <value />
+    <value>De naam van de nieuwe workfow.</value>
   </data>
   <data name="The name of the new secret." xml:space="preserve">
-    <value />
+    <value>De naam van het nieuwe geheim.</value>
   </data>
   <data name="The settings of the service in JSON format." xml:space="preserve">
     <value />
@@ -245,7 +245,7 @@
     <value />
   </data>
   <data name="Read Data from Database" xml:space="preserve">
-    <value />
+    <value>Lees data uit database</value>
   </data>
   <data name="Function Name" xml:space="preserve">
     <value>Functienaam</value>
@@ -263,19 +263,19 @@
     <value>Ingangen</value>
   </data>
   <data name="Scheduling" xml:space="preserve">
-    <value />
+    <value>Planning</value>
   </data>
   <data name="Display text" xml:space="preserve">
     <value>Weergave tekst</value>
   </data>
   <data name="Run workflow" xml:space="preserve">
-    <value />
+    <value>Workflow uitvoeren</value>
   </data>
   <data name="Scope" xml:space="preserve">
-    <value />
+    <value>Bereik</value>
   </data>
   <data name="No" xml:space="preserve">
-    <value />
+    <value>Nee</value>
   </data>
   <data name="Manage all the things" xml:space="preserve">
     <value>Beheer alle dingen</value>
@@ -284,7 +284,7 @@
     <value>Fout</value>
   </data>
   <data name="Publish" xml:space="preserve">
-    <value />
+    <value>Publiceer</value>
   </data>
   <data name="The value of the API key." xml:space="preserve">
     <value />
@@ -293,7 +293,7 @@
     <value>Algemeen</value>
   </data>
   <data name="Publish the current workflow" xml:space="preserve">
-    <value />
+    <value>Publiceer de huidige workflow</value>
   </data>
   <data name="Is array" xml:space="preserve">
     <value>Is een array</value>
@@ -308,7 +308,7 @@
     <value>Gebeurtenis</value>
   </data>
   <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
-    <value />
+    <value>De naam van de activiteit. Genaamde activiteiten kunnen door andere activiteiten worden gerefereerd.</value>
   </data>
   <data name="Click to open a new workflow tab" xml:space="preserve">
     <value>Klik om een nieuw workflowtabblad te openen</value>
@@ -317,7 +317,7 @@
     <value>Agent</value>
   </data>
   <data name="Join" xml:space="preserve">
-    <value>Join</value>
+    <value>Samenvoegen</value>
   </data>
   <data name="HTTP" xml:space="preserve">
     <value>HTTP</value>
@@ -338,7 +338,7 @@
     <value>Bezig met laden</value>
   </data>
   <data name="No services found" xml:space="preserve">
-    <value />
+    <value>Geen services gevonden</value>
   </data>
   <data name="Composition" xml:space="preserve">
     <value>Compositie</value>
@@ -356,28 +356,28 @@
     <value>Cron</value>
   </data>
   <data name="Parser" xml:space="preserve">
-    <value />
+    <value>Parser</value>
   </data>
   <data name="HTTP File Response" xml:space="preserve">
-    <value>HTTP File Response</value>
+    <value>HTTP-bestandrespons</value>
   </data>
   <data name="Output" xml:space="preserve">
-    <value />
+    <value>Uitkomst</value>
   </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
     <value>Bulk Dispatch Workflows</value>
   </data>
   <data name="Set Output" xml:space="preserve">
-    <value />
+    <value>Bepaal uitkomst</value>
   </data>
   <data name="No state associated with this execution." xml:space="preserve">
-    <value />
+    <value>Geen status gekoppeld aan deze uitvoering.</value>
   </data>
   <data name="7 days" xml:space="preserve">
     <value>7 dagen</value>
   </data>
   <data name="Set Name" xml:space="preserve">
-    <value />
+    <value>Bepaal naam</value>
   </data>
   <data name="A description about the secret." xml:space="preserve">
     <value>Een beschrijving van de secret.</value>
@@ -392,16 +392,16 @@
     <value>int</value>
   </data>
   <data name="Published version" xml:space="preserve">
-    <value />
+    <value>Gepubliceerde versie</value>
   </data>
   <data name="Run Task" xml:space="preserve">
-    <value />
+    <value>Taak uitvoeren</value>
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Verloopt</value>
   </data>
   <data name="No agents found" xml:space="preserve">
-    <value />
+    <value>Geen agents gevonden</value>
   </data>
   <data name="Duration" xml:space="preserve">
     <value>Duur</value>
@@ -410,7 +410,7 @@
     <value />
   </data>
   <data name="Run Asynchronously" xml:space="preserve">
-    <value />
+    <value>Asynchroon uitvoeren</value>
   </data>
   <data name="API Keys" xml:space="preserve">
     <value>API sleutels</value>
@@ -419,7 +419,7 @@
     <value />
   </data>
   <data name="The .NET type of the input variable." xml:space="preserve">
-    <value />
+    <value>Het .NET-type van de inputvariabele.</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Verwijderen</value>
@@ -428,19 +428,19 @@
     <value>Werkstroom sluiten</value>
   </data>
   <data name="Sub status" xml:space="preserve">
-    <value />
+    <value>Substatus</value>
   </data>
   <data name="Definition ID" xml:space="preserve">
     <value>Definitie ID</value>
   </data>
   <data name="Run JavaScript" xml:space="preserve">
-    <value />
+    <value>JavaScript uitvoeren</value>
   </data>
   <data name="Dispatch Workflow" xml:space="preserve">
     <value>Workflow verzenden</value>
   </data>
   <data name="No variables" xml:space="preserve">
-    <value />
+    <value>Geen variabelen</value>
   </data>
   <data name="Usable as activity" xml:space="preserve">
     <value />
@@ -452,10 +452,10 @@
     <value>API sleutel</value>
   </data>
   <data name="Search" xml:space="preserve">
-    <value />
+    <value>Zoeken...</value>
   </data>
   <data name="No inputs" xml:space="preserve">
-    <value />
+    <value>Geen inputs</value>
   </data>
   <data name="Import" xml:space="preserve">
     <value>Importeren</value>
@@ -467,7 +467,7 @@
     <value>Invoereigenschappen</value>
   </data>
   <data name="Secrets" xml:space="preserve">
-    <value />
+    <value>Geheimen</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Toepassen</value>
@@ -476,22 +476,22 @@
     <value>Incidentstrategie</value>
   </data>
   <data name="Set Workflow Context Parameter" xml:space="preserve">
-    <value />
+    <value>Bepaal workflow-contextparameter</value>
   </data>
   <data name="A brief description of the agent." xml:space="preserve">
     <value>Een korte omschrijving van de agent.</value>
   </data>
   <data name="The name of the function that the agent will execute." xml:space="preserve">
-    <value />
+    <value>De naam van de functie die de agent zal uitvoeren.</value>
   </data>
   <data name="Function" xml:space="preserve">
     <value>Functie</value>
   </data>
   <data name="Never" xml:space="preserve">
-    <value />
+    <value>Nooit</value>
   </data>
   <data name="Search on name, description, id, definition id" xml:space="preserve">
-    <value />
+    <value>Zoek op naam, omschrijving, id, definitie-id</value>
   </data>
   <data name="Activities" xml:space="preserve">
     <value>Activities</value>
@@ -506,13 +506,13 @@
     <value>Activeringsstrategie</value>
   </data>
   <data name="Search on name, id, definition id, definition version id, correlation id" xml:space="preserve">
-    <value />
+    <value>Zoek op naam, id, definitie-id, definitieversie-id, correlatie-id</value>
   </data>
   <data name="Show relative time" xml:space="preserve">
-    <value />
+    <value>Toon relatieve tijd</value>
   </data>
   <data name="Show accumulated time" xml:space="preserve">
-    <value />
+    <value>Toon geaccumuleerde tijd</value>
   </data>
   <data name="Completed" xml:space="preserve">
     <value>Voltooid</value>
@@ -539,16 +539,16 @@
     <value>Agent aanmaken</value>
   </data>
   <data name="OpenAIChatCompletion" xml:space="preserve">
-    <value />
+    <value>Open AI-chataanvulling</value>
   </data>
   <data name="Flow" xml:space="preserve">
     <value>Stroom</value>
   </data>
   <data name="Name" xml:space="preserve">
-    <value />
+    <value>Naam</value>
   </data>
   <data name="Rows Per Page" xml:space="preserve">
-    <value />
+    <value>Rijen per pagina</value>
   </data>
   <data name="Is After" xml:space="preserve">
     <value>Is na</value>
@@ -566,19 +566,19 @@
     <value />
   </data>
   <data name="Open File" xml:space="preserve">
-    <value />
+    <value>Open bestand</value>
   </data>
   <data name="Send Email" xml:space="preserve">
-    <value />
+    <value>Verstuur e-mail</value>
   </data>
   <data name="object" xml:space="preserve">
-    <value />
+    <value>object</value>
   </data>
   <data name="Break" xml:space="preserve">
     <value>Breken</value>
   </data>
   <data name="No API keys found" xml:space="preserve">
-    <value />
+    <value>Geen API keys gevonden</value>
   </data>
   <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
     <value>Een beschrijving van deze activity die in de designer moet worden weergegeven.</value>
@@ -596,7 +596,7 @@
     <value>Is op of voor</value>
   </data>
   <data name="Published" xml:space="preserve">
-    <value />
+    <value>Gepubliceerd</value>
   </data>
   <data name="Export the current workflow as a JSON file" xml:space="preserve">
     <value>Exporteer de huidige workflow als een JSON-bestand.</value>
@@ -614,22 +614,22 @@
     <value>Executie instellingen</value>
   </data>
   <data name="Services" xml:space="preserve">
-    <value />
+    <value>Services</value>
   </data>
   <data name="IncidentCount" xml:space="preserve">
     <value>Incidentaantal</value>
   </data>
   <data name="Output Properties" xml:space="preserve">
-    <value />
+    <value>Uikomsteigenschappen</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informatie</value>
   </data>
   <data name="Switch (flow)" xml:space="preserve">
-    <value />
+    <value>Omwisselen (flow)</value>
   </data>
   <data name="State" xml:space="preserve">
-    <value />
+    <value>Status</value>
   </data>
   <data name="Connection Strings" xml:space="preserve">
     <value>Verbindingsreeksen</value>
@@ -641,19 +641,19 @@
     <value />
   </data>
   <data name="Save File" xml:space="preserve">
-    <value />
+    <value>Bestand bewaren</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Sluiten</value>
   </data>
   <data name="The lifetime of this secret" xml:space="preserve">
-    <value />
+    <value>De levensduur van dit geheim</value>
   </data>
   <data name="A technical name for the function" xml:space="preserve">
     <value>Een technische naam voor de functie die deze agent uitvoert. Bijvoorbeeld: WriteCode</value>
   </data>
   <data name="No workflow definitions found" xml:space="preserve">
-    <value />
+    <value>Geen workflow-definities gevonden</value>
   </data>
   <data name="A custom category by which to group this output." xml:space="preserve">
     <value>Een aangepaste categorie om deze output te groeperen.</value>
@@ -668,22 +668,22 @@
     <value />
   </data>
   <data name="Switch" xml:space="preserve">
-    <value />
+    <value>Omwisselen</value>
   </data>
   <data name="Rollback to this version" xml:space="preserve">
-    <value />
+    <value>Terugrollen naar deze versie</value>
   </data>
   <data name="Executions" xml:space="preserve">
     <value>Executies</value>
   </data>
   <data name="Sub-Workflow Outputs" xml:space="preserve">
-    <value />
+    <value>Sub-workflow uitkomsten</value>
   </data>
   <data name="FinishedAt" xml:space="preserve">
     <value>Voltooid op</value>
   </data>
   <data name="Prompt Template" xml:space="preserve">
-    <value />
+    <value>Prompt-template</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Annuleren</value>
@@ -695,10 +695,10 @@
     <value>Invoer</value>
   </data>
   <data name="If" xml:space="preserve">
-    <value>If</value>
+    <value>Als</value>
   </data>
   <data name="Start" xml:space="preserve">
-    <value />
+    <value>Start</value>
   </data>
   <data name="TopP" xml:space="preserve">
     <value />
@@ -713,7 +713,7 @@
     <value>Aggregatie</value>
   </data>
   <data name="Run" xml:space="preserve">
-    <value />
+    <value>Uitvoeren</value>
   </data>
   <data name="A custom category by which to group this input." xml:space="preserve">
     <value>Een aangepaste categorie waarin deze invoer wordt gegroepeerd.</value>
@@ -725,13 +725,13 @@
     <value>Excel parser</value>
   </data>
   <data name="Run Python" xml:space="preserve">
-    <value />
+    <value>Python uitvoeren</value>
   </data>
   <data name="There are currently no inputs defined." xml:space="preserve">
     <value />
   </data>
   <data name="Show events scoped to current container" xml:space="preserve">
-    <value />
+    <value>Toon evenementen binnen het bereik van de huidige container</value>
   </data>
   <data name="Details" xml:space="preserve">
     <value>Details</value>
@@ -746,7 +746,7 @@
     <value />
   </data>
   <data name="Storage" xml:space="preserve">
-    <value />
+    <value>Opslag</value>
   </data>
   <data name="Create workflow" xml:space="preserve">
     <value>Workflow maken</value>
@@ -755,7 +755,7 @@
     <value>Een beschrijving van de rol en het doel van deze invoervariabele.</value>
   </data>
   <data name="Scripting" xml:space="preserve">
-    <value />
+    <value>Scripting</value>
   </data>
   <data name="Top Probability determines" xml:space="preserve">
     <value />
@@ -776,13 +776,13 @@
     <value />
   </data>
   <data name="Metadata" xml:space="preserve">
-    <value />
+    <value>Metadata</value>
   </data>
   <data name="Auto-save" xml:space="preserve">
     <value>Automatisch opslaan</value>
   </data>
   <data name="Read Data from Configuration / Runtime" xml:space="preserve">
-    <value />
+    <value>Lees data uit configuratie / runtime</value>
   </data>
   <data name="Fork (flow)" xml:space="preserve">
     <value>Vork (stroom)</value>
@@ -794,7 +794,7 @@
     <value>Voltooien</value>
   </data>
   <data name="The .NET type of the output variable." xml:space="preserve">
-    <value />
+    <value>Het .NET-type van de outputvariabele.</value>
   </data>
   <data name="Trigger workflow" xml:space="preserve">
     <value />
@@ -812,10 +812,10 @@
     <value>E-mail</value>
   </data>
   <data name="OpenAITextToImage" xml:space="preserve">
-    <value />
+    <value>OpenAI tekst-naar-afbeelding</value>
   </data>
   <data name="Properties" xml:space="preserve">
-    <value />
+    <value>Eigenschappen</value>
   </data>
   <data name="Log Persistence Strategy" xml:space="preserve">
     <value>Log persistence strategie</value>
@@ -824,7 +824,7 @@
     <value />
   </data>
   <data name="Sub-Workflow Inputs" xml:space="preserve">
-    <value />
+    <value>Sub-workflow inputs</value>
   </data>
   <data name="Variables" xml:space="preserve">
     <value />
@@ -839,19 +839,19 @@
     <value>Gemaakt</value>
   </data>
   <data name="The maximum number" xml:space="preserve">
-    <value />
+    <value>Het maximale aantal tokens te genereren. Laat leeg voor maximum.</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value />
   </data>
   <data name="No workflow instances found" xml:space="preserve">
-    <value />
+    <value>Geen workflow-instances gevonden</value>
   </data>
   <data name="Ok" xml:space="preserve">
-    <value />
+    <value>OK</value>
   </data>
   <data name="Plugins" xml:space="preserve">
-    <value />
+    <value>Plugins</value>
   </data>
   <data name="Finished" xml:space="preserve">
     <value>Voltooid</value>
@@ -860,7 +860,7 @@
     <value>Bestand downloaden</value>
   </data>
   <data name="Outcomes" xml:space="preserve">
-    <value />
+    <value>Uitkomsten</value>
   </data>
   <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
     <value>Importeer een JSON-bestand met workflowgegevens om de inhoud van de huidige workflow te overschrijven.</value>
@@ -875,13 +875,13 @@
     <value />
   </data>
   <data name="Settings" xml:space="preserve">
-    <value />
+    <value>Instellingen</value>
   </data>
   <data name="Used" xml:space="preserve">
     <value />
   </data>
   <data name="Outputs" xml:space="preserve">
-    <value />
+    <value>Uitkomsten</value>
   </data>
   <data name="Correlation ID" xml:space="preserve">
     <value>Correlatie ID</value>
@@ -890,13 +890,13 @@
     <value>Dashboard</value>
   </data>
   <data name="Save" xml:space="preserve">
-    <value />
+    <value>Bewaren</value>
   </data>
   <data name="Version history" xml:space="preserve">
     <value />
   </data>
   <data name="Primitives" xml:space="preserve">
-    <value />
+    <value>Primitieven</value>
   </data>
   <data name="Date" xml:space="preserve">
     <value>Datum</value>
@@ -905,13 +905,13 @@
     <value>Laatste versie</value>
   </data>
   <data name="Start at" xml:space="preserve">
-    <value />
+    <value>Start op</value>
   </data>
   <data name="No outputs" xml:space="preserve">
-    <value />
+    <value>Geen uitkomsten</value>
   </data>
   <data name="Publish Event" xml:space="preserve">
-    <value />
+    <value>Publiceer evenement</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Omschrijving</value>
@@ -920,7 +920,7 @@
     <value>Een aangepaste activity categorie om aan deze workflow-als-activity toe te wijzen.</value>
   </data>
   <data name="No secrets found" xml:space="preserve">
-    <value />
+    <value>Geen secrets gevonden</value>
   </data>
   <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
     <value>Voer een lijst in met mogelijke uitkomsten voor deze workflow.</value>
@@ -935,13 +935,13 @@
     <value>Selecteer deze optie als de variabele een array van het geselecteerde type bevat.</value>
   </data>
   <data name="Set Variable" xml:space="preserve">
-    <value />
+    <value>Bepaal variabele</value>
   </data>
   <data name="Sub-Workflow" xml:space="preserve">
-    <value />
+    <value>Sub-workflow</value>
   </data>
   <data name="Secret" xml:space="preserve">
-    <value />
+    <value>Geheim</value>
   </data>
   <data name="Use this version" xml:space="preserve">
     <value />
@@ -950,7 +950,7 @@
     <value />
   </data>
   <data name="Log Persistence" xml:space="preserve">
-    <value />
+    <value>Logpersistentie</value>
   </data>
   <data name="Frequency Penalty" xml:space="preserve">
     <value>Frequentiestraf</value>
@@ -980,7 +980,7 @@
     <value>Standaardwaarde</value>
   </data>
   <data name="No outcomes associated with this execution." xml:space="preserve">
-    <value />
+    <value>Geen uitkomsten gekoppeld aan deze uitvoering.</value>
   </data>
   <data name="Export this version as a JSON file." xml:space="preserve">
     <value>Exporteer deze versie als een JSON-bestand.</value>
