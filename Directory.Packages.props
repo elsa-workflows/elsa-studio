@@ -13,13 +13,13 @@
         <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.0.0"/>
         <PackageVersion Include="FluentValidation" Version="11.11.0"/>
         <PackageVersion Include="JetBrains.Annotations" Version="2024.3.0"/>
-        <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
+        <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.13" />
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all"/>
         <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8"/>
-        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.24605.2"/>
-        <PackageVersion Include="MudBlazor" Version="8.2.0"/>
-        <PackageVersion Include="MudBlazor.Translations" Version="2.0.0"/>
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2"/>
+        <PackageVersion Include="MudBlazor" Version="8.3.0"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.24629.2"/>
+        <PackageVersion Include="MudBlazor.Translations" Version="2.1.0"/>
         <PackageVersion Include="Radzen.Blazor" Version="5.9.6"/>
         <PackageVersion Include="ShortGuid" Version="2.0.1"/>
         <PackageVersion Include="ThrottleDebounce" Version="2.0.0"/>
@@ -28,15 +28,16 @@
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
         <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12"/>
-        <PackageVersion Include="Microsoft.AspNetCore.Components" Version="8.0.12"/>
+        <PackageVersion Include="Microsoft.AspNetCore.Components" Version="8.0.13"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.CustomElements" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.12" PrivateAssets="all"/>
+        <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.12"/>
         <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.12"/>
-        <PackageVersion Include="Microsoft.JSInterop" Version="8.0.12"/>
+        <PackageVersion Include="Microsoft.JSInterop" Version="8.0.13"/>
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1"/>
@@ -47,7 +48,8 @@
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.1"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.1"/>
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.1" PrivateAssets="all"/>
-        <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.1"/>
+        <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.1"/>
+        <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.2"/>
 
         <PackageVersion Include="Microsoft.JSInterop" Version="9.0.1"/>
 
