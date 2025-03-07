@@ -8,11 +8,9 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 
 public class InputModelValidator : AbstractValidator<InputDefinitionModel>
 {
-    [Inject] private ILocalizer Localizer { get; set; } = default!;
-
-    public InputModelValidator(WorkflowDefinition workflowDefinition)
+    public InputModelValidator(WorkflowDefinition workflowDefinition, ILocalizer localizer)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage(Localizer["Please enter a name for the input."]);
+        RuleFor(x => x.Name).NotEmpty().WithMessage(localizer["Please enter a name for the input."]);
         
         RuleFor(x => x.Name)
             .Must((context, name, cancellationToken) =>
@@ -20,6 +18,6 @@ public class InputModelValidator : AbstractValidator<InputDefinitionModel>
                 var existingInput = workflowDefinition.Inputs.FirstOrDefault(x => x.Name == name);
                 return existingInput == null || existingInput.Name == context.Name;
             })
-            .WithMessage(Localizer["An input with this name already exists."]);
+            .WithMessage(localizer["An input with this name already exists."]);
     }
 }

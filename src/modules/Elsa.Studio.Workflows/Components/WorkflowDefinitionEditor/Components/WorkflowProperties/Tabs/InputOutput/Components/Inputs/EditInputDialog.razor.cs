@@ -44,7 +44,7 @@ public partial class EditInputDialog
     protected override void OnParametersSet()
     {
         _editContext = new(_model);
-        _validator = new(WorkflowDefinition);
+        _validator = new(WorkflowDefinition, Localizer);
         
         if (Input == null)
         {

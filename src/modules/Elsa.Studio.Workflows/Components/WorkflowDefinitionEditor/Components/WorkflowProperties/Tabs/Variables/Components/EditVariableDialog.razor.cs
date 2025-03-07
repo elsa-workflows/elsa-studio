@@ -42,7 +42,7 @@ public partial class EditVariableDialog
     {
         // Instantiate the edit context first, so that it is available when rendering (which happens as soon as we call an async method on the next lines). 
         _editContext = new(_model);
-        _validator = new(WorkflowDefinition);
+        _validator = new(WorkflowDefinition, Localizer);
         
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).OrderByDescending(x => x.Priority).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
