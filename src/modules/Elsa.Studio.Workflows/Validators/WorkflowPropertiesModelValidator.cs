@@ -13,10 +13,8 @@ namespace Elsa.Studio.Workflows.Validators;
 /// </summary>
 public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowMetadataModel>
 {
-    /// <inheritdoc />
-    [Inject] private ILocalizer Localizer { get; set; } = default!;
 
-    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService)
+    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService, ILocalizer Localizer)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage(Localizer["Please enter a name for the workflow."]);
         

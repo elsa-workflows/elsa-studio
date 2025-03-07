@@ -31,7 +31,7 @@ public partial class CreateWorkflowDialog
     {
         _metadataModel.Name = WorkflowName;
         _editContext = new(_metadataModel);
-        _validator = new(WorkflowDefinitionService);
+        _validator = new(WorkflowDefinitionService, Localizer);
     }
 
     private Task OnCancelClicked()
