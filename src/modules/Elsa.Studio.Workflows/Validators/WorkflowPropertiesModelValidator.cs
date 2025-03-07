@@ -14,12 +14,12 @@ namespace Elsa.Studio.Workflows.Validators;
 public class WorkflowPropertiesModelValidator : AbstractValidator<WorkflowMetadataModel>
 {
 
-    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService, ILocalizer Localizer)
+    public WorkflowPropertiesModelValidator(IWorkflowDefinitionService workflowDefinitionService, ILocalizer localizer)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage(Localizer["Please enter a name for the workflow."]);
+        RuleFor(x => x.Name).NotEmpty().WithMessage(localizer["Please enter a name for the workflow."]);
         
         RuleFor(x => x.Name)
             .MustAsync((context, name, cancellationToken) => workflowDefinitionService.GetIsNameUniqueAsync(name!, context.DefinitionId, cancellationToken))
-            .WithMessage(Localizer["A workflow with this name already exists."]);
+            .WithMessage(localizer["A workflow with this name already exists."]);
     }
 }
