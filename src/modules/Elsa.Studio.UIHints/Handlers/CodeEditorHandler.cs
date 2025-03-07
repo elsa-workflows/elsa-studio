@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.Code"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.CodeEditor"/> UI hint.
 /// </summary>
 public class CodeEditorHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.Code;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.CodeEditor;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;

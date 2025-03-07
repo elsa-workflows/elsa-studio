@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.VariablePicker"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.VariablePicker"/> UI hint.
 /// </summary>
 public class VariablePickerHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.VariablePicker;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.VariablePicker;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;

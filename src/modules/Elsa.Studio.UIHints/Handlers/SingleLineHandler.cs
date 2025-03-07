@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.SingleLine"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.SingleLine"/> UI hint.
 /// </summary>
 public class SingleLineHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint == UIHint.SingleLine;
+    public bool GetSupportsUIHint(string uiHint) => uiHint == InputUIHints.SingleLine;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;

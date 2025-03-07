@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.Checkbox"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.Checkbox"/> UI hint.
 /// </summary>
 public class CheckboxHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.Checkbox;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.Checkbox;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;

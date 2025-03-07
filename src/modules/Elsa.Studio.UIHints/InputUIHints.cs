@@ -1,22 +1,23 @@
 ﻿namespace Elsa.Studio.UIHints;
 
 /// <summary>
-/// UI hint components
+/// Provides a set of well-known UI hints.
 /// </summary>
-public static class UIHint
+public static class InputUIHints
 {
     public const string Checkbox = "checkbox";
     public const string CheckList = "checklist";
-    public const string Code = "code-editor";
-    public const string Dropdown = "dropdown";
+    public const string CodeEditor = "code-editor";
+    public const string DropDown = "dropdown";
     public const string DynamicOutcomes = "dynamic-outcomes";
     public const string ExpressionEditor = "expression-editor";
     public const string HttpStatusCodes = "http-status-codes";
-    public const string Json = "json-editor";
+    public const string JsonEditor = "json-editor";
     public const string MultiLine = "multiline";
     public const string MultiText = "multitext";
     public const string OutcomePicker = "outcome-picker";
     public const string OutputPicker = "output-picker";
+    //public const string RadioList = "radiolist";
     public const string SingleLine = "singleline";
     public const string FlowSwitchEditor = "flow-switch-editor";
     public const string SwitchEditor = "switch-editor";

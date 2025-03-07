@@ -6,7 +6,7 @@
     var description = inputDescriptor.Description;
 }
 
-<FieldExtension UIHintComponent="@UIHint.Code" EditorContext="@EditorContext">
+<FieldExtension UIHintComponent="@InputUIHints.CodeEditor" EditorContext="@EditorContext">
     <ChildContent>
         <MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
             <StandaloneCodeEditor @ref="_monacoEditor"

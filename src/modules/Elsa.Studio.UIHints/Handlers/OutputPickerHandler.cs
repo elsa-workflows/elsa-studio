@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.OutputPicker"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.OutputPicker"/> UI hint.
 /// </summary>
 public class OutputPickerHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.OutputPicker;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.OutputPicker;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;

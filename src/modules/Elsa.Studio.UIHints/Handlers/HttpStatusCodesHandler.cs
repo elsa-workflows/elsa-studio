@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.HttpStatusCodes"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.HttpStatusCodes"/> UI hint.
 /// </summary>
 public class HttpStatusCodesHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.HttpStatusCodes;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.HttpStatusCodes;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Object;

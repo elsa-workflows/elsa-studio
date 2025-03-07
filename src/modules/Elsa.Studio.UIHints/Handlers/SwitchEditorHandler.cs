@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.FlowSwitchEditor"/> and <see cref="UIHint.SwitchEditor"/> UI hints.
+/// Provides a handler for the <see cref="InputUIHints.FlowSwitchEditor"/> and <see cref="InputUIHints.SwitchEditor"/> UI hints.
 /// </summary>
 public class SwitchEditorHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.FlowSwitchEditor or UIHint.SwitchEditor;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.FlowSwitchEditor or InputUIHints.SwitchEditor;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Object;

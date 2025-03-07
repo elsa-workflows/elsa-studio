@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Provides a handler for the <see cref="UIHint.Json"/> UI hint.
+/// Provides a handler for the <see cref="InputUIHints.JsonEditor"/> UI hint.
 /// </summary>
 public class JsonEditorHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint is UIHint.Json;
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.JsonEditor;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;
