@@ -31,7 +31,7 @@
                 <MudTextField
                     T="string"
                     Label="@Localizer["Display text"]"
-                    HelperText="The text to display in the designer."
+                    HelperText="@Localizer["The text to display in the designer."]"
                     Value="@Activity.GetDisplayText()"
                     Variant="Variant.Outlined"
                     ValueChanged="OnActivityDisplayTextChanged"
@@ -57,7 +57,7 @@
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
-                        Label="Show description"
+                        Label="@Localizer["Show description"]"
                         Dense="@true"
                         Value="@(Activity.GetShowDescription() == true)"
                         ValueChanged="OnShowDescriptionChanged"/>
@@ -67,7 +67,7 @@
                     Variant="Variant.Text"
                     UnderLine="@true"
                     Margin="Margin.None"
-                    HelperText="@(IsTrigger ? "When checked, this activity can trigger this workflow." : "When checked, this activity is the start of this workflow.")"
+                    HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : @Localizer["When checked, this activity is the start of this workflow."])"
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"

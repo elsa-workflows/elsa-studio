@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -57,7 +58,7 @@ public partial class VariablesTab
             CloseOnEscapeKey = true
         };
 
-        var title = variable == null ? "Create variable" : "Edit variable";
+        var title = variable == null ? Localizer["Create variable"] : Localizer["Edit variable"];
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
 
@@ -80,7 +81,7 @@ public partial class VariablesTab
 
     private async Task OnDeleteClicked(Variable variable)
     {
-        var result = await DialogService.ShowMessageBox("Delete selected variable?", "Are you sure you want to delete the selected variable?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected variable?"], Localizer["Are you sure you want to delete the selected variable?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;

@@ -31,14 +31,14 @@
                 Label="@Localizer["Incident handling strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
-                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
+                ToStringFunc="@(x => x?.DisplayName ?? Localizer["Default"])"
                 ValueChanged="@OnIncidentStrategyChanged"
                 HelperText="@(_selectedIncidentStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _incidentStrategies)
                 {
                     <MudSelectItem T="IncidentStrategyDescriptor"
-                                   Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
+                                   Value="@strategy">@(strategy?.DisplayName ?? @Localizer["Default"])</MudSelectItem>
                 }
             </MudSelect>
             <ExpressionEditor
@@ -53,7 +53,7 @@
                     Label="@Localizer["Log Persistence Strategy"]"
                     Variant="@Variant.Outlined"
                     Value="@_selectedLogPersistenceStrategy"
-                    ToStringFunc="@(x => x?.DisplayName ?? "Inherit")"
+                    ToStringFunc="@(x => x?.DisplayName ?? Localizer["Inherit"])"
                     ValueChanged="@OnLogPersistenceStrategySelectionChanged"
                     ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"

@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -20,6 +21,7 @@ public partial class ActivityDetailsTab
     [Parameter] public ActivityExecutionRecord? LastActivityExecution { get; set; }
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    
 
     private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
 
@@ -66,12 +68,12 @@ public partial class ActivityDetailsTab
         var activityInfo = new DataPanelModel
         {
             new DataPanelItem("ID", activityId),
-            new DataPanelItem("Name", activityName),
-            new DataPanelItem("Type", activityType,
+            new DataPanelItem(Localizer["Name"], activityName),
+            new DataPanelItem(Localizer["Type"], activityType,
                 string.IsNullOrWhiteSpace(workflowDefinitionId)
                     ? null
                     : $"/workflows/definitions/{workflowDefinitionId}/edit"),
-            new DataPanelItem("Version", activityVersion.ToString())
+            new DataPanelItem(Localizer["Version"], activityVersion.ToString())
         };
 
         var outcomesData = new DataPanelModel();
@@ -79,8 +81,8 @@ public partial class ActivityDetailsTab
 
         if (execution != null)
         {
-            activityInfo.Add("Status", execution.Status.ToString());
-            activityInfo.Add("Instance ID", execution.Id);
+            activityInfo.Add(Localizer["Status"], execution.Status.ToString());
+            activityInfo.Add(Localizer["Instance ID"], execution.Id);
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
@@ -99,7 +101,7 @@ public partial class ActivityDetailsTab
         }
         else
         {
-            activityInfo.Add("Status", "Not executed");
+            activityInfo.Add("Status", Localizer["Not executed"]);
         }
 
         var exceptionData = new DataPanelModel();

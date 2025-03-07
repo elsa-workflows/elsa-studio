@@ -9,6 +9,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -73,18 +74,18 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", _workflowInstance.Id),
-                new DataPanelItem("Definition ID", _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
-                new DataPanelItem("Definition version", _workflowInstance.Version.ToString()),
-                new DataPanelItem("Definition version ID", _workflowInstance.DefinitionVersionId),
-                new DataPanelItem("Correlation ID", _workflowInstance.CorrelationId),
-                new DataPanelItem("Incident Strategy", GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
-                new DataPanelItem("Status", _workflowInstance.Status.ToString()),
-                new DataPanelItem("Sub status", _workflowInstance.SubStatus.ToString()),
-                new DataPanelItem("Incidents", _workflowInstance.IncidentCount.ToString()),
-                new DataPanelItem("Created", TimeFormatter.Format(_workflowInstance.CreatedAt)),
-                new DataPanelItem("Updated", TimeFormatter.Format(_workflowInstance.UpdatedAt)),
-                new DataPanelItem("Finished", TimeFormatter.Format(_workflowInstance.FinishedAt)),
-                new DataPanelItem("Log Persistence Strategy", GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
+                new DataPanelItem(Localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
+                new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
+                new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
+                new DataPanelItem(Localizer["Correlation ID"], _workflowInstance.CorrelationId),
+                new DataPanelItem(Localizer["Incident Strategy"], GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
+                new DataPanelItem(Localizer["Status"], _workflowInstance.Status.ToString()),
+                new DataPanelItem(Localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
+                new DataPanelItem(Localizer["Incidents"], _workflowInstance.IncidentCount.ToString()),
+                new DataPanelItem(Localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
+                new DataPanelItem(Localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
+                new DataPanelItem(Localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
             };
         }
     }
@@ -169,10 +170,10 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", SelectedSubWorkflow.GetId()),
-                new DataPanelItem("Name", SelectedSubWorkflow.GetName()),
-                new DataPanelItem("Type", SelectedSubWorkflow.GetTypeName()),
-                new DataPanelItem("Definition ID", workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
-                new DataPanelItem("Definition version", SelectedSubWorkflow.GetVersion().ToString()),
+                new DataPanelItem(Localizer["Name"], SelectedSubWorkflow.GetName()),
+                new DataPanelItem(Localizer["Type"], SelectedSubWorkflow.GetTypeName()),
+                new DataPanelItem(Localizer["Definition ID"], workflowDefinitionId, $"/workflows/definitions/{workflowDefinitionId}/edit"),
+                new DataPanelItem(Localizer["Definition version"], SelectedSubWorkflow.GetVersion().ToString()),
             };
         }
     }

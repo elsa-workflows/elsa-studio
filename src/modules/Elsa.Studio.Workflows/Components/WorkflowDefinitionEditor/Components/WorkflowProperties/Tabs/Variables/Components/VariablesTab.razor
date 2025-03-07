@@ -39,7 +39,7 @@
                     @foreach (var variable in Variables)
                     {
                         var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : default;
-                        var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                        var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : @Localizer["None"];
                         <tr>
                             <td>@variable.Name</td>
                             <td>@variable.GetTypeDisplayName()</td>
