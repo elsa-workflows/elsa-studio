@@ -58,7 +58,7 @@ public partial class InputsSection
             CloseOnEscapeKey = true
         };
 
-        var title = inputDefinition == null ? "Create input" : "Edit input";
+        var title = inputDefinition == null ? Localizer["Create input"] : Localizer["Edit input"];
         var dialog = await DialogService.ShowAsync<EditInputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
@@ -81,7 +81,7 @@ public partial class InputsSection
 
     private async Task OnDeleteClicked(InputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox("Delete selected input?", "Are you sure you want to delete the selected input?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected input?"], Localizer["Are you sure you want to delete the selected input?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
