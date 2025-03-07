@@ -10,7 +10,7 @@
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
-                <MudField Label="Id" HelperText="The ID of the variable." Variant="Variant.Outlined">@_model.Id</MudField>
+                <MudField Label="Id" HelperText="@Localizer["The ID of the variable."]" Variant="Variant.Outlined">@_model.Id</MudField>
                 <MudTextField Label="@Localizer["Name"]" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="@Localizer["The name of the variable."]" Variant="Variant.Outlined" />
                 <MudSelectExtended T="VariableTypeDescriptor" @bind-Value="_model.VariableType" ToStringFunc="@(x => x?.DisplayName!)" Variant="Variant.Outlined" Label="@Localizer["Type"]" Dense="false" Margin="Margin.Normal">
                     @foreach (var grouping in _groupedVariableTypes)

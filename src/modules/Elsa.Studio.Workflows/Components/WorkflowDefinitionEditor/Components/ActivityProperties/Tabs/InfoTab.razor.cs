@@ -22,7 +22,7 @@ public partial class InfoTab
     {
         ActivityDescriptor.ConstructionProperties.TryGetValue("WorkflowDefinitionId", out var link);
 
-        ActivityInfo.Add("Type", ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
-        ActivityInfo.Add("Description", ActivityDescriptor.Description);
+        ActivityInfo.Add(Localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
+        ActivityInfo.Add(Localizer["Description"], ActivityDescriptor.Description);
     }
 }

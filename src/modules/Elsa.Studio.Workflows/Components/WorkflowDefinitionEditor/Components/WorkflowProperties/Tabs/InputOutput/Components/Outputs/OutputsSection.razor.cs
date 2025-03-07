@@ -57,7 +57,7 @@ public partial class OutputsSection
             CloseOnEscapeKey = true
         };
 
-        var title = outputDefinition == null ? "Create output" : "Edit output";
+        var title = outputDefinition == null ? Localizer["Create output"] : Localizer["Edit output"];
         var dialog = await DialogService.ShowAsync<EditOutputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
@@ -80,7 +80,7 @@ public partial class OutputsSection
 
     private async Task OnDeleteClicked(OutputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox("Delete selected output?", "Are you sure you want to delete the selected output?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBox(Localizer["Delete selected output?"], Localizer["Are you sure you want to delete the selected output?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;

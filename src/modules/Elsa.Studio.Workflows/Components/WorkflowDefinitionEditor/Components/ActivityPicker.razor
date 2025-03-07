@@ -31,7 +31,7 @@
                             var activityDescriptors = grouping.OrderBy(x => x.DisplayName ?? x.Name).ToList();
                             var category = grouping.Key;
 
-                            <MudExpansionPanel Text="@GetTranslation(@category)">
+                            <MudExpansionPanel Text="@Localizer[@category]">
                                 <MudStack>
                                     @foreach (var activityDescriptor in activityDescriptors)
                                     {
@@ -39,7 +39,7 @@
                                         var icon = displaySettings.Icon;
                                         var color = displaySettings.Color;
 
-                                        <MudTooltip Text="@activityDescriptor.Description">
+                                        <MudTooltip Text="@Localizer[activityDescriptor.Description]">
                                             <MudPaper
                                                 Class="pa-3 cursor-grab"
                                                 Style="@($"border-left: solid 6px {color}; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));")"
@@ -52,7 +52,7 @@
                                                     {
                                                         <MudIcon Icon="@icon"></MudIcon>
                                                     }
-                                                    @(GetTranslation(activityDescriptor.DisplayName) ?? GetTranslation(activityDescriptor.Name))
+                                                    @(Localizer[activityDescriptor.DisplayName ?? activityDescriptor.Name])
                                                 </MudStack>
                                             </MudPaper>
                                         </MudTooltip>
