@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;

@@ -36,7 +36,7 @@
             @foreach (var input in Inputs)
             {
                 var storageDescriptor = input.StorageDriverType != null ? GetStorageDriverDescriptor(input.StorageDriverType) : default;
-                var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : @Localizer["None"];
                 var typeDescriptor = input.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == input.Type) : default;
                 var typeName = typeDescriptor?.DisplayName ?? input.Type;
                 if(input.IsArray) typeName += "[]";
