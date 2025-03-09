@@ -23,11 +23,6 @@ public class ExpressionDescriptorProvider
     /// Gets an expression descriptor by type.
     /// </summary>
     public ExpressionDescriptor? GetByType(string type) => _expressionDescriptors.TryGetValue(type, out var descriptor) ? descriptor : default;
-    
-    /// <summary>
-    /// Gets an expression descriptor by editor language.
-    /// </summary>
-    public ExpressionDescriptor? GetByLanguage(string? language) => _expressionDescriptors.Values.FirstOrDefault(descriptor => descriptor.Properties.TryGetValue("MonacoLanguage", out var monacoLanguage) && monacoLanguage == language);
 
     /// <summary>
     /// Adds a range of expression descriptors.

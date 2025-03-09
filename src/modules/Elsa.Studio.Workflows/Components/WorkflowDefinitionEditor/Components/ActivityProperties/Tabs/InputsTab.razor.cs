@@ -177,8 +177,8 @@ public partial class InputsTab
 
     private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
     {
-        return inputDescriptor.UIHint.Equals("code-editor")
-            ? ExpressionDescriptorProvider.GetByLanguage(inputDescriptor.GetCodeEditorOptions().Language)
+        return inputDescriptor.UIHint.Equals("code-editor") && !string.IsNullOrEmpty(inputDescriptor.DefaultSyntax)
+            ? ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax)
             : ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type);
     }
 }
