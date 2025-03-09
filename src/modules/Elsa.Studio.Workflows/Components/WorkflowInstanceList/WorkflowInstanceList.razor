@@ -113,8 +113,8 @@
         InputClass="me-3"
         SelectedValues="SelectedStatuses"
         SelectedValuesChanged="OnSelectedStatusesChanged">
-        <MudSelectItemExtended Value="WorkflowStatus.Running"></MudSelectItemExtended>
-        <MudSelectItemExtended Value="WorkflowStatus.Finished"></MudSelectItemExtended>
+                <MudSelectItemExtended Value="WorkflowStatus.Running">@Localizer["Running"]</MudSelectItemExtended>
+                <MudSelectItemExtended Value="WorkflowStatus.Finished">@Localizer["Finished"]</MudSelectItemExtended>
     </MudSelectExtended>
 
     <MudSelectExtended
@@ -134,11 +134,11 @@
         InputClass="me-3"
         SelectedValues="SelectedSubStatuses"
         SelectedValuesChanged="OnSelectedSubStatusesChanged">
-        <MudSelectItemExtended Value="WorkflowSubStatus.Executing"></MudSelectItemExtended>
-        <MudSelectItemExtended Value="WorkflowSubStatus.Suspended"></MudSelectItemExtended>
-        <MudSelectItemExtended Value="WorkflowSubStatus.Finished"></MudSelectItemExtended>
-        <MudSelectItemExtended Value="WorkflowSubStatus.Faulted"></MudSelectItemExtended>
-        <MudSelectItemExtended Value="WorkflowSubStatus.Cancelled"></MudSelectItemExtended>
+        <MudSelectItemExtended Value="WorkflowSubStatus.Executing">@Localizer["Executing"]</MudSelectItemExtended>
+        <MudSelectItemExtended Value="WorkflowSubStatus.Suspended">@Localizer["Suspended"]</MudSelectItemExtended>
+        <MudSelectItemExtended Value="WorkflowSubStatus.Finished">@Localizer["Finished"]</MudSelectItemExtended>
+        <MudSelectItemExtended Value="WorkflowSubStatus.Faulted">@Localizer["Faulted"]</MudSelectItemExtended>
+        <MudSelectItemExtended Value="WorkflowSubStatus.Cancelled">@Localizer["Cancelled"]</MudSelectItemExtended>
     </MudSelectExtended>
 
         <MudBadge Content="@TimestampFilters.Count" Color="Color.Primary" Overlap="true" Visible="@(TimestampFilters.Any())">
