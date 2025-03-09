@@ -4,20 +4,20 @@
 
 <style>
     .field-container {
-    transition: border 0.3s ease-in-out;
-    border-radius: 8px; 
-    padding: 10px;
-    margin: -10px;
-    border: 1px solid transparent;
+        transition: border 0.3s ease-in-out;
+        border-radius: 8px; 
+        padding: 10px;
+        margin: -10px;
+        border: 1px solid transparent;
     }
 
     .field-container.hovered {
-    border-color: #ccc
+        border-color: #ccc
     }
 
     .no-padding-stack {
-    padding-top: 0 !important; /* Removes top padding */
-    padding-bottom: 0 !important; /* Removes bottom padding */
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
     }
 </style>
 
@@ -43,7 +43,6 @@ else
 
 @code
 {
-    private string GetClass() => $"field-container {(isHovered && hasExtensions ? "hovered" : "")}";
     private bool isHovered = false;
     private bool hasExtensions => AllExtensions?.Count != 0;
     private List<IUIFieldExtensionHandler>? AllExtensions;
