@@ -38,7 +38,14 @@ public abstract class FieldExtensionHandlerBase : IUIFieldExtensionHandler
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
-    public virtual bool GetExtensionForInputComponent(string componentName) => UIHintComponent == string.Empty && IncludeForAll ? true : UIHintComponent.Equals(componentName, StringComparison.OrdinalIgnoreCase);
+    public virtual List<string> Syntaxes { get; set; } = [];
+
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    public virtual bool GetExtensionForInputComponent(string componentName) =>
+        (string.IsNullOrEmpty(UIHintComponent) && !ActivityTypes.Any() && !Syntaxes.Any() && IncludeForAll)
+            || UIHintComponent.Equals(componentName, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// <inheritdoc/>
