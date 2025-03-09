@@ -1,4 +1,5 @@
 ﻿using Elsa.Studio.Contracts;
+using Elsa.Studio.Localization;
 using Elsa.Studio.WorkflowContexts.Components;
 using Microsoft.AspNetCore.Components;
 using System;
@@ -11,7 +12,8 @@ namespace Elsa.Studio.WorkflowContexts.ActivityTabs
 {
     public class WorkflowContextActivityTab : IActivityTab
     {
-        public string Title => "Workflow Context";
+        [Inject] private ILocalizer Localizer { get; set; } = default!;
+        public string Title => Localizer["Workflow Context"];
 
         public Func<IDictionary<string, object?>, RenderFragment> Render => attributes => builder =>
         {
