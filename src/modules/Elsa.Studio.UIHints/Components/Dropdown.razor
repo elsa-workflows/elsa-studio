@@ -1,6 +1,6 @@
 @using Elsa.Api.Client.Shared.UIHints.DropDown
-@using Elsa.Studio.Localization
 @inject ILocalizer Localizer
+
 @inherits StudioComponentBase
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -16,7 +16,7 @@
             T="SelectListItem" 
             Label="@Localizer[displayName]" 
             Variant="Variant.Outlined" 
-            HelperText="@description" 
+            HelperText="@Localizer[description]" 
             Margin="Margin.Dense" 
             Value="@selectedValue" 
             SearchBox="@searchBox"

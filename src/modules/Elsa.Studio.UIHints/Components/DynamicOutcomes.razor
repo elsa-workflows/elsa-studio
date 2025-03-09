@@ -1,5 +1,5 @@
-@using Elsa.Studio.Localization
 @inject ILocalizer Localizer
+
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
@@ -15,7 +15,7 @@
     Margin="Margin.Dense"
     Values="@_items"
     Variant="Variant.Outlined"
-    HelperText="@description"
+    HelperText="@Localizer[description]"
     Immediate="true"
     AutoSize="true"
     ChipColor="Color.Primary"

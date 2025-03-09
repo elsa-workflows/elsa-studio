@@ -12,11 +12,10 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 /// <summary>
 /// A diagram designer that displays a flowchart.
 /// </summary>
-public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
+public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerToolboxProvider
 {
     private FlowchartDesignerWrapper? _designerWrapper;
     private readonly Guid _id = Guid.NewGuid();
-    [Inject] private ILocalizer Localizer { get; set; } = default!;
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -74,12 +73,12 @@ public class FlowchartDiagramDesigner : IDiagramDesignerToolboxProvider
     /// <inheritdoc />
     public IEnumerable<RenderFragment> GetToolboxItems(bool isReadonly)
     {
-        yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, Localizer["Zoom to fit the screen"], OnZoomToFitClicked);
-        yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, Localizer["Center"], OnCenterClicked);
+        yield return DisplayToolboxItem("Zoom to fit", Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
+        yield return DisplayToolboxItem("Center", Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
 
         if (!isReadonly)
         {
-            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, Localizer["Auto layout"], OnAutoLayoutClicked);
+            yield return DisplayToolboxItem("Auto layout", Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
         }
     }
 

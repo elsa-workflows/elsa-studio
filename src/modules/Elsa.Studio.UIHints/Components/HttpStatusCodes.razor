@@ -1,4 +1,3 @@
-@using Elsa.Studio.Localization
 @inject ILocalizer Localizer
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -18,7 +17,7 @@
             Margin="Margin.Dense"
             Values="@(_items.Select(x => x.StatusCode.ToString()).ToList())"
             Variant="Variant.Outlined"
-            HelperText="@description"
+            HelperText="@Localizer[description]"
             Immediate="true"
             AutoSize="true"
             ForceShrink="true"

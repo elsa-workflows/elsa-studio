@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 
 namespace Elsa.Studio.WorkflowContexts.ActivityTabs
 {
-    public class WorkflowContextActivityTab : IActivityTab
+    public class WorkflowContextActivityTab(ILocalizer localizer) : IActivityTab
     {
-        [Inject] private ILocalizer Localizer { get; set; } = default!;
-        public string Title => Localizer["Workflow Context"];
+        public string Title => localizer["Workflow Context"];
 
         public Func<IDictionary<string, object?>, RenderFragment> Render => attributes => builder =>
         {
