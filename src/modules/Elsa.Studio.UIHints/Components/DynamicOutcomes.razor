@@ -1,3 +1,5 @@
+@using Elsa.Studio.Localization
+@inject ILocalizer Localizer
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
@@ -7,7 +9,7 @@
 <MudChipField
     @ref="_chipField"
     T="string"
-    Label="@displayName"
+    Label="@Localizer[displayName]"
     Lines="1"
     WrapChips="true"
     Margin="Margin.Dense"

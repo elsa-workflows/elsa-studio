@@ -1,4 +1,6 @@
 @using Elsa.Api.Client.Resources.VariableTypes.Models
+@using Elsa.Studio.Localization
+@inject ILocalizer Localizer
 @inherits StudioComponentBase
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -10,9 +12,9 @@
 
 <MudSelectExtended
     T="VariableTypeDescriptor"
-    Label="@displayName"
+    Label="@Localizer[displayName]"
     Variant="Variant.Outlined"
-    HelperText="@description"
+    HelperText="@Localizer[description]"
     Margin="Margin.Dense"
     Value="@selectedValue"
     SearchBox="@searchBox"

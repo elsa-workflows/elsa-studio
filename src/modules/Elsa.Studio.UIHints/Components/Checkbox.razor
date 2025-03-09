@@ -1,5 +1,7 @@
 @using Elsa.Studio.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
+@using Elsa.Studio.Localization
+@inject ILocalizer Localizer
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -14,7 +16,7 @@
         <MudField Variant="Variant.Text" Margin="Margin.None" UnderLine="@true" HelperText="@description" Disabled="EditorContext.IsReadOnly">
             <MudCheckBox
                 T="bool?"
-                Label="@displayName"
+                Label="@Localizer[displayName]"
                 Value="@isChecked"
                 Dense="true"
                 ValueChanged="OnCheckChanged"
