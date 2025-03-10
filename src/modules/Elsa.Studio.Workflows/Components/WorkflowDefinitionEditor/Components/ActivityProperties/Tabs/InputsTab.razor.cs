@@ -1,15 +1,14 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Converters;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Contracts;
-using Elsa.Api.Client.Resources.ActivityDescriptorOptions.Requests;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
+using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -85,7 +84,7 @@ public partial class InputsTab
             var inputName = inputDescriptor.Name.Camelize();
             var value = activity.GetProperty(inputName);
             var wrappedInput = inputDescriptor.IsWrapped ? ToWrappedInput(value) : null;
-            var syntaxProvider = wrappedInput != null ? ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type) : null;
+            var syntaxProvider = wrappedInput != null ? GetSyntaxProvider(wrappedInput, inputDescriptor) : null;
 
             // Check if refresh is needed.
             if (inputDescriptor.UISpecifications != null
@@ -174,5 +173,12 @@ public partial class InputsTab
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
+    }
+
+    private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
+    {
+        return inputDescriptor.UIHint.Equals("code-editor") && !string.IsNullOrEmpty(inputDescriptor.DefaultSyntax)
+            ? ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax)
+            : ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type);
     }
 }
