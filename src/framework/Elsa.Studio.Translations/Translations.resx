@@ -1449,7 +1449,6 @@
   <data name="Always allow the creation" xml:space="preserve">
     <value>Always allow the creation</value>
   </data>
-
   <data name="Branches" xml:space="preserve">
     <value>Branches</value>
   </data>
@@ -1468,7 +1467,6 @@
   <data name="Correlation ID Function" xml:space="preserve">
     <value>Correlation ID Function</value>
   </data>
-  
   <data name="Default Item Input Key" xml:space="preserve">
     <value>Default Item Input Key</value>
   </data>
@@ -1484,14 +1482,12 @@
   <data name="Expected Status Codes" xml:space="preserve">
     <value>Expected Status Codes</value>
   </data>
-  
   <data name="Method" xml:space="preserve">
     <value>Method</value>
   </data>
   <data name="Mode" xml:space="preserve">
     <value>Mode</value>
   </data>
-  
   <data name="Request Content." xml:space="preserve">
     <value>Request Content.</value>
   </data>
@@ -1557,5 +1553,23 @@
   </data>
   <data name="Workflow Definition" xml:space="preserve">
     <value>Workflow Definition</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>Add case</value>
+  </data>
+  <data name="Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="String7" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>Zoom to fit</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>Always allow the creation of a new workflow instance.</value>
   </data>
 </root>
