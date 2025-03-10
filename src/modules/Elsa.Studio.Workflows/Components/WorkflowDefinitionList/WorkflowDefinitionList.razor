@@ -13,44 +13,42 @@
     <PageHeading Text="@Localizer["Workflow definitions Editor"]" />
 
     <div id="workflow-file-upload-button-wrapper" class="d-none">
-        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected" MaximumFileCount="Int32.MaxValue"/>
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected" MaximumFileCount="Int32.MaxValue" />
     </div>
 
-    <MudTable
-        @ref="_table"
-        T="WorkflowDefinitionRow"
-        ServerData="ServerReload"
-        Dense="true"
-        Hover="true"
-        Elevation="0"
-        OnRowClick="@OnRowClick"
-        RowStyle="cursor: pointer;"
-        MultiSelection="true"
-        SelectOnRowClick="false"
-        Class="definitions-table"
-        @bind-SelectedItems="_selectedRows">
+    <MudTable @ref="_table"
+              T="WorkflowDefinitionRow"
+              ServerData="ServerReload"
+              Dense="true"
+              Hover="true"
+              Elevation="0"
+              OnRowClick="@OnRowClick"
+              RowStyle="cursor: pointer;"
+              MultiSelection="true"
+              SelectOnRowClick="false"
+              Class="definitions-table"
+              @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
-                <MudMenuItem OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
+                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
+                <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
             </MudMenu>
-            <MudSpacer/>
+            <MudSpacer />
 
-            <MudTextField
-                T="string"
-                Text="@SearchTerm"
-                Placeholder="@Localizer["Search on name, description, id, definition id"]"
-                Variant="Variant.Outlined"
-                AdornmentIcon="@Icons.Material.Outlined.Search"
-                Adornment="Adornment.End"
-                Clearable="true"
-                DebounceInterval="1500"
-                Immediate="true"
-                Class="d-flex flex-row justify-end align-end gap-3 flex-wrap pl-2 pr-6 py-6 mt-0"
-                Style="height: 36.5px;"
-                ValueChanged="@OnSearchTermChanged"/>
+            <MudTextField T="string"
+                          Text="@SearchTerm"
+                          Placeholder="@Localizer["Search on name, description, id, definition id"]"
+                          Variant="Variant.Outlined"
+                          AdornmentIcon="@Icons.Material.Outlined.Search"
+                          Adornment="Adornment.End"
+                          Clearable="true"
+                          DebounceInterval="1500"
+                          Immediate="true"
+                          Class="d-flex flex-row justify-end align-end gap-3 flex-wrap pl-2 pr-6 py-6 mt-0"
+                          Style="height: 36.5px;"
+                          ValueChanged="@OnSearchTermChanged" />
 
             <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DropShadow="true">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@Localizer["Create workflow"]</MudButton>
