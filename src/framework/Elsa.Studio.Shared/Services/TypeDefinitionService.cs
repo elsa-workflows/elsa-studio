@@ -1,5 +1,4 @@
 using Elsa.Api.Client.Resources.Scripting.Contracts;
-using Elsa.Api.Client.Resources.Scripting.Requests;
 using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Services;

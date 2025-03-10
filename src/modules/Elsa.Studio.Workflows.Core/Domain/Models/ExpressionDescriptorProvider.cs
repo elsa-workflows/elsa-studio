@@ -24,7 +24,6 @@ public class ExpressionDescriptorProvider
     /// </summary>
     public ExpressionDescriptor? GetByType(string type) => _expressionDescriptors.TryGetValue(type, out var descriptor) ? descriptor : default;
 
-
     /// <summary>
     /// Adds a range of expression descriptors.
     /// </summary>
