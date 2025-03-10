@@ -220,6 +220,7 @@ public partial class WorkflowDefinitionList
 
         var workflowDefinitionIds = _selectedRows.Select(x => x.DefinitionId).ToList();
         await WorkflowDefinitionService.BulkDeleteAsync(workflowDefinitionIds);
+        _selectedRows.Clear();
         Reload();
     }
 
@@ -269,7 +270,7 @@ public partial class WorkflowDefinitionList
                 : Localizer["{0} workflows are not found", response.NotFound.Count];
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
-
+        _selectedRows.Clear();
         Reload();
     }
 
@@ -307,7 +308,7 @@ public partial class WorkflowDefinitionList
                 : Localizer["{0} workflows are not found", response.NotFound.Count];
             Snackbar.Add(message, Severity.Warning, options => { options.SnackbarVariant = Variant.Filled; });
         }
-
+        _selectedRows.Clear();
         Reload();
     }
 
@@ -317,6 +318,8 @@ public partial class WorkflowDefinitionList
         var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
         var fileName = download.FileName;
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        _selectedRows.Clear();
+        Reload();
     }
 
     private Task OnImportClicked()
