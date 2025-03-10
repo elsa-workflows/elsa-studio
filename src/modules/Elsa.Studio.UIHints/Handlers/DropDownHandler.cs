@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.UIHints.Handlers;
 
 /// <summary>
-/// Represents a class that handles UI hints for dropdown inputs.
+/// Provides a handler for the <see cref="InputUIHints.DropDown"/> UI hint.
 /// </summary>
 public class DropDownHandler : IUIHintHandler
 {
     /// <inheritdoc />
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "dropdown";
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.DropDown;
 
     /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;
