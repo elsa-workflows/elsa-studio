@@ -38,8 +38,8 @@
 <ToolBarContent>
     <MudPaper Class="gap-3 d-flex" Elevation="0">
         <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft">
-            <MudMenuItem OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
-            <MudMenuItem OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
+            <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+            <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
             @* <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem> *@
             @* <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
         </MudMenu>
