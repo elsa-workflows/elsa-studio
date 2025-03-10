@@ -251,7 +251,7 @@
         </MudTd>
         <MudTd DataLabel="@Localizer["SubStatus"]">
             <MudChip T="WorkflowSubStatus" Color="@GetSubStatusColor(context.SubStatus)" Variant="Variant.Text">
-                @context.SubStatus
+                    @Localizer[context.SubStatus.ToString()]
             </MudChip>
         </MudTd>
         <MudTd DataLabel="@Localizer["IncidentCount"]">

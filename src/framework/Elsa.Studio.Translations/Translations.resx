@@ -1449,7 +1449,6 @@
   <data name="Always allow the creation" xml:space="preserve">
     <value>Always allow the creation</value>
   </data>
-
   <data name="Branches" xml:space="preserve">
     <value>Branches</value>
   </data>
@@ -1468,7 +1467,6 @@
   <data name="Correlation ID Function" xml:space="preserve">
     <value>Correlation ID Function</value>
   </data>
-  
   <data name="Default Item Input Key" xml:space="preserve">
     <value>Default Item Input Key</value>
   </data>
@@ -1484,14 +1482,12 @@
   <data name="Expected Status Codes" xml:space="preserve">
     <value>Expected Status Codes</value>
   </data>
-  
   <data name="Method" xml:space="preserve">
     <value>Method</value>
   </data>
   <data name="Mode" xml:space="preserve">
     <value>Mode</value>
   </data>
-  
   <data name="Request Content." xml:space="preserve">
     <value>Request Content.</value>
   </data>
@@ -1557,5 +1553,65 @@
   </data>
   <data name="Workflow Definition" xml:space="preserve">
     <value>Workflow Definition</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>Add case</value>
+  </data>
+  <data name="Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="String7" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>Zoom to fit</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>Always allow the creation of a new workflow instance.</value>
+  </data>
+  <data name="Assign the current value to the specified variable." xml:space="preserve">
+    <value>Assign the current value to the specified variable.</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default." xml:space="preserve">
+    <value>Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default.</value>
+  </data>
+  <data name="Current Value" xml:space="preserve">
+    <value>Current Value</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>Interval</value>
+  </data>
+  <data name="Outer Bound Inclusive" xml:space="preserve">
+    <value>Outer Bound Inclusive</value>
+  </data>
+  <data name="Payload" xml:space="preserve">
+    <value>Payload</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>Step</value>
+  </data>
+  <data name="The end step." xml:space="preserve">
+    <value>The end step.</value>
+  </data>
+  <data name="The items to iterate through." xml:space="preserve">
+    <value>The items to iterate through.</value>
+  </data>
+  <data name="The set of values to iterate." xml:space="preserve">
+    <value>The set of values to iterate.</value>
+  </data>
+  <data name="The start step." xml:space="preserve">
+    <value>The start step.</value>
+  </data>
+  <data name="The step size. To count down, enter a negative number." xml:space="preserve">
+    <value>The step size. To count down, enter a negative number.</value>
+  </data>
+  <data name="Variable" xml:space="preserve">
+    <value>Variable</value>
   </data>
 </root>
