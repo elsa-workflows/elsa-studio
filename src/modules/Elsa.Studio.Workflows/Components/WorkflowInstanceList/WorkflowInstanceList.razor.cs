@@ -296,10 +296,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         {
             var plan = new AlterationPlanParams
             {
-                Alterations = [new Cancel()
-                {
-                    ["type"] = "Cancel"
-                }],
+                Alterations = [new Cancel()],
                 Filter = new()
                 {
                     EmptyFilterSelectsAll = true,
