@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <Description>Core Elsa Studio services.</Description>
@@ -6,7 +6,7 @@
         <RootNamespace>Elsa.Studio</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization"/>
         <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements"/>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
@@ -25,9 +25,9 @@
         <PackageReference Include="ThrottleDebounce"/>
     </ItemGroup>
 
-    <!--        <ItemGroup Label="Elsa">-->
-    <!--            <ProjectReference Include="..\..\..\..\..\elsa-core\blueberry\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
-    <!--        </ItemGroup>-->
+    <!--    <ItemGroup Label="Elsa">-->
+    <!--        <ProjectReference Include="..\..\..\..\..\elsa-core\main\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+    <!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
         <PackageReference Include="Elsa.Api.Client"/>

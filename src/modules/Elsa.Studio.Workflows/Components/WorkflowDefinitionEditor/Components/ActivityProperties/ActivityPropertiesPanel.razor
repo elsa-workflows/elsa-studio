@@ -3,11 +3,12 @@
 @using Elsa.Studio.Extensions
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
 <CascadingValue Value="ExpressionDescriptorProvider">
     <MudTabs Elevation="0" ApplyEffectsToContainer="true">
 
-        <MudTabPanel Text="Input">
+        <MudTabPanel Text="@Localizer["Input"]">
             @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -17,12 +18,12 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["This activity does not have any input properties."]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="Output">
+        <MudTabPanel Text="@Localizer["Output"]">
             @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -32,12 +33,12 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any output properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["This activity does not have any output properties."]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="Common">
+        <MudTabPanel Text="@Localizer["Common"]">
             @if (Activity != null && ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -47,28 +48,43 @@
             else
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any common properties.</MudAlert>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["This activity does not have any common properties."]</MudAlert>
+                </Well>
+            }
+        </MudTabPanel>
+
+        <MudTabPanel Text="@Localizer["Commit Strategy"]">
+            @if (Activity != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <CommitStrategyTab Activity="@Activity" OnActivityUpdated="OnActivityUpdated"/>
+                </ScrollableWell>
+            }
+            else
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["This activity does not have any common properties."]</MudAlert>
                 </Well>
             }
         </MudTabPanel>
         
         @if (IsTaskActivity)
         {
-            <MudTabPanel Text="Task">
+            <MudTabPanel Text="@Localizer["Task"]">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <TaskTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>
             </MudTabPanel>
         }
 
-        <MudTabPanel Text="Persistence">
+        <MudTabPanel Text="@Localizer["Log"]">
               <ScrollableWell MaxHeight="VisiblePaneHeight">
-                <PersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
+                <LogPersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated" />
               </ScrollableWell>
          </MudTabPanel> 
                
 
-        <MudTabPanel Text="Info">
+        <MudTabPanel Text="@Localizer["Info"]">
             @if (ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -79,7 +95,7 @@
 
         @if (IsWorkflowAsActivity)
         {
-            <MudTabPanel Text="Version">
+            <MudTabPanel Text="@Localizer["Version"]">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>

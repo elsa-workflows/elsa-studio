@@ -1,3 +1,3 @@
 ﻿namespace Elsa.Studio.Models;
 
-public record DataPanelItem(string? Text = default, string? Link = default, Func<Task>? OnClick = default);
+public record DataPanelItem(string Label, string? Text = null, string? Link = null, Func<Task>? OnClick = null);

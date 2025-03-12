@@ -10,20 +10,20 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteVariableTypeService : IVariableTypeService
 {
-    private readonly IRemoteBackendApiClientProvider _remoteBackendApiClientProvider;
+    private readonly IBackendApiClientProvider _backendApiClientProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteVariableTypeService"/> class.
     /// </summary>
-    public RemoteVariableTypeService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider)
+    public RemoteVariableTypeService(IBackendApiClientProvider backendApiClientProvider)
     {
-        _remoteBackendApiClientProvider = remoteBackendApiClientProvider;
+        _backendApiClientProvider = backendApiClientProvider;
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<VariableTypeDescriptor>> GetVariableTypesAsync(CancellationToken cancellationToken = default)
     {
-        var api = await _remoteBackendApiClientProvider.GetApiAsync<IVariableTypesApi>(cancellationToken);
+        var api = await _backendApiClientProvider.GetApiAsync<IVariableTypesApi>(cancellationToken);
         var response = await api.ListAsync(cancellationToken);
         return response.Items;
     }

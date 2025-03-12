@@ -1,5 +1,4 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties;

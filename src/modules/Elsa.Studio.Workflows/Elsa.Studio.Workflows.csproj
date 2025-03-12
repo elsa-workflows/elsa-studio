@@ -8,10 +8,10 @@
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client"/>
-    </ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client"/>
+	</ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
@@ -21,5 +21,5 @@
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
-
+	
 </Project>

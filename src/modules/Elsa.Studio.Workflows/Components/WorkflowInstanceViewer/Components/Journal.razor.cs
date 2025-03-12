@@ -9,6 +9,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
 using MudBlazor;
+using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 

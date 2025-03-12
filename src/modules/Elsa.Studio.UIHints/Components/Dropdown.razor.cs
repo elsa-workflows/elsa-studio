@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.UIHints.DropDown;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
@@ -16,7 +15,7 @@ public partial class Dropdown
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -33,7 +32,6 @@ public partial class Dropdown
     
     private async Task OnValueChanged(SelectListItem? value)
     {
-        var expression = Expression.CreateLiteral(value?.Value ?? "");
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(value?.Value ?? "");
     }
 }

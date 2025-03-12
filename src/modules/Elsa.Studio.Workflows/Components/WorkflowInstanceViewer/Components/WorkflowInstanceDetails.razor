@@ -1,118 +1,122 @@
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
+
 @if (WorkflowDefinition != null && WorkflowInstance != null)
 {
-    <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-        <MudTabPanel Text="Details">
-            <Well>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Workflow</MudText>
-                    <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
-                </div>
-            </Well>
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="@Localizer["Details"]">
+        <Well>
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Workflow"]</MudText>
+                <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
+            </div>
+        </Well>
 
-            @if (WorkflowInstanceSubWorkflowData.Any())
-            {
-                <Well>
-                    <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow</MudText>
-                        <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
-                    </div>
-                </Well>
-            } 
-        </MudTabPanel>
-        <MudTabPanel Text="Incidents">
-            @if (IncidentsData.Any())
-            {
-                <VerticalWell ExtraPadding="50">
-                    <MudExpansionPanels>
-                    @foreach (var incident in IncidentsData)
-                    {
-                        <MudExpansionPanel Dense="false" Gutters="false" Class="incidents-custom-spacing">
-                            <TitleContent>
-                                <div class="truncate-text">
-                                    @incident["Message"].Text
-                                </div>
-                            </TitleContent>
-                            <ChildContent>
-                                <Well>
-                                    <DataPanel Data="incident" HideEmptyValues="true"/>
-                                </Well>
-                            </ChildContent>
-                        </MudExpansionPanel>
-                    }
-                    </MudExpansionPanels>
-                </VerticalWell>
-            }
-            else
-            {
-                <Well>
-                    No incidents
-                </Well>
-            }
-        </MudTabPanel>
-        <MudTabPanel Text="Variables">
-            <VerticalWell ExtraPadding="50">
-                <div>
-                    @if (WorkflowVariableData.Any())
-                    {
-                        <DataPanel Data="WorkflowVariableData" HideEmptyValues="false"/>
-                    }
-                    else
-                    {
-                        <Well>
-                            No variables
-                        </Well>
-                    }
-                </div>
-            </VerticalWell>
-        </MudTabPanel>
-        <MudTabPanel Text="Input/output">
-            <Well>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Inputs</MudText>
-                    @if (WorkflowInputData.Any())
-                    {
-                        <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
-                    }
-                    else
-                    {
-                        <Well>
-                            No inputs
-                        </Well>
-                    }
-                </div>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Outputs</MudText>
-                    @if (WorkflowOutputData.Any())
-                    {
-                        <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
-                    }
-                    else
-                    {
-                        <Well>
-                            No outputs
-                        </Well>
-                    }
-                </div>
-            </Well>
-            <Well>
-                @if (SubWorkflowInputData.Any())
+        @if (WorkflowInstanceSubWorkflowData.Any())
+        {
+        <Well>
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow"]</MudText>
+                <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
+            </div>
+        </Well>
+        }
+    </MudTabPanel>
+    <MudTabPanel Text="Incidents">
+        @if (IncidentsData.Any())
+        {
+        <VerticalWell ExtraPadding="50">
+            <MudExpansionPanels>
+                @foreach (var incident in IncidentsData)
                 {
-                    <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Inputs</MudText>
-                        <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
-                    </div>
+                    <MudExpansionPanel Dense="false" Gutters="false" Class="incidents-custom-spacing">
+                        <TitleContent>
+                            <div class="truncate-text">
+                                @incident.SingleOrDefault(i=>i.Label == "Message")?.Text
+                            </div>
+                        </TitleContent>
+                        <ChildContent>
+                            <Well>
+                                <DataPanel Data="incident" HideEmptyValues="true"/>
+                            </Well>
+                        </ChildContent>
+                    </MudExpansionPanel>
                 }
-                @if (SubWorkflowOutputData.Any())
+            </MudExpansionPanels>
+        </VerticalWell>
+        }
+        else
+        {
+        <Well>
+            No incidents
+        </Well>
+        }
+    </MudTabPanel>
+    <MudTabPanel Text="@Localizer["Variables"]">
+        <VerticalWell ExtraPadding="50">
+            <div>
+                @if (WorkflowVariableData.Any())
                 {
-                    <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Sub-Workflow Outputs</MudText>
-                        <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
-                    </div>
+                <DataPanel Data="WorkflowVariableData" HideEmptyValues="false"/>
                 }
-            </Well>
-        </MudTabPanel>
-    </MudTabs>
+                else
+                {
+                <Well>
+                    @Localizer["No variables"]
+                </Well>
+                }
+            </div>
+        </VerticalWell>
+    </MudTabPanel>
+    <MudTabPanel Text="@Localizer["Input/output"]">
+        <Well>
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Inputs"]</MudText>
+                @if (WorkflowInputData.Any())
+                {
+                <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
+                }
+                else
+                {
+                <Well>
+                    @Localizer["No inputs"]
+                </Well>
+                }
+            </div>
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outputs"]</MudText>
+                @if (WorkflowOutputData.Any())
+                {
+                <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
+                }
+                else
+                {
+                <Well>
+                    @Localizer["No outputs"]
+                </Well>
+                }
+            </div>
+        </Well>
+        <Well>
+            @if (SubWorkflowInputData.Any())
+            {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Inputs"]</MudText>
+                <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
+            </div>
+            }
+            @if (SubWorkflowOutputData.Any())
+            {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Outputs"]</MudText>
+                <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
+            </div>
+            }
+        </Well>
+    </MudTabPanel>
+</MudTabs>
 }
 
 <style>

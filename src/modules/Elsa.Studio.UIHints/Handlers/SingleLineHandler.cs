@@ -2,6 +2,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Components;
 using Microsoft.AspNetCore.Components;
+using MudExtensions;
 
 namespace Elsa.Studio.UIHints.Handlers;
 

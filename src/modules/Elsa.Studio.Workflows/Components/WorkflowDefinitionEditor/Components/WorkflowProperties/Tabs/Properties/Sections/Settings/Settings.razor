@@ -1,17 +1,19 @@
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
+@using Elsa.Api.Client.Resources.CommitStrategies.Models
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
+@using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
 @if (WorkflowDefinition != null)
 {
     <div>
-        <MudText Typo="Typo.overline">Settings</MudText>
+        <MudText Typo="Typo.overline">@Localizer["Settings"]</MudText>
         <MudStack Spacing="3">
             <MudSelect
                 T="WorkflowActivationStrategyDescriptor"
-                Label="Activation strategy"
+                Label="@Localizer["Activation strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedActivationStrategy"
                 ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
@@ -20,39 +22,76 @@
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _activationStrategies)
                 {
-                    <MudSelectItem T="WorkflowActivationStrategyDescriptor" Value="@strategy">@strategy.DisplayName</MudSelectItem>
+                    <MudSelectItem T="WorkflowActivationStrategyDescriptor"
+                                   Value="@strategy">@strategy.DisplayName</MudSelectItem>
                 }
             </MudSelect>
             <MudSelect
-                T="IncidentStrategyDescriptor?"
-                Label="Incident handling strategy"
+                T="IncidentStrategyDescriptor"
+                Label="@Localizer["Incident handling strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedIncidentStrategy"
-                ToStringFunc="@(x => x?.DisplayName ?? "Default")"
+                ToStringFunc="@(x => x?.DisplayName ?? Localizer["Default"])"
                 ValueChanged="@OnIncidentStrategyChanged"
                 HelperText="@(_selectedIncidentStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _incidentStrategies)
                 {
-                    <MudSelectItem T="IncidentStrategyDescriptor" Value="@strategy">@(strategy?.DisplayName ?? "Default")</MudSelectItem>
+                    <MudSelectItem T="IncidentStrategyDescriptor"
+                                   Value="@strategy">@(strategy?.DisplayName ?? @Localizer["Default"])</MudSelectItem>
                 }
             </MudSelect>
+            <ExpressionEditor
+                ExpressionChanged="@OnLogPersistenceExpressionChanged"
+                Expression="_logPersistenceConfiguration?.Expression"
+                CustomProperties="GetExpressionEditorProps()"
+                DisplayName="@Localizer["Log Persistence Strategy"]"
+                Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
+                ReadOnly="IsReadOnly">
+                <MudSelect
+                    T="LogPersistenceStrategyDescriptor"
+                    Label="@Localizer["Log Persistence Strategy"]"
+                    Variant="@Variant.Outlined"
+                    Value="@_selectedLogPersistenceStrategy"
+                    ToStringFunc="@(x => x?.DisplayName ?? Localizer["Inherit"])"
+                    ValueChanged="@OnLogPersistenceStrategySelectionChanged"
+                    ReadOnly="IsReadOnly"
+                    Disabled="IsReadOnly"
+                    HelperText="@Localizer["Select the log persistence strategy to use for activity properties of this workflow."]"
+                >
+                    @foreach (var strategy in _logPersistenceStrategyDescriptors)
+                    {
+                        <MudSelectItem T="LogPersistenceStrategyDescriptor"
+                                       Value="@strategy">@(strategy?.DisplayName ?? "Inherit")</MudSelectItem>
+                    }
+                </MudSelect>
+            </ExpressionEditor>
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Commit Strategy"]</MudText>
+        <MudStack Spacing="3">
             <MudSelect
-                Label="Log Persistence Mode"
-                T="LogPersistenceMode?"
+                T="CommitStrategyDescriptor"
+                Label="@Localizer["Commit Strategy"]"
                 Variant="@Variant.Outlined"
-                Value="@_selectedLogPersistenceMode"
-                ValueChanged="@OnLogPersistenceModeChanged"
+                Value="@_selectedCommitStrategy"
+                ToStringFunc="@(x => string.IsNullOrWhiteSpace(x?.DisplayName) ? "-" : x.DisplayName)"
+                ValueChanged="@OnCommitStrategySelectionChanged"
+                HelperText="@(_selectedCommitStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
-                @foreach (LogPersistenceMode item in Enum.GetValues(typeof(LogPersistenceMode)))
+                @foreach (var strategy in _commitStrategies)
                 {
-                    <MudSelectItem Value="@((LogPersistenceMode?)item)">@item</MudSelectItem>
+                    <MudSelectItem T="CommitStrategyDescriptor"
+                                   Value="@strategy">@(string.IsNullOrWhiteSpace(strategy?.DisplayName) ? "-" : strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
-            <MudField Variant="Variant.Text" HelperText="Allow this workflow to be used as an activity." Margin="Margin.None">
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Activity"]</MudText>
+        <MudStack Spacing="3">
+            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]"
+                      Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
-                    Label="Usable as activity"
+                    Label="@Localizer["Usable as activity"]"
                     Value="@(WorkflowDefinition.Options.UsableAsActivity == true)"
                     ValueChanged="@OnUsableAsActivityCheckChanged"
                     Dense="true"
@@ -60,30 +99,20 @@
             </MudField>
             @if (WorkflowDefinition.Options.UsableAsActivity == true)
             {
-                <MudField Variant="Variant.Text" HelperText="When you publish a new version, all of the consuming workflows will be updated to point to the new version of this workflow." Margin="Margin.None">
+                <MudField Variant="Variant.Text" HelperText="@Localizer["When you publish"]" Margin="Margin.None">
                     <MudCheckBox
                         T="bool?"
-                        Label="Auto-update consuming workflows"
+                        Label="@Localizer["Auto-update consuming workflows"]"
                         Dense="@true"
                         Value="@(WorkflowDefinition.Options.AutoUpdateConsumingWorkflows)"
                         ValueChanged="@OnAutoUpdateConsumingWorkflowsCheckChanged"
                         ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
                 </MudField>
-                @* <MudSelect *@
-                @*     T="string" *@
-                @*     Label="Resolution Strategy" *@
-                @*     Variant="@Variant.Outlined" *@
-                @*     HelperText="What should we do when a consuming workflow is published and also has a draft version?" *@
-                @*     ReadOnly="IsReadOnly" Disabled="IsReadOnly"> *@
-                @*     <MudSelectItem T="string">Update Draft</MudSelectItem> *@
-                @*     <MudSelectItem T="string">Update Draft and Publish</MudSelectItem> *@
-                @*     <MudSelectItem T="string">Discard Draft and Publish</MudSelectItem> *@
-                @* </MudSelect> *@
                 <MudTextField
                     T="string"
                     Variant="Variant.Outlined"
-                    Label="Category"
-                    HelperText="A custom activity category to assign this workflow-as-an-activity to."
+                    Label="@Localizer["Category"]"
+                    HelperText="@Localizer["A custom activity category to assign this workflow-as-an-activity to."]"
                     Value="@WorkflowDefinition.Options.ActivityCategory"
                     ValueChanged="OnCategoryChanged" ReadOnly="IsReadOnly" Disabled="IsReadOnly"/>
             }

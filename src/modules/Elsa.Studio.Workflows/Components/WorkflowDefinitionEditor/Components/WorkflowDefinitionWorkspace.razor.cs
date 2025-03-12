@@ -13,15 +13,15 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 /// A workspace for editing a workflow definition.
 public partial class WorkflowDefinitionWorkspace : IWorkspace
 {
-    private MudDynamicTabs _dynamicTabs = default!;
-    private WorkflowDefinition? _workflowDefinition = default!;
-    private WorkflowDefinition? _selectedWorkflowDefinition = default!;
+    private MudDynamicTabs _dynamicTabs = null!;
+    private WorkflowDefinition? _workflowDefinition = null!;
+    private WorkflowDefinition? _selectedWorkflowDefinition = null!;
     
     /// Gets or sets the workflow definition to edit.
-    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+    [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
     
     /// Gets or sets a specific version of the workflow definition to view.
-    [Parameter] public WorkflowDefinition SelectedWorkflowDefinition { get; set; } = default!;
+    [Parameter] public WorkflowDefinition SelectedWorkflowDefinition { get; set; } = null!;
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
@@ -45,10 +45,10 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
 
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
 
-    private WorkflowEditor WorkflowEditor { get; set; } = default!;
+    private WorkflowEditor WorkflowEditor { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()

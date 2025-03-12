@@ -1,5 +1,6 @@
 @using Elsa.Studio.Models
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     @if (JournalEntry != null!)
@@ -7,11 +8,11 @@
         var record = JournalEntry.Record;
         var payload = ParsePayload(record.Payload);
 
-        var eventInfo = new Dictionary<string, DataPanelItem>
+        var eventInfo = new DataPanelModel
         {
-            ["Name"] = new(record.EventName),
-            ["Timestamp"] = new(TimeFormatter.Format(record.Timestamp, "s")),
-            ["Message"] = new(record.Message)
+            new DataPanelItem(Localizer["Name"], record.EventName),
+            new DataPanelItem(Localizer["Timestamp"], TimeFormatter.Format(record.Timestamp, "s")),
+            new DataPanelItem(Localizer["Message"], record.Message)
         };
 
         Merge(eventInfo, payload);
@@ -19,7 +20,7 @@
         <div class="pa-4">
             <MudStack>
                 <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">Event</MudText>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Event"]</MudText>
                     <DataPanel Data="eventInfo" HideEmptyValues="true"/>
                 </div>
             </MudStack>

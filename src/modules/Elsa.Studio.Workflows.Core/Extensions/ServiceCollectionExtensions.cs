@@ -22,8 +22,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddWorkflowsCore(this IServiceCollection services)
     {
         services
-            .AddScoped<IRemoteFeatureProvider, RemoteRemoteFeatureProvider>()
-            .AddScoped<IWorkflowDefinitionService, WorkflowDefinitionService>()
+            .AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>()
+            .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddScoped<IWorkflowDefinitionEditorService, WorkflowDefinitionEditorService>()
             .AddScoped<IWorkflowDefinitionImporter, WorkflowDefinitionImporter>()
@@ -38,7 +38,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, RemoteServerInformationProvider>()
             .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
             .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
+            .AddScoped<ILogPersistenceStrategyService, RemoteLogPersistenceStrategyService>()
             .AddScoped<IIncidentStrategiesProvider, RemoteIncidentStrategiesProvider>()
+            .AddScoped<ICommitStrategiesProvider, RemoteCommitStrategiesProvider>()
             .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddScoped<IActivityPortService, DefaultActivityPortService>()
@@ -58,7 +60,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
-        services.AddSingleton<IDiagramDesignerProvider, T>();
+        services.AddScoped<IDiagramDesignerProvider, T>();
         return services;
     }
     
@@ -67,7 +69,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
     {
-        services.AddSingleton<IActivityDisplaySettingsProvider, T>();
+        services.AddScoped<IActivityDisplaySettingsProvider, T>();
         return services;
     }
     
@@ -76,7 +78,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddActivityPortProvider<T>(this IServiceCollection services) where T : class, IActivityPortProvider
     {
-        services.AddSingleton<IActivityPortProvider, T>();
+        services.AddScoped<IActivityPortProvider, T>();
         return services;
     }
 }

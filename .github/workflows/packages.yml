@@ -3,11 +3,18 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'blueberry'
+      - 'main'
+      - 'vnext'
+      - 'bug/*'
+      - 'enh/*'
+      - 'feature/*'
+      - 'issue/*'
+      - 'patch/*'
+      - 'enh/*'
   release:
     types: [ prereleased, published ]
 env:
-  base_version: '3.2.2'
+  base_version: '3.4.0'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
   npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
@@ -40,21 +47,21 @@ jobs:
         uses: actions/checkout@v3
       - name: Verify commit exists in remote branch
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && "${{ github.event.action }}" == "published" ]]; then
+          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-            git branch --remote --contains | grep origin/patch/3.2.x
+            git branch --remote --contains | grep origin/patch/3.3.2
           else
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
             git branch --remote --contains | grep origin/${BRANCH_NAME}
           fi
       - name: Set VERSION variable
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && "${{ github.event.action }}" == "published" ]]; then
+          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             TAG_NAME=${{ github.ref }} # e.g., refs/tags/3.0.0
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
             echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
           else
-            echo "VERSION=3.2.2-blueberry.${{github.run_number}}" >> $GITHUB_ENV
+            echo "VERSION=${{env.base_version}}-${PACKAGE_PREFIX}.${{github.run_number}}" >> $GITHUB_ENV
           fi
       - name: Build workflow designer client assets
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
@@ -119,19 +126,36 @@ jobs:
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
     steps:
-      - name: Download Packages
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+          registry-url: ${{ env.npm_feed_feedzio }}
+
+      - name: Download npm Packages
         uses: actions/download-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-          registry-url: ${{ env.npm_feed_feedzio }}
-
-      - run: |
+      - name: Publish npm packages to feedz.io
+        run: |
           for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
+
+      - name: Download npm react Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-react-packages
+          path: elsa-studio-npm-react-packages
+
+      - name: Publish npm react packages to feedz.io
+        run: |
+          for file in ./elsa-studio-npm-react-packages/*.tgz
           do
             npm publish "$file" --access public
           done
@@ -145,19 +169,34 @@ jobs:
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     steps:
-      - name: Download Packages
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+          registry-url: ${{ env.npm_feed_npm }}
+
+      - name: Download npm Packages
         uses: actions/download-artifact@v4
         with:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-          registry-url: ${{ env.npm_feed_npm }}
-
       - run: |
           for file in ./elsa-studio-npm-packages/*.tgz
+          do
+            npm publish "$file" --access public
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
+
+      - name: Download npm react Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: elsa-studio-npm-react-packages
+          path: elsa-studio-npm-react-packages
+
+      - run: |
+          for file in ./elsa-studio-npm-react-packages/*.tgz
           do
             npm publish "$file" --access public
           done

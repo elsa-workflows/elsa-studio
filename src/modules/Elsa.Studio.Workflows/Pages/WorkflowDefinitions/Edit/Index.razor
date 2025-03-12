@@ -1,7 +1,10 @@
 @page "/workflows/definitions/{definitionId}/edit"
+@using Microsoft.Extensions.Localization
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
-<PageTitle>Workflow definition</PageTitle>
+<PageTitle>@Localizer["Workflow definitions Editor"]</PageTitle>
 
 <WorkflowDefinitionEditor DefinitionId="@DefinitionId"/>
 

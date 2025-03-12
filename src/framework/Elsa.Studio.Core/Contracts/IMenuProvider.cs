@@ -2,10 +2,9 @@
 
 namespace Elsa.Studio.Contracts;
 
-/// <summary>
 /// Provides menu items to the dashboard.
-/// </summary>
 public interface IMenuProvider
 {
+    /// Returns a list of menu items.
     ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default);
 }

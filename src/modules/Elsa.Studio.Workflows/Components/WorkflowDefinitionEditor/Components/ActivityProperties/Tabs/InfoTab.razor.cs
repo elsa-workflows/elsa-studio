@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -15,15 +16,14 @@ public partial class InfoTab
     [Parameter]
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
 
-    private IDictionary<string, DataPanelItem> ActivityInfo { get; } = new Dictionary<string, DataPanelItem>();
+    private DataPanelModel ActivityInfo { get; } = new();
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         ActivityDescriptor.ConstructionProperties.TryGetValue("WorkflowDefinitionId", out var link);
 
-        ActivityInfo["Type"] = new DataPanelItem(ActivityDescriptor.TypeName,
-            link == null ? null : $"/workflows/definitions/{link}/edit");
-        ActivityInfo["Description"] = new DataPanelItem(ActivityDescriptor.Description);
+        ActivityInfo.Add(Localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
+        ActivityInfo.Add(Localizer["Description"], ActivityDescriptor.Description);
     }
 }

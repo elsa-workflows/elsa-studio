@@ -1,7 +1,8 @@
+using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.MonacoHandlers;
+using Elsa.Studio.Monaco.Handlers;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
         // Time services.
         services.AddScoped<ITimeFormatter, DefaultTimeFormatter>();
         services.AddScoped<ITimeZoneProvider, UtcTimeZoneProvider>();
+        services.AddScoped<IBrandingProvider, DefaultBrandingProvider>();
         return services;
     }
 }

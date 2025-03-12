@@ -90,7 +90,7 @@ public partial class ActivityWrapper
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
-        _ports = ActivityPortService.GetPorts(new PortProviderContext(descriptor!, activity)).ToList();
+        _ports = descriptor != null ? ActivityPortService.GetPorts(new PortProviderContext(descriptor, activity)).ToList() : [];
 
         await UpdateSizeAsync();
     }

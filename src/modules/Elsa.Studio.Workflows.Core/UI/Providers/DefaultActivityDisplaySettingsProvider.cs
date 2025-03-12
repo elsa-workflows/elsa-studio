@@ -1,14 +1,16 @@
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
+using JetBrains.Annotations;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.UI.Providers;
 
-/// <summary>
 /// Provides default activity display settings.
-/// </summary>
+[UsedImplicitly]
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
+    /// <param name="activityDescriptor"></param>
     /// <inheritdoc />
     public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
@@ -28,6 +30,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.SetOutput"] = new (DefaultActivityColors.Composition),
         ["Elsa.DispatchWorkflow"] = new (DefaultActivityColors.Composition),
         ["Elsa.BulkDispatchWorkflows"] = new (DefaultActivityColors.Composition),
+        ["Elsa.ExecuteWorkflow"] = new (DefaultActivityColors.Composition),
         
         // Console
         ["Elsa.WriteLine"] = new(DefaultActivityColors.Console, ElsaStudioIcons.Tabler.Pencil),
@@ -54,6 +57,7 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         ["Elsa.While"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.RepeatOne),
         ["Elsa.ForEach"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.RepeatOne),
         ["Elsa.For"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.RepeatOne),
+        ["Elsa.ParallelForEach"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.RepeatOne),
         ["Elsa.Break"] = new(DefaultActivityColors.Looping, ElsaStudioIcons.Tabler.Back1),
         
         // Primitives

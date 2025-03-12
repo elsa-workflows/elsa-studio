@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="180 days" xml:space="preserve">
+    <value>١٨٠ يوم</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>٩٠ يوم</value>
+  </data>
+  <data name="14 days" xml:space="preserve">
+    <value>١٤ يوم</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>٧ أيام</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>٣٠ يوم</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>وصف مختصر للعامل.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>وصف مختصر للسر.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>شرح مختصر لهذا المدخل.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>شرح مختصر لسير العمل.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>شرح مختصر لهذا المُخرج.</value>
+  </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>تصنيف خاص يتم تعيينه لسير العمل هذا.</value>
+  </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>تصنيف خاص يتم تحديده لهذا المُخرج.</value>
+  </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>وصف لدور وهدف هذا العامل.</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>تصنيف خاص يتم تحديده لهذا المدخل.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>قيمة افتراضية.</value>
+  </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>وصف لدور وهدف هذا المتغير.</value>
+  </data>
+</root>

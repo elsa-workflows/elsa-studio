@@ -1,5 +1,7 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{875A7E2E-4B7C-4AF0-A71E-3980B73AF363}"
 	ProjectSection(SolutionItems) = preProject
 		src\Directory.Build.props = src\Directory.Build.props
@@ -8,11 +10,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{C5E5655F-9B0D-4A93-9D0D-58216E8DE9C1}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		README.md = README.md
-		LICENSE = LICENSE
-		NuGet.Config = NuGet.Config
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
+		NuGet.Config = NuGet.Config
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{B7464426-9B29-4CF9-9B9C-6941D9E99060}"
@@ -26,59 +28,71 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hosts", "hosts", "{2AA1AEE9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{D66B9A40-8608-46F3-9868-625C50EACE43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Host.Wasm", "src\hosts\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj", "{B61B3A06-5AF3-4007-9D22-18A319549156}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Host.Wasm", "src\hosts\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj", "{B61B3A06-5AF3-4007-9D22-18A319549156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Host.Server", "src\hosts\Elsa.Studio.Host.Server\Elsa.Studio.Host.Server.csproj", "{CE71F7A2-3AB3-4475-B7F4-CF5128D0A4F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Host.Server", "src\hosts\Elsa.Studio.Host.Server\Elsa.Studio.Host.Server.csproj", "{CE71F7A2-3AB3-4475-B7F4-CF5128D0A4F6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framework", "framework", "{C5288F1B-F4E5-423C-AEE8-049996613668}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Shell", "src\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj", "{7F1322EB-7314-47A7-9F03-7D8CB31097C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Shell", "src\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj", "{7F1322EB-7314-47A7-9F03-7D8CB31097C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.DomInterop", "src\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj", "{B15E4EAF-62C3-4D3B-B12D-4119D517728C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.DomInterop", "src\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj", "{B15E4EAF-62C3-4D3B-B12D-4119D517728C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Shared", "src\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj", "{21B6A662-8DB2-452E-95E7-3E4227D1544A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Shared", "src\framework\Elsa.Studio.Shared\Elsa.Studio.Shared.csproj", "{21B6A662-8DB2-452E-95E7-3E4227D1544A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bundles", "bundles", "{6BF88129-D74E-46FA-89A4-29B9FBAEC241}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio", "src\bundles\Elsa.Studio\Elsa.Studio.csproj", "{6029D546-A5DB-4B75-8DE4-BFB83EB2A24D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio", "src\bundles\Elsa.Studio\Elsa.Studio.csproj", "{6029D546-A5DB-4B75-8DE4-BFB83EB2A24D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Host.CustomElements", "src\hosts\Elsa.Studio.Host.CustomElements\Elsa.Studio.Host.CustomElements.csproj", "{8A9DBE4A-A03F-44C9-9AB2-74AA973D72A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Host.CustomElements", "src\hosts\Elsa.Studio.Host.CustomElements\Elsa.Studio.Host.CustomElements.csproj", "{8A9DBE4A-A03F-44C9-9AB2-74AA973D72A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.ActivityPortProviders", "src\modules\Elsa.Studio.ActivityPortProviders\Elsa.Studio.ActivityPortProviders.csproj", "{B831EE86-F713-4466-B91D-FA66EDCC2E30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.ActivityPortProviders", "src\modules\Elsa.Studio.ActivityPortProviders\Elsa.Studio.ActivityPortProviders.csproj", "{B831EE86-F713-4466-B91D-FA66EDCC2E30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Core", "src\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj", "{C5D998F4-4523-49AF-9F0F-7BCDACA58790}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Core", "src\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj", "{C5D998F4-4523-49AF-9F0F-7BCDACA58790}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Core.BlazorServer", "src\framework\Elsa.Studio.Core.BlazorServer\Elsa.Studio.Core.BlazorServer.csproj", "{2FC3CE4B-02D3-4808-828E-F4D84FFD1E48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Core.BlazorServer", "src\framework\Elsa.Studio.Core.BlazorServer\Elsa.Studio.Core.BlazorServer.csproj", "{2FC3CE4B-02D3-4808-828E-F4D84FFD1E48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Core.BlazorWasm", "src\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj", "{565B61D8-C67A-449B-BAE6-BEAC95E52B8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Core.BlazorWasm", "src\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj", "{565B61D8-C67A-449B-BAE6-BEAC95E52B8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Counter", "src\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj", "{5DE5EFD1-00C0-4797-BFC3-8989ACF52165}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Counter", "src\modules\Elsa.Studio.Counter\Elsa.Studio.Counter.csproj", "{5DE5EFD1-00C0-4797-BFC3-8989ACF52165}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Dashboard", "src\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj", "{5161EB5E-9301-4A43-A7CC-CDC665CD7B93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Dashboard", "src\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj", "{5161EB5E-9301-4A43-A7CC-CDC665CD7B93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Environments", "src\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj", "{7A30797E-A1BF-4128-BB23-D8B00CDD59FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Environments", "src\modules\Elsa.Studio.Environments\Elsa.Studio.Environments.csproj", "{7A30797E-A1BF-4128-BB23-D8B00CDD59FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Login", "src\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj", "{AC76C31B-75F0-473C-8F96-DE77AFF76536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Login", "src\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj", "{AC76C31B-75F0-473C-8F96-DE77AFF76536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Login.BlazorServer", "src\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj", "{B5CF2E45-29A0-4101-90C3-2E6C31142F8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Login.BlazorServer", "src\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj", "{B5CF2E45-29A0-4101-90C3-2E6C31142F8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Login.BlazorWasm", "src\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj", "{5A3139DC-0FFB-4B44-8BF1-38F29C6133CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Login.BlazorWasm", "src\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj", "{5A3139DC-0FFB-4B44-8BF1-38F29C6133CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Secrets", "src\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj", "{00956738-21BD-4D78-B9AF-67CD0A8B6440}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Secrets", "src\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj", "{00956738-21BD-4D78-B9AF-67CD0A8B6440}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Security", "src\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj", "{435D5AF5-D06C-47A6-94B0-9B31016250DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Security", "src\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj", "{435D5AF5-D06C-47A6-94B0-9B31016250DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.UIHints", "src\modules\Elsa.Studio.UIHints\Elsa.Studio.UIHints.csproj", "{C15D23AC-26CA-447D-B441-75407FD79A6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.UIHints", "src\modules\Elsa.Studio.UIHints\Elsa.Studio.UIHints.csproj", "{C15D23AC-26CA-447D-B441-75407FD79A6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Webhooks", "src\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj", "{C18714D2-7205-491D-AD2E-154876F7A77F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Webhooks", "src\modules\Elsa.Studio.Webhooks\Elsa.Studio.Webhooks.csproj", "{C18714D2-7205-491D-AD2E-154876F7A77F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Workflows.Core", "src\modules\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj", "{F85F11D4-8D22-4119-B212-2CD19DDFB0B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Workflows.Core", "src\modules\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj", "{F85F11D4-8D22-4119-B212-2CD19DDFB0B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Workflows", "src\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj", "{AF48A447-22AF-4C94-8C5D-2B47FD90484C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Workflows", "src\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj", "{AF48A447-22AF-4C94-8C5D-2B47FD90484C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Workflows.Designer", "src\modules\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj", "{E55917F6-388C-47FB-922B-ADE3D1AF5D6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Workflows.Designer", "src\modules\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj", "{E55917F6-388C-47FB-922B-ADE3D1AF5D6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.WorkflowContexts", "src\modules\Elsa.Studio.WorkflowContexts\Elsa.Studio.WorkflowContexts.csproj", "{AFF99B0F-8243-449C-8AA3-4A087D3DE575}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.WorkflowContexts", "src\modules\Elsa.Studio.WorkflowContexts\Elsa.Studio.WorkflowContexts.csproj", "{AFF99B0F-8243-449C-8AA3-4A087D3DE575}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Agents", "src\modules\Elsa.Studio.Agents\Elsa.Studio.Agents.csproj", "{7DA2AE10-6B07-4030-A774-D47C27837B1A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Localization", "src\modules\Elsa.Studio.Localization\Elsa.Studio.Localization.csproj", "{F3C53AFF-EBE5-447D-AF4D-136F18761733}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elsa.Studio.Localization.BlazorServer", "src\modules\Elsa.Studio.Localization.BlazorServer\Elsa.Studio.Localization.BlazorServer.csproj", "{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Localization.BlazorWasm", "src\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj", "{DE57FD2C-3874-486A-89B1-D982726A1189}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Translations", "src\framework\Elsa.Studio.Translations\Elsa.Studio.Translations.csproj", "{76C60D97-FA22-4023-BDB3-6BC47D097E40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Host.HostedWasm", "src\hosts\Elsa.Studio.Host.HostedWasm\Elsa.Studio.Host.HostedWasm.csproj", "{25BA3052-4F17-4D24-9AE9-01FBD75E8804}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -186,6 +200,33 @@ Global
 		{AFF99B0F-8243-449C-8AA3-4A087D3DE575}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFF99B0F-8243-449C-8AA3-4A087D3DE575}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFF99B0F-8243-449C-8AA3-4A087D3DE575}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DA2AE10-6B07-4030-A774-D47C27837B1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DA2AE10-6B07-4030-A774-D47C27837B1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DA2AE10-6B07-4030-A774-D47C27837B1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DA2AE10-6B07-4030-A774-D47C27837B1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3C53AFF-EBE5-447D-AF4D-136F18761733}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3C53AFF-EBE5-447D-AF4D-136F18761733}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3C53AFF-EBE5-447D-AF4D-136F18761733}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3C53AFF-EBE5-447D-AF4D-136F18761733}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE57FD2C-3874-486A-89B1-D982726A1189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE57FD2C-3874-486A-89B1-D982726A1189}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE57FD2C-3874-486A-89B1-D982726A1189}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE57FD2C-3874-486A-89B1-D982726A1189}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76C60D97-FA22-4023-BDB3-6BC47D097E40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76C60D97-FA22-4023-BDB3-6BC47D097E40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76C60D97-FA22-4023-BDB3-6BC47D097E40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76C60D97-FA22-4023-BDB3-6BC47D097E40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25BA3052-4F17-4D24-9AE9-01FBD75E8804}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25BA3052-4F17-4D24-9AE9-01FBD75E8804}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25BA3052-4F17-4D24-9AE9-01FBD75E8804}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25BA3052-4F17-4D24-9AE9-01FBD75E8804}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -199,16 +240,13 @@ Global
 		{6BF88129-D74E-46FA-89A4-29B9FBAEC241} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
 		{6029D546-A5DB-4B75-8DE4-BFB83EB2A24D} = {6BF88129-D74E-46FA-89A4-29B9FBAEC241}
 		{8A9DBE4A-A03F-44C9-9AB2-74AA973D72A8} = {2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514}
+		{B831EE86-F713-4466-B91D-FA66EDCC2E30} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{C5D998F4-4523-49AF-9F0F-7BCDACA58790} = {C5288F1B-F4E5-423C-AEE8-049996613668}
 		{2FC3CE4B-02D3-4808-828E-F4D84FFD1E48} = {C5288F1B-F4E5-423C-AEE8-049996613668}
 		{565B61D8-C67A-449B-BAE6-BEAC95E52B8F} = {C5288F1B-F4E5-423C-AEE8-049996613668}
-		{B831EE86-F713-4466-B91D-FA66EDCC2E30} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{5DE5EFD1-00C0-4797-BFC3-8989ACF52165} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{5161EB5E-9301-4A43-A7CC-CDC665CD7B93} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{7A30797E-A1BF-4128-BB23-D8B00CDD59FD} = {D66B9A40-8608-46F3-9868-625C50EACE43}
-		{AF48A447-22AF-4C94-8C5D-2B47FD90484C} = {D66B9A40-8608-46F3-9868-625C50EACE43}
-		{F85F11D4-8D22-4119-B212-2CD19DDFB0B4} = {D66B9A40-8608-46F3-9868-625C50EACE43}
-		{E55917F6-388C-47FB-922B-ADE3D1AF5D6E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{AC76C31B-75F0-473C-8F96-DE77AFF76536} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{B5CF2E45-29A0-4101-90C3-2E6C31142F8F} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{5A3139DC-0FFB-4B44-8BF1-38F29C6133CD} = {D66B9A40-8608-46F3-9868-625C50EACE43}
@@ -216,6 +254,18 @@ Global
 		{435D5AF5-D06C-47A6-94B0-9B31016250DC} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{C15D23AC-26CA-447D-B441-75407FD79A6A} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{C18714D2-7205-491D-AD2E-154876F7A77F} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{F85F11D4-8D22-4119-B212-2CD19DDFB0B4} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{AF48A447-22AF-4C94-8C5D-2B47FD90484C} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{E55917F6-388C-47FB-922B-ADE3D1AF5D6E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{AFF99B0F-8243-449C-8AA3-4A087D3DE575} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{7DA2AE10-6B07-4030-A774-D47C27837B1A} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{F3C53AFF-EBE5-447D-AF4D-136F18761733} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{F5BBEF8A-D75E-442E-A2E7-EEF5F04335A5} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{DE57FD2C-3874-486A-89B1-D982726A1189} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{76C60D97-FA22-4023-BDB3-6BC47D097E40} = {C5288F1B-F4E5-423C-AEE8-049996613668}
+		{25BA3052-4F17-4D24-9AE9-01FBD75E8804} = {2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B8719CC-CF87-45E1-BE1A-13842F951B28}
 	EndGlobalSection
 EndGlobal

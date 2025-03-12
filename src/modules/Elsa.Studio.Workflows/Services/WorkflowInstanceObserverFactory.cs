@@ -12,7 +12,7 @@ namespace Elsa.Studio.Workflows.Services;
 
 /// <inheritdoc />
 public class WorkflowInstanceObserverFactory(
-    IRemoteBackendApiClientProvider remoteBackendApiClientProvider,
+    IBackendApiClientProvider backendApiClientProvider,
     IRemoteFeatureProvider remoteFeatureProvider,
     IHttpMessageHandlerFactory httpMessageHandlerFactory,
     ILogger<WorkflowInstanceObserverFactory> logger) : IWorkflowInstanceObserverFactory
@@ -32,8 +32,8 @@ public class WorkflowInstanceObserverFactory(
     public async Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context)
     {
         var cancellationToken = context.CancellationToken;
-        var workflowInstancesApi = await remoteBackendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
-        var activityExecutionsApi = await remoteBackendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        var workflowInstancesApi = await backendApiClientProvider.GetApiAsync<IWorkflowInstancesApi>(cancellationToken);
+        var activityExecutionsApi = await backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         var workflowInstanceId = context.WorkflowInstanceId;
 
         // Only establish a SignalR connection if that feature is enabled.
@@ -47,7 +47,7 @@ public class WorkflowInstanceObserverFactory(
         }
 
         // Set-up the SignalR connection.
-        var baseUrl = remoteBackendApiClientProvider.Url;
+        var baseUrl = backendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, httpMessageHandlerFactory)

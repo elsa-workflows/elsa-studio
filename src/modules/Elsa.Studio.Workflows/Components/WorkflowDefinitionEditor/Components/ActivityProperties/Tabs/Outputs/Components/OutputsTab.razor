@@ -1,8 +1,11 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
 @using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Models
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
 
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">

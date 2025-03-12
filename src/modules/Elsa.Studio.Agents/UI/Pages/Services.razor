@@ -1,0 +1,73 @@
+﻿@page "/ai/services"
+@using System.Text.Json
+@using Elsa.Agents
+@using Variant = MudBlazor.Variant
+@inherits StudioComponentBase
+@inject ILocalizer Localizer
+
+<PageTitle>@Localizer["Services"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="@Localizer["Services"]"/>
+
+    <MudTable
+        @ref="_table"
+        T="ServiceModel"
+        ServerData="ServerReload"
+        Dense="true"
+        Hover="true"
+        Elevation="0"
+        OnRowClick="@OnRowClick"
+        RowStyle="cursor: pointer;"
+        MultiSelection="true"
+        SelectOnRowClick="false"
+        Class="definitions-table"
+        @bind-SelectedItems="_selectedRows">
+        <ToolBarContent>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled">
+                <MudMenuItem OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+            </MudMenu>
+            <MudSpacer/>
+            
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled" DisableElevation="false">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateClicked">@Localizer["Create Service"]</MudButton>
+            </MudButtonGroup>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortLabel="ID" T="ApiKeyModel">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Name" T="ApiKeyModel">@Localizer["Name"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Settings" T="ApiKeyModel">@Localizer["Settings"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh/>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Settings">
+                <MudText Typo="Typo.body1">
+                    @JsonSerializer.Serialize(context.Settings, JsonSerializerOptions.Default)
+                </MudText>
+            </MudTd>
+            <MudTd DataLabel="" Style="text-align:right">
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.Id))">@Localizer["Edit"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
+                </MudMenu>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>@Localizer["No services found"]</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>@Localizer["Loading"]...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudContainer>

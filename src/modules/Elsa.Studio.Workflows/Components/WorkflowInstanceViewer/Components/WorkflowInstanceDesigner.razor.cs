@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -29,13 +30,14 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceDesigner : IAsyncDisposable
 {
-    private WorkflowInstance? _workflowInstance = default!;
-    private RadzenSplitterPane _activityPropertiesPane = default!;
+    private WorkflowInstance? _workflowInstance = null!;
+    private RadzenSplitterPane _activityPropertiesPane = null!;
     private DiagramDesignerWrapper? _designer;
-    private ActivityDetailsTab? _activityDetailsTab = default!;
-    private ActivityExecutionsTab? _activityExecutionsTab = default!;
+    private ActivityDetailsTab? _activityDetailsTab = null!;
+    private ActivityExecutionsTab? _activityExecutionsTab = null!;
     private int _propertiesPaneHeight = 300;
-    private readonly IDictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new Dictionary<string, ICollection<ActivityExecutionRecordSummary>>();
+    private readonly Dictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new();
+    private readonly Dictionary<string, ActivityExecutionRecord> _lastActivityExecutionRecordLookup = new();
     private Timer? _elapsedTimer;
 
     /// The workflow instance.
@@ -56,21 +58,21 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// Gets or sets the current selected sub-workflow.
     [Parameter] public JsonObject? SelectedSubWorkflow { get; set; }
 
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
-    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
-    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = null!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
     private JsonObject? RootActivity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = null!;
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
@@ -87,8 +89,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
-    private MudTabs PropertyTabs { get; set; } = default!;
-    private MudTabPanel EventsTabPanel { get; set; } = default!;
+    private MudTabs PropertyTabs { get; set; } = null!;
+    private MudTabPanel EventsTabPanel { get; set; } = null!;
 
     /// Updates the selected sub-workflow.
     public void UpdateSubWorkflow(JsonObject? obj)
@@ -176,7 +178,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             return;
 
         await DisposeObserverAsync();
-        var container = _designer.GetCurrentContainerActivity();
+        var container = _designer.GetCurrentContainerActivityOrRoot();
         var observerContext = new WorkflowInstanceObserverContext
         {
             WorkflowInstanceId = _workflowInstance.Id,
@@ -205,6 +207,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             var activityNodeId = stats.ActivityNodeId;
             var activityId = stats.ActivityId;
             _activityExecutionRecordsLookup.Remove(activityNodeId);
+            _lastActivityExecutionRecordLookup.Remove(activityNodeId);
             await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
         }
 
@@ -223,7 +226,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private void StartElapsedTimer()
     {
         if (_elapsedTimer == null)
-            _elapsedTimer = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            _elapsedTimer = new(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
     private void StopElapsedTimer()
@@ -253,10 +256,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         if (SelectedActivityExecutions.Any())
         {
-            var lastRecord = SelectedActivityExecutions.Last();
-            LastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
-
-            if (LastActivityExecution != null)
+            if (LastActivityExecution != null && (!LastActivityExecution.IsFused() || LastActivityExecution.Status == ActivityStatus.Running))
                 RefreshActivityStatePeriodically(LastActivityExecution.Id);
         }
     }
@@ -267,12 +267,25 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         {
             records = (await ActivityExecutionService.ListSummariesAsync(WorkflowInstance!.Id, activityNodeId)).ToList();
             _activityExecutionRecordsLookup[activityNodeId] = records;
+            _lastActivityExecutionRecordLookup.Remove(activityNodeId);
         }
-        
+
         if (records.Any())
         {
             var lastRecord = records.Last();
-            LastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
+            var lastActivityExecution = _lastActivityExecutionRecordLookup.GetValueOrDefault(activityNodeId);
+
+            if (lastActivityExecution == null || lastActivityExecution.Id != lastRecord.Id)
+            {
+                lastActivityExecution = await ActivityExecutionService.GetAsync(lastRecord.Id);
+                _lastActivityExecutionRecordLookup[activityNodeId] = lastActivityExecution!;
+            }
+
+            LastActivityExecution = lastActivityExecution;
+        }
+        else
+        {
+            LastActivityExecution = null;
         }
 
         return records;
@@ -285,10 +298,14 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         _propertiesPaneHeight = (int)visibleHeight - 50;
     }
 
-    private async Task RefreshSelectedItemAsync(string id)
+    private async Task RefreshSelectedItemAsync(string activityExecutionRecordId)
     {
-        var record = await ActivityExecutionService.GetAsync(id);
-        LastActivityExecution = record;
+        if (LastActivityExecution != null)
+        {
+            _activityExecutionRecordsLookup.Remove(LastActivityExecution.ActivityNodeId);
+            SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(LastActivityExecution.ActivityNodeId);
+        }
+
         await InvokeAsync(() =>
         {
             StateHasChanged();
@@ -296,17 +313,19 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         });
     }
 
-    private void RefreshActivityStatePeriodically(string id)
+    private void RefreshActivityStatePeriodically(string activityExecutionRecordId)
     {
         async void Callback(object? _)
         {
-            await RefreshSelectedItemAsync(id);
+            await RefreshSelectedItemAsync(activityExecutionRecordId);
 
-            if (LastActivityExecution == null || LastActivityExecution.IsFused())
+            if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
                 await StopRefreshActivityStatePeriodically();
+            else
+                _refreshTimer?.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
         }
 
-        _refreshTimer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        _refreshTimer = new(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
     }
 
     private async Task StopRefreshActivityStatePeriodically()
@@ -320,7 +339,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private static ActivityStats Map(ActivityExecutionStats source)
     {
-        return new ActivityStats
+        return new()
         {
             Faulted = source.IsFaulted,
             Blocked = source.IsBlocked,

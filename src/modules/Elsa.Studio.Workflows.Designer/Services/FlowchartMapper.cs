@@ -7,15 +7,8 @@ using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
-internal class FlowchartMapper : IFlowchartMapper
+internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMapper
 {
-    private readonly IActivityMapper _activityMapper;
-
-    public FlowchartMapper(IActivityMapper activityMapper)
-    {
-        _activityMapper = activityMapper;
-    }
-
     public X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = default)
     {
         var graph = new X6Graph();
@@ -26,7 +19,7 @@ internal class FlowchartMapper : IFlowchartMapper
         {
             var activityNodeId = activity.GetNodeId();
             var activityStats = activityStatsMap?.TryGetValue(activityNodeId, out var stats) == true ? stats : null;
-            var node = _activityMapper.MapActivity(activity, activityStats);
+            var node = activityMapper.MapActivity(activity, activityStats);
             graph.Nodes.Add(node);
         }
 

@@ -71,6 +71,10 @@ public abstract class JsInteropBase : IAsyncDisposable
         {
             // Ignore.
         }
+        catch(ObjectDisposedException)
+        {
+            // Ignore.
+        }
 
         return default!;
     }

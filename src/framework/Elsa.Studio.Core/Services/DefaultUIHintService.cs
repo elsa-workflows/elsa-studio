@@ -2,18 +2,11 @@ using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Services;
 
-public class DefaultUIHintService : IUIHintService
+public class DefaultUIHintService(IEnumerable<IUIHintHandler> handlers) : IUIHintService
 {
-    private readonly IEnumerable<IUIHintHandler> _handlers;
-
-    public DefaultUIHintService(IEnumerable<IUIHintHandler> handlers)
-    {
-        _handlers = handlers;
-    }
-    
     public IUIHintHandler GetHandler(string uiHint)
     {
-        var handler = _handlers.FirstOrDefault(x => x.GetSupportsUIHint(uiHint));
+        var handler = handlers.FirstOrDefault(x => x.GetSupportsUIHint(uiHint));
         return handler ?? new UnsupportedUIHintHandler();
     }
 

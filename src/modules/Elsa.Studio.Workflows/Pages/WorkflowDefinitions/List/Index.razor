@@ -1,7 +1,9 @@
 @page "/workflows/definitions"
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
-<PageTitle>Workflow definitions</PageTitle>
+<PageTitle>@Localizer["Workflow definitions Editor"]</PageTitle>
 <WorkflowDefinitionList EditWorkflowDefinition="OnWorkflowDefinitionEdit"/>
 
 @code {

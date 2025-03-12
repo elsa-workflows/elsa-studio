@@ -1,8 +1,7 @@
 @using Elsa.Studio.Models
-@using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.UIHints.SingleLine
+@using Elsa.Studio.DomInterop.Contracts
 @using Elsa.Studio.UIHints.Extensions
-@using MudBlazor.Utilities
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -14,7 +13,7 @@
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
-        <MudTextField
+        <MudTextFieldExtended
             T="string"
             Label="@displayName"
             Variant="Variant.Outlined"
@@ -22,11 +21,24 @@
             Margin="Margin.Dense"
             ReadOnly="EditorContext.IsReadOnly"
             Disabled="EditorContext.IsReadOnly"
-            Adornment="@adornment"
-            AdornmentText="@_singleLineProps.AdornmentText"
-            AdornmentColor="Color.Info"
             Value="@inputValue"
-            ValueChanged="OnValueChanged"/>
+            ValueChanged="OnValueChanged">
+            <AdornmentStart>
+                @if (!string.IsNullOrWhiteSpace(_singleLineProps.AdornmentText))
+                {
+                    <MudText Color="Color.Info">@_singleLineProps.AdornmentText</MudText>
+                }
+            </AdornmentStart>
+            <AdornmentEnd>
+                @if (_singleLineProps.EnableCopyAdornment)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                   OnClick="OnCopyClicked"
+                                   Size="Size.Small"
+                                   Class="mr-2"/>
+                }
+            </AdornmentEnd>
+        </MudTextFieldExtended>
     </ChildContent>
 </ExpressionInput>
 
@@ -35,8 +47,9 @@
     private SingleLineProps _singleLineProps = new();
 
     /// Gets or sets the editor context.
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
+
+    [Inject] private IClipboard Clipboard { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -46,9 +59,13 @@
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue.TrimWhitespace());
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(newValue.TrimWhitespace());
+    }
 
-        await EditorContext.UpdateExpressionAsync(expression);
+    private async Task OnCopyClicked()
+    {
+        var value = (_singleLineProps.AdornmentText ?? string.Empty) + EditorContext.GetLiteralValueOrDefault();
+        await Clipboard.CopyText(value);
     }
 
 }

@@ -72,7 +72,7 @@ public partial class Cases
     {
         var defaultExpressionType = GetDefaultExpressionType();
 
-        return new SwitchCaseRecord
+        return new()
         {
             Label = @case.Label,
             Condition = @case.Condition.ToString(),
@@ -85,7 +85,7 @@ public partial class Cases
     {
         var expression = new Expression(switchCase.ExpressionType, switchCase.Condition);
 
-        return new SwitchCase
+        return new()
         {
             Label = switchCase.Label,
             Condition = expression,
@@ -111,7 +111,7 @@ public partial class Cases
     private void OnRowEditPreview(object obj)
     {
         var @case = (SwitchCaseRecord)obj;
-        _caseBeingEdited = new SwitchCaseRecord
+        _caseBeingEdited = new()
         {
             Label = @case.Label,
             Condition = @case.Condition,
@@ -171,7 +171,7 @@ public partial class Cases
 
     private string GetExpressionTypeDisplayName(string expressionType)
     {
-        var expressionDescriptor = ExpressionDescriptorProvider.GetByType(expressionType) ?? throw new Exception($"Could not find expression descriptor for expression type '{expressionType}'.");
+        var expressionDescriptor = ExpressionDescriptorProvider.GetByType(expressionType) ?? throw new($"Could not find expression descriptor for expression type '{expressionType}'.");
         return expressionDescriptor.DisplayName;
     }
 }

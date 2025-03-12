@@ -1,7 +1,9 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
 
-<MudText Typo="Typo.overline">Inputs</MudText>
+<MudText Typo="Typo.overline">@Localizer["Inputs"]</MudText>
 <MudStack>
 
     <MudButton
@@ -11,21 +13,21 @@
         Class="align-self-end"
         OnClick="OnAddInputClicked"
         Disabled="IsReadonly">
-        Add input
+        @Localizer["Add input"]
     </MudButton>
 
     @if (!Inputs.Any())
     {
-        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">There are currently no inputs defined.</MudAlert>
+        <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Info">@Localizer["There are currently no inputs defined."]</MudAlert>
     }
     else
     {
         <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Storage</th>
+                <th>@Localizer["Name"]</th>
+                <th>@Localizer["Type"]</th>
+                <th>@Localizer["Storage"]</th>
                 <th></th>
             </tr>
             </thead>
@@ -34,7 +36,7 @@
             @foreach (var input in Inputs)
             {
                 var storageDescriptor = input.StorageDriverType != null ? GetStorageDriverDescriptor(input.StorageDriverType) : default;
-                var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : "None";
+                var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : @Localizer["None"];
                 var typeDescriptor = input.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == input.Type) : default;
                 var typeName = typeDescriptor?.DisplayName ?? input.Type;
                 if(input.IsArray) typeName += "[]";
@@ -44,8 +46,8 @@
                     <td>@storageDriverName</td>
                     <td style="text-align: right;">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(input))">Edit</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(input))">Delete</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(input))">@Localizer["Edit"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(input))">@Localizer["Delete"]</MudMenuItem>
                         </MudMenu>
                     </td>
                 </tr>

@@ -19,17 +19,17 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// <summary>
 /// A workflow definition service that uses a remote backend to retrieve workflow definitions.
 /// </summary>
-public class WorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBackendApiClientProvider, IIdentityGenerator identityGenerator, IMediator mediator) : IWorkflowDefinitionService
+public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendApiClientProvider, IIdentityGenerator identityGenerator, IMediator mediator) : IWorkflowDefinitionService
 {
     /// <inheritdoc />
-    public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         return await api.ListAsync(request, versionOptions, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         return await api.GetByDefinitionIdAsync(definitionId, versionOptions, cancellationToken);
@@ -178,7 +178,7 @@ public class WorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBac
     }
 
     /// <inheritdoc />
-    public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = default, CancellationToken cancellationToken = default)
+    public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         var response = await api.GetIsNameUniqueAsync(name, definitionId, cancellationToken);
@@ -205,7 +205,7 @@ public class WorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBac
     }
 
     /// <inheritdoc />
-    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = default, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = null, CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
@@ -242,7 +242,7 @@ public class WorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBac
     }
 
     /// <inheritdoc />
-    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = default, CancellationToken cancellationToken = default)
+    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionIdExporting(definitionId, versionOptions), cancellationToken);
@@ -272,21 +272,22 @@ public class WorkflowDefinitionService(IRemoteBackendApiClientProvider remoteBac
     }
     
     /// <inheritdoc />
-    public async Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
+    public async Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {
         var api = await GetExecuteWorkflowApiAsync(cancellationToken);
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
-        var workflowInstanceId = response.Headers.GetValues("x-elsa-workflow-instance-id").First();
-        return workflowInstanceId;
+        var workflowInstanceId = response.Headers.TryGetValues("x-elsa-workflow-instance-id", out var workflowInstanceIdValues) ? workflowInstanceIdValues.FirstOrDefault() : null;
+        var cannotStart = string.Equals(response.Headers.TryGetValues("x-elsa-workflow-cannot-start", out var cannotStartValues) ? cannotStartValues.FirstOrDefault() : null, "true", StringComparison.OrdinalIgnoreCase);
+        return new ExecuteWorkflowResult(workflowInstanceId, cannotStart);
     }
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
     {
-        return await remoteBackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+        return await backendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
     }
 
     private async Task<IExecuteWorkflowApi> GetExecuteWorkflowApiAsync(CancellationToken cancellationToken = default)
     {
-        return await remoteBackendApiClientProvider.GetApiAsync<IExecuteWorkflowApi>(cancellationToken);
+        return await backendApiClientProvider.GetApiAsync<IExecuteWorkflowApi>(cancellationToken);
     }
 }

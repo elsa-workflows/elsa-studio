@@ -1,24 +1,25 @@
+@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models
 @inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
 
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
-    <MudTabPanel Text="Journal">
+    <MudTabPanel Text="@Localizer["Journal"]">
         <MudPaper Class="mx-2 mt-2 mb-0" Elevation="0" Outlined="true">
             <MudToolBar Dense="true">
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.Timer"
                     ToggledIcon="@Icons.Material.Outlined.AccessTime"
-                    Title="Show relative time"
-                    ToggledTitle="Show accumulated time"
+                    Title="@(TimeMetricMode == TimeMetricMode.Accumulated ? @Localizer["Show relative time"] : @Localizer["Show accumulated time"])"
                     Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)"
                     ToggledChanged="OnTimeMetricButtonToggleChanged"/>
 
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.DataArray"
                     ToggledIcon="@Icons.Material.Outlined.DataArray"
-                    Title="Show events scoped to current container"
-                    ToggledTitle="Showing all events"
+                    title="@(ShowScopedEvents ? @Localizer["Showing all events"] : @Localizer["Show events scoped to current container"])"
                     Color="Color.Default"
                     ToggledColor="Color.Primary"
                     Toggled="ShowScopedEvents"
@@ -28,8 +29,7 @@
                 <MudToggleIconButton
                     Icon="@Icons.Material.Outlined.ErrorOutline"
                     ToggledIcon="@Icons.Material.Outlined.ErrorOutline"
-                    Title="Show incidents"
-                    ToggledTitle="Showing incidents"
+                    title="@(ShowIncidents ? @Localizer["Show incidents"] : @Localizer["Showing incidents"])"
                     Color="Color.Default"
                     ToggledColor="Color.Error"
                     Toggled="ShowIncidents"
@@ -50,7 +50,7 @@
                         var timelineAlign = !isEven ? TimelineAlign.Default : TimelineAlign.End;
                         var timeMetric = context.TimeMetric;
                         var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
-                        var bgClass = journalEntry == SelectedEntry ? "grey lighten-3 rounded" : "";
+                        var bgClass = journalEntry == SelectedEntry ? "gray lighten-3 rounded" : "";
 
                         var statusColor =
                             record.EventName switch

@@ -116,5 +116,5 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Executes a workflow definition.
     /// </summary>
-    Task<string> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default);
+    Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default);
 }

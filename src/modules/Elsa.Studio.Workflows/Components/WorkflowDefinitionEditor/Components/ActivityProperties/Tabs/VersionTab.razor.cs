@@ -45,7 +45,7 @@ public partial class VersionTab
     
     private IEnumerable<int> _versionsUsableAsActivity = [];
 
-    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState)
+    private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState, CancellationToken cancellationToken)
     {
         if (Activity == null! || ActivityDescriptor == null!)
             return new TableData<WorkflowDefinitionSummary>();
