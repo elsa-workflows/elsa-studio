@@ -418,4 +418,25 @@
   <data name="Latest version" xml:space="preserve">
     <value>جدیدترین نسخه</value>
   </data>
+  <data name="A dropdown list" xml:space="preserve">
+    <value>لیست کشویی</value>
+  </data>
+  <data name="A JSON editor" xml:space="preserve">
+    <value>ویرایشگر جیسون</value>
+  </data>
+  <data name="A list of checkboxes" xml:space="preserve">
+    <value>لیست چک‌باکس ها</value>
+  </data>
+  <data name="A list of radio buttons" xml:space="preserve">
+    <value>لیست رادیو‌باتن ها</value>
+  </data>
+  <data name="An input with this name already exists." xml:space="preserve">
+    <value>یک ورودی با این نام از قبل موجود است.</value>
+  </data>
+  <data name="An outcome picker" xml:space="preserve">
+    <value>انتخابگر خروجی</value>
+  </data>
+  <data name="A code editor" xml:space="preserve">
+    <value>یک ویرایشگر کد</value>
+  </data>
 </root>
