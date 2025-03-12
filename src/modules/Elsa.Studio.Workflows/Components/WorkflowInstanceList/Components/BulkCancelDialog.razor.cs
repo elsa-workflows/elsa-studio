@@ -6,9 +6,9 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 public partial class BulkCancelDialog : ComponentBase
 {
     private bool ApplyToAllMatches { get; set; }
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] private DialogReference MudDialog { get; set; } = null!;
 
     private void Submit() => MudDialog.Close(DialogResult.Ok(ApplyToAllMatches));
 
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
 }

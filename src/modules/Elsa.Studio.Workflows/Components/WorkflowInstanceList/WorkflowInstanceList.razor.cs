@@ -37,7 +37,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IRemoteBackendApiClientProvider RemoteBackendApiClientProvider { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
@@ -284,20 +284,19 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkCancelClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox(Localizer["Cancel selected workflow instances?"], Localizer["Are you sure you want to cancel the selected workflow instances?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
-        var reference = await DialogService.ShowAsync<BulkCancelDialog>("Cancel selected workflow instances?");
+        var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"]);
         var dialogResult = await reference.Result;
         
-        if (dialogResult.Canceled)
+        if (dialogResult == null || dialogResult.Canceled)
             return;
 
-        var applyToAllMatches = (bool)dialogResult.Data;
+        var applyToAllMatches = (bool)(dialogResult.Data ?? false);
 
         if (applyToAllMatches)
         {
             var plan = new AlterationPlanParams
             {
-                Alterations = [new()
+                Alterations = [new Cancel()
                 {
                     ["type"] = "Cancel"
                 }],
@@ -314,7 +313,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                 }
             };
 
-            var alterationsApi = await RemoteBackendApiClientProvider.GetApiAsync<IAlterationsApi>();
+            var alterationsApi = await BackendApiClientProvider.GetApiAsync<IAlterationsApi>();
             await alterationsApi.Submit(plan);
             Snackbar.Add("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }

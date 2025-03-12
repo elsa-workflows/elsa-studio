@@ -78,17 +78,6 @@ public partial class DiagramDesignerWrapper
         await SelectActivityAsync(activityToSelect);
     }
 
-    /// Selects the activity with the specified ID.
-    /// <param name="activityId">The ID of the activity ID select.</param>
-    public async Task SelectActivityByActivityIdAsync(string activityId)
-    {
-        var containerActivity = GetCurrentContainerActivity();
-        var activities = containerActivity.GetActivities();
-        var activityToSelect = activities.FirstOrDefault(x => x.GetId() == activityId);
-
-        await SelectActivityAsync(activityToSelect);
-    }
-
     /// Selects the activity with the specified node ID.
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
