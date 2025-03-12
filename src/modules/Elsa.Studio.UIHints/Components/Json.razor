@@ -9,12 +9,11 @@
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
         <MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
-            <StandaloneCodeEditor
-                @ref="_monacoEditor"
-                Id="@_monacoEditorId"
-                ConstructionOptions="ConfigureMonacoEditor"
-                CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large"
-                OnDidChangeModelContent="OnMonacoContentChanged"/>
+            <StandaloneCodeEditor @ref="_monacoEditor"
+                                  Id="@_monacoEditorId"
+                                  ConstructionOptions="ConfigureMonacoEditor"
+                                  CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large"
+                                  OnDidChangeModelContent="OnMonacoContentChanged"/>
         </MudField>
     </ChildContent>
 </ExpressionInput>

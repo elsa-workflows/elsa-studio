@@ -5,11 +5,18 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.UIHints.Handlers;
 
+/// <summary>
+/// Provides a handler for the <see cref="InputUIHints.MultiText"/> UI hint.
+/// </summary>
 public class MultiTextHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint is "multitext";
+    /// <inheritdoc />
+    public bool GetSupportsUIHint(string uiHint) => uiHint is InputUIHints.MultiText;
+
+    /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Object;
 
+    /// <inheritdoc />
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>

@@ -1,4 +1,5 @@
 @using Elsa.Api.Client.Resources.VariableTypes.Models
+
 @inherits StudioComponentBase
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -8,25 +9,28 @@
     var searchBox = _variableTypes.Count > 10;
 }
 
-<MudSelectExtended
-    T="VariableTypeDescriptor"
-    Label="@displayName"
-    Variant="Variant.Outlined"
-    HelperText="@description"
-    Margin="Margin.Dense"
-    Value="@selectedValue"
-    SearchBox="@searchBox"
-    ToStringFunc="@(item => item?.DisplayName ?? "")"
-    ValueChanged="OnValueChanged"
-    ReadOnly="EditorContext.IsReadOnly"
-    Disabled="EditorContext.IsReadOnly">
-    @foreach (var grouping in _groupedVariableTypes)
-    {
-        <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
-            @foreach (var variableType in grouping)
+<FieldExtension UIHintComponent="@InputUIHints.TypePicker" EditorContext="@EditorContext">
+    <ChildContent>
+        <MudSelectExtended T="VariableTypeDescriptor"
+                           Label="@displayName"
+                           Variant="Variant.Outlined"
+                           HelperText="@description"
+                           Margin="Margin.Dense"
+                           Value="@selectedValue"
+                           SearchBox="@searchBox"
+                           ToStringFunc="@(item => item?.DisplayName ?? "")"
+                           ValueChanged="OnValueChanged"
+                           ReadOnly="EditorContext.IsReadOnly"
+                           Disabled="EditorContext.IsReadOnly">
+            @foreach (var grouping in _groupedVariableTypes)
             {
-                <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType">@variableType.DisplayName</MudSelectItemExtended>
+                <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
+                    @foreach (var variableType in grouping)
+                    {
+                        <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType">@variableType.DisplayName</MudSelectItemExtended>
+                    }
+                </MudSelectItemGroupExtended>
             }
-        </MudSelectItemGroupExtended>
-    }
-</MudSelectExtended>
+        </MudSelectExtended>
+    </ChildContent>
+</FieldExtension>
