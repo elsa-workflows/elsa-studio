@@ -8,6 +8,7 @@ public static class InputUIHints
     public const string Checkbox = "checkbox";
     public const string CheckList = "checklist";
     public const string CodeEditor = "code-editor";
+    public const string DateTimePicker = "datetime-picker";
     public const string DropDown = "dropdown";
     public const string DynamicOutcomes = "dynamic-outcomes";
     public const string ExpressionEditor = "expression-editor";
