@@ -12,7 +12,7 @@ public class LocalizationOptions
     /// <summary>
     /// Gets or sets the supported cultures.
     /// </summary>
-    public string[] SupportedCultures { get; set; } = ["en-US"];
+    public string[] SupportedCultures { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the default culture.

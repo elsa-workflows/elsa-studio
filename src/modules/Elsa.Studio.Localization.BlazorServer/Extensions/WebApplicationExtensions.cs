@@ -9,13 +9,14 @@ public static class WebApplicationExtensions
 {
     public static WebApplication UseElsaLocalization(this WebApplication app)
     {
-
-        var supportedCultures = app.Services.GetService<IOptions<LocalizationOptions>>()?.Value.SupportedCultures;
+        var localisationOptions = app.Services.GetService<IOptions<LocalizationOptions>>()?.Value;
+        var defaultCulture = localisationOptions?.DefaultCulture;
+        var supportedCultures = localisationOptions?.SupportedCultures;
 
         if (supportedCultures != null)
         {
             var localizationOptions = new RequestLocalizationOptions()
-                .SetDefaultCulture(supportedCultures[0])
+                .SetDefaultCulture(defaultCulture ?? new LocalizationOptions().DefaultCulture)
                 .AddSupportedCultures(supportedCultures)
                 .AddSupportedUICultures(supportedCultures);
 
