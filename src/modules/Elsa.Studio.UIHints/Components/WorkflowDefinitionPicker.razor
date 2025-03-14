@@ -1,6 +1,8 @@
 @using Elsa.Api.Client.Shared.UIHints.DropDown
 
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
+
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
     var displayName = inputDescriptor.DisplayName;
@@ -13,9 +15,9 @@
     <ChildContent>
         <MudSelectExtended
             T="SelectListItem"
-            Label="@displayName"
+            Label="@Localizer[displayName]"
             Variant="Variant.Outlined"
-            HelperText="@description"
+            HelperText="@Localizer[description]"
             Margin="Margin.Dense"
             Value="@selectedValue"
             SearchBox="@searchBox"

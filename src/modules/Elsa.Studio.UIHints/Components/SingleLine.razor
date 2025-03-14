@@ -2,6 +2,7 @@
 @using Elsa.Api.Client.Shared.UIHints.SingleLine
 @using Elsa.Studio.DomInterop.Contracts
 @using Elsa.Studio.UIHints.Extensions
+@inject ILocalizer Localizer
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -15,9 +16,9 @@
     <ChildContent>
         <MudTextFieldExtended
             T="string"
-            Label="@displayName"
+            Label="@Localizer[displayName]"
             Variant="Variant.Outlined"
-            HelperText="@description"
+            HelperText="@Localizer[description]"
             Margin="Margin.Dense"
             ReadOnly="EditorContext.IsReadOnly"
             Disabled="EditorContext.IsReadOnly"

@@ -43,9 +43,8 @@ var backendApiConfig = new BackendApiConfig
         options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
         options.ConfigureHttpClient = (_, client) =>
         {
-            // if debugging is enabled, set a long timeout
-            if (Debugger.IsAttached)
-                client.Timeout = TimeSpan.FromHours(1);
+            // Set a long time out to simplify debugging both Elsa Studio and the Elsa Server backend.
+            client.Timeout = TimeSpan.FromHours(1);
         };
     },
 };

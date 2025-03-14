@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.UI.Contracts;
 using JetBrains.Annotations;
 
@@ -10,7 +11,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 /// A diagram designer provider for the Flowchart designer.
 /// </summary>
 [UsedImplicitly]
-public class FlowchartDiagramDesignerProvider : IDiagramDesignerProvider
+public class FlowchartDiagramDesignerProvider(ILocalizer localizer) : IDiagramDesignerProvider
 {
     /// <inheritdoc />
     public double Priority => 0;
@@ -19,5 +20,5 @@ public class FlowchartDiagramDesignerProvider : IDiagramDesignerProvider
     public bool GetSupportsActivity(JsonObject activity) => activity.GetTypeName() == "Elsa.Flowchart";
 
     /// <inheritdoc />
-    public IDiagramDesigner GetEditor() => new FlowchartDiagramDesigner();
+    public IDiagramDesigner GetEditor() => new FlowchartDiagramDesigner(localizer);
 }

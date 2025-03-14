@@ -279,6 +279,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
         await WorkflowInstanceService.BulkDeleteAsync(workflowInstanceIds);
+        _selectedRows.Clear();
         Reload();
     }
 
