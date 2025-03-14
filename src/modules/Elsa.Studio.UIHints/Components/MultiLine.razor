@@ -1,5 +1,6 @@
 @using Elsa.Studio.Models
 @using Elsa.Studio.UIHints.Extensions
+@inject ILocalizer Localizer
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -13,9 +14,9 @@
         <MudTextField
             T="string"
             Lines="5"
-            Label="@displayName"
+            Label="@Localizer[displayName]"
             Variant="Variant.Outlined"
-            HelperText="@description"
+            HelperText="@Localizer[description]"
             Margin="Margin.Dense"
             Value="@inputValue"
             ValueChanged="OnValueChanged"

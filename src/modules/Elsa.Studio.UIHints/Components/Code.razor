@@ -1,4 +1,5 @@
 @using BlazorMonaco.Editor
+@inject ILocalizer Localizer
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
@@ -8,7 +9,7 @@
 
 <FieldExtension UIHintComponent="@InputUIHints.CodeEditor" EditorContext="@EditorContext">
     <ChildContent>
-        <MudField Variant="Variant.Outlined" Label="@displayName" HelperText="@description" Margin="Margin.Dense">
+        <MudField Variant="Variant.Outlined" Label="@Localizer[displayName]" HelperText="@Localizer[description]" Margin="Margin.Dense">
             <StandaloneCodeEditor @ref="_monacoEditor"
                                   Id="@_monacoEditorId"
                                   ConstructionOptions="ConfigureMonacoEditor"

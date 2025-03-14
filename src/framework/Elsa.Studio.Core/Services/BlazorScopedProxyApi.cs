@@ -9,10 +9,16 @@ namespace Elsa.Studio.Services;
 public class BlazorScopedProxyApi<T> : DispatchProxy
 {
     private T _decoratedApi = default!;
-    private IBlazorServiceAccessor _blazorServiceAccessor = default!;
-    private IServiceProvider _serviceProvider = default!;
+    private IBlazorServiceAccessor _blazorServiceAccessor = null!;
+    private IServiceProvider _serviceProvider = null!;
 
-    internal void Initialize(T decoratedApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
+    /// <summary>
+    /// Initializes the BlazorScopedProxyApi instance with the specified parameters.
+    /// </summary>
+    /// <param name="decoratedApi">The API client instance to be decorated.</param>
+    /// <param name="blazorServiceAccessor">The Blazor service accessor instance for setting the scoped service provider.</param>
+    /// <param name="serviceProvider">The service provider for dependency injection.</param>
+    public void Initialize(T decoratedApi, IBlazorServiceAccessor blazorServiceAccessor, IServiceProvider serviceProvider)
     {
         _decoratedApi = decoratedApi;
         _blazorServiceAccessor = blazorServiceAccessor;

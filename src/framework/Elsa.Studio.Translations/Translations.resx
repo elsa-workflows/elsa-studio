@@ -1425,4 +1425,193 @@
   <data name="Failed to import {0} {1}." xml:space="preserve">
     <value>Failed to import {0} {1}.</value>
   </data>
+  <data name="Auto layout" xml:space="preserve">
+    <value>Auto layout</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Zoom to fit the screen" xml:space="preserve">
+    <value>Zoom to fit the screen</value>
+  </data>
+  <data name="A function to compute the correlation ID to associate a dispatched workflow with." xml:space="preserve">
+    <value>A function to compute the correlation ID to associate a dispatched workflow with.</value>
+  </data>
+  <data name="A list of expected outcomes to handle." xml:space="preserve">
+    <value>A list of expected outcomes to handle.</value>
+  </data>
+  <data name="A list of expected status codes to handle." xml:space="preserve">
+    <value>A list of expected status codes to handle.</value>
+  </data>
+  <data name="A value that allows to add the Authorization header without validation." xml:space="preserve">
+    <value>A value that allows to add the Authorization header without validation.</value>
+  </data>
+  <data name="Always allow the creation" xml:space="preserve">
+    <value>Always allow the creation</value>
+  </data>
+  <data name="Branches" xml:space="preserve">
+    <value>Branches</value>
+  </data>
+  <data name="Break out of a loop." xml:space="preserve">
+    <value>Break out of a loop.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Condition" xml:space="preserve">
+    <value>Condition</value>
+  </data>
+  <data name="Content Type" xml:space="preserve">
+    <value>Content Type</value>
+  </data>
+  <data name="Correlation ID Function" xml:space="preserve">
+    <value>Correlation ID Function</value>
+  </data>
+  <data name="Default Item Input Key" xml:space="preserve">
+    <value>Default Item Input Key</value>
+  </data>
+  <data name="Disable Authorization Header Validation" xml:space="preserve">
+    <value>Disable Authorization Header Validation</value>
+  </data>
+  <data name="Executes javaScript code" xml:space="preserve">
+    <value>Executes javaScript code</value>
+  </data>
+  <data name="Executing" xml:space="preserve">
+    <value>Executing</value>
+  </data>
+  <data name="Expected Status Codes" xml:space="preserve">
+    <value>Expected Status Codes</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="Mode" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="Request Content." xml:space="preserve">
+    <value>Request Content.</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Supported Methods" xml:space="preserve">
+    <value>Supported Methods</value>
+  </data>
+  <data name="The Authorization header value to send with the request. For example: Bearer {some-access-token}" xml:space="preserve">
+    <value>The Authorization header value to send with the request. For example: Bearer {some-access-token}</value>
+  </data>
+  <data name="The content to send with the request. Can be a string, an object, a byte array or a stream." xml:space="preserve">
+    <value>The content to send with the request. Can be a string, an object, a byte array or a stream.</value>
+  </data>
+  <data name="The content type to use when sending the request." xml:space="preserve">
+    <value>The content type to use when sending the request.</value>
+  </data>
+  <data name="The data source to use for dispatching the workflows." xml:space="preserve">
+    <value>The data source to use for dispatching the workflows.</value>
+  </data>
+  <data name="The default key to use for the input name when sending the current item to the dispatched workflow. Will not be used if the Items field contain a list of dictionaries" xml:space="preserve">
+    <value>The default key to use for the input name when sending the current item to the dispatched workflow. Will not be used if the Items field contain a list of dictionaries</value>
+  </data>
+  <data name="The definition ID of the workflows to dispatch." xml:space="preserve">
+    <value>The definition ID of the workflows to dispatch.</value>
+  </data>
+  <data name="The HTTP method to use when sending the request." xml:space="preserve">
+    <value>The HTTP method to use when sending the request.</value>
+  </data>
+  <data name="The HTTP methods to accept." xml:space="preserve">
+    <value>The HTTP methods to accept.</value>
+  </data>
+  <data name="The join mode determines whether this activity should continue as soon as one inbound path comes in (Wait Any), or once all inbound paths have executed (Wait All)." xml:space="preserve">
+    <value>The join mode determines whether this activity should continue as soon as one inbound path comes in (Wait Any), or once all inbound paths have executed (Wait All).</value>
+  </data>
+  <data name="The outcome or set of outcomes to complete this activity with." xml:space="preserve">
+    <value>The outcome or set of outcomes to complete this activity with.</value>
+  </data>
+  <data name="The path to associate with the workflow." xml:space="preserve">
+    <value>The path to associate with the workflow.</value>
+  </data>
+  <data name="The switch mode determines whether the first match should be scheduled, or all matches." xml:space="preserve">
+    <value>The switch mode determines whether the first match should be scheduled, or all matches.</value>
+  </data>
+  <data name="The URL to download the file from." xml:space="preserve">
+    <value>The URL to download the file from.</value>
+  </data>
+  <data name="Time Duration" xml:space="preserve">
+    <value>Time Duration</value>
+  </data>
+  <data name="Trigger execution at a specific time in the future." xml:space="preserve">
+    <value>Trigger execution at a specific time in the future.</value>
+  </data>
+  <data name="URL" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Validation Result" xml:space="preserve">
+    <value>Validation Result</value>
+  </data>
+  <data name="Workflow Definition" xml:space="preserve">
+    <value>Workflow Definition</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>Add case</value>
+  </data>
+  <data name="Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="String7" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>Zoom to fit</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>Always allow the creation of a new workflow instance.</value>
+  </data>
+  <data name="Assign the current value to the specified variable." xml:space="preserve">
+    <value>Assign the current value to the specified variable.</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default." xml:space="preserve">
+    <value>Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default.</value>
+  </data>
+  <data name="Current Value" xml:space="preserve">
+    <value>Current Value</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>Interval</value>
+  </data>
+  <data name="Outer Bound Inclusive" xml:space="preserve">
+    <value>Outer Bound Inclusive</value>
+  </data>
+  <data name="Payload" xml:space="preserve">
+    <value>Payload</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>Step</value>
+  </data>
+  <data name="The end step." xml:space="preserve">
+    <value>The end step.</value>
+  </data>
+  <data name="The items to iterate through." xml:space="preserve">
+    <value>The items to iterate through.</value>
+  </data>
+  <data name="The set of values to iterate." xml:space="preserve">
+    <value>The set of values to iterate.</value>
+  </data>
+  <data name="The start step." xml:space="preserve">
+    <value>The start step.</value>
+  </data>
+  <data name="The step size. To count down, enter a negative number." xml:space="preserve">
+    <value>The step size. To count down, enter a negative number.</value>
+  </data>
+  <data name="Variable" xml:space="preserve">
+    <value>Variable</value>
+  </data>
 </root>
