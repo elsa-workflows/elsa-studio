@@ -51,7 +51,12 @@ var backendApiConfig = new BackendApiConfig
 
 var localizationConfig = new LocalizationConfig
 {
-    ConfigureLocalizationOptions = options => configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options),
+    ConfigureLocalizationOptions = options =>
+    {
+        configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
+        options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
+            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? Enumerable.Empty<string>()) .ToArray();
+    }
 };
 
 builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();

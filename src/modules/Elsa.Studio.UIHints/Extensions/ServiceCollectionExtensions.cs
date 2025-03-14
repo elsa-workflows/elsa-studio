@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<OutputPickerHandler>()
             .AddUIHintHandler<OutcomePickerHandler>()
             .AddUIHintHandler<DynamicOutcomesHandler>()
+            .AddUIHintHandler<DateTimePickerHandler>()
             ;
     }
 }
