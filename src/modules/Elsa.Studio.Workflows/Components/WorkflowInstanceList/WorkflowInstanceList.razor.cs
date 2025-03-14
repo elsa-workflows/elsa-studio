@@ -1,9 +1,12 @@
-﻿using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
+using Elsa.Api.Client.Resources.Alterations.Contracts;
+using Elsa.Api.Client.Resources.Alterations.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
@@ -28,13 +31,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
     /// </summary>
-    [Parameter]
-    public EventCallback<string> ViewWorkflowInstance { get; set; }
+    [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
@@ -54,6 +57,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     // The selected timestamp filters to filter by.
     private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
+
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -281,18 +285,46 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkCancelClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox(Localizer["Cancel selected workflow instances?"], Localizer["Are you sure you want to cancel the selected workflow instances?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
-
-        if (confirmed != true)
+        var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"]);
+        var dialogResult = await reference.Result;
+        
+        if (dialogResult == null || dialogResult.Canceled)
             return;
 
-        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
-        var request = new BulkCancelWorkflowInstancesRequest
+        var applyToAllMatches = (bool)(dialogResult.Data ?? false);
+
+        if (applyToAllMatches)
         {
-            Ids = workflowInstanceIds
-        };
-        await WorkflowInstanceService.BulkCancelAsync(request);
-        _selectedRows.Clear();
+            var plan = new AlterationPlanParams
+            {
+                Alterations = [new Cancel()],
+                Filter = new()
+                {
+                    EmptyFilterSelectsAll = true,
+                    HasIncidents = HasIncidents,
+                    IsSystem = false,
+                    SearchTerm = SearchTerm,
+                    Statuses = SelectedStatuses.Any() ? SelectedStatuses : null,
+                    SubStatuses = SelectedSubStatuses.Any() ? SelectedSubStatuses : null,
+                    TimestampFilters = TimestampFilters.Any() ? TimestampFilters.Select(Map).Where(x => x.Timestamp.Date > DateTime.MinValue && !string.IsNullOrWhiteSpace(x.Column)).ToList() : null,
+                    DefinitionIds = SelectedWorkflowDefinitions.Any() ? SelectedWorkflowDefinitions.Select(x => x.DefinitionId).ToList() : null
+                }
+            };
+
+            var alterationsApi = await BackendApiClientProvider.GetApiAsync<IAlterationsApi>();
+            await alterationsApi.Submit(plan);
+            Snackbar.Add("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
+        }
+        else
+        {
+            var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+            var request = new BulkCancelWorkflowInstancesRequest
+            {
+                Ids = workflowInstanceIds
+            };
+            await WorkflowInstanceService.BulkCancelAsync(request);
+        }
+
         Reload();
     }
 

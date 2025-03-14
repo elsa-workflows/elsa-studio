@@ -45,7 +45,7 @@ public partial class LogPersistenceTab
     /// </summary>
     [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
 
-    [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = default!;
+    [Inject] private ILogPersistenceStrategyService LogPersistenceStrategyService { get; set; } = null!;
 
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();

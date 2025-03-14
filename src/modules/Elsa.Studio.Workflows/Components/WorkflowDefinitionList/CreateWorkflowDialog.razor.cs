@@ -1,4 +1,5 @@
 using Blazored.FluentValidation;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;

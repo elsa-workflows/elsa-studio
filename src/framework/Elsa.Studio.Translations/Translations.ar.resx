@@ -103,4 +103,7 @@
   <data name="A default value." xml:space="preserve">
     <value>قيمة افتراضية.</value>
   </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>وصف لدور وهدف هذا المتغير.</value>
+  </data>
 </root>

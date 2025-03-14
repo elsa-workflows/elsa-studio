@@ -10,10 +10,11 @@ on:
       - 'feature/*'
       - 'issue/*'
       - 'patch/*'
+      - 'enh/*'
   release:
     types: [ prereleased, published ]
 env:
-  base_version: '3.3.2'
+  base_version: '3.4.0'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
   npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
@@ -145,7 +146,7 @@ jobs:
           done
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
-          
+
       - name: Download npm react Packages
         uses: actions/download-artifact@v4
         with:
@@ -187,7 +188,7 @@ jobs:
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
-          
+
       - name: Download npm react Packages
         uses: actions/download-artifact@v4
         with:

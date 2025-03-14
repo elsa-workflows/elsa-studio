@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -21,6 +22,7 @@ public partial class ActivityDetailsTab
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     
+
     private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
 
     private DataPanelModel ActivityInfo { get; set; } = new();

@@ -1,5 +1,4 @@
 @using Elsa.Studio.Models
-@using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Studio.UIHints.Extensions
 @inject ILocalizer Localizer
 
@@ -28,14 +27,14 @@
 
 @code {
 
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    /// <summary>
+    /// The EditorContext provided by the input UI framework.
+    /// </summary>
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue.TrimNull());
-        
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(newValue.TrimNull());
     }
 
 }

@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -22,8 +23,8 @@ public partial class InfoTab
     {
         ActivityDescriptor.ConstructionProperties.TryGetValue("WorkflowDefinitionId", out var link);
 
-        ActivityInfo.Clear();
-
+        ActivityInfo.Clear(); 
+        
         ActivityInfo.Add(Localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
         ActivityInfo.Add(Localizer["Description"], ActivityDescriptor.Description);
     }

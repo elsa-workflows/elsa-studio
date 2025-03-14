@@ -988,4 +988,382 @@
   <data name="Save File" xml:space="preserve">
     <value>Зберегти файл</value>
   </data>
+  <data name="A variable picker" xml:space="preserve">
+    <value>А Вибір змінних</value>
+  </data>
+  <data name="An outcome picker" xml:space="preserve">
+    <value>А Вибір результатів</value>
+  </data>
+  <data name="Are you sure you want to delete the selected output?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибраний вихід?</value>
+  </data>
+  <data name="Are you sure you want to delete this workflow?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити цей робочий процес?</value>
+  </data>
+  <data name="Checklist" xml:space="preserve">
+    <value>Контрольний список</value>
+  </data>
+  <data name="Code editor" xml:space="preserve">
+    <value>Редактор коду</value>
+  </data>
+  <data name="{0} consuming workflow(s) updated" xml:space="preserve">
+    <value>Оновлено споживаючих робочих процесів: {0}</value>
+  </data>
+  <data name="Create variable" xml:space="preserve">
+    <value>Створіть змінну</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>За замовчуванням</value>
+  </data>
+  <data name="Delete selected versions" xml:space="preserve">
+    <value>Видалити вибрані версії</value>
+  </data>
+  <data name="Delete workflow instance?" xml:space="preserve">
+    <value>Видалити екземпляр робочого процесу?</value>
+  </data>
+  <data name="Delete workflow?" xml:space="preserve">
+    <value>Видалити робочий процес?</value>
+  </data>
+  <data name="Edit output" xml:space="preserve">
+    <value>Редагувати вихід</value>
+  </data>
+  <data name="Edit Workflow Definition" xml:space="preserve">
+    <value>Редагувати визначення робочого процесу</value>
+  </data>
+  <data name="JSON editor" xml:space="preserve">
+    <value>Редактор JSON</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Жодного</value>
+  </data>
+  <data name="One workflow is already published" xml:space="preserve">
+    <value>Один робочий процес уже опубліковано</value>
+  </data>
+  <data name="Output picker" xml:space="preserve">
+    <value>Вибір вихідних даних</value>
+  </data>
+  <data name="Please enter a name for the input." xml:space="preserve">
+    <value>Будь ласка, введіть назву для введення.</value>
+  </data>
+  <data name="When checked, this activity can trigger this workflow." xml:space="preserve">
+    <value>Якщо позначено, ця дія може ініціювати цей робочий процес.</value>
+  </data>
+  <data name="Workflow definition picker" xml:space="preserve">
+    <value>Вибір визначення робочого процесу</value>
+  </data>
+  <data name="{0} workflows are not found" xml:space="preserve">
+    <value>{0} робочих процесів не знайдено</value>
+  </data>
+  <data name="{0} {1} imported successfully." xml:space="preserve">
+    <value>{0} {1} успішно імпортовано.</value>
+  </data>
+  <data name="One workflow is published" xml:space="preserve">
+    <value>Опубліковано один робочий процес</value>
+  </data>
+  <data name="A list of radio buttons" xml:space="preserve">
+    <value>Список радіокнопок</value>
+  </data>
+  <data name="Multiple lines of text input" xml:space="preserve">
+    <value>Багаторядкове введення тексту</value>
+  </data>
+  <data name="Are you sure you want to delete the selected workflow instances?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибрані екземпляри робочого процесу?</value>
+  </data>
+  <data name="The workflow cannot be started" xml:space="preserve">
+    <value>Неможливо запустити робочий процес</value>
+  </data>
+  <data name="A dropdown list" xml:space="preserve">
+    <value>Випадаючий список</value>
+  </data>
+  <data name="Successfully imported {0} workflow definitions." xml:space="preserve">
+    <value>Успішно імпортовано {0} визначень робочого процесу.</value>
+  </data>
+  <data name="{0} workflows are already published" xml:space="preserve">
+    <value>{0} робочих процесів уже опубліковано</value>
+  </data>
+  <data name="{0} workflows are published" xml:space="preserve">
+    <value>Опубліковано {0} робочих процесів</value>
+  </data>
+  <data name="A variable with this name already exists in the current scope." xml:space="preserve">
+    <value>Змінна з такою назвою вже існує в поточній області.</value>
+  </data>
+  <data name="{0} workflows are unpublished" xml:space="preserve">
+    <value>{0} робочих процесів скасовано</value>
+  </data>
+  <data name="A workflow output definition picker" xml:space="preserve">
+    <value>Засіб вибору визначення вихідних даних робочого процесу</value>
+  </data>
+  <data name="Are you sure you want to publish the selected workflows?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте опублікувати вибрані робочі процеси?</value>
+  </data>
+  <data name="imported successfully." xml:space="preserve">
+    <value>успішно імпортовано.</value>
+  </data>
+  <data name="An input with this name already exists." xml:space="preserve">
+    <value>Вхід із такою назвою вже існує.</value>
+  </data>
+  <data name="Delete selected workflow instances?" xml:space="preserve">
+    <value>Видалити вибрані екземпляри робочого процесу?</value>
+  </data>
+  <data name="A JSON editor" xml:space="preserve">
+    <value>А Редактор JSON</value>
+  </data>
+  <data name="Are you sure you want to cancel this workflow instance?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте скасувати цей екземпляр робочого процесу?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected versions?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибрані версії?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected variable?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибрану змінну?</value>
+  </data>
+  <data name="No workflows were imported." xml:space="preserve">
+    <value>Робочі процеси не імпортовано.</value>
+  </data>
+  <data name="One workflow is not found" xml:space="preserve">
+    <value>Один робочий процес не знайдено</value>
+  </data>
+  <data name="One workflow is unpublished" xml:space="preserve">
+    <value>Один робочий процес не опублікований</value>
+  </data>
+  <data name="Please enter a name for the output." xml:space="preserve">
+    <value>Будь ласка, введіть назву для результату.</value>
+  </data>
+  <data name="Please enter a name for the workflow." xml:space="preserve">
+    <value>Введіть назву робочого циклу.</value>
+  </data>
+  <data name="Are you sure you want to delete this version?" xml:space="preserve">
+    <value>Ви впевнені, що хочете видалити цю версію?</value>
+  </data>
+  <data name="Are you sure you want to delete this workflow instance?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити цей екземпляр робочого процесу?</value>
+  </data>
+  <data name="Edit variable" xml:space="preserve">
+    <value>Редагувати змінну</value>
+  </data>
+  <data name="Readonly" xml:space="preserve">
+    <value>Тільки для читання</value>
+  </data>
+  <data name="One workflow is already unpublished" xml:space="preserve">
+    <value>Один робочий процес уже не опубліковано</value>
+  </data>
+  <data name="Workflow published" xml:space="preserve">
+    <value>Робочий процес опубліковано</value>
+  </data>
+  <data name="Successfully imported 1 workflow definition." xml:space="preserve">
+    <value>Успішно імпортовано 1 визначення робочого процесу.</value>
+  </data>
+  <data name="Workflow saved" xml:space="preserve">
+    <value>Робочий процес збережено</value>
+  </data>
+  <data name="Workflow published with Not Found activities" xml:space="preserve">
+    <value>Робочий цикл опубліковано з діями Not Found</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Мітка часу</value>
+  </data>
+  <data name="workflows are already published" xml:space="preserve">
+    <value>робочі процеси вже опубліковано</value>
+  </data>
+  <data name="workflows are already unpublished" xml:space="preserve">
+    <value>робочі процеси вже неопубліковані</value>
+  </data>
+  <data name="Successfully imported {0} instances" xml:space="preserve">
+    <value>Успішно імпортовано {0} примірників</value>
+  </data>
+  <data name="Cancel running workflow instances?" xml:space="preserve">
+    <value>Скасувати запущені екземпляри робочого процесу?</value>
+  </data>
+  <data name="Create input" xml:space="preserve">
+    <value>Створити вхід</value>
+  </data>
+  <data name="Create output" xml:space="preserve">
+    <value>Створити вихід</value>
+  </data>
+  <data name="Delete version" xml:space="preserve">
+    <value>Видалити версію</value>
+  </data>
+  <data name="When checked, this activity is the start of this workflow." xml:space="preserve">
+    <value>Якщо позначено, ця дія є початком робочого процесу.</value>
+  </data>
+  <data name="Enter the expression that will be used to determine the log persistence strategy for this property." xml:space="preserve">
+    <value>Введіть вираз, який використовуватиметься для визначення стратегії збереження журналу для цієї властивості.</value>
+  </data>
+  <data name="Multi line" xml:space="preserve">
+    <value>Багаторядковий</value>
+  </data>
+  <data name="Outcome picker" xml:space="preserve">
+    <value>Вибір результатів</value>
+  </data>
+  <data name="A list of checkboxes" xml:space="preserve">
+    <value>Список прапорців</value>
+  </data>
+  <data name="A single line of text input" xml:space="preserve">
+    <value>Введення тексту в один рядок</value>
+  </data>
+  <data name="A workflow definition picker" xml:space="preserve">
+    <value>Засіб вибору визначення робочого процесу</value>
+  </data>
+  <data name="The ID of the variable." xml:space="preserve">
+    <value>Ідентифікатор змінної.</value>
+  </data>
+  <data name="A workflow with this name already exists." xml:space="preserve">
+    <value>Робочий цикл із такою назвою вже існує.</value>
+  </data>
+  <data name="An input for multiple words, like a tagging input" xml:space="preserve">
+    <value>Вхід для кількох слів, наприклад введення тегів</value>
+  </data>
+  <data name="Are you sure you want to cancel all running workflow instances of this workflow definition?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте скасувати всі запущені екземпляри цього робочого циклу?</value>
+  </data>
+  <data name="Cancel selected workflow instances?" xml:space="preserve">
+    <value>Скасувати вибрані екземпляри робочого процесу?</value>
+  </data>
+  <data name="Delete selected output?" xml:space="preserve">
+    <value>Видалити вибраний вихід?</value>
+  </data>
+  <data name="Failed to import {0} workflow definitions. Errors: {1}" xml:space="preserve">
+    <value>Не вдалося імпортувати {0} визначень робочого процесу. Помилки: {1}</value>
+  </data>
+  <data name="Not executed" xml:space="preserve">
+    <value>Не виконано</value>
+  </data>
+  <data name="Publish selected workflows?" xml:space="preserve">
+    <value>Опублікувати вибрані робочі процеси?</value>
+  </data>
+  <data name="Are you sure you want to cancel the selected workflow instances?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте скасувати вибрані екземпляри робочого процесу?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected workflows?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибрані робочі процеси?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected input?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте видалити вибраний вхід?</value>
+  </data>
+  <data name="The text to display in the designer." xml:space="preserve">
+    <value>Текст для відображення в дизайнері.</value>
+  </data>
+  <data name="A checkbox" xml:space="preserve">
+    <value>А Прапорець</value>
+  </data>
+  <data name="Are you sure you want to unpublish the selected workflows?" xml:space="preserve">
+    <value>Ви впевнені, що бажаєте скасувати публікацію вибраних робочих процесів?</value>
+  </data>
+  <data name="Cancel workflow instance?" xml:space="preserve">
+    <value>Скасувати екземпляр робочого процесу?</value>
+  </data>
+  <data name="Checkbox" xml:space="preserve">
+    <value>Прапорець</value>
+  </data>
+  <data name="Multi text" xml:space="preserve">
+    <value>Мультитекст</value>
+  </data>
+  <data name="Default Strategy" xml:space="preserve">
+    <value>Стратегія за замовчуванням</value>
+  </data>
+  <data name="Delete selected input?" xml:space="preserve">
+    <value>Видалити вибраний вхід?</value>
+  </data>
+  <data name="Delete selected variable?" xml:space="preserve">
+    <value>Видалити вибрану змінну?</value>
+  </data>
+  <data name="Dropdown" xml:space="preserve">
+    <value>Спадний список</value>
+  </data>
+  <data name="Delete selected workflows?" xml:space="preserve">
+    <value>Видалити вибрані робочі процеси?</value>
+  </data>
+  <data name="Radio list" xml:space="preserve">
+    <value>Список радіо</value>
+  </data>
+  <data name="Inherit" xml:space="preserve">
+    <value>Успадкувати</value>
+  </data>
+  <data name="Show description" xml:space="preserve">
+    <value>Показати опис</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Повідомлення</value>
+  </data>
+  <data name="One workflow consuming a published workflow has been updated" xml:space="preserve">
+    <value>Оновлено один робочий цикл, який використовує опублікований робочий цикл</value>
+  </data>
+  <data name="New workflow" xml:space="preserve">
+    <value>Новий робочий процес</value>
+  </data>
+  <data name="No workflows found to import." xml:space="preserve">
+    <value>Не знайдено робочих процесів для імпорту.</value>
+  </data>
+  <data name="Not usable as activity." xml:space="preserve">
+    <value>Не можна використовувати як діяльність.</value>
+  </data>
+  <data name="Please enter a name for the variable." xml:space="preserve">
+    <value>Будь ласка, введіть назву для змінної.</value>
+  </data>
+  <data name="Single line" xml:space="preserve">
+    <value>Одна лінія</value>
+  </data>
+  <data name="Successfully imported" xml:space="preserve">
+    <value>Успішно імпортовано</value>
+  </data>
+  <data name="Successfully imported one instance" xml:space="preserve">
+    <value>Успішно імпортовано один екземпляр</value>
+  </data>
+  <data name="Successfully started workflow" xml:space="preserve">
+    <value>Робочий процес успішно розпочато</value>
+  </data>
+  <data name="Variable picker" xml:space="preserve">
+    <value>Вибір змінних</value>
+  </data>
+  <data name="The commit strategy to use that controls when the workflow state should be committed." xml:space="preserve">
+    <value>Стратегія фіксації для використання контролює, коли стан робочого циклу має бути фіксовано.</value>
+  </data>
+  <data name="The read-only workflows will not be affected." xml:space="preserve">
+    <value>Це не вплине на робочі процеси лише для читання.</value>
+  </data>
+  <data name="Unpublish selected workflows?" xml:space="preserve">
+    <value>Скасувати публікацію вибраних робочих процесів?</value>
+  </data>
+  <data name="workflows are published" xml:space="preserve">
+    <value>публікуються робочі процеси</value>
+  </data>
+  <data name="Upload JSON and/or ZIP files containing workflow data to import." xml:space="preserve">
+    <value>Завантажте JSON та/або ZIP-файли з даними робочого процесу для імпорту.</value>
+  </data>
+  <data name="workflow definitions." xml:space="preserve">
+    <value>визначення робочого процесу.</value>
+  </data>
+  <data name="Workflow retracted" xml:space="preserve">
+    <value>Робочий процес відкликано</value>
+  </data>
+  <data name="Workflow was already published" xml:space="preserve">
+    <value>Робочий процес уже опубліковано</value>
+  </data>
+  <data name="Workflow unpublished" xml:space="preserve">
+    <value>Робочий процес не опубліковано</value>
+  </data>
+  <data name="Delete version {0}" xml:space="preserve">
+    <value>Видалити версію {0}</value>
+  </data>
+  <data name="workflows are not found" xml:space="preserve">
+    <value>робочі процеси не знайдено</value>
+  </data>
+  <data name="workflows are unpublished" xml:space="preserve">
+    <value>робочі процеси неопубліковані</value>
+  </data>
+  <data name="workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>робочі процеси, які використовують опубліковані робочі процеси, оновлено</value>
+  </data>
+  <data name="{0} workflows are already unpublished" xml:space="preserve">
+    <value>{0} робочих процесів уже скасовано</value>
+  </data>
+  <data name="{0} workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>Оновлено {0} робочих процесів, які використовують опубліковані робочі процеси</value>
+  </data>
+  <data name="Failed to import {0} {1}." xml:space="preserve">
+    <value>Не вдалося імпортувати {0} {1}.</value>
+  </data>
+  <data name="A code editor" xml:space="preserve">
+    <value>А Редактор коду</value>
+  </data>
 </root>

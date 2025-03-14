@@ -7,10 +7,13 @@ using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Shared.Serialization;
 using Humanizer;
@@ -49,6 +52,11 @@ public partial class WorkflowInstanceDetails
     /// Gets or sets the current selected sub-workflow executions.
     /// </summary>
     [Parameter] public ICollection<ActivityExecutionRecord>? SelectedSubWorkflowExecutions { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the current selected incident activity id.
+    /// </summary>
+    [Parameter] public Func<string, Task>? IncidentActivityIdClicked { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
@@ -170,6 +178,32 @@ public partial class WorkflowInstanceDetails
                 new DataPanelItem(Localizer["Definition version"], SelectedSubWorkflow.GetVersion().ToString()),
             };
         }
+    }
+    
+    private IEnumerable<DataPanelModel> IncidentsData
+    {
+        get
+        {
+            if (_workflowInstance == null)
+                return new List<DataPanelModel>();
+
+            return _workflowInstance.WorkflowState.Incidents
+                .Select(i => new DataPanelModel
+                {
+                    new DataPanelItem("ActivityId", i.ActivityId, null, () => OnIncidentActivityIdClicked(i.ActivityId)),
+                    new DataPanelItem("Message", i.Exception?.Message ?? ""),
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
+                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
+                        : ""),
+                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
+                });
+        }
+    }
+    
+    private async Task OnIncidentActivityIdClicked(string? activityId)
+    {
+        if (IncidentActivityIdClicked != null && !string.IsNullOrWhiteSpace(activityId))
+            await IncidentActivityIdClicked(activityId);
     }
 
     private DataPanelModel SubWorkflowInputData

@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
@@ -22,6 +23,7 @@ public partial class VersionHistoryTab : IDisposable
     [Inject] private IWorkflowDefinitionHistoryService WorkflowDefinitionHistoryService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IMediator Mediator { get; set; } = default!;
+    
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace.IsReadOnly;

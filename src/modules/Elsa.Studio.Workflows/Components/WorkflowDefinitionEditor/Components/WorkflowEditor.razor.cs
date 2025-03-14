@@ -7,6 +7,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;

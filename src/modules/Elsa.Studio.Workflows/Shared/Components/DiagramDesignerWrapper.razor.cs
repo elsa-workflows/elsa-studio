@@ -67,6 +67,17 @@ public partial class DiagramDesignerWrapper
 
     private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : null;
 
+    /// Selects the activity with the specified ID.
+    /// <param name="activityId">The ID of the activity ID select.</param>
+    public async Task SelectActivityByActivityIdAsync(string activityId)
+    {
+        var containerActivity = GetCurrentContainerActivity();
+        var activities = containerActivity.GetActivities();
+        var activityToSelect = activities.FirstOrDefault(x => x.GetId() == activityId);
+
+        await SelectActivityAsync(activityToSelect);
+    }
+
     /// Selects the activity with the specified node ID.
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
@@ -75,12 +86,20 @@ public partial class DiagramDesignerWrapper
         var activities = containerActivity.GetActivities();
         var activityToSelect = activities.FirstOrDefault(x => x.GetNodeId() == nodeId);
 
+        await SelectActivityAsync(activityToSelect, nodeId);
+    }
+
+    private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
+    {
         if (activityToSelect != null)
         {
             await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
             return;
         }
 
+        if (nodeId == null)
+            return;
+        
         // Load the selected node path from the backend.
         var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
 

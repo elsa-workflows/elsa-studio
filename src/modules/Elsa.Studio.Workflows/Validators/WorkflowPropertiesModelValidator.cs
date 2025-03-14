@@ -3,6 +3,8 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 
 namespace Elsa.Studio.Workflows.Validators;
 

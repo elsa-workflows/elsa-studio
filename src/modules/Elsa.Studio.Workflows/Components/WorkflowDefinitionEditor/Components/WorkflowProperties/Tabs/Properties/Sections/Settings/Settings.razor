@@ -1,11 +1,9 @@
-@using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums
-@using Elsa.Studio.Workflows.Services
+@using Elsa.Api.Client.Resources.CommitStrategies.Models
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models
 @using Elsa.Api.Client.Resources.IncidentStrategies.Models
 @using Elsa.Api.Client.Resources.LogPersistenceStrategies
 @inherits StudioComponentBase
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
 @if (WorkflowDefinition != null)
@@ -24,7 +22,8 @@
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _activationStrategies)
                 {
-                    <MudSelectItem T="WorkflowActivationStrategyDescriptor" Value="@strategy">@strategy.DisplayName</MudSelectItem>
+                    <MudSelectItem T="WorkflowActivationStrategyDescriptor"
+                                   Value="@strategy">@strategy.DisplayName</MudSelectItem>
                 }
             </MudSelect>
             <MudSelect
@@ -49,24 +48,47 @@
                 DisplayName="@Localizer["Log Persistence Strategy"]"
                 Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
                 ReadOnly="IsReadOnly">
-                <MudSelect 
+                <MudSelect
                     T="LogPersistenceStrategyDescriptor"
                     Label="@Localizer["Log Persistence Strategy"]"
                     Variant="@Variant.Outlined"
                     Value="@_selectedLogPersistenceStrategy"
                     ToStringFunc="@(x => x?.DisplayName ?? Localizer["Inherit"])"
-                    ValueChanged="@OnLogPersistenceStrategyChanged"
-                    ReadOnly="IsReadOnly" 
+                    ValueChanged="@OnLogPersistenceStrategySelectionChanged"
+                    ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"
                     HelperText="@Localizer["Select the log persistence strategy to use for activity properties of this workflow."]"
-                    >
+                >
                     @foreach (var strategy in _logPersistenceStrategyDescriptors)
                     {
-                        <MudSelectItem T="LogPersistenceStrategyDescriptor" Value="@strategy">@(strategy.DisplayName ?? "Inherit")</MudSelectItem>
+                        <MudSelectItem T="LogPersistenceStrategyDescriptor"
+                                       Value="@strategy">@(strategy?.DisplayName ?? "Inherit")</MudSelectItem>
                     }
                 </MudSelect>
             </ExpressionEditor>
-            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]" Margin="Margin.None">
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Commit Strategy"]</MudText>
+        <MudStack Spacing="3">
+            <MudSelect
+                T="CommitStrategyDescriptor"
+                Label="@Localizer["Commit Strategy"]"
+                Variant="@Variant.Outlined"
+                Value="@_selectedCommitStrategy"
+                ToStringFunc="@(x => string.IsNullOrWhiteSpace(x?.DisplayName) ? "-" : x.DisplayName)"
+                ValueChanged="@OnCommitStrategySelectionChanged"
+                HelperText="@(_selectedCommitStrategy?.Description)"
+                ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+                @foreach (var strategy in _commitStrategies)
+                {
+                    <MudSelectItem T="CommitStrategyDescriptor"
+                                   Value="@strategy">@(string.IsNullOrWhiteSpace(strategy?.DisplayName) ? "-" : strategy.DisplayName)</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+        <MudText Typo="Typo.overline">@Localizer["Activity"]</MudText>
+        <MudStack Spacing="3">
+            <MudField Variant="Variant.Text" HelperText="@Localizer["Allow this workflow to be used as an activity."]"
+                      Margin="Margin.None">
                 <MudCheckBox
                     T="bool?"
                     Label="@Localizer["Usable as activity"]"

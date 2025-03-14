@@ -1,7 +1,6 @@
 using System.Reflection;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
-using Elsa.Studio.UIHints.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudExtensions;
@@ -11,12 +10,12 @@ namespace Elsa.Studio.UIHints.Components;
 public partial class HttpStatusCodes
 {
     private List<HttpStatusCodeCase> _items = new();
-    private MudChipField<string> _chipField = default!;
+    private MudChipField<string> _chipField = null!;
 
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -28,11 +27,6 @@ public partial class HttpStatusCodes
     {
         var expectedStatusCodes = EditorContext.GetValueOrDefault<ICollection<HttpStatusCodeCase>>()?.ToList() ?? new List<HttpStatusCodeCase>();
         return expectedStatusCodes;
-    }
-
-    private List<HttpStatusCodeCase> ParseJson(string? json)
-    {
-        return JsonParser.ParseJson(json, () => new List<HttpStatusCodeCase>());
     }
 
     private async Task OnValuesChanges(List<string>? values)

@@ -1,9 +1,7 @@
 @using Elsa.Studio.Models
-@using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.UIHints.SingleLine
 @using Elsa.Studio.DomInterop.Contracts
 @using Elsa.Studio.UIHints.Extensions
-@using MudBlazor.Utilities
 @inject ILocalizer Localizer
 
 @{
@@ -16,7 +14,7 @@
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
-        <MudTextFieldExtended 
+        <MudTextFieldExtended
             T="string"
             Label="@Localizer[displayName]"
             Variant="Variant.Outlined"
@@ -30,15 +28,15 @@
                 @if (!string.IsNullOrWhiteSpace(_singleLineProps.AdornmentText))
                 {
                     <MudText Color="Color.Info">@_singleLineProps.AdornmentText</MudText>
-                }  
+                }
             </AdornmentStart>
             <AdornmentEnd>
                 @if (_singleLineProps.EnableCopyAdornment)
                 {
                     <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                               OnClick="OnCopyClicked"
-                               Size="Size.Small"
-                               Class="mr-2"/>
+                                   OnClick="OnCopyClicked"
+                                   Size="Size.Small"
+                                   Class="mr-2"/>
                 }
             </AdornmentEnd>
         </MudTextFieldExtended>
@@ -50,10 +48,9 @@
     private SingleLineProps _singleLineProps = new();
 
     /// Gets or sets the editor context.
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
-    [Inject] private IClipboard Clipboard { get; set; } = default!;
+    [Inject] private IClipboard Clipboard { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -63,13 +60,12 @@
 
     private async Task OnValueChanged(string newValue)
     {
-        var expression = Expression.CreateLiteral(newValue.TrimWhitespace());
-
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(newValue.TrimWhitespace());
     }
+
     private async Task OnCopyClicked()
     {
-        string value = (_singleLineProps.AdornmentText ?? String.Empty) + EditorContext.GetLiteralValueOrDefault();
+        var value = (_singleLineProps.AdornmentText ?? string.Empty) + EditorContext.GetLiteralValueOrDefault();
         await Clipboard.CopyText(value);
     }
 

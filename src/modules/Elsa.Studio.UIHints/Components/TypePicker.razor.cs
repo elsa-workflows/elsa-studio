@@ -1,6 +1,5 @@
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
@@ -13,13 +12,13 @@ public partial class TypePicker
 {
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<IGrouping<string, VariableTypeDescriptor>> _groupedVariableTypes = new List<IGrouping<string, VariableTypeDescriptor>>();
-    
+
     /// <summary>
     /// Gets or sets the editor context.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
-    
-    [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
+
+    [Inject] private IVariableTypeService VariableTypeService { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -33,10 +32,9 @@ public partial class TypePicker
         var value = EditorContext.GetLiteralValueOrDefault();
         return _variableTypes.FirstOrDefault(x => x.TypeName == value);
     }
-    
+
     private async Task OnValueChanged(VariableTypeDescriptor? value)
     {
-        var expression = Expression.CreateLiteral(value?.TypeName ?? "");
-        await EditorContext.UpdateExpressionAsync(expression);
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(value?.TypeName ?? "");
     }
 }

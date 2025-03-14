@@ -2,15 +2,21 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Components;
 using Microsoft.AspNetCore.Components;
-using MudExtensions;
 
 namespace Elsa.Studio.UIHints.Handlers;
 
+/// <summary>
+/// Provides a handler for the <see cref="InputUIHints.SingleLine"/> UI hint.
+/// </summary>
 public class SingleLineHandler : IUIHintHandler
 {
-    public bool GetSupportsUIHint(string uiHint) => uiHint == "singleline";
+    /// <inheritdoc />
+    public bool GetSupportsUIHint(string uiHint) => uiHint == InputUIHints.SingleLine;
+
+    /// <inheritdoc />
     public string UISyntax => WellKnownSyntaxNames.Literal;
 
+    /// <inheritdoc />
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>
