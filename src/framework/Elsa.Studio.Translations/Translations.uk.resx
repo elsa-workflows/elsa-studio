@@ -1366,4 +1366,193 @@
   <data name="A code editor" xml:space="preserve">
     <value>А Редактор коду</value>
   </data>
+  <data name="The definition ID of the workflows to dispatch." xml:space="preserve">
+    <value>Ідентифікатор визначення робочих процесів, які потрібно відправити.</value>
+  </data>
+  <data name="A list of expected status codes to handle." xml:space="preserve">
+    <value>Список очікуваних кодів стану для обробки.</value>
+  </data>
+  <data name="The path to associate with the workflow." xml:space="preserve">
+    <value>Шлях для зв’язування з робочим процесом.</value>
+  </data>
+  <data name="The switch mode determines whether the first match should be scheduled, or all matches." xml:space="preserve">
+    <value>Режим перемикання визначає, чи слід запланувати перший матч чи всі матчі.</value>
+  </data>
+  <data name="Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default." xml:space="preserve">
+    <value>Контролює, чи буде кінцевий крок включно чи виключно з верхньої/нижньої межі. Істина (включно) за замовчуванням.</value>
+  </data>
+  <data name="The items to iterate through." xml:space="preserve">
+    <value>Елементи для повторення.</value>
+  </data>
+  <data name="The start step." xml:space="preserve">
+    <value>Початковий крок.</value>
+  </data>
+  <data name="Zoom to fit the screen" xml:space="preserve">
+    <value>Масштаб під розмір екрана</value>
+  </data>
+  <data name="Mode" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Auto layout" xml:space="preserve">
+    <value>Автоматичний макет</value>
+  </data>
+  <data name="Correlation ID Function" xml:space="preserve">
+    <value>Ідентифікаційна функція кореляції</value>
+  </data>
+  <data name="The data source to use for dispatching the workflows." xml:space="preserve">
+    <value>Джерело даних для диспетчеризації робочих процесів.</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>Завжди дозволяйте створення нового екземпляра робочого процесу.</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>Центр</value>
+  </data>
+  <data name="A function to compute the correlation ID to associate a dispatched workflow with." xml:space="preserve">
+    <value>Функція для обчислення ідентифікатора кореляції, з яким пов’язується надісланий робочий процес.</value>
+  </data>
+  <data name="Default Item Input Key" xml:space="preserve">
+    <value>Клавіша введення елемента за замовчуванням</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Метод</value>
+  </data>
+  <data name="The content type to use when sending the request." xml:space="preserve">
+    <value>Тип вмісту для використання під час надсилання запиту.</value>
+  </data>
+  <data name="Request Content." xml:space="preserve">
+    <value>Запит вмісту.</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>Збільшити до розміру</value>
+  </data>
+  <data name="The set of values to iterate." xml:space="preserve">
+    <value>Набір значень для повторення.</value>
+  </data>
+  <data name="The HTTP method to use when sending the request." xml:space="preserve">
+    <value>Метод HTTP для надсилання запиту.</value>
+  </data>
+  <data name="The Authorization header value to send with the request. For example: Bearer {some-access-token}" xml:space="preserve">
+    <value>Значення заголовка авторизації для надсилання із запитом. Наприклад: носій {some-access-token}</value>
+  </data>
+  <data name="The outcome or set of outcomes to complete this activity with." xml:space="preserve">
+    <value>Результат або набір результатів для завершення цієї діяльності.</value>
+  </data>
+  <data name="The URL to download the file from." xml:space="preserve">
+    <value>URL-адреса для завантаження файлу.</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Мітка</value>
+  </data>
+  <data name="Current Value" xml:space="preserve">
+    <value>Поточне значення</value>
+  </data>
+  <data name="The step size. To count down, enter a negative number." xml:space="preserve">
+    <value>Розмір кроку. Для зворотного відліку введіть від’ємне число.</value>
+  </data>
+  <data name="The content to send with the request. Can be a string, an object, a byte array or a stream." xml:space="preserve">
+    <value>Вміст, який потрібно надіслати разом із запитом. Може бути рядком, об’єктом, масивом байтів або потоком.</value>
+  </data>
+  <data name="Time Duration" xml:space="preserve">
+    <value>Час Тривалість</value>
+  </data>
+  <data name="Assign the current value to the specified variable." xml:space="preserve">
+    <value>Присвоїти поточне значення вказаній змінній.</value>
+  </data>
+  <data name="The default key to use for the input name when sending the current item to the dispatched workflow. Will not be used if the Items field contain a list of dictionaries" xml:space="preserve">
+    <value>Ключ за замовчуванням, який використовується як ім’я введення під час надсилання поточного елемента до робочого циклу відправлення. Не використовуватиметься, якщо поле Items містить список словників</value>
+  </data>
+  <data name="The HTTP methods to accept." xml:space="preserve">
+    <value>Методи HTTP, які потрібно прийняти.</value>
+  </data>
+  <data name="The join mode determines whether this activity should continue as soon as one inbound path comes in (Wait Any), or once all inbound paths have executed (Wait All)." xml:space="preserve">
+    <value>Режим об’єднання визначає, чи має продовжуватися ця діяльність, щойно надходить один вхідний шлях (Wait Any), чи після виконання всіх вхідних шляхів (Wait All).</value>
+  </data>
+  <data name="A list of expected outcomes to handle." xml:space="preserve">
+    <value>Список очікуваних результатів для обробки.</value>
+  </data>
+  <data name="A value that allows to add the Authorization header without validation." xml:space="preserve">
+    <value>Значення, яке дозволяє додати заголовок авторизації без перевірки.</value>
+  </data>
+  <data name="Always allow the creation" xml:space="preserve">
+    <value>Завжди дозволяти створення</value>
+  </data>
+  <data name="Branches" xml:space="preserve">
+    <value>Відділення</value>
+  </data>
+  <data name="Break out of a loop." xml:space="preserve">
+    <value>Вирватися з петлі.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Скасовано</value>
+  </data>
+  <data name="Condition" xml:space="preserve">
+    <value>Хвороба</value>
+  </data>
+  <data name="Content Type" xml:space="preserve">
+    <value>Тип вмісту</value>
+  </data>
+  <data name="Disable Authorization Header Validation" xml:space="preserve">
+    <value>Вимкнути перевірку заголовка авторизації</value>
+  </data>
+  <data name="Executes javaScript code" xml:space="preserve">
+    <value>Виконує код javascript</value>
+  </data>
+  <data name="Executing" xml:space="preserve">
+    <value>Виконання</value>
+  </data>
+  <data name="Expected Status Codes" xml:space="preserve">
+    <value>Очікувані коди стану</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Запуск</value>
+  </data>
+  <data name="Supported Methods" xml:space="preserve">
+    <value>Підтримувані методи</value>
+  </data>
+  <data name="Trigger execution at a specific time in the future." xml:space="preserve">
+    <value>Запустити виконання в певний час у майбутньому.</value>
+  </data>
+  <data name="URL" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Validation Result" xml:space="preserve">
+    <value>Результат перевірки</value>
+  </data>
+  <data name="Workflow Definition" xml:space="preserve">
+    <value>Визначення робочого процесу</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>Додати регістр</value>
+  </data>
+  <data name="Data" xml:space="preserve">
+    <value>Дані</value>
+  </data>
+  <data name="String7" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>Інтервал</value>
+  </data>
+  <data name="Outer Bound Inclusive" xml:space="preserve">
+    <value>Зовнішня межа включно</value>
+  </data>
+  <data name="Payload" xml:space="preserve">
+    <value>Корисне навантаження</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>Крок</value>
+  </data>
+  <data name="The end step." xml:space="preserve">
+    <value>Кінцевий крок.</value>
+  </data>
+  <data name="Variable" xml:space="preserve">
+    <value>змінна</value>
+  </data>
 </root>
