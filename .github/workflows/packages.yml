@@ -10,7 +10,7 @@ on:
       - 'feature/*'
       - 'issue/*'
       - 'patch/*'
-      - 'enh/*'
+      - 'rc/*'
   release:
     types: [ prereleased, published ]
 env:
