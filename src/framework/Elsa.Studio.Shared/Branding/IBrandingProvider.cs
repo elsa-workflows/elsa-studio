@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Elsa.Studio.Branding;
 
-namespace Elsa.Studio.Branding;
-
+/// <summary>
+/// Provides branding information for an application, including its name, logo, and reverse logo.
+/// </summary>
 public interface IBrandingProvider
 {
+    /// <summary>
+    /// The name of the application.
+    /// </summary>
     string AppName { get; }
 
     /// <summary>
