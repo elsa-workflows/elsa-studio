@@ -656,7 +656,7 @@
     <value>Экспорт этой версии рабочего процесса как файл JSON.</value>
   </data>
   <data name="Execution Settings" xml:space="preserve">
-    <value>Параметры запука</value>
+    <value>Параметры запуска</value>
   </data>
   <data name="Looping" xml:space="preserve">
     <value>Циклы</value>
@@ -780,5 +780,29 @@
   </data>
   <data name="The maximum number" xml:space="preserve">
     <value>Максимальное количество токенов для генерации. Оставьте поле пустым для максимального количества.</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="Code editor" xml:space="preserve">
+    <value>Редактор кода</value>
+  </data>
+  <data name="Edit variable" xml:space="preserve">
+    <value>Редактировать переменную</value>
+  </data>
+  <data name="{0} {1} imported successfully." xml:space="preserve">
+    <value>{0} {1} успешно импортировано.</value>
+  </data>
+  <data name="Condition" xml:space="preserve">
+    <value>Условие</value>
+  </data>
+  <data name="Executes javaScript code" xml:space="preserve">
+    <value>Выполнить javaScript код</value>
+  </data>
+  <data name="Executing" xml:space="preserve">
+    <value>Исполнение</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>Добавить сценарий</value>
   </data>
 </root>
