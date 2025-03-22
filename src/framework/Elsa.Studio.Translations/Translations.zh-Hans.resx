@@ -1366,4 +1366,193 @@
   <data name="{0} workflows are already unpublished" xml:space="preserve">
     <value>{0} 个工作流已取消发布</value>
   </data>
+  <data name="The join mode determines whether this activity should continue as soon as one inbound path comes in (Wait Any), or once all inbound paths have executed (Wait All)." xml:space="preserve">
+    <value>连接模式决定这个活动是否应该在一个入站路径进入时就继续（等待任意一个），还是在所有入站路径都执行完毕后才继续（等待全部）。</value>
+  </data>
+  <data name="The data source to use for dispatching the workflows." xml:space="preserve">
+    <value>用于分派工作流的数据源。</value>
+  </data>
+  <data name="The default key to use for the input name when sending the current item to the dispatched workflow. Will not be used if the Items field contain a list of dictionaries" xml:space="preserve">
+    <value>在将当前项发送到被分派的工作流时用于输入名称的默认键。如果Items字段包含字典列表，则不会使用该键</value>
+  </data>
+  <data name="Auto layout" xml:space="preserve">
+    <value>自动布局</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>中心</value>
+  </data>
+  <data name="Zoom to fit the screen" xml:space="preserve">
+    <value>缩放适应屏幕</value>
+  </data>
+  <data name="A function to compute the correlation ID to associate a dispatched workflow with." xml:space="preserve">
+    <value>一个用来计算关联分发的工作流的相关性ID的函数。</value>
+  </data>
+  <data name="A list of expected outcomes to handle." xml:space="preserve">
+    <value>一个预期结果列表进行处理。</value>
+  </data>
+  <data name="A list of expected status codes to handle." xml:space="preserve">
+    <value>一个要处理的预期状态码列表。</value>
+  </data>
+  <data name="A value that allows to add the Authorization header without validation." xml:space="preserve">
+    <value>一个允许在不进行验证的情况下添加授权头的值。</value>
+  </data>
+  <data name="Always allow the creation" xml:space="preserve">
+    <value>始终允许创建</value>
+  </data>
+  <data name="Branches" xml:space="preserve">
+    <value>分支</value>
+  </data>
+  <data name="Break out of a loop." xml:space="preserve">
+    <value>跳出循环。</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="Condition" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Content Type" xml:space="preserve">
+    <value>内容形式</value>
+  </data>
+  <data name="Correlation ID Function" xml:space="preserve">
+    <value>相关 ID 函数</value>
+  </data>
+  <data name="Default Item Input Key" xml:space="preserve">
+    <value>默认项目输入键</value>
+  </data>
+  <data name="Disable Authorization Header Validation" xml:space="preserve">
+    <value>禁用授权头验证</value>
+  </data>
+  <data name="Executes javaScript code" xml:space="preserve">
+    <value>执行JavaScript代码</value>
+  </data>
+  <data name="Executing" xml:space="preserve">
+    <value>执行中</value>
+  </data>
+  <data name="Expected Status Codes" xml:space="preserve">
+    <value>预期的状态码</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>方法</value>
+  </data>
+  <data name="Mode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="Request Content." xml:space="preserve">
+    <value>请求内容。</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="Supported Methods" xml:space="preserve">
+    <value>建议方法</value>
+  </data>
+  <data name="The Authorization header value to send with the request. For example: Bearer {some-access-token}" xml:space="preserve">
+    <value>和请求一起发送的授权头值。例如：Bearer {some - access - token}</value>
+  </data>
+  <data name="The content to send with the request. Can be a string, an object, a byte array or a stream." xml:space="preserve">
+    <value>随请求发送的内容。可以是字符串、对象、字节数组或者流。</value>
+  </data>
+  <data name="The content type to use when sending the request." xml:space="preserve">
+    <value>发送请求时使用的内容类型。</value>
+  </data>
+  <data name="The definition ID of the workflows to dispatch." xml:space="preserve">
+    <value>要分派的工作流的定义ID。</value>
+  </data>
+  <data name="The HTTP method to use when sending the request." xml:space="preserve">
+    <value>发送请求时使用的HTTP方法。</value>
+  </data>
+  <data name="The HTTP methods to accept." xml:space="preserve">
+    <value>要接受的HTTP方法。</value>
+  </data>
+  <data name="The outcome or set of outcomes to complete this activity with." xml:space="preserve">
+    <value>完成此活动的结果或结果集。</value>
+  </data>
+  <data name="The path to associate with the workflow." xml:space="preserve">
+    <value>与工作流关联的路径。</value>
+  </data>
+  <data name="The switch mode determines whether the first match should be scheduled, or all matches." xml:space="preserve">
+    <value>切换模式决定是应该安排第一个匹配项，还是安排所有匹配项。</value>
+  </data>
+  <data name="The URL to download the file from." xml:space="preserve">
+    <value>用于下载文件的URL。</value>
+  </data>
+  <data name="Time Duration" xml:space="preserve">
+    <value>持续时间</value>
+  </data>
+  <data name="Trigger execution at a specific time in the future." xml:space="preserve">
+    <value>在未来特定的时间触发执行。</value>
+  </data>
+  <data name="URL" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Validation Result" xml:space="preserve">
+    <value>验证结果</value>
+  </data>
+  <data name="Workflow Definition" xml:space="preserve">
+    <value>工作流定义</value>
+  </data>
+  <data name="Add case" xml:space="preserve">
+    <value>添加示例</value>
+  </data>
+  <data name="Data" xml:space="preserve">
+    <value>数据</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="String7" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>缩放匹配</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>总是允许创建新的工作流实例。</value>
+  </data>
+  <data name="Assign the current value to the specified variable." xml:space="preserve">
+    <value>将当前值赋给指定的变量。</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>代码</value>
+  </data>
+  <data name="Controls whether the end step is upper/lowerbound inclusive or exclusive. True (inclusive) by default." xml:space="preserve">
+    <value>控制结束步骤是包含还是排除上界/下界。默认为True（包含）。</value>
+  </data>
+  <data name="Current Value" xml:space="preserve">
+    <value>现有赋值</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>间隔</value>
+  </data>
+  <data name="Outer Bound Inclusive" xml:space="preserve">
+    <value>包含外部边界</value>
+  </data>
+  <data name="Payload" xml:space="preserve">
+    <value>负载</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>步</value>
+  </data>
+  <data name="The end step." xml:space="preserve">
+    <value>终止步骤。</value>
+  </data>
+  <data name="The items to iterate through." xml:space="preserve">
+    <value>要迭代的项目。</value>
+  </data>
+  <data name="The set of values to iterate." xml:space="preserve">
+    <value>要迭代的值集合。</value>
+  </data>
+  <data name="The start step." xml:space="preserve">
+    <value>初始化。</value>
+  </data>
+  <data name="The step size. To count down, enter a negative number." xml:space="preserve">
+    <value>步长。要倒计时，请输入一个负数。</value>
+  </data>
+  <data name="Variable" xml:space="preserve">
+    <value>变量</value>
+  </data>
 </root>
