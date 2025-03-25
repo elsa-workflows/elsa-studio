@@ -2,6 +2,7 @@ using System.Net;
 using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
@@ -14,8 +15,8 @@ namespace Elsa.Studio.Workflows.Services;
 public class WorkflowInstanceObserverFactory(
     IBackendApiClientProvider backendApiClientProvider,
     IRemoteFeatureProvider remoteFeatureProvider,
-    IHttpMessageHandlerFactory httpMessageHandlerFactory,
-    ILogger<WorkflowInstanceObserverFactory> logger) : IWorkflowInstanceObserverFactory
+    ILogger<WorkflowInstanceObserverFactory> logger,
+    IJwtAccessor jwtAccessor) : IWorkflowInstanceObserverFactory
 {
     /// <inheritdoc />
     public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId)
@@ -50,7 +51,10 @@ public class WorkflowInstanceObserverFactory(
         var baseUrl = backendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl, httpMessageHandlerFactory)
+            .WithUrl(hubUrl,  options =>
+            {
+                options.AccessTokenProvider = () => jwtAccessor.ReadTokenAsync(TokenNames.AccessToken).AsTask();
+            })
             .Build();
 
         var observer = new SignalRWorkflowInstanceObserver(connection);
