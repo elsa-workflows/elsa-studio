@@ -4,7 +4,7 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup Label="Elss">
-        <PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaVersion)"/>
+        <PackageVersion Include="Elsa.Integrations.Agents.Models" Version="$(ElsaIntegrationsVersion)"/>
         <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)"/>
         <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)"/>
     </ItemGroup>

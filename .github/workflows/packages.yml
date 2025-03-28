@@ -14,7 +14,7 @@ on:
   release:
     types: [ prereleased, published ]
 env:
-  base_version: '3.4.0'
+  base_version: '3.5.0'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
   nuget_feed_nuget: 'https://api.nuget.org/v3/index.json'
   npm_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/npm/'
@@ -34,7 +34,7 @@ jobs:
           PACKAGE_PREFIX=$(echo $BRANCH_NAME | rev | cut -d/ -f1 | rev | tr '_' '-')
 
           # If the branch name is main, use the preview version. Otherwise, use the branch name as the version prefix.
-          if [[ "${BRANCH_NAME}" == "main" ]]; then
+          if [[ "${BRANCH_NAME}" == "main" || "${BRANCH_NAME}" =~ ^rc/ ]]; then
               PACKAGE_PREFIX="preview"
           fi
 
