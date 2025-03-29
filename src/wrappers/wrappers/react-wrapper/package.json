@@ -2,7 +2,9 @@
   "name": "@elsa-workflows/elsa-studio-wasm-react",
   "version": "0.0.0",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/elsa-studio-wasm-react.umd.cjs",
   "module": "./dist/elsa-studio-wasm-react.js",
   "exports": {
