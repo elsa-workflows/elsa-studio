@@ -24,7 +24,7 @@
     "copy:elsa-studio-wasm": "cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/_content public/ && cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/_framework public/ && cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/appsettings.json public/"
   },
   "dependencies": {
-    "@elsa-workflows/elsa-studio-wasm": "^3.4.0-rc1",
+    "@elsa-workflows/elsa-studio-wasm": "^3.5.0-preview.910",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "^9.0.1"
