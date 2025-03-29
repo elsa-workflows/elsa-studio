@@ -4,7 +4,8 @@
   "workspaces": [
     "wrappers/*"
   ],
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
     "lerna": "^8.0.1"
   }
