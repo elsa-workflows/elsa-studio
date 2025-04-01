@@ -23,7 +23,7 @@ public partial class ExpressionInput : IDisposable
     private readonly string[] _uiSyntaxes = ["Literal", "Object"];
     private string _selectedExpressionType = DefaultSyntax;
     private string _selectedExpressionTypeDisplayName = DefaultSyntax;
-    private StandaloneCodeEditor? _monacoEditor = default!;
+    private StandaloneCodeEditor? _monacoEditor = null!;
     private bool _isInternalContentChange;
     private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
     private string? _lastMonacoEditorContent;
@@ -39,34 +39,34 @@ public partial class ExpressionInput : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     /// <summary>
     /// The content to render inside the editor.
     /// </summary>
-    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
     
     /// <summary>
     /// A flag indicating whether the editor should only display code.
     /// </summary>
     [Parameter] public bool IsCodeOnly { get; set; }
 
-    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = default!;
-    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
-    [Inject] private IUIHintService UIHintService { get; set; } = default!;
+    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
+    [Inject] private IUIHintService UIHintService { get; set; } = null!;
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
     private string MonacoLanguage => SelectedExpressionDescriptor?.GetMonacoLanguage() ?? string.Empty;
     private string UISyntax => EditorContext.UIHintHandler.UISyntax;
     private string ComponentType => EditorContext.InputDescriptor.UIHint;
     private bool IsUISyntax => !IsCodeOnly && _selectedExpressionType == UISyntax;
-    private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : default;
-    private string? ButtonLabel => IsUISyntax ? default : _selectedExpressionTypeDisplayName;
+    private string? ButtonIcon => IsUISyntax ? Icons.Material.Filled.MoreVert : null;
+    private string? ButtonLabel => IsUISyntax ? null : _selectedExpressionTypeDisplayName;
     private Variant ButtonVariant => IsUISyntax ? default : Variant.Filled;
     private Color ButtonColor => IsUISyntax ? default : Color.Primary;
-    private string? ButtonEndIcon => IsUISyntax ? default : Icons.Material.Filled.KeyboardArrowDown;
+    private string? ButtonEndIcon => IsUISyntax ? null : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => IsUISyntax ? default : Color.Secondary;
     private bool ShowMonacoEditor => IsCodeOnly || (!IsUISyntax && EditorContext.InputDescriptor.IsWrapped && MonacoSyntaxExist);
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
@@ -124,13 +124,14 @@ public partial class ExpressionInput : IDisposable
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
             Language = MonacoLanguage,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            FixedOverflowWidgets = true,
+            Minimap = new()
             {
                 Enabled = false
             },
@@ -167,7 +168,7 @@ public partial class ExpressionInput : IDisposable
         var value = InputValue;
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
 
-        input.Expression = new Expression(_selectedExpressionType, value);
+        input.Expression = new(_selectedExpressionType, value);
         await InvokeValueChangedCallbackAsync(input);
         await UpdateMonacoLanguageAsync();
     }
@@ -210,7 +211,7 @@ public partial class ExpressionInput : IDisposable
             return;
 
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-        input.Expression = new Expression(_selectedExpressionType, value);
+        input.Expression = new(_selectedExpressionType, value);
         _lastMonacoEditorContent = value;
         await ThrottleValueChangedCallbackAsync(input);
     }

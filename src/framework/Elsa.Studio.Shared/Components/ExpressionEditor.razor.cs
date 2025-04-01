@@ -35,7 +35,7 @@ public partial class ExpressionEditor : IDisposable
     /// <summary>
     /// The content to render inside the editor.
     /// </summary>
-    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
     
     [Parameter] public Expression? Expression { get; set; } = new(string.Empty, string.Empty);
     [Parameter] public string DefaultOption { get; set; } = "Default";
@@ -45,22 +45,22 @@ public partial class ExpressionEditor : IDisposable
     [Parameter] public IDictionary<string, object> CustomProperties { get; set; } = new Dictionary<string, object>();
     [Parameter] public Func<Expression?, Task>? ExpressionChanged { get; set; }
 
-    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = default!;
-    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
-    [Inject] private IUIHintService UIHintService { get; set; } = default!;
+    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
+    [Inject] private IUIHintService UIHintService { get; set; } = null!;
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
     private string SelectedExpressionTypeDisplayName => SelectedExpressionDescriptor?.DisplayName ?? DefaultOption;
     private string MonacoLanguage => SelectedExpressionDescriptor?.GetMonacoLanguage() ?? string.Empty;
     private bool DisplayCodeEditor => _selectedExpressionType != null && _selectedExpressionType != DefaultOption;
     private bool DisplayModePicker => !DisplayCodeEditor;
-    private string? ButtonIcon => DisplayModePicker ? Icons.Material.Filled.MoreVert : default;
-    private string? ButtonLabel => DisplayModePicker ? default : SelectedExpressionTypeDisplayName;
+    private string? ButtonIcon => DisplayModePicker ? Icons.Material.Filled.MoreVert : null;
+    private string? ButtonLabel => DisplayModePicker ? null : SelectedExpressionTypeDisplayName;
     private Variant ButtonVariant => DisplayModePicker ? default : Variant.Filled;
     private Color ButtonColor => DisplayModePicker ? default : Color.Primary;
-    private string? ButtonEndIcon => DisplayModePicker ? default : Icons.Material.Filled.KeyboardArrowDown;
+    private string? ButtonEndIcon => DisplayModePicker ? null : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => DisplayModePicker ? default : Color.Secondary;
 
     private string? MonacoSyntax { get; set; }
@@ -99,13 +99,14 @@ public partial class ExpressionEditor : IDisposable
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
             Language = MonacoLanguage,
             Value = Expression?.Value?.ToString() ?? "",
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            FixedOverflowWidgets = true,
+            Minimap = new()
             {
                 Enabled = false
             },
