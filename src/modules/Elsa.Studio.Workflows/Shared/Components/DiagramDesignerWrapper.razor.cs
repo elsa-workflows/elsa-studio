@@ -309,7 +309,8 @@ public partial class DiagramDesignerWrapper
                 Blocked = x.IsBlocked,
                 Completed = x.CompletedCount,
                 Started = x.StartedCount,
-                Uncompleted = x.UncompletedCount
+                Uncompleted = x.UncompletedCount,
+                AggregateFaultCount = x.AggregateFaultCount
             });
         }
     }

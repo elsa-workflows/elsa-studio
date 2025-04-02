@@ -29,4 +29,9 @@ public class ActivityStats
     /// Whether the activity has faulted.
     /// </summary>
     public bool Faulted { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the total count of faults aggregated from the activity execution and its descendants.
+    /// </summary>
+    public int AggregateFaultCount { get; set; }
 }

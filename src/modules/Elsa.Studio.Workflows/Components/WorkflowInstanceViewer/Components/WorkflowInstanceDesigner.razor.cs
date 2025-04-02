@@ -346,6 +346,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             Completed = source.CompletedCount,
             Started = source.StartedCount,
             Uncompleted = source.UncompletedCount,
+            AggregateFaultCount = source.AggregateFaultCount,
         };
     }
 
