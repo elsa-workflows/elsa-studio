@@ -94,4 +94,34 @@
   <data name="A brief description of this input." xml:space="preserve">
     <value>此輸入的簡短描述。</value>
   </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>依輸出群組客製化分類。</value>
+  </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>角色描述及此代理的目的。</value>
+  </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>角色描述及此輸入變數的目的。</value>
+  </data>
+  <data name="A description about the secret." xml:space="preserve">
+    <value>秘密描述</value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value>新增輸出</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>代理</value>
+  </data>
+  <data name="Add variable" xml:space="preserve">
+    <value>新增變數</value>
+  </data>
+  <data name="Auto-save" xml:space="preserve">
+    <value>自動儲存</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>類別</value>
+  </data>
 </root>
