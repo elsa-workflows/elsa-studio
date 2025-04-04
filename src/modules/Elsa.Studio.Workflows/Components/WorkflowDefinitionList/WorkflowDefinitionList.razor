@@ -55,9 +55,7 @@
             <MudButtonGroup Color="@(IsReadOnlyMode ? Color.Default : Color.Primary)" Variant="Variant.Filled" DropShadow="true">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreateWorkflowClicked" Disabled="IsReadOnlyMode">@Localizer["Create workflow"]</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode">
-                    <MudTooltip Text="@Localizer["Upload JSON and/or ZIP files containing workflow data to import."]" Inline="false" Delay="1000">
-                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
-                    </MudTooltip>
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked" UserAttributes="@(new Dictionary<string, object?>{["title"] = Localizer["Upload JSON and/or ZIP files containing workflow data to import."]})">@Localizer["Import"]</MudMenuItem>
                 </MudMenu>
             </MudButtonGroup>
         </ToolBarContent>
