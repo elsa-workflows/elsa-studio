@@ -56,7 +56,7 @@ public partial class WorkflowInstanceDetails
     /// <summary>
     /// Gets or sets the current selected incident activity id.
     /// </summary>
-    [Parameter] public Func<string, Task>? IncidentActivityIdClicked { get; set; }
+    [Parameter] public Func<string, Task>? IncidentActivityNodeIdClicked { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
@@ -191,7 +191,8 @@ public partial class WorkflowInstanceDetails
             return _workflowInstance.WorkflowState.Incidents
                 .Select(i => new DataPanelModel
                 {
-                    new DataPanelItem("ActivityId", i.ActivityId, null, () => OnIncidentActivityIdClicked(i.ActivityId)),
+                    new DataPanelItem("ActivityId", i.ActivityId),
+                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId, null, () => OnIncidentActivityNodeIdClicked(i.ActivityNodeId)),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
                     new DataPanelItem("InnerException", i.Exception?.InnerException != null
                         ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
@@ -201,10 +202,10 @@ public partial class WorkflowInstanceDetails
         }
     }
     
-    private async Task OnIncidentActivityIdClicked(string? activityId)
+    private async Task OnIncidentActivityNodeIdClicked(string? activityNodeId)
     {
-        if (IncidentActivityIdClicked != null && !string.IsNullOrWhiteSpace(activityId))
-            await IncidentActivityIdClicked(activityId);
+        if (IncidentActivityNodeIdClicked != null && !string.IsNullOrWhiteSpace(activityNodeId))
+            await IncidentActivityNodeIdClicked(activityNodeId);
     }
 
     private DataPanelModel SubWorkflowInputData
