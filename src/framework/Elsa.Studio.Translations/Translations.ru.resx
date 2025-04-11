@@ -805,4 +805,7 @@
   <data name="Add case" xml:space="preserve">
     <value>Добавить сценарий</value>
   </data>
+  <data name="The name of the variable." xml:space="preserve">
+    <value>Название переменной.</value>
+  </data>
 </root>
