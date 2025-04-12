@@ -2,8 +2,8 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.ComponentProviders;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.HttpMessageHandlers;
+using Elsa.Studio.Login.Models;
 using Elsa.Studio.Login.Services;
-using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,13 +20,39 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddLoginModuleCore(this IServiceCollection services)
     {
         return services
-                .AddScoped<IFeature, Feature>()
+                .AddScoped<IFeature, LoginFeature>()
                 .AddOptions()
                 .AddAuthorizationCore()
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
                 .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
-                .AddScoped<ICredentialsValidator, DefaultCredentialsValidator>()
+            ;
+    }
+
+    /// <summary>
+    /// Configures the login module to use elsa identity
+    /// </summary>
+    public static IServiceCollection UseElsaIdentity(this IServiceCollection services)
+    {
+        return services
+                .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
+                .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
+                .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
+                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
+            ;
+    }
+
+    /// <summary>
+    /// Configures the login module to use OpenIdConnect (OIDC)
+    /// </summary>
+    public static IServiceCollection UseOpenIdConnect(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
+    {
+        services.Configure(configure);
+
+        return services
+                .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
+                .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
+                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
             ;
     }
 }

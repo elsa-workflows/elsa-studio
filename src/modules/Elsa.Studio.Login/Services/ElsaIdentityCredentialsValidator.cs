@@ -7,15 +7,15 @@ using Elsa.Studio.Login.Models;
 namespace Elsa.Studio.Login.Services;
 
 /// <summary>
-/// A default implementation of <see cref="ICredentialsValidator"/> that consumes the endpoints from Elsa.Identity.
+/// A implementation of <see cref="ICredentialsValidator"/> that consumes the endpoints from Elsa.Identity.
 /// </summary>
-public class DefaultCredentialsValidator : ICredentialsValidator
+public class ElsaIdentityCredentialsValidator : ICredentialsValidator
 {
     private readonly IBackendApiClientProvider _backendApiClientProvider;
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultCredentialsValidator"/> class.
+    /// Initializes a new instance of the <see cref="ElsaIdentityCredentialsValidator"/> class.
     /// </summary>
-    public DefaultCredentialsValidator(IBackendApiClientProvider backendApiClientProvider)
+    public ElsaIdentityCredentialsValidator(IBackendApiClientProvider backendApiClientProvider)
     {
         _backendApiClientProvider = backendApiClientProvider;
     }

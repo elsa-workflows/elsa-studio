@@ -12,10 +12,11 @@ namespace Elsa.Studio.Login.BlazorWasm.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds core services with Blazor Server implementations.
+    /// Adds login services with Blazor Server implementations.
     /// </summary>
     public static IServiceCollection AddLoginModule(this IServiceCollection services)
     {
+        // Add the login module.
         services.AddLoginModuleCore();
         
         // Register Blazored LocalStorage.
