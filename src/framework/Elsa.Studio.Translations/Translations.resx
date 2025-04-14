@@ -1626,9 +1626,6 @@
 	<data name="Include" xml:space="preserve">
     <value>Include</value>
   </data>
-	<data name="SAPConnectionString" xml:space="preserve">
-    <value>SAPConnectionString</value>
-  </data>
 	<data name="Load" xml:space="preserve">
     <value>Load</value>
   </data>
