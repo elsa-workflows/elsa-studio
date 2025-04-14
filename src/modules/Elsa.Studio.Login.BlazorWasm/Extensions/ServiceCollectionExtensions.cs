@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
         // Register JWT services.
         services.AddSingleton<IJwtParser, BlazorWasmJwtParser>();
         services.AddScoped<IJwtAccessor, BlazorWasmJwtAccessor>();
-        services.AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
+        
         
         return services;
     }
