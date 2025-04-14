@@ -215,7 +215,7 @@
     <value>Композиция</value>
   </data>
   <data name="Connection Strings" xml:space="preserve">
-    <value>Строка подключения</value>
+    <value>Строки подключения</value>
   </data>
   <data name="Console" xml:space="preserve">
     <value>Консоль</value>
@@ -804,5 +804,188 @@
   </data>
   <data name="Add case" xml:space="preserve">
     <value>Добавить сценарий</value>
+  </data>
+  <data name="The name of the variable." xml:space="preserve">
+    <value>Название переменной.</value>
+  </data>
+  <data name="The name of the new workflow." xml:space="preserve">
+    <value>Имя нового рабочего процесса.</value>
+  </data>
+  <data name="The services that the agent requires." xml:space="preserve">
+    <value>Сервисы, необходимые агенту.</value>
+  </data>
+  <data name="The plugins that the agent can use." xml:space="preserve">
+    <value>Плагины, которые может использовать агент.</value>
+  </data>
+  <data name="The scope of the secret helps the UI to filter available options from dropdown lists." xml:space="preserve">
+    <value>Область действия секрета помогает интерфейсу фильтровать доступные варианты в выпадающих списках.</value>
+  </data>
+  <data name="The secret value." xml:space="preserve">
+    <value>Значение секрета.</value>
+  </data>
+  <data name="The settings of the service in JSON format." xml:space="preserve">
+    <value>Настройки сервиса в формате JSON.</value>
+  </data>
+  <data name="The system prompt template that the agent will use." xml:space="preserve">
+    <value>Шаблон системного запроса, который будет использовать агент.</value>
+  </data>
+  <data name="The technical name of the API key." xml:space="preserve">
+    <value>Техническое имя API ключа.</value>
+  </data>
+  <data name="The technical name of the input variable" xml:space="preserve">
+    <value>Техническое имя входной переменной. При обращении к этой переменной в шаблоне запроса используйте это имя.</value>
+  </data>
+  <data name="Use JSON Response" xml:space="preserve">
+    <value>Использовать JSON ответ</value>
+  </data>
+  <data name="Use this version" xml:space="preserve">
+    <value>Использовать эту версию</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Значение</value>
+  </data>
+  <data name="Variables" xml:space="preserve">
+    <value>Переменные</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Version history" xml:space="preserve">
+    <value>История версий</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>Просмотр</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Вебхуки</value>
+  </data>
+  <data name="Incident handling strategy" xml:space="preserve">
+    <value>Стратегия обработки инцидентов</value>
+  </data>
+  <data name="An input with this name already exists." xml:space="preserve">
+    <value>Входной параметр с таким именем уже существует.</value>
+  </data>
+  <data name="Dropdown" xml:space="preserve">
+    <value>Выпадающий список</value>
+  </data>
+  <data name="Not executed" xml:space="preserve">
+    <value>Не выполнено</value>
+  </data>
+  <data name="Not usable as activity." xml:space="preserve">
+    <value>Нельзя использовать как активность.</value>
+  </data>
+  <data name="Show description" xml:space="preserve">
+    <value>Показать описание</value>
+  </data>
+  <data name="Successfully imported" xml:space="preserve">
+    <value>Успешно импортировано</value>
+  </data>
+  <data name="Successfully started workflow" xml:space="preserve">
+    <value>Рабочий процесс успешно запущен</value>
+  </data>
+  <data name="The ID of the variable." xml:space="preserve">
+    <value>ID переменной.</value>
+  </data>
+  <data name="The text to display in the designer." xml:space="preserve">
+    <value>Текст, отображаемый в дизайнере.</value>
+  </data>
+  <data name="The workflow cannot be started" xml:space="preserve">
+    <value>Невозможно запустить рабочий процесс</value>
+  </data>
+  <data name="Upload JSON and/or ZIP files containing workflow data to import." xml:space="preserve">
+    <value>Загрузите файлы JSON и/или ZIP, содержащие данные рабочих процессов, для импорта.</value>
+  </data>
+  <data name="Failed to import {0} {1}." xml:space="preserve">
+    <value>Не удалось импортировать {0} {1}.</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>По центру</value>
+  </data>
+  <data name="Zoom to fit the screen" xml:space="preserve">
+    <value>Масштабировать по размеру экрана</value>
+  </data>
+  <data name="A list of expected status codes to handle." xml:space="preserve">
+    <value>Список ожидаемых кодов состояния для обработки.</value>
+  </data>
+  <data name="Always allow the creation" xml:space="preserve">
+    <value>Всегда разрешать создание</value>
+  </data>
+  <data name="Content Type" xml:space="preserve">
+    <value>Тип содержимого</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Метод</value>
+  </data>
+  <data name="Request Content." xml:space="preserve">
+    <value>Содержимое запроса.</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Supported Methods" xml:space="preserve">
+    <value>Поддерживаемые методы</value>
+  </data>
+  <data name="The Authorization header value to send with the request. For example: Bearer {some-access-token}" xml:space="preserve">
+    <value>Значение заголовка Authorization, отправляемое с запросом. Например: Bearer {some-access-token}</value>
+  </data>
+  <data name="The content to send with the request. Can be a string, an object, a byte array or a stream." xml:space="preserve">
+    <value>Содержимое для отправки с запросом. Может быть строкой, объектом, байтовым массивом или потоком.</value>
+  </data>
+  <data name="The content type to use when sending the request." xml:space="preserve">
+    <value>Тип содержимого, используемый при отправке запроса.</value>
+  </data>
+  <data name="The HTTP method to use when sending the request." xml:space="preserve">
+    <value>HTTP-метод, используемый при отправке запроса.</value>
+  </data>
+  <data name="The HTTP methods to accept." xml:space="preserve">
+    <value>HTTP-методы, которые принимаются.</value>
+  </data>
+  <data name="The path to associate with the workflow." xml:space="preserve">
+    <value>Путь, который следует ассоциировать с рабочим процессом.</value>
+  </data>
+  <data name="Time Duration" xml:space="preserve">
+    <value>Продолжительность времени</value>
+  </data>
+  <data name="Validation Result" xml:space="preserve">
+    <value>Результат проверки</value>
+  </data>
+  <data name="Variable" xml:space="preserve">
+    <value>Переменная</value>
+  </data>
+  <data name="Zoom to fit" xml:space="preserve">
+    <value>Масштабировать по размеру</value>
+  </data>
+  <data name="Are you sure you want to cancel the selected workflow instances?" xml:space="preserve">
+    <value>Вы действительно хотите отменить выбранные экземпляры рабочих процессов?</value>
+  </data>
+  <data name="Always allow the creation of a new workflow instance." xml:space="preserve">
+    <value>Всегда разрешать создание нового экземпляра рабочего процесса.</value>
+  </data>
+  <data name="The data source to use for dispatching the workflows." xml:space="preserve">
+    <value>Источник данных, используемый для запуска рабочих процессов.</value>
+  </data>
+  <data name="Variable picker" xml:space="preserve">
+    <value>Выбор переменной</value>
+  </data>
+  <data name="{0} workflows are published" xml:space="preserve">
+    <value>{0} рабочих процессов опубликованы</value>
+  </data>
+  <data name="Auto layout" xml:space="preserve">
+    <value>Автоматическая компоновка</value>
+  </data>
+  <data name="Break out of a loop." xml:space="preserve">
+    <value>Прекращает выполнение цикла.</value>
+  </data>
+  <data name="Disable Authorization Header Validation" xml:space="preserve">
+    <value>Отключить проверку заголовка авторизации</value>
+  </data>
+  <data name="The URL to download the file from." xml:space="preserve">
+    <value>URL, откуда будет скачан файл.</value>
+  </data>
+  <data name="URL" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Assign the current value to the specified variable." xml:space="preserve">
+    <value>Присвоить текущее значение указанной переменной.</value>
   </data>
 </root>

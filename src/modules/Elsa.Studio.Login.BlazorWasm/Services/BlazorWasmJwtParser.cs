@@ -1,6 +1,8 @@
+using Elsa.Studio.Login.Contracts;
+using Microsoft.AspNetCore.WebUtilities;
 using System.Security.Claims;
 using System.Text.Json;
-using Elsa.Studio.Login.Contracts;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Login.BlazorWasm.Services;
 
@@ -12,23 +14,30 @@ public class BlazorWasmJwtParser : IJwtParser
     public IEnumerable<Claim> Parse(string jwt)
     {
         var payload = jwt.Split('.')[1];
-        var jsonBytes = DecodeBase64Url(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes)!;
-        return keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!));
-    }
-    
-    private static byte[] DecodeBase64Url(string base64)
-    {
-        switch (base64.Length % 4)
+        var jsonBytes = WebEncoders.Base64UrlDecode(payload);
+        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, JsonNode>>(jsonBytes)!;
+        foreach (var (key, value) in keyValuePairs)
         {
-            case 2:
-                base64 += "==";
-                break;
-            case 3:
-                base64 += "=";
-                break;
+            // Having an ClaimsIdentity with the following claims
+            // new Claim("A", "val1");
+            // new Claim("A", "val2");
+            // is serialized as
+            // { "A": ["val1", "val2"] }
+            // so handle that here
+            if (value is JsonArray array)
+            {
+                foreach (var arrayValue in array)
+                {
+                    if (arrayValue != null)
+                    {
+                        yield return new Claim(key, arrayValue.ToString());
+                    }
+                }
+            }
+            else
+            {
+                yield return new Claim(key, value.ToString());
+            }
         }
-
-        return Convert.FromBase64String(base64);
     }
 }

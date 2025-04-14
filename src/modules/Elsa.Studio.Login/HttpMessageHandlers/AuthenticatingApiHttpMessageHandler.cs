@@ -1,17 +1,14 @@
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Elsa.Api.Client.Resources.Identity.Responses;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace Elsa.Studio.Login.HttpMessageHandlers;
 
 /// <summary>
 /// An <see cref="HttpMessageHandler"/> that configures the outgoing HTTP request to use the access token as bearer token.
 /// </summary>
-public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBackendAccessor, IBlazorServiceAccessor blazorServiceAccessor)
+public class AuthenticatingApiHttpMessageHandler(IRefreshTokenService refreshTokenService, IBlazorServiceAccessor blazorServiceAccessor)
     : DelegatingHandler
 {
     /// <inheritdoc />
@@ -27,7 +24,7 @@ public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBa
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             // Refresh token and retry once.
-            var tokens = await RefreshTokenAsync(jwtAccessor, cancellationToken);
+            var tokens = await refreshTokenService.RefreshTokenAsync(cancellationToken);
             request.Headers.Authorization = new("Bearer", tokens.AccessToken);
 
             // Retry.
@@ -35,33 +32,5 @@ public class AuthenticatingApiHttpMessageHandler(IRemoteBackendAccessor remoteBa
         }
 
         return response;
-    }
-
-    private async Task<LoginResponse> RefreshTokenAsync(IJwtAccessor jwtAccessor, CancellationToken cancellationToken)
-    {
-        // Get refresh token.
-        var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
-        
-        // Setup request to get new tokens.
-        var url = remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
-        var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
-        refreshRequestMessage.Headers.Authorization = new("Bearer", refreshToken);
-        
-        // Send request.
-        var response = await base.SendAsync(refreshRequestMessage, cancellationToken);
-
-        // If the refresh token is invalid, we can't do anything.
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            return new(false, null, null);
-
-        // Parse response into tokens.
-        var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
-        
-        // Store tokens.
-        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken!);
-        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken!);
-        
-        // Return tokens.
-        return tokens;
     }
 }

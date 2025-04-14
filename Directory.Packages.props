@@ -4,7 +4,7 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup Label="Elss">
-        <PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaVersion)"/>
+        <PackageVersion Include="Elsa.Integrations.Agents.Models" Version="$(ElsaIntegrationsVersion)"/>
         <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)"/>
         <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)"/>
     </ItemGroup>
@@ -18,9 +18,9 @@
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all"/>
         <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8"/>
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3"/>
-        <PackageVersion Include="MudBlazor" Version="8.4.0"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25076.4"/>
-        <PackageVersion Include="MudBlazor.Translations" Version="2.2.0"/>
+        <PackageVersion Include="MudBlazor" Version="8.5.0"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25081.1"/>
+        <PackageVersion Include="MudBlazor.Translations" Version="2.3.0"/>
         <PackageVersion Include="Radzen.Blazor" Version="6.2.9"/>
         <PackageVersion Include="ShortGuid" Version="2.0.1"/>
         <PackageVersion Include="ThrottleDebounce" Version="2.0.0"/>

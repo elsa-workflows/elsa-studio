@@ -2,7 +2,9 @@
   "name": "@elsa-workflows/elsa-studio-wasm-react",
   "version": "0.0.0",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/elsa-studio-wasm-react.umd.cjs",
   "module": "./dist/elsa-studio-wasm-react.js",
   "exports": {
@@ -22,30 +24,30 @@
     "copy:elsa-studio-wasm": "cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/_content public/ && cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/_framework public/ && cp -r ../../node_modules/@elsa-workflows/elsa-studio-wasm/appsettings.json public/"
   },
   "dependencies": {
-    "@elsa-workflows/elsa-studio-wasm": "^3.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "uuid": "^9.0.1"
+    "@elsa-workflows/elsa-studio-wasm": "^3.4.0-rc1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@storybook/addon-essentials": "^7.6.6",
-    "@storybook/addon-interactions": "^7.6.6",
-    "@storybook/addon-links": "^7.6.6",
-    "@storybook/addon-onboarding": "^1.0.10",
-    "@storybook/blocks": "^7.6.6",
-    "@storybook/react": "^7.6.6",
-    "@storybook/react-vite": "^7.6.6",
+    "@storybook/addon-essentials": "^8.6.11",
+    "@storybook/addon-interactions": "^8.6.11",
+    "@storybook/addon-links": "^8.6.11",
+    "@storybook/addon-onboarding": "^8.6.11",
+    "@storybook/blocks": "^8.6.11",
+    "@storybook/react": "^8.6.11",
+    "@storybook/react-vite": "^8.6.11",
     "@storybook/testing-library": "^0.2.2",
-    "@types/react": "^18.2.46",
-    "@types/react-dom": "^18.2.18",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "eslint-plugin-storybook": "^0.6.15",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.23.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "eslint-plugin-storybook": "^0.12.0",
     "prop-types": "^15.8.1",
-    "storybook": "^7.6.6",
-    "vite": "^5.0.10"
+    "storybook": "^8.6.11",
+    "vite": "^6.2.4"
   }
 }
