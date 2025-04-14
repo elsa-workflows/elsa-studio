@@ -25,10 +25,10 @@
                                })"
             Expression="expression"
             CustomProperties="props"
-            DisplayName="@label"
+            DisplayName="@Localizer[label]"
             Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
             ReadOnly="IsReadOnly">
-            <MudSelect Label="@label"
+            <MudSelect Label="@Localizer[label]"
                        T="string"
                        Variant="@Variant.Outlined"
                        Value="@strategyType"
@@ -41,7 +41,7 @@
                        Disabled="IsReadOnly">
                 @foreach (var descriptor in _logPersistenceStrategyDescriptors)
                 {
-                    <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
+                    <MudSelectItem Value="@descriptor.TypeName">@Localizer[descriptor.DisplayName]</MudSelectItem>
                 }
             </MudSelect>
         </ExpressionEditor>;
@@ -63,8 +63,8 @@
             @if (!InputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input
-                        properties.
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
+                        @Localizer["This activity does not have any input properties."]
                     </MudAlert>
                 </Well>
             }
