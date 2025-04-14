@@ -10,7 +10,7 @@ public class DefaultAuthenticationProviderManager(IEnumerable<IAuthenticationPro
     {
         foreach (var authenticationProvider in authenticationProviders)
         {
-            var token = await authenticationProvider.GetAccessTokenAsync(tokenName ?? TokenNames.AccessToken,cancellationToken);
+            var token = await authenticationProvider.GetAccessTokenAsync(tokenName ?? TokenNames.AccessToken, cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(token))
                 return token;
