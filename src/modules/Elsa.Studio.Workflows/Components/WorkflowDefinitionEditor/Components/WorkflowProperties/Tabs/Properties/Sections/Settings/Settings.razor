@@ -42,6 +42,7 @@
                 }
             </MudSelect>
             <ExpressionEditor
+                @ref="_logPersistenceExpressionEditor"
                 ExpressionChanged="@OnLogPersistenceExpressionChanged"
                 Expression="_logPersistenceConfiguration?.Expression"
                 CustomProperties="GetExpressionEditorProps()"
