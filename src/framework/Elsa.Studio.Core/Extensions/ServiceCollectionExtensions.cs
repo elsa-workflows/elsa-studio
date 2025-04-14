@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             .AddScoped<IClientInformationProvider, StaticClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
             ;
         
         // Mediator.

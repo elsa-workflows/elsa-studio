@@ -1,7 +1,9 @@
 using Blazored.LocalStorage;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.BlazorWasm.Services;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Login.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Login.BlazorWasm.Extensions;
@@ -25,6 +27,7 @@ public static class ServiceCollectionExtensions
         // Register JWT services.
         services.AddSingleton<IJwtParser, BlazorWasmJwtParser>();
         services.AddScoped<IJwtAccessor, BlazorWasmJwtAccessor>();
+        services.AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
         
         return services;
     }
