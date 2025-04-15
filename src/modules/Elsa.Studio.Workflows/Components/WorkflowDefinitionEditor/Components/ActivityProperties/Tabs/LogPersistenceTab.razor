@@ -1,4 +1,5 @@
-﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+﻿@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.Models
 @using Variant = MudBlazor.Variant
@@ -16,8 +17,11 @@
         var expression = logPersistenceConfig?.Expression;
         var strategyType = logPersistenceConfig?.StrategyType;
         var props = GetExpressionEditorProps(propertyDescriptor);
+        var activityId = Activity?.GetNodeId() ?? "default";
+        var key = activityId;
 
         return @<ExpressionEditor
+            @key="@key"
             ExpressionChanged="@(async expr =>
                                {
                                    if (onExpressionChanged.HasDelegate)
