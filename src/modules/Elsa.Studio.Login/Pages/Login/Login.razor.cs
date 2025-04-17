@@ -21,7 +21,7 @@ public partial class Login
     [Inject] private IJwtAccessor JwtAccessor { get; set; } = default!;
     [Inject] private ICredentialsValidator CredentialsValidator { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
     [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = default!;
     [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = default!;
@@ -43,7 +43,7 @@ public partial class Login
         var isValid = await ValidateCredentials(_model.Username, _model.Password);
         if (!isValid)
         {
-            Snackbar.Add("Invalid credentials. Please try again", Severity.Error);
+            UserMessageService.ShowSnackbarTextMessage("Invalid credentials. Please try again", Severity.Error);
             return;
         }
 

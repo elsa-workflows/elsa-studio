@@ -15,7 +15,7 @@ public partial class Service : StudioComponentBase
     [Parameter] public string ServiceId { get; set; } = default!;
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     private bool IsNew => string.Equals("new", ServiceId, StringComparison.OrdinalIgnoreCase);
 
@@ -48,12 +48,12 @@ public partial class Service : StudioComponentBase
         if (IsNew)
         {
             _entity = await apiClient.CreateAsync(_entity);
-            Snackbar.Add("Service successfully created.", Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage("Service successfully created.", Severity.Success);
         }
         else
         {
             _entity = await apiClient.UpdateAsync(ServiceId, _entity);
-            Snackbar.Add("Service successfully updated.", Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage("Service successfully updated.", Severity.Success);
         }
 
         StateHasChanged();

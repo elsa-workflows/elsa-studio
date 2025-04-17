@@ -14,7 +14,7 @@ public partial class Agent : StudioComponentBase
     [Parameter] public string AgentId { get; set; } = default!;
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
 
     private bool UseJsonResponse
     {
@@ -68,7 +68,7 @@ public partial class Agent : StudioComponentBase
         _agent.Plugins = SelectedPlugins.ToList();
         var apiClient = await ApiClientProvider.GetApiAsync<IAgentsApi>();
         _agent = await apiClient.UpdateAsync(AgentId, _agent);
-        Snackbar.Add("Agent successfully updated.", Severity.Success);
+        UserMessageService.ShowSnackbarTextMessage("Agent successfully updated.", Severity.Success);
         StateHasChanged();
     }
 

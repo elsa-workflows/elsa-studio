@@ -34,7 +34,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
@@ -313,7 +313,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
             var alterationsApi = await BackendApiClientProvider.GetApiAsync<IAlterationsApi>();
             await alterationsApi.Submit(plan);
-            Snackbar.Add("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
+            UserMessageService.ShowSnackbarTextMessage("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
         else
         {
@@ -339,7 +339,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await WorkflowInstanceService.BulkImportAsync(streamParts);
         var message = count == 1 ? Localizer["Successfully imported one instance"] : Localizer["Successfully imported {0} instances", count];
-        Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        UserMessageService.ShowSnackbarTextMessage(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
 

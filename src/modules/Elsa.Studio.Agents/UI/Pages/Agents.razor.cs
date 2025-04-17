@@ -18,7 +18,7 @@ public partial class Agents
     private HashSet<AgentModel> _selectedRows = new();
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
@@ -76,7 +76,7 @@ public partial class Agents
             }
             catch (Exception e)
             {
-                Snackbar.Add(e.Message, Severity.Error);
+                UserMessageService.ShowSnackbarTextMessage(e.Message, Severity.Error);
             }
         }
     }
