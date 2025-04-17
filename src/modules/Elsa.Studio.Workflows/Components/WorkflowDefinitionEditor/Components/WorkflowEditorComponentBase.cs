@@ -2,6 +2,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -23,16 +24,16 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
     /// </summary>
     [Inject] protected IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private ILocalizer Localizer { get; set; } = default!;
-
-    /// <summary>
-    /// The injected snackbar service.
-    /// </summary>
-    [Inject] protected ISnackbar Snackbar { get; set; } = default!;
     
     /// <summary>
     /// The injected navigation manager.
     /// </summary>
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+
+    /// <summary>
+    /// The injected user message service.
+    /// </summary>
+    [Inject] protected IUserMessageService UserMessageService { get; set; } = default!;
 
     /// <summary>
     /// Invoked when the user clicked the "Run Workflow" button.
@@ -52,16 +53,16 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
 
         if (executeResult.CannotStart)
         {
-            Snackbar.Add(Localizer["The workflow cannot be started"], Severity.Error);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["The workflow cannot be started"], Severity.Error);
             return;
         }
 
         var workflowInstanceId = executeResult.WorkflowInstanceId;
         
-        if(workflowInstanceId != null)
+        if (workflowInstanceId != null)
         {
-            Snackbar.Add(Localizer["Successfully started workflow"], Severity.Success);
-            
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully started workflow"], Severity.Success);
+
             if (WorkflowDefinitionExecuted != null)
                 await WorkflowDefinitionExecuted(workflowInstanceId);
             else

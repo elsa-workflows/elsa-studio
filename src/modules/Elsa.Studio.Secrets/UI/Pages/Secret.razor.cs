@@ -14,7 +14,7 @@ public partial class Secret : StudioComponentBase
     [Parameter] public string SecretId { get; set; } = default!;
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private MudForm _form = default!;
@@ -44,7 +44,7 @@ public partial class Secret : StudioComponentBase
 
         var apiClient = await ApiClientProvider.GetApiAsync<ISecretsApi>();
         await apiClient.UpdateAsync(SecretId, _model);
-        Snackbar.Add("Secret successfully updated.", Severity.Success);
+        UserMessageService.ShowSnackbarTextMessage("Secret successfully updated.", Severity.Success);
         StateHasChanged();
         NavigationManager.NavigateTo("secrets");
     }

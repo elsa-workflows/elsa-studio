@@ -14,7 +14,7 @@ public partial class ApiKey : StudioComponentBase
     [Parameter] public string ApiKeyId { get; set; } = default!;
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     private bool IsNew => string.Equals("new", ApiKeyId, StringComparison.OrdinalIgnoreCase);
 
@@ -47,12 +47,12 @@ public partial class ApiKey : StudioComponentBase
         if (IsNew)
         {
             _apiKey = await apiClient.CreateAsync(_apiKey);
-            Snackbar.Add("API key successfully created.", Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage("API key successfully created.", Severity.Success);
         }
         else
         {
             _apiKey = await apiClient.UpdateAsync(ApiKeyId, _apiKey);
-            Snackbar.Add("API key successfully updated.", Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage("API key successfully updated.", Severity.Success);
         }
 
         StateHasChanged();

@@ -22,6 +22,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private IAppBarService AppBarService { get; set; } = default!;
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
+    [Inject] private IErrorComponentProvider ErrorComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IBrandingProvider  BrandingProvider { get; set; } = default!;
@@ -30,6 +31,7 @@ public partial class MainLayout : IDisposable
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
     private RenderFragment UnauthorizedComponent => UnauthorizedComponentProvider.GetUnauthorizedComponent();
+    private RenderFragment DisplayError(Exception context) => ErrorComponentProvider.GetErrorComponent(context);
 
     /// <inheritdoc />
     protected override void OnInitialized()
