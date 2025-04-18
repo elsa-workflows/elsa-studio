@@ -54,13 +54,22 @@
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">@Localizer["Default configuration"]</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
             @RenderSelectComponent(
                 @Localizer["Default Strategy"],
                 null,
                 _persistenceConfiguration.Default,
                 EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
+            )
+            <MudDivider/>
+            <MudText Typo="Typo.overline">@Localizer["Internal State"]</MudText>
+            @RenderSelectComponent(
+                @Localizer["Internal State"],
+                null,
+                _persistenceConfiguration.InternalState,
+                EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
             )
             <MudDivider/>
             <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
