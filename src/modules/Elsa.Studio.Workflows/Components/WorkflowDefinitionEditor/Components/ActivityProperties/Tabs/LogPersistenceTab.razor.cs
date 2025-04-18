@@ -93,6 +93,26 @@ public partial class LogPersistenceTab
         };
         await PersistLogPersistenceStrategies();
     }
+    
+    private async Task OnInternalStateStrategyChanged(string? value)
+    {
+        _persistenceConfiguration.InternalState = new()
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+            StrategyType = value
+        };
+        await PersistLogPersistenceStrategies();
+    }
+    
+    private async Task OnInternalStateExpressionChanged(Expression? expression)
+    {
+        _persistenceConfiguration.InternalState = new()
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Expression,
+            Expression = expression
+        };
+        await PersistLogPersistenceStrategies();
+    }
 
     private async Task OnPropertyStrategyChanged(string propertyName, IDictionary<string, LogPersistenceConfiguration?> properties, string? value)
     {
@@ -275,6 +295,11 @@ public class PersistenceActivityConfiguration
     /// Default strategy type name for the entire activity.
     /// </summary>
     public LogPersistenceConfiguration? Default { get; set; }
+    
+    /// <summary>
+    /// Strategy type name for internal activity state.
+    /// </summary>
+    public LogPersistenceConfiguration? InternalState { get; set; }
 
     /// <summary>
     /// Strategy type names for individual Input properties.
