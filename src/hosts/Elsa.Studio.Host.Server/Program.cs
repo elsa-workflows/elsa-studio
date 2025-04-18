@@ -20,6 +20,7 @@ using Elsa.Studio.Translations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Host.Server;
+using Elsa.Studio.Login.Extensions;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +72,7 @@ builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddLabelsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
@@ -83,6 +85,8 @@ builder.Services.AddSignalR(options =>
     // Set MaximumReceiveMessageSize:
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
 });
+
+builder.Services.UseElsaIdentity();
 
 // Build the application.
 var app = builder.Build();

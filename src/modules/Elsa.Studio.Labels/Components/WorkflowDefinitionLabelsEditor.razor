@@ -1,0 +1,17 @@
+@inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
+
+<MudText Typo="Typo.overline">@Localizer["Labels"]</MudText>
+<MudPaper>
+    <MudChipSet T="string" AllClosable OnClose="@( async chip => OnCloseAsync(chip))">
+        @foreach (var value in Labels)
+        {
+            <MudChip Text="@value.Name"></MudChip>
+        }
+    </MudChipSet>
+
+    <div class="d-flex flex-column align-center">
+        <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddLabelAsync">Add chip</MudButton>
+    </div>
+</MudPaper>
