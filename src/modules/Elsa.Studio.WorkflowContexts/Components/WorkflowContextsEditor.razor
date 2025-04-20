@@ -7,7 +7,7 @@
     <MudStack Spacing="0">
         @foreach (var descriptor in WorkflowContextDescriptors)
         {
-            <MudCheckBox T="bool" Label="@descriptor.Name" Value="@(SelectedWorkflowContextTypes.Contains(descriptor.Type))" ValueChanged="@(isChecked => OnCheckChanged(descriptor, isChecked))"/>
+            <MudCheckBox T="bool" Label="@Localizer[descriptor.Name]" Value="@(SelectedWorkflowContextTypes.Contains(descriptor.Type))" ValueChanged="@(isChecked => OnCheckChanged(descriptor, isChecked))" />
         }
     </MudStack>
 </MudPaper>
