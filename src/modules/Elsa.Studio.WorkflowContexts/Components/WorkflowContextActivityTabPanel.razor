@@ -14,7 +14,7 @@
                         {
                             <tr>
                                 <td>
-                                    <MudText>@item.Text</MudText>
+                                    <MudText>@Localizer[@item.Text]</MudText>
                                 </td>
                                 <td>
                                     <MudCheckBox T=bool? Value=@(IsChecked(@item.Value, "Load")) Label="@Localizer["Load"]" ValueChanged="@(IsChecked => OnValueChanged(@item.Value, "Load", IsChecked))"></MudCheckBox>
