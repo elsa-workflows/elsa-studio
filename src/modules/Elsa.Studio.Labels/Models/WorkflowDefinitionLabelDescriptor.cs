@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MudBlazor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,4 +13,5 @@ public class WorkflowDefinitionLabelDescriptor
 
     public string Name { get; set; } = default!;
     public string WorkflowDefinitionId { get; internal set; }
+    public string? Color { get; internal set; }
 }

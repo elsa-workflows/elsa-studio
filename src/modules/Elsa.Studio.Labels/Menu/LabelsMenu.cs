@@ -17,7 +17,7 @@ public class LabelsMenu(ILocalizer localizer) : IMenuProvider
         {
             new()
             {
-                Icon = Icons.Material.Filled.Key,
+                Icon = Icons.Material.Filled.Label,
                 Href = "Labels",
                 Text = localizer["Labels"],
                 GroupName = MenuItemGroups.Settings.Name

@@ -4,7 +4,13 @@ using Elsa.Labels.Entities;
 using Elsa.Studio.Labels.Client;
 using Elsa.Studio.Labels.Contracts;
 using Elsa.Studio.Labels.Models;
+using Elsa.Studio.Labels.UI.Components;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using MudBlazor.Utilities;
+using MudExtensions;
+using Open.Linq.AsyncExtensions;
 
 namespace Elsa.Studio.Labels.Components;
 
@@ -25,6 +31,8 @@ public partial class WorkflowDefinitionLabelsEditor
     [Parameter]
     public EventCallback WorkflowDefinitionUpdated { get; set; }
 
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IWorkflowDefinitionLabelsProvider workflowDefinitionLabelsProvider { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionLabelDescriptor> Labels { get; set; } = new List<WorkflowDefinitionLabelDescriptor>();
@@ -40,12 +48,57 @@ public partial class WorkflowDefinitionLabelsEditor
     {
     }
 
-    private Task AddLabelAsync()
+    private async Task AddLabelAsync()
     {
-        throw new NotImplementedException();
+        var parameters = new DialogParameters<SelectLabelDialog>
+        {
+            [nameof(SelectLabelDialog.SelectedLabels)] = Labels.Select(ToLabel).ToHashSet(),
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<SelectLabelDialog>("Selecteer Label", parameters, options);
+        var dialogResult = await dialogInstance.Result;
+
+        IEnumerable<Label>? selectedLabels = dialogResult.Data as IEnumerable<Elsa.Labels.Entities.Label>;
+        if (!dialogResult!.Canceled && selectedLabels != null)
+        {
+            try
+            {
+                Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, selectedLabels.Select( it=> it.Id)).ToList();
+            }
+            catch (Exception e)
+            {
+                Snackbar.Add(e.Message, Severity.Error);
+            }
+        }
     }
-    private Task OnCloseAsync(MudBlazor.MudChip<string> chip)
+
+    private Elsa.Labels.Entities.Label ToLabel(WorkflowDefinitionLabelDescriptor descriptor)
     {
-        throw new NotImplementedException();
+        return new Elsa.Labels.Entities.Label
+        {
+            Id = descriptor.Id,
+            Name = descriptor.Name,
+            Color = descriptor.Color,
+            NormalizedName = descriptor.Name?.ToUpperInvariant(),
+        };
+    }
+
+    private async Task OnCloseAsync(MudBlazor.MudChip<string> chip)
+    {
+        var labelToRemove = Labels.FirstOrDefault(x => x.Id == chip.Value);
+        if (labelToRemove != null)
+        {
+            Labels.Remove(labelToRemove);
+            Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, Labels.Select(it => it.Id)).ToList();
+        }
     }
 }
