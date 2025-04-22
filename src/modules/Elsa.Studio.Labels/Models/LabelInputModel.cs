@@ -7,11 +7,22 @@ using System.Threading.Tasks;
 namespace Elsa.Studio.Labels.Models;
 
 /// <summary>
-/// The inputmodel for a label.
+/// The input model for a label.
 /// </summary>
 public class LabelInputModel
 {
-    public string Name { get; internal set; }
-    public string Description { get; internal set; }
-    public string Color { get; internal set; }
+    /// <summary>
+    /// Gets or sets the name of the label.
+    /// </summary>
+    public required string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the description of the label.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the color of the label.
+    /// </summary>
+    public string Color { get; set; } = string.Empty;
 }

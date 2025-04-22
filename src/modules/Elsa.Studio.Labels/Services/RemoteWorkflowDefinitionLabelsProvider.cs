@@ -20,6 +20,13 @@ public class RemoteWorkflowDefinitionLabelsProvider : IWorkflowDefinitionLabelsP
         _backendApiClientProvider = backendApiClientProvider;
     }
 
+    /// <summary>
+    /// Updates the labels associated with a workflow definition.
+    /// </summary>
+    /// <param name="workflowDefinitionId">The ID of the workflow definition to update.</param>
+    /// <param name="selectedLabelsIds">The collection of label IDs to associate with the workflow definition.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A collection of updated workflow definition label descriptors.</returns>
     public async Task<IEnumerable<WorkflowDefinitionLabelDescriptor>> UpdateAsync(string workflowDefinitionId, IEnumerable<string> selectedLabelsIds, CancellationToken cancellationToken = default)
     {
         var api = await _backendApiClientProvider.GetApiAsync<IWorkflowDefinitionLabelsApi>(cancellationToken);

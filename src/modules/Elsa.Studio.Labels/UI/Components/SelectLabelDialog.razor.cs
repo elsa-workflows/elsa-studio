@@ -12,13 +12,15 @@ public partial class SelectLabelDialog
 {
     private HashSet<Label> _selectedLabels = new(new LabelComparer());
 
+    /// <summary>
+    /// The selected labels to edit.
+    /// </summary>
     [Parameter] 
+#pragma warning disable BL0007
     public IEnumerable<Label> SelectedLabels { 
+#pragma warning restore BL0007
         get => _selectedLabels; 
-        set
-        {
-            _selectedLabels = new HashSet<Label>(value, new LabelComparer());
-        }
+        set => _selectedLabels = new HashSet<Label>(value, new LabelComparer());
     }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = null!;

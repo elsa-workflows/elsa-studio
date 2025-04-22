@@ -19,7 +19,7 @@ public partial class Label : StudioComponentBase
 
     private MudForm _form = default!;
     private LabelInputModelValidator _validator = default!;
-    private LabelInputModel _model = new();
+    private LabelInputModel _model = new(){ Name = string.Empty};
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -28,6 +28,11 @@ public partial class Label : StudioComponentBase
         _validator = new LabelInputModelValidator(apiClient);
     }
 
+    /// <summary>
+    /// Called when the component's parameters are set. This method retrieves the label details
+    /// from the API and initializes the model with the label's data.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
         var apiClient = await ApiClientProvider.GetApiAsync<ILabelsApi>();
@@ -36,7 +41,7 @@ public partial class Label : StudioComponentBase
         {
             Name = label.Name ?? label.NormalizedName,
             Description = label.Description ?? string.Empty,
-            Color = label.Color
+            Color = label.Color ?? string.Empty,
         };
     }
 

@@ -66,13 +66,11 @@ public partial class WorkflowDefinitionLabelsEditor
 
         var dialogInstance = await DialogService.ShowAsync<SelectLabelDialog>("Selecteer Label", parameters, options);
         var dialogResult = await dialogInstance.Result;
-
-        IEnumerable<Label>? selectedLabels = dialogResult.Data as IEnumerable<Elsa.Labels.Entities.Label>;
-        if (!dialogResult!.Canceled && selectedLabels != null)
+        if (dialogResult is { Canceled: false, Data: IEnumerable<Elsa.Labels.Entities.Label> selectedLabels })
         {
             try
             {
-                Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, selectedLabels.Select( it=> it.Id)).ToList();
+                Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, selectedLabels.Select(it => it.Id)).ToList();
             }
             catch (Exception e)
             {
@@ -81,16 +79,13 @@ public partial class WorkflowDefinitionLabelsEditor
         }
     }
 
-    private Elsa.Labels.Entities.Label ToLabel(WorkflowDefinitionLabelDescriptor descriptor)
+    private Elsa.Labels.Entities.Label ToLabel(WorkflowDefinitionLabelDescriptor descriptor) => new Elsa.Labels.Entities.Label
     {
-        return new Elsa.Labels.Entities.Label
-        {
-            Id = descriptor.Id,
-            Name = descriptor.Name,
-            Color = descriptor.Color,
-            NormalizedName = descriptor.Name?.ToUpperInvariant(),
-        };
-    }
+        Id = descriptor.Id,
+        Name = descriptor.Name,
+        Color = descriptor.Color,
+        NormalizedName = descriptor.Name?.ToUpperInvariant() ?? string.Empty,
+    };
 
     private async Task OnCloseAsync(MudBlazor.MudChip<string> chip)
     {

@@ -12,7 +12,7 @@ namespace Elsa.Studio.Labels.UI.Components;
 /// A dialog that creates a new secret.
 public partial class CreateLabelDialog
 {
-    private readonly LabelInputModel _inputModel = new();
+    private readonly LabelInputModel _inputModel = new() { Name = string.Empty };
     private EditContext _editContext = null!;
     private FluentValidationValidator _fluentValidationValidator = null!;
     private LabelInputModelValidator _validator = null!;
