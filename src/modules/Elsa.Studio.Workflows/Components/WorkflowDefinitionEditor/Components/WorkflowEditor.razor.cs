@@ -7,7 +7,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -205,8 +204,11 @@ public partial class WorkflowEditor
                 await result.OnFailedAsync(errors =>
                 {
                     onFailure?.Invoke(errors);
-                    foreach (var error in errors.Errors) 
-                        Snackbar.Add(error.ErrorMessage, Severity.Error, options => options.VisibleStateDuration = 5000);
+                    UserMessageService.ShowSnackbarTextMessage(
+                        errors.Errors.Select(x => x.ErrorMessage),
+                        Severity.Error,
+                        options => options.VisibleStateDuration = 5000
+                    );
                     return Task.CompletedTask;
                 });
             }
@@ -270,7 +272,7 @@ public partial class WorkflowEditor
     {
         await SaveChangesAsync(true, true, false, _ =>
         {
-            Snackbar.Add(Localizer["Workflow saved"], Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
             return Task.CompletedTask;
         });
     }
@@ -285,13 +287,13 @@ public partial class WorkflowEditor
             var hasNotFoundActivities = nodes.Any(x => x.Activity.GetTypeName() == "Elsa.NotFoundActivity");
 
             if (hasNotFoundActivities)
-                Snackbar.Add(Localizer["Workflow published with Not Found activities"], Severity.Warning, options => options.VisibleStateDuration = 5000);
+                UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow published with Not Found activities"], Severity.Warning, options => options.VisibleStateDuration = 5000);
             else
-                Snackbar.Add(Localizer["Workflow published"], Severity.Success);
+                UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow published"], Severity.Success);
 
             if (response.ConsumingWorkflowCount > 0)
             {
-                Snackbar.Add(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success, options => options.VisibleStateDuration = 3000);
+                UserMessageService.ShowSnackbarTextMessage(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success, options => options.VisibleStateDuration = 3000);
             }
         }));
     }
@@ -300,11 +302,11 @@ public partial class WorkflowEditor
     {
         await ProgressAsync(async () => await RetractAsync(() =>
         {
-            Snackbar.Add(Localizer["Workflow unpublished"], Severity.Success);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow unpublished"], Severity.Success);
             return Task.CompletedTask;
         }, errors =>
         {
-            Snackbar.Add(string.Join(Environment.NewLine, errors), Severity.Error);
+            UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors), Severity.Error);
             return Task.CompletedTask;
         }));
     }
@@ -365,7 +367,7 @@ public partial class WorkflowEditor
             },
             ErrorCallback = ex =>
             {
-                Snackbar.Add($"Failed to import workflow definition: {ex.Message}", Severity.Error);
+                UserMessageService.ShowSnackbarTextMessage($"Failed to import workflow definition: {ex.Message}", Severity.Error);
                 return Task.CompletedTask;
             }
         };
@@ -379,19 +381,19 @@ public partial class WorkflowEditor
 
         if (importResults.Count == 0)
         {
-            Snackbar.Add(Localizer["No workflows were imported."], Severity.Info);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["No workflows were imported."], Severity.Info);
             return;
         }
 
         if (successfulImports.Count == 1)
-            Snackbar.Add(Localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
         else if (importResults.Count > 1)
-            Snackbar.Add(Localizer["Successfully imported {0} workflow definitions.", importResults.Count], Severity.Success, ConfigureSnackbar);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully imported {0} workflow definitions.", importResults.Count], Severity.Success, ConfigureSnackbar);
 
         if (failedImports.Count == 1)
-            Snackbar.Add(Localizer["Failed to import 1 workflow definition: {0}", failedImports[0].Failure!.ErrorMessage], Severity.Error, ConfigureSnackbar);
-        else if (failedImports.Count > 1) 
-            Snackbar.Add(Localizer["Failed to import {0} workflow definitions. Errors: {1}", failedImports.Count, string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))], Severity.Error, ConfigureSnackbar);
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import 1 workflow definition: {0}", failedImports[0].Failure!.ErrorMessage], Severity.Error, ConfigureSnackbar);
+        else if (failedImports.Count > 1)
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import {0} workflow definitions. Errors: {1}", failedImports.Count, string.Join(", ", failedImports.Select(x => x.Failure!.ErrorMessage))], Severity.Error, ConfigureSnackbar);
 
         return;
         void ConfigureSnackbar(SnackbarOptions snackbarOptions)
