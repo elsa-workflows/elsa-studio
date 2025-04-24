@@ -175,10 +175,28 @@ public partial class InputsTab
             await OnActivityUpdated(activity);
     }
 
-    private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
+    private ExpressionDescriptor? GetSyntaxProvider(
+        WrappedInput wrappedInput,
+        InputDescriptor inputDescriptor
+    )
     {
-        return inputDescriptor.UIHint.Equals("code-editor") && !string.IsNullOrEmpty(inputDescriptor.DefaultSyntax)
-            ? ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax)
-            : ExpressionDescriptorProvider.GetByType(wrappedInput.Expression.Type);
+        // Safely read UIHint
+        var uiHint = inputDescriptor.UIHint ?? string.Empty;
+
+        // If this is the code?editor scenario and we have a DefaultSyntax, use that
+        if (
+            uiHint.Equals("code-editor", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(inputDescriptor.DefaultSyntax)
+        )
+    {
+            return ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax);
+        }
+
+        // Otherwise fall back to the wrapped expression's type—but guard null
+        var exprType = wrappedInput?.Expression?.Type;
+        if (string.IsNullOrEmpty(exprType))
+            return null;
+
+        return ExpressionDescriptorProvider.GetByType(exprType);
     }
 }
