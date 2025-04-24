@@ -82,26 +82,36 @@ public partial class DiagramDesignerWrapper
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
     {
-        var containerActivity = GetCurrentContainerActivityOrRoot();
-        var activities = containerActivity.GetActivities();
-        var activityToSelect = activities.FirstOrDefault(x => x.GetNodeId() == nodeId);
-
-        await SelectActivityAsync(activityToSelect, nodeId);
+        // Assuming _activityGraph.ActivityNodeLookup is your latest index
+        if (_activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var node))
+        {
+            var activity = node.Activity;
+            await SelectActivityAsync(activity, nodeId);
+    }
     }
 
     private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
     {
-        if (activityToSelect != null)
-        {
-            await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
+        var targetNodeId = activityToSelect?.GetId() ?? nodeId;
+        if (string.IsNullOrEmpty(targetNodeId))
             return;
         }
+
+        // Bail out if it's the same as last time
+        if (targetNodeId == _lastSelectedNodeId)
+            return;
+
+        // Remember for the next call
+        _lastSelectedNodeId = targetNodeId;
 
         if (nodeId == null)
             return;
         
         // Load the selected node path from the backend.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(
+            WorkflowDefinitionVersionId,
+            nodeId
+        );
 
         if (pathSegmentsResponse == null)
             return;

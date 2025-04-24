@@ -74,8 +74,10 @@ public partial class FlowchartDesignerWrapper
     )
     {
         // 1) Unwrap any container to the real Elsa.Flowchart
-        var flowchart = activity.GetFlowchart();
+        var flowchart = activity.GetFlowchart() ?? activity.FindActivitiesContainer();
 
+        if (flowchart == null)
+            return;
         // 2) Bail out if it's the exact same chart we already have
         var id = flowchart.GetId();
         if (id == _lastFlowchartId)

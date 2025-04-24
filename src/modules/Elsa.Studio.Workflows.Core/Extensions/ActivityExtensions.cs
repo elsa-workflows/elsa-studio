@@ -15,49 +15,53 @@ public static class ActivityExtensions
     /// <param name="activity"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public static JsonObject GetFlowchart(this JsonObject activity)
+    public static JsonObject? GetFlowchart(this JsonObject activity)
     {
-        var typeName = activity.GetTypeName();
+        var activityTypeName = activity.GetTypeName();
 
-        // 1) If it already *is* a flowchart, return it
-        if (typeName == "Elsa.Flowchart")
+        if (activityTypeName == "Elsa.Flowchart")
             return activity;
 
-        // 2) If it’s the root workflow, unwrap its root flowchart
-        if (typeName == "Elsa.Workflow")
+        if (activityTypeName == "Elsa.Workflow")
             return activity.GetRoot()!;
 
-        // 3) Look for a child property that *is* a Flowchart
+        return null;
+    }
+
+    /// <summary>
+    /// Recursively looks for the first JsonObject that has an "activities" array.
+    /// If none is found, returns null.
+    /// </summary>
+    public static JsonObject? FindActivitiesContainer(this JsonObject activity)
+    {
+        // 1) If *this* object has an "activities" array, it is the container.
+        if (activity.TryGetPropertyValue("activities", out var maybeArr) && maybeArr is JsonArray)
+            return activity;
+
+        // 2) Otherwise, scan every child property...
         foreach (var kvp in activity)
         {
-            if (kvp.Value is JsonObject child && child.GetTypeName() == "Elsa.Flowchart")
-                return child;
-        }
-
-        // 4) **NEW** fallback: if there’s an "activities" array, wrap it as a synthetic flowchart
-        if (
-            activity.TryGetPropertyValue("activities", out var arr)
-            && arr is JsonArray innerActivities
-        )
-        {
-            var synth = new JsonObject
+            // …if it’s a JsonObject, recurse into it.
+            if (kvp.Value is JsonObject childObj)
             {
-                // carry over the container’s id & nodeId so selection still works
-                ["id"] = activity["id"]!,
-                ["nodeId"] = activity["nodeId"]!,
-                ["type"] = "Elsa.Flowchart",
-                ["version"] = activity["version"]!,
-                ["customProperties"] = new JsonObject(),
-                ["metadata"] = new JsonObject(),
-                ["activities"] = new JsonArray(innerActivities.ToArray()),
-            };
+                var found = childObj.FindActivitiesContainer();
+                if (found != null)
+                    return found;
+            }
 
-            return synth;
+            // …if it’s a JsonArray, recurse into each item.
+            if (kvp.Value is JsonArray childArr)
+            {
+                foreach (var node in childArr.OfType<JsonObject>())
+                {
+                    var found = node.FindActivitiesContainer();
+                    if (found != null)
+                        return found;
+                }
+            }
         }
 
-        // 5) nothing matched — truly unsupported
-        throw new NotSupportedException(
-            $"Activity '{typeName}' does not contain an inner flowchart."
-        );
+        // 3) No container found.
+        return null;
     }
 }
