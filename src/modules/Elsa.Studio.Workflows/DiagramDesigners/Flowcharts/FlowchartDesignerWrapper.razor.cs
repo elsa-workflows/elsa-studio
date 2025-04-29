@@ -138,9 +138,9 @@ public partial class FlowchartDesignerWrapper
             ["version"] = activityDescriptor.Version,
         });
 
-        newActivity.SetDesignerMetadata(new ActivityDesignerMetadata
+        newActivity.SetDesignerMetadata(new()
         {
-            Position = new Position(x, y)
+            Position = new(x, y)
         });
 
         // Copy constructor values from the activity descriptor.
