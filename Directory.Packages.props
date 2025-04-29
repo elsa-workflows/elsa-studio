@@ -39,7 +39,7 @@
         <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.14"/>
         <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.14"/>
         <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.14" />
-        <PackageVersion Include="Microsoft.JSInterop" Version="8.0.14"/>
+        <PackageVersion Include="Microsoft.JSInterop" Version="8.0.15"/>
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3"/>
