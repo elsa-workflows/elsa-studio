@@ -89,6 +89,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Agents", "src\m
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Secrets.Models", "..\..\elsa-core\main\src\modules\Elsa.Secrets.Models\Elsa.Secrets.Models.csproj", "{C3681176-1FB1-4B63-BEC7-34DB9813E88D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Localization", "src\modules\Elsa.Studio.Localization\Elsa.Studio.Localization.csproj", "{81B50FCC-5DA0-49AB-8C84-412F9B77A483}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Localization.BlazorServer", "src\modules\Elsa.Studio.Localization.BlazorServer\Elsa.Studio.Localization.BlazorServer.csproj", "{9E2D0F55-6822-4544-85F9-D3233DDE71B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Localization.BlazorWasm", "src\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj", "{6DD4F5CE-A546-4E05-9AAF-09576C960117}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -211,6 +217,18 @@ Global
 		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3681176-1FB1-4B63-BEC7-34DB9813E88D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81B50FCC-5DA0-49AB-8C84-412F9B77A483}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81B50FCC-5DA0-49AB-8C84-412F9B77A483}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81B50FCC-5DA0-49AB-8C84-412F9B77A483}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81B50FCC-5DA0-49AB-8C84-412F9B77A483}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E2D0F55-6822-4544-85F9-D3233DDE71B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2D0F55-6822-4544-85F9-D3233DDE71B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2D0F55-6822-4544-85F9-D3233DDE71B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E2D0F55-6822-4544-85F9-D3233DDE71B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DD4F5CE-A546-4E05-9AAF-09576C960117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DD4F5CE-A546-4E05-9AAF-09576C960117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DD4F5CE-A546-4E05-9AAF-09576C960117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DD4F5CE-A546-4E05-9AAF-09576C960117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -246,5 +264,8 @@ Global
 		{26ECE061-0F39-4945-8356-EF14E67A8F39} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
 		{BDAB9EEA-3083-41D8-933A-E848D346EB2E} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{C3681176-1FB1-4B63-BEC7-34DB9813E88D} = {F4B408E1-5169-4FA9-B2D7-2377634C4DEE}
+		{81B50FCC-5DA0-49AB-8C84-412F9B77A483} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{9E2D0F55-6822-4544-85F9-D3233DDE71B9} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{6DD4F5CE-A546-4E05-9AAF-09576C960117} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 EndGlobal

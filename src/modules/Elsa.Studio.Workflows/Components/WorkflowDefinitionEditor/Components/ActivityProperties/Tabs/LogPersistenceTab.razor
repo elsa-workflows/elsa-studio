@@ -1,4 +1,5 @@
-﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+﻿@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.Models
 @using Variant = MudBlazor.Variant
@@ -16,8 +17,11 @@
         var expression = logPersistenceConfig?.Expression;
         var strategyType = logPersistenceConfig?.StrategyType;
         var props = GetExpressionEditorProps(propertyDescriptor);
+        var activityId = Activity?.GetNodeId() ?? "default";
+        var key = activityId;
 
         return @<ExpressionEditor
+            @key="@key"
             ExpressionChanged="@(async expr =>
                                {
                                    if (onExpressionChanged.HasDelegate)
@@ -50,13 +54,22 @@
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">@Localizer["Default configuration"]</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
             @RenderSelectComponent(
                 @Localizer["Default Strategy"],
                 null,
                 _persistenceConfiguration.Default,
                 EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
+            )
+            <MudDivider/>
+            <MudText Typo="Typo.overline">@Localizer["Internal State"]</MudText>
+            @RenderSelectComponent(
+                @Localizer["Internal State"],
+                null,
+                _persistenceConfiguration.InternalState,
+                EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
             )
             <MudDivider/>
             <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
