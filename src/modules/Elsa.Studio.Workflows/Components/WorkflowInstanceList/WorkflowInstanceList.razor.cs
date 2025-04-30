@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -295,9 +296,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         if (applyToAllMatches)
         {
+            var cancel = new JsonObject
+            {
+                ["type"] = "Cancel"
+            };
+            
             var plan = new AlterationPlanParams
             {
-                Alterations = [new Cancel()],
+                Alterations = [cancel],
                 Filter = new()
                 {
                     EmptyFilterSelectsAll = true,
