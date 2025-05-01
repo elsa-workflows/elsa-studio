@@ -6,7 +6,7 @@ using MudBlazor;
 namespace Elsa.Studio.Labels.Menu;
 
 /// <summary>
-/// Provides the menu items for the Secrets module.
+/// Provides the menu items for the Labels module.
 /// </summary>
 public class LabelsMenu(ILocalizer localizer) : IMenuProvider
 {

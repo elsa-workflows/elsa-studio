@@ -9,7 +9,7 @@ using MudBlazor;
 
 namespace Elsa.Studio.Labels.UI.Components;
 
-/// A dialog that creates a new secret.
+/// A dialog that creates a new label.
 public partial class CreateLabelDialog
 {
     private readonly LabelInputModel _inputModel = new() { Name = string.Empty };

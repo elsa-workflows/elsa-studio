@@ -10,7 +10,7 @@ namespace Elsa.Studio.Labels.UI.Pages;
 
 public partial class Label : StudioComponentBase
 {
-    /// The ID of the secret to edit.
+    /// The ID of the label to edit.
     [Parameter] public string LabelId { get; set; } = default!;
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;

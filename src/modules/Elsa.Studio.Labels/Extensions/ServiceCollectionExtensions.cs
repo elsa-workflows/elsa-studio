@@ -8,7 +8,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.WorkflowContexts.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Secrets;
+namespace Elsa.Studio.Labels;
 
 /// <summary>
 /// Contains extension methods for the <see cref="IServiceCollection"/> interface.
@@ -16,7 +16,7 @@ namespace Elsa.Studio.Secrets;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the Secrets module.
+    /// Adds the Labels module.
     /// </summary>
     public static IServiceCollection AddLabelsModule(this IServiceCollection services, BackendApiConfig backendApiConfig)
     {
