@@ -7,6 +7,7 @@
         <PackageVersion Include="Elsa.Integrations.Agents.Models" Version="$(ElsaIntegrationsVersion)"/>
         <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)"/>
         <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)"/>
+		<PackageVersion Include="Elsa.Labels" Version="$(ElsaVersion)"/>
     </ItemGroup>
     <ItemGroup>
         <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0"/>
