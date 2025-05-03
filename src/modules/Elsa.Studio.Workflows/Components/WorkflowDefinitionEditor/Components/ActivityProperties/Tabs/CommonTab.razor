@@ -1,6 +1,7 @@
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Shared.Enums
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
@@ -75,6 +76,23 @@
                         Dense="@true"
                         Value="@(Activity.GetCanStartWorkflow() == true)"
                         ValueChanged="OnCanStartWorkflowChanged"/>
+                </MudField>
+
+                <MudField
+                    Variant="Variant.Text"
+                    UnderLine="false"
+                    Margin="Margin.None"
+                    HelperText="Controls how this activity joins inbound connections."
+                    Disabled="IsReadOnly">
+                    <MudSelect
+                        T="JoinMode"
+                        Label="Join Kind"
+                        Dense="@true"
+                        Value="@Activity.GetJoinMode()"
+                        ValueChanged="OnJoinKindChanged">
+                        <MudSelectItem T="JoinMode" Value="JoinMode.WaitAll">Wait All</MudSelectItem>
+                        <MudSelectItem T="JoinMode" Value="JoinMode.WaitAny" Text="Wait Any">Wait Any</MudSelectItem>
+                    </MudSelect>
                 </MudField>
 
             </MudStack>

@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Shared.Enums;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 
@@ -62,6 +63,12 @@ public partial class CommonTab
     private async Task OnCanStartWorkflowChanged(bool? value)
     {
         Activity!.SetCanStartWorkflow(value == true);
+        await RaiseActivityUpdated();
+    }
+
+    private async Task OnJoinKindChanged(JoinMode value)
+    {
+        Activity!.SetJoinMode(value);
         await RaiseActivityUpdated();
     }
 }
