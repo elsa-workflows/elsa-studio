@@ -5,9 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.Enums;
@@ -59,10 +57,9 @@ public partial class LogPersistenceTab
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        _legacyPersistenceConfiguration = new LegacyPersistenceActivityConfiguration();
-        _persistenceConfiguration = new PersistenceActivityConfiguration();
+        _legacyPersistenceConfiguration = new();
+        _persistenceConfiguration = new();
         _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
-        await base.OnInitializedAsync();
     }
 
     /// <inheritdoc />
@@ -79,7 +76,7 @@ public partial class LogPersistenceTab
 
     private async Task OnDefaultStrategyChanged(string? value)
     {
-        _persistenceConfiguration.Default = new LogPersistenceConfiguration
+        _persistenceConfiguration.Default = new()
         {
             EvaluationMode = LogPersistenceEvaluationMode.Strategy,
             StrategyType = value
@@ -89,7 +86,27 @@ public partial class LogPersistenceTab
     
     private async Task OnDefaultExpressionChanged(Expression? expression)
     {
-        _persistenceConfiguration.Default = new LogPersistenceConfiguration
+        _persistenceConfiguration.Default = new()
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Expression,
+            Expression = expression
+        };
+        await PersistLogPersistenceStrategies();
+    }
+    
+    private async Task OnInternalStateStrategyChanged(string? value)
+    {
+        _persistenceConfiguration.InternalState = new()
+        {
+            EvaluationMode = LogPersistenceEvaluationMode.Strategy,
+            StrategyType = value
+        };
+        await PersistLogPersistenceStrategies();
+    }
+    
+    private async Task OnInternalStateExpressionChanged(Expression? expression)
+    {
+        _persistenceConfiguration.InternalState = new()
         {
             EvaluationMode = LogPersistenceEvaluationMode.Expression,
             Expression = expression
@@ -143,7 +160,7 @@ public partial class LogPersistenceTab
         {
             if (newModel.Inputs.ContainsKey(input.Key))
                 continue;
-            newModel.Inputs[input.Key] = new LogPersistenceConfiguration
+            newModel.Inputs[input.Key] = new()
             {
                 EvaluationMode = LogPersistenceEvaluationMode.Strategy,
                 StrategyType = input.Value.ToString()
@@ -154,7 +171,7 @@ public partial class LogPersistenceTab
         {
             if (newModel.Outputs.ContainsKey(output.Key))
                 continue;
-            newModel.Outputs[output.Key] = new LogPersistenceConfiguration
+            newModel.Outputs[output.Key] = new()
             {
                 EvaluationMode = LogPersistenceEvaluationMode.Strategy,
                 StrategyType = output.Value.ToString()
@@ -278,6 +295,11 @@ public class PersistenceActivityConfiguration
     /// Default strategy type name for the entire activity.
     /// </summary>
     public LogPersistenceConfiguration? Default { get; set; }
+    
+    /// <summary>
+    /// Strategy type name for internal activity state.
+    /// </summary>
+    public LogPersistenceConfiguration? InternalState { get; set; }
 
     /// <summary>
     /// Strategy type names for individual Input properties.

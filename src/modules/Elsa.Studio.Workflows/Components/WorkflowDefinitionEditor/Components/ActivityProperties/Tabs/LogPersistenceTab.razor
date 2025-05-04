@@ -1,4 +1,5 @@
-﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+﻿@using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @using Elsa.Api.Client.Resources.Scripting.Models
 @using Elsa.Api.Client.Shared.Models
 @using Variant = MudBlazor.Variant
@@ -16,8 +17,11 @@
         var expression = logPersistenceConfig?.Expression;
         var strategyType = logPersistenceConfig?.StrategyType;
         var props = GetExpressionEditorProps(propertyDescriptor);
+        var activityId = Activity?.GetNodeId() ?? "default";
+        var key = activityId;
 
         return @<ExpressionEditor
+            @key="@key"
             ExpressionChanged="@(async expr =>
                                {
                                    if (onExpressionChanged.HasDelegate)
@@ -25,10 +29,10 @@
                                })"
             Expression="expression"
             CustomProperties="props"
-            DisplayName="@label"
+            DisplayName="@Localizer[label]"
             Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
             ReadOnly="IsReadOnly">
-            <MudSelect Label="@label"
+            <MudSelect Label="@Localizer[label]"
                        T="string"
                        Variant="@Variant.Outlined"
                        Value="@strategyType"
@@ -41,7 +45,7 @@
                        Disabled="IsReadOnly">
                 @foreach (var descriptor in _logPersistenceStrategyDescriptors)
                 {
-                    <MudSelectItem Value="@descriptor.TypeName">@descriptor.DisplayName</MudSelectItem>
+                    <MudSelectItem Value="@descriptor.TypeName">@Localizer[descriptor.DisplayName]</MudSelectItem>
                 }
             </MudSelect>
         </ExpressionEditor>;
@@ -50,7 +54,7 @@
 <div class="pa-4">
     <MudForm ReadOnly="IsReadOnly">
         <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">@Localizer["Default configuration"]</MudText>
+            <MudText Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
             @RenderSelectComponent(
                 @Localizer["Default Strategy"],
                 null,
@@ -59,12 +63,21 @@
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
             )
             <MudDivider/>
+            <MudText Typo="Typo.overline">@Localizer["Internal State"]</MudText>
+            @RenderSelectComponent(
+                @Localizer["Internal State"],
+                null,
+                _persistenceConfiguration.InternalState,
+                EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
+            )
+            <MudDivider/>
             <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
             @if (!InputDescriptors.Any())
             {
                 <Well>
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">This activity does not have any input
-                        properties.
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
+                        @Localizer["This activity does not have any input properties."]
                     </MudAlert>
                 </Well>
             }

@@ -20,6 +20,7 @@ using Elsa.Studio.Translations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Host.Server;
+using Elsa.Studio.Login.Extensions;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +66,7 @@ builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(opti
 
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
+builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
