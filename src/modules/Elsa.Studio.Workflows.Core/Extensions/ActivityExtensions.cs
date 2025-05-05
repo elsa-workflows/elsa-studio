@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Elsa.Studio.Workflows.Extensions;
 
@@ -14,7 +15,7 @@ public static class ActivityExtensions
     /// <param name="activity"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public static JsonObject GetFlowchart(this JsonObject activity)
+    public static JsonObject? GetFlowchart(this JsonObject activity)
     {
         var activityTypeName = activity.GetTypeName();
 
@@ -24,6 +25,43 @@ public static class ActivityExtensions
         if (activityTypeName == "Elsa.Workflow")
             return activity.GetRoot()!;
 
-        throw new NotSupportedException();
+        return null;
+    }
+
+    /// <summary>
+    /// Recursively looks for the first JsonObject that has an "activities" array.
+    /// If none is found, returns null.
+    /// </summary>
+    public static JsonObject? FindActivitiesContainer(this JsonObject activity)
+    {
+        // 1) If *this* object has an "activities" array, it is the container.
+        if (activity.TryGetPropertyValue("activities", out var maybeArr) && maybeArr is JsonArray)
+            return activity;
+
+        // 2) Otherwise, scan every child property...
+        foreach (var kvp in activity)
+        {
+            // …if it’s a JsonObject, recurse into it.
+            if (kvp.Value is JsonObject childObj)
+            {
+                var found = childObj.FindActivitiesContainer();
+                if (found != null)
+                    return found;
+            }
+
+            // …if it’s a JsonArray, recurse into each item.
+            if (kvp.Value is JsonArray childArr)
+            {
+                foreach (var node in childArr.OfType<JsonObject>())
+                {
+                    var found = node.FindActivitiesContainer();
+                    if (found != null)
+                        return found;
+                }
+            }
+        }
+
+        // 3) No container found.
+        return null;
     }
 }

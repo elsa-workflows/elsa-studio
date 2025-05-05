@@ -30,7 +30,7 @@ public static class ActivityVisitorExtensions
     {
         var graph = await visitor.VisitAsync(activity);
         var nodes = graph.Flatten();
-        return nodes.ToDictionary(x => x.NodeId);
+        return nodes.GroupBy(n => n.NodeId).Select(g => g.First()).ToDictionary(x => x.NodeId);
     }
     
     /// Creates an activity graph based on the provided workflow definition.
