@@ -68,11 +68,11 @@
                     Variant="Variant.Text"
                     UnderLine="@true"
                     Margin="Margin.None"
-                    HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : @Localizer["When checked, this activity is the start of this workflow."])"
+                    HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : Localizer["When checked, this activity is the start of this workflow."])"
                     Disabled="IsReadOnly">
                     <MudCheckBox
                         T="bool?"
-                        Label="@(IsTrigger ? @Localizer["Trigger workflow"] : @Localizer["Start of workflow"])"
+                        Label="@(IsTrigger ? Localizer["Trigger workflow"] : Localizer["Start of workflow"])"
                         Dense="@true"
                         Value="@(Activity.GetCanStartWorkflow() == true)"
                         ValueChanged="OnCanStartWorkflowChanged"/>
