@@ -71,4 +71,10 @@ public partial class CommonTab
         Activity!.SetJoinMode(value);
         await RaiseActivityUpdated();
     }
+    
+    private async Task OnMergeModeChanged(MergeMode value)
+    {
+        Activity!.SetMergeMode(value);
+        await RaiseActivityUpdated();
+    }
 }

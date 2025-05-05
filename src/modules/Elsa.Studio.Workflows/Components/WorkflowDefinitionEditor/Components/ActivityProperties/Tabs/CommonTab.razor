@@ -94,6 +94,24 @@
                         <MudSelectItem T="JoinMode" Value="JoinMode.WaitAny" Text="Wait Any">Wait Any</MudSelectItem>
                     </MudSelect>
                 </MudField>
+                
+                <MudField
+                    Variant="Variant.Text"
+                    UnderLine="false"
+                    Margin="Margin.None"
+                    HelperText="Controls how this activity merges inbound connections."
+                    Disabled="IsReadOnly">
+                    <MudSelect
+                        T="MergeMode"
+                        Label="Merge Mode"
+                        Dense="@true"
+                        Value="@Activity.GetMergeMode()"
+                        ValueChanged="OnMergeModeChanged">
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Converge">Converge</MudSelectItem>
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Race">Race</MudSelectItem>
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Stream">Stream</MudSelectItem>
+                    </MudSelect>
+                </MudField>
 
             </MudStack>
         </MudForm>
