@@ -76,6 +76,7 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", _workflowInstance.Id),
+                new DataPanelItem(Localizer["Name"], _workflowInstance.Name ?? WorkflowDefinition?.Name),
                 new DataPanelItem(Localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
                 new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
                 new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
