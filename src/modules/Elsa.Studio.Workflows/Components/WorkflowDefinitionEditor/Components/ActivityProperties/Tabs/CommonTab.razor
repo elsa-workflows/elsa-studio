@@ -84,7 +84,7 @@
                         Variant="Variant.Text"
                         UnderLine="false"
                         Margin="Margin.None"
-                        HelperText="Controls how this activity merges inbound connections."
+                        HelperText="Controls how this activity merges inbound connections. Converge will wait for all inbound connections to complete, while Race will allow the first inbound path to continue while cancelling any bookmarks from other inbound paths, and Stream will let all inbound connections pass through as they arrive."
                         Disabled="IsReadOnly">
                         <MudSelect
                             T="MergeMode"
