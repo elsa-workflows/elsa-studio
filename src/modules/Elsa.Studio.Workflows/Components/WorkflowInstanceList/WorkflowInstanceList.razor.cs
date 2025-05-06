@@ -120,7 +120,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
                 x.Id,
                 x.CorrelationId,
-                workflowDefinitionVersionsLookup[x.DefinitionVersionId],
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? "",
                 x.Version,
                 x.Name,
                 x.Status,
