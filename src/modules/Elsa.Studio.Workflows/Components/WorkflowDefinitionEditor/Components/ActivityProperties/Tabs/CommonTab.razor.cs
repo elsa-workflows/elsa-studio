@@ -65,12 +65,6 @@ public partial class CommonTab
         Activity!.SetCanStartWorkflow(value == true);
         await RaiseActivityUpdated();
     }
-
-    private async Task OnJoinKindChanged(JoinMode value)
-    {
-        Activity!.SetJoinMode(value);
-        await RaiseActivityUpdated();
-    }
     
     private async Task OnMergeModeChanged(MergeMode value)
     {
