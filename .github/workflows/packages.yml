@@ -11,7 +11,6 @@ on:
       - 'issue/*'
       - 'patch/*'
       - 'rc/*'
-      - 'develop/*'
   release:
     types: [ prereleased, published ]
 env:
