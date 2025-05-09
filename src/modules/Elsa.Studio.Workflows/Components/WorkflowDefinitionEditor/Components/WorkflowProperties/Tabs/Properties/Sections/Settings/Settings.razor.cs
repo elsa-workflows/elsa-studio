@@ -9,9 +9,9 @@ using System.Text.Json;
 using Elsa.Api.Client.Resources.CommitStrategies.Models;
 using Elsa.Api.Client.Resources.LogPersistenceStrategies;
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Workflows.Shared.Serialization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 

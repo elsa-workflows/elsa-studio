@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ILogPersistenceStrategyService, RemoteLogPersistenceStrategyService>()
             .AddScoped<IIncidentStrategiesProvider, RemoteIncidentStrategiesProvider>()
             .AddScoped<ICommitStrategiesProvider, RemoteCommitStrategiesProvider>()
+            .AddScoped<IResilienceStrategyCatalog, RemoteResilienceStrategyCatalog>()
             .AddScoped<IDiagramDesignerService, DefaultDiagramDesignerService>()
             .AddScoped<IActivityDisplaySettingsRegistry, DefaultActivityDisplaySettingsRegistry>()
             .AddScoped<IActivityPortService, DefaultActivityPortService>()

@@ -21,5 +21,9 @@
       <ProjectReference Include="..\Elsa.Studio.Workflows.Core\Elsa.Studio.Workflows.Core.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Shared\Serialization\" />
+    </ItemGroup>
 	
 </Project>
