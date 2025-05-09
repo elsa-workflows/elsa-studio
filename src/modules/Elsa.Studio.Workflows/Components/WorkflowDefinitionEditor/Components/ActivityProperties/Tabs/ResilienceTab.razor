@@ -4,6 +4,7 @@
 <MudForm>
     <MudStack Spacing="5">
         <ExpressionEditor
+            @ref="@ExpressionEditor"
             ExpressionChanged="@OnExpressionChangedAsync"
             Expression="Expression"
             DisplayName="@Localizer["Resilience Strategy"]"

@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ResilienceStrategies.Models;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -16,12 +17,13 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 public partial class ResilienceTab
 {
     private const string DefaultCategory = "Default";
-    
+    private bool _isInitialized;
+
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
+
     /// The activity.
     [Parameter] public JsonObject? Activity { get; set; }
 
@@ -33,6 +35,7 @@ public partial class ResilienceTab
 
     [Inject] private IResilienceStrategyCatalog ResilienceStrategyCatalog { get; set; } = null!;
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
+    private ExpressionEditor? ExpressionEditor { get; set; }
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
     private ICollection<JsonObject> ResilienceStrategies { get; set; } = [];
     private string ResilienceCategory { get; set; } = DefaultCategory;
@@ -41,12 +44,21 @@ public partial class ResilienceTab
     private string? ResilienceStrategyId { get; set; }
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
-        
+
         SetProperties();
+
+        if (!_isInitialized)
+        {
+            if (ResilienceStrategyConfig?.Mode == ResilienceStrategyConfigMode.Expression && Expression != null && ExpressionEditor != null)
+            {
+                _isInitialized = true;
+                await ExpressionEditor.SetContentAsync(Expression?.Value?.ToString() ?? string.Empty);
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -55,14 +67,14 @@ public partial class ResilienceTab
         var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
         ResilienceStrategies = strategies.ToList();
     }
-    
+
     private IDictionary<string, object> GetExpressionEditorProps()
     {
         var props = new Dictionary<string, object>();
-        
-        if(ActivityDescriptor != null) props[nameof(ActivityDescriptor)] = ActivityDescriptor;
+
+        if (ActivityDescriptor != null) props[nameof(ActivityDescriptor)] = ActivityDescriptor;
         props["WorkflowDefinitionId"] = WorkflowDefinition!.DefinitionId;
-        
+
         return props;
     }
 
@@ -77,6 +89,7 @@ public partial class ResilienceTab
         var config = ResilienceStrategyConfig ?? new ResilienceStrategyConfig();
         config.Expression = Expression;
         config.StrategyId = ResilienceStrategyId;
+        config.Mode = Expression?.Type != "Default" ? ResilienceStrategyConfigMode.Expression : ResilienceStrategyConfigMode.Identifier;
         ResilienceStrategyConfig = config;
         Activity?.SetResilienceStrategy(config);
 
