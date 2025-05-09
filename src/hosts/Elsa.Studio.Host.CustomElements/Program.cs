@@ -59,6 +59,7 @@ builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 var app = builder.Build();
 
 await app.UseElsaLocalization();
+
 // Run each startup task.
 var startupTask = app.Services.GetServices<IStartupTask>();
 foreach (var task in startupTask) await task.ExecuteAsync();

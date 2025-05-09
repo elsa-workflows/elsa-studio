@@ -66,6 +66,33 @@ public partial class ExpressionEditor : IDisposable
     private string? MonacoSyntax { get; set; }
     private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
+    /// <summary>
+    /// Updates the content of the Monaco editor.
+    /// </summary>
+    /// <param name="content">The new content to be set in the Monaco editor.</param>
+    public async Task SetContentAsync(string content)
+    {
+        Expression = new(_selectedExpressionType!, content);
+        
+        if (_monacoEditor == null)
+            return;
+
+        try
+        {
+            var model = await _monacoEditor!.GetModel();
+            _isInternalContentChange = true;
+            _lastMonacoEditorContent = content;
+            await model.SetValue(content);
+            _isInternalContentChange = false;
+        }
+        catch (JSException)
+        {
+            // Happens when BlazorMonaco lost its DOM.
+            // This appears to be due to some rerendering race condition.
+        }
+        
+    }
+
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {

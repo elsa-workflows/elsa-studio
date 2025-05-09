@@ -5,7 +5,6 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
@@ -45,16 +44,21 @@ public partial class ActivityPropertiesPanel
     [Parameter]
     public int VisiblePaneHeight { get; set; }
 
-    [Inject] private IExpressionService ExpressionService { get; set; } = default!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
 
     [Inject] private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
+    [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = null!;
 
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
+    private bool IsResilienceEnabled { get; set; }
+    private bool IsResilientActivity => ActivityDescriptor?.CustomProperties.TryGetValue("Resilient", out var resilientObj) == true && resilientObj.ConvertTo<bool>();  
+    private bool DisplayResilienceTab => IsResilienceEnabled && IsResilientActivity;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         var descriptors = await ExpressionService.ListDescriptorsAsync();
+        IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
         ExpressionDescriptorProvider.AddRange(descriptors);
     }
 
