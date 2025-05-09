@@ -4,7 +4,6 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.ResilienceStrategies.Models;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Serialization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -16,6 +15,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class ResilienceTab
 {
+    private const string DefaultCategory = "Default";
+    
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
@@ -34,6 +35,7 @@ public partial class ResilienceTab
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     private bool IsReadOnly => Workspace?.IsReadOnly == true;
     private ICollection<JsonObject> ResilienceStrategies { get; set; } = [];
+    private string ResilienceCategory { get; set; } = DefaultCategory;
     private ResilienceStrategyConfig? ResilienceStrategyConfig { get; set; }
     private Expression? Expression { get; set; }
     private string? ResilienceStrategyId { get; set; }
@@ -50,7 +52,7 @@ public partial class ResilienceTab
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var strategies = await ResilienceStrategyCatalog.ListAsync("HTTP");
+        var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
         ResilienceStrategies = strategies.ToList();
     }
     
@@ -83,10 +85,11 @@ public partial class ResilienceTab
 
     private void SetProperties()
     {
-        if (Activity == null)
+        if (Activity == null || ActivityDescriptor == null)
             return;
 
         var config = Activity.GetResilienceStrategy();
+        ResilienceCategory = ActivityDescriptor.CustomProperties.TryGetValue("ResilienceCategory", out var category) ? category.ToString() ?? DefaultCategory : DefaultCategory;
         ResilienceStrategyConfig = config;
         Expression = config?.Expression;
         ResilienceStrategyId = config?.StrategyId;
