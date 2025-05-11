@@ -2,9 +2,10 @@
 @using Elsa.Api.Client.Extensions
 @using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
+
 <div class="pa-2">
     <MudForm>
-        <MudStack Spacing="3">
+        <MudStack>
             <MudField
                 Variant="@Variant.Text"
                 HelperText="@Localizer["When checked, the workflow will be executed asynchronously."]"

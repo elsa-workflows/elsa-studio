@@ -9,7 +9,7 @@
     @if (Activity != null && ActivityDescriptor != null)
     {
         <MudForm ReadOnly="IsReadOnly">
-            <MudStack Spacing="3">
+            <MudStack>
                 <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
@@ -56,7 +56,7 @@
                 <MudField
                     Variant="Variant.Text"
                     HelperText="@Localizer["Whether to show the description in the designer."]"
-                    Margin="Margin.None"
+                    Margin="Margin.Dense"
                     Underline="@true"
                     Disabled="IsReadOnly">
                     <MudCheckBox
@@ -70,7 +70,7 @@
                 <MudField
                     Variant="Variant.Text"
                     UnderLine="@true"
-                    Margin="Margin.None"
+                    Margin="Margin.Dense"
                     HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : @Localizer["When checked, this activity is the start of this workflow."])"
                     Disabled="IsReadOnly">
                     <MudCheckBox
