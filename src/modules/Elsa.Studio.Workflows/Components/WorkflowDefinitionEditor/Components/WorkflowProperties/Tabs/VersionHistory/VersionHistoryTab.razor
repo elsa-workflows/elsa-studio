@@ -3,8 +3,8 @@
 @using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 @inherits StudioComponentBase
-<div class="pa-4">
 
+<VerticalWell ExtraPadding="60">
     <MudText Typo="Typo.overline">@Localizer["Version history"]</MudText>
     <MudStack>
         <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" Class="align-self-end" AnchorOrigin="Origin.BottomLeft" Disabled="!HasWorkflowEditPermission">
@@ -56,5 +56,4 @@
             </MudTable>
         </VerticalWell>
     </MudStack>
-
-</div>
+</VerticalWell>
