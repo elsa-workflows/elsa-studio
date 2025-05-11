@@ -52,85 +52,84 @@
         </ExpressionEditor>;
     }
 }
-<div class="pa-2">
-    <MudForm ReadOnly="IsReadOnly">
-        <MudStack>
-            <div>
-                <MudText  Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
-                @RenderSelectComponent(
-                    @Localizer["Default Strategy"],
-                    null,
-                    _persistenceConfiguration.Default,
-                    EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
-                    EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
-                )
-            </div>
-            <MudDivider/>
-            <div>
-                <MudText Class="mb-0" Typo="Typo.overline">@Localizer["Internal State"]</MudText>
-                @RenderSelectComponent(
-                    @Localizer["Internal State"],
-                    null,
-                    _persistenceConfiguration.InternalState,
-                    EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
-                    EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
-                )
-            </div>
-            <MudDivider/>
-            <div>
-                <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
-                @if (!InputDescriptors.Any())
-                {
-                    <Well>
-                        <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
-                            @Localizer["This activity does not have any input properties."]
-                        </MudAlert>
-                    </Well>
-                }
-                else
-                {
-                    <MudStack Spacing="3">
-                        @foreach (var input in InputDescriptors)
-                        {
-                            var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
-                            @RenderSelectComponent(
-                                input.Name,
-                                input,
-                                config,
-                                EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
-                                EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
-                        }
-                    </MudStack>
-                }
-            </div>
-            <MudDivider/>
-            <div>
-                <MudText Typo="Typo.overline">@Localizer["Output Properties"]</MudText>
-                @if (!OutputDescriptors.Any())
-                {
-                    <Well>
-                        <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
-                            @Localizer["This activity does not have any output properties."]
-                        </MudAlert>
-                    </Well>
-                }
-                else
-                {
-                    <MudStack Spacing="3">
-                        @foreach (var output in OutputDescriptors)
-                        {
-                            var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
-                            @RenderSelectComponent(
-                                output.Name,
-                                output,
-                                config,
-                                EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
-                                EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))
-                        }
 
-                    </MudStack>
-                }
-            </div>
-        </MudStack>
-    </MudForm>
-</div>
+<MudForm ReadOnly="IsReadOnly">
+    <MudStack>
+        <div>
+            <MudText  Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
+            @RenderSelectComponent(
+                @Localizer["Default Strategy"],
+                null,
+                _persistenceConfiguration.Default,
+                EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
+            )
+        </div>
+        <MudDivider/>
+        <div>
+            <MudText Class="mb-0" Typo="Typo.overline">@Localizer["Internal State"]</MudText>
+            @RenderSelectComponent(
+                @Localizer["Internal State"],
+                null,
+                _persistenceConfiguration.InternalState,
+                EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
+                EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
+            )
+        </div>
+        <MudDivider/>
+        <div>
+            <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
+            @if (!InputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
+                        @Localizer["This activity does not have any input properties."]
+                    </MudAlert>
+                </Well>
+            }
+            else
+            {
+                <MudStack Spacing="3">
+                    @foreach (var input in InputDescriptors)
+                    {
+                        var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
+                        @RenderSelectComponent(
+                            input.Name,
+                            input,
+                            config,
+                            EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
+                            EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
+                    }
+                </MudStack>
+            }
+        </div>
+        <MudDivider/>
+        <div>
+            <MudText Typo="Typo.overline">@Localizer["Output Properties"]</MudText>
+            @if (!OutputDescriptors.Any())
+            {
+                <Well>
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">
+                        @Localizer["This activity does not have any output properties."]
+                    </MudAlert>
+                </Well>
+            }
+            else
+            {
+                <MudStack Spacing="3">
+                    @foreach (var output in OutputDescriptors)
+                    {
+                        var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
+                        @RenderSelectComponent(
+                            output.Name,
+                            output,
+                            config,
+                            EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
+                            EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))
+                    }
+
+                </MudStack>
+            }
+        </div>
+    </MudStack>
+</MudForm>

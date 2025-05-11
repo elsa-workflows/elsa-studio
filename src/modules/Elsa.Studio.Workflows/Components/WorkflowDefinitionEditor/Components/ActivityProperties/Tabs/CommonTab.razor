@@ -5,83 +5,81 @@
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
-<div class="pa-2">
-    @if (Activity != null && ActivityDescriptor != null)
-    {
-        <MudForm ReadOnly="IsReadOnly">
-            <MudStack>
-                <MudField Disabled="IsReadOnly"
-                    T="string"
-                    Label="ID"
-                    HelperText="@Localizer["The ID of the activity."]"
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense">
-                    <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
-                </MudField>
+@if (Activity != null && ActivityDescriptor != null)
+{
+    <MudForm ReadOnly="IsReadOnly">
+        <MudStack>
+            <MudField Disabled="IsReadOnly"
+                T="string"
+                Label="ID"
+                HelperText="@Localizer["The ID of the activity."]"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense">
+                <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
+            </MudField>
 
-                <MudTextField
-                    T="string"
-                    Label="@Localizer["Name"]"
-                    HelperText="@Localizer["The name of the activity. Named activities can be referenced by other activities."]"
-                    Value="@Activity.GetName()"
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    ValueChanged="OnActivityNameChanged"
-                    ReadOnly="IsReadOnly"
-                    Disabled="IsReadOnly"/>
+            <MudTextField
+                T="string"
+                Label="@Localizer["Name"]"
+                HelperText="@Localizer["The name of the activity. Named activities can be referenced by other activities."]"
+                Value="@Activity.GetName()"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                ValueChanged="OnActivityNameChanged"
+                ReadOnly="IsReadOnly"
+                Disabled="IsReadOnly"/>
 
-                <MudTextField
-                    T="string"
-                    Label="@Localizer["Display text"]"
-                    HelperText="@Localizer["The text to display in the designer."]"
-                    Value="@Activity.GetDisplayText()"
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    ValueChanged="OnActivityDisplayTextChanged"
-                    ReadOnly="IsReadOnly"
-                    Disabled="IsReadOnly"/>
+            <MudTextField
+                T="string"
+                Label="@Localizer["Display text"]"
+                HelperText="@Localizer["The text to display in the designer."]"
+                Value="@Activity.GetDisplayText()"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                ValueChanged="OnActivityDisplayTextChanged"
+                ReadOnly="IsReadOnly"
+                Disabled="IsReadOnly"/>
 
-                <MudTextField
-                    T="string"
-                    Label="@Localizer["Description"]"
-                    HelperText="@Localizer["A description of this activity to be displayed in the designer."]"
-                    Value="@Activity.GetDescription()"
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    Lines="3"
-                    ValueChanged="OnActivityDescriptionChanged"
-                    ReadOnly="IsReadOnly"
-                    Disabled="IsReadOnly"/>
+            <MudTextField
+                T="string"
+                Label="@Localizer["Description"]"
+                HelperText="@Localizer["A description of this activity to be displayed in the designer."]"
+                Value="@Activity.GetDescription()"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                Lines="3"
+                ValueChanged="OnActivityDescriptionChanged"
+                ReadOnly="IsReadOnly"
+                Disabled="IsReadOnly"/>
 
-                <MudField
-                    Variant="Variant.Text"
-                    HelperText="@Localizer["Whether to show the description in the designer."]"
-                    Margin="Margin.Dense"
-                    Underline="@true"
-                    Disabled="IsReadOnly">
-                    <MudCheckBox
-                        T="bool?"
-                        Label="@Localizer["Show description"]"
-                        Dense="@true"
-                        Value="@(Activity.GetShowDescription() == true)"
-                        ValueChanged="OnShowDescriptionChanged"/>
-                </MudField>
+            <MudField
+                Variant="Variant.Text"
+                HelperText="@Localizer["Whether to show the description in the designer."]"
+                Margin="Margin.Dense"
+                Underline="@true"
+                Disabled="IsReadOnly">
+                <MudCheckBox
+                    T="bool?"
+                    Label="@Localizer["Show description"]"
+                    Dense="@true"
+                    Value="@(Activity.GetShowDescription() == true)"
+                    ValueChanged="OnShowDescriptionChanged"/>
+            </MudField>
                 
-                <MudField
-                    Variant="Variant.Text"
-                    UnderLine="@true"
-                    Margin="Margin.Dense"
-                    HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : @Localizer["When checked, this activity is the start of this workflow."])"
-                    Disabled="IsReadOnly">
-                    <MudCheckBox
-                        T="bool?"
-                        Label="@(IsTrigger ? @Localizer["Trigger workflow"] : @Localizer["Start of workflow"])"
-                        Dense="@true"
-                        Value="@(Activity.GetCanStartWorkflow() == true)"
-                        ValueChanged="OnCanStartWorkflowChanged"/>
-                </MudField>
+            <MudField
+                Variant="Variant.Text"
+                UnderLine="@true"
+                Margin="Margin.Dense"
+                HelperText="@(IsTrigger ? Localizer["When checked, this activity can trigger this workflow."] : @Localizer["When checked, this activity is the start of this workflow."])"
+                Disabled="IsReadOnly">
+                <MudCheckBox
+                    T="bool?"
+                    Label="@(IsTrigger ? @Localizer["Trigger workflow"] : @Localizer["Start of workflow"])"
+                    Dense="@true"
+                    Value="@(Activity.GetCanStartWorkflow() == true)"
+                    ValueChanged="OnCanStartWorkflowChanged"/>
+            </MudField>
 
-            </MudStack>
-        </MudForm>
-    }
-</div>
+        </MudStack>
+    </MudForm>
+}
