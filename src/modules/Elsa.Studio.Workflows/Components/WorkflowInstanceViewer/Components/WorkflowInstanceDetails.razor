@@ -24,80 +24,76 @@
         </Well>
         }
     </MudTabPanel>
-    <MudTabPanel Text="Incidents">
-        @if (IncidentsData.Any())
-        {
+    <MudTabPanel Text="@Localizer["Incidents"]">
         <VerticalWell ExtraPadding="50">
-            <MudExpansionPanels>
-                @foreach (var incident in IncidentsData)
-                {
-                    <MudExpansionPanel Dense="false" Gutters="false" Class="incidents-custom-spacing">
-                        <TitleContent>
-                            <div class="truncate-text">
-                                @incident.SingleOrDefault(i=>i.Label == "Message")?.Text
-                            </div>
-                        </TitleContent>
-                        <ChildContent>
-                            <Well>
-                                <DataPanel Data="incident" HideEmptyValues="true"/>
-                            </Well>
-                        </ChildContent>
-                    </MudExpansionPanel>
-                }
-            </MudExpansionPanels>
+            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Incidents"]</MudText>
+            @if (IncidentsData.Any())
+            {
+                <MudExpansionPanels>
+                    @foreach (var incident in IncidentsData)
+                    {
+                        <MudExpansionPanel Dense="false" Gutters="false" Class="incidents-custom-spacing">
+                            <TitleContent>
+                                <div class="truncate-text">
+                                    @incident.SingleOrDefault(i=>i.Label == "Message")?.Text
+                                </div>
+                            </TitleContent>
+                            <ChildContent>
+                                <Well>
+                                    <DataPanel Data="incident" HideEmptyValues="true"/>
+                                </Well>
+                            </ChildContent>
+                        </MudExpansionPanel>
+                    }
+                </MudExpansionPanels>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Success" Variant="MudBlazor.Variant.Text" Icon="@Icons.Material.Outlined.Check">@Localizer["No incidents"]</MudAlert>
+            }
         </VerticalWell>
-        }
-        else
-        {
-        <Well>
-            No incidents
-        </Well>
-        }
     </MudTabPanel>
     <MudTabPanel Text="@Localizer["Variables"]">
         <VerticalWell ExtraPadding="50">
             <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Variables"]</MudText>
                 @if (WorkflowVariableData.Any())
                 {
                 <DataPanel Data="WorkflowVariableData" HideEmptyValues="false"/>
                 }
                 else
                 {
-                <Well>
-                    @Localizer["No variables"]
-                </Well>
+                <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No variables"]</MudAlert>
                 }
             </div>
         </VerticalWell>
     </MudTabPanel>
     <MudTabPanel Text="@Localizer["Input/output"]">
         <Well>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Inputs"]</MudText>
-                @if (WorkflowInputData.Any())
-                {
-                <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
-                }
-                else
-                {
-                <Well>
-                    @Localizer["No inputs"]
-                </Well>
-                }
-            </div>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outputs"]</MudText>
-                @if (WorkflowOutputData.Any())
-                {
-                <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
-                }
-                else
-                {
-                <Well>
-                    @Localizer["No outputs"]
-                </Well>
-                }
-            </div>
+            <MudStack>
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Inputs"]</MudText>
+                    @if (WorkflowInputData.Any())
+                    {
+                    <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
+                    }
+                    else
+                    {
+                    <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No inputs"]</MudAlert>
+                    }
+                </div>
+                <div>
+                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outputs"]</MudText>
+                    @if (WorkflowOutputData.Any())
+                    {
+                    <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
+                    }
+                    else
+                    {
+                    <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No outputs"]</MudAlert>
+                    }
+                </div>
+            </MudStack>
         </Well>
         <Well>
             @if (SubWorkflowInputData.Any())
