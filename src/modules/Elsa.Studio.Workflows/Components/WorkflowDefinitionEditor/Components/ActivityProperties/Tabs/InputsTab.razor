@@ -1,10 +1,12 @@
 @inherits StudioComponentBase
 
-<MudForm>
-    <MudStack Spacing="5">
-        @foreach (var inputModel in InputDisplayModels)
-        {
-            @inputModel.Editor
-        }
-    </MudStack>
-</MudForm>
+<div class="pa-2">
+    <MudForm>
+        <MudStack Spacing="3">
+            @foreach (var inputModel in InputDisplayModels)
+            {
+                @inputModel.Editor
+            }
+        </MudStack>
+    </MudForm>
+</div>

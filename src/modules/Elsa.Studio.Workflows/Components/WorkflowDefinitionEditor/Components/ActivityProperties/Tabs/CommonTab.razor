@@ -5,16 +5,17 @@
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
-<div class="pa-4">
+<div class="pa-2">
     @if (Activity != null && ActivityDescriptor != null)
     {
         <MudForm ReadOnly="IsReadOnly">
-            <MudStack Spacing="5">
+            <MudStack Spacing="3">
                 <MudField Disabled="IsReadOnly"
                     T="string"
                     Label="ID"
                     HelperText="@Localizer["The ID of the activity."]"
-                    Variant="Variant.Outlined">
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense">
                     <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
                 </MudField>
 
@@ -24,6 +25,7 @@
                     HelperText="@Localizer["The name of the activity. Named activities can be referenced by other activities."]"
                     Value="@Activity.GetName()"
                     Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
                     ValueChanged="OnActivityNameChanged"
                     ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"/>
@@ -34,6 +36,7 @@
                     HelperText="@Localizer["The text to display in the designer."]"
                     Value="@Activity.GetDisplayText()"
                     Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
                     ValueChanged="OnActivityDisplayTextChanged"
                     ReadOnly="IsReadOnly"
                     Disabled="IsReadOnly"/>
@@ -44,6 +47,7 @@
                     HelperText="@Localizer["A description of this activity to be displayed in the designer."]"
                     Value="@Activity.GetDescription()"
                     Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
                     Lines="3"
                     ValueChanged="OnActivityDescriptionChanged"
                     ReadOnly="IsReadOnly"

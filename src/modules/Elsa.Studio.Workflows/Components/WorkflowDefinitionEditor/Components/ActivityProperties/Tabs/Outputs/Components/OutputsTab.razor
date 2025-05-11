@@ -7,9 +7,9 @@
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
-<div class="pa-4">
+<div class="pa-2">
     <MudForm ReadOnly="IsReadOnly">
-        <MudStack Spacing="6">
+        <MudStack Spacing="3">
             @foreach (var outputDescriptor in OutputDescriptors)
             {
                 var activity = Activity;
@@ -27,7 +27,7 @@
                     Value="@selectedValue"
                     Dense="false"
                     Variant="Variant.Outlined"
-                    Margin="Margin.Normal"
+                    Margin="Margin.Dense"
                     AdornmentText="@propertyTypeName"
                     Adornment="Adornment.End"
                     ToStringFunc="@(x => x?.Text!)"
