@@ -12,6 +12,44 @@
         <div>
             <MudText Typo="Typo.overline">@Localizer["Settings"]</MudText>
             <MudStack>
+            <MudSelect
+                T="WorkflowActivationStrategyDescriptor"
+                Label="@Localizer["Activation strategy"]"
+                Variant="@Variant.Outlined"
+                Value="@_selectedActivationStrategy"
+                ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
+                ValueChanged="@OnActivationStrategyChanged"
+                HelperText="@Localizer[(_selectedActivationStrategy?.Description)]"
+                ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+                @foreach (var strategy in _activationStrategies)
+                {
+                    <MudSelectItem T="WorkflowActivationStrategyDescriptor"
+                                   Value="@strategy">@strategy.DisplayName</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect
+                T="IncidentStrategyDescriptor"
+                Label="@Localizer["Incident handling strategy"]"
+                Variant="@Variant.Outlined"
+                Value="@_selectedIncidentStrategy"
+                ToStringFunc="@(x => x?.DisplayName ?? Localizer["Default"])"
+                ValueChanged="@OnIncidentStrategyChanged"
+                HelperText="@Localizer[_selectedIncidentStrategy?.Description]"
+                ReadOnly="IsReadOnly" Disabled="IsReadOnly">
+                @foreach (var strategy in _incidentStrategies)
+                {
+                    <MudSelectItem T="IncidentStrategyDescriptor"
+                                   Value="@strategy">@(strategy?.DisplayName ?? @Localizer["Default"])</MudSelectItem>
+                }
+            </MudSelect>
+            <ExpressionEditor
+                @ref="_logPersistenceExpressionEditor"
+                ExpressionChanged="@OnLogPersistenceExpressionChanged"
+                Expression="_logPersistenceConfiguration?.Expression"
+                CustomProperties="GetExpressionEditorProps()"
+                DisplayName="@Localizer["Log Persistence Strategy"]"
+                Description="@Localizer["Enter the expression that will be used to determine the log persistence strategy for this property."]"
+                ReadOnly="IsReadOnly">
                 <MudSelect
                     T="WorkflowActivationStrategyDescriptor"
                     Label="@Localizer["Activation strategy"]"

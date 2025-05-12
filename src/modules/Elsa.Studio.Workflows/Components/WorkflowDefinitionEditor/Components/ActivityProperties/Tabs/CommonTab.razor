@@ -1,6 +1,7 @@
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Elsa.Api.Client.Extensions
+@using Elsa.Api.Client.Shared.Enums
 @inherits StudioComponentBase
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
@@ -79,6 +80,27 @@
                     Value="@(Activity.GetCanStartWorkflow() == true)"
                     ValueChanged="OnCanStartWorkflowChanged"/>
             </MudField>
+
+            @if (ActivityDescriptor?.TypeName != "Elsa.FlowJoin")
+            {
+                <MudField
+                    Variant="Variant.Text"
+                    UnderLine="false"
+                    Margin="Margin.Dense"
+                    HelperText="Controls how this activity merges inbound connections. Converge will wait for all inbound connections to complete, while Race will allow the first inbound path to continue while cancelling any bookmarks from other inbound paths, and Stream will let all inbound connections pass through as they arrive."
+                    Disabled="IsReadOnly">
+                    <MudSelect
+                        T="MergeMode"
+                        Label="Merge Mode"
+                        Dense="@true"
+                        Value="@Activity.GetMergeMode()"
+                        ValueChanged="OnMergeModeChanged">
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Converge">Converge</MudSelectItem>
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Race">Race</MudSelectItem>
+                        <MudSelectItem T="MergeMode" Value="MergeMode.Stream">Stream</MudSelectItem>
+                    </MudSelect>
+                </MudField>
+            }
 
         </MudStack>
     </MudForm>
