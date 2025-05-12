@@ -12,7 +12,7 @@ public class RemoteResilienceStrategyCatalog(IBackendApiClientProvider backendAp
     public async ValueTask<IEnumerable<JsonObject>> ListAsync(string category, CancellationToken cancellationToken = default)
     {
         var api = await backendApiClientProvider.GetApiAsync<IResilienceStrategiesApi>(cancellationToken);
-        var response = await api.LisAsync(category, cancellationToken);
+        var response = await api.ListAsync(category, cancellationToken);
 
         return response.Items;
     }

@@ -4,9 +4,9 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup Label="Elss">
-        <PackageVersion Include="Elsa.Integrations.Agents.Models" Version="3.5.0-preview.20"/>
-        <PackageVersion Include="Elsa.Api.Client" Version="3.5.0-preview.2898"/>
-        <PackageVersion Include="Elsa.Secrets.Models" Version="3.5.0-preview.2898"/>
+        <PackageVersion Include="Elsa.Integrations.Agents.Models" Version="$(ElsaIntegrationsVersion)"/>
+        <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)"/>
+        <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)"/>
     </ItemGroup>
     <ItemGroup>
         <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0"/>
