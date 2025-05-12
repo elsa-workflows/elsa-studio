@@ -9,13 +9,13 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Shared.Serialization;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
@@ -76,6 +76,7 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", _workflowInstance.Id),
+                new DataPanelItem(Localizer["Name"], _workflowInstance.Name ?? WorkflowDefinition?.Name),
                 new DataPanelItem(Localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
                 new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
                 new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
