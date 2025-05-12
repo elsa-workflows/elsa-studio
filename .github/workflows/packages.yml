@@ -74,6 +74,9 @@ jobs:
         run: |
           npm install --force
           npm run build
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
       - name: Build nuget packages
         run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
       - name: Test
