@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Server" type="DotNetProject" factoryName=".NET Project">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server/bin/Debug/net8.0/Elsa.Studio.Host.Server" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server/bin/Debug/net9.0/Elsa.Studio.Host.Server" />
     <option name="PROGRAM_PARAMETERS" value="--applicationpath $PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server/bin/Debug/net7.0/Elsa.Studio.Host.Server.dll" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server" />
     <option name="PASS_PARENT_ENVS" value="1" />
@@ -22,7 +22,7 @@
     <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
     <option name="PROJECT_KIND" value="DotNetCore" />
-    <option name="PROJECT_TFM" value="net8.0" />
+    <option name="PROJECT_TFM" value="net9.0" />
     <method v="2" />
   </configuration>
 </component>
