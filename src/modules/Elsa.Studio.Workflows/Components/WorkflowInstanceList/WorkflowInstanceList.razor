@@ -48,7 +48,7 @@
 
     <MudSpacer/>
 
-    <MudSelect T="@(bool?)" Label="@Localizer["Has Incidents"]" ValueChanged="@OnHasIncidentsChanged" Class="me-3" PopoverClass="mw-300" Value="@HasIncidents" Variant="Variant.Outlined" OuterClass="mud-select-has-incidents">
+    <MudSelect T="@(bool?)" Label="@Localizer["Has Incidents"]" ValueChanged="@OnHasIncidentsChanged" Class="me-3" PopoverClass="mw-300" Value="@HasIncidents" Variant="Variant.Outlined" Margin="Margin.Dense" Dense=true OuterClass="mud-select-has-incidents">
         <MudSelectItem T="@(bool?)" Value="@(default(bool?))">-</MudSelectItem>
         <MudSelectItem T="@(bool?)" Value="@(true)">@Localizer["Yes"]</MudSelectItem>
         <MudSelectItem T="@(bool?)" Value="@(false)">@Localizer["No"]</MudSelectItem>
@@ -59,6 +59,7 @@
         Text="@SearchTerm"
         Placeholder="@Localizer["Search on name, id, definition id, definition version id, correlation id"]"
         Variant="Variant.Outlined"
+        Margin="Margin.Dense"
         AdornmentIcon="@Icons.Material.Outlined.Search"
         Adornment="Adornment.End"
         Clearable="true"
@@ -77,6 +78,7 @@
         SearchBoxAutoFocus="true"
         AnchorOrigin="Origin.BottomCenter"
         Variant="Variant.Outlined"
+        Margin="Margin.Dense"
         Clearable="true"
         SearchBoxClearable="true"
         Dense="true"
@@ -103,6 +105,7 @@
         ValuePresenter="ValuePresenter.Chip"
         MultiSelection="true"
         Variant="Variant.Outlined"
+        Margin="Margin.Dense"
         AnchorOrigin="Origin.BottomCenter"
         Dense="true"
         ChipSize="Size.Small"
@@ -124,6 +127,7 @@
         ValuePresenter="ValuePresenter.Chip"
         MultiSelection="true"
         Variant="Variant.Outlined"
+        Margin="Margin.Dense"
         AnchorOrigin="Origin.BottomCenter"
         Dense="true"
         ChipSize="Size.Small"

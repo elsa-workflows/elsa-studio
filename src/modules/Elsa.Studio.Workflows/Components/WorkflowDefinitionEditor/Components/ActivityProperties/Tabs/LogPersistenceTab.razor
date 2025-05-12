@@ -34,7 +34,8 @@
             ReadOnly="IsReadOnly">
             <MudSelect Label="@Localizer[label]"
                        T="string"
-                       Variant="@Variant.Outlined"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
                        Value="@strategyType"
                        ValueChanged="@(async type =>
                                      {
@@ -51,10 +52,11 @@
         </ExpressionEditor>;
     }
 }
-<div class="pa-4">
-    <MudForm ReadOnly="IsReadOnly">
-        <MudStack Spacing="6">
-            <MudText Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
+
+<MudForm ReadOnly="IsReadOnly">
+    <MudStack>
+        <div>
+            <MudText  Typo="Typo.overline">@Localizer["Default Configuration"]</MudText>
             @RenderSelectComponent(
                 @Localizer["Default Strategy"],
                 null,
@@ -62,8 +64,10 @@
                 EventCallback.Factory.Create<Expression>(this, OnDefaultExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnDefaultStrategyChanged)
             )
-            <MudDivider/>
-            <MudText Typo="Typo.overline">@Localizer["Internal State"]</MudText>
+        </div>
+        <MudDivider/>
+        <div>
+            <MudText Class="mb-0" Typo="Typo.overline">@Localizer["Internal State"]</MudText>
             @RenderSelectComponent(
                 @Localizer["Internal State"],
                 null,
@@ -71,7 +75,9 @@
                 EventCallback.Factory.Create<Expression>(this, OnInternalStateExpressionChanged),
                 EventCallback.Factory.Create<string>(this, OnInternalStateStrategyChanged)
             )
-            <MudDivider/>
+        </div>
+        <MudDivider/>
+        <div>
             <MudText Typo="Typo.overline">@Localizer["Input Properties"]</MudText>
             @if (!InputDescriptors.Any())
             {
@@ -83,19 +89,22 @@
             }
             else
             {
-                foreach (var input in InputDescriptors)
-                {
-                    var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
-                    @RenderSelectComponent(
-                        input.Name,
-                        input,
-                        config,
-                        EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
-                        EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
-                }
+                <MudStack Spacing="3">
+                    @foreach (var input in InputDescriptors)
+                    {
+                        var config = GetLogPersistenceConfig(input.Name, _persistenceConfiguration.Inputs);
+                        @RenderSelectComponent(
+                            input.Name,
+                            input,
+                            config,
+                            EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(input.Name, _persistenceConfiguration.Inputs, expr)),
+                            EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(input.Name, _persistenceConfiguration.Inputs, value)))
+                    }
+                </MudStack>
             }
-
-            <MudDivider/>
+        </div>
+        <MudDivider/>
+        <div>
             <MudText Typo="Typo.overline">@Localizer["Output Properties"]</MudText>
             @if (!OutputDescriptors.Any())
             {
@@ -107,17 +116,20 @@
             }
             else
             {
-                foreach (var output in OutputDescriptors)
-                {
-                    var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
-                    @RenderSelectComponent(
-                        output.Name,
-                        output,
-                        config,
-                        EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
-                        EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))
-                }
+                <MudStack Spacing="3">
+                    @foreach (var output in OutputDescriptors)
+                    {
+                        var config = GetLogPersistenceConfig(output.Name, _persistenceConfiguration.Outputs);
+                        @RenderSelectComponent(
+                            output.Name,
+                            output,
+                            config,
+                            EventCallback.Factory.Create<Expression>(this, expr => OnPropertyExpressionChanged(output.Name, _persistenceConfiguration.Outputs, expr)),
+                            EventCallback.Factory.Create<string>(this, value => OnPropertyStrategyChanged(output.Name, _persistenceConfiguration.Outputs, value)))
+                    }
+
+                </MudStack>
             }
-        </MudStack>
-    </MudForm>
-</div>
+        </div>
+    </MudStack>
+</MudForm>
