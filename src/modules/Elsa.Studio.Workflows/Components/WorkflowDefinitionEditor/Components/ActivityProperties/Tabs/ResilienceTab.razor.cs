@@ -56,7 +56,7 @@ public partial class ResilienceTab
             if (ResilienceStrategyConfig?.Mode == ResilienceStrategyConfigMode.Expression && Expression != null && ExpressionEditor != null)
             {
                 _isInitialized = true;
-                await ExpressionEditor.SetContentAsync(Expression?.Value?.ToString() ?? string.Empty);
+                await ExpressionEditor.UpdateAsync(Expression);
             }
         }
     }
