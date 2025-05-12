@@ -12,6 +12,7 @@ using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
