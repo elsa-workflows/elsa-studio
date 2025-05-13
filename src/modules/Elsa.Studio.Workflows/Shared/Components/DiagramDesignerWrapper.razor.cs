@@ -456,7 +456,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (!IsReadOnly)
+        if (IsReadOnly)
             return;
 
         // If the activity is a workflow definition activity, then open the workflow definition editor.
@@ -515,20 +515,22 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
-            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
+            var childDescriptor = ActivityRegistry.Find(
+                embeddedActivity.GetTypeName(),
+                embeddedActivity.GetVersion()
+            )!;
+            var childPortContext = new PortProviderContext(childDescriptor, embeddedActivity);
+            var childPortProvider = ActivityPortService.GetProvider(childPortContext);
+            var childPorts = childPortProvider.GetPorts(childPortContext);
 
-            // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
-            if (
-                embeddedActivityTypeName != "Elsa.Flowchart"
-                && embeddedActivityTypeName != "Elsa.Workflow"
-            )
+            // if it has _no_ ports, it’s just a leaf — show the property editor:
+            if (!childPorts.Any())
             {
                 if (ActivitySelected.HasDelegate)
                     await ActivitySelected.InvokeAsync(embeddedActivity);
+
                 return;
             }
-
-            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
         }
         else
         {
