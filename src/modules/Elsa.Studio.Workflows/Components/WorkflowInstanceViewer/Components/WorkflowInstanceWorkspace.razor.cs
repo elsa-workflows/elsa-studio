@@ -42,9 +42,9 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     }
 
     /// Selects the associated activity in the designer and activates its Event tab.
-    public async Task OnIncidentActivityIdClicked(string activityId)
+    public async Task OnIncidentActivityNodeIdClicked(string activityNodeId)
     {
-        await _workflowInstanceDesigner.SelectActivityByIdAsync(activityId);
+        await _workflowInstanceDesigner.SelectActivityAsync(activityNodeId);
     }
     
     private async Task OnPathChanged(DesignerPathChangedArgs args)

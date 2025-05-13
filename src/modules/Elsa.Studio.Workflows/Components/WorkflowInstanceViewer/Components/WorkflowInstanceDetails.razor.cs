@@ -9,13 +9,13 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Shared.Serialization;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 
@@ -56,7 +56,7 @@ public partial class WorkflowInstanceDetails
     /// <summary>
     /// Gets or sets the current selected incident activity id.
     /// </summary>
-    [Parameter] public Func<string, Task>? IncidentActivityIdClicked { get; set; }
+    [Parameter] public Func<string, Task>? IncidentActivityNodeIdClicked { get; set; }
 
     [Inject] private IStorageDriverService StorageDriverService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
@@ -76,6 +76,7 @@ public partial class WorkflowInstanceDetails
             return new()
             {
                 new DataPanelItem("ID", _workflowInstance.Id),
+                new DataPanelItem(Localizer["Name"], _workflowInstance.Name ?? WorkflowDefinition?.Name),
                 new DataPanelItem(Localizer["Definition ID"], _workflowInstance.DefinitionId, $"/workflows/definitions/{_workflowInstance.DefinitionId}/edit"),
                 new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
                 new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
@@ -190,7 +191,8 @@ public partial class WorkflowInstanceDetails
             return _workflowInstance.WorkflowState.Incidents
                 .Select(i => new DataPanelModel
                 {
-                    new DataPanelItem("ActivityId", i.ActivityId, null, () => OnIncidentActivityIdClicked(i.ActivityId)),
+                    new DataPanelItem("ActivityId", i.ActivityId),
+                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId, null, () => OnIncidentActivityNodeIdClicked(i.ActivityNodeId)),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
                     new DataPanelItem("InnerException", i.Exception?.InnerException != null
                         ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
@@ -200,10 +202,10 @@ public partial class WorkflowInstanceDetails
         }
     }
     
-    private async Task OnIncidentActivityIdClicked(string? activityId)
+    private async Task OnIncidentActivityNodeIdClicked(string? activityNodeId)
     {
-        if (IncidentActivityIdClicked != null && !string.IsNullOrWhiteSpace(activityId))
-            await IncidentActivityIdClicked(activityId);
+        if (IncidentActivityNodeIdClicked != null && !string.IsNullOrWhiteSpace(activityNodeId))
+            await IncidentActivityNodeIdClicked(activityNodeId);
     }
 
     private DataPanelModel SubWorkflowInputData

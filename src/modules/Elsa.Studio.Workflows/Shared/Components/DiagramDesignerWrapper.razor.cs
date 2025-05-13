@@ -137,15 +137,13 @@ public partial class DiagramDesignerWrapper
         if (nodeId == null)
             return;
 
-        // Load the selected node path from the backend.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(
-            WorkflowDefinitionVersionId,
-            nodeId
-        );
-
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+        
         if (pathSegmentsResponse == null)
             return;
 
+        await IndexActivityNodes(pathSegmentsResponse.Container.Activity);
+        
         activityToSelect = pathSegmentsResponse.ChildNode.Activity;
         var pathSegments = pathSegmentsResponse.PathSegments.ToList();
         StateHasChanged();
@@ -158,7 +156,7 @@ public partial class DiagramDesignerWrapper
             foreach (var segment in pathSegments)
                 segments.Push(segment);
         });
-
+        
         // Display the new segment.
         _currentContainerActivity = null;
         await DisplayCurrentSegmentAsync();
@@ -523,7 +521,7 @@ public partial class DiagramDesignerWrapper
             var childPortProvider = ActivityPortService.GetProvider(childPortContext);
             var childPorts = childPortProvider.GetPorts(childPortContext);
 
-            // if it has _no_ ports, it’s just a leaf — show the property editor:
+            // if it has _no_ ports, itï¿½s just a leaf ï¿½ show the property editor:
             if (!childPorts.Any())
             {
                 if (ActivitySelected.HasDelegate)

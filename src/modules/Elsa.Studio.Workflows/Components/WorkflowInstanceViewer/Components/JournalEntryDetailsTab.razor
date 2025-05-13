@@ -17,13 +17,11 @@
 
         Merge(eventInfo, payload);
         
-        <div class="pa-4">
-            <MudStack>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Event"]</MudText>
-                    <DataPanel Data="eventInfo" HideEmptyValues="true"/>
-                </div>
-            </MudStack>
-        </div>
+        <MudStack>
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Event"]</MudText>
+                <DataPanel Data="eventInfo" HideEmptyValues="true"/>
+            </div>
+        </MudStack>
     }
 </ScrollableWell>
