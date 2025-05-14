@@ -1555,4 +1555,13 @@
   <data name="Variable" xml:space="preserve">
     <value>变量</value>
   </data>
+  <data name="Exclude" xml:space="preserve">
+    <value>排除</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>包括</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>加载</value>
+  </data>
 </root>
