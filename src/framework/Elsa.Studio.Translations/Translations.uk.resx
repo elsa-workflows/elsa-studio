@@ -113,7 +113,7 @@
     <value>Стратегія активації</value>
   </data>
   <data name="Activities" xml:space="preserve">
-    <value>Діяльність</value>
+    <value>Активність</value>
   </data>
   <data name="Activity" xml:space="preserve">
     <value>Діяльність</value>
@@ -236,7 +236,7 @@
     <value>Створити послугу</value>
   </data>
   <data name="CreatedAt" xml:space="preserve">
-    <value>CreatedAt</value>
+    <value>Створено до</value>
   </data>
   <data name="Create workflow" xml:space="preserve">
     <value>Створити робочий процес</value>
@@ -350,7 +350,7 @@
     <value>Готово</value>
   </data>
   <data name="FinishedAt" xml:space="preserve">
-    <value>FinishedAt</value>
+    <value>Закінчено о</value>
   </data>
   <data name="Flow" xml:space="preserve">
     <value>Потік</value>
@@ -419,7 +419,7 @@
     <value>Інциденти</value>
   </data>
   <data name="Info" xml:space="preserve">
-    <value>Інформація</value>
+    <value>Інфо</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Інформація</value>
@@ -755,7 +755,7 @@
     <value>Таймер</value>
   </data>
   <data name="TopP" xml:space="preserve">
-    <value>TopP</value>
+    <value>Топ П</value>
   </data>
   <data name="Trigger workflow" xml:space="preserve">
     <value>Робочий процес тригера</value>
@@ -1508,7 +1508,7 @@
     <value>Очікувані коди стану</value>
   </data>
   <data name="Running" xml:space="preserve">
-    <value>Запуск</value>
+    <value>Запущено</value>
   </data>
   <data name="Supported Methods" xml:space="preserve">
     <value>Підтримувані методи</value>
@@ -1553,7 +1553,7 @@
     <value>Кінцевий крок.</value>
   </data>
   <data name="Variable" xml:space="preserve">
-    <value>змінна</value>
+    <value>Змінна</value>
   </data>
   <data name="Load" xml:space="preserve">
     <value>Навантаження</value>
