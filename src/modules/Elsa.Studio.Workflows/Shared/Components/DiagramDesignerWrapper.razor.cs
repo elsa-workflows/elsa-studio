@@ -142,10 +142,11 @@ public partial class DiagramDesignerWrapper
             WorkflowDefinitionVersionId,
             nodeId
         );
-
         if (pathSegmentsResponse == null)
             return;
 
+        await IndexActivityNodes(pathSegmentsResponse.Container.Activity);
+        
         activityToSelect = pathSegmentsResponse.ChildNode.Activity;
         var pathSegments = pathSegmentsResponse.PathSegments.ToList();
         StateHasChanged();
@@ -158,7 +159,7 @@ public partial class DiagramDesignerWrapper
             foreach (var segment in pathSegments)
                 segments.Push(segment);
         });
-
+        
         // Display the new segment.
         _currentContainerActivity = null;
         await DisplayCurrentSegmentAsync();

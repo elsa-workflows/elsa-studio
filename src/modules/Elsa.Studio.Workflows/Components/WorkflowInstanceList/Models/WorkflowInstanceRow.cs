@@ -6,7 +6,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 internal record WorkflowInstanceRow(
     string WorkflowInstanceId,
     string? CorrelationId,
-    WorkflowDefinitionSummary WorkflowDefinition,
+    string WorkflowDefinitionName,
     int Version,
     string? Name,
     WorkflowStatus Status,
