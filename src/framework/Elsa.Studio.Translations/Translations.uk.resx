@@ -1555,4 +1555,19 @@
   <data name="Variable" xml:space="preserve">
     <value>змінна</value>
   </data>
+  <data name="Load" xml:space="preserve">
+    <value>Навантаження</value>
+  </data>
+  <data name="Configuration" xml:space="preserve">
+    <value>Конфігурація</value>
+  </data>
+  <data name="Provider Type" xml:space="preserve">
+    <value>Тип постачальника</value>
+  </data>
+  <data name="Exclude" xml:space="preserve">
+    <value>Виключити</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>Включати</value>
+  </data>
 </root>
