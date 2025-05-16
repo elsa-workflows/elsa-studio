@@ -69,7 +69,6 @@ builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
-builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
