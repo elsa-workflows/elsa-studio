@@ -6,6 +6,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
@@ -60,19 +61,34 @@ public partial class FlowchartDesignerWrapper
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
     private FlowchartDesigner Designer { get; set; } = default!;
 
+    private string? _lastFlowchartId;
+
     /// <summary>
     /// Loads the specified flowchart activity into the designer.
     /// </summary>
     /// <param name="activity">The flowchart activity to load.</param>
     /// <param name="activityStats">A map of activity stats.</param>
-    public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = default)
+    public async Task LoadFlowchartAsync(
+        JsonObject activity,
+        IDictionary<string, ActivityStats>? activityStats = default
+    )
     {
-        if (activity.GetTypeName() != "Elsa.Flowchart")
-            throw new ArgumentException("Activity must be an Elsa.Flowchart", nameof(activity));
+        // 1) Unwrap any container to the real Elsa.Flowchart
+        var flowchart = activity.GetFlowchart() ?? activity.FindActivitiesContainer();
 
-        Flowchart = activity;
+        if (flowchart == null)
+            return;
+        // 2) Bail out if it's the exact same chart we already have
+        var id = flowchart.GetId();
+        if (id == _lastFlowchartId)
+            return;
+
+        // 3) Otherwise record and hand off
+        _lastFlowchartId = id;
+        Flowchart = flowchart;
         ActivityStats = activityStats;
-        await Designer.LoadFlowchartAsync(activity, activityStats);
+
+        await Designer.LoadFlowchartAsync(flowchart, activityStats);
     }
 
     /// <summary>
