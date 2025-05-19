@@ -103,7 +103,8 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
 
     private async Task InvokeDesignerActionAsync(Func<FlowchartDesignerWrapper, Task> action)
     {
-        if (_designerWrapper != null) await action(_designerWrapper);
+        if (_designerWrapper != null && action != null)
+            await action(_designerWrapper);
     }
 
     private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;

@@ -224,14 +224,40 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="activity">The flowchart to load.</param>
     /// <param name="activityStats">The activity stats to load.</param>
-    public async Task LoadFlowchartAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    public async Task LoadFlowchartAsync(
+        JsonObject activity,
+        IDictionary<string, ActivityStats>? activityStats
+    )
     {
         Flowchart = activity;
         ActivityStats = activityStats;
+
+        // 2) Get the mapper as before
         var flowchartMapper = await GetFlowchartMapperAsync();
-        var flowchart = activity.GetFlowchart();
-        var graph = flowchartMapper.Map(flowchart, activityStats);
+
+        // 3) Instead of unwrapping only Elsa.Flowchart, find any container
+        //    with an 'activities' array (or fall back to a synthetic one)
+        var container = activity.FindActivitiesContainer() ?? CreateSyntheticContainer(activity);
+
+        // 4) Map and schedule the graph load
+        var graph = flowchartMapper.Map(container, activityStats);
         await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
+    }
+
+    // Helper: wrap a single activity in an 'activities' array
+    // Helper: wrap a single activity in an 'activities' array
+    // by cloning it so it has no existing parent.
+    private JsonObject CreateSyntheticContainer(JsonObject single)
+    {
+        // Make a copy so we don't reparent the original
+        var cloned = (JsonObject)single.DeepClone()!;
+
+        // Put the clone into a brand-new array
+        var arr = new JsonArray();
+        arr.Add(cloned);
+
+        // Wrap it up
+        return new JsonObject { ["activities"] = arr };
     }
 
     /// <summary>
@@ -263,10 +289,15 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
 
     /// Update the Graph Layout.
-    public async Task AutoLayoutAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    public async Task AutoLayoutAsync(
+        JsonObject activity,
+        IDictionary<string, ActivityStats>? activityStats
+    )
     {
         var flowchartMapper = await GetFlowchartMapperAsync();
         var flowchart = activity.GetFlowchart();
+        if (flowchart == null)
+            return;
         var graph = flowchartMapper.Map(flowchart, activityStats);
         await ScheduleGraphActionAsync(() => _graphApi.AutoLayoutAsync(graph));
     }

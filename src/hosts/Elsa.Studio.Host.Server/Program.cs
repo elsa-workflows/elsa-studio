@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
@@ -61,9 +60,8 @@ var localizationConfig = new LocalizationConfig
 };
 
 builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
-builder.Services.AddCore().Replace(new ServiceDescriptor(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
+builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
-
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
@@ -71,7 +69,6 @@ builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
-builder.Services.AddAgentsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
