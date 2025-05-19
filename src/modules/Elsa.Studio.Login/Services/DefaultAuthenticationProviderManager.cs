@@ -1,6 +1,6 @@
 ﻿using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Services;
+namespace Elsa.Studio.Login.Services;
 
 /// <inheritdoc />
 public class DefaultAuthenticationProviderManager(IEnumerable<IAuthenticationProvider> authenticationProviders) : IAuthenticationProviderManager
