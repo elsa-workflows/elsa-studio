@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
-            .AddScoped<IClientInformationProvider, StaticClientInformationProvider>()
+            .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
             ;
         

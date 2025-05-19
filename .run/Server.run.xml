@@ -5,21 +5,24 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <envs>
+      <env name="BACKEND__URL" value="https://localhost:5001/elsa/api" />
       <env name="ASPNETCORE_ENVIRONMENT" value="Development" />
       <env name="ASPNETCORE_URLS" value="https://localhost:9009" />
-      <env name="BACKEND__URL" value="https://localhost:5001/elsa/api" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    <option name="ENV_FILE_PATHS" value="" />
+    <option name="REDIRECT_INPUT_PATH" value="" />
+    <option name="PTY_MODE" value="Auto" />
     <option name="USE_MONO" value="0" />
     <option name="RUNTIME_ARGUMENTS" value="" />
+    <option name="AUTO_ATTACH_CHILDREN" value="0" />
+    <option name="MIXED_MODE_DEBUG" value="0" />
     <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/hosts/Elsa.Studio.Host.Server/Elsa.Studio.Host.Server.csproj" />
     <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
     <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
     <option name="PROJECT_KIND" value="DotNetCore" />
     <option name="PROJECT_TFM" value="net8.0" />
-    <method v="2">
-      <option name="Build" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>
