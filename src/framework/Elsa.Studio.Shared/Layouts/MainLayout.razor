@@ -53,11 +53,7 @@
                 }
                 else
                 {
-                    <Well>
-                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
-                            @context.GetType().Name: @context.Message
-                        </MudAlert>
-                    </Well>
+                    @DisplayError(context)
                 }
             </ErrorContent>
         </ErrorBoundary>
