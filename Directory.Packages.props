@@ -10,6 +10,7 @@
 	<PackageVersion Include="Elsa.Studio.Http.Webhooks" Version="$(ElsaExtensionsVersion)" />
 	<PackageVersion Include="Elsa.Studio.Secrets" Version="$(ElsaExtensionsVersion)" />
 	<PackageVersion Include="Elsa.Studio.WorkflowContexts" Version="$(ElsaExtensionsVersion)" />
+    <PackageVersion Include="Elsa.Labels" Version="$(ElsaVersion)"/>
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
@@ -58,4 +59,5 @@
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.5" />
     <PackageVersion Include="Microsoft.JSInterop" Version="9.0.5" />
   </ItemGroup>
+		
 </Project>
