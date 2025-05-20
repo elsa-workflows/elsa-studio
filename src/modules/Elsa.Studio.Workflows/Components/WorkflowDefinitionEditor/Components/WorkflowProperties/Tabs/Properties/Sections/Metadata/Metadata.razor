@@ -7,9 +7,10 @@
     <MudText Typo="Typo.overline">@Localizer["Metadata"]</MudText>
     <EditForm EditContext="@_editContext" OnValidSubmit="OnValidSubmit">
         <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator"/>
-        <MudStack Spacing="3">
-            <MudTextField T="string" Label="@Localizer["Name"]" Required="true" Variant="Variant.Outlined" HelperText="@Localizer["The name of the workflow."]" @bind-Value="@_model.Name" For="@(() => _model.Name)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
-            <MudTextField T="string" Label="@Localizer["Description"]" Variant="Variant.Outlined" HelperText="@Localizer["A brief description of the workflow."]" Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+        <MudStack>
+            <MudTextField T="string" Label="@Localizer["Name"]" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" HelperText="@Localizer["The name of the workflow."]" @bind-Value="@_model.Name" For="@(() => _model.Name)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+            <MudTextField T="string" Label="@Localizer["Description"]" Variant="Variant.Outlined" Margin="Margin.Dense" HelperText="@Localizer["A brief description of the workflow."]" Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
         </MudStack>
     </EditForm>
 </div>
+<MudDivider />
