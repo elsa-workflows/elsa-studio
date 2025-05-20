@@ -439,4 +439,7 @@
   <data name="A code editor" xml:space="preserve">
     <value>یک ویرایشگر کد</value>
   </data>
+  <data name="If" xml:space="preserve">
+    <value>اگر</value>
+  </data>
 </root>

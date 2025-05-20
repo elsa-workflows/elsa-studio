@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -16,7 +17,6 @@ using MudBlazor;
 using Refit;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Microsoft.Extensions.Logging;
-using Elsa.Studio.Localization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
@@ -119,7 +119,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
                 x.Id,
                 x.CorrelationId,
-                workflowDefinitionVersionsLookup[x.DefinitionVersionId],
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? "",
                 x.Version,
                 x.Name,
                 x.Status,
@@ -144,7 +144,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _totalCount = 0;
             return new() { TotalItems = 0, Items = Array.Empty<WorkflowInstanceRow>() };
         }
-
     }
 
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
@@ -287,7 +286,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"]);
         var dialogResult = await reference.Result;
-        
+
         if (dialogResult == null || dialogResult.Canceled)
             return;
 
@@ -295,9 +294,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         if (applyToAllMatches)
         {
+            var cancel = new JsonObject
+            {
+                ["type"] = "Cancel"
+            };
+
             var plan = new AlterationPlanParams
             {
-                Alterations = [new Cancel()],
+                Alterations = [cancel],
                 Filter = new()
                 {
                     EmptyFilterSelectsAll = true,
