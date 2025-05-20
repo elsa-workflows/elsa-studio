@@ -31,6 +31,6 @@
   
   <PropertyGroup Label="PackageVersions">
     <ElsaVersion>3.6.0-preview.2950</ElsaVersion>
-    <ElsaIntegrationsVersion>3.6.0-preview.22</ElsaIntegrationsVersion>
+    <ElsaExtensionsVersion>3.6.0-preview.28</ElsaExtensionsVersion>
   </PropertyGroup>
 </Project>
