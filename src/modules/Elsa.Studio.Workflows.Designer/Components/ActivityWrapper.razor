@@ -7,7 +7,7 @@
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
     var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
-    var content = Stats == null ? null : Stats.Blocked ? null : Stats.Completed.ToString();
+    var content = Stats == null ? null : Stats.Faulted || Stats.Blocked ? Stats.Started.ToString() : Stats.Completed.ToString();
     var icon = Stats == null ? null : content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : null : null;
     var showBadge = Stats != null;
 
@@ -34,7 +34,7 @@
                                 var portName = port.Name;
                                 var providerContext = new PortProviderContext(_activityDescriptor, Activity);
                                 var portProvider = ActivityPortService.GetProvider(providerContext);
-                                var childActivity = portProvider.ResolvePort(portName, new PortProviderContext(_activityDescriptor, Activity));
+                                var childActivity = portProvider.ResolvePort(portName, new(_activityDescriptor, Activity));
 
                                 @if (childActivity != null)
                                 {

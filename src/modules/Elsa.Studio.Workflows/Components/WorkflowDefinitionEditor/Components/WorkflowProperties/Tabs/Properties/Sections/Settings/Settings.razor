@@ -42,6 +42,7 @@
                 }
             </MudSelect>
             <ExpressionEditor
+                @ref="_logPersistenceExpressionEditor"
                 ExpressionChanged="@OnLogPersistenceExpressionChanged"
                 Expression="_logPersistenceConfiguration?.Expression"
                 CustomProperties="GetExpressionEditorProps()"
@@ -74,14 +75,14 @@
                 Label="@Localizer["Commit Strategy"]"
                 Variant="@Variant.Outlined"
                 Value="@_selectedCommitStrategy"
-                ToStringFunc="@(x => string.IsNullOrWhiteSpace(x?.DisplayName) ? "-" : x.DisplayName)"
+                ToStringFunc="@(x => string.IsNullOrWhiteSpace(x?.DisplayName) ? Localizer["Default"] : x.DisplayName)"
                 ValueChanged="@OnCommitStrategySelectionChanged"
                 HelperText="@(_selectedCommitStrategy?.Description)"
                 ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                 @foreach (var strategy in _commitStrategies)
                 {
                     <MudSelectItem T="CommitStrategyDescriptor"
-                                   Value="@strategy">@(string.IsNullOrWhiteSpace(strategy?.DisplayName) ? "-" : strategy.DisplayName)</MudSelectItem>
+                                   Value="@strategy">@(string.IsNullOrWhiteSpace(strategy?.DisplayName) ? Localizer["Default"] : strategy.DisplayName)</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>

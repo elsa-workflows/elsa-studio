@@ -21,7 +21,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class Settings
 {
     private readonly JsonSerializerOptions _serializerOptions = SerializerOptions.LogPersistenceConfigSerializerOptions;
-    
+
     /// <summary>
     /// The workflow definition.
     /// </summary>
@@ -52,6 +52,7 @@ public partial class Settings
     private LogPersistenceStrategyDescriptor? _selectedLogPersistenceStrategy;
     private LogPersistenceConfiguration? _logPersistenceConfiguration;
     private CommitStrategyDescriptor? _selectedCommitStrategy;
+    private ExpressionEditor _logPersistenceExpressionEditor = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -67,6 +68,7 @@ public partial class Settings
         _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x?.Name == WorkflowDefinition!.Options.CommitStrategyName) ?? _commitStrategies.FirstOrDefault();
         _logPersistenceConfiguration = GetLogPersistenceConfiguration();
         _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
+        await _logPersistenceExpressionEditor.UpdateAsync(_logPersistenceConfiguration?.Expression);
     }
 
     private LogPersistenceMode? GetLegacyGetLogPersistenceMode()
@@ -91,7 +93,7 @@ public partial class Settings
 
         var legacyMode = GetLegacyGetLogPersistenceMode();
         var strategyDescriptor = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.DisplayName == legacyMode.ToString()) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
-        return new LogPersistenceConfiguration
+        return new()
         {
             EvaluationMode = LogPersistenceEvaluationMode.Strategy,
             StrategyType = strategyDescriptor?.TypeName
@@ -112,7 +114,7 @@ public partial class Settings
         WorkflowDefinition!.CustomProperties["logPersistenceConfig"] = dictionaryJson;
         await RaiseWorkflowUpdatedAsync();
     }
-    
+
     private IDictionary<string, object> GetExpressionEditorProps()
     {
         var props = new Dictionary<string, object>
@@ -179,7 +181,7 @@ public partial class Settings
         WorkflowDefinition!.Options.ActivityCategory = value;
         await RaiseWorkflowUpdatedAsync();
     }
-    
+
     private async Task OnCommitStrategySelectionChanged(CommitStrategyDescriptor? value)
     {
         _selectedCommitStrategy = value;
