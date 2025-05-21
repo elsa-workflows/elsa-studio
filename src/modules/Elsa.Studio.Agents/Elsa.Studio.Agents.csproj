@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Elsa.Integrations.Agents.Models" />
+        <PackageReference Include="Elsa.Agents.Models" />
     </ItemGroup>
 
     <ItemGroup>
