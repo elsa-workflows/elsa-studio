@@ -1,5 +1,8 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Api.Client.Resources.Resilience.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
@@ -28,7 +31,8 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-    private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
+    private ActivityExecutionRecord? SelectedItem { get; set; }
+    private DataPanelModel SelectedRetryAttemptsData { get; set; } = new();
     private DataPanelModel SelectedActivityState { get; set; } = new();
     private DataPanelModel SelectedOutcomesData { get; set; } = new();
     private DataPanelModel SelectedOutputData { get; set; } = new();
@@ -73,11 +77,25 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         SelectedOutcomesData = outcomesData ?? new();
         SelectedOutputData = outputData;
     }
+    
+    private void CreateSelectedRetryAttemptsDataModel(PagedListResponse<RetryAttemptRecord> retryAttempts)
+    {
+        if (retryAttempts.TotalCount == 0)
+        {
+            SelectedRetryAttemptsData = new();
+            return;
+        }
+
+        var dataPanelItems = retryAttempts.Items.Select(x => new DataPanelItem(x.AttemptNumber.ToString()))
+        SelectedRetryAttemptsData = new DataPanelModel(dataPanelItems);
+    }
 
     private async Task RefreshSelectedItemAsync(string id)
     {
         SelectedItem = await ActivityExecutionService.GetAsync(id);
+        var retryAttempts = await ActivityExecutionService.GetRetriesAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
+        CreateSelectedRetryAttemptsDataModel(retryAttempts);
         await InvokeAsync(StateHasChanged);
     }
 

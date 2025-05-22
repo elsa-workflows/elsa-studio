@@ -3,6 +3,9 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.ActivityExecutions.Requests;
+using Elsa.Api.Client.Resources.Resilience.Contracts;
+using Elsa.Api.Client.Resources.Resilience.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
@@ -59,5 +62,12 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     {
         var api = await backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         return await api.GetAsync(id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
+    {
+        var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
+        return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
     }
 }

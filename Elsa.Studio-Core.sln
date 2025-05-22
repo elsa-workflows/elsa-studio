@@ -97,6 +97,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Localization.Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Translations", "src\framework\Elsa.Studio.Translations\Elsa.Studio.Translations.csproj", "{DEFD3B1C-BCD1-4442-BF4B-6517FF19ECBC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "elsa", "elsa", "{7A0B2C03-0725-499E-B739-3FB41983B679}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Api.Client", "..\..\elsa-core\3.5.0\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj", "{CED02683-4B65-496B-B0B6-2EB0F1F179F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -235,6 +239,10 @@ Global
 		{DEFD3B1C-BCD1-4442-BF4B-6517FF19ECBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEFD3B1C-BCD1-4442-BF4B-6517FF19ECBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEFD3B1C-BCD1-4442-BF4B-6517FF19ECBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CED02683-4B65-496B-B0B6-2EB0F1F179F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CED02683-4B65-496B-B0B6-2EB0F1F179F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CED02683-4B65-496B-B0B6-2EB0F1F179F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CED02683-4B65-496B-B0B6-2EB0F1F179F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AA1AEE9-017E-4F8B-B5FC-2BEA37E83514} = {875A7E2E-4B7C-4AF0-A71E-3980B73AF363}
@@ -274,5 +282,6 @@ Global
 		{A37FA04C-BDEE-4790-9433-9BAE05C06B4D} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{2B7AB46C-F269-4FF5-B6B2-C73CF1C772DB} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{DEFD3B1C-BCD1-4442-BF4B-6517FF19ECBC} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{CED02683-4B65-496B-B0B6-2EB0F1F179F9} = {7A0B2C03-0725-499E-B739-3FB41983B679}
 	EndGlobalSection
 EndGlobal
