@@ -33,14 +33,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// </summary>
     [Parameter] public EventCallback<string> ViewWorkflowInstance { get; set; }
 
-    [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
-    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
-    [Inject] private IFiles Files { get; set; } = null!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
-    [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+    [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
+    [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
@@ -317,11 +317,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
             var alterationsApi = await BackendApiClientProvider.GetApiAsync<IAlterationsApi>();
             await alterationsApi.Submit(plan);
-            Snackbar.Add("Workflow instances are being cancelled.", Severity.Info, options =>
-            {
-                options.SnackbarVariant = Variant.Filled;
-                options.ShowTransitionDuration = 2000;
-            });
+            UserMessageService.ShowSnackbarTextMessage("Workflow instances are being cancelled.", Severity.Info, options => { options.SnackbarVariant = Variant.Filled; });
         }
         else
         {
@@ -347,7 +343,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var streamParts = files.Select(x => new StreamPart(x.OpenReadStream(maxAllowedSize), x.Name, x.ContentType)).ToList();
         var count = await WorkflowInstanceService.BulkImportAsync(streamParts);
         var message = count == 1 ? Localizer["Successfully imported one instance"] : Localizer["Successfully imported {0} instances", count];
-        Snackbar.Add(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+        UserMessageService.ShowSnackbarTextMessage(message, Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
     }
 

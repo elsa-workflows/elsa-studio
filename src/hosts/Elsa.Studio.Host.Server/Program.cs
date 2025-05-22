@@ -8,7 +8,7 @@ using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Secrets;
 using Elsa.Studio.Shell.Extensions;
-using Elsa.Studio.Webhooks.Extensions;
+using Elsa.Studio.Http.Webhooks.Extensions;
 using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
