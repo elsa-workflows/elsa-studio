@@ -139,6 +139,7 @@ public partial class DiagramDesignerWrapper
 
         var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
         
+
         if (pathSegmentsResponse == null)
             return;
 
@@ -513,6 +514,7 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
+
             var childDescriptor = ActivityRegistry.Find(
                 embeddedActivity.GetTypeName(),
                 embeddedActivity.GetVersion()
@@ -523,6 +525,15 @@ public partial class DiagramDesignerWrapper
 
             // if it has _no_ ports, it�s just a leaf � show the property editor:
             if (!childPorts.Any())
+
+            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
+
+            // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
+            if (
+                embeddedActivityTypeName != "Elsa.Flowchart"
+                && embeddedActivityTypeName != "Elsa.Workflow"
+            )
+
             {
                 if (ActivitySelected.HasDelegate)
                     await ActivitySelected.InvokeAsync(embeddedActivity);
