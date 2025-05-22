@@ -32,7 +32,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
     private ActivityExecutionRecord? SelectedItem { get; set; }
-    private DataPanelModel SelectedRetryAttemptsData { get; set; } = new();
+    private PagedListResponse<RetryAttemptRecord> Retries { get; set; } = new();
     private DataPanelModel SelectedActivityState { get; set; } = new();
     private DataPanelModel SelectedOutcomesData { get; set; } = new();
     private DataPanelModel SelectedOutputData { get; set; } = new();
@@ -77,25 +77,13 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         SelectedOutcomesData = outcomesData ?? new();
         SelectedOutputData = outputData;
     }
-    
-    private void CreateSelectedRetryAttemptsDataModel(PagedListResponse<RetryAttemptRecord> retryAttempts)
-    {
-        if (retryAttempts.TotalCount == 0)
-        {
-            SelectedRetryAttemptsData = new();
-            return;
-        }
-
-        var dataPanelItems = retryAttempts.Items.Select(x => new DataPanelItem(x.AttemptNumber.ToString()))
-        SelectedRetryAttemptsData = new DataPanelModel(dataPanelItems);
-    }
 
     private async Task RefreshSelectedItemAsync(string id)
     {
         SelectedItem = await ActivityExecutionService.GetAsync(id);
         var retryAttempts = await ActivityExecutionService.GetRetriesAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
-        CreateSelectedRetryAttemptsDataModel(retryAttempts);
+        Retries = retryAttempts;
         await InvokeAsync(StateHasChanged);
     }
 

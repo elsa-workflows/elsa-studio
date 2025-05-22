@@ -53,11 +53,11 @@
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
                     <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output associated with this execution."]"/>
                 </div>
-                @if (RetryAttempts != null)
+                @if (Retries.TotalCount > 0)
                 {
                     <div>
-                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
-                        <DataPanel Data="@RetryAttempts" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No retry attempts associated with this execution."]"/>   
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Retry Attempts"]</MudText>
+                        <RetriesTab Retries="@Retries.Items" />      
                     </div>
                 }
             </div>
