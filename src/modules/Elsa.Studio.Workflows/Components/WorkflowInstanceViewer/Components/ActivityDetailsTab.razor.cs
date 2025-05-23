@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
@@ -138,7 +138,7 @@ public partial class ActivityDetailsTab
                 dict.Remove("$type");
             }
 
-            var panelItems = dict.Select(x => new DataPanelItem(x.Key, x.Value.ToString()));
+            var panelItems = dict.Select(x => new DataPanelItem(x.Key.Pascalize(), x.Value.ToString()));
             resilienceStrategyData.Add("Type", type);
             resilienceStrategyData.AddRange(panelItems);
         }
