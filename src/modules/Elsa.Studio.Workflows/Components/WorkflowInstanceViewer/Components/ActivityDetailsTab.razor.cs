@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
@@ -13,27 +14,22 @@ public partial class ActivityDetailsTab
 {
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
-    
+
     /// The activity to display details for.
     [Parameter] public JsonObject Activity { get; set; } = null!;
-    
+
     /// The latest activity execution record. Used for displaying the last state of the activity.
     [Parameter] public ActivityExecutionRecord? LastActivityExecution { get; set; }
 
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
-    
-
-    private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
 
     private DataPanelModel ActivityInfo { get; set; } = new();
     private DataPanelModel ActivityData { get; set; } = new();
     private DataPanelModel OutcomesData { get; set; } = new();
     private DataPanelModel OutputData { get; set; } = new();
     private DataPanelModel ExceptionData { get; set; } = new();
-    private IDictionary<string, string?> SelectedActivityState { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> SelectedOutcomesData { get; set; } = new Dictionary<string, string?>();
-    private IDictionary<string, string?> SelectedOutputData { get; set; } = new Dictionary<string, string?>();
-    
+    private DataPanelModel ResilienceStrategyData { get; set; } = new();
+
     /// Refreshes the component.
     public void Refresh()
     {
@@ -49,7 +45,6 @@ public partial class ActivityDetailsTab
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        SelectedItem = null;
         CreateDataModels();
     }
 
@@ -64,6 +59,8 @@ public partial class ActivityDetailsTab
         var activityVersion = activity.GetVersion();
         var exception = execution?.Exception;
         var workflowDefinitionId = activity.GetIsWorkflowDefinitionActivity() ? activity.GetWorkflowDefinitionId() : null;
+        var props = execution?.Properties;
+        var resilienceStrategy = props != null && props.TryGetValue("ResilienceStrategy", out var resilienceStrategyModel) && resilienceStrategyModel is JsonElement resilienceStrategyElement ? resilienceStrategyElement : default(JsonElement?);
 
         var activityInfo = new DataPanelModel
         {
@@ -127,39 +124,29 @@ public partial class ActivityDetailsTab
             }
         }
 
+        var resilienceStrategyData = new DataPanelModel();
+
+        if (resilienceStrategy != null)
+        {
+            var resilienceStrategyJson = JsonSerializer.Serialize(resilienceStrategy.Value, JsonSerializerOptions.Default);
+            var dict = JsonSerializer.Deserialize<IDictionary<string, object>>(resilienceStrategyJson)!;
+
+            if (dict.ContainsKey("$type"))
+            {
+                //Rename to Type.
+                dict["Type"] = dict["$type"];
+                dict.Remove("$type");
+            }
+
+            var panelItems = dict.Select(x => new DataPanelItem(x.Key, x.Value.ToString()));
+            resilienceStrategyData.AddRange(panelItems);
+        }
+
         ActivityInfo = activityInfo;
         ActivityData = activityStateData;
         OutcomesData = outcomesData;
         OutputData = outputData;
         ExceptionData = exceptionData;
-    }
-
-    private void CreateSelectedItemDataModels(ActivityExecutionRecord? record)
-    {
-        if (record == null)
-        {
-            SelectedActivityState = new Dictionary<string, string?>();
-            SelectedOutcomesData = new Dictionary<string, string?>();
-            SelectedOutputData = new Dictionary<string, string?>();
-            return;
-        }
-
-        var activityState = record.ActivityState?
-            .Where(x => !x.Key.StartsWith("_"))
-            .ToDictionary(x => x.Key, x => x.Value?.ToString());
-
-        var outcomesData = record.Payload?.TryGetValue("Outcomes", out var outcomesValue) == true
-            ? new Dictionary<string, string?> { ["Outcomes"] = outcomesValue.ToString()! }
-            : null;
-
-        var outputData = new Dictionary<string, string?>();
-
-        if (record?.Outputs != null)
-            foreach (var (key, value) in record.Outputs)
-                outputData[key] = value.ToString()!;
-
-        SelectedActivityState = activityState ?? new Dictionary<string, string?>();
-        SelectedOutcomesData = outcomesData ?? new Dictionary<string, string?>();
-        SelectedOutputData = outputData;
+        ResilienceStrategyData = resilienceStrategyData;
     }
 }

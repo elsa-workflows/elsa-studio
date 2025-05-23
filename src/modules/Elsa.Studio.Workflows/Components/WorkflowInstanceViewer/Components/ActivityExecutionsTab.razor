@@ -20,6 +20,7 @@
                 <MudTh>@Localizer["Completed"]</MudTh>
                 <MudTh>@Localizer["Duration"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Has Retries"]</MudTh>
                 <MudTh>@Localizer["Activity Instance ID"]</MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -31,6 +32,7 @@
                 <MudTd><Timestamp Value="record.CompletedAt"/> </MudTd>
                 <MudTd>@(record.CompletedAt != null ? (record.CompletedAt - record.StartedAt).Value.ToString("g") : "")</MudTd>
                 <MudTd>@record.Status</MudTd>
+                <MudTd>@(context.HasRetries ? Localizer["Yes"] : string.Empty)</MudTd>
                 <MudTd>@record.Id</MudTd>
             </RowTemplate>
             <PagerContent>

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.Resilience.Models;
@@ -17,7 +18,11 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     /// Represents a row in the table of activity executions.
     /// <param name="Number">The number of executions.</param>
     /// <param name="ActivityExecutionSummary">The activity execution summary.</param>
-    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary);
+    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary)
+    {
+        /// Indicates whether the activity execution record has recorded retries.
+        public bool HasRetries => ActivityExecutionSummary.Properties != null && ActivityExecutionSummary.Properties.TryGetValue("HasRetryAttempts", out var retryAttempts) && retryAttempts is JsonElement { ValueKind: JsonValueKind.True };
+    }
 
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
