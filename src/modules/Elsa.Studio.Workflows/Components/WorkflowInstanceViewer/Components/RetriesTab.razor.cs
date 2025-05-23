@@ -33,6 +33,7 @@ public partial class RetriesTab
 
     private void OnRetryAttemptClicked(TableRowClickEventArgs<RetryAttemptRecord> arg)
     {
+        SelectedItem = arg.Item;
         CreateSelectedItemDataModels(arg.Item);
     }
 }
