@@ -3,13 +3,14 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
 internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMapper
 {
-    public X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = default)
+    public X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = null)
     {
         var graph = new X6Graph();
         var activities = flowchart.GetActivities();

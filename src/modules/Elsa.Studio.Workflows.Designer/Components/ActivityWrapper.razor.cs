@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
@@ -16,12 +17,12 @@ namespace Elsa.Studio.Workflows.Designer.Components;
 /// </summary>
 public partial class ActivityWrapper
 {
-    private string _label = default!;
-    private string _description = default!;
+    private string _label = null!;
+    private string _description = null!;
     private bool _showDescription;
-    private string _color = default!;
+    private string _color = null!;
     private string? _icon;
-    private ActivityDescriptor _activityDescriptor = default!;
+    private ActivityDescriptor _activityDescriptor = null!;
     private ICollection<Port> _ports = new List<Port>();
 
     /// <summary>
@@ -34,19 +35,19 @@ public partial class ActivityWrapper
     /// Gets or sets the activity ID.
     /// </summary>
     [Parameter]
-    public string ActivityId { get; set; } = default!;
+    public string ActivityId { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the activity.
     /// </summary>
     [Parameter]
-    public JsonObject Activity { get; set; } = default!;
+    public JsonObject Activity { get; set; } = null!;
 
     /// <summary>
     /// Until the max depth of JSInterop is configurable to exceed 32, we need to pass the activity JSON as a string.
     /// </summary>
     [Parameter]
-    public string ActivityJson { get; set; } = default!;
+    public string ActivityJson { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the selected port name.
@@ -60,11 +61,11 @@ public partial class ActivityWrapper
     [Parameter]
     public ActivityStats? Stats { get; set; }
 
-    [Inject] private DesignerJsInterop DesignerInterop { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    [Inject] private IActivityPortService ActivityPortService { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private DesignerJsInterop DesignerInterop { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] private IActivityPortService ActivityPortService { get; set; } = null!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
 
