@@ -130,15 +130,16 @@ public partial class ActivityDetailsTab
         {
             var resilienceStrategyJson = JsonSerializer.Serialize(resilienceStrategy.Value, JsonSerializerOptions.Default);
             var dict = JsonSerializer.Deserialize<IDictionary<string, object>>(resilienceStrategyJson)!;
+            var type = "Unknown";
 
             if (dict.ContainsKey("$type"))
             {
-                //Rename to Type.
-                dict["Type"] = dict["$type"];
+                type = dict["$type"].ToString();
                 dict.Remove("$type");
             }
 
             var panelItems = dict.Select(x => new DataPanelItem(x.Key, x.Value.ToString()));
+            resilienceStrategyData.Add("Type", type);
             resilienceStrategyData.AddRange(panelItems);
         }
 
