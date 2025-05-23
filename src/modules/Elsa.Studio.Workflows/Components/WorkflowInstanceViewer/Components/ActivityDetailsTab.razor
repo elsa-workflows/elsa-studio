@@ -1,5 +1,4 @@
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -38,6 +37,14 @@
             <div>
                 <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Fault"]</MudText>
                 <DataPanel Data="ExceptionData" HideEmptyValues="true"/>
+            </div>
+        }
+        
+        @if (ResilienceStrategyData.Any())
+        {
+            <div>
+                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Resilience Strategy"]</MudText>
+                <DataPanel Data="ResilienceStrategyData" HideEmptyValues="true"/>
             </div>
         }
     </MudStack>

@@ -80,7 +80,7 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
     }
 
     /// <inheritdoc />
-    public async Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default)
+    public async Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
         var request = new GetFilteredJournalRequest
         {
@@ -97,7 +97,7 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         var response = await api.ExportAsync(id, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault($"workflow-instance-{id}.json");
 
-        return new FileDownload(fileName, response.Content!);
+        return new(fileName, response.Content!);
     }
 
     /// <inheritdoc />
@@ -107,7 +107,7 @@ public class RemoteWorkflowInstanceService : IWorkflowInstanceService
         var request = new BulkExportWorkflowInstancesRequest(ids.ToArray());
         var response = await api.BulkExportAsync(request, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault("workflow-instances.zip");
-        return new FileDownload(fileName, response.Content!);
+        return new(fileName, response.Content!);
     }
 
     /// <inheritdoc />

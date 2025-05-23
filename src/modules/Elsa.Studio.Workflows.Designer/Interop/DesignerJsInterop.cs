@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.JSInterop;
 
@@ -31,7 +32,7 @@ internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceP
         });
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = default)
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = null)
     {
         var serializerOptions = GetSerializerOptions();
         var activityJson = JsonSerializer.Serialize(activity, serializerOptions);

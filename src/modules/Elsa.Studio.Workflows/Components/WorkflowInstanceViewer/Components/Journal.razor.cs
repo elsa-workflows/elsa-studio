@@ -8,38 +8,35 @@ using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
-using MudBlazor;
-using System.Globalization;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
 /// Displays the journal for a workflow instance.
 public partial class Journal : IAsyncDisposable
 {
-    private MudTimeline _timeline = default!;
-    private IList<JournalEntry> _currentEntries = default!;
+    private IList<JournalEntry> _currentEntries = null!;
     private WorkflowInstance? _workflowInstance;
 
     /// Gets or sets a callback invoked when a journal entry is selected.
     [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
 
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = null!;
 
     private WorkflowInstance? WorkflowInstance { get; set; }
-    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = default!;
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; }
     private TimeMetricMode TimeMetricMode { get; set; } = TimeMetricMode.Relative;
     private bool ShowScopedEvents { get; set; } = true;
     private bool ShowIncidents { get; set; }
     private JournalEntry? SelectedEntry { get; set; }
     private JournalFilter? JournalFilter { get; set; }
-    private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = default!;
+    private Virtualize<JournalEntry> VirtualizeComponent { get; set; } = null!;
     private int SelectedIndex { get; set; } = -1;
 
     /// Sets the workflow instance to display the journal for.
-    public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = default)
+    public async Task SetWorkflowInstanceAsync(WorkflowInstance workflowInstance, JournalFilter? filter = null)
     {
         WorkflowInstance = _workflowInstance = workflowInstance;
         JournalFilter = filter;
@@ -106,7 +103,7 @@ public partial class Journal : IAsyncDisposable
     private async ValueTask<ItemsProviderResult<JournalEntry>> FetchExecutionLogRecordsAsync(ItemsProviderRequest request)
     {
         if (WorkflowInstance == null)
-            return new ItemsProviderResult<JournalEntry>([], 0);
+            return new([], 0);
 
         await EnsureActivityDescriptorsAsync();
 
@@ -126,7 +123,7 @@ public partial class Journal : IAsyncDisposable
         var entries = records.Skip(localSkip).Select((record, index) =>
         {
             var previousIndex = index - 1;
-            var previousRecord = previousIndex >= 0 ? records[previousIndex] : default;
+            var previousRecord = previousIndex >= 0 ? records[previousIndex] : null;
             var activityDescriptor = ActivityRegistry.Find(record.ActivityType, record.ActivityTypeVersion);
             var activityDisplaySettings = ActivityDisplaySettingsRegistry.GetSettings(record.ActivityType);
             var isEven = index % 2 == 0;
@@ -146,7 +143,7 @@ public partial class Journal : IAsyncDisposable
         // If the selected entry is still in the list, select it again.
         SelectedEntry = entries.FirstOrDefault(x => x.Record.Id == selectedEntry?.Record.Id);
 
-        return new ItemsProviderResult<JournalEntry>(entries, (int)totalCount);
+        return new(entries, (int)totalCount);
     }
 
     private async Task DisposeObserverAsync()
