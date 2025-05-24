@@ -1,5 +1,9 @@
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
+@using Elsa.Api.Client.Resources.Scripting.Extensions
+@using Elsa.Api.Client.Resources.Scripting.Models
+@using Elsa.Studio.Components
+
 <MudStack>
     <MudTable
         @ref="_table"
@@ -36,7 +40,15 @@
                 <MudTextField @bind-Value="@context.Label" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly"></MudTextField>
             </MudTd>
             <MudTd DataLabel="Condition">
-                <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly"></MudTextField>
+                @if (ShouldUseCodeEditor(context.ExpressionType))
+                {
+                    <ExpressionEditor Expression="new Expression(context.ExpressionType, context.Condition)" 
+                                     ExpressionChanged="async (expr) => { if (expr != null) { context.Condition = expr.Value?.ToString() ?? string.Empty; } }"/>
+                }
+                else
+                {
+                    <MudTextField @bind-Value="@context.Condition" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly"></MudTextField>
+                }
             </MudTd>
             <MudTd DataLabel="ExpressionType">
                 <MudSelect @bind-Value="@context.ExpressionType" Variant="Variant.Outlined" ReadOnly="EditorContext.IsReadOnly" Disabled="EditorContext.IsReadOnly">
