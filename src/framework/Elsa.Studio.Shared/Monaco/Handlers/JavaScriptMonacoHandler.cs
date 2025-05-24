@@ -27,7 +27,15 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
         if (activityTypeName == null || workflowDefinitionId == null)
             return;
 
-        var data = await typeDefinitionService.GetTypeDefinition(workflowDefinitionId, activityTypeName, propertyName);
-        await jsRuntime.InvokeVoidAsync("monaco.languages.typescript.javascriptDefaults.addExtraLib", data, null);
+        try
+        {
+            var data = await typeDefinitionService.GetTypeDefinition(workflowDefinitionId, activityTypeName, propertyName);
+            await jsRuntime.InvokeVoidAsync("monaco.languages.typescript.javascriptDefaults.addExtraLib", data, null);
+        }
+        catch (JSException ex)
+        {
+            // Log but don't crash on CSP or other JS errors
+            Console.WriteLine($"JavaScript initialization error: {ex.Message}");
+        }
     }
 }
