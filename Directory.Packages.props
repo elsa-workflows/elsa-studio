@@ -19,7 +19,7 @@
         <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8"/>
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5"/>
         <PackageVersion Include="MudBlazor" Version="8.6.0"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25155.1"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25218.8"/>
         <PackageVersion Include="MudBlazor.Translations" Version="2.4.0"/>
         <PackageVersion Include="Radzen.Blazor" Version="7.0.6"/>
         <PackageVersion Include="ShortGuid" Version="2.0.1"/>
