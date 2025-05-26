@@ -87,9 +87,10 @@ public partial class ResilienceTab
     private async Task PersistStrategyConfigAsync()
     {
         var config = ResilienceStrategyConfig ?? new ResilienceStrategyConfig();
+        var expressionType = Expression?.Type ?? "Default";
         config.Expression = Expression;
         config.StrategyId = ResilienceStrategyId;
-        config.Mode = Expression?.Type != "Default" ? ResilienceStrategyConfigMode.Expression : ResilienceStrategyConfigMode.Identifier;
+        config.Mode = expressionType == "Default" ? ResilienceStrategyConfigMode.Identifier : ResilienceStrategyConfigMode.Expression;
         ResilienceStrategyConfig = config;
         Activity?.SetResilienceStrategy(config);
 
