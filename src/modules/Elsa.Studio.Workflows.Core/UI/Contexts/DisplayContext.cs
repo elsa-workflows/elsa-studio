@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
@@ -21,4 +22,4 @@ public record DisplayContext(
     EventCallback<JsonObject> ActivityDoubleClickCallback = default,
     EventCallback GraphUpdatedCallback = default, 
     bool IsReadOnly = false,
-    IDictionary<string, ActivityStats>? ActivityStats = default);
+    IDictionary<string, ActivityStats>? ActivityStats = null);

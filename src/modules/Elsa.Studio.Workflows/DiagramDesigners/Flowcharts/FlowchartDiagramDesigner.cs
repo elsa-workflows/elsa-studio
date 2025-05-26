@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;

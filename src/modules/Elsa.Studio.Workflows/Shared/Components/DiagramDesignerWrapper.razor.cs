@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Contexts;
@@ -311,7 +312,8 @@ public partial class DiagramDesignerWrapper
                 Blocked = x.IsBlocked,
                 Completed = x.CompletedCount,
                 Started = x.StartedCount,
-                Uncompleted = x.UncompletedCount
+                Uncompleted = x.UncompletedCount,
+                Properties = x.Properties
             });
         }
     }
