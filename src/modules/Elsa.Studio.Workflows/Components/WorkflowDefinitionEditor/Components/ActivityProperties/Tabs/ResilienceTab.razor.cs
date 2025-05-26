@@ -49,7 +49,14 @@ public partial class ResilienceTab
         if (Activity == null || ActivityDescriptor == null)
             return;
 
+        var previousCategory = ResilienceCategory;
         SetProperties();
+
+        if (previousCategory != ResilienceCategory || ResilienceStrategies.Count == 0)
+        {
+            var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
+            ResilienceStrategies = strategies.ToList();
+        }
 
         if (!_isInitialized)
         {
