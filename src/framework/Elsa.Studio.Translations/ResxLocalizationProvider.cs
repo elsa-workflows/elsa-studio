@@ -7,7 +7,7 @@ namespace Elsa.Studio.Translations
     {
         public string? GetTranslation(string key)
         {
-            return Translations.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
+            return Elsa.Studio.Translations.Translations.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
         }
     }
 }

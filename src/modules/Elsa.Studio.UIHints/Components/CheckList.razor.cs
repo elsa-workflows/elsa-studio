@@ -1,5 +1,3 @@
-using System.Text.Json;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.UIHints.CheckList;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
@@ -13,13 +11,12 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class CheckList
 {
-    private ICollection<CheckListItem> _checkListItems = Array.Empty<CheckListItem>();
+    private ICollection<CheckListItem> _checkListItems = [];
 
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
