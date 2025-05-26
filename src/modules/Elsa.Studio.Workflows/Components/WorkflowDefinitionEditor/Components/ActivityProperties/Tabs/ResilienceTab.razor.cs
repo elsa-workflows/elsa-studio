@@ -48,15 +48,8 @@ public partial class ResilienceTab
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
-
-        var previousCategory = ResilienceCategory;
-        SetProperties();
-
-        if (previousCategory != ResilienceCategory || ResilienceStrategies.Count == 0)
-        {
-            var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
-            ResilienceStrategies = strategies.ToList();
-        }
+        
+        await SetPropertiesAsync();
 
         if (!_isInitialized)
         {
@@ -103,16 +96,23 @@ public partial class ResilienceTab
         await RaiseActivityUpdatedAsync();
     }
 
-    private void SetProperties()
+    private async Task SetPropertiesAsync()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
 
         var config = Activity.GetResilienceStrategy();
+        var previousCategory = ResilienceCategory;
         ResilienceCategory = ActivityDescriptor.CustomProperties.TryGetValue("ResilienceCategory", out var category) ? category.ToString() ?? DefaultCategory : DefaultCategory;
         ResilienceStrategyConfig = config;
         Expression = config?.Expression;
         ResilienceStrategyId = config?.StrategyId;
+        
+        if (previousCategory != ResilienceCategory || ResilienceStrategies.Count == 0)
+        {
+            var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
+            ResilienceStrategies = strategies.ToList();
+        }
     }
 
     private async Task OnExpressionChangedAsync(Expression? expression)
