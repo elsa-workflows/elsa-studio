@@ -23,7 +23,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 public partial class InputsTab
 {
     private readonly RateLimitedFunc<Task<IEnumerable<ActivityInputDisplayModel>>> _rateLimitedBuildInputEditorModelsAsync;
-    private readonly IDictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>> _inputPropertyRefreshRateLimiters = new Dictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>>();
 
     /// <inheritdoc />
     public InputsTab()
@@ -96,14 +95,11 @@ public partial class InputsTab
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
             {
-                var rateLimiter = GetRefreshRateLimiter(inputDescriptor);
-                var task = rateLimiter.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
-                if (task != null)
-                    await task;
+                await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor);
             }
 
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            var input = inputDescriptor.IsWrapped ? wrappedInput : (object?)value;
+            object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
             var context = new DisplayInputEditorContext
             {
@@ -124,19 +120,7 @@ public partial class InputsTab
 
         return models;
     }
-
-    private RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task> GetRefreshRateLimiter(InputDescriptor inputDescriptor)
-    {
-        var key = inputDescriptor.Name;
-        if (!_inputPropertyRefreshRateLimiters.TryGetValue(key, out var rateLimiter))
-        {
-            rateLimiter = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100), true);
-            _inputPropertyRefreshRateLimiters[key] = rateLimiter;
-        }
-
-        return rateLimiter;
-    }
-
+    
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
         var activityTypeName = activityDescriptor.TypeName;
