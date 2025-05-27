@@ -142,6 +142,22 @@ public partial class InputsTab
         });
 
         currentInputDescriptor.UISpecifications = result.Items;
+        
+        // After refreshing, update the UI for any affected inputs
+        await UpdateInputDisplayModelsAsync(activity, activityDescriptor, inputDescriptors.ToList(), currentInputDescriptor);
+    }
+    
+    private async Task UpdateInputDisplayModelsAsync(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors, InputDescriptor refreshedInputDescriptor)
+    {
+        // Find all inputs that need to be updated
+        // This includes the refreshed input itself and potentially others that depend on its value
+        var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
+        
+        // Rebuild all models
+        InputDisplayModels = (await BuildInputEditorModels(activity, activityDescriptor, inputDescriptors)).ToList();
+        
+        // Force UI refresh
+        StateHasChanged();
     }
 
     private static WrappedInput? ToWrappedInput(object? value)
