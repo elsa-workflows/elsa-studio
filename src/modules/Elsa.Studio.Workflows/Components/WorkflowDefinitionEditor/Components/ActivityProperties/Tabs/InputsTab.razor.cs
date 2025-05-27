@@ -121,27 +121,62 @@ public partial class InputsTab
 
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
-        var activityTypeName = activityDescriptor.TypeName;
-        var propertyName = currentInputDescriptor.Name;
-
-        // Embed all props value in the context.
-        var contextDictionary = new Dictionary<string, object>();
-        foreach (var inputDescriptor in inputDescriptors)
+        try
         {
-            var inputName = inputDescriptor.Name.Camelize();
-            var value = activity.GetProperty(inputName);
-            if (value != null)
-                contextDictionary.Add(inputName, value);
+            var activityTypeName = activityDescriptor.TypeName;
+            var propertyName = currentInputDescriptor.Name;
+
+            // Embed all props value in the context.
+            var contextDictionary = new Dictionary<string, object>();
+            foreach (var inputDescriptor in inputDescriptors)
+            {
+                var inputName = inputDescriptor.Name.Camelize();
+                var value = activity.GetProperty(inputName);
+                if (value != null)
+                    contextDictionary.Add(inputName, value);
+            }
+
+            var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
+
+            var result = await api.GetAsync(activityTypeName, propertyName, new()
+            {
+                Context = contextDictionary
+            });
+
+            currentInputDescriptor.UISpecifications = result.Items;
+            
+            // After refreshing, update the UI for any affected inputs
+            await UpdateInputDisplayModelsAsync(activity, activityDescriptor, inputDescriptors.ToList(), currentInputDescriptor);
         }
-
-        var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
-
-        var result = await api.GetAsync(activityTypeName, propertyName, new()
+        catch (Exception)
         {
-            Context = contextDictionary
-        });
-
-        currentInputDescriptor.UISpecifications = result.Items;
+            // If an error occurs during refresh, we still want to keep the application running
+            // Errors might happen if backend is unavailable or returns an error response
+            // We could log the error here or show a notification, but for now we'll just silently continue
+        }
+    }
+    
+    private bool _isRefreshingModels;
+    
+    private async Task UpdateInputDisplayModelsAsync(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors, InputDescriptor refreshedInputDescriptor)
+    {
+        if (_isRefreshingModels)
+            return;
+        
+        try
+        {
+            _isRefreshingModels = true;
+            
+            // Rebuild all models
+            InputDisplayModels = (await BuildInputEditorModels(activity, activityDescriptor, inputDescriptors)).ToList();
+            
+            // Force UI refresh
+            StateHasChanged();
+        }
+        finally
+        {
+            _isRefreshingModels = false;
+        }
     }
 
     private static WrappedInput? ToWrappedInput(object? value)
