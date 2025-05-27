@@ -115,7 +115,8 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            models.Add(new(index++, editor));
+            // Use a unique key for each editor instance to ensure the component is re-created when models are rebuilt.
+            models.Add(new(Guid.NewGuid(), index++, editor));
         }
 
         return models;
