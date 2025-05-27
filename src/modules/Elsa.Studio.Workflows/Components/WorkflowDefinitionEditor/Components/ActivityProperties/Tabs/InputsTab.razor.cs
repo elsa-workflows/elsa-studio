@@ -8,7 +8,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
-using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -23,12 +22,11 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 public partial class InputsTab
 {
     private readonly RateLimitedFunc<Task<IEnumerable<ActivityInputDisplayModel>>> _rateLimitedBuildInputEditorModelsAsync;
-    private readonly IDictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>> _inputPropertyRefreshRateLimiters = new Dictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>>();
 
     /// <inheritdoc />
     public InputsTab()
     {
-        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(200), true);
+        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(50), true);
     }
 
     /// <summary>
@@ -82,7 +80,6 @@ public partial class InputsTab
     {
         var models = new List<ActivityInputDisplayModel>();
         var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
-        var index = 0;
 
         foreach (var inputDescriptor in browsableInputDescriptors)
         {
@@ -96,14 +93,11 @@ public partial class InputsTab
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
             {
-                var rateLimiter = GetRefreshRateLimiter(inputDescriptor);
-                var task = rateLimiter.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
-                if (task != null)
-                    await task;
+                await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor);
             }
 
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            var input = inputDescriptor.IsWrapped ? wrappedInput : (object?)value;
+            object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
             var context = new DisplayInputEditorContext
             {
@@ -119,24 +113,13 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            models.Add(new(index++, editor));
+            // Use a unique key for each editor instance to ensure the component is re-created when models are rebuilt.
+            models.Add(new(Guid.NewGuid(), editor));
         }
 
         return models;
     }
-
-    private RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task> GetRefreshRateLimiter(InputDescriptor inputDescriptor)
-    {
-        var key = inputDescriptor.Name;
-        if (!_inputPropertyRefreshRateLimiters.TryGetValue(key, out var rateLimiter))
-        {
-            rateLimiter = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100), true);
-            _inputPropertyRefreshRateLimiters[key] = rateLimiter;
-        }
-
-        return rateLimiter;
-    }
-
+    
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
         var activityTypeName = activityDescriptor.TypeName;
@@ -191,6 +174,8 @@ public partial class InputsTab
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
+
+        //await InvokeAsync(StateHasChanged);
     }
 
     private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
