@@ -27,7 +27,7 @@ public partial class InputsTab
     /// <inheritdoc />
     public InputsTab()
     {
-        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(200), true);
+        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(50), true);
     }
 
     /// <summary>
@@ -81,7 +81,6 @@ public partial class InputsTab
     {
         var models = new List<ActivityInputDisplayModel>();
         var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
-        var index = 0;
 
         foreach (var inputDescriptor in browsableInputDescriptors)
         {
@@ -116,7 +115,7 @@ public partial class InputsTab
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
             // Use a unique key for each editor instance to ensure the component is re-created when models are rebuilt.
-            models.Add(new(Guid.NewGuid(), index++, editor));
+            models.Add(new(Guid.NewGuid(), editor));
         }
 
         return models;
@@ -176,6 +175,8 @@ public partial class InputsTab
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
+
+        //await InvokeAsync(StateHasChanged);
     }
 
     private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
