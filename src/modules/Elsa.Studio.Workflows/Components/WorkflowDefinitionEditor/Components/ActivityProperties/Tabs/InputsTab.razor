@@ -4,9 +4,7 @@
     <MudStack Spacing="5">
         @foreach (var inputModel in InputDisplayModels)
         {
-            <div @key="@inputModel.Key">
-                @inputModel.Editor
-            </div>
+            @inputModel.Editor
         }
     </MudStack>
 </MudForm>

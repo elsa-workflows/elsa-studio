@@ -113,13 +113,12 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            // Use a unique key for each editor instance to ensure the component is re-created when models are rebuilt.
-            models.Add(new(Guid.NewGuid(), editor));
+            models.Add(new(editor));
         }
 
         return models;
     }
-    
+
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
         var activityTypeName = activityDescriptor.TypeName;
