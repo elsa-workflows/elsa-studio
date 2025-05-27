@@ -22,36 +22,34 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class InputsTab
 {
+    private readonly RateLimitedFunc<Task<IEnumerable<ActivityInputDisplayModel>>> _rateLimitedBuildInputEditorModelsAsync;
     private readonly IDictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>> _inputPropertyRefreshRateLimiters = new Dictionary<string, RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>>();
 
     /// <inheritdoc />
     public InputsTab()
     {
+        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(200), true);
     }
 
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the activity to edit.
     /// </summary>
-    [Parameter]
-    public JsonObject? Activity { get; set; }
+    [Parameter] public JsonObject? Activity { get; set; }
 
     /// <summary>
     /// Gets or sets the activity descriptor.
     /// </summary>
-    [Parameter]
-    public ActivityDescriptor? ActivityDescriptor { get; set; }
+    [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
 
     /// <summary>
     /// An event that is invoked when the activity is updated.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
 
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = null!;
@@ -70,13 +68,21 @@ public partial class InputsTab
 
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
-        InputDisplayModels = (await BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors)).ToList();
+
+        var task = _rateLimitedBuildInputEditorModelsAsync.Invoke();
+        if (task != null) InputDisplayModels = (await task).ToList();
+    }
+
+    private Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels()
+    {
+        return BuildInputEditorModels(Activity!, ActivityDescriptor!, InputDescriptors);
     }
 
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
     {
         var models = new List<ActivityInputDisplayModel>();
         var browsableInputDescriptors = inputDescriptors.Where(x => x.IsBrowsable == true).OrderBy(x => x.Order).ToList();
+        var index = 0;
 
         foreach (var inputDescriptor in browsableInputDescriptors)
         {
@@ -113,7 +119,7 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            models.Add(new(editor));
+            models.Add(new(index++, editor));
         }
 
         return models;
@@ -187,28 +193,17 @@ public partial class InputsTab
             await OnActivityUpdated(activity);
     }
 
-    private ExpressionDescriptor? GetSyntaxProvider(
-        WrappedInput wrappedInput,
-        InputDescriptor inputDescriptor
-    )
+    private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
     {
         // Safely read UIHint
-        var uiHint = inputDescriptor.UIHint ?? string.Empty;
+        var uiHint = inputDescriptor.UIHint;
 
-        // If this is the code?editor scenario and we have a DefaultSyntax, use that
-        if (
-            uiHint.Equals("code-editor", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrWhiteSpace(inputDescriptor.DefaultSyntax)
-        )
-    {
+        // If this is the code editor scenario and we have a DefaultSyntax, use that
+        if (uiHint.Equals("code-editor", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(inputDescriptor.DefaultSyntax))
             return ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax);
-        }
 
         // Otherwise fall back to the wrapped expression's type—but guard null
         var exprType = wrappedInput?.Expression?.Type;
-        if (string.IsNullOrEmpty(exprType))
-            return null;
-
-        return ExpressionDescriptorProvider.GetByType(exprType);
+        return string.IsNullOrEmpty(exprType) ? null : ExpressionDescriptorProvider.GetByType(exprType);
     }
 }
