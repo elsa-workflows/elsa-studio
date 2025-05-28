@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Http.Webhooks.Extensions;
+using Elsa.Studio.Secrets;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -47,6 +49,8 @@ builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
+builder.Services.AddWebhooksModule();
+builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 
 // Replace some services with other implementations.

@@ -4,6 +4,7 @@
         <Description>Core Elsa Studio services.</Description>
         <PackageTags>elsa studio core</PackageTags>
         <RootNamespace>Elsa.Studio</RootNamespace>
+        <Version>$(ElsaStudioVersion)</Version>
     </PropertyGroup>
 
     <ItemGroup>

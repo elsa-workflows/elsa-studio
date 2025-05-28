@@ -4,6 +4,7 @@
         <Description>Elsa Studio shared services and components.</Description>
         <PackageTags>elsa studio framework</PackageTags>
         <RootNamespace>Elsa.Studio</RootNamespace>
+        <Version>$(ElsaStudioVersion)</Version>
     </PropertyGroup>
     
     <ItemGroup>
