@@ -313,7 +313,7 @@ public partial class DiagramDesignerWrapper
                 Completed = x.CompletedCount,
                 Started = x.StartedCount,
                 Uncompleted = x.UncompletedCount,
-                Properties = x.Properties
+                Metadata = x.Metadata
             });
         }
     }

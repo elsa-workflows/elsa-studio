@@ -8,8 +8,8 @@
 @{
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
-    var props = Stats?.Properties;
-    var hasRetryAttempts = props != null && props.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True }; 
+    var metadata = Stats?.Metadata;
+    var hasRetryAttempts = metadata != null && metadata.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True }; 
     var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error :  Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
     var content = Stats == null ? null : Stats.Faulted || Stats.Blocked ? Stats.Started.ToString() : Stats.Completed.ToString();
     var icon = Stats == null ? null : content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : null : null;

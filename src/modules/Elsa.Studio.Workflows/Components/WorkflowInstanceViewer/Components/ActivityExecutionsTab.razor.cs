@@ -21,7 +21,7 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary)
     {
         /// Indicates whether the activity execution record has recorded retries.
-        public bool HasRetries => ActivityExecutionSummary.Properties != null && ActivityExecutionSummary.Properties.TryGetValue("HasRetryAttempts", out var retryAttempts) && retryAttempts is JsonElement { ValueKind: JsonValueKind.True };
+        public bool HasRetries => ActivityExecutionSummary.Metadata != null && ActivityExecutionSummary.Metadata.TryGetValue("HasRetryAttempts", out var retryAttempts) && retryAttempts is JsonElement { ValueKind: JsonValueKind.True };
     }
 
     /// The height of the visible pane.
