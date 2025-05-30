@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Host.Server;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Labels;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -70,6 +71,7 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddLabelsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
