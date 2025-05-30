@@ -31,7 +31,7 @@ public class ActivityStats
     public bool Faulted { get; set; }
 
     /// <summary>
-    /// A collection of custom properties associated with the activity statistics.
+    /// A collection of metadata associated with the activity statistics.
     /// </summary>
-    public IDictionary<string, object>? Properties { get; set; }
+    public IDictionary<string, object>? Metadata { get; set; }
 }
