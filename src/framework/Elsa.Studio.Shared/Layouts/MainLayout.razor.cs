@@ -19,13 +19,13 @@ public partial class MainLayout : IDisposable
     private bool _drawerOpen = true;
     private ErrorBoundary? _errorBoundary;
 
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
-    [Inject] private IAppBarService AppBarService { get; set; } = default!;
-    [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
-    [Inject] private IFeatureService FeatureService { get; set; } = default!;
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private IBrandingProvider  BrandingProvider { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private IThemeService ThemeService { get; set; } = null!;
+    [Inject] private IAppBarService AppBarService { get; set; } = null!;
+    [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = null!;
+    [Inject] private IFeatureService FeatureService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IBrandingProvider  BrandingProvider { get; set; } = null!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;

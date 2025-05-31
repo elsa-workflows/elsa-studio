@@ -7,7 +7,7 @@
 public class DefaultBrandingProvider : IBrandingProvider
 {
     /// <inheritdoc />
-    public virtual  string AppName => $"Elsa {ToolVersion.GetDisplayVersion()}";
+    public virtual string AppName => $"Elsa {ToolVersion.GetDisplayVersion()}";
 
     /// <inheritdoc />
     public virtual string? LogoUrl => GetLogoUrl(false);
@@ -19,4 +19,4 @@ public class DefaultBrandingProvider : IBrandingProvider
     {
         return "_content/Elsa.Studio.Shell/img/icon.png";
     }
-} 
+}

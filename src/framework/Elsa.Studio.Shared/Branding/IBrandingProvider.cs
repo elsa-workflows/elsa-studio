@@ -1,4 +1,7 @@
-﻿namespace Elsa.Studio.Branding;
+﻿using Elsa.Studio.Components;
+using Microsoft.AspNetCore.Components;
+
+namespace Elsa.Studio.Branding;
 
 /// <summary>
 /// Provides branding information for an application, including its name, logo, and reverse logo.
@@ -19,4 +22,15 @@ public interface IBrandingProvider
     /// Logo on dark background
     /// </summary>
     string? LogoReverseUrl { get; }
+
+    /// <summary>
+    /// The component to render. Use this to completely customize the branding component.
+    /// </summary>
+    RenderFragment Branding =>
+        builder =>
+        {
+            builder.OpenComponent(0, typeof(DefaultBranding));
+            builder.AddAttribute(1, "Provider", this);
+            builder.CloseComponent();
+        };
 }
