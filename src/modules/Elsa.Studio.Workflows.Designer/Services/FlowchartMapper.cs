@@ -35,16 +35,17 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
             var connector = new X6Edge
             {
                 Shape = "elsa-edge",
-                Source = new X6Endpoint
+                Source = new()
                 {
                     Cell = sourceId,
                     Port = sourcePort
                 },
-                Target = new X6Endpoint
+                Target = new()
                 {
                     Cell = targetId,
                     Port = targetPort
-                }
+                },
+                Vertices = connection.Vertices.Select(x => new X6Position(x.X, x.Y)).ToArray()
             };
 
             graph.Edges.Add(connector);
@@ -63,13 +64,13 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
             var activity = node.Data;
             var designerMetadata = activity.GetDesignerMetadata();
 
-            designerMetadata.Position = new Position
+            designerMetadata.Position = new()
             {
                 X = node.Position.X,
                 Y = node.Position.Y
             };
 
-            designerMetadata.Size = new Size
+            designerMetadata.Size = new()
             {
                 Width = node.Size.Width,
                 Height = node.Size.Height
@@ -83,8 +84,9 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
         {
             var connection = new Connection
             {
-                Source = new Endpoint(edge.Source.Cell, edge.Source.Port),
-                Target = new Endpoint(edge.Target.Cell, edge.Target.Port)
+                Source = new(edge.Source.Cell, edge.Source.Port),
+                Target = new(edge.Target.Cell, edge.Target.Port),
+                Vertices = edge.Vertices.Select(x => new Position(x.X, x.Y)).ToArray(),
             };
             connections.Add(connection);
         }
