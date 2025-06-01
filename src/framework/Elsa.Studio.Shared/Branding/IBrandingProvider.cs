@@ -1,5 +1,4 @@
-﻿using Elsa.Studio.Components;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Branding;
 
@@ -11,26 +10,20 @@ public interface IBrandingProvider
     /// <summary>
     /// The name of the application.
     /// </summary>
-    string AppName { get; }
+    [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with an AppName.")] string AppName { get; }
 
     /// <summary>
-    /// Logo on white background
+    /// Logo on a white background.
     /// </summary>
-    string? LogoUrl { get; }
+    [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with a LogoUrl.")] string? LogoUrl { get; }
 
     /// <summary>
-    /// Logo on dark background
+    /// Logo on a dark background
     /// </summary>
-    string? LogoReverseUrl { get; }
+    [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with a LogoReverseUrl.")] string? LogoReverseUrl { get; }
 
     /// <summary>
     /// The component to render. Use this to completely customize the branding component.
     /// </summary>
-    RenderFragment Branding =>
-        builder =>
-        {
-            builder.OpenComponent(0, typeof(DefaultBranding));
-            builder.AddAttribute(1, "Provider", this);
-            builder.CloseComponent();
-        };
+    RenderFragment Branding { get; }
 }
