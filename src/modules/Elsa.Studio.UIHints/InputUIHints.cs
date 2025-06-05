@@ -18,7 +18,7 @@ public static class InputUIHints
     public const string MultiText = "multitext";
     public const string OutcomePicker = "outcome-picker";
     public const string OutputPicker = "output-picker";
-    //public const string RadioList = "radiolist";
+    public const string RadioList = "radiolist";
     public const string SingleLine = "singleline";
     public const string FlowSwitchEditor = "flow-switch-editor";
     public const string SwitchEditor = "switch-editor";
