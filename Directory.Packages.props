@@ -4,8 +4,8 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 	<PropertyGroup Label="PackageVersions">
-		<ElsaVersion>3.6.0-preview.3042</ElsaVersion>
-		<ElsaExtensionsVersion>3.6.0-preview.28</ElsaExtensionsVersion>
+		<ElsaVersion>3.6.0-preview.3044</ElsaVersion>
+		<ElsaExtensionsVersion>3.6.0-preview.47</ElsaExtensionsVersion>
 	</PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
