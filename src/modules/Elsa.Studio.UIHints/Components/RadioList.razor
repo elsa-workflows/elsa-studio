@@ -13,7 +13,7 @@
             <MudRadioGroup @bind-Value="_radioItem">
                 @foreach (var item in _radioListItems)
                 {
-                    <MudRadio Class="mr-2" T="string" Value="@item.Value" Dense="true" Disabled="EditorContext.IsReadOnly">@item?.Text</MudRadio>
+                    <MudRadio Class="mr-2" T="string" Value="@item.Value" Dense="true" Disabled="EditorContext.IsReadOnly" Size="Size.Small">@item?.Text</MudRadio>
                 }
             </MudRadioGroup>
         </MudField>
