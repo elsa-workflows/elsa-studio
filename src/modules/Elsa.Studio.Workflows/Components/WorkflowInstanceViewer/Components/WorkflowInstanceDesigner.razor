@@ -3,6 +3,7 @@
 @using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 @inherits StudioComponentBase
+
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="50%">
         @if (WorkflowDefinition != null && WorkflowInstance != null!)

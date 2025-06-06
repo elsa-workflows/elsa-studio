@@ -1,7 +1,9 @@
+using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
@@ -14,6 +16,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using Refit;
@@ -36,6 +39,27 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
+
+    [Inject]
+    private IUserMessageService UserMessageService { get; set; } = default!;
+
+    [Inject]
+    private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+
+    [Inject]
+    private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
+
+    [Inject]
+    private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+
+    [Inject]
+    private IFiles Files { get; set; } = default!;
+
+    [Inject]
+    private IDomAccessor DomAccessor { get; set; } = default!;
+
+    [Inject]
+    private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
@@ -163,7 +187,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
                 x.Id,
                 x.CorrelationId,
-                workflowDefinitionVersionsLookup[x.DefinitionVersionId],
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? "",
                 x.Version,
                 x.Name,
                 x.Status,
@@ -367,6 +391,8 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         if (applyToAllMatches)
         {
+            var cancel = new JsonObject { ["type"] = "Cancel" };
+
             var plan = new AlterationPlanParams
             {
                 Alterations = [],
@@ -395,7 +421,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
             var alterationsApi = await BackendApiClientProvider.GetApiAsync<IAlterationsApi>();
             await alterationsApi.Submit(plan);
-            Snackbar.Add(
+            UserMessageService.ShowSnackbarTextMessage(
                 "Workflow instances are being cancelled.",
                 Severity.Info,
                 options =>
@@ -432,7 +458,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             count == 1
                 ? Localizer["Successfully imported one instance"]
                 : Localizer["Successfully imported {0} instances", count];
-        Snackbar.Add(
+        UserMessageService.ShowSnackbarTextMessage(
             message,
             Severity.Success,
             options =>

@@ -1,9 +1,7 @@
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Options;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
-using Elsa.Studio.Options;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -32,8 +30,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
-            .AddScoped<IClientInformationProvider, StaticClientInformationProvider>()
+            .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddUserMessageService<DefaultUserMessageService>()
             ;
         
         // Mediator.
@@ -86,5 +85,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUIFieldEnhancerHandler<T>(this IServiceCollection services) where T : class, IUIFieldExtensionHandler
     {
         return services.AddScoped<IUIFieldExtensionHandler, T>();
+    }
+
+    /// <summary>
+    /// Adds the specified <see cref="IUserMessageService"/>.
+    /// </summary>
+    public static IServiceCollection AddUserMessageService<T>(this IServiceCollection services) where T : class, IUserMessageService
+    {
+        return services.AddScoped<IUserMessageService, T>();
     }
 }
