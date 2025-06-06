@@ -25,7 +25,7 @@ public static class InputDescriptorRadioListExtensions
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-        var checkListProps = props.Deserialize<RadioListProps>(serializerOptions);
-        return checkListProps?.RadioList ?? new RadioList(Array.Empty<RadioListItem>());
+        var radioListProps = props.Deserialize<RadioListProps>(serializerOptions);
+        return radioListProps?.RadioList ?? new RadioList(Array.Empty<RadioListItem>());
     }
 }
