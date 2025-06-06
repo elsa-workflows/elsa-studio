@@ -64,24 +64,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
-    [Inject]
-    private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
-
-    [Inject]
-    private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-
-    [Inject]
-    private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
-
-    [Inject]
-    private IFiles Files { get; set; } = default!;
-
-    [Inject]
-    private IDomAccessor DomAccessor { get; set; } = default!;
-
-    [Inject]
-    private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
-
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } =
         new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } =
