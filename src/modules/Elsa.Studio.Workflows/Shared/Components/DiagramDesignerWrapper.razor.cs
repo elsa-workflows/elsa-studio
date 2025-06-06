@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Contexts;
@@ -356,21 +357,16 @@ public partial class DiagramDesignerWrapper
         if (WorkflowInstanceId != null)
         {
             var currentContainerActivity = GetCurrentContainerActivityOrRoot();
-            var report = await ActivityExecutionService.GetReportAsync(
-                WorkflowInstanceId,
-                currentContainerActivity
-            );
-            _activityStats = report.Stats.ToDictionary(
-                x => x.ActivityNodeId,
-                x => new ActivityStats
-                {
-                    Faulted = x.IsFaulted,
-                    Blocked = x.IsBlocked,
-                    Completed = x.CompletedCount,
-                    Started = x.StartedCount,
-                    Uncompleted = x.UncompletedCount,
-                }
-            );
+            var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
+            _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
+            {
+                Faulted = x.IsFaulted,
+                Blocked = x.IsBlocked,
+                Completed = x.CompletedCount,
+                Started = x.StartedCount,
+                Uncompleted = x.UncompletedCount,
+                Metadata = x.Metadata
+            });
         }
     }
 

@@ -14,22 +14,22 @@ namespace Elsa.Studio.Workflows.Designer.Components;
 
 public partial class EmbeddedActivityWrapper
 {
-    private string _label = default!;
-    private string _description = default!;
+    private string _label = null!;
+    private string _description = null!;
     private bool _showDescription;
-    private string _color = default!;
+    private string _color = null!;
     private string? _icon;
-    private ActivityDescriptor _activityDescriptor = default!;
+    private ActivityDescriptor _activityDescriptor = null!;
 
     [Parameter] public string? ElementId { get; set; }
-    [Parameter] public string ActivityId { get; set; } = default!;
-    [Parameter] public JsonObject Activity { get; set; } = default!;
+    [Parameter] public string ActivityId { get; set; } = null!;
+    [Parameter] public JsonObject Activity { get; set; } = null!;
     [Parameter] public bool IsSelected { get; set; }
 
-    [Inject] DesignerJsInterop DesignerInterop { get; set; } = default!;
-    [Inject] IActivityRegistry ActivityRegistry { get; set; } = default!;
-    [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = default!;
-    [Inject] IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] DesignerJsInterop DesignerInterop { get; set; } = null!;
+    [Inject] IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] IServiceProvider ServiceProvider { get; set; } = null!;
     
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
 

@@ -1,6 +1,4 @@
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -23,6 +21,7 @@
                 <MudTh>@Localizer["Completed"]</MudTh>
                 <MudTh>@Localizer["Duration"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Has Retries"]</MudTh>
                 <MudTh>@Localizer["Activity Instance ID"]</MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -34,6 +33,7 @@
                 <MudTd><Timestamp Value="record.CompletedAt"/> </MudTd>
                 <MudTd>@(record.CompletedAt != null ? (record.CompletedAt - record.StartedAt).Value.ToString("g") : "")</MudTd>
                 <MudTd>@record.Status</MudTd>
+                <MudTd>@(context.HasRetries ? Localizer["Yes"] : string.Empty)</MudTd>
                 <MudTd>@record.Id</MudTd>
             </RowTemplate>
             <PagerContent>
@@ -56,6 +56,13 @@
                     <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
                     <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output associated with this execution."]"/>
                 </div>
+                @if (Retries.TotalCount > 0)
+                {
+                    <div>
+                        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Retry Attempts"]</MudText>
+                        <RetriesTab Retries="@Retries.Items" />      
+                    </div>
+                }
             </div>
         }
     </MudStack>

@@ -37,10 +37,10 @@
 {
     private readonly DragDropManager _dragDropManager = new();
     private WorkflowDefinition? _workflowDefinition;
-    private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = default!;
+    private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = null!;
 
     /// The ID of the workflow definition to load.
-    [Parameter] public string DefinitionId { get; set; } = default!;
+    [Parameter] public string DefinitionId { get; set; } = null!;
 
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }

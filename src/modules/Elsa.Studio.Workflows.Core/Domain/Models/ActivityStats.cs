@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Workflows.UI.Models;
+namespace Elsa.Studio.Workflows.Domain.Models;
 
 /// <summary>
 /// Represents a report of activity executions.
@@ -29,4 +29,9 @@ public class ActivityStats
     /// Whether the activity has faulted.
     /// </summary>
     public bool Faulted { get; set; }
+
+    /// <summary>
+    /// A collection of metadata associated with the activity statistics.
+    /// </summary>
+    public IDictionary<string, object>? Metadata { get; set; }
 }

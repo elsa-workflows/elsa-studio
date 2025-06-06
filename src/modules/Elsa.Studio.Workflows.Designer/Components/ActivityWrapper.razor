@@ -1,3 +1,5 @@
+@using System.Text.Json
+@using System.Text.Json.Nodes
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Enums
 @using Elsa.Api.Client.Extensions
 @using Elsa.Studio.Workflows.Domain.Contexts
@@ -6,12 +8,15 @@
 @{
     const string white = "#ffffff";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
-    var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
+    var metadata = Stats?.Metadata;
+    var hasRetryAttempts = metadata != null && metadata.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True }; 
+    var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error :  Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
     var content = Stats == null ? null : Stats.Faulted || Stats.Blocked ? Stats.Started.ToString() : Stats.Completed.ToString();
     var icon = Stats == null ? null : content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : null : null;
     var showBadge = Stats != null;
+    var cssClass = hasRetryAttempts ? "elsa-activity-wrapper-badge has-retries" : "elsa-activity-wrapper-badge";
 
-    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;" Visible="showBadge">
+    <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;" Visible="showBadge" class="@cssClass">
         <MudPaper
             Class="elsa-activity pa-3"
             Style="@($"border-left-color: {_color}; {(CanStartWorkflow ? $"background-color: {_color}" : "")};")"

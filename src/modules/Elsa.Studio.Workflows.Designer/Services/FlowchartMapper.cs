@@ -3,6 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
@@ -44,7 +45,7 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
                     Cell = targetId,
                     Port = targetPort
                 },
-                Vertices = connection.Vertices.Select(x => new X6Position(x.X, x.Y)).ToList()
+                Vertices = connection.Vertices.Select(x => new(x.X, x.Y)).ToList()
             };
 
             graph.Edges.Add(connector);

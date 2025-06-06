@@ -11,6 +11,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
@@ -346,6 +347,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             Completed = source.CompletedCount,
             Started = source.StartedCount,
             Uncompleted = source.UncompletedCount,
+            Metadata = source.Metadata,
         };
     }
 
