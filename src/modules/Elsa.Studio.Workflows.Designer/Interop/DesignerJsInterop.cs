@@ -1,11 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.JSInterop;
+using Size = Elsa.Api.Client.Shared.Models.Size;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 

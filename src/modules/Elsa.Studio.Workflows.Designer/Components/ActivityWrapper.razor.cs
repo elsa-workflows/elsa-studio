@@ -3,11 +3,9 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Interop;
-using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
-using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
@@ -18,6 +16,7 @@ namespace Elsa.Studio.Workflows.Designer.Components;
 public partial class ActivityWrapper
 {
     private string _label = null!;
+    private string _typeName = null!;
     private string _description = null!;
     private bool _showDescription;
     private string _color = null!;
@@ -28,38 +27,32 @@ public partial class ActivityWrapper
     /// <summary>
     /// Gets or sets the element ID.
     /// </summary>
-    [Parameter]
-    public string? ElementId { get; set; }
+    [Parameter] public string? ElementId { get; set; }
 
     /// <summary>
     /// Gets or sets the activity ID.
     /// </summary>
-    [Parameter]
-    public string ActivityId { get; set; } = null!;
+    [Parameter] public string ActivityId { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the activity.
     /// </summary>
-    [Parameter]
-    public JsonObject Activity { get; set; } = null!;
+    [Parameter] public JsonObject Activity { get; set; } = null!;
 
     /// <summary>
     /// Until the max depth of JSInterop is configurable to exceed 32, we need to pass the activity JSON as a string.
     /// </summary>
-    [Parameter]
-    public string ActivityJson { get; set; } = null!;
+    [Parameter] public string ActivityJson { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the selected port name.
     /// </summary>
-    [Parameter]
-    public string? SelectedPortName { get; set; }
+    [Parameter] public string? SelectedPortName { get; set; }
 
     /// <summary>
     /// Gets or sets the activity stats.
     /// </summary>
-    [Parameter]
-    public ActivityStats? Stats { get; set; }
+    [Parameter] public ActivityStats? Stats { get; set; }
 
     [Inject] private DesignerJsInterop DesignerInterop { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
@@ -68,6 +61,7 @@ public partial class ActivityWrapper
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    public ElementReference ActivatorRef { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -78,6 +72,7 @@ public partial class ActivityWrapper
         await ActivityRegistry.EnsureLoadedAsync();
 
         var activity = Activity;
+        var activityName = Activity.GetName();
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
         var activityType = activity.GetTypeName();
@@ -85,13 +80,14 @@ public partial class ActivityWrapper
         var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : !string.IsNullOrWhiteSpace(activityName) ? activityName : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        _typeName = descriptor?.DisplayName ?? "Unknown Activity";
         _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
         _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
         _activityDescriptor = descriptor!;
-        _ports = descriptor != null ? ActivityPortService.GetPorts(new PortProviderContext(descriptor, activity)).ToList() : [];
+        _ports = descriptor != null ? ActivityPortService.GetPorts(new(descriptor, activity)).ToList() : [];
 
         await UpdateSizeAsync();
     }
@@ -103,26 +99,5 @@ public partial class ActivityWrapper
             var size = Activity.GetDesignerMetadata().Size;
             await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
         }
-    }
-
-    private async Task OnEmbeddedActivityClicked(JsonObject childActivity)
-    {
-        var elementId = $"activity-{childActivity.GetId()}";
-        await DesignerInterop.RaiseActivitySelectedAsync(elementId, childActivity);
-    }
-
-    private async Task OnEmptyPortClicked(Port port)
-    {
-        var activity = Activity;
-        var elementId = $"activity-{activity.GetId()}";
-        await DesignerInterop.RaiseActivityEmbeddedPortSelectedAsync(elementId, activity, port.Name);
-    }
-
-    private async Task OnDeleteEmbeddedActivityClicked(string portName)
-    {
-        var providerContext = new PortProviderContext(_activityDescriptor, Activity);
-        var portProvider = ActivityPortService.GetProvider(providerContext);
-        portProvider.ClearPort(portName, providerContext);
-        await UpdateSizeAsync();
     }
 }

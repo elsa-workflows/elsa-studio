@@ -10,18 +10,81 @@
     border: 1px solid var(--mud-palette-secondary);
 }
 
-.elsa-snapline .x6-widget-snapline-horizontal, 
+.elsa-snapline .x6-widget-snapline-horizontal,
 .elsa-snapline .x6-widget-snapline-vertical {
     stroke: var(--mud-palette-secondary);
 }
 
+.elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {
+    background-color: #FFEB3B !important;
+}
+
 .elsa-activity {
-    border-left: solid 6px var(--mud-palette-info);
-    filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06)); 
     height: 100%;
 }
 
+/* Use equal 16px padding all around */
+.activity-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    padding: 16px; /* top/right/bottom/left = 16px */
+    border-radius: 8px;
+}
 
-.elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {
-    background-color: #FFEB3B !important;
+/* Icon container */
+.activity-icon {
+    background-color: #1976d2;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+/* Middle content (label, type, ports, description) */
+.activity-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* First line: activity label stays default color */
+.activity-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Second line: lighter grey to mimic original */
+.activity-type {
+    margin-top: 2px;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.875rem; /* slightly smaller */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Embedded ports row */
+.activity-ports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+/* Optional description below */
+.activity-description {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* Menu on the right: vertically center */
+.activity-menu {
+    align-self: center;
 }
