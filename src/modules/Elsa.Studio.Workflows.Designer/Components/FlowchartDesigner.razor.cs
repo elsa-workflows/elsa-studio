@@ -331,6 +331,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly);
             await _pendingGraphActions.ProcessAsync();
+            if (IsReadOnly && AllNodesAtOrigin(Flowchart))
+            {
+                await AutoLayoutAsync(Flowchart, ActivityStats);
+            }
         }
     }
 
@@ -432,5 +436,35 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
         _componentRef?.Dispose();
+    }
+
+    private bool AllNodesAtOrigin(JsonObject flowchart)
+    {
+        var activities = flowchart.GetActivities(); // extension that pulls the “activities” array
+        foreach (var activity in activities)
+        {
+            // drill into metadata.designer.position.{x,y}
+            if (
+                activity.TryGetPropertyValue("metadata", out var metaNode)
+                && metaNode is JsonObject meta
+                && meta.TryGetPropertyValue("designer", out var designerNode)
+                && designerNode is JsonObject designer
+                && designer.TryGetPropertyValue("position", out var posNode)
+                && posNode is JsonObject pos
+            )
+            {
+                var x = pos["x"]?.GetValue<double>() ?? 0;
+                var y = pos["y"]?.GetValue<double>() ?? 0;
+                if (x != 0 || y != 0)
+                    return false;
+            }
+            else
+            {
+                // no metadata or no position? treat that as “still at origin”
+                continue;
+            }
+        }
+
+        return true;
     }
 }
