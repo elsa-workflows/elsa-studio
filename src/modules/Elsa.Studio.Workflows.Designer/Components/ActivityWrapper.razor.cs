@@ -21,7 +21,7 @@ public partial class ActivityWrapper
     private bool _showDescription;
     private string _color = null!;
     private string? _icon;
-    private ActivityDescriptor _activityDescriptor = null!;
+    private ActivityDescriptor? _activityDescriptor;
     private ICollection<Port> _ports = new List<Port>();
 
     /// <summary>
@@ -86,7 +86,7 @@ public partial class ActivityWrapper
         _showDescription = activity.GetShowDescription() == true;
         _color = displaySettings.Color;
         _icon = displaySettings.Icon;
-        _activityDescriptor = descriptor!;
+        _activityDescriptor = descriptor;
         _ports = descriptor != null ? ActivityPortService.GetPorts(new(descriptor, activity)).ToList() : [];
 
         await UpdateSizeAsync();

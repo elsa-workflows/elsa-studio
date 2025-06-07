@@ -3,17 +3,13 @@
     var colorStyle = IsSelected ? $"color: {_color};" : "";
 }
 <MudPaper
-    Class="elsa-activity-embedded pa-1"
+    Class="elsa-activity-embedded pa-"
     Elevation="0"
     Outlined="false"
 >
     <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
-        @if (_icon != null)
-        {
-            <MudIcon Icon="@_icon" Style="@colorStyle"></MudIcon>
-        }
         <MudStack Style="height:100%" Justify="Justify.Center">
-            <MudText Typo="Typo.body1" Style="@colorStyle">@_label</MudText>
+            <MudText Typo="Typo.body1" Style="@($"{colorStyle} font-family: var(--mud-typography-default-family); font-size: var(--mud-typography-default-size)")">@_label</MudText>
 
             @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
             {

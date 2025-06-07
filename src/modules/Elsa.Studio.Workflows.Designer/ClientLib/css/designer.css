@@ -1,13 +1,15 @@
 .x6-graph-background {
-    background-color: var(--mud-palette-background);
+    background-color: var(--mud-palette-surface);
 }
 
 .x6-widget-selection-box {
-    border: 2px dashed var(--mud-palette-secondary);
+    border: none;
+    box-shadow: none;
 }
 
 .x6-widget-selection-inner {
-    border: 1px solid var(--mud-palette-secondary);
+    border: 2px var(--mud-palette-gray-light);
+    box-shadow: none;
 }
 
 .elsa-snapline .x6-widget-snapline-horizontal,
@@ -36,8 +38,8 @@
 /* Icon container */
 .activity-icon {
     background-color: #1976d2;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -61,9 +63,8 @@
 
 /* Second line: lighter grey to mimic original */
 .activity-type {
-    margin-top: 2px;
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 0.875rem; /* slightly smaller */
+    color: var(--mud-palette-gray-light);
+    font-size: 0.75rem; /* slightly smaller */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -75,6 +76,10 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 4px;
+}
+
+.activity-ports .mud-input.mud-input-outlined .mud-input-outlined-border  {
+    border-style: dashed !important;
 }
 
 /* Optional description below */

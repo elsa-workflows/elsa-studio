@@ -18,11 +18,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         container: containerElement,
         autoResize: true,
         grid: {
-            type: 'mesh',
+            type: 'dot',
             visible: true,
             size: 20,
             args: {
-                color: '#f1f1f1',
+                color: '#334154',
                 thickness: 1,
             }
         },
@@ -136,7 +136,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             rubberNode: true,
             rubberband: true,
             movable: !readOnly,
-            showNodeSelectionBox: true
+            showNodeSelectionBox: true,
+            className: 'elsa-selection'
         }),
     );
 
