@@ -45,7 +45,7 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
                     Cell = targetId,
                     Port = targetPort
                 },
-                Vertices = connection.Vertices.Select(x => new(x.X, x.Y)).ToList()
+                Vertices = connection.Vertices.Select(x => new X6Position(x.X, x.Y)).ToList()
             };
 
             graph.Edges.Add(connector);

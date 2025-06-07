@@ -7,6 +7,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
@@ -24,7 +25,7 @@ public partial class FlowchartDesignerWrapper
     /// <summary>
     /// The flowchart to display.
     /// </summary>
-    [Parameter] public JsonObject Flowchart { get; set; } = default!;
+    [Parameter] public JsonObject Flowchart { get; set; } = null!;
 
     /// <summary>
     /// A map of activity stats.
@@ -56,10 +57,10 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
-    [CascadingParameter] private DragDropManager DragDropManager { get; set; } = default!;
-    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = default!;
-    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = default!;
-    private FlowchartDesigner Designer { get; set; } = default!;
+    [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
+    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
+    private FlowchartDesigner Designer { get; set; } = null!;
 
     private string? _lastFlowchartId;
 
@@ -70,7 +71,7 @@ public partial class FlowchartDesignerWrapper
     /// <param name="activityStats">A map of activity stats.</param>
     public async Task LoadFlowchartAsync(
         JsonObject activity,
-        IDictionary<string, ActivityStats>? activityStats = default
+        IDictionary<string, ActivityStats>? activityStats = null
     )
     {
         // 1) Unwrap any container to the real Elsa.Flowchart
