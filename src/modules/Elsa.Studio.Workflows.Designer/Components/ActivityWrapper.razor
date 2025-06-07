@@ -51,12 +51,13 @@
 
                 <!-- Menu -->
                 <div class="activity-menu">
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Style="@($"color: {menuIconColor};")">
+                    <!-- hidden until we have better integration between X6 node handling and events. -->
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Style="@($"color: {menuIconColor}; visibility: hidden;")">
                         <ActivatorContent>
                             <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Style="@($"color: {menuIconColor};")"></MudIconButton>
                         </ActivatorContent>
                         <ChildContent>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary" Label="@toggleCanStartText"/>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary" Label="@toggleCanStartText" OnClick="@OnToggleCanStartWorkflowClick"/>
                             <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Label="Remove"/>
                         </ChildContent>
                     </MudMenu>

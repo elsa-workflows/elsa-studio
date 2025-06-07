@@ -301,8 +301,18 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         const activityId = activity.id;
         const activityElementId = `activity-${activityId}`;
         const activityElement = document.getElementById(activityElementId);
+        const menuButtonElement = activityElement.querySelector('.mud-button-root');
         const embeddedPortElements = activityElement.querySelectorAll('.embedded-port');
         const mousePosition = graph.clientToLocal(e.clientX, e.clientY);
+        
+        // Check if the menu button was clicked.
+        const menuButtonElementRect = menuButtonElement.getBoundingClientRect();
+        const menuButtonElementBBox = graph.pageToLocal(menuButtonElementRect);
+        
+        if (menuButtonElementBBox.containsPoint(mousePosition)) {
+            await interop.raiseActivityMenuButtonClicked(activity);
+            return;
+        }
 
         // Check which of the embedded ports intersect with the selected node.
         for (let i = 0; i < embeddedPortElements.length; i++) {

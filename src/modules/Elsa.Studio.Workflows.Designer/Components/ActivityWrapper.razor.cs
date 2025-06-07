@@ -54,6 +54,10 @@ public partial class ActivityWrapper
     /// </summary>
     [Parameter] public ActivityStats? Stats { get; set; }
 
+    [Parameter] public Func<Task>? ToggleCanStartWorkflowClicked { get; set; }
+    
+    [CascadingParameter] public FlowchartDesigner FlowchartDesigner { get; set; } = null!;
+
     [Inject] private DesignerJsInterop DesignerInterop { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
@@ -61,7 +65,6 @@ public partial class ActivityWrapper
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
 
     private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
-    public ElementReference ActivatorRef { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -99,5 +102,13 @@ public partial class ActivityWrapper
             var size = Activity.GetDesignerMetadata().Size;
             await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
         }
+    }
+
+    private async Task OnToggleCanStartWorkflowClick()
+    {
+        var activity = Activity;
+        var canStartWorkflow = activity.GetCanStartWorkflow() == true;
+        activity.SetCanStartWorkflow(!canStartWorkflow);
+        //await FlowchartDesigner.UpdateActivityAsync(activity);
     }
 }

@@ -3,18 +3,26 @@
 }
 
 .x6-widget-selection-box {
-    border: none;
+    border: dashed 2px var(--mud-palette-gray-light);
     box-shadow: none;
 }
 
 .x6-widget-selection-inner {
-    border: 2px var(--mud-palette-gray-light);
+    border: dashed 2px var(--mud-palette-gray-light);
     box-shadow: none;
+}
+
+.x6-widget-transform {
+    border: none;
 }
 
 .elsa-snapline .x6-widget-snapline-horizontal,
 .elsa-snapline .x6-widget-snapline-vertical {
     stroke: var(--mud-palette-secondary);
+}
+
+.elsa-activity-wrapper-badge {
+    overflow: hidden;
 }
 
 .elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {

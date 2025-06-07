@@ -15,6 +15,13 @@ export class DotNetFlowchartDesigner {
     /// <summary>
     /// Raises the <see cref="ActivitySelected"/> event.
     /// </summary>
+    async raiseActivityMenuButtonClicked(activity: Activity): Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandleActivityMenuButtonClicked', activity);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="ActivitySelected"/> event.
+    /// </summary>
     async raiseActivityEmbeddedPortSelected(activity: Activity, portName: string): Promise<void> {
         await this.componentRef.invokeMethodAsync('HandleActivityEmbeddedPortSelected', activity, portName);
     }

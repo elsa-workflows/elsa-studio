@@ -56,6 +56,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     /// An event raised when an activity is selected.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    
+    [Parameter] public EventCallback<JsonObject> ActivityPropsChanged { get; set; }
 
     /// An event raised when an activity-embedded port is selected.
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
@@ -86,6 +88,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(activity);
+    }
+
+    public async Task UpdateActivityAsync(JsonObject activity)
+    {
+        if (ActivityPropsChanged.HasDelegate)
+            await ActivityPropsChanged.InvokeAsync(activity);
     }
 
     /// <summary>

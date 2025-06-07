@@ -13,7 +13,8 @@
             Activity="@Activity"
             IsProgressing="@IsProgressing" 
             ActivitySelected="@OnActivitySelected" 
-            GraphUpdated="@OnGraphUpdated">
+            GraphUpdated="@OnGraphUpdated"
+            ActivityUpdated="@OnActivityUpdated">
             <CustomToolbarItems>
                 <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
                 <MudTooltip Text="@Localizer["Save"]" Delay="1000">

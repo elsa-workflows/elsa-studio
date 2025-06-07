@@ -12,7 +12,7 @@ else
 
 {
     <div class="flowchart-diagram-designer" style="height: 100%" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
-        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected" ActivityPropsChanged="@ActivityUpdated"
             ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
             GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
     </div>
