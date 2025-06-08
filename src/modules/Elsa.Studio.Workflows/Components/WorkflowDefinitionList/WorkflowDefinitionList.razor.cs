@@ -25,15 +25,15 @@ public partial class WorkflowDefinitionList
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private NavigationManager navigation { get; set; }
-    [Inject] private IUserMessageService UserMessageService { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
-    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
-    [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; }
+    [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
+    [Inject] private IFiles Files { get; set; } = null!;
+    [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
@@ -52,7 +52,7 @@ public partial class WorkflowDefinitionList
                 : OrderDirection.Ascending
         };
 
-        var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest);
+        var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
         IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
         var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 

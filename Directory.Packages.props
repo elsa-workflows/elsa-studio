@@ -13,16 +13,16 @@
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="BlazorMonaco" Version="3.3.0" />
-    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.2.0" />
+    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.2.2" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
-    <PackageVersion Include="MudBlazor" Version="8.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25155.1" />
-    <PackageVersion Include="MudBlazor.Translations" Version="2.3.0" />
-    <PackageVersion Include="Radzen.Blazor" Version="7.0.2" />
+    <PackageVersion Include="MudBlazor" Version="8.7.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25218.8" />
+    <PackageVersion Include="MudBlazor.Translations" Version="2.4.0" />
+    <PackageVersion Include="Radzen.Blazor" Version="7.0.8" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.1" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
