@@ -2,6 +2,7 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
 @using Elsa.Studio.Extensions
 @using Variant = MudBlazor.Variant
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.TestRun
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
 
@@ -98,6 +99,15 @@
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <InfoTab ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
+                </ScrollableWell>
+            }
+        </MudTabPanel>
+        
+        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
+            @if (ActivityDescriptor != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <TestRunTab ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
                 </ScrollableWell>
             }
         </MudTabPanel>
