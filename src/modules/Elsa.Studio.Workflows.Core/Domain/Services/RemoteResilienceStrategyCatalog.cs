@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Resources.ResilienceStrategies.Contracts;
+using Elsa.Api.Client.Resources.Resilience.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 
