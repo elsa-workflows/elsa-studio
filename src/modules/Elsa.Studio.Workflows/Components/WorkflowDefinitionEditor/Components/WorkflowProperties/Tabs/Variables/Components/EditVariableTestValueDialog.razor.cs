@@ -51,7 +51,16 @@ public partial class EditVariableTestValueDialog
 
     private void OnSubmit()
     {
-        WorkflowDefinition.SetVariableTestValue(Variable.Id, _model.TestValue);
+        if(_model.TestValue == null)
+            WorkflowDefinition.ClearVariableTestValue(Variable.Id);
+        else
+            WorkflowDefinition.SetVariableTestValue(Variable.Id, _model.TestValue);
         MudDialog.Close();
+    }
+
+    private void OnClearTestValueClick()
+    {
+        _model.TestValue = null;
+        StateHasChanged();
     }
 }
