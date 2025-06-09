@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Resources.ResilienceStrategies.Models;
+using Elsa.Api.Client.Resources.Resilience.Models;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Components;
