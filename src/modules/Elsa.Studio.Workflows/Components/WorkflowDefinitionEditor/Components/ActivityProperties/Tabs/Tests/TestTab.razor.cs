@@ -3,17 +3,16 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.Tests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.TestRun;
+namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Tests;
 
 /// <summary>
 /// The info tab for an activity.
 /// </summary>
-public partial class TestRunTab
+public partial class TestTab
 {
     /// <summary>
     /// The workflow definition.
