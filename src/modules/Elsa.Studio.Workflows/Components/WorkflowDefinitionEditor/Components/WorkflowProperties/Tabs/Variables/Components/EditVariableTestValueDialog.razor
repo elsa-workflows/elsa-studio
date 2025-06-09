@@ -1,0 +1,23 @@
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Resources.StorageDrivers.Models
+@using Elsa.Api.Client.Resources.VariableTypes.Models
+@using Elsa.Studio.Workflows.Services
+@inject ILocalizer Localizer
+@inherits StudioComponentBase
+
+<MudDialog>
+    <DialogContent>
+        <EditForm EditContext="_editContext" OnValidSubmit="OnSubmit">
+            <MudStack>
+                <MudField Label="Id" HelperText="@Localizer["The ID of the variable."]" Variant="Variant.Outlined" Margin="Margin.Dense">@Variable.Id</MudField>
+                <MudField Label="Name" HelperText="@Localizer["The name of the variable."]" Variant="Variant.Outlined" Margin="Margin.Dense">@Variable.Name</MudField>
+                <MudField Label="Default Value" HelperText="@Localizer["The default value of the variable."]" Variant="Variant.Outlined" Margin="Margin.Dense">@Variable.Value</MudField>
+                <MudTextField Label="@Localizer["Test Value"]" @bind-Value="_model.TestValue" For="@(() => _model.TestValue)" HelperText="@Localizer["The test value of the variable."]" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="5" />
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnCancelClicked">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmit">@Localizer["Ok"]</MudButton>
+    </DialogActions>
+</MudDialog>
