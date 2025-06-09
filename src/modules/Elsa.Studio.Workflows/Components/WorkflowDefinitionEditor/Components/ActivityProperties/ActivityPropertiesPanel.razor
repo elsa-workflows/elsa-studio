@@ -59,6 +59,15 @@
                 </Well>
             }
         </MudTabPanel>
+        
+        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
+            @if (WorkflowDefinition != null && ActivityDescriptor != null && Activity != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <TestRunTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
+                </ScrollableWell>
+            }
+        </MudTabPanel>
 
         <MudTabPanel Text="@Localizer["Commit Strategy"]">
             @if (Activity != null)
@@ -99,15 +108,6 @@
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <InfoTab ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
-                </ScrollableWell>
-            }
-        </MudTabPanel>
-        
-        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
-            @if (WorkflowDefinition != null && ActivityDescriptor != null && Activity != null)
-            {
-                <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <TestRunTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
                 </ScrollableWell>
             }
         </MudTabPanel>
