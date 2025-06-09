@@ -104,10 +104,10 @@
         </MudTabPanel>
         
         <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
-            @if (ActivityDescriptor != null)
+            @if (WorkflowDefinition != null && ActivityDescriptor != null && Activity != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <TestRunTab ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
+                    <TestRunTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
                 </ScrollableWell>
             }
         </MudTabPanel>

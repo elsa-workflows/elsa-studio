@@ -5,11 +5,12 @@
     <div>
         <MudButton StartIcon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Filled" Color="Color.Success" OnClick="@OnTestRunClick">@Localizer["Start"]</MudButton>
     </div>
+    <MudProgressLinear Color="@(IsRunning ? Color.Success : Color.Transparent)" Indeterminate="true"/>
     <div>
-        <MudProgressLinear Color="@(IsRunning ? Color.Success : Color.Transparent)" Indeterminate="true" />
-    </div>
-    <div>
-        <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Results"]</MudText>
-        <DataPanel Data="TestRunResults" NoDataMessage="Select the Start button to run the activity." />
+        @if (!IsRunning)
+        {
+            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Results"]</MudText>
+            <DataPanel Data="TestRunResults" NoDataMessage="Select the Start button to run the activity."/>
+        }
     </div>
 </MudStack>
