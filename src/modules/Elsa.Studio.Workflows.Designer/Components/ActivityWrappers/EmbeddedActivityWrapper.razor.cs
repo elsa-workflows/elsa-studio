@@ -1,26 +1,16 @@
-using System;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
-namespace Elsa.Studio.Workflows.Designer.Components;
+namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 
-public partial class EmbeddedActivityWrapper
+public abstract class EmbeddedActivityWrapperBase : StudioComponentBase
 {
-    private string _label = null!;
-    private string _description = null!;
-    private bool _showDescription;
-    private string _color = null!;
-    private string? _icon;
-    private ActivityDescriptor _activityDescriptor = null!;
-
     [Parameter] public string? ElementId { get; set; }
     [Parameter] public string ActivityId { get; set; } = null!;
     [Parameter] public JsonObject Activity { get; set; } = null!;
@@ -30,8 +20,14 @@ public partial class EmbeddedActivityWrapper
     [Inject] IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
     [Inject] IServiceProvider ServiceProvider { get; set; } = null!;
-    
-    private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+
+    protected bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    protected string Label { get; private set; } = null!;
+    protected string Description { get; private set; } = null!;
+    protected bool ShowDescription { get; private set; }
+    protected string Color  { get; private set; } = null!;
+    protected string? Icon  { get; private set; }
+    protected ActivityDescriptor ActivityDescriptor  { get; private set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -46,11 +42,11 @@ public partial class EmbeddedActivityWrapper
         var activityDescription = activity.GetDescription()?.Trim();
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        _label = activityDisplayText;
-        _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor.Description ?? string.Empty;
-        _showDescription = activity.GetShowDescription() == true;
-        _color = displaySettings.Color;
-        _icon = displaySettings.Icon;
-        _activityDescriptor = descriptor;
+        Label = activityDisplayText;
+        Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor.Description ?? string.Empty;
+        ShowDescription = activity.GetShowDescription() == true;
+        Color = displaySettings.Color;
+        Icon = displaySettings.Icon;
+        ActivityDescriptor = descriptor;
     }
 }

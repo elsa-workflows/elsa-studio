@@ -1,0 +1,103 @@
+.elsa-flowchart-diagram-designer-v2 .x6-graph-background {
+    background-color: var(--mud-palette-surface);
+}
+
+.elsa-flowchart-diagram-designer-v2 .x6-widget-selection-box {
+    border: dashed 2px var(--mud-palette-gray-light);
+    box-shadow: none;
+}
+
+.elsa-flowchart-diagram-designer-v2 .x6-widget-selection-inner {
+    border: dashed 2px var(--mud-palette-gray-light);
+    box-shadow: none;
+}
+
+.elsa-flowchart-diagram-designer-v2 .x6-widget-transform {
+    border: none;
+}
+
+.elsa-flowchart-diagram-designer-v2 .elsa-snapline .x6-widget-snapline-horizontal,
+.elsa-flowchart-diagram-designer-v2 .elsa-snapline .x6-widget-snapline-vertical {
+    stroke: var(--mud-palette-secondary);
+}
+
+.elsa-flowchart-diagram-designer-v2 .elsa-activity-wrapper-badge {
+    overflow: hidden;
+}
+
+.elsa-flowchart-diagram-designer-v2 .elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {
+    background-color: #FFEB3B !important;
+}
+
+.elsa-flowchart-diagram-designer-v2 .elsa-activity {
+    height: 100%;
+}
+
+/* Use equal 16px padding all around */
+.elsa-flowchart-diagram-designer-v2 .activity-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    padding: 16px; /* top/right/bottom/left = 16px */
+    border-radius: 8px;
+}
+
+/* Icon container */
+.elsa-flowchart-diagram-designer-v2 .activity-icon {
+    background-color: #1976d2;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+/* Middle content (label, type, ports, description) */
+.elsa-flowchart-diagram-designer-v2 .activity-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* First line: activity label stays default color */
+.elsa-flowchart-diagram-designer-v2 .activity-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Second line: lighter grey to mimic original */
+.elsa-flowchart-diagram-designer-v2 .activity-type {
+    color: var(--mud-palette-gray-light);
+    font-size: 0.75rem; /* slightly smaller */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Embedded ports row */
+.elsa-flowchart-diagram-designer-v2 .activity-ports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.elsa-flowchart-diagram-designer-v2 .activity-ports .mud-input.mud-input-outlined .mud-input-outlined-border  {
+    border-style: dashed !important;
+}
+
+/* Optional description below */
+.elsa-flowchart-diagram-designer-v2 .activity-description {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* Menu on the right: vertically center */
+.elsa-flowchart-diagram-designer-v2 .activity-menu {
+    align-self: center;
+}

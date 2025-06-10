@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.UI.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -12,7 +12,7 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Provides access to the designer JavaScript module.
 /// </summary>
-internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
+public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> options, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
 {
     protected override string ModuleName => "designer";
 
@@ -27,12 +27,13 @@ internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceP
     {
         return await TryInvokeAsync(async module =>
         {
-            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
+            var graphSettings = options.Value.GraphSettings;
+            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly, graphSettings);
             return new X6GraphApi(module, serviceProvider, containerId);
         });
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = null)
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null)
     {
         var serializerOptions = GetSerializerOptions();
         var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
