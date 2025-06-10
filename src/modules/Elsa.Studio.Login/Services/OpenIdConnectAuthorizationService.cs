@@ -10,21 +10,25 @@ using System.Text;
 namespace Elsa.Studio.Login.Services;
 
 /// <inheritdoc/>
-public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOptions<OpenIdConnectConfiguration> configuration, NavigationManager navigationManager, HttpClient httpClient) : IAuthorizationService
+public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOptions<OpenIdConnectConfiguration> configuration, NavigationManager navigationManager, HttpClient httpClient, IOpenIdConnectPkceStateService pkceStateService) : IAuthorizationService
 {
     /// <inheritdoc/>
-    public Task RedirectToAuthorizationServer()
+    public async Task RedirectToAuthorizationServer()
     {
         var config = configuration.Value;
         var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + "/signin-oidc";
         string url = config.AuthEndpoint + $"?client_id={WebUtility.UrlEncode(config.ClientId)}&redirect_uri={WebUtility.UrlEncode(redirectUri)}&response_type=code&scope={WebUtility.UrlEncode(String.Join(' ', config.Scopes))}";
+        if (config.UsePkce)
+        {
+            var generated = await pkceStateService.GeneratePkceCodeChallenge();
+            url += $"&code_challenge={generated.CodeChallenge}&code_challenge_method={generated.Method}";
+        }
         if (navigationManager.ToBaseRelativePath(navigationManager.Uri) is { } returnUrl and not "/")
         {
             url += "&state=" + WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(returnUrl));
         }
 
         navigationManager.NavigateTo(url, true);
-        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -33,14 +37,23 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         var config = configuration.Value;
         var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + "/signin-oidc";
 
-        var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, config.TokenEndpoint);
-        refreshRequestMessage.Content = new FormUrlEncodedContent(
-        [
+        var formValues = new List<KeyValuePair<string, string>>
+        {
             new KeyValuePair<string, string>("client_id", config.ClientId),
             new KeyValuePair<string, string>("code", code),
             new KeyValuePair<string, string>("grant_type", "authorization_code"),
-            new KeyValuePair<string, string>("redirect_uri", redirectUri),
-        ]);
+            new KeyValuePair<string, string>("redirect_uri", redirectUri)
+        };
+        if (config.UsePkce)
+        {
+            var codeVerifier = await pkceStateService.GetPkceCodeVerifier();
+            formValues.Add(new KeyValuePair<string, string>("code_verifier", codeVerifier));
+        }
+
+        var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, config.TokenEndpoint)
+        {
+            Content = new FormUrlEncodedContent(formValues)
+        };
 
         // Send request.
         var response = await httpClient.SendAsync(refreshRequestMessage, cancellationToken);
