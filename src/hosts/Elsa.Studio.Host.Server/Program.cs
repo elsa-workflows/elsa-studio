@@ -9,7 +9,6 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Secrets;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Webhooks.Extensions;
-using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
@@ -20,6 +19,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Host.Server;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Workflows.Designer.Components.ActivityWrappers.V2;
+using Elsa.Studio.Workflows.Designer.Options;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +31,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(options =>
 {
     // Register the root components.
-    options.RootComponents.RegisterCustomElsaStudioElements();
+    options.RootComponents.RegisterCustomElsaStudioElements(typeof(ActivityWrapper));
     options.RootComponents.MaxJSRootComponents = 1000;
 });
 
@@ -55,12 +56,12 @@ var localizationConfig = new LocalizationConfig
     {
         configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
         options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
-            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? Enumerable.Empty<string>()) .ToArray();
+            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []) .ToArray();
     }
 };
 
 builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
-builder.Services.AddCore().Replace(new ServiceDescriptor(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
+builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 
 builder.Services.AddRemoteBackend(backendApiConfig);
@@ -68,7 +69,6 @@ builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-//builder.Services.AddWorkflowContextsModule();
 builder.Services.AddWebhooksModule();
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -76,6 +76,12 @@ builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+
+builder.Services.Configure<DesignerOptions>(options =>
+{
+    options.DesignerCssClass = "elsa-flowchart-diagram-designer-v2";
+    options.GraphSettings.Grid.Type = "dot";
+});
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
@@ -104,6 +110,4 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
-// Run the application.
 app.Run();

@@ -2,26 +2,26 @@
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Enums
 @using Elsa.Api.Client.Extensions
 @using Elsa.Studio.Workflows.Domain.Contexts
-@inherits StudioComponentBase
+@inherits ActivityWrapperBase
 @inject ILocalizer Localizer
 
 @{
     const string white = "#ffffff";
     const string transparent = "rgba(0,0,0,0)";
     var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
-    var backgroundColor = CanStartWorkflow ? _color : white;
-    var iconBgColor = CanStartWorkflow ? transparent : _color;
+    var backgroundColor = CanStartWorkflow ? Color : white;
+    var iconBgColor = CanStartWorkflow ? transparent : Color;
     var iconColor = white;
     var menuIconColor = CanStartWorkflow ? white : "var(--mud-palette-text-primary)";
     var metadata = Stats?.Metadata;
     var hasRetryAttempts = metadata != null && metadata.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True };
-    var color = Stats == null ? Color.Transparent : Stats.Faulted ? Color.Error : Stats.Blocked ? Color.Warning : Stats.Uncompleted > Stats.Completed ? Color.Info : Stats.Completed > 0 ? Color.Success : Color.Default;
+    var color = Stats == null ? MudBlazor.Color.Transparent : Stats.Faulted ? MudBlazor.Color.Error : Stats.Blocked ? MudBlazor.Color.Warning : Stats.Uncompleted > Stats.Completed ? MudBlazor.Color.Info : Stats.Completed > 0 ? MudBlazor.Color.Success : MudBlazor.Color.Default;
     var content = Stats == null ? null : Stats.Faulted || Stats.Blocked ? Stats.Started.ToString() : Stats.Completed.ToString();
     var icon = Stats == null ? null : content == null ? Stats.Blocked ? Icons.Material.Outlined.HourglassTop : Stats.Uncompleted > 0 ? Icons.Material.Outlined.PlayArrow : null : null;
     var showBadge = Stats != null;
     var cssClass = hasRetryAttempts ? "elsa-activity-wrapper-badge has-retries" : "elsa-activity-wrapper-badge";
-    var visiblePorts = _ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
-    var isTrigger = _activityDescriptor?.Kind == ActivityKind.Trigger;
+    var visiblePorts = Ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
+    var isTrigger = ActivityDescriptor?.Kind == ActivityKind.Trigger;
     var toggleCanStartText = isTrigger ? "Trigger" : "Starting point";
 }
 
@@ -36,17 +36,17 @@
 
             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                 <!-- Icon -->
-                @if (_icon != null)
+                @if (Icon != null)
                 {
                     <div class="activity-icon" style="@($"background-color: {iconBgColor};")">
-                        <MudIcon Icon="@_icon" Size="Size.Small" Style="@($"color: {iconColor};")"/>
+                        <MudIcon Icon="@Icon" Size="Size.Small" Style="@($"color: {iconColor};")"/>
                     </div>
                 }
 
                 <!-- Labels + Embedded ports + Description -->
                 <div class="activity-content">
-                    <MudText Typo="Typo.subtitle1" Class="activity-label" Style="@colorStyle">@Localizer[_label]</MudText>
-                    <MudText Typo="Typo.subtitle2" Class="activity-type" Style="@colorStyle">@Localizer[_typeName]</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="activity-label" Style="@colorStyle">@Localizer[Label]</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="activity-type" Style="@colorStyle">@Localizer[TypeName]</MudText>
                 </div>
 
                 <!-- Menu -->
@@ -57,23 +57,23 @@
                             <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Style="@($"color: {menuIconColor};")"></MudIconButton>
                         </ActivatorContent>
                         <ChildContent>
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary" Label="@toggleCanStartText" OnClick="@OnToggleCanStartWorkflowClick"/>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Check" IconColor="MudBlazor.Color.Primary" Label="@toggleCanStartText"/>
                             <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Label="Remove"/>
                         </ChildContent>
                     </MudMenu>
                 </div>
             </MudStack>
 
-            @if (visiblePorts.Any() && _activityDescriptor != null)
+            @if (visiblePorts.Any() && ActivityDescriptor != null)
             {
                 <div class="activity-ports">
                     <MudStack>
                         @foreach (var port in visiblePorts)
                         {
                             var portName = port.Name;
-                            var providerContext = new PortProviderContext(_activityDescriptor, Activity);
+                            var providerContext = new PortProviderContext(ActivityDescriptor, Activity);
                             var portProvider = ActivityPortService.GetProvider(providerContext);
-                            var childActivity = portProvider.ResolvePort(portName, new(_activityDescriptor, Activity));
+                            var childActivity = portProvider.ResolvePort(portName, new(ActivityDescriptor, Activity));
 
                             @if (childActivity != null)
                             {
@@ -96,10 +96,10 @@
                 </div>
             }
 
-            @if (!string.IsNullOrWhiteSpace(_description) && _showDescription)
+            @if (!string.IsNullOrWhiteSpace(Description) && ShowDescription)
             {
                 <div>
-                    <MudText Typo="Typo.caption" Class="activity-description" Style="@colorStyle">@_description</MudText>
+                    <MudText Typo="Typo.caption" Class="activity-description" Style="@colorStyle">@Description</MudText>
                 </div>
             }
         </MudStack>

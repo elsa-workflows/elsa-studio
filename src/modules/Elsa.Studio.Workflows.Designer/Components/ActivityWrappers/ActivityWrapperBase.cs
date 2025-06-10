@@ -2,28 +2,21 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Workflows.Designer.Interop;
+using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 
-namespace Elsa.Studio.Workflows.Designer.Components;
+namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 
 /// <summary>
 /// A wrapper for an activity component.
 /// </summary>
-public partial class ActivityWrapper
+public abstract class ActivityWrapperBase : StudioComponentBase
 {
-    private string _label = null!;
-    private string _typeName = null!;
-    private string _description = null!;
-    private bool _showDescription;
-    private string _color = null!;
-    private string? _icon;
-    private ActivityDescriptor? _activityDescriptor;
-    private ICollection<Port> _ports = new List<Port>();
-
     /// <summary>
     /// Gets or sets the element ID.
     /// </summary>
@@ -54,17 +47,21 @@ public partial class ActivityWrapper
     /// </summary>
     [Parameter] public ActivityStats? Stats { get; set; }
 
-    [Parameter] public Func<Task>? ToggleCanStartWorkflowClicked { get; set; }
-    
-    [CascadingParameter] public FlowchartDesigner FlowchartDesigner { get; set; } = null!;
+    [Inject] protected DesignerJsInterop DesignerInterop { get; set; } = null!;
+    [Inject] protected IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] protected IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] protected IActivityPortService ActivityPortService { get; set; } = null!;
+    [Inject] protected IServiceProvider ServiceProvider { get; set; } = null!;
 
-    [Inject] private DesignerJsInterop DesignerInterop { get; set; } = null!;
-    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
-    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
-    [Inject] private IActivityPortService ActivityPortService { get; set; } = null!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
-
-    private bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    protected bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    protected string Label { get; private set; } = null!;
+    protected string TypeName { get; private set; } = null!;
+    protected string Description { get; private set; } = null!;
+    protected bool ShowDescription { get; private set; }
+    protected string Color { get; private set; } = null!;
+    protected string? Icon { get; private set; }
+    protected ActivityDescriptor? ActivityDescriptor { get; private set; }
+    protected ICollection<Port> Ports { get; private set; } = new List<Port>();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -75,7 +72,6 @@ public partial class ActivityWrapper
         await ActivityRegistry.EnsureLoadedAsync();
 
         var activity = Activity;
-        var activityName = Activity.GetName();
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
         var activityType = activity.GetTypeName();
@@ -83,14 +79,14 @@ public partial class ActivityWrapper
         var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        _label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : !string.IsNullOrWhiteSpace(activityName) ? activityName : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
-        _typeName = descriptor?.DisplayName ?? "Unknown Activity";
-        _description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
-        _showDescription = activity.GetShowDescription() == true;
-        _color = displaySettings.Color;
-        _icon = displaySettings.Icon;
-        _activityDescriptor = descriptor;
-        _ports = descriptor != null ? ActivityPortService.GetPorts(new(descriptor, activity)).ToList() : [];
+        Label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        TypeName = descriptor?.DisplayName ?? "Unknown Activity";
+        Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
+        ShowDescription = activity.GetShowDescription() == true;
+        Color = displaySettings.Color;
+        Icon = displaySettings.Icon;
+        ActivityDescriptor = descriptor!;
+        Ports = descriptor != null ? ActivityPortService.GetPorts(new PortProviderContext(descriptor, activity)).ToList() : [];
 
         await UpdateSizeAsync();
     }
@@ -102,13 +98,5 @@ public partial class ActivityWrapper
             var size = Activity.GetDesignerMetadata().Size;
             await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
         }
-    }
-
-    private async Task OnToggleCanStartWorkflowClick()
-    {
-        var activity = Activity;
-        var canStartWorkflow = activity.GetCanStartWorkflow() == true;
-        activity.SetCanStartWorkflow(!canStartWorkflow);
-        //await FlowchartDesigner.UpdateActivityAsync(activity);
     }
 }

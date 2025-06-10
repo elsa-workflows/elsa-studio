@@ -9,28 +9,30 @@ import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 
-export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean): Promise<string> {
+export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
     let lastSelectedNode: Node.Properties = null;
+    
+    debugger;
 
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
         grid: {
-            type: 'dot',
-            visible: true,
-            size: 20,
-            args: {
-                color: '#334154',
+            type: settings?.grid?.type || 'mesh',
+            visible: settings?.grid?.visible || true,
+            size: settings?.grid?.size || 10,
+            args: settings?.grid?.args || {
+                color: '#f1f1f1',
                 thickness: 1,
             }
         },
-        magnetThreshold: 0,
-        panning: {
+        magnetThreshold: settings?.magnetThreshold || 0,
+        panning: settings?.panning || {
             enabled: true,
         },
-        mousewheel: {
+        mousewheel: settings?.mousewheel || {
             enabled: true,
             factor: 1.05,
             minScale: 0.4,

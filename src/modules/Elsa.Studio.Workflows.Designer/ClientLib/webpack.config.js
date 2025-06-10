@@ -44,7 +44,9 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                {from: 'css/designer.css', to: './'},
+                {from: 'css/designer.v1.css', to: './'},
+                {from: 'css/designer.v2.css', to: './'},
+                {from: 'css/designer.v2.css', to: './designer.css'}, // Default
             ],
         }),
     ]

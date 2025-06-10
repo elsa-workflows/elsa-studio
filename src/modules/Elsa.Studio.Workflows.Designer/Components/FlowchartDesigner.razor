@@ -1,6 +1,9 @@
 ﻿@inherits StudioComponentBase
+@{
+    var cssClass = "elsa-flowchart-diagram-designer" + (string.IsNullOrEmpty(Options.Value.DesignerCssClass) ? "" : " " + Options.Value.DesignerCssClass);
+}
 <CascadingValue Value="@this">
-    <div style="width:100%; height:100%">
+    <div class="@cssClass" style="width:100%; height:100%">
         <div id="@_containerId" class="graph-container"></div>
     </div>
 </CascadingValue>

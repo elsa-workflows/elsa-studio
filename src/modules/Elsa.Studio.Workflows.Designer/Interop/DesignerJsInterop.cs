@@ -2,7 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Size = Elsa.Api.Client.Shared.Models.Size;
 
@@ -11,7 +13,7 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Provides access to the designer JavaScript module.
 /// </summary>
-internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
+public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> options, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
 {
     protected override string ModuleName => "designer";
 
@@ -26,7 +28,8 @@ internal class DesignerJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceP
     {
         return await TryInvokeAsync(async module =>
         {
-            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly);
+            var graphSettings = options.Value.GraphSettings;
+            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly, graphSettings);
             return new X6GraphApi(module, serviceProvider, containerId);
         });
     }
