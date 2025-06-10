@@ -13,18 +13,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
     let lastSelectedNode: Node.Properties = null;
-    
-    debugger;
 
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
         grid: {
-            type: settings?.grid?.type || 'mesh',
+            type: settings?.grid?.type || 'dot',
             visible: settings?.grid?.visible || true,
             size: settings?.grid?.size || 10,
             args: settings?.grid?.args || {
-                color: '#f1f1f1',
+                color: '#334154',
                 thickness: 1,
             }
         },
