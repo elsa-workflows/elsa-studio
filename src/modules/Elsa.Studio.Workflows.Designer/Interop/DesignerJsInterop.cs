@@ -6,7 +6,6 @@ using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using Size = Elsa.Api.Client.Shared.Models.Size;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 
@@ -34,7 +33,7 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
         });
     }
 
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Size? size = null)
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null)
     {
         var serializerOptions = GetSerializerOptions();
         var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
