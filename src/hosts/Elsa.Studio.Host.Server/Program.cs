@@ -27,7 +27,12 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(options =>
 {
     // Register the root components.
+    // V2 activity wrapper by default.
     options.RootComponents.RegisterCustomElsaStudioElements();
+    
+    // To use V1 activity wrapper layout, specify the V1 component instead:
+    //options.RootComponents.RegisterCustomElsaStudioElements(typeof(Elsa.Studio.Workflows.Designer.Components.ActivityWrappers.V1.EmbeddedActivityWrapper));
+    
     options.RootComponents.MaxJSRootComponents = 1000;
 });
 
@@ -52,7 +57,7 @@ var localizationConfig = new LocalizationConfig
     {
         configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
         options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
-            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? Enumerable.Empty<string>()) .ToArray();
+            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []) .ToArray();
     }
 };
 
@@ -69,6 +74,13 @@ builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+
+// Uncomment for V1 designer theme (default is V2).
+// builder.Services.Configure<DesignerOptions>(options =>
+// {
+//     options.DesignerCssClass = "elsa-flowchart-diagram-designer-v1";
+//     options.GraphSettings.Grid.Type = "mesh";
+// });
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
@@ -97,6 +109,4 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
-// Run the application.
 app.Run();

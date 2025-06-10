@@ -18,6 +18,7 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 public record DisplayContext(
     JsonObject Activity, 
     EventCallback<JsonObject> ActivitySelectedCallback = default,
+    EventCallback<JsonObject> ActivityUpdated = default,
     EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelectedCallback = default,
     EventCallback<JsonObject> ActivityDoubleClickCallback = default,
     EventCallback GraphUpdatedCallback = default, 

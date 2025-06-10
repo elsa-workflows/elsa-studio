@@ -42,6 +42,8 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
+    [Parameter] public EventCallback<JsonObject> ActivityUpdated { get; set; }
+
     /// <summary>
     /// An event raised when an embedded port is selected.
     /// </summary>
