@@ -10,13 +10,18 @@ public abstract class JsInteropBase : IAsyncDisposable
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
 
     protected abstract string ModuleName { get; }
-    
+
     protected JsInteropBase(IJSRuntime jsRuntime)
     {
-        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask());
+        _moduleTask = new(() => ImportModule(jsRuntime));
     }
-    
+
+    public virtual Task<IJSObjectReference> ImportModule(IJSRuntime jsRuntime)
+    {
+        return jsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask();
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_moduleTask.IsValueCreated)
@@ -40,7 +45,7 @@ public abstract class JsInteropBase : IAsyncDisposable
         var module = await _moduleTask.Value;
         await func(module);
     }
-    
+
     protected async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
     {
         var module = await _moduleTask.Value;
