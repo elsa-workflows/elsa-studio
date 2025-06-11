@@ -1,8 +1,1 @@
-<Project>
-  <Target Name="RemoveDuplicateClipboardAsset" BeforeTargets="GenerateStaticWebAssetsManifest">
-    <ItemGroup>
-      <!-- This will strip out any clipboard.entry.js it finds in the old C: path -->
-      <StaticWebAsset Remove="C:\Users\max\source\repos\elsa-studio-main\src\framework\Elsa.Studio.DomInterop\wwwroot\clipboard.entry.js" />
-    </ItemGroup>
-  </Target>
-</Project>
+
