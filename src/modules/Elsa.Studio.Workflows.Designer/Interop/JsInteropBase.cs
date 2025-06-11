@@ -14,7 +14,13 @@ public abstract class JsInteropBase : IAsyncDisposable
     /// Initializes a new instance of <see cref="JsInteropBase"/>
     protected JsInteropBase(IJSRuntime jsRuntime)
     {
-        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask());
+        _moduleTask = new(() => ImportModule(jsRuntime));
+    }
+
+    public virtual Task<IJSObjectReference> ImportModule(IJSRuntime jsRuntime)
+    {
+        return jsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask();
     }
 
     public async ValueTask DisposeAsync()
@@ -71,7 +77,7 @@ public abstract class JsInteropBase : IAsyncDisposable
         {
             // Ignore.
         }
-        catch(ObjectDisposedException)
+        catch (ObjectDisposedException)
         {
             // Ignore.
         }
