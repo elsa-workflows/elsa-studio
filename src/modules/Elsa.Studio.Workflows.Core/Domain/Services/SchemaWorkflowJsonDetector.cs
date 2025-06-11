@@ -9,7 +9,7 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 [UsedImplicitly]
 public class SchemaWorkflowJsonDetector : IWorkflowJsonDetector
-{
+{           
     /// <inheritdoc />
     public bool IsWorkflowSchema(string json)
     {
