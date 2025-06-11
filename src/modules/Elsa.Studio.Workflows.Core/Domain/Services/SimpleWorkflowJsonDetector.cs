@@ -19,9 +19,6 @@ public class SimpleWorkflowJsonDetector : IWorkflowJsonDetector
         if (!rootElement.TryGetProperty("definitionId", out _))
             return false;
 
-        if (!rootElement.TryGetProperty("toolVersion", out _))
-            return false;
-
         if (!rootElement.TryGetProperty("id", out _))
             return false;
 
