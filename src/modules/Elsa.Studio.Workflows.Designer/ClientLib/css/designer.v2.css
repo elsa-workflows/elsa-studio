@@ -22,7 +22,7 @@
 }
 
 .elsa-flowchart-diagram-designer-v2 .elsa-activity-wrapper-badge {
-    overflow: hidden;
+    
 }
 
 .elsa-flowchart-diagram-designer-v2 .elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {
@@ -31,6 +31,7 @@
 
 .elsa-flowchart-diagram-designer-v2 .elsa-activity {
     height: 100%;
+    overflow: hidden;
 }
 
 /* Use equal 16px padding all around */
