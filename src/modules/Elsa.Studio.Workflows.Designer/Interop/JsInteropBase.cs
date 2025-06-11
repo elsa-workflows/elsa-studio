@@ -20,7 +20,7 @@ public abstract class JsInteropBase : IAsyncDisposable
     public virtual Task<IJSObjectReference> ImportModule(IJSRuntime jsRuntime)
     {
         return jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask();
+            "import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask();
     }
 
     public async ValueTask DisposeAsync()
