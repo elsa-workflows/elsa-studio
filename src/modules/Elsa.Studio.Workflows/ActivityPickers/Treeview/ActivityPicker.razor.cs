@@ -6,7 +6,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
+namespace Elsa.Studio.Workflows.ActivityPickers.Treeview;
 
 /// <summary>
 /// A component that allows the user to pick an activity.
