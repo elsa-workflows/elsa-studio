@@ -5,15 +5,15 @@
   </PropertyGroup>
 	<PropertyGroup Label="PackageVersions">
 		<ElsaVersion>3.7.0-preview.3055</ElsaVersion>
-		<ElsaExtensionsVersion>3.7.0-preview.64</ElsaExtensionsVersion>
+		<ElsaExtensionsVersion>3.7.0-preview.65</ElsaExtensionsVersion>
 	</PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
-<!--    <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaExtensionsVersion)" />-->
-<!--	<PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaExtensionsVersion)" />-->
-<!--	<PackageVersion Include="Elsa.Studio.Http.Webhooks" Version="$(ElsaExtensionsVersion)" />-->
-<!--	<PackageVersion Include="Elsa.Studio.Secrets" Version="$(ElsaExtensionsVersion)" />-->
-<!--	<PackageVersion Include="Elsa.Studio.WorkflowContexts" Version="$(ElsaExtensionsVersion)" />-->
+    <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaExtensionsVersion)" />
+	<PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaExtensionsVersion)" />
+	<PackageVersion Include="Elsa.Studio.Http.Webhooks" Version="$(ElsaExtensionsVersion)" />
+	<PackageVersion Include="Elsa.Studio.Secrets" Version="$(ElsaExtensionsVersion)" />
+	<PackageVersion Include="Elsa.Studio.WorkflowContexts" Version="$(ElsaExtensionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
