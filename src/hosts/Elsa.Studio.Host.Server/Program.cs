@@ -66,9 +66,6 @@ builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddWorkflowContextsModule();
-builder.Services.AddWebhooksModule();
-builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
