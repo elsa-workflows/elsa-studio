@@ -9,11 +9,11 @@
 	</PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
-    <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaExtensionsVersion)" />
-	<PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaExtensionsVersion)" />
-	<PackageVersion Include="Elsa.Studio.Http.Webhooks" Version="$(ElsaExtensionsVersion)" />
-	<PackageVersion Include="Elsa.Studio.Secrets" Version="$(ElsaExtensionsVersion)" />
-	<PackageVersion Include="Elsa.Studio.WorkflowContexts" Version="$(ElsaExtensionsVersion)" />
+<!--    <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaExtensionsVersion)" />-->
+<!--	<PackageVersion Include="Elsa.Agents.Models" Version="$(ElsaExtensionsVersion)" />-->
+<!--	<PackageVersion Include="Elsa.Studio.Http.Webhooks" Version="$(ElsaExtensionsVersion)" />-->
+<!--	<PackageVersion Include="Elsa.Studio.Secrets" Version="$(ElsaExtensionsVersion)" />-->
+<!--	<PackageVersion Include="Elsa.Studio.WorkflowContexts" Version="$(ElsaExtensionsVersion)" />-->
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />

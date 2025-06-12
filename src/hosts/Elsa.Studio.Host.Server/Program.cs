@@ -6,10 +6,10 @@ using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
-using Elsa.Studio.Secrets;
+//using Elsa.Studio.Secrets;
 using Elsa.Studio.Shell.Extensions;
-using Elsa.Studio.Http.Webhooks.Extensions;
-using Elsa.Studio.WorkflowContexts.Extensions;
+// using Elsa.Studio.Http.Webhooks.Extensions;
+// using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
@@ -18,8 +18,10 @@ using Elsa.Studio.Localization.Options;
 using Elsa.Studio.Translations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Host.Server;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -67,14 +69,15 @@ builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddWorkflowContextsModule();
-builder.Services.AddWebhooksModule();
-builder.Services.AddSecretsModule(backendApiConfig);
+// builder.Services.AddWorkflowContextsModule();
+// builder.Services.AddWebhooksModule();
+// builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPickerComponentProvider>();
 
 // Configure SignalR.
 builder.Services.AddSignalR(options =>

@@ -10,7 +10,7 @@ using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
-using Elsa.Studio.WorkflowContexts.Extensions;
+//using Elsa.Studio.WorkflowContexts.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -46,7 +46,7 @@ builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddWorkflowContextsModule();
+//builder.Services.AddWorkflowContextsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
 
 // Replace some services with other implementations.

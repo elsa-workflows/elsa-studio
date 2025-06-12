@@ -11,9 +11,9 @@
     </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Elsa.Studio.Http.Webhooks" />
-		<PackageReference Include="Elsa.Studio.Secrets" />
-		<PackageReference Include="Elsa.Studio.WorkflowContexts" />
+<!--		<PackageReference Include="Elsa.Studio.Http.Webhooks" />-->
+<!--		<PackageReference Include="Elsa.Studio.Secrets" />-->
+<!--		<PackageReference Include="Elsa.Studio.WorkflowContexts" />-->
 	</ItemGroup>
 
 	<ItemGroup>
