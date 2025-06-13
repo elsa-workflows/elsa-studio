@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Resources.Scripting.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
@@ -60,6 +61,12 @@ public partial class Cases
     private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
         return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
+    }
+    
+    private bool ShouldUseCodeEditor(string expressionType)
+    {
+        var descriptor = ExpressionDescriptorProvider.GetByType(expressionType);
+        return descriptor != null && !string.IsNullOrEmpty(descriptor.GetMonacoLanguage());
     }
 
     private string GetDefaultExpressionType()
