@@ -37,13 +37,13 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             maxScale: 3,
         },
         interacting: {
-            nodeMovable: () => !readOnly,
+            nodeMovable: () => true,
             arrowheadMovable: () => !readOnly,
-            edgeMovable: () => !readOnly,
-            vertexMovable: () => !readOnly,
+            edgeMovable: () => true,
+            vertexMovable: () => true,
             vertexAddable: () => !readOnly,
             vertexDeletable: () => !readOnly,
-            edgeLabelMovable: () => !readOnly,
+            edgeLabelMovable: () => true,
             magnetConnectable: () => !readOnly,
             toolsAddable: () => !readOnly,
             useEdgeTools: () => !readOnly,
@@ -135,7 +135,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             rubberEdge: false,
             rubberNode: true,
             rubberband: true,
-            movable: !readOnly,
+            movable: true,
             showNodeSelectionBox: true
         }),
     );
