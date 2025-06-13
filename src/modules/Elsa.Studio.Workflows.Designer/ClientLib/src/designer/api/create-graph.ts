@@ -297,9 +297,29 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     graph.on('node:click', async args => {
         const {e, node} = args;
         const activity: Activity = node.data;
+        
+        // Handle case where activity data might be missing or incomplete
+        if (!activity || !activity.id) {
+            console.warn("Activity or activity ID is missing in node:click event");
+            if (!graph.isSelected(node)) {
+                graph.select(node);
+            }
+            return;
+        }
+        
         const activityId = activity.id;
         const activityElementId = `activity-${activityId}`;
         const activityElement = document.getElementById(activityElementId);
+        
+        // Handle case where activity element might not be in the DOM yet
+        if (!activityElement) {
+            console.warn(`Activity element with ID ${activityElementId} not found in the DOM`);
+            if (!graph.isSelected(node)) {
+                graph.select(node);
+            }
+            return;
+        }
+        
         const embeddedPortElements = activityElement.querySelectorAll('.embedded-port');
         const mousePosition = graph.clientToLocal(e.clientX, e.clientY);
 
@@ -321,7 +341,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             node.setProp('selected-port', embeddedPortName);
             lastSelectedNode = node;
 
-            await interop.raiseActivityEmbeddedPortSelected(activity, embeddedPortName);
+            try {
+                await interop.raiseActivityEmbeddedPortSelected(activity, embeddedPortName);
+            } catch (error) {
+                console.warn("Error when raising activity embedded port selected:", error);
+            }
             return;
         }
 
@@ -335,13 +359,35 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     graph.on('node:dblclick', async args => {
         const {node} = args;
         const activity: Activity = node.data;
-        await interop.raiseActivityDoubleClick(activity);
+        
+        // Check if activity data is valid before proceeding
+        if (!activity) {
+            console.warn("Activity data is missing in node:dblclick event");
+            return;
+        }
+
+        try {
+            await interop.raiseActivityDoubleClick(activity);
+        } catch (error) {
+            console.warn("Error when raising activity double click:", error);
+        }
     });
 
     graph.on('node:selected', async args => {
         const {node} = args;
         const activity: Activity = node.data;
-        await interop.raiseActivitySelected(activity);
+        
+        // Check if activity data is valid before proceeding
+        if (!activity) {
+            console.warn("Activity data is missing in node:selected event");
+            return;
+        }
+
+        try {
+            await interop.raiseActivitySelected(activity);
+        } catch (error) {
+            console.warn("Error when raising activity selected:", error);
+        }
     });
 
     const onGraphUpdated = async (e: any) => {

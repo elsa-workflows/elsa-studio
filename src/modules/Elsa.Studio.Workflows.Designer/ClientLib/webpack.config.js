@@ -40,4 +40,10 @@ module.exports = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
+    // Added to allow Web Workers to use blob URLs
+    devServer: {
+        headers: {
+            'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:;"
+        }
+    }
 };
