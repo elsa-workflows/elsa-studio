@@ -38,7 +38,7 @@
             </MudToolBar>
         </MudPaper>
         <div class="px-4" style="overflow-y: scroll; height: calc(100vh - var(--mud-appbar-height) - 160px);">
-            <MudTimeline @ref="_timeline" SelectedIndexChanged="OnJournalEntrySelected" SelectedIndex="SelectedIndex">
+            <MudTimeline SelectedIndexChanged="OnJournalEntrySelected" SelectedIndex="SelectedIndex">
                 <Virtualize @ref="VirtualizeComponent" ItemsProvider="FetchExecutionLogRecordsAsync" OverscanCount="50" ItemSize="@(88.53f)">
                     @{
                         var journalEntry = context;

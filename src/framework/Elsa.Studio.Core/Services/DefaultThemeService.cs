@@ -8,7 +8,7 @@ namespace Elsa.Studio.Services;
 public class DefaultThemeService : IThemeService
 {
     private MudTheme _currentTheme = CreateDefaultTheme();
-    private bool _isDarkMode = false;
+    private bool _isDarkMode;
 
     /// <inheritdoc />
     public event Action? CurrentThemeChanged;
@@ -48,20 +48,20 @@ public class DefaultThemeService : IThemeService
             },
             PaletteLight = 
             {
-                Primary = new MudColor("0ea5e9"),
-                DrawerBackground = new MudColor("#f8fafc"),
-                AppbarBackground = new MudColor("#0ea5e9"),
-                AppbarText = new MudColor("#ffffff"),
-                Background = new MudColor("#ffffff"),
-                Surface = new MudColor("#f8fafc")
+                Primary = new("0ea5e9"),
+                DrawerBackground = new("#f8fafc"),
+                AppbarBackground = new("#0ea5e9"),
+                AppbarText = new("#ffffff"),
+                Background = new("#ffffff"),
+                Surface = new("#f8fafc")
             },
             PaletteDark =
             {
-                Primary = new MudColor("0ea5e9"),
-                AppbarBackground = new MudColor("#0f172a"),
-                DrawerBackground = new MudColor("#0f172a"),
-                Background = new MudColor("#0f172a"),
-                Surface = new MudColor("#182234"),
+                Primary = new("0ea5e9"),
+                AppbarBackground = new("#0f172a"),
+                DrawerBackground = new("#0f172a"),
+                Background = new("#0f172a"),
+                Surface = new("#182234"),
             }
         };
 

@@ -10,7 +10,7 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Dropdown
 {
-    private ICollection<SelectListItem> _items = Array.Empty<SelectListItem>();
+    private ICollection<SelectListItem> _items = [];
 
     /// <summary>
     /// The editor context.

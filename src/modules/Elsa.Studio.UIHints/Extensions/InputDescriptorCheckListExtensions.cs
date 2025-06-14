@@ -18,7 +18,7 @@ public static class InputDescriptorCheckListExtensions
         var props = specifications != null ? specifications.TryGetValue(InputUIHints.CheckList, out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
 
         if (props.ValueKind == JsonValueKind.Undefined)
-            return new CheckList(Array.Empty<CheckListItem>());
+            return new([]);
 
         var serializerOptions = new JsonSerializerOptions
         {
@@ -26,6 +26,6 @@ public static class InputDescriptorCheckListExtensions
         };
 
         var checkListProps = props.Deserialize<CheckListProps>(serializerOptions);
-        return checkListProps?.CheckList ?? new CheckList(Array.Empty<CheckListItem>());
+        return checkListProps?.CheckList ?? new CheckList([]);
     }
 }

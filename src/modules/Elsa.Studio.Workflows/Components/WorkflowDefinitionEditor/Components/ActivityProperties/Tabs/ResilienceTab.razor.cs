@@ -48,8 +48,8 @@ public partial class ResilienceTab
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
-
-        SetProperties();
+        
+        await SetPropertiesAsync();
 
         if (!_isInitialized)
         {
@@ -87,25 +87,33 @@ public partial class ResilienceTab
     private async Task PersistStrategyConfigAsync()
     {
         var config = ResilienceStrategyConfig ?? new ResilienceStrategyConfig();
+        var expressionType = Expression?.Type ?? "Default";
         config.Expression = Expression;
         config.StrategyId = ResilienceStrategyId;
-        config.Mode = Expression?.Type != "Default" ? ResilienceStrategyConfigMode.Expression : ResilienceStrategyConfigMode.Identifier;
+        config.Mode = expressionType == "Default" ? ResilienceStrategyConfigMode.Identifier : ResilienceStrategyConfigMode.Expression;
         ResilienceStrategyConfig = config;
         Activity?.SetResilienceStrategy(config);
 
         await RaiseActivityUpdatedAsync();
     }
 
-    private void SetProperties()
+    private async Task SetPropertiesAsync()
     {
         if (Activity == null || ActivityDescriptor == null)
             return;
 
         var config = Activity.GetResilienceStrategy();
+        var previousCategory = ResilienceCategory;
         ResilienceCategory = ActivityDescriptor.CustomProperties.TryGetValue("ResilienceCategory", out var category) ? category.ToString() ?? DefaultCategory : DefaultCategory;
         ResilienceStrategyConfig = config;
         Expression = config?.Expression;
         ResilienceStrategyId = config?.StrategyId;
+        
+        if (previousCategory != ResilienceCategory || ResilienceStrategies.Count == 0)
+        {
+            var strategies = await ResilienceStrategyCatalog.ListAsync(ResilienceCategory);
+            ResilienceStrategies = strategies.ToList();
+        }
     }
 
     private async Task OnExpressionChangedAsync(Expression? expression)

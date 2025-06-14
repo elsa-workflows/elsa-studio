@@ -25,7 +25,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IErrorComponentProvider ErrorComponentProvider { get; set; } = default!;
     [Inject] private IFeatureService FeatureService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private IBrandingProvider  BrandingProvider { get; set; } = default!;
+    [Inject] private IBrandingProvider BrandingProvider { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;

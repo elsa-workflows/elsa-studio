@@ -64,6 +64,9 @@ jobs:
           else
             echo "VERSION=${{env.base_version}}-${PACKAGE_PREFIX}.${{github.run_number}}" >> $GITHUB_ENV
           fi
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
       - name: Build workflow designer client assets
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
         run: |

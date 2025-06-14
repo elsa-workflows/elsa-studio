@@ -3,6 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
