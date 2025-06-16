@@ -940,4 +940,64 @@
   <data name="Show events scoped to current container" xml:space="preserve">
     <value>Mevcut konteynere ait olayları göster</value>
   </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value>Bu giriş değişkeninin rolü ve amacı hakkında bir açıklama.</value>
+  </data>
+  <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
+    <value>Tasarımcıda gösterilen bu aktivitenin bir açıklaması.</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>Aktiviteler</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Aktivite</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Zaman</value>
+  </data>
+  <data name="Unpublish" xml:space="preserve">
+    <value>Yayından kaldır</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Değer</value>
+  </data>
+  <data name="An input with this name already exists." xml:space="preserve">
+    <value>Bu isimde bir girdi zaten var.</value>
+  </data>
+  <data name="Create variable" xml:space="preserve">
+    <value>Değişken oluştur</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Hiçbiri</value>
+  </data>
+  <data name="Create output" xml:space="preserve">
+    <value>Çıktı oluştur</value>
+  </data>
+  <data name="Are you sure you want to delete the selected variable?" xml:space="preserve">
+    <value>Seçili değişkeni silmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="The technical name of the input." xml:space="preserve">
+    <value>Girdinin teknik adı.</value>
+  </data>
+  <data name="This output is an array" xml:space="preserve">
+    <value>Bu çıktı bir dizidir</value>
+  </data>
+  <data name="Zoom to fit the screen" xml:space="preserve">
+    <value>Ekrana sığacak şekilde yakınlaştır</value>
+  </data>
+  <data name="Are you sure you want to delete the selected output?" xml:space="preserve">
+    <value>Seçili çıktıyı silmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Successfully imported {0} workflow definitions." xml:space="preserve">
+    <value>{0} iş akışı tanımları başarıyla içe aktarıldı.</value>
+  </data>
+  <data name="This variable is an array" xml:space="preserve">
+    <value>Bu değişken bir dizidir</value>
+  </data>
+  <data name="This input is an array" xml:space="preserve">
+    <value>Bu girdi bir dizidir</value>
+  </data>
+  <data name="Unable to make changes as the workflow or application is currently in read-only mode" xml:space="preserve">
+    <value>İş akışı veya uygulama şu anda salt okunur modunda olduğundan değişiklik yapılamıyor</value>
+  </data>
 </root>
