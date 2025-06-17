@@ -1,0 +1,79 @@
+﻿@using Elsa.Studio.Enums
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">@DataPanelItem.Label</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack>
+            <MudSelect T="string"
+                       @bind-Value="SelectedItem"
+                       Label="Selected formatter"
+                       Dense="true"
+                       Margin="Margin.Dense"
+                       Variant="Variant.Outlined"
+                       HelperText="The formatter to use for this content.">
+                @foreach (var formatter in AvailableFormatters)
+                {
+                    <MudSelectItem Value="@formatter.Name">@formatter.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudTabs Position="MudBlazor.Position.Left"
+                @bind-ActivePanelIndex="TabIndex"
+                MinimumTabWidth="120px"
+                Rounded="true"
+                Border="true"
+                Outlined="true"
+                ApplyEffectsToContainer="true"
+                PanelClass="pa-4">
+                <MudPaper Height="565px" Width="100%" Elevation="0">
+                    <MudTabPanel Text="Text" Visible="@(FormattedText is not null)">
+                        @if (FormattedText is null)
+                        {
+                            <MudAlert Severity="Severity.Normal">Not implemented for this formatter.</MudAlert>
+                        }
+                        else
+                        {
+                             <MudTextField T="string"
+                                          Lines="28"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          Value="@FormattedText"
+                                          ReadOnly="false" />
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="Tabular" Visible="@(FormattedTable is not null)">
+                        @if (FormattedTable is null)
+                        {
+                            <MudAlert Severity="Severity.Normal">Not implemented for this formatter.</MudAlert>
+                        }
+                        else
+                        {
+                            <MudSimpleTable Style="height:565px; width:1080px" FixedHeader="true" Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
+                                <thead>
+                                    <tr>
+                                        @foreach (var header in FormattedTable?.Headers)
+                                        {
+                                            <th>@header</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in FormattedTable?.Rows)
+                                    {
+                                        <tr>
+                                            @foreach (var x in row)
+                                            {
+                                                <td>@x</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        }
+                    </MudTabPanel>
+                </MudPaper>
+            </MudTabs>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
