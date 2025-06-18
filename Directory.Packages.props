@@ -18,11 +18,11 @@
     <PackageVersion Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
     <PackageVersion Include="MudBlazor" Version="8.7.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25218.8" />
-    <PackageVersion Include="MudBlazor.Translations" Version="2.4.0" />
-    <PackageVersion Include="Radzen.Blazor" Version="7.0.8" />
+    <PackageVersion Include="MudBlazor.Translations" Version="2.5.0" />
+    <PackageVersion Include="Radzen.Blazor" Version="7.1.0" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.1" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
@@ -43,17 +43,17 @@
     <PackageVersion Include="Microsoft.JSInterop" Version="8.0.16" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.CustomElements" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.JSInterop" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.CustomElements" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.6" PrivateAssets="all" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.JSInterop" Version="9.0.6" />
   </ItemGroup>
 </Project>
