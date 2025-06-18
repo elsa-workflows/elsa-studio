@@ -15,8 +15,10 @@ using Elsa.Studio.Localization.Options;
 using Elsa.Studio.Translations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Host.Server;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -74,6 +76,7 @@ builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPickerComponentProvider>();
 
 // Uncomment for V1 designer theme (default is V2).
 // builder.Services.Configure<DesignerOptions>(options =>

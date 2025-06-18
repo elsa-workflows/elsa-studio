@@ -1,19 +1,12 @@
 ﻿using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Extensions;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
-using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
-using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Localization;
-using System.Globalization;
-using System.Resources;
 
-namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
+namespace Elsa.Studio.Workflows.ActivityPickers.Accordion;
 
 /// <summary>
 /// A component that allows the user to pick an activity.
