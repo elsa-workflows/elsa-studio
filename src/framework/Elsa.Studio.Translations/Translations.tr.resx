@@ -1000,4 +1000,25 @@
   <data name="Unable to make changes as the workflow or application is currently in read-only mode" xml:space="preserve">
     <value>İş akışı veya uygulama şu anda salt okunur modunda olduğundan değişiklik yapılamıyor</value>
   </data>
+  <data name="Aggregation" xml:space="preserve">
+    <value>Agregasyon</value>
+  </data>
+  <data name="Fork (flow)" xml:space="preserve">
+    <value>Çatal (akış)</value>
+  </data>
+  <data name="HTTP Request (flow)" xml:space="preserve">
+    <value>HTTP İsteği (akış)</value>
+  </data>
+  <data name="Is array" xml:space="preserve">
+    <value>Bir dizi mi</value>
+  </data>
+  <data name="Is Before" xml:space="preserve">
+    <value>Öncesindeyse</value>
+  </data>
+  <data name="Is After" xml:space="preserve">
+    <value>Sonrasındaysa</value>
+  </data>
+  <data name="Is Not" xml:space="preserve">
+    <value>Değilse</value>
+  </data>
 </root>
