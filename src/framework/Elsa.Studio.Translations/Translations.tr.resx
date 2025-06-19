@@ -1306,4 +1306,19 @@
   <data name="Showing incidents" xml:space="preserve">
     <value>Olaylar gösteriliyor</value>
   </data>
+  <data name="Content Type" xml:space="preserve">
+    <value>İçerik Türü</value>
+  </data>
+  <data name="Correlation ID Function" xml:space="preserve">
+    <value>Korelasyon ID Fonksiyonu</value>
+  </data>
+  <data name="Executing" xml:space="preserve">
+    <value>Çalıştırılıyor</value>
+  </data>
+  <data name="Expected Status Codes" xml:space="preserve">
+    <value>Beklenen Durum Kodları</value>
+  </data>
+  <data name="A function to compute the correlation ID to associate a dispatched workflow with." xml:space="preserve">
+    <value>Gönderilen bir iş akışını ilişkilendirmek için kullanılacak korelasyon ID’sini hesaplayan bir fonksiyon.</value>
+  </data>
 </root>
