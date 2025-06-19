@@ -1021,4 +1021,211 @@
   <data name="Is Not" xml:space="preserve">
     <value>Değilse</value>
   </data>
+  <data name="Unpublish the current workflow" xml:space="preserve">
+    <value>Mevcut iş akışını yayından kaldır.</value>
+  </data>
+  <data name="Usable as activity" xml:space="preserve">
+    <value>İş Akışı olarak kullanılabilir</value>
+  </data>
+  <data name="Use JSON Response" xml:space="preserve">
+    <value>JSON biçiminde yanıt kullan</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Kullanıldı</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Webhooks</value>
+  </data>
+  <data name="Incident handling strategy" xml:space="preserve">
+    <value>Olay yönetim stratejisi</value>
+  </data>
+  <data name="A checkbox" xml:space="preserve">
+    <value>Onay kutusu</value>
+  </data>
+  <data name="A code editor" xml:space="preserve">
+    <value>Kod Editörü</value>
+  </data>
+  <data name="A dropdown list" xml:space="preserve">
+    <value>Açılır kutu</value>
+  </data>
+  <data name="A JSON editor" xml:space="preserve">
+    <value>JSON editörü</value>
+  </data>
+  <data name="Are you sure you want to cancel all running workflow instances of this workflow definition?" xml:space="preserve">
+    <value>Bu iş akışına ait tüm aktif örnekleri iptal etmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected versions?" xml:space="preserve">
+    <value>Seçili sürümleri silmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Cancel running workflow instances?" xml:space="preserve">
+    <value>Çalışan iş akışı örneklerini iptal et?</value>
+  </data>
+  <data name="Cancel workflow instance?" xml:space="preserve">
+    <value>İş akışı örneğini iptal et?</value>
+  </data>
+  <data name="{0} consuming workflow(s) updated" xml:space="preserve">
+    <value>{0} tüketici iş akışı(ları) güncellendi</value>
+  </data>
+  <data name="Create input" xml:space="preserve">
+    <value>Girdi oluştur</value>
+  </data>
+  <data name="Delete selected input?" xml:space="preserve">
+    <value>Seçili girdiyi sil?</value>
+  </data>
+  <data name="Delete selected output?" xml:space="preserve">
+    <value>Seçili çıktıyı sil?</value>
+  </data>
+  <data name="Delete selected workflow instances?" xml:space="preserve">
+    <value>Seçili iş akışı örneklerini sil?</value>
+  </data>
+  <data name="Delete workflow instance?" xml:space="preserve">
+    <value>İş akışı örneğini sil?</value>
+  </data>
+  <data name="JSON editor" xml:space="preserve">
+    <value>JSON editörü</value>
+  </data>
+  <data name="Not executed" xml:space="preserve">
+    <value>Yürütülmedi</value>
+  </data>
+  <data name="Not usable as activity." xml:space="preserve">
+    <value>Aktivite olarak kullanılamaz.</value>
+  </data>
+  <data name="One workflow is already unpublished" xml:space="preserve">
+    <value>Bir iş akışı zaten yayından kaldırıldı</value>
+  </data>
+  <data name="One workflow is not found" xml:space="preserve">
+    <value>Bir iş akışı bulunamadı</value>
+  </data>
+  <data name="One workflow is published" xml:space="preserve">
+    <value>Bir iş akışı yayınlandı</value>
+  </data>
+  <data name="One workflow is unpublished" xml:space="preserve">
+    <value>Bir iş akışı yayından kaldırıldı</value>
+  </data>
+  <data name="Successfully imported" xml:space="preserve">
+    <value>Başarıyla içe aktarıldı</value>
+  </data>
+  <data name="Successfully imported 1 workflow definition." xml:space="preserve">
+    <value>1 iş akışı tanımı başarıyla içe aktarıldı</value>
+  </data>
+  <data name="Successfully imported one instance" xml:space="preserve">
+    <value>Bir örnek başarıyla içe aktarıldı</value>
+  </data>
+  <data name="Successfully started workflow" xml:space="preserve">
+    <value>İş akışı başarıyla başlatıldı</value>
+  </data>
+  <data name="The ID of the variable." xml:space="preserve">
+    <value>Değişkenin ID'si.</value>
+  </data>
+  <data name="The read-only workflows will not be affected." xml:space="preserve">
+    <value>Salt okunur iş akışları etkilenmeyecektir.</value>
+  </data>
+  <data name="The text to display in the designer." xml:space="preserve">
+    <value>Tasarımcıda gösterilecek metin.</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Zaman damgası</value>
+  </data>
+  <data name="Unpublish selected workflows?" xml:space="preserve">
+    <value>Seçili iş akışlarının yayından kaldır?</value>
+  </data>
+  <data name="workflow definitions." xml:space="preserve">
+    <value>iş akışı tanımları.</value>
+  </data>
+  <data name="Workflow published" xml:space="preserve">
+    <value>İş akışı yayınlandı</value>
+  </data>
+  <data name="Workflow saved" xml:space="preserve">
+    <value>İş akışı kaydedildi</value>
+  </data>
+  <data name="Workflow unpublished" xml:space="preserve">
+    <value>İş akışı yayından kaldırıldı</value>
+  </data>
+  <data name="Workflow was already published" xml:space="preserve">
+    <value>İş akışı önceden yayınlanmış</value>
+  </data>
+  <data name="workflows are already published" xml:space="preserve">
+    <value>iş akışları önceden yayınlanmış</value>
+  </data>
+  <data name="workflows are already unpublished" xml:space="preserve">
+    <value>iş akışları önceden yayından kaldırılmış</value>
+  </data>
+  <data name="workflows are unpublished" xml:space="preserve">
+    <value>iş akışları yayından kaldırıldı</value>
+  </data>
+  <data name="Delete version {0}" xml:space="preserve">
+    <value>Versiyon {0} sil</value>
+  </data>
+  <data name="Successfully imported {0} instances" xml:space="preserve">
+    <value>Başarıyla {0} örnek içe aktarıldı</value>
+  </data>
+  <data name="{0} workflows are already unpublished" xml:space="preserve">
+    <value>{0} iş akışı önceden yayından kaldırılmış</value>
+  </data>
+  <data name="{0} workflows are not found" xml:space="preserve">
+    <value>{0} iş akışı bulunamadı</value>
+  </data>
+  <data name="{0} workflows are published" xml:space="preserve">
+    <value>{0} iş akışları yayınlandı</value>
+  </data>
+  <data name="{0} workflows are unpublished" xml:space="preserve">
+    <value>{0} iş akışları yayından kaldırıldı</value>
+  </data>
+  <data name="{0} workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>{0} yayınlanmış iş akışını kullanan iş akışları güncellendi</value>
+  </data>
+  <data name="The commit strategy to use that controls when the workflow state should be committed." xml:space="preserve">
+    <value>İş akışı durumunun ne zaman kaydedileceğini kontrol eden kullanılacak kaydetme stratejisi.</value>
+  </data>
+  <data name="Workflow definition picker" xml:space="preserve">
+    <value>İş akışı tanımı seçim aracı</value>
+  </data>
+  <data name="Are you sure you want to cancel this workflow instance?" xml:space="preserve">
+    <value>Bu iş akışı örneğini iptal etmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Are you sure you want to delete the selected input?" xml:space="preserve">
+    <value>Seçili girdiyi silmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Upload JSON and/or ZIP files containing workflow data to import." xml:space="preserve">
+    <value>İçe aktarmak için iş akışı verilerini içeren JSON ve/veya ZIP dosyalarını yükleyin.</value>
+  </data>
+  <data name="Workflow published with Not Found activities" xml:space="preserve">
+    <value>Bulunamayan etkinliklerle birlikte iş akışı yayınlandı</value>
+  </data>
+  <data name="One workflow consuming a published workflow has been updated" xml:space="preserve">
+    <value>Yayınlanmış bir iş akışını kullanan bir iş akışı güncellendi</value>
+  </data>
+  <data name="workflows are published" xml:space="preserve">
+    <value>iş akışları yayınlandı</value>
+  </data>
+  <data name="The workflow cannot be started" xml:space="preserve">
+    <value>İş akışı başlatılamıyor</value>
+  </data>
+  <data name="When checked, this activity is the start of this workflow." xml:space="preserve">
+    <value>İşaretlendiğinde, bu etkinlik bu iş akışının başlangıcı olur.</value>
+  </data>
+  <data name="Workflow retracted" xml:space="preserve">
+    <value>İş akışı geri çekildi</value>
+  </data>
+  <data name="Are you sure you want to cancel the selected workflow instances?" xml:space="preserve">
+    <value>Seçili iş akışı örneklerini iptal etmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Enter the expression that will be used to determine the log persistence strategy for this property." xml:space="preserve">
+    <value>Bu özellik için günlük (log) kalıcılık stratejisini belirlemek amacıyla kullanılacak ifadeyi girin.</value>
+  </data>
+  <data name="Are you sure you want to delete the selected workflow instances?" xml:space="preserve">
+    <value>Seçili iş akışı örneklerini silmek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="When checked, this activity can trigger this workflow." xml:space="preserve">
+    <value>Seçildiğinde, bu aktivite bu iş akışını başlatabilir.</value>
+  </data>
+  <data name="workflows are not found" xml:space="preserve">
+    <value>iş akışları bulunamadı</value>
+  </data>
+  <data name="workflows consuming published workflows have been updated" xml:space="preserve">
+    <value>yayınlanmış iş akışlarını kullanan iş akışları güncellendi</value>
+  </data>
+  <data name="{0} workflows are already published" xml:space="preserve">
+    <value>{0} iş akışı önceden yayınlanmış</value>
+  </data>
 </root>
