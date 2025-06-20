@@ -1228,4 +1228,82 @@
   <data name="{0} workflows are already published" xml:space="preserve">
     <value>{0} iş akışı önceden yayınlanmış</value>
   </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Üstveri</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Asla</value>
+  </data>
+  <data name="OpenAITextToImage" xml:space="preserve">
+    <value>OpenAI Metinden Görüntüye</value>
+  </data>
+  <data name="Outcomes" xml:space="preserve">
+    <value>Sonuçlar</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Çıktı</value>
+  </data>
+  <data name="Presence Penalty" xml:space="preserve">
+    <value>Varlık Cezası</value>
+  </data>
+  <data name="Set Output" xml:space="preserve">
+    <value>Çıktı Ayarla</value>
+  </data>
+  <data name="Show incidents" xml:space="preserve">
+    <value>Olayları göster</value>
+  </data>
+  <data name="Show relative time" xml:space="preserve">
+    <value>Göreceli zamanı göster</value>
+  </data>
+  <data name="Showing all events" xml:space="preserve">
+    <value>Tüm etkinlikler gösteriliyor</value>
+  </data>
+  <data name="Start at" xml:space="preserve">
+    <value>Başlangıç zamanı</value>
+  </data>
+  <data name="Sub status" xml:space="preserve">
+    <value>Alt durum</value>
+  </data>
+  <data name="The maximum number" xml:space="preserve">
+    <value>Üretilecek maksimum jeton sayısı. Maksimum için boş bırakın.</value>
+  </data>
+  <data name="The name of the new workflow." xml:space="preserve">
+    <value>Yeni iş akışının adı.</value>
+  </data>
+  <data name="The name of the variable." xml:space="preserve">
+    <value>Değişkenin adı.</value>
+  </data>
+  <data name="The settings of the service in JSON format." xml:space="preserve">
+    <value>Servisin JSON formatındaki ayarları.</value>
+  </data>
+  <data name="The technical name of the service." xml:space="preserve">
+    <value>Servisin teknik adı.</value>
+  </data>
+  <data name="There are currently no inputs defined." xml:space="preserve">
+    <value>Şu anda tanımlanmış herhangi bir girdi yok.</value>
+  </data>
+  <data name="There are currently no outputs defined." xml:space="preserve">
+    <value>Şu anda tanımlanmış herhangi bir çıktı yok.</value>
+  </data>
+  <data name="There are currently no variables defined." xml:space="preserve">
+    <value>Şu anda tanımlanmış herhangi bir değişken yok.</value>
+  </data>
+  <data name="This activity does not have any common properties." xml:space="preserve">
+    <value>Bu etkinliğin hiçbir ortak özelliği bulunmamaktadır.</value>
+  </data>
+  <data name="This activity does not have any input properties." xml:space="preserve">
+    <value>Bu etkinliğin herhangi bir giriş özelliği yok.</value>
+  </data>
+  <data name="Parser" xml:space="preserve">
+    <value>Ayrıştırıcı</value>
+  </data>
+  <data name="Output Properties" xml:space="preserve">
+    <value>Çıktı Özellikleri</value>
+  </data>
+  <data name="Outputs" xml:space="preserve">
+    <value>Çıktılar</value>
+  </data>
+  <data name="Showing incidents" xml:space="preserve">
+    <value>Olaylar gösteriliyor</value>
+  </data>
 </root>
