@@ -1,5 +1,7 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Core.Services;
+using Elsa.Studio.Formatters;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
@@ -32,8 +34,13 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddSingleton<IContentFormatProvider, DefaultContentFormatProvider>()
             .AddUserMessageService<DefaultUserMessageService>()
             ;
+
+        // Content formatter services
+        services.AddContentFormatter<JsonContentFormatter>();
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
@@ -93,5 +100,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUserMessageService<T>(this IServiceCollection services) where T : class, IUserMessageService
     {
         return services.AddScoped<IUserMessageService, T>();
+    }
+
+    /// <summary>
+    /// Adds the specified <see cref="IContentFormatter"/>.
+    /// </summary>
+    public static IServiceCollection AddContentFormatter<T>(this IServiceCollection services) where T : class, IContentFormatter
+    {
+        return services.AddTransient<IContentFormatter, T>();
     }
 }

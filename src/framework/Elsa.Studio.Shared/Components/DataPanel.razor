@@ -2,6 +2,16 @@
 @using Elsa.Studio.Localization.Time.Components
 @using Elsa.Studio.Models
 
+<style>
+    .hover-row:hover .icon-on-hover {
+        visibility: visible;
+    }
+
+    .icon-on-hover {
+        visibility: hidden;
+    }
+</style>
+
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
     <tbody>
     @{
@@ -13,11 +23,8 @@
     {
         @foreach (var item in data)
         {
-            <tr>
+            <tr Class="hover-row">
                 <td style="width: 200px;">@item.Label</td>
-                <td style="width: 50px;">
-                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(() => OnCopyClicked(item.Text!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))"/>
-                </td>
                 <td>
                     @if (!string.IsNullOrWhiteSpace(item.Link))
                     {
@@ -38,6 +45,12 @@
                             <span>@item.Text</span>
                         }
                     }
+                </td>
+                <td style="width: 50px;">
+                    <MudStack Row="true">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Title="View" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover"/>
+                        <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="Copy" OnClick="@(x => OnCopyClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))"/>
+                    </MudStack>
                 </td>
             </tr>
         }
@@ -75,14 +88,35 @@
     /// <summary>
     /// The message to display when there is no data.
     /// </summary>
-    [Parameter]
-    public string NoDataMessage { get; set; } = "No data available.";
+    [Parameter] public string NoDataMessage { get; set; } = "No data available.";
 
     [Inject] private IClipboard Clipboard { get; set; } = null!;
 
-    private async Task OnCopyClicked(string value)
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+
+
+    private async Task OnCopyClicked(DataPanelItem item)
     {
-        await Clipboard.CopyText(value);
+        await Clipboard.CopyText(item.Text);
+        Snackbar.Add($"{item.Label} copied to clipboard", Severity.Success);
     }
 
+    private async Task OnViewClicked(DataPanelItem item)
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large
+        };
+        var parameters = new DialogParameters
+        {
+            { nameof(DataPanelItem), item }
+        };
+        await DialogService.ShowAsync<ContentFormatter>("View value", parameters, options);
+    }
 }
