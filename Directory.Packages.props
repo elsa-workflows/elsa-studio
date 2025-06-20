@@ -5,7 +5,7 @@
     </PropertyGroup>
     <PropertyGroup Label="PackageVersions">
         <ElsaVersion>3.5.0-preview.3089</ElsaVersion>
-        <MicrosoftVersion>3.5.0-preview.3089</MicrosoftVersion>
+        <MicrosoftVersion>9.0.6</MicrosoftVersion>
     </PropertyGroup>
     <ItemGroup Label="Elsa">
         <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)"/>
