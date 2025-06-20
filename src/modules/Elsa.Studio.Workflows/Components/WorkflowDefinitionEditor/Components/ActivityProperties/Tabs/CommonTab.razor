@@ -10,15 +10,6 @@
 {
     <MudForm ReadOnly="IsReadOnly">
         <MudStack>
-            <MudField Disabled="IsReadOnly"
-                T="string"
-                Label="ID"
-                HelperText="@Localizer["The ID of the activity."]"
-                Variant="Variant.Outlined"
-                Margin="Margin.Dense">
-                <MudText Typo="Typo.body1">@Activity.GetId()</MudText>
-            </MudField>
-
             <MudTextField
                 T="string"
                 Label="@Localizer["Name"]"

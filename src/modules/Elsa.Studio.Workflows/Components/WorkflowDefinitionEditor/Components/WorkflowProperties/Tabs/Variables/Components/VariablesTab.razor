@@ -31,6 +31,9 @@
                         <th>@Localizer["Name"]</th>
                         <th>@Localizer["Type"]</th>
                         <th>@Localizer["Storage"]</th>
+                        <th style="text-align: center">
+                            <MudIcon Icon="@ElsaStudioIcons.Tabler.Flask" Size="Size.Small" Class="ma-3"/>
+                        </th>
                         <th></th>
                     </tr>
                     </thead>
@@ -38,12 +41,16 @@
 
                     @foreach (var variable in Variables)
                     {
-                        var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : default;
-                        var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : @Localizer["None"];
+                        var storageDescriptor = variable.StorageDriverTypeName != null ? GetStorageDriverDescriptor(variable.StorageDriverTypeName) : null;
+                        var storageDriverName = storageDescriptor != null ? storageDescriptor.DisplayName : Localizer["None"];
+                        var hasTestValue = VariableTestValues.ContainsKey(variable.Id); 
                         <tr>
                             <td>@variable.Name</td>
                             <td>@variable.GetTypeDisplayName()</td>
                             <td>@storageDriverName</td>
+                            <td style="text-align: center">
+                                <MudIconButton Icon="@ElsaStudioIcons.Tabler.Flask" Size="Size.Small" Color="hasTestValue ? Color.Success : Color.Default" OnClick="() => OnTestValueButtonClick(variable)"/>
+                            </td>
                             <td style="text-align: right;">
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadOnly">
                                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(variable))">@Localizer["Edit"]</MudMenuItem>
