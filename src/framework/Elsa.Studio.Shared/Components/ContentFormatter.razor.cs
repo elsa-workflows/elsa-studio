@@ -1,6 +1,10 @@
-﻿using Elsa.Studio.Contracts;
+﻿using BlazorMonaco.Editor;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Formatters;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Elsa.Studio.Components
@@ -11,7 +15,10 @@ namespace Elsa.Studio.Components
         private string selectedItem = "";
         private string? FormattedText;
         private TabulatedContentFormat? FormattedTable;
+        private IContentFormatter SelectedFormatter = new DefaultContentFormatter();
         private List<IContentFormatter> AvailableFormatters = new();
+        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+        private StandaloneCodeEditor? _monacoEditor;
 
         public string SelectedItem
         {
@@ -29,29 +36,79 @@ namespace Elsa.Studio.Components
 
         [Inject] private IContentFormatProvider FormatProvider { get; set; } = null!;
 
+        [Inject] private IClipboard Clipboard { get; set; } = null!;
+
+        [Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+        [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+
         protected override void OnInitialized()
         {
             AvailableFormatters = FormatProvider.GetAll().ToList();
-            var selected = FormatProvider.MatchOrDefault(DataPanelItem.Text);
-            selectedItem = selected.Name;
-            FormatUsing(selected);
+            SelectedFormatter = FormatProvider.MatchOrDefault(DataPanelItem.Text);
+            selectedItem = SelectedFormatter.Name;
+            FormatUsing(SelectedFormatter);
         }
 
-        private void OnFormatterChanged()
+        private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
+        {
+            return new StandaloneEditorConstructionOptions
+            {
+                Language = SelectedFormatter.Syntax,
+                Value = FormattedText,
+                FontFamily = "Roboto Mono, monospace",
+                RenderLineHighlight = "none",
+                Minimap = new EditorMinimapOptions
+                {
+                    Enabled = false
+                },
+                AutomaticLayout = true,
+                LineNumbers = "on",
+                Theme = "vs",
+                RoundedSelection = true,
+                ScrollBeyondLastLine = false,
+                OverviewRulerLanes = 0,
+                OverviewRulerBorder = false,
+                LineDecorationsWidth = 0,
+                HideCursorInOverviewRuler = true,
+                GlyphMargin = false,
+                ReadOnly = true,
+                DomReadOnly = true
+            };
+        }
+
+        private async Task OnFormatterChanged()
         {
             var formatter = AvailableFormatters.FirstOrDefault(f => f.Name == SelectedItem);
             if (formatter != null)
             {
                 FormatUsing(formatter);
+
+                var model = await _monacoEditor!.GetModel();
+                await model.SetValue(FormattedText);
+                await Global.SetModelLanguage(JSRuntime, model, SelectedFormatter.Syntax);
             }
         }
 
         private void FormatUsing(IContentFormatter formatter)
         {
+            SelectedFormatter = formatter;
             FormattedText = formatter.ToText(DataPanelItem.Text);
             FormattedTable = formatter.ToTable(DataPanelItem.Text);
             TabIndex = 0;
             StateHasChanged();
+        }
+
+        private async Task OnCopyClicked()
+        {
+            await Clipboard.CopyText(FormattedText ?? DataPanelItem.Text);
+            Snackbar.Add($"Formatted {DataPanelItem.Label} copied", Severity.Success);
+        }
+
+        private void OnClosedClicked()
+        {
+            MudDialog.Cancel();
         }
     }
 }

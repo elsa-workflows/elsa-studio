@@ -12,6 +12,9 @@ namespace Elsa.Studio.Formatters
         public string Name => "Json";
 
         /// <inheritdoc/>
+        public string Syntax => "json";
+
+        /// <inheritdoc/>
         public bool CanFormat(object input)
         {
             if (input is not string str) return false;

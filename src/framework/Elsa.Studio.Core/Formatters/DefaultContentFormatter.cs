@@ -11,6 +11,9 @@ namespace Elsa.Studio.Formatters
         public string Name => "Default";
 
         /// <inheritdoc/>
+        public string Syntax => "text";
+
+        /// <inheritdoc/>
         public bool CanFormat(object input) => true;
 
         /// <inheritdoc/>

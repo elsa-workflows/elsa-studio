@@ -11,6 +11,11 @@
         string Name { get; }
 
         /// <summary>
+        /// Returns the syntax used by this formatter.
+        /// </summary>
+        string Syntax { get; }
+
+        /// <summary>
         /// Determines whether the content can be formatted with this formatter.
         /// </summary>
         /// <param name="input">The object to evaluate for formatting capability. Cannot be <see langword="null"/>.</param>
