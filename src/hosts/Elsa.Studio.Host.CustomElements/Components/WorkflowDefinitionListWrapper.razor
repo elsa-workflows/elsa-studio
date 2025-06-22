@@ -1,6 +1,7 @@
 @inherits BackendComponentBase
 
 <ThemedComponentWrapper>
+    <button class="btn btn-primary mb-3" @onclick="OnClicked">Test</button>
     <WorkflowDefinitionList EditWorkflowDefinition="@EditWorkflowDefinition"/>
 </ThemedComponentWrapper>
 
@@ -10,4 +11,16 @@
     /// An event that is invoked when a workflow definition is edited.
     /// </summary>
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
+    
+    [Parameter] public EventCallback<string> Clicked { get; set; }
+
+    private Task OnClicked()
+    {
+        if(Clicked.HasDelegate)
+        {
+            return Clicked.InvokeAsync("Clicked");
+        }
+        
+        return Task.CompletedTask;
+    }
 }
