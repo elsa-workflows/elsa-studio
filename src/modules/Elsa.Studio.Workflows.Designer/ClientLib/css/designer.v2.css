@@ -31,7 +31,6 @@
 
 .elsa-flowchart-diagram-designer-v2 .elsa-activity {
     height: 100%;
-    overflow: hidden;
 }
 
 /* Use equal 16px padding all around */
@@ -49,6 +48,9 @@
     background-color: #1976d2;
     width: 42px;
     height: 42px;
+    min-width: 42px;     /* enforce at least 42px */
+    min-height: 42px;
+    flex: none;          /* don’t let flex or grid shrink it */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,14 +62,11 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden;
 }
 
 /* First line: activity label stays default color */
 .elsa-flowchart-diagram-designer-v2 .activity-label {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Second line: lighter grey to mimic original */
@@ -75,8 +74,6 @@
     color: var(--mud-palette-gray-light);
     font-size: 0.75rem; /* slightly smaller */
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Embedded ports row */
