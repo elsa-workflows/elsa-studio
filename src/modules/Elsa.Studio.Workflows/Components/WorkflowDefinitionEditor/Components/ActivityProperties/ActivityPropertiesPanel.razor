@@ -2,6 +2,7 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
 @using Elsa.Studio.Extensions
 @using Variant = MudBlazor.Variant
+@using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Tests
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
 
@@ -58,6 +59,15 @@
                 </Well>
             }
         </MudTabPanel>
+        
+        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
+            @if (WorkflowDefinition != null && ActivityDescriptor != null && Activity != null)
+            {
+                <ScrollableWell MaxHeight="VisiblePaneHeight">
+                    <TestTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
+                </ScrollableWell>
+            }
+        </MudTabPanel>
 
         <MudTabPanel Text="@Localizer["Commit Strategy"]">
             @if (Activity != null)
@@ -97,7 +107,7 @@
             @if (ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <InfoTab ActivityDescriptor="@ActivityDescriptor"/>
+                    <InfoTab ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
                 </ScrollableWell>
             }
         </MudTabPanel>
