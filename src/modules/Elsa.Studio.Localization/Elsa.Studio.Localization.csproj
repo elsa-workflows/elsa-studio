@@ -18,4 +18,8 @@
 		<PackageReference Include="MudBlazor.Translations" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="AppBar\" />
+	</ItemGroup>
+
 </Project>

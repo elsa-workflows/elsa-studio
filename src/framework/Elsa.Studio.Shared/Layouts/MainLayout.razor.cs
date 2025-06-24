@@ -1,9 +1,7 @@
-using Blazored.LocalStorage;
+using Elsa.Studio.AppBarElements;
 using Elsa.Studio.Branding;
-using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -19,14 +17,14 @@ public partial class MainLayout : IDisposable
     private bool _drawerOpen = true;
     private ErrorBoundary? _errorBoundary;
 
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
-    [Inject] private IAppBarService AppBarService { get; set; } = default!;
-    [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = default!;
-    [Inject] private IErrorComponentProvider ErrorComponentProvider { get; set; } = default!;
-    [Inject] private IFeatureService FeatureService { get; set; } = default!;
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private IBrandingProvider BrandingProvider { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] private IThemeService ThemeService { get; set; } = null!;
+    [Inject] private IAppBarService AppBarService { get; set; } = null!;
+    [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = null!;
+    [Inject] private IErrorComponentProvider ErrorComponentProvider { get; set; } = null!;
+    [Inject] private IFeatureService FeatureService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IBrandingProvider BrandingProvider { get; set; } = null!;
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
@@ -36,7 +34,13 @@ public partial class MainLayout : IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        AppBarService.AddElement<DocumentationElement>();
+        AppBarService.AddElement<GitHubElement>();
+        AppBarService.AddElement<DarkModeToggleElement>();
+        AppBarService.AddElement<ProductInfoElement>();
+        
         ThemeService.CurrentThemeChanged += OnThemeChanged;
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
         AppBarService.AppBarItemsChanged += OnAppBarItemsChanged;
     }
 
@@ -65,7 +69,8 @@ public partial class MainLayout : IDisposable
         _errorBoundary?.Recover();
     }
 
-    private void OnThemeChanged() => StateHasChanged();
+    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
+    private void OnDarkModeChanged() => InvokeAsync(StateHasChanged);
     private void OnAppBarItemsChanged() => InvokeAsync(StateHasChanged);
 
     private void DrawerToggle()
@@ -73,24 +78,9 @@ public partial class MainLayout : IDisposable
         _drawerOpen = !_drawerOpen;
     }
 
-    private void ToggleDarkMode()
-    {
-        ThemeService.IsDarkMode = !ThemeService.IsDarkMode;
-    }
-
-    private async Task ShowProductInfo()
-    {
-        await DialogService.ShowAsync<ProductInfoDialog>($"Elsa Studio {ToolVersion.GetDisplayVersion()}", new DialogOptions
-        {
-            FullWidth = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = true,
-            CloseOnEscapeKey = true
-        });
-    }
-
     void IDisposable.Dispose()
     {
         ThemeService.CurrentThemeChanged -= OnThemeChanged;
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
     }
 }
