@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionSettingsWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
+        services.AddScoped<ICreateWorkflowDialogComponentProvider, DefaultCreateWorkflowDialogComponentProvider>();
 
         return services;
     }
