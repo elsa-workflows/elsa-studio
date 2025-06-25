@@ -1,5 +1,5 @@
-using Elsa.Studio.AppBarElements;
 using Elsa.Studio.Branding;
+using Elsa.Studio.Components.AppBar;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
@@ -34,10 +34,10 @@ public partial class MainLayout : IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        AppBarService.AddElement<DocumentationElement>();
-        AppBarService.AddElement<GitHubElement>();
-        AppBarService.AddElement<DarkModeToggleElement>();
-        AppBarService.AddElement<ProductInfoElement>();
+        AppBarService.AddComponent<Documentation>(10);
+        AppBarService.AddComponent<GitHub>(15);
+        AppBarService.AddComponent<DarkModeToggle>(20);
+        AppBarService.AddComponent<ProductInfo>(25);
         
         ThemeService.CurrentThemeChanged += OnThemeChanged;
         ThemeService.IsDarkModeChanged += OnDarkModeChanged;
