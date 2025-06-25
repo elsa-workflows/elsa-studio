@@ -2,6 +2,7 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Formatters;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -12,6 +13,7 @@ namespace Elsa.Studio.Components
     public partial class ContentFormatter : ComponentBase
     {
         private int TabIndex = 0;
+        private bool isReadOnly = true;
         private string selectedItem = "";
         private string? FormattedText;
         private TabulatedContentFormat? FormattedTable;
@@ -19,6 +21,20 @@ namespace Elsa.Studio.Components
         private List<IContentFormatter> AvailableFormatters = new();
         private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
         private StandaloneCodeEditor? _monacoEditor;
+
+        public bool IsReadOnly
+        {
+            get { return isReadOnly; }
+            set
+            {
+                isReadOnly = value;
+                _monacoEditor.UpdateOptions(
+                    new EditorUpdateOptions
+                    {
+                        ReadOnly = value
+                    });
+            }
+        }
 
         public string SelectedItem
         {
@@ -33,6 +49,8 @@ namespace Elsa.Studio.Components
         [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
 
         [Parameter] public DataPanelItem DataPanelItem { get; set; } = null!;
+
+        [Inject] private ILocalizer Localizer { get; set; } = null!;
 
         [Inject] private IContentFormatProvider FormatProvider { get; set; } = null!;
 
@@ -73,8 +91,8 @@ namespace Elsa.Studio.Components
                 LineDecorationsWidth = 0,
                 HideCursorInOverviewRuler = true,
                 GlyphMargin = false,
-                ReadOnly = true,
-                DomReadOnly = true
+                ReadOnly = IsReadOnly,
+                DomReadOnly = IsReadOnly
             };
         }
 
@@ -103,7 +121,7 @@ namespace Elsa.Studio.Components
         private async Task OnCopyClicked()
         {
             await Clipboard.CopyText(FormattedText ?? DataPanelItem.Text);
-            Snackbar.Add($"Formatted {DataPanelItem.Label} copied", Severity.Success);
+            Snackbar.Add($"{DataPanelItem.Label} copied", Severity.Success);
         }
 
         private void OnClosedClicked()
