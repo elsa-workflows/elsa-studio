@@ -11,17 +11,6 @@
     .icon-on-hover {
         visibility: hidden;
     }
-
-/*     .fade-multiline {
-        display: block;
-        overflow: hidden;
-        white-space: normal;
-        -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
-        mask-image: linear-gradient(to bottom, black 70%, transparent);
-        mask-size: 100% 100%;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-    } */
 </style>
 
 <MudSimpleTable Outlined="true" Striped="false" Dense="true" Elevation="0" Bordered="false">
@@ -60,7 +49,7 @@
                             {
                                 @if (item.Text?.Length > truncationLength)
                                 {
-                                    <div class="fade-multiline">
+                                    <div>
                                         @item.Text.Substring(0, truncationLength)
                                         <MudTooltip Text="Show all">
                                             <MudLink OnClick="@(() => OnViewClicked(item!))" title="Show all"><small>[...]</small></MudLink>
