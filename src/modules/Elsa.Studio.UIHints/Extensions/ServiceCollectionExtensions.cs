@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<TypePickerHandler>()
             .AddUIHintHandler<WorkflowDefinitionPickerHandler>()
             .AddUIHintHandler<OutputPickerHandler>()
+            .AddUIHintHandler<RadioListHandler>()
             .AddUIHintHandler<OutcomePickerHandler>()
             .AddUIHintHandler<DynamicOutcomesHandler>()
             .AddUIHintHandler<DateTimePickerHandler>()
