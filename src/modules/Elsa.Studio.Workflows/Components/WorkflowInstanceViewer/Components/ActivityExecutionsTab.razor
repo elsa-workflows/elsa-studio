@@ -44,18 +44,9 @@
         @if (SelectedItem != null)
         {
             <div>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["State"]</MudText>
-                    <DataPanel Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No state associated with this execution."]"/>
-                </div>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outcomes"]</MudText>
-                    <DataPanel Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@Localizer["No outcomes associated with this execution."]"/>
-                </div>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
-                    <DataPanel Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output associated with this execution."]"/>
-                </div>
+                <DataPanel Title="@Localizer["State"]" Data="@SelectedActivityState" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No state associated with this execution."]"/>
+                <DataPanel Title="@Localizer["Outcomes"]" Data="@SelectedOutcomesData" HideEmptyValues="true" ShowNoDataAlert="true" NoDataMessage="@Localizer["No outcomes associated with this execution."]"/>
+                <DataPanel Title="@Localizer["Output"]" Data="@SelectedOutputData" HideEmptyValues="false" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output associated with this execution."]"/>
                 @if (Retries.TotalCount > 0)
                 {
                     <div>
