@@ -2,7 +2,7 @@
 @inherits StudioComponentBase
 
 <MudPaper Class="ma-2" Elevation="0" Outlined="true">
-    <MudToolBar Class="mt-1" Dense="true">
+    <MudToolBar Dense="true">
         @{
             if (_diagramDesigner is IDiagramDesignerToolboxProvider toolboxProvider)
             {
@@ -15,7 +15,7 @@
         <MudSpacer></MudSpacer>
         @CustomToolbarItems
     </MudToolBar>
-    <MudProgressLinear Color="@(IsProgressing? Color.Primary: Color.Transparent)" Indeterminate="true" />
+    <MudProgressLinear Style="margin-top: -4px;" Color="@(IsProgressing? Color.Primary: Color.Transparent)" Indeterminate="true" />
 </MudPaper>
 <div class="ma-2">
     <MudBreadcrumbs Items="_breadcrumbItems" Style="padding: 6px;">
