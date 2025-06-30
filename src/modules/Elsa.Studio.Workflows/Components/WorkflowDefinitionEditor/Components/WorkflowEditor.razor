@@ -5,7 +5,7 @@
 @inject ILocalizer Localizer
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height) - 50px);" Resize="@OnResize">
-    <RadzenSplitterPane Size="70%" Style="background: var(--mud-palette-surface);">
+    <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper 
             @ref="_diagramDesigner" 
             WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
