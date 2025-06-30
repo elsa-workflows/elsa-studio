@@ -3,49 +3,31 @@
 
 <ScrollableWell MaxHeight="VisiblePaneHeight">
     <MudStack>
-        <div>
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Activity"]</MudText>
-            <DataPanel Data="ActivityInfo" HideEmptyValues="true"/>
-        </div>
+        <DataPanel Title="@Localizer["Activity"]" Data="ActivityInfo" HideEmptyValues="true"/>
 
         @if (ActivityData.Any())
         {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["State"]</MudText>
-                <DataPanel Data="@ActivityData" HideEmptyValues="false"/>
-            </div>
+            <DataPanel Title="@Localizer["State"]" Data="@ActivityData" HideEmptyValues="false"/>
         }
 
         @if (OutcomesData.Any())
         {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outcomes"]</MudText>
-                <DataPanel Data="OutcomesData" HideEmptyValues="true"/>
-            </div>
+            <DataPanel Title="@Localizer["Outcomes"]" Data="OutcomesData" HideEmptyValues="true"/>
         }
 
         @if (OutputData.Any())
         {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
-                <DataPanel Data="OutputData" HideEmptyValues="false"/>
-            </div>
+            <DataPanel Title="@Localizer["Output"]" Data="OutputData" HideEmptyValues="false"/>
         }
 
         @if (ExceptionData.Any())
         {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Fault"]</MudText>
-                <DataPanel Data="ExceptionData" HideEmptyValues="true"/>
-            </div>
+            <DataPanel Title="@Localizer["Fault"]" Data="ExceptionData" HideEmptyValues="true"/>
         }
         
         @if (ResilienceStrategyData.Any())
         {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Resilience Strategy"]</MudText>
-                <DataPanel Data="ResilienceStrategyData" HideEmptyValues="true"/>
-            </div>
+            <DataPanel Title="@Localizer["Resilience Strategy"]" Data="ResilienceStrategyData" HideEmptyValues="true"/>
         }
     </MudStack>
 </ScrollableWell>
