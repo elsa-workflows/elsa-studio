@@ -15,11 +15,8 @@ public class SimpleWorkflowJsonDetector : IWorkflowJsonDetector
     {
         var jsonDocument = JsonDocument.Parse(json);
         var rootElement = jsonDocument.RootElement;
-        
-        if (!rootElement.TryGetProperty("definitionId", out _))
-            return false;
 
-        if (!rootElement.TryGetProperty("toolVersion", out _))
+        if (!rootElement.TryGetProperty("definitionId", out _))
             return false;
 
         if (!rootElement.TryGetProperty("id", out _))

@@ -5,6 +5,7 @@ using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 
@@ -16,7 +17,7 @@ internal class ActivityMapper(
     IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
     : IActivityMapper
 {
-    public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = default)
+    public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = null)
     {
         var activityId = activity.GetId();
         var designerMetadata = activity.GetDesignerMetadata();

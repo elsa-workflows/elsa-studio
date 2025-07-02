@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Contexts;
@@ -59,8 +60,9 @@ public partial class DiagramDesignerWrapper
     public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// An event raised when an embedded port is selected.
-    [Parameter]
-    public EventCallback GraphUpdated { get; set; }
+    [Parameter] public EventCallback GraphUpdated { get; set; }
+    
+    [Parameter] public EventCallback<JsonObject> ActivityUpdated { get; set; }
 
     /// An event raised when the path changes.
     [Parameter]
@@ -326,9 +328,7 @@ public partial class DiagramDesignerWrapper
         {
             var parentActivity = GetParentActivity();
             var currentContainerActivity = GetCurrentContainerActivityOrRoot();
-            await PathChanged.InvokeAsync(
-                new DesignerPathChangedArgs(parentActivity, currentContainerActivity)
-            );
+            await PathChanged.InvokeAsync(new(parentActivity, currentContainerActivity));
         }
     }
 
@@ -356,21 +356,16 @@ public partial class DiagramDesignerWrapper
         if (WorkflowInstanceId != null)
         {
             var currentContainerActivity = GetCurrentContainerActivityOrRoot();
-            var report = await ActivityExecutionService.GetReportAsync(
-                WorkflowInstanceId,
-                currentContainerActivity
-            );
-            _activityStats = report.Stats.ToDictionary(
-                x => x.ActivityNodeId,
-                x => new ActivityStats
-                {
-                    Faulted = x.IsFaulted,
-                    Blocked = x.IsBlocked,
-                    Completed = x.CompletedCount,
-                    Started = x.StartedCount,
-                    Uncompleted = x.UncompletedCount,
-                }
-            );
+            var report = await ActivityExecutionService.GetReportAsync(WorkflowInstanceId, currentContainerActivity);
+            _activityStats = report.Stats.ToDictionary(x => x.ActivityNodeId, x => new ActivityStats
+            {
+                Faulted = x.IsFaulted,
+                Blocked = x.IsBlocked,
+                Completed = x.CompletedCount,
+                Started = x.StartedCount,
+                Uncompleted = x.UncompletedCount,
+                Metadata = x.Metadata
+            });
         }
     }
 
@@ -379,9 +374,7 @@ public partial class DiagramDesignerWrapper
         var breadcrumbItems = new List<BreadcrumbItem>();
 
         if (_pathSegments.Any())
-            breadcrumbItems.Add(
-                new BreadcrumbItem("Root", "#_root_", false, Icons.Material.Outlined.Home)
-            );
+            breadcrumbItems.Add(new("Root", "#_root_", false, Icons.Material.Outlined.Home));
 
         var nodeLookup = _indexedActivityNodes;
         var firstSegment = _pathSegments.FirstOrDefault();
@@ -439,20 +432,15 @@ public partial class DiagramDesignerWrapper
 
     private RenderFragment? DisplayDesigner()
     {
-        return _diagramDesigner?.DisplayDesigner(
-            new DisplayContext(
-                GetCurrentContainerActivityOrRoot(),
-                ActivitySelected,
-                EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(
-                    this,
-                    OnActivityEmbeddedPortSelected
-                ),
-                EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
-                EventCallback.Factory.Create(this, OnGraphUpdated),
-                IsReadOnly,
-                _activityStats
-            )
-        );
+        return _diagramDesigner?.DisplayDesigner(new(
+            GetCurrentContainerActivityOrRoot(),
+            ActivitySelected,
+            EventCallback.Factory.Create<JsonObject>(this, OnActivityUpdated),
+            EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected),
+            EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
+            EventCallback.Factory.Create(this, OnGraphUpdated),
+            IsReadOnly,
+            _activityStats));
     }
 
     private async Task OnActivityDoubleClick(JsonObject activity)
@@ -463,11 +451,16 @@ public partial class DiagramDesignerWrapper
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {
-            await OnActivityEmbeddedPortSelected(
-                new ActivityEmbeddedPortSelectedArgs(activity, "Root")
-            );
+            await OnActivityEmbeddedPortSelected(new(activity, "Root"));
         }
     }
+    
+    private async Task OnActivityUpdated(JsonObject activity)
+    {
+        if (ActivityUpdated.HasDelegate)
+            await ActivityUpdated.InvokeAsync(activity);
+    }
+
 
   private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
  {
@@ -576,6 +569,7 @@ public partial class DiagramDesignerWrapper
      await UpdatePathSegmentsAsync(segments => segments.Push(segment));
      await DisplayCurrentSegmentAsync();
  }
+
 
     private async Task OnGraphUpdated()
     {

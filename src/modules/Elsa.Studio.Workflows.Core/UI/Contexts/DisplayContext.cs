@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
@@ -17,8 +18,9 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 public record DisplayContext(
     JsonObject Activity, 
     EventCallback<JsonObject> ActivitySelectedCallback = default,
+    EventCallback<JsonObject> ActivityUpdated = default,
     EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelectedCallback = default,
     EventCallback<JsonObject> ActivityDoubleClickCallback = default,
     EventCallback GraphUpdatedCallback = default, 
     bool IsReadOnly = false,
-    IDictionary<string, ActivityStats>? ActivityStats = default);
+    IDictionary<string, ActivityStats>? ActivityStats = null);

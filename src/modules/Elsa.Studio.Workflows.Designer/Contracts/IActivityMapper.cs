@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Contracts;
@@ -14,7 +15,7 @@ public interface IActivityMapper
     /// </summary>
     /// <param name="activity">The activity.</param>
     /// <param name="activityStats">Activity stats.</param>
-    X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = default);
+    X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = null);
     
     /// <summary>
     /// Gets the outbound ports for an activity.

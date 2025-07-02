@@ -8,14 +8,16 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Args;
-using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor.Utilities;
 using ThrottleDebounce;
@@ -29,18 +31,18 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 {
     private readonly string _containerId = $"container-{Guid.NewGuid():N}";
     private DotNetObjectReference<FlowchartDesigner>? _componentRef;
-    private IFlowchartMapper? _flowchartMapper = null!;
-    private IActivityMapper? _activityMapper = null!;
+    private IFlowchartMapper? _flowchartMapper;
+    private IActivityMapper? _activityMapper;
     private X6GraphApi _graphApi = null!;
     private readonly PendingActionsQueue _pendingGraphActions;
-    private RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
+    private readonly RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
     private JsonObject? _flowchart;
 
     /// <inheritdoc />
     public FlowchartDesigner()
     {
-        _pendingGraphActions = new PendingActionsQueue(() => new(_graphApi != null!), () => Logger);
+        _pendingGraphActions = new(() => new(_graphApi != null!), () => Logger);
         _rateLimitedLoadFlowchartAction = Debouncer.Debounce(async () => { await InvokeAsync(async () => await LoadFlowchartAsync(Flowchart, ActivityStats)); }, TimeSpan.FromMilliseconds(100));
     }
 
@@ -55,6 +57,8 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     /// An event raised when an activity is selected.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    
+    [Parameter] public EventCallback<JsonObject> ActivityPropsChanged { get; set; }
 
     /// An event raised when an activity-embedded port is selected.
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
@@ -74,6 +78,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Inject] private IMapperFactory MapperFactory { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
+    [Inject] private IOptions<DesignerOptions> Options { get; set; } = null!;
     [Inject] private ILogger<FlowchartDesigner> Logger { get; set; } = null!;
 
     /// <summary>
@@ -85,6 +90,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     {
         if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(activity);
+    }
+
+    public async Task UpdateActivityAsync(JsonObject activity)
+    {
+        if (ActivityPropsChanged.HasDelegate)
+            await ActivityPropsChanged.InvokeAsync(activity);
     }
 
     /// <summary>
