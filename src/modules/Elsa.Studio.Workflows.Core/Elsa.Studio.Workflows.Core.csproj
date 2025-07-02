@@ -16,10 +16,6 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="Domain\Handlers\" />
-    </ItemGroup>
-    
-    <ItemGroup>
       <Compile Remove="Domain\Handlers\Debugging.cs" />
     </ItemGroup>
 

@@ -1,5 +1,9 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
+using Elsa.Api.Client.Resources.Resilience.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
@@ -14,7 +18,11 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     /// Represents a row in the table of activity executions.
     /// <param name="Number">The number of executions.</param>
     /// <param name="ActivityExecutionSummary">The activity execution summary.</param>
-    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary);
+    public record ActivityExecutionRecordTableRow(int Number, ActivityExecutionRecordSummary ActivityExecutionSummary)
+    {
+        /// Indicates whether the activity execution record has recorded retries.
+        public bool HasRetries => ActivityExecutionSummary.Metadata != null && ActivityExecutionSummary.Metadata.TryGetValue("HasRetryAttempts", out var retryAttempts) && retryAttempts is JsonElement { ValueKind: JsonValueKind.True };
+    }
 
     /// The height of the visible pane.
     [Parameter] public int VisiblePaneHeight { get; set; }
@@ -28,7 +36,8 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
-    private ActivityExecutionRecord? SelectedItem { get; set; } = null!;
+    private ActivityExecutionRecord? SelectedItem { get; set; }
+    private PagedListResponse<RetryAttemptRecord> Retries { get; set; } = new();
     private DataPanelModel SelectedActivityState { get; set; } = new();
     private DataPanelModel SelectedOutcomesData { get; set; } = new();
     private DataPanelModel SelectedOutputData { get; set; } = new();
@@ -77,7 +86,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     private async Task RefreshSelectedItemAsync(string id)
     {
         SelectedItem = await ActivityExecutionService.GetAsync(id);
+        var retryAttempts = await ActivityExecutionService.GetRetriesAsync(id);
         CreateSelectedItemDataModels(SelectedItem);
+        Retries = retryAttempts;
         await InvokeAsync(StateHasChanged);
     }
 

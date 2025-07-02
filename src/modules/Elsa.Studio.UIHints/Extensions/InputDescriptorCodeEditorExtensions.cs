@@ -15,7 +15,7 @@ public static class InputDescriptorCodeEditorExtensions
     public static CodeEditorOptions GetCodeEditorOptions(this InputDescriptor descriptor)
     {
         var specifications = descriptor.UISpecifications;
-        var props = specifications != null ? specifications.TryGetValue("code-editor", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+        var props = specifications != null ? specifications.TryGetValue(InputUIHints.CodeEditor, out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
 
         if (props.ValueKind == JsonValueKind.Undefined)
             return new CodeEditorOptions();

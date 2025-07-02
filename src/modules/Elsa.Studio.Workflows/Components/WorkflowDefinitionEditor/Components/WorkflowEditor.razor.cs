@@ -310,9 +310,13 @@ public partial class WorkflowEditor
             return Task.CompletedTask;
         }));
     }
-
-    //private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
+    
     private async Task OnGraphUpdated() => await HandleChangesAsync(true);
+    
+    private async Task OnActivityUpdated(JsonObject activity)
+    {
+        await HandleChangesAsync(true);
+    }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {

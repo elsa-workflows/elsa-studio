@@ -14,8 +14,8 @@ public class RedirectToLogin : ComponentBase
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = default!;
 
     /// <inheritdoc />
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        return AuthorizationService.RedirectToAuthorizationServer();
+        await AuthorizationService.RedirectToAuthorizationServer();
     }
 }
