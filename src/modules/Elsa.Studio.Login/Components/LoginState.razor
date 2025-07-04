@@ -5,7 +5,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IEndSessionService EndSessionService
 
-@if (@CurrentState?.User.Identity?.IsAuthenticated is true)
+@if (CurrentState?.User.Identity?.IsAuthenticated is true)
 {
     <MudMenu Label="@CurrentState.User.Identity.Name"
              Variant="Variant.Text"

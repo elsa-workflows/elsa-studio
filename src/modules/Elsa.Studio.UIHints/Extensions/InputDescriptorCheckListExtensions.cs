@@ -15,7 +15,7 @@ public static class InputDescriptorCheckListExtensions
     public static CheckList GetCheckList(this InputDescriptor descriptor)
     {
         var specifications = descriptor.UISpecifications;
-        var props = specifications != null ? specifications.TryGetValue("checklist", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+        var props = specifications != null ? specifications.TryGetValue(InputUIHints.CheckList, out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
 
         if (props.ValueKind == JsonValueKind.Undefined)
             return new([]);

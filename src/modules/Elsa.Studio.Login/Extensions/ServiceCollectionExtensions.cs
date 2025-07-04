@@ -64,6 +64,7 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
                 .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
             ;
     }
 
