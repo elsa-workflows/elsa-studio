@@ -13,6 +13,9 @@ namespace Elsa.Studio.Workflows.ActivityPickers.Accordion;
 /// </summary>
 public partial class ActivityPicker
 {
+    [Parameter]
+    public Func<string, string> CategoryDisplayResolver { get; set; } = null!;
+
     private string _searchText = "";
 
     private IEnumerable<IGrouping<string, ActivityDescriptor>> GroupedActivityDescriptors
