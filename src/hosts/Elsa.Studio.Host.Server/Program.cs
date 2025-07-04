@@ -68,7 +68,15 @@ builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioB
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
+
 builder.Services.UseElsaIdentity();
+//builder.Services.UseOAuth2(options =>
+//{
+//    options.ClientId = "ElsaStudio";
+//    options.TokenEndpoint = "https://localhost:44335/connect/token";
+//    options.Scope = "AbpSolution1 offline_access";
+//});
+
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);

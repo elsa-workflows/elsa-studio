@@ -16,7 +16,7 @@ Elsa Studio is a modular, extensible application framework built with MudBlazor 
 
 ## Prerequisites
 
-- **.NET SDK**: Ensure you have both [.NET 7](https://dotnet.microsoft.com/download/dotnet/7.0) and [.NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) SDKs installed.
+- **.NET SDK**: Ensure you have both [.NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) and [.NET 9](https://dotnet.microsoft.com/download/dotnet/9.0) SDKs installed.
 - **Node.js and npm**: Install [Node.js](https://nodejs.org/) (which includes npm) for the frontend tooling.
 
 ## Setup
@@ -40,8 +40,8 @@ steps but should you run into any issues or want to build these ahead of time, t
 
 1. **Restore .NET dependencies**: `dotnet restore Elsa.Studio.sln`
 1. **Build the project**: `dotnet build Elsa.Studio.sln`
-1. **For Blazor Server Host**: `dotnet run --project .\src\hosts\Elsa.Studio.Host.Server\Elsa.Studio.Host.Server.csproj --framework net8.0`
-1. **For Blazor Server WASM**: `dotnet run --project .\src\hosts\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj --framework net8.0`
+1. **For Blazor Server Host**: `dotnet run --project .\src\hosts\Elsa.Studio.Host.Server\Elsa.Studio.Host.Server.csproj `
+1. **For Blazor Server WASM**: `dotnet run --project .\src\hosts\Elsa.Studio.Host.Wasm\Elsa.Studio.Host.Wasm.csproj`
 
 Explore the [Elsa Studio GitHub repository](https://github.com/elsa-workflows/elsa-studio) for more detailed information.
 

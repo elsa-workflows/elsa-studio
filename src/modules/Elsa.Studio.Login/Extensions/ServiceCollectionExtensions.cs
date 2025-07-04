@@ -6,6 +6,7 @@ using Elsa.Studio.Login.Models;
 using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Login.Extensions;
 
@@ -41,6 +42,27 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
                 .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
+            ;
+    }
+
+    /// <summary>
+    /// Configures the service collection to use OAuth2 for credential validation and related services.
+    /// </summary>
+    public static IServiceCollection UseOAuth2(this IServiceCollection services, Action<OAuth2CredentialsValidatorOptions> configure)
+    {
+        services.Configure(configure);
+        
+        services.AddHttpClient<OAuth2HttpClient>(httpClient =>
+        {
+            var options = services.BuildServiceProvider().GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
+            httpClient.BaseAddress = new(options.TokenEndpoint);
+        });
+        
+        return services
+                .AddScoped<ICredentialsValidator, OAuth2CredentialsValidator>()
+                .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
+                .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
+                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
             ;
     }
 

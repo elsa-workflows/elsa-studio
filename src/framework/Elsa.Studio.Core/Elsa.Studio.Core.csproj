@@ -26,7 +26,7 @@
     </ItemGroup>
 
 <!--    <ItemGroup Label="Elsa">-->
-<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\3.5.0\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
+<!--        <ProjectReference Include="..\..\..\..\..\elsa-core\3.6.0\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj"/>-->
 <!--    </ItemGroup>-->
 
     <ItemGroup Label="Elsa">
