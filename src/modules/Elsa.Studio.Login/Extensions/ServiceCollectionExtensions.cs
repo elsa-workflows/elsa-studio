@@ -62,6 +62,7 @@ public static class ServiceCollectionExtensions
                 .AddScoped<ICredentialsValidator, OAuth2CredentialsValidator>()
                 .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
             ;
     }
