@@ -1,5 +1,7 @@
 <Project>
-
+  <PropertyGroup>
+    <UseProjectReferences>true</UseProjectReferences>
+  </PropertyGroup>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <ItemGroup Label="Files">
