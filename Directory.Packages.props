@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <PropertyGroup Label="PackageVersions">
-    <ElsaVersion>3.6.0-preview.3093</ElsaVersion>
+    <ElsaVersion>3.6.0-preview.3139</ElsaVersion>
     <MicrosoftVersion>9.0.6</MicrosoftVersion>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
