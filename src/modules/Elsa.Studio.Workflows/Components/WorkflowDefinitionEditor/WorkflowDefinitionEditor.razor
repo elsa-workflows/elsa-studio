@@ -3,12 +3,11 @@
 @using Elsa.Studio.Workflows.Models
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Shared.Models
+@using Elsa.Studio.Contracts
 @using Elsa.Studio.Workflows.Domain.Contracts
 @using Elsa.Studio.Workflows.Extensions
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
-
-@inject IWorkflowDefinitionService WorkflowDefinitionService
 
 @if (IsReadOnly)
 {
@@ -18,7 +17,7 @@
 <CascadingValue Value="_dragDropManager">
     <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
         <RadzenSplitterPane Size="15%" Min="100px">
-            <ActivityPicker/>
+            @ActivityPickerComponentProvider.GetActivityPickerComponent()
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
             <WorkflowDefinitionWorkspace
@@ -27,7 +26,7 @@
                 WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
                 WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                 ActivitySelected="ActivitySelected"
-                />
+            />
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -46,6 +45,10 @@
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    [Inject] private ILocalizer Localizer { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IActivityPickerComponentProvider ActivityPickerComponentProvider { get; set; } = null!;
 
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionWorkspace.GetSelectedWorkflowDefinitionVersion();

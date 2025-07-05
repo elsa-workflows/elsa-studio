@@ -10,24 +10,27 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class RadioList
 {
-    private ICollection<RadioListItem> _radioListItems = Array.Empty<RadioListItem>();
-    private string? radioItem = string.Empty;
+    private ICollection<RadioListItem> _radioListItems = [];
+    private string _selectedValue = string.Empty;
 
-    public string _radioItem
+    /// <summary>
+    /// Represents the selected radio item value in the radio list component.
+    /// Updates the selection and notifies the associated editor context when changed.
+    /// </summary>
+    public string SelectedValue
     {
-        get { return radioItem; }
+        get => _selectedValue;
         set
         {
-            radioItem = value;
-            OnValueChanged(value);
+            _selectedValue = value;
+            _ = OnValueChanged(value);
         }
     }
 
     /// <summary>
     /// The editor context.
     /// </summary>
-    [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -36,7 +39,7 @@ public partial class RadioList
         _radioListItems = radioList.Items.ToList();
 
         var value = EditorContext.GetLiteralValueOrDefault();
-        radioItem = _radioListItems.FirstOrDefault(x => x.Value == value)?.Value ?? "";
+        _selectedValue = _radioListItems.FirstOrDefault(x => x.Value == value)?.Value ?? "";
     }
 
     private async Task OnValueChanged(string? value)

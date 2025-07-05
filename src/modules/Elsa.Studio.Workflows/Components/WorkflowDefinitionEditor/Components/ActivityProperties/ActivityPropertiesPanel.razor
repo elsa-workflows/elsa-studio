@@ -1,3 +1,4 @@
+@using Elsa.Api.Client.Shared.Models
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
 @using Elsa.Studio.Extensions
@@ -7,9 +8,9 @@
 @inject ILocalizer Localizer
 
 <CascadingValue Value="ExpressionDescriptorProvider">
-    <MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabs Elevation="0" ApplyEffectsToContainer="true" ActivePanelIndexChanged="@OnActivePanelIndexChanged">
 
-        <MudTabPanel Text="@Localizer["Input"]">
+        <MudTabPanel Text="@Localizer["Input"]" Icon="@Icons.Material.Outlined.Input">
             @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -26,7 +27,7 @@
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="@Localizer["Output"]">
+        <MudTabPanel Text="@Localizer["Output"]" Icon="@Icons.Material.Outlined.Output">
             @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -43,7 +44,7 @@
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="@Localizer["Common"]">
+        <MudTabPanel Text="@Localizer["Common"]" Icon="@Icons.Material.Outlined.Notes">
             @if (Activity != null && ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -60,16 +61,17 @@
             }
         </MudTabPanel>
         
-        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="Color.Success">
+        <MudTabPanel Text="@Localizer["Test"]" Icon="@ElsaStudioIcons.Tabler.Flask" IconColor="@TestIconColor" >
             @if (WorkflowDefinition != null && ActivityDescriptor != null && Activity != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <TestTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor" Activity="Activity"/>
+                    <TestTab WorkflowDefinition="WorkflowDefinition" ActivityDescriptor="@ActivityDescriptor"
+                             Activity="Activity" OnTestResultChanged="OnTestResultChanged" />
                 </ScrollableWell>
             }
         </MudTabPanel>
 
-        <MudTabPanel Text="@Localizer["Commit Strategy"]">
+        <MudTabPanel Text="@Localizer["Commit Strategy"]" Icon="@Icons.Material.Outlined.Commit">
             @if (Activity != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -87,7 +89,7 @@
 
         @if (IsTaskActivity)
         {
-            <MudTabPanel Text="@Localizer["Task"]">
+            <MudTabPanel Text="@Localizer["Task"]" Icon="@Icons.Material.Outlined.HorizontalSplit">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <TaskTab Activity="Activity" ActivityDescriptor="ActivityDescriptor"
                              OnActivityUpdated="OnActivityUpdated"/>
@@ -95,7 +97,7 @@
             </MudTabPanel>
         }
 
-        <MudTabPanel Text="@Localizer["Log"]">
+        <MudTabPanel Text="@Localizer["Log"]" Icon="@Icons.Material.Outlined.Assignment">
             <ScrollableWell MaxHeight="VisiblePaneHeight">
                 <LogPersistenceTab WorkflowDefinition="WorkflowDefinition" Activity="@Activity"
                                    ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
@@ -103,7 +105,7 @@
         </MudTabPanel>
 
 
-        <MudTabPanel Text="@Localizer["Info"]">
+        <MudTabPanel Text="@Localizer["Info"]" Icon="@Icons.Material.Outlined.Info">
             @if (ActivityDescriptor != null)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -114,7 +116,7 @@
 
         @if (IsWorkflowAsActivity)
         {
-            <MudTabPanel Text="@Localizer["Version"]">
+            <MudTabPanel Text="@Localizer["Version"]" Icon="@Icons.Material.Outlined.Numbers">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
                     <VersionTab Activity="Activity" ActivityDescriptor="ActivityDescriptor"
                                 OnActivityUpdated="OnActivityUpdated"/>
@@ -124,9 +126,10 @@
 
         @if (DisplayResilienceTab)
         {
-            <MudTabPanel Text="@Localizer["Resilience"]">
+            <MudTabPanel Text="@Localizer["Resilience"]" Icon="@Icons.Material.Outlined.RestartAlt">
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <ResilienceTab WorkflowDefinition="WorkflowDefinition" Activity="Activity" ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+                    <ResilienceTab WorkflowDefinition="WorkflowDefinition" Activity="Activity"
+                                   ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
                 </ScrollableWell>
             </MudTabPanel>
         }

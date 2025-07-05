@@ -3,6 +3,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.Tests;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
@@ -29,12 +30,17 @@ public partial class TestTab
     /// </summary>
     [Parameter] public JsonObject Activity { get; set; } = null!;
     
+    /// <summary>
+    /// Callback event for test result changes.
+    /// </summary>
+    [Parameter] public EventCallback<ActivityStatus> OnTestResultChanged { get; set; }
+
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
     
-    private DataPanelModel Status { get; set; } = new();
-    private DataPanelModel ActivityState { get; set; } = new();
-    private DataPanelModel Outcomes { get; set; } = new();
-    private DataPanelModel Output { get; set; } = new();
+    private DataPanelModel Status { get; set; } = [];
+    private DataPanelModel ActivityState { get; set; } = [];
+    private DataPanelModel Outcomes { get; set; } = [];
+    private DataPanelModel Output { get; set; } = [];
     private bool HasRun { get; set; }
     private bool IsRunning { get; set; }
 
@@ -57,9 +63,12 @@ public partial class TestTab
     
     private void UpdateDataModels(TestActivityResponse response)
     {
-        var status = new DataPanelModel();
-        status.Add("Status", response.Status.ToString());
-        
+        var status = new DataPanelModel
+        {
+            { "Status", response.Status.ToString() }
+        };
+        OnTestResultChanged.InvokeAsync(response.Status);
+
         var activityState = response.ActivityState
             .Where(x => !x.Key.StartsWith("_"))
             .Select(x => new DataPanelItem(x.Key, x.Value?.ToString()))
@@ -77,7 +86,7 @@ public partial class TestTab
 
         Status = status;
         ActivityState = activityState;
-        Outcomes = outcomesData ?? new();
+        Outcomes = outcomesData ?? [];
         Output = outputData;
     }
 }

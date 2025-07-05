@@ -6,24 +6,15 @@
         <MudButton StartIcon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Filled" Color="Color.Success" OnClick="@OnTestRunClick">@Localizer["Start"]</MudButton>
     </div>
     <MudProgressLinear Color="@(IsRunning ? Color.Success : Color.Transparent)" Indeterminate="true"/>
-    <div>
-        @if (!HasRun)
-        {
-            <MudAlert Icon="@Icons.Material.Filled.Info">@Localizer["Select the Start button to run the activity"]</MudAlert>
-        }
-        else if (!IsRunning)
-        {
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Status"]</MudText>
-            <DataPanel Data="Status" ShowNoDataAlert="true" NoDataMessage="No status was recorded."/>
-
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["State"]</MudText>
-            <DataPanel Data="ActivityState" ShowNoDataAlert="true" NoDataMessage="No state was recorded."/>
-
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outcomes"]</MudText>
-            <DataPanel Data="Outcomes" ShowNoDataAlert="true" NoDataMessage="No outcomes were recorded."/>
-
-            <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Output"]</MudText>
-            <DataPanel Data="Output" ShowNoDataAlert="true" NoDataMessage="No output was recorded."/>
-        }
-    </div>
+    @if (!HasRun)
+    {
+        <MudAlert Icon="@Icons.Material.Outlined.Info">@Localizer["Select the Start button to run the activity."]</MudAlert>
+    }
+    else if (!IsRunning)
+    {
+        <DataPanel Title="@Localizer["Status"]" Data="Status" ShowNoDataAlert="true" NoDataMessage="@Localizer["No status was recorded."]"/>
+        <DataPanel Title="@Localizer["State"]" Data="ActivityState" ShowNoDataAlert="true" NoDataMessage="@Localizer["No state was recorded."]"/>
+        <DataPanel Title="@Localizer["Outcomes"]" Data="Outcomes" ShowNoDataAlert="true" NoDataMessage="@Localizer["No outcomes were recorded."]"/>
+        <DataPanel Title="@Localizer["Output"]" Data="Output" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output was recorded."]"/>
+    }
 </MudStack>

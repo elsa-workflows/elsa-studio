@@ -15,8 +15,10 @@ using Elsa.Studio.Localization.Options;
 using Elsa.Studio.Translations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Host.Server;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -66,15 +68,7 @@ builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioB
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
-
 builder.Services.UseElsaIdentity();
-// builder.Services.UseOAuth2(options =>
-// {
-//     options.ClientId = "ElsaStudio";
-//     options.TokenEndpoint = "https://localhost:44335/connect/token";
-//     options.Scope = "AbpSolution1 offline_access";
-// });
-
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -82,6 +76,13 @@ builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPickerComponentProvider>();
+// Uncomment for the Accordion Activity Picker
+//builder.Services.AddScoped<IActivityPickerComponentProvider>(sp => new AccordionActivityPickerComponentProvider
+//{
+//    // Example - Replace the default category resolver with a custom one.
+//    CategoryDisplayResolver = category => category.Split('/').Last().Trim()
+//});
 
 // Uncomment for V1 designer theme (default is V2).
 // builder.Services.Configure<DesignerOptions>(options =>

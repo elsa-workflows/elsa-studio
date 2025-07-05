@@ -34,12 +34,8 @@
 
     @if (SelectedItem != null)
     {
-        <div>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Retry Details"]</MudText>
-                <DataPanel Data="@SelectedRetryAttemptData" HideEmptyValues="false" ShowNoDataAlert="true"
-                           NoDataMessage="@Localizer["No information associated with this retry attempt."]"/>
-            </div>
-        </div>
+        <DataPanel Title="@Localizer["Retry Details"]" Data="@SelectedRetryAttemptData" HideEmptyValues="false" ShowNoDataAlert="true"
+                    NoDataMessage="@Localizer["No information associated with this retry attempt."]"/>
+        
     }
 </MudStack>

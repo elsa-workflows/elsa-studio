@@ -3,6 +3,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.UIHints.Extensions;
+using Elsa.Studio.Workflows.ActivityPickers.Accordion;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -48,6 +49,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionSettingsWidget>();
         services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
+        services.AddScoped<IActivityPickerComponentProvider, AccordionActivityPickerComponentProvider>();
         services.AddScoped<ICreateWorkflowDialogComponentProvider, DefaultCreateWorkflowDialogComponentProvider>();
 
         return services;
