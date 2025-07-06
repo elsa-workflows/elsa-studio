@@ -1,10 +1,10 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.Services;
-using Elsa.Studio.Formatters;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
+using Elsa.Studio.Visualizers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -35,12 +35,12 @@ public static class ServiceCollectionExtensions
             .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
-            .AddSingleton<IContentFormatProvider, DefaultContentFormatProvider>()
+            .AddSingleton<IContentVisualizerProvider, DefaultContentVisualizerProvider>()
             .AddUserMessageService<DefaultUserMessageService>()
             ;
 
-        // Content formatter services
-        services.AddContentFormatter<JsonContentFormatter>();
+        // Content visualizers
+        services.AddContentVisualizer<JsonContentVisualizer>();
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
@@ -103,10 +103,10 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the specified <see cref="IContentFormatter"/>.
+    /// Adds the specified <see cref="IContentVisualizer"/>.
     /// </summary>
-    public static IServiceCollection AddContentFormatter<T>(this IServiceCollection services) where T : class, IContentFormatter
+    public static IServiceCollection AddContentVisualizer<T>(this IServiceCollection services) where T : class, IContentVisualizer
     {
-        return services.AddTransient<IContentFormatter, T>();
+        return services.AddTransient<IContentVisualizer, T>();
     }
 }

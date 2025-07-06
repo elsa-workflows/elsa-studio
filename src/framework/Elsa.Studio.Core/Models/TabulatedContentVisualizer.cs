@@ -1,7 +1,7 @@
 ﻿/// <summary>
-/// Represents a tabulated content format consisting of headers and rows.
+/// Represents a tabulated content visualizer consisting of headers and rows.
 /// </summary>
-public class TabulatedContentFormat
+public class TabulatedContentVisualizer
 {
     /// <summary>
     /// Gets or sets the collection of headers associated with the content.

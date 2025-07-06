@@ -1,11 +1,11 @@
 ﻿using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Formatters
+namespace Elsa.Studio.Visualizers
 {
     /// <summary>
-    /// Provides a default implementation of <see cref="IContentFormatter"/>.
+    /// Provides a default implementation of <see cref="IContentVisualizer"/>.
     /// </summary>
-    public class DefaultContentFormatter : IContentFormatter
+    public class DefaultContentVisualizer : IContentVisualizer
     {
         /// <inheritdoc/>
         public string Name => "Default";
@@ -14,15 +14,15 @@ namespace Elsa.Studio.Formatters
         public string Syntax => "text";
 
         /// <inheritdoc/>
-        public bool CanFormat(object input) => true;
+        public bool CanVisualize(object input) => true;
 
         /// <inheritdoc/>
-        public string? ToText(object input)
+        public string? ToPretty(object input)
         {
             return input?.ToString() ?? string.Empty;
         }
 
         /// <inheritdoc/>
-        public TabulatedContentFormat? ToTable(object input) => null;
+        public TabulatedContentVisualizer? ToTable(object input) => null;
     }
 }
