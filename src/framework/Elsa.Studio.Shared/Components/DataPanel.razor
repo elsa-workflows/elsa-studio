@@ -32,10 +32,10 @@
                         <td style="width: 200px;">@item.Label</td>
                         <td>
                             <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                                <MudTooltip Text="@Localizer["View content"]">
+                                <MudTooltip Text="@Localizer["View"]">
                                 @if (!string.IsNullOrWhiteSpace(item.Text))
                                 {
-                                    <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" Title="@Localizer["View content"]" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
+                                    <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" Title="@Localizer["View"]" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
                                 }
                                 </MudTooltip>
                                 @if (!string.IsNullOrWhiteSpace(item.Link))
@@ -155,6 +155,6 @@
         {
             { nameof(DataPanelItem), item }
         };
-        await DialogService.ShowAsync<ContentFormatter>("View value", parameters, options);
+        await DialogService.ShowAsync<ContentVisualizer>("View content", parameters, options);
     }
 }
