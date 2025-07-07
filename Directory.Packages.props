@@ -3,8 +3,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-		<ElsaVersion>3.7.0-preview.3055</ElsaVersion>
+  <PropertyGroup Label="PackageVersions">
+    <ElsaVersion>3.7.0-preview.3055</ElsaVersion>
     <MicrosoftVersion>9.0.6</MicrosoftVersion>
+  </PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
     <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)" />
