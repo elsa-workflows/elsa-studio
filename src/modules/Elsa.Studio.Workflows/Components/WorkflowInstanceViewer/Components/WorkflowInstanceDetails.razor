@@ -3,24 +3,42 @@
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
+<style>
+    .incidents-custom-spacing .mud-expand-panel-content,
+    .incidents-custom-spacing .mud-expand-panel-content .pa-4
+    {
+        padding: 0 !important;
+    }
+
+    .incidents-custom-spacing .mud-expand-panel-header {
+        padding: 6px 16px !important;
+    }
+
+    .incidents-custom-spacing .truncate-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .incidents-custom-spacing .mud-expand-panel-text {
+        width: 90%;
+    }
+</style>
+
 @if (WorkflowDefinition != null && WorkflowInstance != null)
 {
 <MudTabs Elevation="0" ApplyEffectsToContainer="true">
     <MudTabPanel Text="@Localizer["Details"]">
         <VerticalWell>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Workflow"]</MudText>
-                <DataPanel Data="WorkflowInstanceData" HideEmptyValues="true"/>
-            </div>
+            <DataPanel Title="@Localizer["Workflow"]" Data="WorkflowInstanceData" HideEmptyValues="true"/>
         </VerticalWell>
 
         @if (WorkflowInstanceSubWorkflowData.Any())
         {
-                <VerticalWell>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow"]</MudText>
-                <DataPanel Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
-            </div>
+        <VerticalWell>
+            <DataPanel Title="@Localizer["Sub-Workflow"]" Data="WorkflowInstanceSubWorkflowData" HideEmptyValues="true"/>
         </VerticalWell>
         }
     </MudTabPanel>
@@ -49,92 +67,32 @@
             }
             else
             {
-                <MudAlert Severity="Severity.Success" Variant="MudBlazor.Variant.Text" Icon="@Icons.Material.Outlined.Check">@Localizer["No incidents"]</MudAlert>
+                <MudAlert Severity="Severity.Success" Dense="true" Variant="MudBlazor.Variant.Text" Icon="@Icons.Material.Outlined.Check">@Localizer["No incidents"]</MudAlert>
             }
         </VerticalWell>
     </MudTabPanel>
     <MudTabPanel Text="@Localizer["Variables"]">
         <VerticalWell ExtraPadding="50">
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Variables"]</MudText>
-                @if (WorkflowVariableData.Any())
-                {
-                <DataPanel Data="WorkflowVariableData" HideEmptyValues="false"/>
-                }
-                else
-                {
-                <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No variables"]</MudAlert>
-                }
-            </div>
+            <DataPanel Title="@Localizer["Variables"]" Data="WorkflowVariableData" NoDataMessage="@Localizer["No variables"]" HideEmptyValues="false"/>
         </VerticalWell>
     </MudTabPanel>
     <MudTabPanel Text="@Localizer["Input/output"]">
             <VerticalWell>
             <MudStack>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Inputs"]</MudText>
-                    @if (WorkflowInputData.Any())
-                    {
-                    <DataPanel Data="WorkflowInputData" HideEmptyValues="false"/>
-                    }
-                    else
-                    {
-                    <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No inputs"]</MudAlert>
-                    }
-                </div>
-                <div>
-                    <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Outputs"]</MudText>
-                    @if (WorkflowOutputData.Any())
-                    {
-                    <DataPanel Data="WorkflowOutputData" HideEmptyValues="false"/>
-                    }
-                    else
-                    {
-                    <MudAlert Severity="Severity.Normal" Variant="MudBlazor.Variant.Text">@Localizer["No outputs"]</MudAlert>
-                    }
-                </div>
+                <DataPanel Title="@Localizer["Inputs"]" Data="WorkflowInputData" NoDataMessage="@Localizer["No inputs"]" HideEmptyValues="false"/>
+                <DataPanel Title="@Localizer["Outputs"]" Data="WorkflowOutputData" NoDataMessage="@Localizer["No outputs"]" HideEmptyValues="false"/>
             </MudStack>
         </VerticalWell>
             <VerticalWell>
             @if (SubWorkflowInputData.Any())
             {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Inputs"]</MudText>
-                <DataPanel Data="SubWorkflowInputData" HideEmptyValues="false"/>
-            </div>
+                <DataPanel Title="@Localizer["Sub-Workflow Inputs"]" Data="SubWorkflowInputData" HideEmptyValues="false"/>
             }
             @if (SubWorkflowOutputData.Any())
             {
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Sub-Workflow Outputs"]</MudText>
-                <DataPanel Data="SubWorkflowOutputData" HideEmptyValues="false"/>
-            </div>
+                <DataPanel Title="@Localizer["Sub-Workflow Outputs"]" Data="SubWorkflowOutputData" HideEmptyValues="false"/>
             }
         </VerticalWell>
     </MudTabPanel>
 </MudTabs>
 }
-
-<style>
-    .incidents-custom-spacing .mud-expand-panel-content,
-    .incidents-custom-spacing .mud-expand-panel-content .pa-4
-    {
-        padding: 0 !important;
-    }
-
-    .incidents-custom-spacing .mud-expand-panel-header {
-        padding: 6px 16px !important;
-    }
-
-    .incidents-custom-spacing .truncate-text {
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .incidents-custom-spacing .mud-expand-panel-text {
-        width: 90%;
-    }
-</style>

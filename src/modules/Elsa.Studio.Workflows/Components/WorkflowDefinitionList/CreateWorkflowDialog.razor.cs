@@ -48,9 +48,9 @@ public partial class CreateWorkflowDialog
         await OnValidSubmit();
     }
 
-    private Task OnValidSubmit()
+    private async Task OnValidSubmit()
     {
-        MudDialog.Close(_metadataModel);
-        return Task.CompletedTask;
+        var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(_metadataModel.Name!, _metadataModel.Description!);
+        MudDialog.Close(result);
     }
 }

@@ -11,6 +11,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -27,7 +28,7 @@ using Variant = MudBlazor.Variant;
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// A component that allows the user to edit a workflow definition.
-public partial class WorkflowEditor
+public partial class WorkflowEditor : WorkflowEditorComponentBase, INotificationHandler<ImportedWorkflowDefinition>, IDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
@@ -97,6 +98,8 @@ public partial class WorkflowEditor
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        Mediator.Subscribe<ImportedWorkflowDefinition>(this);
+        
         _workflowDefinition = WorkflowDefinition;
 
         await ActivityRegistry.EnsureLoadedAsync();
@@ -128,6 +131,13 @@ public partial class WorkflowEditor
         if (firstRender)
             await UpdateActivityPropertiesVisibleHeightAsync();
     }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Mediator.Unsubscribe(this);
+        _rateLimitedSaveChangesAsync.Dispose();
+    }    
 
     private async Task HandleChangesAsync(bool readDiagram)
     {
@@ -310,9 +320,13 @@ public partial class WorkflowEditor
             return Task.CompletedTask;
         }));
     }
-
-    //private async Task OnWorkflowDefinitionUpdated() => await HandleChangesAsync(false);
+    
     private async Task OnGraphUpdated() => await HandleChangesAsync(true);
+    
+    private async Task OnActivityUpdated(JsonObject activity)
+    {
+        await HandleChangesAsync(true);
+    }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
@@ -349,6 +363,13 @@ public partial class WorkflowEditor
         _isDirty = false;
 
         StateHasChanged();
+    }
+    
+    async Task INotificationHandler<ImportedWorkflowDefinition>.HandleAsync(ImportedWorkflowDefinition notification, CancellationToken cancellationToken)
+    {
+        var definition = notification.WorkflowDefinition;
+        await SetWorkflowDefinitionAsync(definition);
+        await _diagramDesigner.LoadActivityAsync(definition.Root);
     }
 
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)

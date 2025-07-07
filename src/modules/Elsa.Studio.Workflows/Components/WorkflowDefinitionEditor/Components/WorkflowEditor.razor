@@ -1,12 +1,10 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
-@using Elsa.Studio.Workflows.Services
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
 @inherits WorkflowEditorComponentBase
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
-<RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
+<RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height) - 50px);" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper 
             @ref="_diagramDesigner" 
@@ -14,7 +12,8 @@
             Activity="@Activity"
             IsProgressing="@IsProgressing" 
             ActivitySelected="@OnActivitySelected" 
-            GraphUpdated="@OnGraphUpdated">
+            GraphUpdated="@OnGraphUpdated"
+            ActivityUpdated="@OnActivityUpdated">
             <CustomToolbarItems>
                 <MudSwitch T="bool?" Value="@_autoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
                 <MudTooltip Text="@Localizer["Save"]" Delay="1000">
@@ -47,7 +46,7 @@
                         </MudMenu>
                     </MudButtonGroup>
                 </MudTooltip>
-                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@Localizer["Run workflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Text" title="@Localizer["Run Workflow"]" Class="ml-4" OnClick="@OnRunWorkflowClicked"/>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>

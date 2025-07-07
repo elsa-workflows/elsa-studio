@@ -25,4 +25,28 @@ public static class RenderTreeBuilderExtensions
         builder.OpenComponent<T>(sequence++);
         builder.CloseComponent();
     }
+
+    /// <summary>
+    /// Creates a component of the specified type at the specified sequence.
+    /// </summary>
+    /// <param name="builder">The <see cref="RenderTreeBuilder"/> to append the component to.</param>
+    /// <param name="sequence">The sequence number for the component.</param>
+    /// <param name="componentType">The type of the component to create.</param>
+    public static void CreateComponent(this RenderTreeBuilder builder, Type componentType)
+    {
+        var sequence = 0;
+        CreateComponent(builder, ref sequence, componentType);
+    }
+    
+    /// <summary>
+    /// Creates a component of the specified type at the specified sequence.
+    /// </summary>
+    /// <param name="builder">The <see cref="RenderTreeBuilder"/> to append the component to.</param>
+    /// <param name="sequence">The sequence number for the component.</param>
+    /// <param name="componentType">The type of the component to create.</param>
+    public static void CreateComponent(this RenderTreeBuilder builder, ref int sequence, Type componentType)
+    {
+        builder.OpenComponent(sequence++, componentType);
+        builder.CloseComponent();
+    }
 }

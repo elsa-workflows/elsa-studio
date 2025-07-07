@@ -1,4 +1,3 @@
-using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using JetBrains.Annotations;
@@ -10,7 +9,6 @@ namespace Elsa.Studio.Workflows.UI.Providers;
 [UsedImplicitly]
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
-    /// <param name="activityDescriptor"></param>
     /// <inheritdoc />
     public IDictionary<string, ActivityDisplaySettings> GetSettings() => new Dictionary<string, ActivityDisplaySettings>
     {
@@ -27,10 +25,10 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         
         // Composition
         ["Elsa.Complete"] = new(DefaultActivityColors.Composition, ElsaStudioIcons.Tabler.CheckCircle),
-        ["Elsa.SetOutput"] = new (DefaultActivityColors.Composition),
-        ["Elsa.DispatchWorkflow"] = new (DefaultActivityColors.Composition),
-        ["Elsa.BulkDispatchWorkflows"] = new (DefaultActivityColors.Composition),
-        ["Elsa.ExecuteWorkflow"] = new (DefaultActivityColors.Composition),
+        ["Elsa.SetOutput"] = new (DefaultActivityColors.Composition, Icons.Material.Outlined.Output),
+        ["Elsa.DispatchWorkflow"] = new (DefaultActivityColors.Composition, Icons.Material.Outlined.Commit),
+        ["Elsa.BulkDispatchWorkflows"] = new (DefaultActivityColors.Composition, Icons.Material.Outlined.Share),
+        ["Elsa.ExecuteWorkflow"] = new (DefaultActivityColors.Composition, Icons.Material.Outlined.Terminal),
         
         // Console
         ["Elsa.WriteLine"] = new(DefaultActivityColors.Console, ElsaStudioIcons.Tabler.Pencil),

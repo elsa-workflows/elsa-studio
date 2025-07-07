@@ -15,7 +15,7 @@ public static class InputDescriptorSingleLineExtensions
     public static SingleLineProps GetSingleLineProps(this InputDescriptor descriptor)
     {
         var specifications = descriptor.UISpecifications;
-        var props = specifications != null ? specifications.TryGetValue("singleline", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+        var props = specifications != null ? specifications.TryGetValue(InputUIHints.SingleLine, out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
 
         if (props.ValueKind == JsonValueKind.Undefined)
             return new SingleLineProps();

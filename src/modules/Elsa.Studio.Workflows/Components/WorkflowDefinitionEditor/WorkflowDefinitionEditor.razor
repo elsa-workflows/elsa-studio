@@ -3,13 +3,11 @@
 @using Elsa.Studio.Workflows.Models
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Shared.Models
+@using Elsa.Studio.Contracts
 @using Elsa.Studio.Workflows.Domain.Contracts
 @using Elsa.Studio.Workflows.Extensions
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
-
-@inject IWorkflowDefinitionService WorkflowDefinitionService
 
 @if (IsReadOnly)
 {
@@ -19,7 +17,7 @@
 <CascadingValue Value="_dragDropManager">
     <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
         <RadzenSplitterPane Size="15%" Min="100px">
-            <ActivityPicker/>
+            @ActivityPickerComponentProvider.GetActivityPickerComponent()
         </RadzenSplitterPane>
         <RadzenSplitterPane Size="85%">
             <WorkflowDefinitionWorkspace
@@ -28,7 +26,7 @@
                 WorkflowDefinitionVersionSelected="WorkflowDefinitionVersionSelected"
                 WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                 ActivitySelected="ActivitySelected"
-                />
+            />
         </RadzenSplitterPane>
     </RadzenSplitter>
 </CascadingValue>
@@ -37,16 +35,20 @@
 {
     private readonly DragDropManager _dragDropManager = new();
     private WorkflowDefinition? _workflowDefinition;
-    private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = default!;
+    private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = null!;
 
     /// The ID of the workflow definition to load.
-    [Parameter] public string DefinitionId { get; set; } = default!;
+    [Parameter] public string DefinitionId { get; set; } = null!;
 
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    [Inject] private ILocalizer Localizer { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IActivityPickerComponentProvider ActivityPickerComponentProvider { get; set; } = null!;
 
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionWorkspace.GetSelectedWorkflowDefinitionVersion();

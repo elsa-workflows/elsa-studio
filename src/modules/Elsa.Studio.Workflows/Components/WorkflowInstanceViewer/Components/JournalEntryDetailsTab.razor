@@ -18,10 +18,7 @@
         Merge(eventInfo, payload);
         
         <MudStack>
-            <div>
-                <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Event"]</MudText>
-                <DataPanel Data="eventInfo" HideEmptyValues="true"/>
-            </div>
+            <DataPanel Title="@Localizer["Event"]" Data="eventInfo" HideEmptyValues="true"/>
         </MudStack>
     }
 </ScrollableWell>

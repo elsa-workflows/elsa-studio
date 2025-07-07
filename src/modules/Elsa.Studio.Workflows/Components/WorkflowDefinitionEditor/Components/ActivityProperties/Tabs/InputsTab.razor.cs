@@ -8,7 +8,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
-using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
@@ -22,37 +21,33 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class InputsTab
 {
-    private readonly RateLimitedFunc<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task> _rateLimitedInputPropertyRefreshAsync;
+    private readonly RateLimitedFunc<Task<IEnumerable<ActivityInputDisplayModel>>> _rateLimitedBuildInputEditorModelsAsync;
 
     /// <inheritdoc />
     public InputsTab()
     {
-        _rateLimitedInputPropertyRefreshAsync = Debouncer.Debounce<JsonObject, ActivityDescriptor, IEnumerable<InputDescriptor>, InputDescriptor, Task>(RefreshDescriptor, TimeSpan.FromMilliseconds(100), true);
+        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(50), true);
     }
 
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
-    [Parameter]
-    public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the activity to edit.
     /// </summary>
-    [Parameter]
-    public JsonObject? Activity { get; set; }
+    [Parameter] public JsonObject? Activity { get; set; }
 
     /// <summary>
     /// Gets or sets the activity descriptor.
     /// </summary>
-    [Parameter]
-    public ActivityDescriptor? ActivityDescriptor { get; set; }
+    [Parameter] public ActivityDescriptor? ActivityDescriptor { get; set; }
 
     /// <summary>
     /// An event that is invoked when the activity is updated.
     /// </summary>
-    [Parameter]
-    public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
+    [Parameter] public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
 
     [CascadingParameter] private IWorkspace? Workspace { get; set; }
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = null!;
@@ -71,7 +66,14 @@ public partial class InputsTab
 
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
-        InputDisplayModels = (await BuildInputEditorModels(Activity, ActivityDescriptor, InputDescriptors)).ToList();
+
+        var task = _rateLimitedBuildInputEditorModelsAsync.Invoke();
+        if (task != null) InputDisplayModels = (await task).ToList();
+    }
+
+    private Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels()
+    {
+        return BuildInputEditorModels(Activity!, ActivityDescriptor!, InputDescriptors);
     }
 
     private async Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors)
@@ -91,13 +93,11 @@ public partial class InputsTab
                 && inputDescriptor.UISpecifications.TryGetValue("Refresh", out var refreshInput)
                 && bool.Parse(refreshInput.ToString()!))
             {
-                var task = _rateLimitedInputPropertyRefreshAsync.Invoke(activity, activityDescriptor, inputDescriptors, inputDescriptor);
-                if (task != null)
-                    await task;
+                await RefreshDescriptor(activity, activityDescriptor, inputDescriptors, inputDescriptor);
             }
 
             var uiHintHandler = UIHintService.GetHandler(inputDescriptor.UIHint);
-            var input = inputDescriptor.IsWrapped ? wrappedInput : (object?)value;
+            object? input = inputDescriptor.IsWrapped ? wrappedInput : value;
 
             var context = new DisplayInputEditorContext
             {
@@ -121,27 +121,62 @@ public partial class InputsTab
 
     private async Task RefreshDescriptor(JsonObject activity, ActivityDescriptor activityDescriptor, IEnumerable<InputDescriptor> inputDescriptors, InputDescriptor currentInputDescriptor)
     {
-        var activityTypeName = activityDescriptor.TypeName;
-        var propertyName = currentInputDescriptor.Name;
-
-        // Embed all props value in the context.
-        var contextDictionary = new Dictionary<string, object>();
-        foreach (var inputDescriptor in inputDescriptors)
+        try
         {
-            var inputName = inputDescriptor.Name.Camelize();
-            var value = activity.GetProperty(inputName);
-            if (value != null)
-                contextDictionary.Add(inputName, value);
+            var activityTypeName = activityDescriptor.TypeName;
+            var propertyName = currentInputDescriptor.Name;
+
+            // Embed all props value in the context.
+            var contextDictionary = new Dictionary<string, object>();
+            foreach (var inputDescriptor in inputDescriptors)
+            {
+                var inputName = inputDescriptor.Name.Camelize();
+                var value = activity.GetProperty(inputName);
+                if (value != null)
+                    contextDictionary.Add(inputName, value);
+            }
+
+            var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
+
+            var result = await api.GetAsync(activityTypeName, propertyName, new()
+            {
+                Context = contextDictionary
+            });
+
+            currentInputDescriptor.UISpecifications = result.Items;
+            
+            // After refreshing, update the UI for any affected inputs
+            await UpdateInputDisplayModelsAsync(activity, activityDescriptor, inputDescriptors.ToList(), currentInputDescriptor);
         }
-
-        var api = await BackendApiClientProvider.GetApiAsync<IActivityDescriptorOptionsApi>();
-
-        var result = await api.GetAsync(activityTypeName, propertyName, new()
+        catch (Exception)
         {
-            Context = contextDictionary
-        });
-
-        currentInputDescriptor.UISpecifications = result.Items;
+            // If an error occurs during refresh, we still want to keep the application running
+            // Errors might happen if backend is unavailable or returns an error response
+            // We could log the error here or show a notification, but for now we'll just silently continue
+        }
+    }
+    
+    private bool _isRefreshingModels;
+    
+    private async Task UpdateInputDisplayModelsAsync(JsonObject activity, ActivityDescriptor activityDescriptor, ICollection<InputDescriptor> inputDescriptors, InputDescriptor refreshedInputDescriptor)
+    {
+        if (_isRefreshingModels)
+            return;
+        
+        try
+        {
+            _isRefreshingModels = true;
+            
+            // Rebuild all models
+            InputDisplayModels = (await BuildInputEditorModels(activity, activityDescriptor, inputDescriptors)).ToList();
+            
+            // Force UI refresh
+            StateHasChanged();
+        }
+        finally
+        {
+            _isRefreshingModels = false;
+        }
     }
 
     private static WrappedInput? ToWrappedInput(object? value)
@@ -173,30 +208,21 @@ public partial class InputsTab
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
+
+        //await InvokeAsync(StateHasChanged);
     }
 
-    private ExpressionDescriptor? GetSyntaxProvider(
-        WrappedInput wrappedInput,
-        InputDescriptor inputDescriptor
-    )
+    private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
     {
         // Safely read UIHint
-        var uiHint = inputDescriptor.UIHint ?? string.Empty;
+        var uiHint = inputDescriptor.UIHint;
 
-        // If this is the code?editor scenario and we have a DefaultSyntax, use that
-        if (
-            uiHint.Equals("code-editor", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrWhiteSpace(inputDescriptor.DefaultSyntax)
-        )
-    {
+        // If this is the code editor scenario and we have a DefaultSyntax, use that
+        if (uiHint.Equals("code-editor", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(inputDescriptor.DefaultSyntax))
             return ExpressionDescriptorProvider.GetByType(inputDescriptor.DefaultSyntax);
-        }
 
         // Otherwise fall back to the wrapped expression's type—but guard null
         var exprType = wrappedInput?.Expression?.Type;
-        if (string.IsNullOrEmpty(exprType))
-            return null;
-
-        return ExpressionDescriptorProvider.GetByType(exprType);
+        return string.IsNullOrEmpty(exprType) ? null : ExpressionDescriptorProvider.GetByType(exprType);
     }
 }

@@ -15,10 +15,10 @@ public static class InputDescriptorSelectListExtensions
     public static SelectList GetSelectList(this InputDescriptor descriptor)
     {
         var specifications = descriptor.UISpecifications;
-        var props = specifications != null ? specifications.TryGetValue("dropdown", out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
+        var props = specifications != null ? specifications.TryGetValue(InputUIHints.DropDown, out var propsValue) ? propsValue is JsonElement value ? value : default : default : default;
 
         if (props.ValueKind == JsonValueKind.Undefined)
-            return new SelectList(new List<SelectListItem>());
+            return new([]);
 
         var serializerOptions = new JsonSerializerOptions
         {
@@ -26,6 +26,6 @@ public static class InputDescriptorSelectListExtensions
         };
 
         var dropDownProps = props.Deserialize<DropDownProps>(serializerOptions);
-        return dropDownProps?.SelectList ?? new SelectList(new List<SelectListItem>(), false);
+        return dropDownProps?.SelectList ?? new SelectList([]);
     }
 }
