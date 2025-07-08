@@ -74,6 +74,33 @@
     <value>90 dagar</value>
   </data>
   <data name="A brief description of the agent." xml:space="preserve">
-    <value>En kort beskrivning av agenten</value>
+    <value>En kort beskrivning av agenten.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>En kort beskrivning av hemligheten.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>En kort beskrivning av arbetsflödet.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>En kort beskrivning av denna input.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>En kort beskrivning av denna output.</value>
+  </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>En anpassad aktivitetskategori att tilldela detta arbetsflöde-som-aktivitet till.</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>En anpassad kategori att gruppera denna input efter.</value>
+  </data>
+  <data name="A custom category by which to group this output." xml:space="preserve">
+    <value>En anpassad kategori att gruppera denna output efter.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>Ett standardvärde.</value>
+  </data>
+  <data name="A description about the role and purpose of this agent." xml:space="preserve">
+    <value>En beskrivning av agentens roll och syfte.</value>
   </data>
 </root>
