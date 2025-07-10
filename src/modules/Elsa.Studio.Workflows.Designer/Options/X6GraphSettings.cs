@@ -6,4 +6,5 @@ public class X6GraphSettings
     public double MagnetThreshold { get; set; }
     public X6Panning Panning { get; set; } = new();
     public X6Mousewheel Mousewheel { get; set; } = new();
+    public bool ResizingEnabled { get; set; } = true;
 }
