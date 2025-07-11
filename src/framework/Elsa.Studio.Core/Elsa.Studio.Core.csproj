@@ -29,8 +29,8 @@
         <ProjectReference Include="..\..\..\..\..\server\core\src\clients\Elsa.Api.Client\Elsa.Api.Client.csproj" />
     </ItemGroup>
 
-    <ItemGroup Label="Elsa" Condition="'$(UseProjectReferences)' != 'true'">
-        <PackageReference Include="Elsa.Api.Client"/>
-    </ItemGroup>
+<!--    <ItemGroup Label="Elsa" Condition="'$(UseProjectReferences)' != 'true'">-->
+<!--        <PackageReference Include="Elsa.Api.Client"/>-->
+<!--    </ItemGroup>-->
 
 </Project>
