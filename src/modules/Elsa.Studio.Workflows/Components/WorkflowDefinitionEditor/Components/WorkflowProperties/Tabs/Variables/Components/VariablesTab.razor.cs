@@ -1,4 +1,5 @@
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
@@ -21,6 +22,7 @@ public partial class VariablesTab
 
     private bool IsReadOnly => Workspace?.IsReadOnly ?? true;
     private ICollection<Variable> Variables => WorkflowDefinition.Variables;
+    private IDictionary<string, object?> VariableTestValues => WorkflowDefinition.GetVariableTestValues();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,6 +75,32 @@ public partial class VariablesTab
 
         await RaiseWorkflowDefinitionUpdatedAsync();
     }
+    
+    private async Task OpenVariableTestValueEditorDialog(Variable variable)
+    {
+        var parameters = new DialogParameters<EditOutputDialog>
+        {
+            [nameof(EditVariableDialog.WorkflowDefinition)] = WorkflowDefinition,
+            [nameof(EditVariableDialog.Variable)] = variable
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        };
+
+        var title = Localizer["Set Variable Test Value"];
+        var dialog = await DialogService.ShowAsync<EditVariableTestValueDialog>(title, parameters, options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled == true)
+            return;
+        
+        await RaiseWorkflowDefinitionUpdatedAsync();
+    }
 
     private async Task OnEditClicked(Variable variable)
     {
@@ -94,5 +122,10 @@ public partial class VariablesTab
     private async Task OnAddVariableClicked()
     {
         await OpenVariableEditorDialog(null);
+    }
+
+    private async Task OnTestValueButtonClick(Variable variable)
+    {
+        await OpenVariableTestValueEditorDialog(variable);
     }
 }

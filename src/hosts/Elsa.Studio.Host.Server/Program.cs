@@ -77,6 +77,12 @@ builder.Services.AddTranslations();
 // Replace some services with other implementations.
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPickerComponentProvider>();
+// Uncomment for the Accordion Activity Picker
+//builder.Services.AddScoped<IActivityPickerComponentProvider>(sp => new AccordionActivityPickerComponentProvider
+//{
+//    // Example - Replace the default category resolver with a custom one.
+//    CategoryDisplayResolver = category => category.Split('/').Last().Trim()
+//});
 
 // Uncomment for V1 designer theme (default is V2).
 // builder.Services.Configure<DesignerOptions>(options =>

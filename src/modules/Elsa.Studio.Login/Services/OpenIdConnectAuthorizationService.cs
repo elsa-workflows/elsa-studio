@@ -60,9 +60,9 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
 
         var tokens = (await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken))!;
 
-        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.refresh_token ?? "");
-        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.access_token ?? "");
-        await jwtAccessor.WriteTokenAsync(TokenNames.IdToken, tokens.id_token ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.IdToken, tokens.IdToken ?? "");
 
         string returnUrl = "/";
         if (!String.IsNullOrWhiteSpace(state))

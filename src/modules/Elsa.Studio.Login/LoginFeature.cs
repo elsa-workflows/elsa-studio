@@ -10,7 +10,7 @@ public class LoginFeature(IAppBarService appBarService) : FeatureBase
     /// <inheritdoc/>
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        appBarService.AddAppBarItem<LoginState>();
+        appBarService.AddComponent<LoginState>();
         return base.InitializeAsync(cancellationToken);
     }
 }
