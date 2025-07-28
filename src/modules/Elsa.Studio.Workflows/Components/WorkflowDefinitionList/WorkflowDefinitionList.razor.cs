@@ -1,16 +1,15 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -29,11 +28,12 @@ public partial class WorkflowDefinitionList
     [Inject] private NavigationManager Navigation { get; set; }
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
-    [Inject] private IMediator Mediator { get; set; } = null!;
+
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
@@ -132,6 +132,63 @@ public partial class WorkflowDefinitionList
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
         }
+    }
+
+    private async Task OnDuplicateWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var originalDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
+        if (originalDefinition == null)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Original workflow definition not found."], Severity.Error);
+            return;
+        }
+
+        var newWorkflowName = $"{workflowDefinitionRow.Name} - Copy of {workflowDefinitionRow.DefinitionId}";
+        var parameters = new DialogParameters<DuplicateWorkflowDialog>
+        {
+            { x => x.WorkflowName, newWorkflowName },
+            { x => x.WorkflowDescription, workflowDefinitionRow.Description }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<DuplicateWorkflowDialog>(Localizer["Duplicate workflow"], parameters, options);
+        var dialogResult = await dialogInstance.Result;
+        if (dialogResult.Canceled)
+        {
+            return;
+        }
+
+        var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
+        var newDefinition = new WorkflowDefinition
+        {
+            Name = newWorkflowModel?.Name ?? newWorkflowName,
+            Description = newWorkflowModel?.Description,
+            Root = originalDefinition.Root,
+            Inputs = originalDefinition.Inputs,
+            Outputs = originalDefinition.Outputs,
+            Variables = originalDefinition.Variables,
+            Options = originalDefinition.Options,
+            Outcomes = originalDefinition.Outcomes,
+            CustomProperties = originalDefinition.CustomProperties,
+            IsReadonly = false
+        };
+
+        var result = await WorkflowDefinitionEditorService.SaveAsync(newDefinition, false, async definition =>
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow duplicated successfully."], Severity.Success);
+            Reload();
+        });
+
+        if (result.IsFailed)
+            UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, result.Failure.Errors), Severity.Error);
     }
 
     private async Task EditAsync(string definitionId)
