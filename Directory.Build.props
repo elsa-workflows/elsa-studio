@@ -33,9 +33,5 @@
     <ElsaVersion>3.6.0-preview.3192</ElsaVersion>
     <MicrosoftVersion>9.0.7</MicrosoftVersion>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <UseProjectReferences>false</UseProjectReferences>
-  </PropertyGroup>
   
 </Project>
