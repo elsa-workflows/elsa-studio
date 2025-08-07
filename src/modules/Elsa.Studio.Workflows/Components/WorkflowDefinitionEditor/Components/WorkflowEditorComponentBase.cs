@@ -70,13 +70,23 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
         }
     }
 
+    /// <summary>
+    /// Helper method to show progress while executing an async operation (void return)
+    /// </summary>
     protected async Task ProgressAsync(Func<Task> action)
     {
         IsProgressing = true;
         StateHasChanged();
-        await action.Invoke();
-        IsProgressing = false;
-        StateHasChanged();
+ 
+        try
+        {
+            await action.Invoke();
+        }
+        finally
+        {
+            IsProgressing = false;
+            StateHasChanged();
+        }
     }
 
     protected async Task<T> ProgressAsync<T>(Func<Task<T>> action)
