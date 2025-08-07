@@ -13,7 +13,8 @@ public class RefreshActivityRegistry : INotificationHandler<WorkflowDefinitionDe
     INotificationHandler<BulkWorkflowDefinitionsDeleted>,
     INotificationHandler<BulkWorkflowDefinitionVersionsDeleted>,
     INotificationHandler<BulkWorkflowDefinitionsPublished>,
-    INotificationHandler<BulkWorkflowDefinitionsRetracted>
+    INotificationHandler<BulkWorkflowDefinitionsRetracted>,
+    INotificationHandler<WorkflowDefinitionSaved>
 {
     private readonly IActivityRegistry _activityRegistry;
 
@@ -26,6 +27,7 @@ public class RefreshActivityRegistry : INotificationHandler<WorkflowDefinitionDe
     }
 
     async Task INotificationHandler<WorkflowDefinitionDeleted>.HandleAsync(WorkflowDefinitionDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
+    async Task INotificationHandler<WorkflowDefinitionSaved>.HandleAsync(WorkflowDefinitionSaved notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionPublished>.HandleAsync(WorkflowDefinitionPublished notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<WorkflowDefinitionRetracted>.HandleAsync(WorkflowDefinitionRetracted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);
     async Task INotificationHandler<BulkWorkflowDefinitionsDeleted>.HandleAsync(BulkWorkflowDefinitionsDeleted notification, CancellationToken cancellationToken) => await RefreshActivityRegistryAsync(cancellationToken);

@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Studio.Contracts;
@@ -11,6 +10,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -195,10 +195,22 @@ public partial class WorkflowEditor
             try
             {
                 var result = await SaveAsync(readDiagram, publish);
-                await result.OnSuccessAsync(response =>
+                await result.OnSuccessAsync(async response =>
                 {
-                    onSuccess?.Invoke(response);
-                    return Task.CompletedTask;
+                    var currentSelectedActivityId = SelectedActivityId;
+                    
+                    await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
+                    
+                    if (!string.IsNullOrEmpty(currentSelectedActivityId))
+                    {
+                        await RefreshSelectedActivityAsync(currentSelectedActivityId);
+                    }
+                    
+                    await InvokeAsync(StateHasChanged);
+                    
+                    if (onSuccess != null)
+                        await onSuccess(response);
+                    
                 }).ConfigureAwait(false);
 
                 await result.OnFailedAsync(errors =>
@@ -243,9 +255,43 @@ public partial class WorkflowEditor
         if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
 
-    private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Refreshes the selected activity reference to point to the updated activity in the current workflow definition.
+    /// This is needed after saving changes to ensure the UI displays the latest activity state.
+    /// </summary>
+    private async Task RefreshSelectedActivityAsync(string activityId)
     {
-        return await BackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+        if (_workflowDefinition?.Root == null || string.IsNullOrEmpty(activityId))
+            return;
+
+        // Find the updated activity in the current workflow definition
+        var updatedActivity = await FindActivityByIdAsync(_workflowDefinition.Root, activityId);
+        
+        if (updatedActivity != null)
+        {
+            // Update the selected activity reference to point to the updated activity
+            SelectActivity(updatedActivity);
+        }
+    }
+
+    /// <summary>
+    /// Recursively searches for an activity with the specified ID in the activity tree.
+    /// </summary>
+    private async Task<JsonObject?> FindActivityByIdAsync(JsonObject rootActivity, string activityId)
+    {
+        // Use the activity visitor to traverse the entire activity graph
+        var activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(rootActivity);
+        
+        // Look for the activity in the activity node lookup
+        foreach (var node in activityGraph.ActivityNodeLookup.Values)
+        {
+            if (node.Activity.GetId() == activityId)
+            {
+                return node.Activity;
+            }
+        }
+        
+        return null;
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
