@@ -67,6 +67,12 @@ builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(opti
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
 builder.Services.UseElsaIdentity();
+// builder.Services.UseOAuth2(options =>
+// {
+//     options.ClientId = "ElsaStudio";
+//     options.TokenEndpoint = "https://localhost:44366/connect/token";
+//     options.Scope = "YourSite offline_access";
+// });
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
