@@ -270,7 +270,7 @@ public partial class WorkflowEditor
         if (updatedActivity != null)
         {
             // Update the selected activity reference without triggering a disruptive UI refresh.
-            //We avoid calling SelectActivity() which sets the activity to null and calls StateHasChanged() multiple times.
+            // We avoid calling SelectActivity() which sets the activity to null and calls StateHasChanged() multiple times.
             SelectedActivity = updatedActivity;
             SelectedActivityId = updatedActivity.GetId();
             ActivityDescriptor = ActivityRegistry.Find(updatedActivity.GetTypeName(), updatedActivity.GetVersion());
