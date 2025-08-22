@@ -99,7 +99,7 @@ public partial class Dictionary
     private Task SaveChangesAsync()
     {
         var dictionary = Items.ToDictionary(x => x.Key, x => (object)Map(x).Value);
-        return EditorContext.UpdateValueAsync(dictionary);
+        return EditorContext.UpdateValueOrObjectExpressionAsync(dictionary);
     }
 
     private async void OnRowEditCommitted(object data)
