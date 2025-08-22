@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<SingleLineHandler>()
             .AddUIHintHandler<CheckboxHandler>()
             .AddUIHintHandler<CheckListHandler>()
+            .AddUIHintHandler<DictionaryHandler>()
             .AddUIHintHandler<MultiTextHandler>()
             .AddUIHintHandler<MultiLineHandler>()
             .AddUIHintHandler<DropDownHandler>()
