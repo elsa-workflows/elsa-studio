@@ -92,6 +92,17 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
             await ActivitySelected.InvokeAsync(activity);
     }
 
+    /// <summary>
+    /// Invoked from JavaScript when an activity menu button is clicked.
+    /// </summary>
+    /// <param name="activity">The activity whose menu button was clicked.</param>
+    [JSInvokable]
+    public async Task HandleActivityMenuButtonClicked(JsonObject activity)
+    {
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(activity);
+    }
+
     public async Task UpdateActivityAsync(JsonObject activity)
     {
         if (ActivityPropsChanged.HasDelegate)
