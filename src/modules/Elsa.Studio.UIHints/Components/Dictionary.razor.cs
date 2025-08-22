@@ -63,8 +63,8 @@ public partial class Dictionary
 
     private string GetDefaultExpressionType()
     {
-        var defaultExpressionType = GetSupportedExpressions().FirstOrDefault()?.Type ?? "Literal";
-        return defaultExpressionType;
+        // Default to Literal for new entries to avoid unnecessary wrapping
+        return "Literal";
     }
 
     private DictionaryEntryRecord Map(string key, object? value)
@@ -72,12 +72,12 @@ public partial class Dictionary
         var defaultExpressionType = GetDefaultExpressionType();
 
         // Try to extract expression information from the value if it's an Expression object
-        if (value is JsonObject jsonObject && jsonObject.TryGetPropertyValue("type", out var typeNode) && jsonObject.TryGetPropertyValue("expression", out var expressionNode))
+        if (value is JsonObject jsonObject && jsonObject.TryGetPropertyValue("type", out var typeNode) && jsonObject.TryGetPropertyValue("value", out var valueNode))
         {
             return new DictionaryEntryRecord
             {
                 Key = key,
-                Value = expressionNode?.GetValue<string>() ?? "",
+                Value = valueNode?.GetValue<string>() ?? "",
                 ExpressionType = typeNode?.GetValue<string>() ?? defaultExpressionType
             };
         }
@@ -86,12 +86,19 @@ public partial class Dictionary
         {
             Key = key,
             Value = value?.ToString() ?? "",
-            ExpressionType = defaultExpressionType
+            ExpressionType = "Literal" // Default to Literal for raw values
         };
     }
 
     private KeyValuePair<string, object> Map(DictionaryEntryRecord entry)
     {
+        // For literal values, just store the raw string value
+        if (entry.ExpressionType == "Literal")
+        {
+            return new KeyValuePair<string, object>(entry.Key, entry.Value);
+        }
+        
+        // For other expression types, wrap in Expression object
         var expression = new Expression(entry.ExpressionType, entry.Value);
         return new KeyValuePair<string, object>(entry.Key, expression);
     }
