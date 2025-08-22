@@ -7,7 +7,7 @@ on:
       - 'vnext'
       - 'bug/*'
       - 'enh/*'
-      - 'feature/*'
+      - 'feat/*'
       - 'issue/*'
       - 'patch/*'
       - 'rc/*'
