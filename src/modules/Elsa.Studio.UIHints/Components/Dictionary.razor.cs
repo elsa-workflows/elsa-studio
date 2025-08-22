@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Scripting.Models;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -19,15 +18,15 @@ public partial class Dictionary
 
     private DictionaryEntryRecord? _entryBeingEdited;
     private DictionaryEntryRecord? _entryBeingAdded;
-    private MudTable<DictionaryEntryRecord> _table = default!;
+    private MudTable<DictionaryEntryRecord> _table = null!;
 
     /// <summary>
     /// The context for the editor.
     /// </summary>
     [Parameter]
-    public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
-    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
+    [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = null!;
 
     private ICollection<DictionaryEntryRecord> Items { get; set; } = new List<DictionaryEntryRecord>();
     private bool DisableAddButton => _entryBeingEdited != null || _entryBeingAdded != null;
@@ -105,7 +104,7 @@ public partial class Dictionary
 
     private Task SaveChangesAsync()
     {
-        var dictionary = Items.ToDictionary(x => x.Key, x => (object)Map(x).Value);
+        var dictionary = Items.ToDictionary(x => x.Key, x => Map(x).Value);
         return EditorContext.UpdateValueOrObjectExpressionAsync(dictionary);
     }
 
