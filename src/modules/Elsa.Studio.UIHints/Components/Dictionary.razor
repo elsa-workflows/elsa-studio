@@ -1,6 +1,14 @@
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
+
+@{
+    var inputDescriptor = EditorContext.InputDescriptor;
+    var displayName = inputDescriptor.DisplayName;
+    var description = inputDescriptor.Description;
+}
+
 <MudStack>
+    <MudText Typo="Typo.h6">@Localizer[displayName]</MudText>
     <MudTable
         @ref="_table"
         Items="Items"
@@ -53,6 +61,7 @@
             </MudButton>
         </NoRecordsContent>
     </MudTable>
+    <MudText Typo="Typo.h6">@Localizer[description]</MudText>
     @if (Items.Any())
     {
         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="align-self-start" Disabled="@(DisableAddButton || EditorContext.IsReadOnly)" OnClick="OnAddClicked">
