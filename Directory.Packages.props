@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
+	<PackageVersion Include="Elsa.Labels" Version="$(ElsaVersion)"/>
     <PackageVersion Include="Elsa.Secrets.Models" Version="$(ElsaVersion)" />
   </ItemGroup>
   <ItemGroup>
