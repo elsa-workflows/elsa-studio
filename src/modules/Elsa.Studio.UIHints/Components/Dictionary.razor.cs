@@ -47,6 +47,10 @@ public partial class Dictionary
 
     private IDictionary<string, object?> ParseJson(string? json)
     {
+        if (json is not null && json.StartsWith("return "))
+        {
+            json = json["return ".Length..].Trim();
+        }
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
