@@ -60,32 +60,46 @@ public partial class Dictionary
         return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
     }
 
-    private static string GetDefaultExpressionType()
+    private string GetDefaultExpressionType()
     {
-        // Default to Literal for new entries to avoid unnecessary wrapping
-        return "Literal";
+        var defaultExpressionType = GetSupportedExpressions().FirstOrDefault()?.Type ?? "Literal";
+        return defaultExpressionType;
     }
 
     private DictionaryEntryRecord Map(string key, object? value)
     {
         var defaultExpressionType = GetDefaultExpressionType();
 
-        // Try to extract expression information from the value if it's an Expression object
-        if (value is JsonObject jsonObject && jsonObject.TryGetPropertyValue("type", out var typeNode) && jsonObject.TryGetPropertyValue("value", out var valueNode))
+        // Handle Expression objects directly
+        if (value is Expression expression)
         {
             return new DictionaryEntryRecord
             {
                 Key = key,
-                Value = valueNode?.GetValue<string>() ?? "",
-                ExpressionType = typeNode?.GetValue<string>() ?? defaultExpressionType
+                Value = expression.Value?.ToString() ?? "",
+                ExpressionType = string.IsNullOrWhiteSpace(expression.Type) ? defaultExpressionType : expression.Type
             };
+        }
+
+        // Try to extract expression information from the value if it's a JsonObject (legacy handling)
+        if (value is JsonElement { ValueKind: JsonValueKind.Object } jsonElement ) 
+        {
+            if (jsonElement.TryGetProperty("type", out var typeNode) && jsonElement.TryGetProperty("value", out var valueNode))
+            {
+                return new DictionaryEntryRecord
+                {
+                    Key = key,
+                    Value = valueNode.GetString() ?? "",
+                    ExpressionType = typeNode.GetString() ?? defaultExpressionType
+                };
+            }
         }
 
         return new DictionaryEntryRecord
         {
             Key = key,
             Value = value?.ToString() ?? "",
-            ExpressionType = "Literal" // Default to Literal for raw values
+            ExpressionType = "Literal"
         };
     }
 
