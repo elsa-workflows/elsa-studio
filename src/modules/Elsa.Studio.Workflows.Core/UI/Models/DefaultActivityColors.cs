@@ -17,4 +17,5 @@ public static class DefaultActivityColors
     public static string Email { get; set; } = "#fcd34d";
     public static string Branching { get; set; } = "#06b6d4";
     public static string Timer { get; set; } = "#d946ef";
+    public static string Diagnostics { get; set; } = "#ec407a";
 }
