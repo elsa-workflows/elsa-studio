@@ -98,7 +98,7 @@ public class DisplayInputEditorContext
         var wrappedInput = Value as WrappedInput;
         var expression = wrappedInput?.Expression;
 
-        if (expression?.Type is not "Object" and not "JavaScript")
+        if (expression?.Type is not "Object")
             return Serialize(InputDescriptor.DefaultValue);
 
         var value = expression.Value;
@@ -107,7 +107,7 @@ public class DisplayInputEditorContext
 
     /// <summary>
     /// Returns the input expression value if this is a wrapped input (i.e. Input{T}) or naked value otherwise. If either value is null, the default value is returned.
-    /// </summary>  
+    /// </summary>
     public string GetExpressionValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
