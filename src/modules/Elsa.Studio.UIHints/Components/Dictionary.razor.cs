@@ -82,7 +82,7 @@ public partial class Dictionary
         }
 
         // Try to extract expression information from the value if it's a JsonObject (legacy handling)
-        if (value is JsonElement { ValueKind: JsonValueKind.Object } jsonElement ) 
+        if (value is JsonElement { ValueKind: JsonValueKind.Object } jsonElement) 
         {
             if (jsonElement.TryGetProperty("type", out var typeNode) && jsonElement.TryGetProperty("value", out var valueNode))
             {
