@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
@@ -14,8 +13,6 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Dictionary
 {
-    private readonly string[] _uiSyntaxes = { "Literal", "Object" };
-
     private DictionaryEntryRecord? _entryBeingEdited;
     private DictionaryEntryRecord? _entryBeingAdded;
     private MudTable<DictionaryEntryRecord> _table = null!;
@@ -40,37 +37,44 @@ public partial class Dictionary
     private ICollection<DictionaryEntryRecord> GetItems()
     {
         var input = EditorContext.GetObjectValueOrDefault();
+        var aaaaa = EditorContext.GetExpressionValueOrDefault();
         var dictionary = ParseJson(input);
         var entryRecords = dictionary.Select(kvp => Map(kvp.Key, kvp.Value)).ToList();
         return entryRecords;
     }
 
-    private IDictionary<string, object?> ParseJson(string? json)
+    private IDictionary<string, Expression?> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        return JsonParser.ParseJson(json, () => new Dictionary<string, object?>(), options);
+        return JsonParser.ParseJson(json, () => new Dictionary<string, Expression?>(), options);
     }
 
     private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
-        return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
+        return ExpressionDescriptorProvider.ListDescriptors().Where(x => x.IsBrowsable).ToList();
     }
 
     private string GetDefaultExpressionType()
     {
-        var defaultExpressionType = GetSupportedExpressions().FirstOrDefault()?.Type ?? "Literal";
-        return defaultExpressionType;
+        var supportedExpressions = GetSupportedExpressions().ToList();
+        var literalExpression = supportedExpressions.FirstOrDefault(x => x.Type == "Literal");
+        
+        if (literalExpression != null)
+            return literalExpression.Type;
+        
+        return supportedExpressions.Count != 0
+            ? supportedExpressions.First().Type 
+            : "Literal";
     }
 
     private DictionaryEntryRecord Map(string key, object? value)
     {
         var defaultExpressionType = GetDefaultExpressionType();
-
-        // Handle Expression objects directly
+        
         if (value is Expression expression)
         {
             return new DictionaryEntryRecord
@@ -81,7 +85,6 @@ public partial class Dictionary
             };
         }
 
-        // Try to extract expression information from the value if it's a JsonObject (legacy handling)
         if (value is JsonElement { ValueKind: JsonValueKind.Object } jsonElement) 
         {
             if (jsonElement.TryGetProperty("type", out var typeNode) && jsonElement.TryGetProperty("value", out var valueNode))
@@ -217,4 +220,10 @@ public class DictionaryEntryRecord
     /// The expression type of the value.
     /// </summary>
     public string ExpressionType { get; set; } = "Literal";
+    
+    /// <summary>
+    /// Expression representation of the value.
+    /// </summary>
+    /// <returns></returns>
+    public Expression ToExpression() => new(ExpressionType, Value);
 }
