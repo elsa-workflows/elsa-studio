@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Helpers;
@@ -14,8 +13,6 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Dictionary
 {
-    private readonly string[] _uiSyntaxes = { "Literal", "Object" };
-
     private DictionaryEntryRecord? _entryBeingEdited;
     private DictionaryEntryRecord? _entryBeingAdded;
     private MudTable<DictionaryEntryRecord> _table = null!;
@@ -45,47 +42,66 @@ public partial class Dictionary
         return entryRecords;
     }
 
-    private IDictionary<string, object?> ParseJson(string? json)
+    private IDictionary<string, Expression?> ParseJson(string? json)
     {
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        return JsonParser.ParseJson(json, () => new Dictionary<string, object?>(), options);
+        return JsonParser.ParseJson(json, () => new Dictionary<string, Expression?>(), options);
     }
 
     private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
-        return ExpressionDescriptorProvider.ListDescriptors().Where(x => !_uiSyntaxes.Contains(x.Type) && x.IsBrowsable).ToList();
+        return ExpressionDescriptorProvider.ListDescriptors().Where(x => x.IsBrowsable).ToList();
     }
 
-    private static string GetDefaultExpressionType()
+    private string GetDefaultExpressionType()
     {
-        // Default to Literal for new entries to avoid unnecessary wrapping
-        return "Literal";
+        var supportedExpressions = GetSupportedExpressions().ToList();
+        var literalExpression = supportedExpressions.FirstOrDefault(x => x.Type == "Literal");
+        
+        if (literalExpression != null)
+            return literalExpression.Type;
+        
+        return supportedExpressions.Count != 0
+            ? supportedExpressions.First().Type 
+            : "Literal";
     }
 
     private DictionaryEntryRecord Map(string key, object? value)
     {
         var defaultExpressionType = GetDefaultExpressionType();
-
-        // Try to extract expression information from the value if it's an Expression object
-        if (value is JsonObject jsonObject && jsonObject.TryGetPropertyValue("type", out var typeNode) && jsonObject.TryGetPropertyValue("value", out var valueNode))
+        
+        if (value is Expression expression)
         {
             return new DictionaryEntryRecord
             {
                 Key = key,
-                Value = valueNode?.GetValue<string>() ?? "",
-                ExpressionType = typeNode?.GetValue<string>() ?? defaultExpressionType
+                Value = expression.Value?.ToString() ?? "",
+                ExpressionType = string.IsNullOrWhiteSpace(expression.Type) ? defaultExpressionType : expression.Type
             };
+        }
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Object } jsonElement) 
+        {
+            if (jsonElement.TryGetProperty("type", out var typeNode) && jsonElement.TryGetProperty("value", out var valueNode))
+            {
+                return new DictionaryEntryRecord
+                {
+                    Key = key,
+                    Value = valueNode.GetString() ?? "",
+                    ExpressionType = typeNode.GetString() ?? defaultExpressionType
+                };
+            }
         }
 
         return new DictionaryEntryRecord
         {
             Key = key,
             Value = value?.ToString() ?? "",
-            ExpressionType = "Literal" // Default to Literal for raw values
+            ExpressionType = "Literal"
         };
     }
 
@@ -203,4 +219,10 @@ public class DictionaryEntryRecord
     /// The expression type of the value.
     /// </summary>
     public string ExpressionType { get; set; } = "Literal";
+    
+    /// <summary>
+    /// Expression representation of the value.
+    /// </summary>
+    /// <returns></returns>
+    public Expression ToExpression() => new(ExpressionType, Value);
 }
