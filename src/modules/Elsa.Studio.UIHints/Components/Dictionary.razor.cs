@@ -37,7 +37,6 @@ public partial class Dictionary
     private ICollection<DictionaryEntryRecord> GetItems()
     {
         var input = EditorContext.GetObjectValueOrDefault();
-        var aaaaa = EditorContext.GetExpressionValueOrDefault();
         var dictionary = ParseJson(input);
         var entryRecords = dictionary.Select(kvp => Map(kvp.Key, kvp.Value)).ToList();
         return entryRecords;
