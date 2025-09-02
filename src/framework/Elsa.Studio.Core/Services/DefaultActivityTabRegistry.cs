@@ -8,7 +8,7 @@ public class DefaultActivityTabRegistry : IActivityTabRegistry
     private HashSet<IActivityTab> ActivityTabs { get; set; } = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultWidgetRegistry"/> class.
+    /// Initializes a new instance of the <see cref="DefaultActivityTabRegistry"/> class.
     /// </summary>
     public DefaultActivityTabRegistry(IEnumerable<IActivityTab> widgets)
     {
