@@ -218,7 +218,7 @@
     <value>ID de Definição</value>
   </data>
   <data name="Definition version ID" xml:space="preserve">
-    <value>ID de versão de Definição</value>
+    <value>ID da versão de Definição</value>
   </data>
   <data name="Definitions" xml:space="preserve">
     <value>Definições</value>
@@ -300,5 +300,23 @@
   </data>
   <data name="Cron" xml:space="preserve">
     <value>Cron</value>
+  </data>
+  <data name="Display text" xml:space="preserve">
+    <value>Texto de Apresentação</value>
+  </data>
+  <data name="Download File" xml:space="preserve">
+    <value>Baixar Arquivo</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duração</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>Fim</value>
   </data>
 </root>
