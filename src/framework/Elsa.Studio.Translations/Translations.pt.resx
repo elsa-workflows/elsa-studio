@@ -319,4 +319,283 @@
   <data name="End" xml:space="preserve">
     <value>Fim</value>
   </data>
+  <data name="Event" xml:space="preserve">
+    <value>Evento</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Eventos</value>
+  </data>
+  <data name="Excel Parser" xml:space="preserve">
+    <value>Interpretador de Excel</value>
+  </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>Configurações de Execução</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Execuções</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expira</value>
+  </data>
+  <data name="Expires In" xml:space="preserve">
+    <value>Expira em</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Export the current workflow as a JSON file" xml:space="preserve">
+    <value>Exportar o workflow atual como arquivo JSON.</value>
+  </data>
+  <data name="Export this version as a JSON file." xml:space="preserve">
+    <value>Exportar esta versão como arquivo JSON.</value>
+  </data>
+  <data name="Fault" xml:space="preserve">
+    <value>Falha</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finalizar</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="FinishedAt" xml:space="preserve">
+    <value>FinalizadoEm</value>
+  </data>
+  <data name="Flow" xml:space="preserve">
+    <value>Fluxo</value>
+  </data>
+  <data name="Fork (flow)" xml:space="preserve">
+    <value>Fork (fluxo)</value>
+  </data>
+  <data name="Frequency Penalty" xml:space="preserve">
+    <value>Penalidade por Frequência</value>
+  </data>
+  <data name="Function" xml:space="preserve">
+    <value>Função</value>
+  </data>
+  <data name="Function Name" xml:space="preserve">
+    <value>Nome da Função</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>Geral</value>
+  </data>
+  <data name="Has Incidents" xml:space="preserve">
+    <value>Contém Incidentes</value>
+  </data>
+  <data name="HTTP" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="HTTP Endpoint" xml:space="preserve">
+    <value>Endpoint HTTP</value>
+  </data>
+  <data name="HTTP File Response" xml:space="preserve">
+    <value>Resposta de Arquivo HTTP</value>
+  </data>
+  <data name="HTTP Request" xml:space="preserve">
+    <value>Requisição HTTP</value>
+  </data>
+  <data name="HTTP Request (flow)" xml:space="preserve">
+    <value>Requisição HTTP (fluxo)</value>
+  </data>
+  <data name="HTTP Response" xml:space="preserve">
+    <value>Resposta HTTP</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="The ID of the activity." xml:space="preserve">
+    <value>O ID da atividade.</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
+    <value>Importar arquivo JSON contendo dados de workflow para sobrescrever o conteúdo do workflow atual.</value>
+  </data>
+  <data name="Incident Strategy" xml:space="preserve">
+    <value>Estratégia de Incidentes</value>
+  </data>
+  <data name="IncidentCount" xml:space="preserve">
+    <value>NúmeroDeIncidentes</value>
+  </data>
+  <data name="Incidents" xml:space="preserve">
+    <value>Incidentes</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Informação</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Entrada</value>
+  </data>
+  <data name="Input Properties" xml:space="preserve">
+    <value>Propriedades de Entrada</value>
+  </data>
+  <data name="Input/output" xml:space="preserve">
+    <value>Entrada/Saída</value>
+  </data>
+  <data name="Inputs" xml:space="preserve">
+    <value>Entradas</value>
+  </data>
+  <data name="Instances" xml:space="preserve">
+    <value>Instâncias</value>
+  </data>
+  <data name="int" xml:space="preserve">
+    <value>int</value>
+  </data>
+  <data name="Is" xml:space="preserve">
+    <value>É</value>
+  </data>
+  <data name="Is After" xml:space="preserve">
+    <value>Está Após de</value>
+  </data>
+  <data name="Is array" xml:space="preserve">
+    <value>É array</value>
+  </data>
+  <data name="Is Before" xml:space="preserve">
+    <value>Está Antes de</value>
+  </data>
+  <data name="Is Not" xml:space="preserve">
+    <value>Não É</value>
+  </data>
+  <data name="Is on or After" xml:space="preserve">
+    <value>Está em ou Após de</value>
+  </data>
+  <data name="Is on or Before" xml:space="preserve">
+    <value>Está em ou Antes de</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Junção</value>
+  </data>
+  <data name="Journal" xml:space="preserve">
+    <value>Registro</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>Última versão</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Carregando</value>
+  </data>
+  <data name="Log Persistence Strategy" xml:space="preserve">
+    <value>Estratégia de Persistência de Logs</value>
+  </data>
+  <data name="Looping" xml:space="preserve">
+    <value>Looping</value>
+  </data>
+  <data name="Manage all the things" xml:space="preserve">
+    <value>Gerenciar todas as coisas</value>
+  </data>
+  <data name="Max Tokens" xml:space="preserve">
+    <value>Máximo de Tokens</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Metadados</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
+    <value>Nome da atividade. Atividades nomeadas podem ser referenciadas por outras atividades.</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Não</value>
+  </data>
+  <data name="No agents found" xml:space="preserve">
+    <value>Nenhum agente encontrado</value>
+  </data>
+  <data name="No API keys found" xml:space="preserve">
+    <value>Nenhum chave de API encontrada</value>
+  </data>
+  <data name="No inputs" xml:space="preserve">
+    <value>Nenhuma entrada</value>
+  </data>
+  <data name="No outcomes associated with this execution." xml:space="preserve">
+    <value>Nenhum resultado associados com esta execução.</value>
+  </data>
+  <data name="No output associated with this execution." xml:space="preserve">
+    <value>Nenhuma saída associada com esta execução.</value>
+  </data>
+  <data name="No outputs" xml:space="preserve">
+    <value>Nenhuma saída</value>
+  </data>
+  <data name="No secrets found" xml:space="preserve">
+    <value>Nenhum segredo encontrado</value>
+  </data>
+  <data name="No services found" xml:space="preserve">
+    <value>Nenhum serviço encontrado</value>
+  </data>
+  <data name="No state associated with this execution." xml:space="preserve">
+    <value>Nenhum estado associado com esta execução.</value>
+  </data>
+  <data name="No variables" xml:space="preserve">
+    <value>Nenhuma variável</value>
+  </data>
+  <data name="No workflow definitions found" xml:space="preserve">
+    <value>Nenhuma definição de workflow encontrada</value>
+  </data>
+  <data name="No workflow instances found" xml:space="preserve">
+    <value>Nenhuma instância de workflow encontrada</value>
+  </data>
+  <data name="object" xml:space="preserve">
+    <value>object</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="Open File" xml:space="preserve">
+    <value>Abrir Arquivo</value>
+  </data>
+  <data name="Outcomes" xml:space="preserve">
+    <value>Resultados</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Saída</value>
+  </data>
+  <data name="Output Properties" xml:space="preserve">
+    <value>Propriedades de Saída</value>
+  </data>
+  <data name="Outputs" xml:space="preserve">
+    <value>Saídas</value>
+  </data>
+  <data name="Parser" xml:space="preserve">
+    <value>Interpretador</value>
+  </data>
+  <data name="Log Persistence" xml:space="preserve">
+    <value>Persistência de Logs</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+  <data name="Presence Penalty" xml:space="preserve">
+    <value>Penalidade por Presença</value>
+  </data>
+  <data name="Primitives" xml:space="preserve">
+    <value>Primitivas</value>
+  </data>
+  <data name="Prompt Template" xml:space="preserve">
+    <value>Modelo de Prompts</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Propriedades</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Publicar</value>
+  </data>
+  <data name="Publish Event" xml:space="preserve">
+    <value>Evento de Publicação</value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value>Publicado</value>
+  </data>
+  <data name="Published version" xml:space="preserve">
+    <value>Versão publicada</value>
+  </data>
+  <data name="Publish the current workflow" xml:space="preserve">
+    <value>Publicar workflow atual</value>
+  </data>
 </root>
