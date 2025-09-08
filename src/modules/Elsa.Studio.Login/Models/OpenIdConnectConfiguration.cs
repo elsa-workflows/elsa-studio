@@ -29,4 +29,9 @@ public class OpenIdConnectConfiguration
     /// The scopes to request, defaulting to: openid profile offline_access
     /// </summary>
     public string[] Scopes { get; set; } = ["openid", "profile", "offline_access"];
+
+    /// <summary>
+    /// Enables PKCE (Proof Key for Code Exchange) for the authorization code flow.
+    /// </summary>
+    public bool UsePkce { get; set; } = false;
 }
