@@ -13,6 +13,8 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Dictionary
 {
+    private const string LiteralExpressionType = "Literal";
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
     private DictionaryEntryRecord? _entryBeingEdited;
     private DictionaryEntryRecord? _entryBeingAdded;
     private MudTable<DictionaryEntryRecord> _table = null!;
@@ -54,20 +56,20 @@ public partial class Dictionary
 
     private IEnumerable<ExpressionDescriptor> GetSupportedExpressions()
     {
-        return ExpressionDescriptorProvider.ListDescriptors().Where(x => x.IsBrowsable).ToList();
+        return ExpressionDescriptorProvider.ListDescriptors().Where(x => x.IsBrowsable || x.Type.Equals(LiteralExpressionType)).ToList();
     }
 
     private string GetDefaultExpressionType()
     {
         var supportedExpressions = GetSupportedExpressions().ToList();
-        var literalExpression = supportedExpressions.FirstOrDefault(x => x.Type == "Literal");
+        var literalExpression = supportedExpressions.FirstOrDefault(x => x.Type == LiteralExpressionType);
         
         if (literalExpression != null)
             return literalExpression.Type;
         
         return supportedExpressions.Count != 0
             ? supportedExpressions.First().Type 
-            : "Literal";
+            : LiteralExpressionType;
     }
 
     private DictionaryEntryRecord Map(string key, object? value)
@@ -101,18 +103,12 @@ public partial class Dictionary
         {
             Key = key,
             Value = value?.ToString() ?? "",
-            ExpressionType = "Literal"
+            ExpressionType = LiteralExpressionType
         };
     }
 
-    private KeyValuePair<string, object> Map(DictionaryEntryRecord entry)
+    private static KeyValuePair<string, object> Map(DictionaryEntryRecord entry)
     {
-        // For literal values, just store the raw string value
-        if (entry.ExpressionType == "Literal")
-        {
-            return new KeyValuePair<string, object>(entry.Key, entry.Value);
-        }
-        
         // For other expression types, wrap in Expression object
         var expression = new Expression(entry.ExpressionType, entry.Value);
         return new KeyValuePair<string, object>(entry.Key, expression);
@@ -126,6 +122,20 @@ public partial class Dictionary
 
     private async void OnRowEditCommitted(object data)
     {
+        var entry = (DictionaryEntryRecord)data;
+        var similarKeyCount = Items.Count(x => x.Key == ((DictionaryEntryRecord)data).Key);
+        if (similarKeyCount > 1)
+        {
+            Snackbar.Add("Duplicate keys are not allowed.", Severity.Error);
+            if (_entryBeingAdded != null)
+                Items.Remove(_entryBeingAdded);
+            _entryBeingAdded = null;
+            _entryBeingEdited = null;
+            
+            StateHasChanged();
+            return;
+        }
+        
         _entryBeingAdded = null;
         _entryBeingEdited = null;
         await SaveChangesAsync();
@@ -195,7 +205,7 @@ public partial class Dictionary
 
     private string GetExpressionTypeDisplayName(string expressionType)
     {
-        var expressionDescriptor = ExpressionDescriptorProvider.GetByType(expressionType) ?? throw new($"Could not find expression descriptor for expression type '{expressionType}'.");
+        var expressionDescriptor = ExpressionDescriptorProvider.GetByType(expressionType) ?? throw new Exception($"Could not find expression descriptor for expression type '{expressionType}'.");
         return expressionDescriptor.DisplayName;
     }
 }

@@ -4,7 +4,6 @@ using Elsa.Studio.WorkflowContexts.Handlers;
 using Elsa.Studio.WorkflowContexts.Services;
 using Elsa.Studio.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Elsa.Studio.WorkflowContexts.ActivityTabs;
 
 namespace Elsa.Studio.WorkflowContexts.Extensions;
 
@@ -22,7 +21,6 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IFeature, Feature>()
                 .AddScoped<IWorkflowContextsProvider, RemoteWorkflowContextsProvider>()
                 .AddUIHintHandler<WorkflowContextProviderPickerHandler>()
-                .AddScoped<IActivityTab, WorkflowContextActivityTab>()
             ;
     }
 }

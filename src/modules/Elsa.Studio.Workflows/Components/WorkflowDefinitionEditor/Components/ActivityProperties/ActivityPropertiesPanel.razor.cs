@@ -45,10 +45,9 @@ public partial class ActivityPropertiesPanel
     public int VisiblePaneHeight { get; set; }
 
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;
-
-    [Inject] private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
     [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = null!;
-
+    [Inject] private IActivityTabRegistry ActivityTabRegistry { get; set; } = null!;
+    private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
     private bool IsResilienceEnabled { get; set; }
     private bool IsResilientActivity => ActivityDescriptor?.CustomProperties.TryGetValue("Resilient", out var resilientObj) == true && resilientObj.ConvertTo<bool>();  
@@ -57,9 +56,10 @@ public partial class ActivityPropertiesPanel
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var descriptors = await ExpressionService.ListDescriptorsAsync();
+        var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
-        ExpressionDescriptorProvider.AddRange(descriptors);
+        ExpressionDescriptorProvider.AddRange(expressionDescriptors);
+        PluginTabs = ActivityTabRegistry.List().ToList();
     }
 
     private bool IsWorkflowAsActivity => ActivityDescriptor != null && ActivityDescriptor.CustomProperties.TryGetValue("RootType", out var value) && value.ConvertTo<string>() == "WorkflowDefinitionActivity";
