@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -58,4 +58,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="14 days" xml:space="preserve">
+    <value>14 giorni</value>
+  </data>
+  <data name="180 days" xml:space="preserve">
+    <value>180 giorni</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30 giorni</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7 giorni</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90 giorni</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>Una breve descrizione dell'agente.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>Una breve descrizione del secret.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>Una breve descrizione del flusso di lavoro.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>Una breve descrizione di questo input.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>Una breve descrizione di questo output.</value>
+  </data>
 </root>
