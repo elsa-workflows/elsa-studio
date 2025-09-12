@@ -58,8 +58,9 @@ public partial class ActivityPropertiesPanel
     public int VisiblePaneHeight { get; set; }
 
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;
-    [Inject] private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
     [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = null!;
+    [Inject] private IActivityTabRegistry ActivityTabRegistry { get; set; } = null!;
+    private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
 
     private ActivityDescriptor? activityDescriptor;
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
@@ -85,9 +86,10 @@ public partial class ActivityPropertiesPanel
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var descriptors = await ExpressionService.ListDescriptorsAsync();
+        var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
-        ExpressionDescriptorProvider.AddRange(descriptors);
+        ExpressionDescriptorProvider.AddRange(expressionDescriptors);
+        PluginTabs = ActivityTabRegistry.List().ToList();
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.

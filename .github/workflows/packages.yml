@@ -7,7 +7,7 @@ on:
       - 'vnext'
       - 'bug/*'
       - 'enh/*'
-      - 'feature/*'
+      - 'feat/*'
       - 'issue/*'
       - 'patch/*'
       - 'rc/*'
@@ -35,7 +35,7 @@ jobs:
           PACKAGE_PREFIX=$(echo $BRANCH_NAME | rev | cut -d/ -f1 | rev | tr '_' '-')
 
           # If the branch name is main, use the preview version. Otherwise, use the branch name as the version prefix.
-          if [[ "${BRANCH_NAME}" == "main" || "${BRANCH_NAME}" =~ ^rc/ || "${BRANCH_NAME}" =~ ^develop/ ]]; then
+          if [[ "${BRANCH_NAME}" == "main" || "${BRANCH_NAME}" =~ ^rc/ || "${BRANCH_NAME}" =~ ^develop/ || "${BRANCH_NAME}" =~ ^patch/ ]]; then
               PACKAGE_PREFIX="preview"
           fi
 
