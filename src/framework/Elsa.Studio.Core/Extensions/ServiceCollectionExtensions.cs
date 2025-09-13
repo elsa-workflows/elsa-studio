@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
             .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
-            .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
+            .AddScoped<IActivityTabRegistry, DefaultActivityTabRegistry>()
             .AddSingleton<IContentVisualizerProvider, DefaultContentVisualizerProvider>()
             .AddUserMessageService<DefaultUserMessageService>()
             ;

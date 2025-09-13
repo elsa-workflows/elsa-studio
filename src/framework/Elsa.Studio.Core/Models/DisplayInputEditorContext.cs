@@ -98,7 +98,7 @@ public class DisplayInputEditorContext
         var wrappedInput = Value as WrappedInput;
         var expression = wrappedInput?.Expression;
 
-        if (expression?.Type != "Object")
+        if (expression?.Type is not "Object")
             return Serialize(InputDescriptor.DefaultValue);
 
         var value = expression.Value;
