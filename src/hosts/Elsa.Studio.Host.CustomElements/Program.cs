@@ -4,6 +4,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.CustomElements.Components;
+using Elsa.Studio.Host.CustomElements.Extensions;
 using Elsa.Studio.Host.CustomElements.HttpMessageHandlers;
 using Elsa.Studio.Host.CustomElements.Services;
 using Elsa.Studio.Localization.Time;
@@ -20,13 +21,30 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 var configuration = builder.Configuration;
 
+// Get shadow DOM configuration
+var enableShadowDOM = configuration.GetValue<bool>("ShadowDOM:Enabled", false);
+
 // Register the custom elements.
 builder.RootComponents.RegisterCustomElsaStudioElements();
-builder.RootComponents.RegisterCustomElement<BackendProvider>("elsa-backend-provider");
-builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("elsa-workflow-definition-editor");
-builder.RootComponents.RegisterCustomElement<WorkflowInstanceViewerWrapper>("elsa-workflow-instance-viewer");
-builder.RootComponents.RegisterCustomElement<WorkflowInstanceListWrapper>("elsa-workflow-instance-list");
-builder.RootComponents.RegisterCustomElement<WorkflowDefinitionListWrapper>("elsa-workflow-definition-list");
+
+if (enableShadowDOM)
+{
+    // Register custom elements with Shadow DOM support
+    builder.RootComponents.RegisterCustomElementWithShadowDOM<BackendProvider>("elsa-backend-provider-shadow");
+    builder.RootComponents.RegisterCustomElementWithShadowDOM<WorkflowDefinitionEditorWrapper>("elsa-workflow-definition-editor-shadow");
+    builder.RootComponents.RegisterCustomElementWithShadowDOM<WorkflowInstanceViewerWrapper>("elsa-workflow-instance-viewer-shadow");
+    builder.RootComponents.RegisterCustomElementWithShadowDOM<WorkflowInstanceListWrapper>("elsa-workflow-instance-list-shadow");
+    builder.RootComponents.RegisterCustomElementWithShadowDOM<WorkflowDefinitionListWrapper>("elsa-workflow-definition-list-shadow");
+}
+else
+{
+    // Register custom elements without Shadow DOM (original behavior)
+    builder.RootComponents.RegisterCustomElement<BackendProvider>("elsa-backend-provider");
+    builder.RootComponents.RegisterCustomElement<WorkflowDefinitionEditorWrapper>("elsa-workflow-definition-editor");
+    builder.RootComponents.RegisterCustomElement<WorkflowInstanceViewerWrapper>("elsa-workflow-instance-viewer");
+    builder.RootComponents.RegisterCustomElement<WorkflowInstanceListWrapper>("elsa-workflow-instance-list");
+    builder.RootComponents.RegisterCustomElement<WorkflowDefinitionListWrapper>("elsa-workflow-definition-list");
+}
 
 // Register local services.
 builder.Services.AddSingleton<BackendService>();
