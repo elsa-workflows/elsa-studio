@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddUIHintHandler<SwitchEditorHandler>()
             .AddUIHintHandler<HttpStatusCodesHandler>()
             .AddUIHintHandler<VariablePickerHandler>()
+            .AddUIHintHandler<InputPickerHandler>()
             .AddUIHintHandler<TypePickerHandler>()
             .AddUIHintHandler<WorkflowDefinitionPickerHandler>()
             .AddUIHintHandler<OutputPickerHandler>()
