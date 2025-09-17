@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
         // Register JWT services.
         services.AddSingleton<IJwtParser, BlazorServerJwtParser>();
         services.AddScoped<IJwtAccessor, BlazorServerJwtAccessor>();
+
+        services.AddScoped<IOpenIdConnectPkceStateService, BlazorServerOpenIdConnectPkceStateService>();
         
         return services;
     }
