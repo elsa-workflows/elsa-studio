@@ -18,13 +18,13 @@ public partial class Login
 {
     private readonly LoginModel _model = new();
     
-    [Inject] private IJwtAccessor JwtAccessor { get; set; } = default!;
-    [Inject] private ICredentialsValidator CredentialsValidator { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
-    [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = default!;
-    [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = default!;
+    [Inject] private IJwtAccessor JwtAccessor { get; set; } = null!;
+    [Inject] private ICredentialsValidator CredentialsValidator { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = null!;
+    [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = null!;
     
     private string ClientVersion { get; set; } = "3.0.0";
     private string ServerVersion { get; set; } = "3.0.0";
