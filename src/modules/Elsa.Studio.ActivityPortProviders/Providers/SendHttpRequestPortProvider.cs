@@ -26,7 +26,7 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
         {
             var statusCode = GetStatusCode(@case);
 
-            yield return new Port
+            yield return new()
             {
                 Name = statusCode.ToString(),
                 DisplayName = statusCode.ToString(),
@@ -34,11 +34,25 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
             };
         }
 
-        yield return new Port
+        yield return new()
         {
             Name = UnmatchedStatusCodePortName,
             DisplayName = "Unmatched status code",
             Type = PortType.Embedded,
+        };
+        
+        yield return new()
+        {
+            Name = "Failed to connect",
+            Type = PortType.Embedded,
+            DisplayName = "Failed to connect"
+        };
+        
+        yield return new()
+        {
+            Name = "Timeout",
+            Type = PortType.Embedded,
+            DisplayName = "Timeout"
         };
     }
 
