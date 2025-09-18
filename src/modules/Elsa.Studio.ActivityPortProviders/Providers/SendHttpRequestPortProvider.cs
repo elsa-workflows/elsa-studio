@@ -12,8 +12,8 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// </summary>
 public class SendHttpRequestPortProvider : ActivityPortProviderBase
 {
-    private const string UnmatchedStatusCodePortName = "Unmatched status code";
-    private const string FailedToConnectPortName = "Failed to connect";
+    private const string UnmatchedStatusCodePortName = "UnmatchedStatusCode";
+    private const string FailedToConnectPortName = "FailedToConnect";
     private const string TimeoutPortName = "Timeout";
 
     /// <inheritdoc />
