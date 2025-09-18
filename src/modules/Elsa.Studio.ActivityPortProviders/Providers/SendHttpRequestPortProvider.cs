@@ -13,6 +13,8 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 public class SendHttpRequestPortProvider : ActivityPortProviderBase
 {
     private const string UnmatchedStatusCodePortName = "Unmatched status code";
+    private const string FailedToConnectPortName = "Failed to connect";
+    private const string TimeoutPortName = "Timeout";
 
     /// <inheritdoc />
     public override bool GetSupportsActivityType(PortProviderContext context) => context.ActivityDescriptor.TypeName is "Elsa.SendHttpRequest";
@@ -43,14 +45,14 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
         
         yield return new()
         {
-            Name = "Failed to connect",
+            Name = FailedToConnectPortName,
             Type = PortType.Embedded,
             DisplayName = "Failed to connect"
         };
         
         yield return new()
         {
-            Name = "Timeout",
+            Name = TimeoutPortName,
             Type = PortType.Embedded,
             DisplayName = "Timeout"
         };
@@ -59,33 +61,46 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
     /// <inheritdoc />
     public override JsonObject? ResolvePort(string portName, PortProviderContext context)
     {
-        if (portName == UnmatchedStatusCodePortName)
-            return GetUnmatchedStatusCodeActivity(context.Activity);
+        if (portName == UnmatchedStatusCodePortName) return GetUnmatchedStatusCodeActivity(context.Activity);
+        if (portName == FailedToConnectPortName) return GetFailedToConnectActivity(context.Activity);
+        if (portName == TimeoutPortName) return GetTimeoutActivity(context.Activity);
 
-        var cases = GetExpectedStatusCodes(context.Activity);
-        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
+        var statusCodes = GetExpectedStatusCodes(context.Activity);
+        var statusCodeActivity = statusCodes.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
 
-        return GetActivity(@case);
+        return GetActivity(statusCodeActivity);
     }
 
     /// <inheritdoc />
     public override void AssignPort(string portName, JsonObject activity, PortProviderContext context)
     {
-        var switchActivity = context.Activity;
+        var httpRequestActivity = context.Activity;
 
         if (portName == UnmatchedStatusCodePortName)
         {
-            SetUnmatchedStatusCodeActivity(switchActivity, activity);
+            SetUnmatchedStatusCodeActivity(httpRequestActivity, activity);
+            return;
+        }
+        
+        if (portName == FailedToConnectPortName)
+        {
+            SetFailedToConnectActivity(httpRequestActivity, activity);
+            return;
+        }
+        
+        if (portName == TimeoutPortName)
+        {
+            SetTimeoutActivity(httpRequestActivity, activity);
             return;
         }
 
-        var cases = GetExpectedStatusCodes(switchActivity).ToList();
-        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
+        var statusCodes = GetExpectedStatusCodes(httpRequestActivity).ToList();
+        var statusCodeActivity = statusCodes.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
 
-        if (@case == null)
+        if (statusCodeActivity == null)
             return;
 
-        SetActivity(@case, activity);
+        SetActivity(statusCodeActivity, activity);
     }
 
     /// <inheritdoc />
@@ -96,14 +111,26 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
             SetUnmatchedStatusCodeActivity(context.Activity, null);
             return;
         }
+        
+        if (portName == FailedToConnectPortName)
+        {
+            SetFailedToConnectActivity(context.Activity, null);
+            return;
+        }
+        
+        if (portName == TimeoutPortName)
+        {
+            SetTimeoutActivity(context.Activity, null);
+            return;
+        }
 
-        var cases = GetExpectedStatusCodes(context.Activity).ToList();
-        var @case = cases.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
+        var statusCodes = GetExpectedStatusCodes(context.Activity).ToList();
+        var statusCodeActivity = statusCodes.FirstOrDefault(x => GetStatusCode(x).ToString() == portName);
 
-        if (@case == null)
+        if (statusCodeActivity == null)
             return;
 
-        SetActivity(@case, null);
+        SetActivity(statusCodeActivity, null);
     }
 
     private static IEnumerable<JsonObject> GetExpectedStatusCodes(JsonObject switchActivity)
@@ -121,4 +148,8 @@ public class SendHttpRequestPortProvider : ActivityPortProviderBase
     private void SetActivity(JsonObject @case, JsonObject? activity) => @case.SetProperty(activity, "activity");
     private JsonObject? GetUnmatchedStatusCodeActivity(JsonObject httpRequestActivity) => httpRequestActivity.GetProperty("unmatchedStatusCode")?.AsObject();
     private void SetUnmatchedStatusCodeActivity(JsonObject httpRequestActivity, JsonObject? activity) => httpRequestActivity.SetProperty(activity, "unmatchedStatusCode");
+    private JsonObject? GetFailedToConnectActivity(JsonObject httpRequestActivity) => httpRequestActivity.GetProperty("failedToConnect")?.AsObject();
+    private void SetFailedToConnectActivity(JsonObject httpRequestActivity, JsonObject? activity) => httpRequestActivity.SetProperty(activity, "failedToConnect");
+    private JsonObject? GetTimeoutActivity(JsonObject httpRequestActivity) => httpRequestActivity.GetProperty("timeout")?.AsObject();
+    private void SetTimeoutActivity(JsonObject httpRequestActivity, JsonObject? activity) => httpRequestActivity.SetProperty(activity, "timeout");   
 }
