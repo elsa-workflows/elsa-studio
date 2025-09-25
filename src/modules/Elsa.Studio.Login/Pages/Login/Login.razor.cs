@@ -25,6 +25,7 @@ public partial class Login
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
     [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = null!;
     [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = null!;
+    [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     
     private string ClientVersion { get; set; } = "3.0.0";
     private string ServerVersion { get; set; } = "3.0.0";
