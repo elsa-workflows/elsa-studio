@@ -11,7 +11,7 @@ public static class ObjectExtension
     /// Converts the specified object to a dictionary.
     /// </summary>
     /// <param name="obj"></param>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static Dictionary<string, object?> ToDictionary(this object obj)
     {

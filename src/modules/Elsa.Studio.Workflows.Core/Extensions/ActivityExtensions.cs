@@ -12,7 +12,7 @@ public static class ActivityExtensions
     /// Gets the flowchart from the specified activity.
     /// </summary>
     /// <param name="activity"></param>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     /// <exception cref="NotSupportedException"></exception>
     public static JsonObject? GetFlowchart(this JsonObject activity)
     {
@@ -40,7 +40,7 @@ public static class ActivityExtensions
         // 2) Otherwise, scan every child property...
         foreach (var kvp in activity)
         {
-            // …if it’s a JsonObject, recurse into it.
+            // if its a JsonObject, recurse into it.
             if (kvp.Value is JsonObject childObj)
             {
                 var found = childObj.FindActivitiesContainer();
@@ -48,7 +48,7 @@ public static class ActivityExtensions
                     return found;
             }
 
-            // …if it’s a JsonArray, recurse into each item.
+            // if its a JsonArray, recurse into each item.
             if (kvp.Value is JsonArray childArr)
             {
                 foreach (var node in childArr.OfType<JsonObject>())

@@ -10,6 +10,9 @@ namespace Elsa.Studio.Workflows.Designer.Services;
 
 internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMapper
 {
+    /// <summary>
+    /// Provides the map.
+    /// </summary>
     public X6Graph Map(JsonObject flowchart, IDictionary<string, ActivityStats>? activityStatsMap = null)
     {
         var graph = new X6Graph();
@@ -54,6 +57,11 @@ internal class FlowchartMapper(IActivityMapper activityMapper) : IFlowchartMappe
         return graph;
     }
 
+    /// <summary>
+    /// Performs the map operation.
+    /// </summary>
+    /// <param name="graph">The graph.</param>
+    /// <returns>The result of the operation.</returns>
     public JsonObject Map(X6Graph graph)
     {
         var activities = new List<JsonObject>();

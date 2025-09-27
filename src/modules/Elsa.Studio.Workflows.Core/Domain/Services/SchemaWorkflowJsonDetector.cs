@@ -8,6 +8,9 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// A service that detects whether a JSON string is a workflow definition using a schema.
 /// </summary>
 [UsedImplicitly]
+/// <summary>
+/// Represents the schema workflow json detector.
+/// </summary>
 public class SchemaWorkflowJsonDetector : IWorkflowJsonDetector
 {
     /// <inheritdoc />

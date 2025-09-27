@@ -63,6 +63,9 @@ public static class ServiceCollectionExtensions
         return services;
     }
     
+    /// <summary>
+    /// Provides the add remote api.
+    /// </summary>
     public static IServiceCollection AddRemoteApi<TApi>(this IServiceCollection services, BackendApiConfig? config = null) where TApi : class
     {
         services.Configure(config?.ConfigureBackendOptions ?? (_ => { }));

@@ -13,6 +13,9 @@ public partial class RadioList
     private ICollection<RadioListItem> _radioListItems = Array.Empty<RadioListItem>();
     private string? radioItem = string.Empty;
 
+    /// <summary>
+    /// Provides the  radio item.
+    /// </summary>
     public string _radioItem
     {
         get { return radioItem; }
@@ -27,6 +30,9 @@ public partial class RadioList
     /// The editor context.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the editor context.
+    /// </summary>
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     /// <inheritdoc />

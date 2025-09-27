@@ -7,6 +7,9 @@ namespace Elsa.Studio.Localization.BlazorServer.Controllers;
 /// Controller for setting the culture.
 /// </summary>
 [Route("[controller]/[action]")]
+/// <summary>
+/// Represents the culture controller.
+/// </summary>
 public class CultureController : Controller
 {
     /// <summary>

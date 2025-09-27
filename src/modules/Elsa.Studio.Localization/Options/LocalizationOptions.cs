@@ -7,6 +7,9 @@ namespace Elsa.Studio.Localization.Options;
 /// </summary>
 public class LocalizationOptions
 {
+    /// <summary>
+    /// Provides the localization section.
+    /// </summary>
     public static string LocalizationSection = "Localization";
 
     /// <summary>

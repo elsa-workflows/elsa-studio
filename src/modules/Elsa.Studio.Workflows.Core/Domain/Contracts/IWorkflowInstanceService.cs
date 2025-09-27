@@ -6,6 +6,9 @@ using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Contracts;
 
+/// <summary>
+/// Defines the contract for workflow instance service.
+/// </summary>
 public interface IWorkflowInstanceService
 {
     Task<PagedListResponse<WorkflowInstanceSummary>> ListAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken = default);

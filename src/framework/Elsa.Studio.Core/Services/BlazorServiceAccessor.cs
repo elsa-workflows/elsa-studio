@@ -30,6 +30,9 @@ public sealed class BlazorServiceAccessor : IBlazorServiceAccessor
 
     private sealed class BlazorServiceHolder
     {
+        /// <summary>
+        /// Gets or sets the services.
+        /// </summary>
         public IServiceProvider? Services { get; set; }
     }
 }
