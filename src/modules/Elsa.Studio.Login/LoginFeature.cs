@@ -4,7 +4,9 @@ using Elsa.Studio.Login.Components;
 
 namespace Elsa.Studio.Login;
 
-/// <inheritdoc/>
+/// <summary>
+/// Represents the login feature module that provides authentication functionality for the Elsa Studio application.
+/// </summary>
 public class LoginFeature(IAppBarService appBarService) : FeatureBase
 {
     /// <inheritdoc/>
