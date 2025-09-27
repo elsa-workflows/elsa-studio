@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Validators;
 
+/// <summary>
+/// Represents the input model validator.
+/// </summary>
 public class InputModelValidator : AbstractValidator<InputDefinitionModel>
 {
     public InputModelValidator(WorkflowDefinition workflowDefinition, ILocalizer localizer)

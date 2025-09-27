@@ -70,7 +70,7 @@ public class DisplayInputEditorContext
     /// <summary>
     /// Returns the wrapped input literal value.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     public string GetLiteralValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)
@@ -89,7 +89,7 @@ public class DisplayInputEditorContext
     /// <summary>
     /// Returns the wrapped input object value.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     public string GetObjectValueOrDefault()
     {
         if (!InputDescriptor.IsWrapped)

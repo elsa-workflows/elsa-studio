@@ -10,8 +10,16 @@ using System.Threading.Tasks;
 
 namespace Elsa.Studio.Localization.BlazorWasm.Extensions
 {
+    /// <summary>
+    /// Provides WebAssembly host extensions that configure localization.
+    /// </summary>
     public static class WebAssemblyHostExtensions
     {
+        /// <summary>
+        /// Loads the persisted culture from the browser and applies it to the Blazor host.
+        /// </summary>
+        /// <param name="host">The WebAssembly host to configure.</param>
+        /// <returns>The configured host instance.</returns>
         public static async Task<WebAssemblyHost> UseElsaLocalization(this WebAssemblyHost host) {
 
             const string defaultCulture = "en-US";

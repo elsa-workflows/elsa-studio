@@ -17,6 +17,9 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// Provides ports for the FlowSendHttpRequest & DownloadHttpFile activities based on its supported status codes.
 /// </summary>
 [UsedImplicitly]
+/// <summary>
+/// Provides flow http request port services.
+/// </summary>
 public class FlowHttpRequestPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />

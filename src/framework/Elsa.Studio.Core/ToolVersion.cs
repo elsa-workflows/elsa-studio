@@ -13,6 +13,6 @@ public static class ToolVersion
     /// <summary>
     /// Gets the display version of the tool.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     public static string GetDisplayVersion() => Version.ToString(2);
 }

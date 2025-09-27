@@ -7,6 +7,9 @@ using MudExtensions;
 
 namespace Elsa.Studio.UIHints.Components;
 
+/// <summary>
+/// Represents the http status codes.
+/// </summary>
 public partial class HttpStatusCodes
 {
     private List<HttpStatusCodeCase> _items = new();

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.
     Sections.Info;
 
+/// <summary>
+/// Represents the info.
+/// </summary>
 public partial class Info
 {
     private DataPanelModel _workflowInfo = new ();

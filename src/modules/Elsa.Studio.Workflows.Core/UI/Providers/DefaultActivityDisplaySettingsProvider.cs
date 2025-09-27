@@ -8,6 +8,9 @@ namespace Elsa.Studio.Workflows.UI.Providers;
 
 /// Provides default activity display settings.
 [UsedImplicitly]
+/// <summary>
+/// Provides default activity display settings services.
+/// </summary>
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
     /// <param name="activityDescriptor"></param>

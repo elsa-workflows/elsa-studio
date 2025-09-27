@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Contracts;
 
+/// <summary>
+/// Defines the contract for app bar service.
+/// </summary>
 public interface IAppBarService
 {
     /// <summary>

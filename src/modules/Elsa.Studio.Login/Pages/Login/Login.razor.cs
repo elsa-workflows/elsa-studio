@@ -14,6 +14,9 @@ namespace Elsa.Studio.Login.Pages.Login;
 /// The login page.
 /// </summary>
 [AllowAnonymous]
+/// <summary>
+/// Represents the login.
+/// </summary>
 public partial class Login
 {
     private readonly LoginModel _model = new();

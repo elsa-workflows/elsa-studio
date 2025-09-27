@@ -8,6 +8,9 @@ namespace Elsa.Studio.Login.Components;
 /// Receives the OIDC authorization code and trades it for access_token
 /// </summary>
 [Route("/signin-oidc")]
+/// <summary>
+/// Represents the receive authorization code.
+/// </summary>
 public sealed class ReceiveAuthorizationCode : StudioComponentBase
 {
     /// <summary>

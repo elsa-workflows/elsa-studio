@@ -56,14 +56,41 @@ public abstract class ActivityWrapperBase : StudioComponentBase
     [Inject] protected IActivityPortService ActivityPortService { get; set; } = null!;
     [Inject] protected IServiceProvider ServiceProvider { get; set; } = null!;
 
+    /// <summary>
+    /// Provides the can start workflow.
+    /// </summary>
     protected bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    /// <summary>
+    /// Gets or sets the label.
+    /// </summary>
     protected string Label { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the type name.
+    /// </summary>
     protected string TypeName { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the description.
+    /// </summary>
     protected string Description { get; private set; } = null!;
+    /// <summary>
+    /// Indicates whether show description.
+    /// </summary>
     protected bool ShowDescription { get; private set; }
+    /// <summary>
+    /// Gets or sets the color.
+    /// </summary>
     protected string Color { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the icon.
+    /// </summary>
     protected string? Icon { get; private set; }
+    /// <summary>
+    /// Gets or sets the activity descriptor.
+    /// </summary>
     protected ActivityDescriptor? ActivityDescriptor { get; private set; }
+    /// <summary>
+    /// Gets or sets the ports.
+    /// </summary>
     protected ICollection<Port> Ports { get; private set; } = new List<Port>();
 
     /// <inheritdoc />

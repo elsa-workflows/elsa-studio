@@ -23,6 +23,9 @@ public partial class Dictionary
     /// The context for the editor.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the editor context.
+    /// </summary>
     public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = null!;
@@ -233,6 +236,6 @@ public class DictionaryEntryRecord
     /// <summary>
     /// Expression representation of the value.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The result of the operation.</returns>
     public Expression ToExpression() => new(ExpressionType, Value);
 }

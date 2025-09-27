@@ -26,6 +26,9 @@ public partial class Cases
     /// The context for the editor.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the editor context.
+    /// </summary>
     public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     [CascadingParameter] private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
@@ -192,6 +195,9 @@ public class SwitchCaseRecord
     public string Condition { get; set; } = string.Empty;
 
     [Obsolete("Use ExpressionType instead.")]
+    /// <summary>
+    /// Provides the syntax.
+    /// </summary>
     public string Syntax
     {
         get => ExpressionType;

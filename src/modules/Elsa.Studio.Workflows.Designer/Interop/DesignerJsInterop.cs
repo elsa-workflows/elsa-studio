@@ -14,6 +14,9 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// </summary>
 public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> options, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
 {
+    /// <summary>
+    /// Provides the string.
+    /// </summary>
     protected override string ModuleName => "designer";
 
     /// <summary>
@@ -33,6 +36,9 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
         });
     }
 
+    /// <summary>
+    /// Provides the task.
+    /// </summary>
     public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null)
     {
         var serializerOptions = GetSerializerOptions();
@@ -40,9 +46,17 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
         await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activityJson, size));
     }
 
+    /// <summary>
+    /// Provides the task.
+    /// </summary>
     public async Task UpdateActivityStatsAsync(string elementId, string activityId, ActivityStats stats) =>
         await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivityStats", elementId, activityId, stats));
 
+    /// <summary>
+    /// Performs the raise activity selected operation asynchronously.
+    /// </summary>
+    /// <param name="elementId">The element id.</param>
+    /// <param name="activity">The activity.</param>
     public async Task RaiseActivitySelectedAsync(string elementId, JsonObject activity)
     {
         var serializerOptions = GetSerializerOptions();
@@ -50,6 +64,12 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
         await TryInvokeAsync(module => module.InvokeVoidAsync("raiseActivitySelected", elementId, activityJson));
     }
 
+    /// <summary>
+    /// Performs the raise activity embedded port selected operation asynchronously.
+    /// </summary>
+    /// <param name="elementId">The element id.</param>
+    /// <param name="activity">The activity.</param>
+    /// <param name="portName">The port name.</param>
     public async Task RaiseActivityEmbeddedPortSelectedAsync(string elementId, JsonObject activity, string portName)
     {
         var serializerOptions = GetSerializerOptions();

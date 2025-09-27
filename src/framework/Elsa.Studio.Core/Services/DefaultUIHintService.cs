@@ -2,8 +2,16 @@ using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Services;
 
+/// <summary>
+/// Provides the default implementation of the UI hint service.
+/// </summary>
 public class DefaultUIHintService(IEnumerable<IUIHintHandler> handlers) : IUIHintService
 {
+    /// <summary>
+    /// Gets the handler.
+    /// </summary>
+    /// <param name="uiHint">The ui hint.</param>
+    /// <returns>The result of the operation.</returns>
     public IUIHintHandler GetHandler(string uiHint)
     {
         var handler = handlers.FirstOrDefault(x => x.GetSupportsUIHint(uiHint));

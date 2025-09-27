@@ -4,8 +4,14 @@ using MudBlazor;
 
 namespace Elsa.Studio.Security.Menu;
 
+/// <summary>
+/// Exposes menu entries for security.
+/// </summary>
 public class SecurityMenu : IMenuProvider
 {
+    /// <summary>
+    /// Provides the get menu items async.
+    /// </summary>
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>

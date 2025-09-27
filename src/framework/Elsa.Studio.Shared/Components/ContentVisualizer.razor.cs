@@ -10,6 +10,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Components
 {
+    /// <summary>
+    /// Represents the content visualizer.
+    /// </summary>
     public partial class ContentVisualizer : ComponentBase
     {
         private int TabIndex = 0;
@@ -36,6 +39,9 @@ namespace Elsa.Studio.Components
             }
         }
 
+        /// <summary>
+        /// Provides the selected item.
+        /// </summary>
         public string SelectedItem
         {
             get { return selectedItem; }
@@ -61,6 +67,9 @@ namespace Elsa.Studio.Components
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
 
+        /// <summary>
+        /// Performs the on initialized operation.
+        /// </summary>
         protected override void OnInitialized()
         {
             AvailableVisualizers = VisualizationProvider.GetAll().ToList();

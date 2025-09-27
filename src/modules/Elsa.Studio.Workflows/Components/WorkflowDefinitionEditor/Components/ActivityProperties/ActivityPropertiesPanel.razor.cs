@@ -20,12 +20,18 @@ public partial class ActivityPropertiesPanel
     /// Gets or sets the workflow definition.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the workflow definition.
+    /// </summary>
     public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the activity.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the activity.
+    /// </summary>
     public JsonObject? Activity { get; set; }
 
     /// <summary>
@@ -49,12 +55,18 @@ public partial class ActivityPropertiesPanel
     /// Gets or sets a callback that is invoked when the activity is updated.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the on activity updated callback.
+    /// </summary>
     public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
 
     /// <summary>
     /// Gets or sets the visible pane height.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the visible pane height.
+    /// </summary>
     public int VisiblePaneHeight { get; set; }
 
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;

@@ -7,6 +7,9 @@ namespace Elsa.Studio.Workflows.Handlers;
 
 /// A handler that refreshes the activity registry when a workflow definition is deleted, published or retracted.
 [UsedImplicitly]
+/// <summary>
+/// Represents the refresh activity registry.
+/// </summary>
 public class RefreshActivityRegistry : INotificationHandler<WorkflowDefinitionDeleted>,
     INotificationHandler<WorkflowDefinitionPublished>,
     INotificationHandler<WorkflowDefinitionRetracted>,
