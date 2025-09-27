@@ -4,20 +4,14 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.Login.Services;
 
 /// <inheritdoc/>
-internal class ElsaIdentityAuthorizationService(NavigationManager NavigationManager) : IAuthorizationService
+internal class ElsaIdentityAuthorizationService(NavigationManager navigationManager) : IAuthorizationService
 {
     /// <inheritdoc/>
     public Task RedirectToAuthorizationServer()
     {
-        var returnUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        if (string.IsNullOrWhiteSpace(returnUrl))
-        {
-            NavigationManager.NavigateTo("login", true);
-        }
-        else
-        {
-            NavigationManager.NavigateTo($"login?returnUrl={returnUrl}", true);
-        }
+        var returnUrl = navigationManager.ToBaseRelativePath(navigationManager.Uri);
+        var loginUrl = string.IsNullOrWhiteSpace(returnUrl) ? "/login" : $"/login?returnUrl={returnUrl}";
+        navigationManager.NavigateTo(loginUrl, true);
 
         return Task.CompletedTask;
     }

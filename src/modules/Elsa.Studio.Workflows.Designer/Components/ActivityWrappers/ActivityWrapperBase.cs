@@ -17,6 +17,9 @@ namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 /// </summary>
 public abstract class ActivityWrapperBase : StudioComponentBase
 {
+    private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    
+
     /// <summary>
     /// Gets or sets the element ID.
     /// </summary>
@@ -67,7 +70,7 @@ public abstract class ActivityWrapperBase : StudioComponentBase
     protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrWhiteSpace(ActivityJson))
-            Activity = JsonSerializer.Deserialize<JsonObject>(ActivityJson, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })!;
+            Activity = JsonSerializer.Deserialize<JsonObject>(ActivityJson, _serializerOptions)!;
 
         await ActivityRegistry.EnsureLoadedAsync();
 
