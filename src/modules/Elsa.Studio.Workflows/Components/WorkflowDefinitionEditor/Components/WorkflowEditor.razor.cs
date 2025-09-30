@@ -151,7 +151,7 @@ public partial class WorkflowEditor
         var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition => await SetWorkflowDefinitionAsync(definition));
 
         _isDirty = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         return result;
     }
@@ -182,57 +182,57 @@ public partial class WorkflowEditor
 
     private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
-        await InvokeAsync(async () =>
+        await InvokeAsync(() =>
         {
             if (showLoader)
             {
                 IsProgressing = true;
                 StateHasChanged();
             }
-
-            // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
-            // Therefore, we need to wrap this in a try/catch block.
-            try
-            {
-                var result = await SaveAsync(readDiagram, publish);
-                await result.OnSuccessAsync(async response =>
-                {
-                    var currentSelectedActivityId = SelectedActivityId;
-                    
-                    await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
-                    
-                    if (!string.IsNullOrEmpty(currentSelectedActivityId))
-                    {
-                        await RefreshSelectedActivityAsync(currentSelectedActivityId);
-                    }
-                    
-                    await InvokeAsync(StateHasChanged);
-                    
-                    if (onSuccess != null)
-                        await onSuccess(response);
-                    
-                }).ConfigureAwait(false);
-
-                await result.OnFailedAsync(errors =>
-                {
-                    onFailure?.Invoke(errors);
-                    UserMessageService.ShowSnackbarTextMessage(
-                        errors.Errors.Select(x => x.ErrorMessage),
-                        Severity.Error,
-                        options => options.VisibleStateDuration = 5000
-                    );
-                    return Task.CompletedTask;
-                });
-            }
-            finally
-            {
-                if (showLoader)
-                {
-                    IsProgressing = false;
-                    StateHasChanged();
-                }
-            }
         });
+        
+        // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
+        // Therefore, we need to wrap this in a try/catch block.
+        try
+        {
+            var result = await SaveAsync(readDiagram, publish);
+            await result.OnSuccessAsync(async response =>
+            {
+                var currentSelectedActivityId = SelectedActivityId;
+                    
+                await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
+                    
+                if (!string.IsNullOrEmpty(currentSelectedActivityId))
+                {
+                    await RefreshSelectedActivityAsync(currentSelectedActivityId);
+                }
+                    
+                await InvokeAsync(StateHasChanged);
+                    
+                if (onSuccess != null)
+                    await onSuccess(response);
+                    
+            }).ConfigureAwait(false);
+
+            await result.OnFailedAsync(errors =>
+            {
+                onFailure?.Invoke(errors);
+                UserMessageService.ShowSnackbarTextMessage(
+                    errors.Errors.Select(x => x.ErrorMessage),
+                    Severity.Error,
+                    options => options.VisibleStateDuration = 5000
+                );
+                return Task.CompletedTask;
+            });
+        }
+        finally
+        {
+            if (showLoader)
+            {
+                IsProgressing = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 
     private void SelectActivity(JsonObject activity)
