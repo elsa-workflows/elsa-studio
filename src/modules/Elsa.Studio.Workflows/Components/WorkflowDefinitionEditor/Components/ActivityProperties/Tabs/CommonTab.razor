@@ -86,6 +86,7 @@
                         Dense="@true"
                         Value="@Activity.GetMergeMode()"
                         ValueChanged="OnMergeModeChanged">
+                        <MudSelectItem T="MergeMode" Value="MergeMode.None">None</MudSelectItem>
                         <MudSelectItem T="MergeMode" Value="MergeMode.Converge">Converge</MudSelectItem>
                         <MudSelectItem T="MergeMode" Value="MergeMode.Race">Race</MudSelectItem>
                         <MudSelectItem T="MergeMode" Value="MergeMode.Stream">Stream</MudSelectItem>

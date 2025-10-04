@@ -276,7 +276,7 @@ public partial class WorkflowEditor
             ActivityDescriptor = ActivityRegistry.Find(updatedActivity.GetTypeName(), updatedActivity.GetVersion());
             
             // Only call StateHasChanged once to update the UI without disrupting focus
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
