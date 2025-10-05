@@ -3,10 +3,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-<PropertyGroup>
-	<ElsaVersion>3.6.0-preview.3447</ElsaVersion>
-	<MicrosoftVersion>9.0.9</MicrosoftVersion>
-</PropertyGroup>
+  <PropertyGroup>
+    <ElsaVersion>3.6.0-preview.3500</ElsaVersion>
+    <MicrosoftVersion>9.0.9</MicrosoftVersion>
+  </PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
   </ItemGroup>
@@ -20,10 +20,10 @@
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="MudBlazor" Version="8.11.0" />
+    <PackageVersion Include="MudBlazor" Version="8.13.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25218.8" />
-    <PackageVersion Include="MudBlazor.Translations" Version="2.5.0" />
-    <PackageVersion Include="Radzen.Blazor" Version="7.1.7" />
+    <PackageVersion Include="MudBlazor.Translations" Version="2.6.0" />
+    <PackageVersion Include="Radzen.Blazor" Version="7.4.3" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.1" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
