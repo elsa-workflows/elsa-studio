@@ -29,7 +29,11 @@
                 <MudTooltip Text="@Localizer["Publish the current workflow"]" Delay="1000">
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DropShadow="false">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" title="@Localizer["Publish"]" OnClick="@OnPublishClicked"/>
-                        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+                        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Dense="true">
+                            <MudTooltip Text="@Localizer["Save As"]" Inline="false" Delay="1000">
+                                <MudMenuItem Icon="@Icons.Material.Filled.SaveAs" OnClick="@OnSaveAsClick">@Localizer["Save As"]</MudMenuItem>
+                            </MudTooltip>
+                            <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                             @if (_workflowDefinition?.IsPublished == true)
                             {
                                 <MudTooltip Text="@Localizer["Unpublish the current workflow"]" Inline="false" Delay="1000">

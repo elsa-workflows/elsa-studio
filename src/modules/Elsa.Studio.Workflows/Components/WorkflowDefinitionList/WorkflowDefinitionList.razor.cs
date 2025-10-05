@@ -144,7 +144,7 @@ public partial class WorkflowDefinitionList
         }
 
         var newWorkflowName = $"{workflowDefinitionRow.Name} - Copy of {workflowDefinitionRow.DefinitionId}";
-        var parameters = new DialogParameters<DuplicateWorkflowDialog>
+        var parameters = new DialogParameters<SaveAsOrDuplicateWorkflowDialog>
         {
             { x => x.WorkflowName, newWorkflowName },
             { x => x.WorkflowDescription, workflowDefinitionRow.Description }
@@ -159,7 +159,7 @@ public partial class WorkflowDefinitionList
             MaxWidth = MaxWidth.Small
         };
 
-        var dialogInstance = await DialogService.ShowAsync<DuplicateWorkflowDialog>(Localizer["Duplicate workflow"], parameters, options);
+        var dialogInstance = await DialogService.ShowAsync<SaveAsOrDuplicateWorkflowDialog>(Localizer["Duplicate workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
         if (dialogResult.Canceled)
         {

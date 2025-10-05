@@ -9,9 +9,9 @@ using MudBlazor;
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 
 /// <summary>
-/// A dialog that allows the user to duplicate a new workflow.
+/// A dialog that allows the user to save as or duplicate a workflow.
 /// </summary>
-public partial class DuplicateWorkflowDialog
+public partial class SaveAsOrDuplicateWorkflowDialog
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = null!;
