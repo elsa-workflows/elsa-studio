@@ -37,11 +37,11 @@ public class OpenIdConnectRefreshTokenService(IOptions<OpenIdConnectConfiguratio
         var tokens = (await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken: cancellationToken))!;
 
         // Store tokens.
-        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.refresh_token ?? "");
-        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.access_token ?? "");
-        await jwtAccessor.WriteTokenAsync(TokenNames.IdToken, tokens.id_token ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken ?? "");
+        await jwtAccessor.WriteTokenAsync(TokenNames.IdToken, tokens.IdToken ?? "");
 
         // Return tokens.
-        return new(tokens.access_token != null, tokens.access_token, tokens.refresh_token);
+        return new(tokens.AccessToken != null, tokens.AccessToken, tokens.RefreshToken);
     }
 }

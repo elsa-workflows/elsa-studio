@@ -52,7 +52,8 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
         return results;
     }
 
-    private async Task<IList<WorkflowImportResult>> ImportZipFileAsync(Stream stream, ImportOptions? options)
+    /// <inheritdoc />
+    public async Task<IList<WorkflowImportResult>> ImportZipFileAsync(Stream stream, ImportOptions? options)
     {
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
@@ -92,10 +93,17 @@ public class WorkflowDefinitionImporter(IBackendApiClientProvider backendApiClie
         return importResultList;
     }
 
-    private async Task<WorkflowImportResult> ImportFromStreamAsync(string fileName, Stream stream, ImportOptions? options)
+    /// <inheritdoc />
+    public async Task<WorkflowImportResult> ImportFromStreamAsync(string fileName, Stream stream, ImportOptions? options)
     {
         using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
+        return await ImportJsonAsync(fileName, json, options);
+    }
+
+    /// <inheritdoc />
+    public async Task<WorkflowImportResult> ImportJsonAsync(string fileName, string json, ImportOptions? options)
+    {
         var jsonSerializerOptions = CreateJsonSerializerOptions();
 
         try

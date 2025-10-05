@@ -5,10 +5,10 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 
 public class VariableModel
 {
-    public string Id { get; set; } = default!;
-    public string Name { get; set; } = default!;
-    public VariableTypeDescriptor VariableType { get; set; } = default!;
+    public string Id { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public VariableTypeDescriptor VariableType { get; set; } = null!;
     public bool IsArray { get; set; }
     public string? DefaultValue { get; set; }
-    public StorageDriverDescriptor StorageDriver { get; set; } = default!;
+    public StorageDriverDescriptor StorageDriver { get; set; } = null!;
 }
