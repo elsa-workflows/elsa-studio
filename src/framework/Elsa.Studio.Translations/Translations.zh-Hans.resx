@@ -806,7 +806,7 @@
     <value>解析器</value>
   </data>
   <data name="Looping" xml:space="preserve">
-    <value>正循环中</value>
+    <value>循环控制</value>
   </data>
   <data name="Manage all the things" xml:space="preserve">
     <value>管理所有事项</value>
@@ -830,7 +830,7 @@
     <value>设置名称</value>
   </data>
   <data name="Scheduling" xml:space="preserve">
-    <value>正计划中</value>
+    <value>计划控制</value>
   </data>
   <data name="Secrets" xml:space="preserve">
     <value>Secrets列表</value>

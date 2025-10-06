@@ -310,4 +310,211 @@
   <data name="Container" xml:space="preserve">
     <value>Container</value>
   </data>
+  <data name="Auto-update consuming workflows" xml:space="preserve">
+    <value>Untergeordnete Workflows automatisch aktualisieren</value>
+  </data>
+  <data name="Bulk Dispatch Workflows" xml:space="preserve">
+    <value>Mehrere Workflows starten</value>
+  </data>
+  <data name="Definition ID" xml:space="preserve">
+    <value>Ablauf ID</value>
+  </data>
+  <data name="Definition version" xml:space="preserve">
+    <value>Ablaufversion</value>
+  </data>
+  <data name="Definition version ID" xml:space="preserve">
+    <value>Ablaufversions-ID</value>
+  </data>
+  <data name="Definitions" xml:space="preserve">
+    <value>Abläufe</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Dispatch Workflow" xml:space="preserve">
+    <value>Workflow starten</value>
+  </data>
+  <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
+    <value>Definieren Sie die möglichen Ergebnisse für diesen Workflow.</value>
+  </data>
+  <data name="Excel Parser" xml:space="preserve">
+    <value>Excel Parser</value>
+  </data>
+  <data name="Execution Settings" xml:space="preserve">
+    <value>Ausführungseinstellungen</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Ausführungen</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Läuft ab</value>
+  </data>
+  <data name="Expires In" xml:space="preserve">
+    <value>Läuft ab in</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Export the current workflow as a JSON file" xml:space="preserve">
+    <value>Exportiert den aktuellen Workflow als JSON Datei.</value>
+  </data>
+  <data name="Export this version as a JSON file." xml:space="preserve">
+    <value>Exportiert diese Version als JSON Datei.</value>
+  </data>
+  <data name="Flow" xml:space="preserve">
+    <value>Ablauf</value>
+  </data>
+  <data name="For" xml:space="preserve">
+    <value>For</value>
+  </data>
+  <data name="Fork (flow)" xml:space="preserve">
+    <value>Verzweigung (Ablauf)</value>
+  </data>
+  <data name="Frequency Penalty" xml:space="preserve">
+    <value>Frequency-Penalty</value>
+  </data>
+  <data name="Function" xml:space="preserve">
+    <value>Funktion</value>
+  </data>
+  <data name="Function Name" xml:space="preserve">
+    <value>Funktionsname</value>
+  </data>
+  <data name="Has Incidents" xml:space="preserve">
+    <value>Hat Probleme</value>
+  </data>
+  <data name="HTTP" xml:space="preserve">
+    <value>HTTP</value>
+  </data>
+  <data name="HTTP Endpoint" xml:space="preserve">
+    <value>HTTP Endpunkt</value>
+  </data>
+  <data name="HTTP File Response" xml:space="preserve">
+    <value>HTTP Datei Antwort</value>
+  </data>
+  <data name="HTTP Request" xml:space="preserve">
+    <value>HTTP Anfrage</value>
+  </data>
+  <data name="HTTP Request (flow)" xml:space="preserve">
+    <value>HTTP Anfrage (Ablauf)</value>
+  </data>
+  <data name="HTTP Response" xml:space="preserve">
+    <value>HTTP Antwort</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="The ID of the activity." xml:space="preserve">
+    <value>Die ID der Aktivität.</value>
+  </data>
+  <data name="If" xml:space="preserve">
+    <value>If</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="Import a JSON file containing workflow data to override the current workflow's contents." xml:space="preserve">
+    <value>JSON Workflow aus Datei importieren und den aktuellen Workflow ersetzen.</value>
+  </data>
+  <data name="Incident Strategy" xml:space="preserve">
+    <value>Vorfallstrategie</value>
+  </data>
+  <data name="IncidentCount" xml:space="preserve">
+    <value>Anzahl der Vorfälle</value>
+  </data>
+  <data name="Incidents" xml:space="preserve">
+    <value>Vorfälle</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Eingabe</value>
+  </data>
+  <data name="Input Properties" xml:space="preserve">
+    <value>Eingabeeinstellungen</value>
+  </data>
+  <data name="Input/output" xml:space="preserve">
+    <value>Eingabe/Ausgabe</value>
+  </data>
+  <data name="Inputs" xml:space="preserve">
+    <value>Eingaben</value>
+  </data>
+  <data name="Instances" xml:space="preserve">
+    <value>Instanzen</value>
+  </data>
+  <data name="int" xml:space="preserve">
+    <value>int</value>
+  </data>
+  <data name="Is" xml:space="preserve">
+    <value>Is</value>
+  </data>
+  <data name="Is After" xml:space="preserve">
+    <value>Is After</value>
+  </data>
+  <data name="Is array" xml:space="preserve">
+    <value>Is array</value>
+  </data>
+  <data name="Is Before" xml:space="preserve">
+    <value>Is Before</value>
+  </data>
+  <data name="Is Not" xml:space="preserve">
+    <value>Is Not</value>
+  </data>
+  <data name="Is on or After" xml:space="preserve">
+    <value>Is on or After</value>
+  </data>
+  <data name="Is on or Before" xml:space="preserve">
+    <value>Is on or Before</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Zusammenführen</value>
+  </data>
+  <data name="Journal" xml:space="preserve">
+    <value>Journal</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>Letzte Version</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Laden</value>
+  </data>
+  <data name="Log Persistence Strategy" xml:space="preserve">
+    <value>Protokollspeicherung</value>
+  </data>
+  <data name="Looping" xml:space="preserve">
+    <value>Schleifen</value>
+  </data>
+  <data name="Manage all the things" xml:space="preserve">
+    <value>Alles verwalten</value>
+  </data>
+  <data name="Max Tokens" xml:space="preserve">
+    <value>Max Tokens</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Metadaten</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="The name of the activity. Named activities can be referenced by other activities." xml:space="preserve">
+    <value>Name der Aktivität. Aktivitäten mit Namen können referenziert werden.</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Niemals</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Nein</value>
+  </data>
+  <data name="No agents found" xml:space="preserve">
+    <value>Keine Agenten gefunden</value>
+  </data>
+  <data name="No API keys found" xml:space="preserve">
+    <value>Keine API Schlüssel gefunden</value>
+  </data>
+  <data name="No inputs" xml:space="preserve">
+    <value>Keine Eingabe</value>
+  </data>
 </root>
