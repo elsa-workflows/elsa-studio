@@ -83,7 +83,8 @@ public partial class WorkflowInstanceDetails
                 new DataPanelItem(Localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
                 new DataPanelItem(Localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
                 new DataPanelItem(Localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
-                new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType))
+                new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType)),
+                new DataPanelItem(Localizer["Workflow State"], JsonSerializer.Serialize(_workflowInstance.WorkflowState))
             };
         }
     }
