@@ -1,10 +1,10 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
@@ -33,6 +33,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
@@ -143,52 +144,9 @@ public partial class WorkflowDefinitionList
             return;
         }
 
-        var newWorkflowName = $"{workflowDefinitionRow.Name} - Copy of {workflowDefinitionRow.DefinitionId}";
-        var parameters = new DialogParameters<SaveAsOrDuplicateWorkflowDialog>
-        {
-            { x => x.WorkflowName, newWorkflowName },
-            { x => x.WorkflowDescription, workflowDefinitionRow.Description }
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            Position = DialogPosition.Center,
-            CloseButton = true,
-            FullWidth = true,
-            MaxWidth = MaxWidth.Small
-        };
-
-        var dialogInstance = await DialogService.ShowAsync<SaveAsOrDuplicateWorkflowDialog>(Localizer["Duplicate workflow"], parameters, options);
-        var dialogResult = await dialogInstance.Result;
-        if (dialogResult.Canceled)
-        {
-            return;
-        }
-
-        var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-        var newDefinition = new WorkflowDefinition
-        {
-            Name = newWorkflowModel?.Name ?? newWorkflowName,
-            Description = newWorkflowModel?.Description,
-            Root = originalDefinition.Root,
-            Inputs = originalDefinition.Inputs,
-            Outputs = originalDefinition.Outputs,
-            Variables = originalDefinition.Variables,
-            Options = originalDefinition.Options,
-            Outcomes = originalDefinition.Outcomes,
-            CustomProperties = originalDefinition.CustomProperties,
-            IsReadonly = false
-        };
-
-        var result = await WorkflowDefinitionEditorService.SaveAsync(newDefinition, false, async definition =>
-        {
-            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow duplicated successfully."], Severity.Success);
-            Reload();
-        });
-
-        if (result.IsFailed)
-            UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, result.Failure.Errors), Severity.Error);
+        var result = await WorkflowCloningService.Duplicate(originalDefinition);
+        if (result is null) return;
+        if (result.IsSuccess) Reload();
     }
 
     private async Task EditAsync(string definitionId)
