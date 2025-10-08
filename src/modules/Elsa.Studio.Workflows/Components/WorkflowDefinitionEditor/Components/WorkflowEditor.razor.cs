@@ -8,6 +8,7 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -69,6 +70,8 @@ public partial class WorkflowEditor
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
     [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -327,6 +330,13 @@ public partial class WorkflowEditor
             UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
             return Task.CompletedTask;
         });
+    }
+
+    private async Task OnSaveAsClick()
+    {
+        var result = await WorkflowCloningService.SaveAs(WorkflowDefinition);
+        if (result is null) return;
+        if (result.IsSuccess) NavigationManager.NavigateTo($"workflows/definitions/{result?.Success?.WorkflowDefinition.DefinitionId}/edit");
     }
 
     private async Task OnPublishClicked()
