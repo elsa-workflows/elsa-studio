@@ -1,12 +1,16 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Notifications;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
+#endif
 
 namespace Elsa.Studio.Workflows.Handlers;
 
 /// A handler that refreshes the activity registry when a workflow definition is deleted, published or retracted.
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public class RefreshActivityRegistry : INotificationHandler<WorkflowDefinitionDeleted>,
     INotificationHandler<WorkflowDefinitionPublished>,
     INotificationHandler<WorkflowDefinitionRetracted>,

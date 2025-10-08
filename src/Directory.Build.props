@@ -6,8 +6,13 @@
     <None Include="..\..\..\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' AND '$(IsPackable)' == 'true'">
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
 

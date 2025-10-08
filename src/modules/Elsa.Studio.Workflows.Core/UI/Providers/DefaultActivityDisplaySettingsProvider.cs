@@ -1,13 +1,17 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
+#endif
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.UI.Providers;
 
 /// Provides default activity display settings.
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
     /// <param name="activityDescriptor"></param>

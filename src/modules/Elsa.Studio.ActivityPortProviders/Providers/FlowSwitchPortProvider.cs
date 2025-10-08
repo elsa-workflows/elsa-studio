@@ -5,14 +5,18 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Providers;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
+#endif
 
 namespace Elsa.Studio.ActivityPortProviders.Providers;
 
 /// <summary>
 /// Provides ports for the FlowSwitch activity based on its cases.
 /// </summary>
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public class FlowSwitchPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />

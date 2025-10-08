@@ -1,12 +1,15 @@
 using Elsa.Studio.Contracts;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
-
+#endif
 namespace Elsa.Studio.Extensions;
 
 /// <summary>
 /// Contains extension methods for <see cref="IMediator"/>.
 /// </summary>
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public static class MediatorExtensions
 {
     /// <summary>

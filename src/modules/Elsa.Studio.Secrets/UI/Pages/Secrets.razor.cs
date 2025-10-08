@@ -4,13 +4,17 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Secrets.Client;
 using Elsa.Studio.Secrets.UI.Components;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
+#endif
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace Elsa.Studio.Secrets.UI.Pages;
 
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public partial class Secrets
 {
     private MudTable<SecretModel> _table = null!;

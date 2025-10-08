@@ -1,13 +1,17 @@
 using System.Text.Json;
 using Elsa.Studio.Workflows.Domain.Contracts;
+#if JETBRAINS_ANNOTATIONS
 using JetBrains.Annotations;
+#endif
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
 /// <summary>
 /// A service that detects whether a JSON string is a workflow definition using a simple heuristic.
 /// </summary>
+#if JETBRAINS_ANNOTATIONS
 [UsedImplicitly]
+#endif
 public class SimpleWorkflowJsonDetector : IWorkflowJsonDetector
 {
     /// <inheritdoc />
