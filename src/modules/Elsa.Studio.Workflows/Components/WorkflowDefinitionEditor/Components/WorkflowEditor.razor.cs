@@ -29,7 +29,7 @@ using Variant = MudBlazor.Variant;
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// A component that allows the user to edit a workflow definition.
-public partial class WorkflowEditor : IDisposable
+public partial class WorkflowEditor : IAsyncDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
@@ -79,6 +79,12 @@ public partial class WorkflowEditor : IDisposable
     /// Invoked when the "Ctrl+S" hotkeys are pressed, triggering the save operation.
     /// </summary>
     [JSInvokable] public async Task OnHotKeysCtrlS() => await OnSaveClick();
+
+
+    /// <summary>
+    /// Invoked when the "Ctrl+Shift+S" hotkeys are pressed, triggering the save as operation.
+    /// </summary>
+    [JSInvokable] public async Task OnHotKeysCtrlShiftS() => await OnSaveAsClick();
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -484,11 +490,11 @@ public partial class WorkflowEditor : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_dotNetRef != null)
         {
-            JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
             _dotNetRef.Dispose();
             _dotNetRef = null;
         }
