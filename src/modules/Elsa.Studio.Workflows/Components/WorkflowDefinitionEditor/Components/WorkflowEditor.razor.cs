@@ -488,7 +488,7 @@ public partial class WorkflowEditor : IDisposable
     {
         if (_dotNetRef != null)
         {
-            JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            JSRuntime.InvokeVoid("editorHotkeys.dispose", _dotNetRef);
             _dotNetRef.Dispose();
             _dotNetRef = null;
         }
