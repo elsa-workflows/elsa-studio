@@ -80,7 +80,6 @@ public partial class WorkflowEditor : IAsyncDisposable
     /// </summary>
     [JSInvokable] public async Task OnHotKeysCtrlS() => await OnSaveClick();
 
-
     /// <summary>
     /// Invoked when the "Ctrl+Shift+S" hotkeys are pressed, triggering the save as operation.
     /// </summary>

@@ -61,6 +61,7 @@
 
 <script>
     window.editorHotkeys = {
+        _hotkeyHandler: null,
         register: function (dotNetRef) {
             function handler(e) {
                 // Ctrl+S (Windows/Linux) and Cmd+S (Mac)
@@ -75,12 +76,12 @@
                 }
             }
             window.addEventListener('keydown', handler);
-            dotNetRef._hotkeyHandler = handler;
+            this._hotkeyHandler = handler;
         },
         dispose: function (dotNetRef) {
-            if (dotNetRef._hotkeyHandler) {
-                window.removeEventListener('keydown', dotNetRef._hotkeyHandler);
-                dotNetRef._hotkeyHandler = null;
+            if (this._hotkeyHandler) {
+                window.removeEventListener('keydown', this._hotkeyHandler);
+                this._hotkeyHandler = null;
             }
         }
     };
