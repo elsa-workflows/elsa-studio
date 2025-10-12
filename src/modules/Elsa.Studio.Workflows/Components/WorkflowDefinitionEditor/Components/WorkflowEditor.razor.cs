@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -19,16 +18,18 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
+using System.Text.Json.Nodes;
 using ThrottleDebounce;
 using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// A component that allows the user to edit a workflow definition.
-public partial class WorkflowEditor
+public partial class WorkflowEditor : IAsyncDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
@@ -64,6 +65,7 @@ public partial class WorkflowEditor
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
@@ -73,10 +75,22 @@ public partial class WorkflowEditor
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
 
+    /// <summary>
+    /// Invoked when the "Ctrl+S" hotkeys are pressed, triggering the save operation.
+    /// </summary>
+    [JSInvokable] public async Task OnHotKeysCtrlS() => await OnSaveClick();
+
+    /// <summary>
+    /// Invoked when the "Ctrl+Shift+S" hotkeys are pressed, triggering the save as operation.
+    /// </summary>
+    [JSInvokable] public async Task OnHotKeysCtrlShiftS() => await OnSaveAsClick();
+
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
+
+    private DotNetObjectReference<WorkflowEditor>? _dotNetRef;
 
     private RadzenSplitterPane ActivityPropertiesPane
     {
@@ -129,7 +143,11 @@ public partial class WorkflowEditor
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             await UpdateActivityPropertiesVisibleHeightAsync();
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
+        }
     }
 
     private async Task HandleChangesAsync(bool readDiagram)
@@ -467,6 +485,17 @@ public partial class WorkflowEditor
             snackbarOptions.SnackbarVariant = Variant.Filled;
             snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
             snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            _dotNetRef.Dispose();
+            _dotNetRef = null;
         }
     }
 }

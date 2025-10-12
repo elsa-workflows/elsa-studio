@@ -58,3 +58,31 @@
         <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>
+
+<script>
+    window.editorHotkeys = {
+        _hotkeyHandler: null,
+        register: function (dotNetRef) {
+            function handler(e) {
+                // Ctrl+S (Windows/Linux) and Cmd+S (Mac)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+                    e.preventDefault();
+                    dotNetRef.invokeMethodAsync('OnHotKeysCtrlS');
+                }
+                // Ctrl+Shift+S (Windows/Linux) and Cmd+Shift+S (Mac) for Save As
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+                    e.preventDefault();
+                    dotNetRef.invokeMethodAsync('OnHotKeysCtrlShiftS');
+                }
+            }
+            window.addEventListener('keydown', handler);
+            this._hotkeyHandler = handler;
+        },
+        dispose: function (dotNetRef) {
+            if (this._hotkeyHandler) {
+                window.removeEventListener('keydown', this._hotkeyHandler);
+                this._hotkeyHandler = null;
+            }
+        }
+    };
+</script>
