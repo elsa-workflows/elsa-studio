@@ -97,7 +97,7 @@ builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 // Configure SignalR.
 builder.Services.AddSignalR(options =>
 {
-    // Set MaximumReceiveMessageSize:
+    // Set MaximumReceiveMessageSize to prevent issues when the JSON size of workflow definitions becomes too large.
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
 });
 
