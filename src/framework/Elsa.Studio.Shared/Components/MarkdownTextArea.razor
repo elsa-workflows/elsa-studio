@@ -54,7 +54,7 @@
 
         if (dialogResult?.Data is string newValue && Value != newValue)
         {
-            await textField.FocusAsync(); // Hack to ensure to ensure the auto save gets triggered
+            await textField.FocusAsync(); // Hack to ensure the auto save gets triggered
             await HandleValueChanged(newValue);
         }
     }

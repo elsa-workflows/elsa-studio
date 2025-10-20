@@ -106,7 +106,7 @@
                     {
                         <div>
                             @context.Description.Substring(0, truncationLength)...
-                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Color=@Color.Info Onclick="@(() => OnViewDescriptionClicked(context.Description!))" title="@Localizer["View description"]" Size="Size.Small" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Color=@Color.Info OnClick="@(() => OnViewDescriptionClicked(context.Description!))" title="@Localizer["View description"]" Size="Size.Small" />
                         </div>
                     }
                     else

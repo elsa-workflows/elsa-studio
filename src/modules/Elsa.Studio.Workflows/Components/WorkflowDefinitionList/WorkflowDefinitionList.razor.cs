@@ -423,7 +423,7 @@ public partial class WorkflowDefinitionList
             FullScreen = false,
             MaxWidth = MaxWidth.Large
         };
-        var result = await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
+        await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
     }
 
     private record WorkflowDefinitionRow(
