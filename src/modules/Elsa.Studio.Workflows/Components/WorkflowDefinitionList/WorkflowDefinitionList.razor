@@ -102,9 +102,19 @@
             <MudTd DataLabel="@Localizer["Published version"]" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="@Localizer["Description"]">
                 <MudTooltip Text="@context.Description">
-                    <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                        @context.Description
-                    </div>
+                    @if (context.Description?.Length > truncationLength)
+                    {
+                        <div>
+                            @context.Description.Substring(0, truncationLength)...
+                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Color=@Color.Info OnClick="@(() => OnViewDescriptionClicked(context.Description!))" title="@Localizer["View description"]" Size="Size.Small" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            @context.Description
+                        </div>
+                    }
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">

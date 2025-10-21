@@ -2,6 +2,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
@@ -20,6 +21,7 @@ public partial class WorkflowDefinitionList
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
+    private const int truncationLength = 40;
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
@@ -403,6 +405,25 @@ public partial class WorkflowDefinitionList
         await WorkflowDefinitionService.RetractAsync(definitionId);
         UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow retracted"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
+    }
+
+    private async Task OnViewDescriptionClicked(string value)
+    {
+        DialogParameters<MarkdownEditor> param = new()
+        {
+            { x => x.Label, "Description" },
+            { x => x.Value, value },
+            { x => x.IsReadOnly, true }
+        };
+        DialogOptions options = new()
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            FullWidth = true,
+            FullScreen = false,
+            MaxWidth = MaxWidth.Large
+        };
+        await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
     }
 
     private record WorkflowDefinitionRow(

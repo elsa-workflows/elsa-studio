@@ -32,17 +32,12 @@
                 ReadOnly="IsReadOnly"
                 Disabled="IsReadOnly"/>
 
-            <MudTextField
-                T="string"
+            <MarkdownTextArea
+                Value="@Activity.GetDescription()"
+                ValueChanged="OnActivityDescriptionChanged"
                 Label="@Localizer["Description"]"
                 HelperText="@Localizer["A description of this activity to be displayed in the designer."]"
-                Value="@Activity.GetDescription()"
-                Variant="Variant.Outlined"
-                Margin="Margin.Dense"
-                Lines="3"
-                ValueChanged="OnActivityDescriptionChanged"
-                ReadOnly="IsReadOnly"
-                Disabled="IsReadOnly"/>
+                IsReadOnly="IsReadOnly" />
 
             <MudField
                 Variant="Variant.Text"
