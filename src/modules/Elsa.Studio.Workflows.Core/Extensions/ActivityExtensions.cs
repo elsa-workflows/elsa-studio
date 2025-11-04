@@ -33,6 +33,11 @@ public static class ActivityExtensions
     /// </summary>
     public static JsonObject? FindActivitiesContainer(this JsonObject activity)
     {
+        // 0) If *this* object is already a container, return it.
+        // TODO: Think of a more extensible way to do this. Perhaps adding an attribute called "container" to the activity type?"
+        if(activity.GetTypeName() == "Elsa.Flowchart")
+            return activity;
+        
         // 1) If *this* object has an "activities" array, it is the container.
         if (activity.TryGetPropertyValue("activities", out var maybeArr) && maybeArr is JsonArray)
             return activity;
