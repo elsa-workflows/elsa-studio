@@ -57,6 +57,8 @@ public partial class InputsTab
     private ICollection<InputDescriptor> InputDescriptors { get; set; } = new List<InputDescriptor>();
     private ICollection<OutputDescriptor> OutputDescriptors { get; set; } = new List<OutputDescriptor>();
     private ICollection<ActivityInputDisplayModel> InputDisplayModels { get; set; } = new List<ActivityInputDisplayModel>();
+    private string? _lastActivityId;
+    private string? _lastActivityDescriptorTypeName;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -64,11 +66,21 @@ public partial class InputsTab
         if (Activity == null || ActivityDescriptor == null)
             return;
 
+        // Detect if the activity or descriptor actually changed (not just a value update)
+        var currentActivityId = Activity.GetProperty("id")?.ToString();
+        var currentDescriptorTypeName = ActivityDescriptor.TypeName;
+        var activityOrDescriptorChanged = currentActivityId != _lastActivityId || currentDescriptorTypeName != _lastActivityDescriptorTypeName;
+
         InputDescriptors = ActivityDescriptor.Inputs.ToList();
         OutputDescriptors = ActivityDescriptor.Outputs.ToList();
 
-        var task = _rateLimitedBuildInputEditorModelsAsync.Invoke();
-        if (task != null) InputDisplayModels = (await task).ToList();
+        // Only rebuild display models if the activity/descriptor actually changed
+        if (activityOrDescriptorChanged || InputDisplayModels.Count == 0)
+        {
+            InputDisplayModels = (await BuildInputEditorModels()).ToList();
+            _lastActivityId = currentActivityId;
+            _lastActivityDescriptorTypeName = currentDescriptorTypeName;
+        }
     }
 
     private Task<IEnumerable<ActivityInputDisplayModel>> BuildInputEditorModels()
@@ -204,12 +216,10 @@ public partial class InputsTab
         };
 
         var propName = inputDescriptor.Name.Camelize();
-        activity.SetProperty(value?.SerializeToNode(options), propName);
+        activity.SetProperty(value?.SerializeToNode(options), propName);;
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
-
-        //await InvokeAsync(StateHasChanged);
     }
 
     private ExpressionDescriptor? GetSyntaxProvider(WrappedInput wrappedInput, InputDescriptor inputDescriptor)
