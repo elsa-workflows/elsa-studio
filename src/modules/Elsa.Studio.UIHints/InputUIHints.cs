@@ -1,4 +1,4 @@
-﻿namespace Elsa.Studio.UIHints;
+namespace Elsa.Studio.UIHints;
 
 /// <summary>
 /// Provides a set of well-known UI hints.
