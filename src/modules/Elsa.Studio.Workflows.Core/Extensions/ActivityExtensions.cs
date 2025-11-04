@@ -42,10 +42,10 @@ public static class ActivityExtensions
         if (activity.TryGetPropertyValue("activities", out var maybeArr) && maybeArr is JsonArray)
             return activity;
 
-        // 2) Otherwise, scan every child property...
+        // 2) Otherwise, scan every child property.
         foreach (var kvp in activity)
         {
-            // if its a JsonObject, recurse into it.
+            // if it's a JsonObject, recurse into it.
             if (kvp.Value is JsonObject childObj)
             {
                 var found = childObj.FindActivitiesContainer();
@@ -53,7 +53,7 @@ public static class ActivityExtensions
                     return found;
             }
 
-            // if its a JsonArray, recurse into each item.
+            // if it's a JsonArray, recurse into each item.
             if (kvp.Value is JsonArray childArr)
             {
                 foreach (var node in childArr.OfType<JsonObject>())
