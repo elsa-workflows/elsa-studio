@@ -216,7 +216,7 @@ public partial class InputsTab
         };
 
         var propName = inputDescriptor.Name.Camelize();
-        activity.SetProperty(value?.SerializeToNode(options), propName);;
+        activity.SetProperty(value?.SerializeToNode(options), propName);
 
         if (OnActivityUpdated != null)
             await OnActivityUpdated(activity);
