@@ -21,14 +21,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class InputsTab
 {
-    private readonly RateLimitedFunc<Task<IEnumerable<ActivityInputDisplayModel>>> _rateLimitedBuildInputEditorModelsAsync;
-
-    /// <inheritdoc />
-    public InputsTab()
-    {
-        _rateLimitedBuildInputEditorModelsAsync = Debouncer.Debounce(BuildInputEditorModels, TimeSpan.FromMilliseconds(50), true);
-    }
-
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
