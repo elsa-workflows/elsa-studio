@@ -2,6 +2,9 @@ using System.Text.Json;
 
 namespace Elsa.Studio.UIHints.Helpers;
 
+/// <summary>
+/// Provides utility methods for parsing JSON strings into typed objects.
+/// </summary>
 public static class JsonParser
 {
     /// <summary>
