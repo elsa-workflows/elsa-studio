@@ -237,4 +237,4 @@ jobs:
           path: elsa-studio-nuget-packages
 
       - name: Publish to nuget.org
-        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
+        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate --timeout 600
