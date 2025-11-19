@@ -46,4 +46,21 @@ public interface IAppBarService
     /// </summary>
     /// <param name="element">The app bar element to add.</param>
     void AddElement(AppBarElement element);
+
+    /// <summary>
+    /// Removes all components of the specified type from the app bar.
+    /// </summary>
+    /// <typeparam name="T">The type of the component to remove.</typeparam>
+    void RemoveComponent<T>() where T : IComponent;
+
+    /// <summary>
+    /// Removes all elements with the specified order from the app bar.
+    /// </summary>
+    /// <param name="order">The order value of elements to remove.</param>
+    void RemoveElementsByOrder(float order);
+
+    /// <summary>
+    /// Clears all elements from the app bar.
+    /// </summary>
+    void ClearAll();
 }

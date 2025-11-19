@@ -57,4 +57,52 @@ public class DefaultAppBarService : IAppBarService
         _elements.Add(element);
         AppBarItemsChanged?.Invoke();
     }
+
+    /// <inheritdoc />
+    public void RemoveComponent<T>() where T : IComponent
+    {
+        var typeName = typeof(T).FullName;
+        var elementsToRemove = _elements
+            .Where(e => e.Component.Target?.GetType().FullName == typeName || 
+                       e is AppBarElement<T>)
+            .ToList();
+
+        if (!elementsToRemove.Any())
+            return;
+
+        foreach (var element in elementsToRemove)
+        {
+            _elements.Remove(element);
+        }
+
+        AppBarItemsChanged?.Invoke();
+    }
+
+    /// <inheritdoc />
+    public void RemoveElementsByOrder(float order)
+    {
+        var elementsToRemove = _elements
+            .Where(e => Math.Abs(e.Order - order) < 0.001f)
+            .ToList();
+
+        if (!elementsToRemove.Any())
+            return;
+
+        foreach (var element in elementsToRemove)
+        {
+            _elements.Remove(element);
+        }
+
+        AppBarItemsChanged?.Invoke();
+    }
+
+    /// <inheritdoc />
+    public void ClearAll()
+    {
+        if (!_elements.Any())
+            return;
+
+        _elements.Clear();
+        AppBarItemsChanged?.Invoke();
+    }
 }

@@ -18,6 +18,15 @@ public class DefaultBrandingProvider : IBrandingProvider
     /// <inheritdoc />
     public virtual string LogoReverseUrl => GetLogoUrl(true);
 
+    /// <inheritdoc />
+    public virtual string Favicon16Url => "_content/Elsa.Studio.Shell/favicon-16x16.png";
+
+    /// <inheritdoc />
+    public virtual string Favicon32Url => "_content/Elsa.Studio.Shell/favicon-32x32.png";
+
+    /// <inheritdoc />
+    public virtual string AppleTouchIconUrl => "_content/Elsa.Studio.Shell/apple-touch-icon.png";
+
     private string GetLogoUrl(bool v)
     {
         return "_content/Elsa.Studio.Shell/img/icon.png";
@@ -30,4 +39,5 @@ public class DefaultBrandingProvider : IBrandingProvider
             builder.AddAttribute(1, "Provider", this);
             builder.CloseComponent();
         };
+
 }
