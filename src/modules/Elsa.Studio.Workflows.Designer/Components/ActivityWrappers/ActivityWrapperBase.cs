@@ -124,10 +124,15 @@ public abstract class ActivityWrapperBase : StudioComponentBase
 
         // Only update size if something that affects size has changed
         var currentPortCount = Ports.Count;
-        var needsSizeUpdate = _isFirstRender ||
-                            currentShowDescription != _previousShowDescription ||
+        var designerMetadata = activity.GetDesignerMetadata();
+        var hasValidSize = designerMetadata.Size?.Width > 0 && designerMetadata.Size?.Height > 0;
+        
+        // Skip initial size calculation if activity already has a valid size
+        // This significantly improves performance during initial workflow load
+        var needsSizeUpdate = (_isFirstRender && !hasValidSize) ||
+                            (!_isFirstRender && (currentShowDescription != _previousShowDescription ||
                             Description != _previousDescription ||
-                            currentPortCount != _previousPortCount;
+                            currentPortCount != _previousPortCount));
 
         if (needsSizeUpdate)
         {
