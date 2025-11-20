@@ -1,47 +1,153 @@
 import {activityTagName, createActivityElement} from "../internal/create-activity-element";
 import {Activity, Size} from "../models";
 
-export function calculateActivitySize(activity: Activity): Promise<Size> {
-    const wrapper = document.createElement('div');
-    const dummyActivityElement = createActivityElement(activity, true);
-    wrapper.style.position = 'absolute';
-    wrapper.appendChild(dummyActivityElement);
+// Cache for storing calculated activity sizes
+// Key format: "activityType:hasDescription:hasIcon:hasPorts"
+const sizeCache = new Map<string, Size>();
 
-    // Append the temporary element to the DOM.
+// Queue for batching size calculations
+let calculationQueue: Array<{activity: Activity, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
+let batchTimer: number | null = null;
+
+function getCacheKey(activity: Activity): string {
+    const type = activity.type || 'unknown';
+    const hasDescription = !!activity.metadata?.description;
+    const showDescription = activity.metadata?.showDescription === true;
+    const hasIcon = !!activity.metadata?.icon;
+    // Simplified key - can be enhanced to include port count if needed
+    return `${type}:${hasDescription && showDescription}:${hasIcon}`;
+}
+
+function processBatch() {
+    if (calculationQueue.length === 0) {
+        return;
+    }
+
+    const batch = calculationQueue;
+    calculationQueue = [];
+    batchTimer = null;
+
+    // Create a single container for all measurements
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.visibility = 'hidden';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    
     const bodyElement = document.getElementsByTagName('body')[0];
-    bodyElement.append(wrapper);
+    bodyElement.appendChild(container);
 
-    // Wait for the activity element to be completely rendered.
-    // When using custom elements, they are rendered after they are mounted. Before then, they have a 0 width and height.
-    return new Promise((resolve, reject) => {
-        const checkSize = () => {
-            const activityElement: Element = wrapper.getElementsByTagName(activityTagName)[0];
+    const measurements: Array<{wrapper: HTMLElement, activity: Activity, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
+
+    // Create all elements at once
+    for (const item of batch) {
+        const cacheKey = getCacheKey(item.activity);
+        
+        // Check cache first
+        const cachedSize = sizeCache.get(cacheKey);
+        if (cachedSize) {
+            item.resolve(cachedSize);
+            continue;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'inline-block';
+        const dummyActivityElement = createActivityElement(item.activity, true);
+        wrapper.appendChild(dummyActivityElement);
+        container.appendChild(wrapper);
+        
+        measurements.push({
+            wrapper,
+            activity: item.activity,
+            resolve: item.resolve,
+            reject: item.reject
+        });
+    }
+
+    if (measurements.length === 0) {
+        container.remove();
+        return;
+    }
+
+    // Wait for all elements to render
+    const checkAllSizes = () => {
+        let allReady = true;
+        
+        for (const measurement of measurements) {
+            const activityElement = measurement.wrapper.getElementsByTagName(activityTagName)[0];
             
-            if(activityElement == null) {
-                reject('Activity element not found.');
-                return;
+            if (!activityElement) {
+                continue;
             }
             
             const activityElementRect = activityElement.getBoundingClientRect();
             
-            // If the custom element has no width or height yet, it means it has not yet rendered.
-            if (activityElementRect.width == 0 || activityElementRect.height == 0) {
-                // Request an animation frame and call ourselves back immediately after.
-                window.requestAnimationFrame(checkSize);
-            } else {
-                const rect = wrapper.getElementsByClassName("elsa-activity")[0].getBoundingClientRect();
-                const width = rect.width;
-                const height = rect.height;
-                
-                // Remove the temporary element (used only to calculate its size).
-                wrapper.remove();
-
-                // Update the size of the activity node and resolve the promise.
-                resolve({width, height});
+            // If any element is not ready, continue waiting
+            if (activityElementRect.width === 0 || activityElementRect.height === 0) {
+                allReady = false;
+                break;
             }
-        };
+        }
 
-        // Begin to try to get our element size.
-        checkSize();
+        if (!allReady) {
+            window.requestAnimationFrame(checkAllSizes);
+            return;
+        }
+
+        // All elements are ready, measure them all
+        for (const measurement of measurements) {
+            try {
+                const rect = measurement.wrapper.getElementsByClassName("elsa-activity")[0]?.getBoundingClientRect();
+                
+                if (!rect) {
+                    measurement.reject('Activity element not found.');
+                    continue;
+                }
+                
+                const size: Size = {
+                    width: rect.width,
+                    height: rect.height
+                };
+                
+                // Cache the size
+                const cacheKey = getCacheKey(measurement.activity);
+                sizeCache.set(cacheKey, size);
+                
+                measurement.resolve(size);
+            } catch (error) {
+                measurement.reject(error);
+            }
+        }
+
+        // Clean up
+        container.remove();
+    };
+
+    // Start checking
+    checkAllSizes();
+}
+
+export function calculateActivitySize(activity: Activity): Promise<Size> {
+    // Check cache first
+    const cacheKey = getCacheKey(activity);
+    const cachedSize = sizeCache.get(cacheKey);
+    
+    if (cachedSize) {
+        return Promise.resolve(cachedSize);
+    }
+
+    // Add to batch queue
+    return new Promise((resolve, reject) => {
+        calculationQueue.push({activity, resolve, reject});
+
+        // Schedule batch processing
+        if (batchTimer === null) {
+            batchTimer = window.setTimeout(processBatch, 0) as any;
+        }
     });
+}
+
+// Export function to clear cache if needed
+export function clearActivitySizeCache() {
+    sizeCache.clear();
 }

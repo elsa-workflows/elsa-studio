@@ -18,7 +18,10 @@ namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 public abstract class ActivityWrapperBase : StudioComponentBase
 {
     private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-    
+    private bool _isFirstRender = true;
+    private bool _previousShowDescription;
+    private string? _previousDescription;
+    private int _previousPortCount;
 
     /// <summary>
     /// Gets or sets the element ID.
@@ -112,13 +115,29 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         Label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
         TypeName = descriptor?.DisplayName ?? "Unknown Activity";
         Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
-        ShowDescription = activity.GetShowDescription() == true;
+        var currentShowDescription = activity.GetShowDescription() == true;
+        ShowDescription = currentShowDescription;
         Color = displaySettings.Color;
         Icon = displaySettings.Icon;
         ActivityDescriptor = descriptor!;
         Ports = descriptor != null ? ActivityPortService.GetPorts(new PortProviderContext(descriptor, activity)).ToList() : [];
 
-        await UpdateSizeAsync();
+        // Only update size if something that affects size has changed
+        var currentPortCount = Ports.Count;
+        var needsSizeUpdate = _isFirstRender ||
+                            currentShowDescription != _previousShowDescription ||
+                            Description != _previousDescription ||
+                            currentPortCount != _previousPortCount;
+
+        if (needsSizeUpdate)
+        {
+            await UpdateSizeAsync();
+            _previousShowDescription = currentShowDescription;
+            _previousDescription = Description;
+            _previousPortCount = currentPortCount;
+        }
+
+        _isFirstRender = false;
     }
 
     private async Task UpdateSizeAsync()
