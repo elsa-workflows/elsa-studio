@@ -87,13 +87,29 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
     }
 
+    /// <summary>
     /// Zoom the canvas to fit the content.
+    /// </summary>
+    /// <returns></returns>
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
 
+    /// <summary>
     /// Center the canvas content.
+    /// </summary>
+    /// <returns></returns>
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
 
+    /// <summary>
+    /// Exports the graphs content to a supplied format.
+    /// </summary>
+    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
+    public async Task ExportContentToFormatAsync(string format, string filename) => await InvokeAsync(module => module.InvokeVoidAsync($"exportContentTo{format}", _containerId, filename));
+
+    /// <summary>
     /// Adjusts the graph layout.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <returns></returns>
     public async Task AutoLayoutAsync(X6Graph graph)
     {
         var serializedGraph = SerializeGraph(graph);
