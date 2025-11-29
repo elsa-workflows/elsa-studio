@@ -488,6 +488,20 @@ public partial class WorkflowEditor : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Exports the graphs content to a supplied format.
+    /// </summary>
+    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
+    private async Task OnExportTo(string format)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var name = WorkflowDefinition?.Name ?? "Workflow";
+        var validFileName = string.Concat(name.Select(c => invalidChars.Contains(c) ? "_" : c.ToString())).Trim() + $"_v{WorkflowDefinition?.Version}";
+        
+        if (_diagramDesigner != null)
+            await _diagramDesigner.ExportContentToFormatAsync(format, validFileName);
+    }
+
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {

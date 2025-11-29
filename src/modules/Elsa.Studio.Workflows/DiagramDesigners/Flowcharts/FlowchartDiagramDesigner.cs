@@ -1,10 +1,8 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
-using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
@@ -20,34 +18,22 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
     private readonly Guid _id = Guid.NewGuid();
 
     /// <inheritdoc />
-    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
-    {
-        await InvokeDesignerActionAsync(x => x.LoadFlowchartAsync(activity, activityStatsMap));
-    }
+    public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap) => await InvokeDesignerActionAsync(x => x.LoadFlowchartAsync(activity, activityStatsMap));
 
     /// <inheritdoc />
-    public async Task UpdateActivityAsync(string id, JsonObject activity)
-    {
-        await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
-    }
+    public async Task UpdateActivityAsync(string id, JsonObject activity) => await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
 
     /// <inheritdoc />
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
-    {
-        await InvokeDesignerActionAsync(x => x.UpdateActivityStatsAsync(id, stats));
-    }
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await InvokeDesignerActionAsync(x => x.UpdateActivityStatsAsync(id, stats));
+    
+    /// <inheritdoc />
+    public async Task SelectActivityAsync(string id) => await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
 
     /// <inheritdoc />
-    public async Task SelectActivityAsync(string id)
-    {
-        await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
-    }
+    public async Task<JsonObject> ReadRootActivityAsync() => await _designerWrapper!.ReadRootActivityAsync();
 
     /// <inheritdoc />
-    public async Task<JsonObject> ReadRootActivityAsync()
-    {
-        return await _designerWrapper!.ReadRootActivityAsync();
-    }
+    public async Task ExportContentToFormatAsync(string format, string filename) => await InvokeDesignerActionAsync(x => x.ExportContentToFormatAsync(format, filename));
 
     /// <inheritdoc />
     public RenderFragment DisplayDesigner(DisplayContext context)
