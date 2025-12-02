@@ -66,7 +66,10 @@ jobs:
           fi
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.x
+          dotnet-version: |
+            8.x
+            9.x
+            10.x
       - name: Build workflow designer client assets
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
         run: |
@@ -77,9 +80,6 @@ jobs:
         run: |
           npm install --force
           npm run build
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.x
       - name: Build nuget packages
         run: dotnet build Elsa.Studio.sln --configuration Release /p:Version=${VERSION}
       - name: Test
@@ -87,7 +87,7 @@ jobs:
       - name: Pack nuget packages
         run: dotnet pack Elsa.Studio.sln --configuration Release /p:Version=${VERSION} /p:PackageOutputPath=$(pwd)/packages/nuget
       - name: Publish Custom Elements packages # This generates client assets that we then package as an NPM package.
-        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION} -f net9.0
+        run: dotnet publish ./src/hosts/Elsa.Studio.Host.CustomElements --configuration Release -o ./packages/wasm /p:Version=${VERSION} -f net10.0
       
       # Pack npm wasm package
       - name: Pack elsa-studio-wasm npm package
