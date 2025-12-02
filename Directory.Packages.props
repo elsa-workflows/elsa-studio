@@ -3,29 +3,26 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-  <PropertyGroup>
-    <ElsaVersion>3.6.0-preview.3834</ElsaVersion>
-  </PropertyGroup>
   <ItemGroup Label="Elsa">
-    <PackageVersion Include="Elsa.Api.Client" Version="$(ElsaVersion)" />
+    <PackageVersion Include="Elsa.Api.Client" Version="3.6.0-preview.3960" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
-    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.2.6" />
+    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.3.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.0" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.2" PrivateAssets="all" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.AspNetCore.App" Version="2.2.8" />
-    <PackageVersion Include="MudBlazor" Version="8.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.12.0-beta1.25218.8" />
-    <PackageVersion Include="MudBlazor.Translations" Version="2.6.0" />
-    <PackageVersion Include="Radzen.Blazor" Version="8.3.1" />
+    <PackageVersion Include="MudBlazor" Version="8.15.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" />
+    <PackageVersion Include="MudBlazor.Translations" Version="2.7.0" />
+    <PackageVersion Include="Radzen.Blazor" Version="8.3.5" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />
     <PackageVersion Include="ThrottleDebounce" Version="2.0.1" />
-    <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
-    <PackageVersion Include="Refit" Version="8.0.0" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
+    <PackageVersion Include="Refit" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.22" />
