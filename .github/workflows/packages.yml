@@ -1,4 +1,4 @@
-name: Elsa Studio 3 Packages
+name: Packages
 on:
   workflow_dispatch:
   push:
