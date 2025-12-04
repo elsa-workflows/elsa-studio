@@ -21,4 +21,5 @@ public class X6GraphSettings
     /// Gets or sets the mousewheel.
     /// </summary>
     public X6Mousewheel Mousewheel { get; set; } = new();
+    public bool ResizingEnabled { get; set; } = true;
 }

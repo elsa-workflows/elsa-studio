@@ -302,7 +302,7 @@
     <value>事件列表</value>
   </data>
   <data name="Export the current workflow as a JSON file" xml:space="preserve">
-    <value>导出当前工作流到JSON文件</value>
+    <value>导出当前工作流的JSON文件</value>
   </data>
   <data name="ID" xml:space="preserve">
     <value>ID</value>
@@ -332,7 +332,7 @@
     <value>自动更新使用中的工作流</value>
   </data>
   <data name="API Keys" xml:space="preserve">
-    <value>API Keys</value>
+    <value>接口密钥</value>
   </data>
   <data name="Connection Strings" xml:space="preserve">
     <value>连接字符串</value>
@@ -806,7 +806,7 @@
     <value>解析器</value>
   </data>
   <data name="Looping" xml:space="preserve">
-    <value>正循环中</value>
+    <value>循环控制</value>
   </data>
   <data name="Manage all the things" xml:space="preserve">
     <value>管理所有事项</value>
@@ -830,7 +830,7 @@
     <value>设置名称</value>
   </data>
   <data name="Scheduling" xml:space="preserve">
-    <value>正计划中</value>
+    <value>计划控制</value>
   </data>
   <data name="Secrets" xml:space="preserve">
     <value>Secrets列表</value>
@@ -1563,5 +1563,11 @@
   </data>
   <data name="Load" xml:space="preserve">
     <value>加载</value>
+  </data>
+  <data name="Configuration" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="Provider Type" xml:space="preserve">
+    <value>提供者类型</value>
   </data>
 </root>

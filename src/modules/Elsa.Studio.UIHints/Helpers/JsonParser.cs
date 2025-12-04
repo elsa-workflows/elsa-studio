@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Elsa.Studio.UIHints.Helpers;
 
 /// <summary>
-/// Represents the json parser.
+/// Provides utility methods for parsing JSON strings into typed objects.
 /// </summary>
 public static class JsonParser
 {

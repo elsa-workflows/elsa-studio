@@ -3,7 +3,7 @@ using Elsa.Studio.Abstractions;
 namespace Elsa.Studio.Counter;
 
 /// <summary>
-/// Declares the counter sample feature for discovery by the host.
+/// Represents the counter feature module for the Elsa Studio application.
 /// </summary>
 public class Feature : FeatureBase
 {

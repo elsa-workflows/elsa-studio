@@ -18,11 +18,16 @@ builder.Services.AddSingleton<ILocalizationProvider, MyLocalizationProvider>();
 1. Define the Localization Configuration
     ```csharp
     var localizationConfig = new LocalizationConfig
-    {
-        ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
-    };
+	{
+	    ConfigureLocalizationOptions = options =>
+	    {
+	        configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
+	        options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
+	            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []) .ToArray();
+	    }
+	};
     ```
-1. Register the Localization Module `builder.Services.AddLocalizationModule();`
+1. Register the Localization Module `builder.Services.AddLocalizationModule(localizationConfig);`
 1. Register your locallization provider
 	```csharp
 	builder.Services.AddSingleton<ILocalizationProvider, MyLocalizationProvider>();
@@ -47,11 +52,16 @@ builder.Services.AddSingleton<ILocalizationProvider, MyLocalizationProvider>();
 1. Define the Localization Configuration
     ```csharp
     var localizationConfig = new LocalizationConfig
-    {
-        ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
-    };
+	{
+	    ConfigureLocalizationOptions = options =>
+	    {
+	        configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
+	        options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
+	            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []) .ToArray();
+	    }
+	};
     ```
-1. Register the Localization Module `builder.Services.AddLocalizationModule();`
+1. Register the Localization Module `builder.Services.AddLocalizationModule(localizationConfig);`
 1. Register your locallization provider
 	```csharp
 	builder.Services.AddSingleton<ILocalizationProvider, MyLocalizationProvider>();

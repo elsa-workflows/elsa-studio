@@ -69,7 +69,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     {
         var api = await GetApiAsync(cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionIdPublishing(definitionId), cancellationToken);
-        var response = await api.PublishAsync(definitionId, new PublishWorkflowDefinitionRequest(), cancellationToken);
+        var response = await api.PublishAsync(definitionId, new(), cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionPublished(response.WorkflowDefinition), cancellationToken);
         return response;
     }
@@ -81,7 +81,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         {
             var api = await GetApiAsync(cancellationToken);
             await mediator.NotifyAsync(new WorkflowDefinitionIdRetracting(definitionId), cancellationToken);
-            var definition = await api.RetractAsync(definitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
+            var definition = await api.RetractAsync(definitionId, new(), cancellationToken);
             await mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
             return new(definition);
         }
@@ -201,15 +201,19 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
                 return name;
         }
 
-        throw new Exception($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
+        throw new($"Failed to generate a unique workflow name after {maxAttempts} attempts.");
     }
 
     /// <inheritdoc />
-    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = null, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(
+        string name, 
+        string? description = null,
+        Action<SaveWorkflowDefinitionRequest>? configureRequest = null,
+        CancellationToken cancellationToken = default)
     {
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
-            Model = new WorkflowDefinitionModel
+            Model = new()
             {
                 Name = name,
                 Description = description,
@@ -217,7 +221,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
                 ToolVersion = ToolVersion.Version,
                 IsLatest = true,
                 IsPublished = false,
-                Root = new JsonObject(new Dictionary<string, JsonNode?>
+                Root = new(new Dictionary<string, JsonNode?>
                 {
                     ["id"] = identityGenerator.GenerateId(),
                     ["type"] = "Elsa.Flowchart",
@@ -226,18 +230,20 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
                 })
             }
         };
+        
+        configureRequest?.Invoke(saveRequest);
 
         var api = await GetApiAsync(cancellationToken);
 
         try
         {
             var response = await api.SaveAsync(saveRequest, cancellationToken);
-            return new Result<WorkflowDefinition, ValidationErrors>(response.WorkflowDefinition);
+            return new(response.WorkflowDefinition);
         }
         catch (ValidationApiException e)
         {
             var errors = e.GetValidationErrors();
-            return new Result<WorkflowDefinition, ValidationErrors>(errors);
+            return new(errors);
         }
     }
 
@@ -261,14 +267,14 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         var request = new BulkExportWorkflowDefinitionsRequest(ids.ToArray());
         var response = await api.BulkExportAsync(request, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault("workflow-definitions.zip");
-        return new FileDownload(fileName, response.Content!);
+        return new(fileName, response.Content!);
     }
 
     /// <inheritdoc />
     public async Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        return await api.UpdateReferencesAsync(definitionId, new UpdateConsumingWorkflowReferencesRequest(), cancellationToken);
+        return await api.UpdateReferencesAsync(definitionId, new(), cancellationToken);
     }
     
     /// <inheritdoc />
@@ -278,7 +284,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         var response = await api.ExecuteAsync(definitionId, request, cancellationToken);
         var workflowInstanceId = response.Headers.TryGetValues("x-elsa-workflow-instance-id", out var workflowInstanceIdValues) ? workflowInstanceIdValues.FirstOrDefault() : null;
         var cannotStart = string.Equals(response.Headers.TryGetValues("x-elsa-workflow-cannot-start", out var cannotStartValues) ? cannotStartValues.FirstOrDefault() : null, "true", StringComparison.OrdinalIgnoreCase);
-        return new ExecuteWorkflowResult(workflowInstanceId, cannotStart);
+        return new(workflowInstanceId, cannotStart);
     }
 
     private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
