@@ -1,10 +1,11 @@
+using Elsa.Studio.Workflows.Designer.Contracts;
+using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Options;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Studio.Workflows.Designer.Contracts;
-using Elsa.Studio.Workflows.Designer.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 
@@ -102,8 +103,9 @@ public class X6GraphApi
     /// <summary>
     /// Exports the graphs content to a supplied format.
     /// </summary>
-    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
-    public async Task ExportContentToFormatAsync(string format, string filename) => await InvokeAsync(module => module.InvokeVoidAsync($"exportContentTo{format}", _containerId, filename));
+    /// <param name="captureOptions">The capture options</param>
+    /// <returns></returns>
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await InvokeAsync(module => module.InvokeVoidAsync($"exportContentTo{captureOptions.Format}", _containerId, captureOptions));
 
     /// <summary>
     /// Adjusts the graph layout.

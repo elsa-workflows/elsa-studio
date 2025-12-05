@@ -330,9 +330,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <summary>
     /// Exports the graphs content to a supplied format.
     /// </summary>
-    /// <param name="format">Supported formats are PNG, SVG and JPEG</param>
+    /// <param name="captureOptions">The capture options</param>
     /// <returns></returns>
-    public async Task ExportContentToFormatAsync(string format, string filename) => await ScheduleGraphActionAsync(() => _graphApi.ExportContentToFormatAsync(format, filename));
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await ScheduleGraphActionAsync(() => _graphApi.ExportContentToFormatAsync(captureOptions));
 
     /// Update the Graph Layout.
     public async Task AutoLayoutAsync(

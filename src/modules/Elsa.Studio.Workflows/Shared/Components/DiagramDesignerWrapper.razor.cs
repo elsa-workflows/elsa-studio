@@ -1,7 +1,5 @@
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
@@ -13,6 +11,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.Shared.Components;
 
@@ -303,16 +302,6 @@ public partial class DiagramDesignerWrapper
                     : null
                 : null;
         return node?.Activity ?? Activity;
-    }
-
-    /// <summary>
-    /// Exports the graphs content to a supplied format.
-    /// </summary>
-    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
-    public async Task ExportContentToFormatAsync(string format, string filename)
-    {
-        if (_diagramDesigner is FlowchartDiagramDesigner fd)
-            await fd.ExportContentToFormatAsync(format, filename);
     }
 
     /// <inheritdoc />

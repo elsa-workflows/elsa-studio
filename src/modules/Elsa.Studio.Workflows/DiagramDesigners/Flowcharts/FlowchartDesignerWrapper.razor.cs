@@ -2,6 +2,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -12,7 +13,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Xml;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
@@ -140,8 +140,9 @@ public partial class FlowchartDesignerWrapper
     /// <summary>
     /// Exports the graphs content to a supplied format.
     /// </summary>
-    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
-    public async Task ExportContentToFormatAsync(string format, string filename) => await Designer.ExportContentToFormatAsync(format, filename);
+    /// <param name="captureOptions">The capture options</param>
+    /// <returns></returns>
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await Designer.ExportContentToFormatAsync(captureOptions);
 
     /// <summary>
     /// Auto layouts the flowchart.
