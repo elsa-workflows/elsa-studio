@@ -2,7 +2,6 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
@@ -17,7 +16,6 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
@@ -64,15 +62,10 @@ public partial class WorkflowEditor : IAsyncDisposable
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
-    [Inject] private IMediator Mediator { get; set; } = null!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
-    [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
-    [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
-    [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
-    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
 
     /// <summary>
@@ -486,20 +479,6 @@ public partial class WorkflowEditor : IAsyncDisposable
             snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
             snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
         }
-    }
-
-    /// <summary>
-    /// Exports the graphs content to a supplied format.
-    /// </summary>
-    /// <returns>Supported formats are PNG, SVG and JPEG</returns>
-    private async Task OnExportTo(string format)
-    {
-        var invalidChars = Path.GetInvalidFileNameChars();
-        var name = WorkflowDefinition?.Name ?? "Workflow";
-        var validFileName = string.Concat(name.Select(c => invalidChars.Contains(c) ? "_" : c.ToString())).Trim() + $"_v{WorkflowDefinition?.Version}";
-        
-        if (_diagramDesigner != null)
-            await _diagramDesigner.ExportContentToFormatAsync(format, validFileName);
     }
 
     /// <inheritdoc/>

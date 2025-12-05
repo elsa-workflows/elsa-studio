@@ -43,25 +43,9 @@
                             <MudTooltip Text="@Localizer["Import a JSON file containing workflow data to override the current workflow's contents."]" Inline="false" Delay="1000">
                                 <MudMenuItem Icon="@Icons.Material.Outlined.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
                             </MudTooltip>
-
-                            <MudMenu StartIcon="@Icons.Material.Outlined.FileDownload" Label="@Localizer["Export"]">
-                                <MudTooltip Text="@Localizer["Export the current workflow as a JSON file"]" Inline="false" Delay="1000">
-                                    <MudMenuItem Icon="@Icons.Material.Outlined.Schema" OnClick="@OnExportClicked">@Localizer["Workflow"]</MudMenuItem>
-                                </MudTooltip>
-                                <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                                <MudMenu StartIcon="@Icons.Material.Outlined.Fullscreen" Label="@Localizer["Capture"]">
-                                    <MudTooltip Text="@Localizer["JPEG"]" Inline="false" Delay="1000">
-                                        <MudMenuItem Icon="@Icons.Material.Outlined.Image" OnClick="@(() => OnExportTo("JPEG"))">JPEG</MudMenuItem>
-                                    </MudTooltip>
-                                    <MudTooltip Text="@Localizer["PNG"]" Inline="false" Delay="1000">
-                                        <MudMenuItem Icon="@Icons.Material.Outlined.Image" OnClick="@(() => OnExportTo("PNG"))">PNG</MudMenuItem>
-                                    </MudTooltip>
-                                    <MudTooltip Text="@Localizer["SVG"]" Inline="false" Delay="1000">
-                                        <MudMenuItem Icon="@Icons.Material.Outlined.Image" OnClick="@(() => OnExportTo("SVG"))">SVG</MudMenuItem>
-                                    </MudTooltip>
-                                </MudMenu>
-                            </MudMenu>
-
+                            <MudTooltip Text="@Localizer["Export the current workflow as a JSON file"]" Inline="false" Delay="1000">
+                                <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" OnClick="@OnExportClicked">@Localizer["Export"]</MudMenuItem>
+                            </MudTooltip>
                         </MudMenu>
                     </MudButtonGroup>
                 </MudTooltip>
