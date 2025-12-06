@@ -14,7 +14,10 @@
                     <MudRadio T="string" Value="@("SVG")" Dense="true" Size="Size.Medium">SVG</MudRadio>
                 </MudRadioGroup>
                 <MudTextField Label="@Localizer["File name"]" @bind-Value="_captureModel.FileName" For="@(() => _captureModel.FileName)" HelperText="@Localizer["Name of the exported file. The extension is added automatically."]" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                <MudNumericField Label="@Localizer["Padding"]" @bind-Value="_captureModel.Padding" For="@(() => _captureModel.Padding)" HelperText="@Localizer["Padding around the captured flowchart."]" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                @if (_captureModel.Format != "SVG")
+                {
+                    <MudNumericField Label="@Localizer["Padding"]" @bind-Value="_captureModel.Padding" For="@(() => _captureModel.Padding)" HelperText="@Localizer["Padding around the captured flowchart."]" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                }
             </MudStack>
         </EditForm>
     </DialogContent>

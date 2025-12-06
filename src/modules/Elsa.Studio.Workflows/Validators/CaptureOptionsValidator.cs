@@ -12,6 +12,6 @@ public class CaptureOptionsValidator : AbstractValidator<CaptureOptions>
     public CaptureOptionsValidator(ILocalizer localizer)
     {
         RuleFor(x => x.FileName).NotEmpty().WithMessage(localizer["Please enter a filename for the export."]);
-        RuleFor(x => x.Padding).Must(padding => padding >= 0).WithMessage(localizer["Please enter padding value >= 0."]);
+        RuleFor(x => x.Padding).GreaterThanOrEqualTo(0);
     }
 }
