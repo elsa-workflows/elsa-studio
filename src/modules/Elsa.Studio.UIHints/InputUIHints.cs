@@ -6,102 +6,112 @@ namespace Elsa.Studio.UIHints;
 public static class InputUIHints
 {
     /// <summary>
-    /// Represents a checkbox input UI hint.
+    /// Renders a boolean value using a single checkbox control.
     /// </summary>
     public const string Checkbox = "checkbox";
 
     /// <summary>
-    /// Represents a checklist input UI hint for multiple selections.
+    /// Displays a list of items that allow selecting multiple options.
     /// </summary>
     public const string CheckList = "checklist";
 
     /// <summary>
-    /// Represents a code editor input UI hint for editing source code.
+    /// Presents a code editor optimized for editing scripts or expressions.
     /// </summary>
     public const string CodeEditor = "code-editor";
 
     /// <summary>
-    /// Represents a date and time picker input UI hint.
+    /// Allows picking a combined date and time value.
     /// </summary>
     public const string DateTimePicker = "datetime-picker";
 
     /// <summary>
-    /// Represents a dropdown list input UI hint.
+    /// Captures key value pairs using a dictionary editor interface.
+    /// </summary>
+    public const string Dictionary = "dictionary";
+
+    /// <summary>
+    /// Renders a dropdown list for selecting a single option.
     /// </summary>
     public const string DropDown = "dropdown";
 
     /// <summary>
-    /// Represents a dynamic outcomes editor UI hint for configuring workflow outcomes.
+    /// Provides a UI for configuring outcomes that are generated at runtime.
     /// </summary>
     public const string DynamicOutcomes = "dynamic-outcomes";
 
     /// <summary>
-    /// Represents an expression editor input UI hint for editing expressions.
+    /// Hosts an expression editor tailored for workflow expressions.
     /// </summary>
     public const string ExpressionEditor = "expression-editor";
 
     /// <summary>
-    /// Represents an HTTP status codes picker UI hint.
+    /// Offers a curated list of HTTP status codes to select from.
     /// </summary>
     public const string HttpStatusCodes = "http-status-codes";
 
     /// <summary>
-    /// Represents a JSON editor input UI hint for editing JSON content.
+    /// Enables editing structured JSON content with validation support.
     /// </summary>
     public const string JsonEditor = "json-editor";
 
     /// <summary>
-    /// Represents a multiline text input UI hint.
+    /// Provides a multi-line text area for free-form input.
     /// </summary>
     public const string MultiLine = "multiline";
 
     /// <summary>
-    /// Represents a multi-text input UI hint for multiple text values.
+    /// Displays a list of text inputs for capturing multiple values.
     /// </summary>
     public const string MultiText = "multitext";
 
     /// <summary>
-    /// Represents an outcome picker UI hint for selecting workflow outcomes.
+    /// Lets users pick one or more workflow outcomes.
     /// </summary>
     public const string OutcomePicker = "outcome-picker";
 
     /// <summary>
-    /// Represents an output picker UI hint for selecting activity outputs.
+    /// Provides a selection control for choosing workflow outputs.
     /// </summary>
     public const string OutputPicker = "output-picker";
 
     /// <summary>
-    /// Represents a radio button list input UI hint.
+    /// Renders a radio button list for choosing a single option.
     /// </summary>
     public const string RadioList = "radiolist";
 
     /// <summary>
-    /// Represents a single line text input UI hint.
+    /// Displays a single line text box for short input values.
     /// </summary>
     public const string SingleLine = "singleline";
 
     /// <summary>
-    /// Represents a flow switch editor UI hint for configuring conditional flow branches.
+    /// Visualizes flow switch branches in a dedicated editor.
     /// </summary>
     public const string FlowSwitchEditor = "flow-switch-editor";
 
     /// <summary>
-    /// Represents a switch editor UI hint for configuring switch statements.
+    /// Allows configuring switch activities via a specialized editor.
     /// </summary>
     public const string SwitchEditor = "switch-editor";
 
     /// <summary>
-    /// Represents a type picker UI hint for selecting .NET types.
+    /// Presents a type picker for selecting .NET types or workflow models.
     /// </summary>
     public const string TypePicker = "type-picker";
 
     /// <summary>
-    /// Represents a variable picker UI hint for selecting workflow variables.
+    /// Displays available workflow variables for selection.
     /// </summary>
     public const string VariablePicker = "variable-picker";
 
     /// <summary>
-    /// Represents a workflow definition picker UI hint for selecting workflow definitions.
+    /// Enables choosing inputs that can be bound to an activity.
+    /// </summary>
+    public const string InputPicker = "input-picker";
+
+    /// <summary>
+    /// Provides a picker dialog for selecting workflow definitions.
     /// </summary>
     public const string WorkflowDefinitionPicker = "workflow-definition-picker";
 }

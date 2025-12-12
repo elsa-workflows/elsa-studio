@@ -40,7 +40,7 @@ public partial class WorkflowDefinitionList
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
-    [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentComponentProvider { get; set; } = null!;
+    [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
