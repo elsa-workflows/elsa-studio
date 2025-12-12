@@ -20,7 +20,13 @@ public abstract class JsInteropBase : IAsyncDisposable
     /// <param name="jsRuntime">The JavaScript runtime used to import the module.</param>
     protected JsInteropBase(IJSRuntime jsRuntime)
     {
-        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask());
+        _moduleTask = new(() => ImportModule(jsRuntime));
+    }
+
+    public virtual Task<IJSObjectReference> ImportModule(IJSRuntime jsRuntime)
+    {
+        return jsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", $"./_content/Elsa.Studio.Workflows.Designer/{ModuleName}.entry.js").AsTask();
     }
 
     /// <summary>
@@ -100,7 +106,7 @@ public abstract class JsInteropBase : IAsyncDisposable
         {
             // Ignore.
         }
-        catch(ObjectDisposedException)
+        catch (ObjectDisposedException)
         {
             // Ignore.
         }

@@ -3,29 +3,39 @@ using Microsoft.JSInterop;
 namespace Elsa.Studio.DomInterop.Interop;
 
 /// <summary>
-/// Provides a base class for JavaScript interop helpers that lazily load and dispose ES modules.
+/// Provides a base class for JavaScript interop modules with common functionality.
 /// </summary>
 public abstract class JsInteropBase : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask;
 
     /// <summary>
-    /// Gets the file name of the JavaScript module to load.
+    /// Gets the name of the JavaScript module to import.
     /// </summary>
     protected abstract string ModuleName { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JsInteropBase"/> class using the specified runtime.
+    /// Initializes a new instance of the JsInteropBase class.
     /// </summary>
-    /// <param name="jsRuntime">The JavaScript runtime used to import the module.</param>
+    /// <param name="jsRuntime">The JavaScript runtime instance.</param>
     protected JsInteropBase(IJSRuntime jsRuntime)
     {
-        _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask());
+        _moduleTask = new(() => ImportModule(jsRuntime));
     }
 
     /// <summary>
-    /// Disposes the imported JavaScript module when it has been created.
+    /// Imports the JavaScript module asynchronously.
+    /// </summary>
+    /// <param name="jsRuntime">The JavaScript runtime instance.</param>
+    /// <returns>A reference to the imported JavaScript module.</returns>
+    public virtual Task<IJSObjectReference> ImportModule(IJSRuntime jsRuntime)
+    {
+        return jsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", $"./_content/Elsa.Studio.DomInterop/{ModuleName}.entry.js").AsTask();
+    }
+
+    /// <summary>
+    /// Disposes of the JavaScript module reference asynchronously.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -46,10 +56,9 @@ public abstract class JsInteropBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Invokes the provided asynchronous delegate with the imported module, creating it if necessary.
+    /// Invokes a JavaScript function asynchronously without a return value.
     /// </summary>
-    /// <param name="func">The callback to execute against the module.</param>
-    /// <returns>A task that completes when the invocation finishes.</returns>
+    /// <param name="func">The function to invoke on the module.</param>
     protected async Task InvokeAsync(Func<IJSObjectReference, ValueTask> func)
     {
         var module = await _moduleTask.Value;
@@ -57,11 +66,11 @@ public abstract class JsInteropBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Invokes the provided asynchronous delegate with the imported module and returns its result.
+    /// Invokes a JavaScript function asynchronously with a return value.
     /// </summary>
-    /// <typeparam name="T">The type of value returned by the delegate.</typeparam>
-    /// <param name="func">The callback to execute against the module.</param>
-    /// <returns>The value returned by <paramref name="func"/>.</returns>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function to invoke on the module.</param>
+    /// <returns>The result of the JavaScript function call.</returns>
     protected async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func)
     {
         var module = await _moduleTask.Value;

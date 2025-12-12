@@ -1,33 +1,60 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Services;
 
-/// <summary>
-/// Provides the default implementation of the app bar service.
-/// </summary>
+/// <inheritdoc />
 public class DefaultAppBarService : IAppBarService
 {
-    private readonly ICollection<RenderFragment> _appBarItems = new List<RenderFragment>();
-    private int _appBarSequence;
-    
-    /// <summary>
-    /// Occurs when the set of app bar items has changed.
-    /// </summary>
+    private readonly ICollection<AppBarElement> _elements = new List<AppBarElement>();
+
+    /// <inheritdoc />
     public event Action? AppBarItemsChanged;
-    /// <summary>
-    /// Gets the configured app bar items.
-    /// </summary>
-    public IEnumerable<RenderFragment> AppBarItems => _appBarItems.ToList();
-    
-    /// <summary>
-    /// Adds the specified component to the application bar.
-    /// </summary>
-    /// <typeparam name="T">The type of component to add.</typeparam>
+
+    /// <inheritdoc />
+    public IEnumerable<AppBarElement> AppBarElements => _elements.OrderBy(x => x.Order).ToList();
+
+    /// <inheritdoc />
+    public IEnumerable<RenderFragment> AppBarComponents => AppBarElements.Select(x => x.Component).ToList();
+
+    /// <inheritdoc />
     public void AddAppBarItem<T>() where T : IComponent
     {
-        _appBarItems.Add(builder => builder.CreateComponent<T>(ref _appBarSequence));
+        AddComponent<T>();
+    }
+
+    /// <inheritdoc />
+    public void AddComponent<T>(float? order = null) where T : IComponent
+    {
+        var element = new AppBarElement
+        {
+            Order = order ?? 0,
+            Component = builder => builder.CreateComponent<T>()
+        };
+
+        AddElement(element);
+    }
+
+    /// <inheritdoc />
+    public void AddElement<T>(float? order = null) where T : AppBarElement, new()
+    {
+        var element = new T();
+
+        if (order.HasValue)
+            element.Order = order.Value;
+
+        AddElement(element);
+    }
+
+    /// <inheritdoc />
+    public void AddElement(AppBarElement element)
+    {
+        if (_elements.Contains(element))
+            return;
+
+        _elements.Add(element);
         AppBarItemsChanged?.Invoke();
     }
 }

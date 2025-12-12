@@ -157,8 +157,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.use(
             new Transform({
                 resizing: {
-                    enabled: true,
-
+                    enabled: settings?.resizingEnabled ?? true,
                 }
             })
         );
