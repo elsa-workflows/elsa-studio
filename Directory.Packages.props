@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
-    <PackageVersion Include="Elsa.Api.Client" Version="3.6.0-preview.4063" />
+    <PackageVersion Include="Elsa.Api.Client" Version="3.6.0-preview.4067" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
