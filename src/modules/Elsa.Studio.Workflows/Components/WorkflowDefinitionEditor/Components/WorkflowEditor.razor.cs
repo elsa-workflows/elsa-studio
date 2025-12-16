@@ -24,6 +24,7 @@ using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Extensions;
 using ThrottleDebounce;
 using Variant = MudBlazor.Variant;
+using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -67,6 +68,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
 
     /// <summary>
