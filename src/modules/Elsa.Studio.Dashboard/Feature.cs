@@ -7,5 +7,5 @@ namespace Elsa.Studio.Dashboard;
 /// </summary>
 public class Feature : FeatureBase
 {
-    
+
 }

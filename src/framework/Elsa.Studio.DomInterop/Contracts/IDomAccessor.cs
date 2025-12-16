@@ -3,7 +3,7 @@ using Elsa.Studio.DomInterop.Models;
 namespace Elsa.Studio.DomInterop.Contracts;
 
 /// <summary>
-/// Provides access to the browser's DOM.
+/// Describes utility methods that interact with DOM elements through JavaScript interop.
 /// </summary>
 public interface IDomAccessor
 {

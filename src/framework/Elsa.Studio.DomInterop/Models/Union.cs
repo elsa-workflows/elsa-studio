@@ -1,10 +1,10 @@
 namespace Elsa.Studio.Models;
 
 /// <summary>
-/// Represents a discriminated union type that can hold one of two possible values.
+/// Represents a discriminated union that can hold a value of either <typeparamref name="T1"/> or <typeparamref name="T2"/>.
 /// </summary>
-/// <typeparam name="T1">The type of the first possible value.</typeparam>
-/// <typeparam name="T2">The type of the second possible value.</typeparam>
+/// <typeparam name="T1">The first supported value type.</typeparam>
+/// <typeparam name="T2">The second supported value type.</typeparam>
 public class Union<T1, T2>
 {
     private readonly T1? _value1;
@@ -12,9 +12,9 @@ public class Union<T1, T2>
     private readonly bool _isValue1;
 
     /// <summary>
-    /// Initializes a new instance of the Union with a value of the first type.
+    /// Initializes a new <see cref="Union{T1, T2}"/> instance that stores a value of type <typeparamref name="T1"/>.
     /// </summary>
-    /// <param name="value">The value of the first type.</param>
+    /// <param name="value">The value to store.</param>
     protected Union(T1 value)
     {
         _value1 = value;
@@ -22,9 +22,9 @@ public class Union<T1, T2>
     }
 
     /// <summary>
-    /// Initializes a new instance of the Union with a value of the second type.
+    /// Initializes a new <see cref="Union{T1, T2}"/> instance that stores a value of type <typeparamref name="T2"/>.
     /// </summary>
-    /// <param name="value">The value of the second type.</param>
+    /// <param name="value">The value to store.</param>
     protected Union(T2 value)
     {
         _value2 = value;
@@ -32,27 +32,26 @@ public class Union<T1, T2>
     }
 
     /// <summary>
-    /// Implicitly converts a value of the first type to a Union.
+    /// Implicitly converts a <typeparamref name="T1"/> value into a <see cref="Union{T1, T2}"/>.
     /// </summary>
-    /// <param name="value">The value to convert.</param>
-    /// <returns>A Union containing the value.</returns>
+    /// <param name="value">The value to wrap.</param>
+    /// <returns>A union containing <paramref name="value"/>.</returns>
     public static implicit operator Union<T1, T2>(T1 value) => new(value);
 
     /// <summary>
-    /// Implicitly converts a value of the second type to a Union.
+    /// Implicitly converts a <typeparamref name="T2"/> value into a <see cref="Union{T1, T2}"/>.
     /// </summary>
-    /// <param name="value">The value to convert.</param>
-    /// <returns>A Union containing the value.</returns>
+    /// <param name="value">The value to wrap.</param>
+    /// <returns>A union containing <paramref name="value"/>.</returns>
     public static implicit operator Union<T1, T2>(T2 value) => new(value);
 
     /// <summary>
-    /// Matches the contained value and applies the appropriate function.
+    /// Executes the matching function corresponding to the stored value type and returns its result.
     /// </summary>
-    /// <typeparam name="T">The return type of the match functions.</typeparam>
-    /// <param name="case1">Function to apply if the Union contains a value of the first type.</param>
-    /// <param name="case2">Function to apply if the Union contains a value of the second type.</param>
-    /// <returns>The result of applying the appropriate function.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when case1 or case2 is null.</exception>
+    /// <typeparam name="T">The type of result produced by the matching functions.</typeparam>
+    /// <param name="case1">The function to invoke when the union contains a <typeparamref name="T1"/> value.</param>
+    /// <param name="case2">The function to invoke when the union contains a <typeparamref name="T2"/> value.</param>
+    /// <returns>The result of the executed matching function.</returns>
     public T Match<T>(Func<T1, T> case1, Func<T2, T> case2)
     {
         if (case1 == null) throw new ArgumentNullException(nameof(case1));
@@ -62,8 +61,8 @@ public class Union<T1, T2>
     }
 
     /// <summary>
-    /// Gets the raw value contained in this Union.
+    /// Returns the raw value stored inside the union without performing any conversion.
     /// </summary>
-    /// <returns>The contained value as an object.</returns>
+    /// <returns>The result of the operation.</returns>
     public object Match() => _isValue1 ? _value1! : _value2!;
 }

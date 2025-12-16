@@ -10,10 +10,21 @@ namespace Elsa.Studio.Services;
 /// </summary>
 public class UnsupportedUIHintHandler : IUIHintHandler
 {
+    /// <summary>
+    /// Provides the get supports uihint.
+    /// </summary>
     public bool GetSupportsUIHint(string uiHint) => false;
 
+    /// <summary>
+    /// Provides the uisyntax.
+    /// </summary>
     public string UISyntax => "Unsupported";
     
+    /// <summary>
+    /// Performs the display input editor operation.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <returns>The result of the operation.</returns>
     public RenderFragment DisplayInputEditor(DisplayInputEditorContext context)
     {
         return builder =>

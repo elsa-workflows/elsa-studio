@@ -7,5 +7,5 @@ namespace Elsa.Studio.Security;
 /// </summary>
 public class Feature : FeatureBase
 {
-    
+
 }

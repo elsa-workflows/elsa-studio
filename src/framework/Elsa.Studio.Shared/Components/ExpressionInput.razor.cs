@@ -186,6 +186,15 @@ public partial class ExpressionInput : IDisposable
             return;
         }
 
+        if (_selectedExpressionType == "Input")
+        {
+            var uiHintHandler = UIHintService.GetHandler("input-picker");
+            var editor = uiHintHandler.DisplayInputEditor(editorContext);
+            ChildContent = editor;
+
+            return;
+        }
+
         if (MonacoSyntax == null
             && _selectedExpressionType == editorContext.SelectedExpressionDescriptor?.Type
             && editorContext.SelectedExpressionDescriptor.Properties.TryGetValue("UIHint", out var uiHint))

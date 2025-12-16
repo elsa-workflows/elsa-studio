@@ -7,6 +7,9 @@ namespace Elsa.Studio.Workflows.UI.Providers;
 
 /// Provides default activity display settings.
 [UsedImplicitly]
+/// <summary>
+/// Provides default activity display settings services.
+/// </summary>
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
     /// <inheritdoc />
@@ -76,6 +79,9 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         
         // Scripting
         ["Elsa.RunJavaScript"] = new(DefaultActivityColors.Scripting, Icons.Material.Outlined.Javascript),
+        
+        // Diagnostics
+        ["Elsa.Log"] = new(DefaultActivityColors.Diagnostics, ElsaStudioIcons.Tabler.Pencil),
 
         // Azure Service Bus
         ["Elsa.AzureServiceBus.MessageReceived"] = new("#a21caf", ElsaStudioIcons.Heroicons.Incoming),

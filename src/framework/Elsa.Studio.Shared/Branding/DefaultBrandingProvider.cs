@@ -32,6 +32,9 @@ public class DefaultBrandingProvider : IBrandingProvider
         return "_content/Elsa.Studio.Shell/img/icon.png";
     }
     
+    /// <summary>
+    /// Provides the render fragment.
+    /// </summary>
     public virtual RenderFragment Branding =>
         builder =>
         {

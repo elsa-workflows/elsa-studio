@@ -9,6 +9,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
+/// <summary>
+/// Represents the workflow instance workspace.
+/// </summary>
 public partial class WorkflowInstanceWorkspace : IWorkspace
 {
     private WorkflowInstanceDetails _workflowInstanceDetails = default!;

@@ -4,6 +4,16 @@
 @using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
+<style>
+    .definitions-table .mud-table-cell .mud-checkbox {
+        margin: 0;
+    }
+
+    .definitions-table .mud-table-toolbar {
+        margin-bottom: 12px;
+    }
+</style>
+
 @if (IsReadOnlyMode)
 {
     <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Square="true" Class="py-1" Icon="@Icons.Material.Filled.EnergySavingsLeaf">@Localizer["You are running in read-only mode. Workflow operations are disabled"].</MudAlert>
@@ -92,9 +102,19 @@
             <MudTd DataLabel="@Localizer["Published version"]" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
             <MudTd DataLabel="@Localizer["Description"]">
                 <MudTooltip Text="@context.Description">
-                    <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                        @context.Description
-                    </div>
+                    @if (context.Description?.Length > truncationLength)
+                    {
+                        <div>
+                            @context.Description.Substring(0, truncationLength)...
+                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Color=@Color.Info OnClick="@(() => OnViewDescriptionClicked(context.Description!))" title="@Localizer["View description"]" Size="Size.Small" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="max-width: 400px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            @context.Description
+                        </div>
+                    }
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
@@ -108,8 +128,9 @@
                         <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["View"]</MudMenuItem>
                     }
                     <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">@Localizer["Run"]</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CopyAll" OnClick="@(() => OnDuplicateWorkflowClicked(context))">@Localizer["Duplicate"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
@@ -130,13 +151,3 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
-
-<style>
-    .definitions-table .mud-table-cell .mud-checkbox {
-        margin: 0;
-    }
-
-    .definitions-table .mud-table-toolbar {
-        margin-bottom: 12px; /*mb-3*/
-    }
-</style>

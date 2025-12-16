@@ -58,14 +58,14 @@ public class PollingWorkflowInstanceObserver : IWorkflowInstanceObserver
                 if (_lastUpdateAt < lastUpdateAt)
                 {
                     _lastUpdateAt = lastUpdateAt;
-                    if (WorkflowJournalUpdated != null!) await WorkflowJournalUpdated(new WorkflowExecutionLogUpdatedMessage());
+                    if (WorkflowJournalUpdated != null!) await WorkflowJournalUpdated(new());
                     if (ActivityExecutionLogUpdated != null && _containerActivity != null)
                     {
                         var activityExecutionStats = await GetActivityExecutionStatsAsync(_containerActivity);
-                        await ActivityExecutionLogUpdated(new ActivityExecutionLogUpdatedMessage(activityExecutionStats));
+                        await ActivityExecutionLogUpdated(new(activityExecutionStats));
                     }
 
-                    if (WorkflowInstanceUpdated != null!) await WorkflowInstanceUpdated(new WorkflowInstanceUpdatedMessage(_workflowInstanceId));
+                    if (WorkflowInstanceUpdated != null!) await WorkflowInstanceUpdated(new(_workflowInstanceId));
                 }
 
                 if (response.Status == WorkflowStatus.Finished)

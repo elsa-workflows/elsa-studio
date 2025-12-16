@@ -8,6 +8,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 
+/// <summary>
+/// Represents the outputs section.
+/// </summary>
 public partial class OutputsSection
 {
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();

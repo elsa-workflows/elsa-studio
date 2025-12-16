@@ -7,5 +7,5 @@ namespace Elsa.Studio.Counter;
 /// </summary>
 public class Feature : FeatureBase
 {
-    
+
 }

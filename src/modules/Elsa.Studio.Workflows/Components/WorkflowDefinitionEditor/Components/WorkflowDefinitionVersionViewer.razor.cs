@@ -14,6 +14,9 @@ using Radzen.Blazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
+/// <summary>
+/// Represents the workflow definition version viewer.
+/// </summary>
 public partial class WorkflowDefinitionVersionViewer
 {
     private RadzenSplitterPane _activityPropertiesPane = default!;

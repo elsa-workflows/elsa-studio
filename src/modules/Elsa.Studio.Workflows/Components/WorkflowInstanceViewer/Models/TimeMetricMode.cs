@@ -1,5 +1,8 @@
 namespace Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 
+/// <summary>
+/// Defines the time metric mode enumeration.
+/// </summary>
 public enum TimeMetricMode
 {
     /// <summary>

@@ -268,6 +268,9 @@ public partial class LogPersistenceTab
 /// Defines the Persistence Strategy Configuration for an activity
 /// </summary>
 [Obsolete]
+/// <summary>
+/// Represents the legacy persistence activity configuration.
+/// </summary>
 public class LegacyPersistenceActivityConfiguration
 {
     /// <summary>

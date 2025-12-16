@@ -1,17 +1,17 @@
 namespace Elsa.Studio.DomInterop.Models;
 
 /// <summary>
-/// Represents the size and position of a DOM element's bounding client rectangle.
+/// Represents the bounding rectangle returned by the DOM <c>getBoundingClientRect</c> API.
 /// </summary>
 public struct DomRect
 {
     /// <summary>
-    /// Gets or sets the X coordinate of the left edge of the rectangle relative to the viewport.
+    /// Gets or sets the x-coordinate of the rectangle's origin relative to the viewport.
     /// </summary>
     public double X { get; set; }
 
     /// <summary>
-    /// Gets or sets the Y coordinate of the top edge of the rectangle relative to the viewport.
+    /// Gets or sets the y-coordinate of the rectangle's origin relative to the viewport.
     /// </summary>
     public double Y { get; set; }
 
@@ -26,22 +26,22 @@ public struct DomRect
     public double Height { get; set; }
 
     /// <summary>
-    /// Gets or sets the Y coordinate of the top edge of the rectangle relative to the viewport.
+    /// Gets or sets the distance from the top of the viewport to the rectangle's top edge.
     /// </summary>
     public double Top { get; set; }
 
     /// <summary>
-    /// Gets or sets the X coordinate of the right edge of the rectangle relative to the viewport.
+    /// Gets or sets the distance from the left of the viewport to the rectangle's right edge.
     /// </summary>
     public double Right { get; set; }
 
     /// <summary>
-    /// Gets or sets the Y coordinate of the bottom edge of the rectangle relative to the viewport.
+    /// Gets or sets the distance from the top of the viewport to the rectangle's bottom edge.
     /// </summary>
     public double Bottom { get; set; }
 
     /// <summary>
-    /// Gets or sets the X coordinate of the left edge of the rectangle relative to the viewport.
+    /// Gets or sets the distance from the left of the viewport to the rectangle's left edge.
     /// </summary>
     public double Left { get; set; }
 }

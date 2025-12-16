@@ -58,7 +58,7 @@ public class Result<TSuccess, TFailure>
     /// <summary>
     /// Invokes the specified handler if the result is successful.
     /// </summary>
-    /// <returns>The success result.</returns>
+    /// <returns>The result of the operation.</returns>
     public TSuccess OnSuccess(Action<TSuccess> handler)
     {
         if (!IsSuccess) return default!;
@@ -80,7 +80,7 @@ public class Result<TSuccess, TFailure>
     /// <summary>
     /// Invokes the specified handler if the result is failed.
     /// </summary>
-    /// <returns>The failed result.</returns>
+    /// <returns>The result of the operation.</returns>
     public TFailure OnFailed(Action<TFailure> handler)
     {
         if (!IsFailed) return default!;

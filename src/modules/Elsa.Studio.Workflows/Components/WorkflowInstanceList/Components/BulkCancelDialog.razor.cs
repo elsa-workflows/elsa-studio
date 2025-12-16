@@ -3,6 +3,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 
+/// <summary>
+/// Represents the bulk cancel dialog.
+/// </summary>
 public partial class BulkCancelDialog : ComponentBase
 {
     private bool ApplyToAllMatches { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace Elsa.Studio.Models;
+namespace Elsa.Studio.Models;
 
 /// <summary>
 /// Represents an item in a data panel with label, text, link, and optional click action.

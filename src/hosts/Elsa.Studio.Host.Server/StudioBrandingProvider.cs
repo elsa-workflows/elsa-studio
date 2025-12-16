@@ -1,4 +1,4 @@
-﻿using Elsa.Studio.Branding;
+using Elsa.Studio.Branding;
 
 namespace Elsa.Studio.Host.Server
 {

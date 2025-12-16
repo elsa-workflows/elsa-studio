@@ -1,24 +1,27 @@
 ﻿using BlazorMonaco.Editor;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
-using Elsa.Studio.Formatters;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
+using Elsa.Studio.Visualizers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Elsa.Studio.Components
 {
-    public partial class ContentFormatter : ComponentBase
+    /// <summary>
+    /// Represents the content visualizer.
+    /// </summary>
+    public partial class ContentVisualizer : ComponentBase
     {
         private int TabIndex = 0;
         private bool isReadOnly = true;
         private string selectedItem = "";
-        private string? FormattedText;
-        private TabulatedContentFormat? FormattedTable;
-        private IContentFormatter SelectedFormatter = new DefaultContentFormatter();
-        private List<IContentFormatter> AvailableFormatters = new();
+        private string? Pretty;
+        private TabulatedContentVisualizer? Table;
+        private IContentVisualizer SelectedVisualizer = new DefaultContentVisualizer();
+        private List<IContentVisualizer> AvailableVisualizers = new();
         private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
         private StandaloneCodeEditor? _monacoEditor;
 
@@ -36,6 +39,9 @@ namespace Elsa.Studio.Components
             }
         }
 
+        /// <summary>
+        /// Provides the selected item.
+        /// </summary>
         public string SelectedItem
         {
             get { return selectedItem; }
@@ -52,7 +58,7 @@ namespace Elsa.Studio.Components
 
         [Inject] private ILocalizer Localizer { get; set; } = null!;
 
-        [Inject] private IContentFormatProvider FormatProvider { get; set; } = null!;
+        [Inject] private IContentVisualizerProvider VisualizationProvider { get; set; } = null!;
 
         [Inject] private IClipboard Clipboard { get; set; } = null!;
 
@@ -61,20 +67,23 @@ namespace Elsa.Studio.Components
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
 
+        /// <summary>
+        /// Performs the on initialized operation.
+        /// </summary>
         protected override void OnInitialized()
         {
-            AvailableFormatters = FormatProvider.GetAll().ToList();
-            SelectedFormatter = FormatProvider.MatchOrDefault(DataPanelItem.Text);
-            selectedItem = SelectedFormatter.Name;
-            FormatUsing(SelectedFormatter);
+            AvailableVisualizers = VisualizationProvider.GetAll().ToList();
+            SelectedVisualizer = VisualizationProvider.MatchOrDefault(DataPanelItem.Text);
+            selectedItem = SelectedVisualizer.Name;
+            FormatUsing(SelectedVisualizer);
         }
 
         private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
         {
             return new StandaloneEditorConstructionOptions
             {
-                Language = SelectedFormatter.Syntax,
-                Value = FormattedText,
+                Language = SelectedVisualizer.Syntax,
+                Value = Pretty,
                 FontFamily = "Roboto Mono, monospace",
                 RenderLineHighlight = "none",
                 Minimap = new EditorMinimapOptions
@@ -98,29 +107,29 @@ namespace Elsa.Studio.Components
 
         private async Task OnFormatterChanged()
         {
-            var formatter = AvailableFormatters.FirstOrDefault(f => f.Name == SelectedItem);
-            if (formatter != null)
+            var visualizer = AvailableVisualizers.FirstOrDefault(f => f.Name == SelectedItem);
+            if (visualizer != null)
             {
-                FormatUsing(formatter);
+                FormatUsing(visualizer);
 
                 var model = await _monacoEditor!.GetModel();
-                await model.SetValue(FormattedText);
-                await Global.SetModelLanguage(JSRuntime, model, SelectedFormatter.Syntax);
+                await model.SetValue(Pretty);
+                await Global.SetModelLanguage(JSRuntime, model, SelectedVisualizer.Syntax);
             }
         }
 
-        private void FormatUsing(IContentFormatter formatter)
+        private void FormatUsing(IContentVisualizer visualizer)
         {
-            SelectedFormatter = formatter;
-            FormattedText = formatter.ToText(DataPanelItem.Text);
-            FormattedTable = formatter.ToTable(DataPanelItem.Text);
+            SelectedVisualizer = visualizer;
+            Pretty = visualizer.ToPretty(DataPanelItem.Text);
+            Table = visualizer.ToTable(DataPanelItem.Text);
             TabIndex = 0;
             StateHasChanged();
         }
 
         private async Task OnCopyClicked()
         {
-            await Clipboard.CopyText(FormattedText ?? DataPanelItem.Text);
+            await Clipboard.CopyText(Pretty ?? DataPanelItem.Text);
             Snackbar.Add($"{DataPanelItem.Label} copied", Severity.Success);
         }
 

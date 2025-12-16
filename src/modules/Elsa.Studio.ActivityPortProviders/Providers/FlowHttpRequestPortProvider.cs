@@ -17,6 +17,9 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// Provides ports for the FlowSendHttpRequest & DownloadHttpFile activities based on its supported status codes.
 /// </summary>
 [UsedImplicitly]
+/// <summary>
+/// Provides flow http request port services.
+/// </summary>
 public class FlowHttpRequestPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />
@@ -32,7 +35,7 @@ public class FlowHttpRequestPortProvider : ActivityPortProviderBase
 
         foreach (var statusCode in expectedStatusCodes)
         {
-            yield return new Port
+            yield return new()
             {
                 Name = statusCode.ToString(),
                 Type = PortType.Flow,
@@ -40,28 +43,28 @@ public class FlowHttpRequestPortProvider : ActivityPortProviderBase
             };
         }
         
-        yield return new Port
+        yield return new()
         {
             Name = "Unmatched status code",
             Type = PortType.Flow,
             DisplayName = "Unmatched status code"
         };
         
-        yield return new Port
+        yield return new()
         {
             Name = "Failed to connect",
             Type = PortType.Flow,
             DisplayName = "Failed to connect"
         };
         
-        yield return new Port
+        yield return new()
         {
             Name = "Timeout",
             Type = PortType.Flow,
             DisplayName = "Timeout"
         };
         
-        yield return new Port
+        yield return new()
         {
             Name = "Done",
             Type = PortType.Flow,
