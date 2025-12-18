@@ -7,13 +7,12 @@
     <MudText Typo="Typo.overline">@Localizer["Outputs"]</MudText>
     <MudStack>
 
-        <MudButton
-            StartIcon="@Icons.Material.Outlined.Add"
-            Variant="Variant.Filled"
-            Color="Color.Primary"
-            Class="align-self-end"
-            OnClick="OnAddOutputClicked"
-            Disabled="IsReadonly">
+        <MudButton StartIcon="@Icons.Material.Outlined.Add"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="align-self-end"
+                   OnClick="OnAddOutputClicked"
+                   Disabled="IsReadonly">
             @Localizer["Add output"]
         </MudButton>
 
@@ -25,30 +24,30 @@
         {
             <MudSimpleTable Dense="true" Bordered="false" Striped="false" Elevation="0" Outlined="true" FixedHeader="true">
                 <thead>
-                <tr>
-                    <th>@Localizer["Name"]</th>
-                    <th>@Localizer["Type"]</th>
-                    <th></th>
-                </tr>
+                    <tr>
+                        <th>@Localizer["Name"]</th>
+                        <th>@Localizer["Type"]</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
 
-                @foreach (var output in Outputs)
-                {
-                    var typeDescriptor = output.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == output.Type) : default;
-                    var typeName = typeDescriptor?.DisplayName ?? output.Type;
-                    if (output.IsArray) typeName += "[]";
-                    <tr>
-                        <td>@output.Name</td>
-                        <td>@typeName</td>
-                        <td style="text-align: right;">
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Disabled="IsReadonly">
-                                <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">@Localizer["Edit"]</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">@Localizer["Delete"]</MudMenuItem>
-                            </MudMenu>
-                        </td>
-                    </tr>
-                }
+                    @foreach (var output in Outputs)
+                    {
+                        var typeDescriptor = output.Type != null ? _variableTypes.FirstOrDefault(x => x.TypeName == output.Type) : default;
+                        var typeName = typeDescriptor?.DisplayName ?? output.Type;
+                        if (output.IsArray) typeName += "[]";
+                        <tr>
+                            <td>@output.Name</td>
+                            <td>@typeName</td>
+                            <td style="text-align: right;">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true" Disabled="IsReadonly">
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(output))">@Localizer["Edit"]</MudMenuItem>
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(output))">@Localizer["Delete"]</MudMenuItem>
+                                </MudMenu>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </MudSimpleTable>
         }
