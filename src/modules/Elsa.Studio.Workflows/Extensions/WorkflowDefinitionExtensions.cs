@@ -9,7 +9,7 @@ public static class WorkflowDefinitionExtensions
     /// Determines whether the specified workflow definition is read-only.
     /// </summary>
     /// <param name="workflowDefinition">The workflow definition to check.</param>
-    /// <returns><c>true</c> if the workflow definition is read-only; otherwise, <c>false</c>.</returns>
+    /// <returns>The result of the operation.</returns>
     public static bool GetIsReadOnly(this WorkflowDefinition? workflowDefinition)
     {
         return workflowDefinition != null && (workflowDefinition.IsLatest == false || (workflowDefinition.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);

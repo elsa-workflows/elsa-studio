@@ -17,6 +17,9 @@ namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 /// </summary>
 public abstract class ActivityWrapperBase : StudioComponentBase
 {
+    private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    
+
     /// <summary>
     /// Gets or sets the element ID.
     /// </summary>
@@ -53,21 +56,48 @@ public abstract class ActivityWrapperBase : StudioComponentBase
     [Inject] protected IActivityPortService ActivityPortService { get; set; } = null!;
     [Inject] protected IServiceProvider ServiceProvider { get; set; } = null!;
 
+    /// <summary>
+    /// Provides the can start workflow.
+    /// </summary>
     protected bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    /// <summary>
+    /// Gets or sets the label.
+    /// </summary>
     protected string Label { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the type name.
+    /// </summary>
     protected string TypeName { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the description.
+    /// </summary>
     protected string Description { get; private set; } = null!;
+    /// <summary>
+    /// Indicates whether show description.
+    /// </summary>
     protected bool ShowDescription { get; private set; }
+    /// <summary>
+    /// Gets or sets the color.
+    /// </summary>
     protected string Color { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the icon.
+    /// </summary>
     protected string? Icon { get; private set; }
+    /// <summary>
+    /// Gets or sets the activity descriptor.
+    /// </summary>
     protected ActivityDescriptor? ActivityDescriptor { get; private set; }
+    /// <summary>
+    /// Gets or sets the ports.
+    /// </summary>
     protected ICollection<Port> Ports { get; private set; } = new List<Port>();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrWhiteSpace(ActivityJson))
-            Activity = JsonSerializer.Deserialize<JsonObject>(ActivityJson, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })!;
+            Activity = JsonSerializer.Deserialize<JsonObject>(ActivityJson, _serializerOptions)!;
 
         await ActivityRegistry.EnsureLoadedAsync();
 

@@ -4,8 +4,12 @@ using MudBlazor;
 
 namespace Elsa.Studio.Security.Menu;
 
+/// <summary>
+/// Provides menu items for the security module, including users and roles management.
+/// </summary>
 public class SecurityMenu : IMenuProvider
 {
+    /// <inheritdoc />
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>

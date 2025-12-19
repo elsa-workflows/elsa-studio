@@ -1,6 +1,7 @@
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Microsoft.Extensions.Localization
+@using Elsa.Studio.Components;
 @inject ILocalizer Localizer
 
 <div>
@@ -8,8 +9,8 @@
     <EditForm EditContext="@_editContext" OnValidSubmit="OnValidSubmit">
         <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator"/>
         <MudStack>
-            <MudTextField T="string" Label="@Localizer["Name"]" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" HelperText="@Localizer["The name of the workflow."]" @bind-Value="@_model.Name" For="@(() => _model.Name)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
-            <MudTextField T="string" Label="@Localizer["Description"]" Variant="Variant.Outlined" Margin="Margin.Dense" HelperText="@Localizer["A brief description of the workflow."]" Lines="4" @bind-Value="@_model.Description" For="@(() => _model.Description)" OnBlur="ValidateForm" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+            <MudTextField T="string" Label="@Localizer["Name"]" @bind-Value="@_model.Name" For="@(() => _model.Name)" HelperText="@Localizer["The name of the workflow."]" OnBlur="ValidateForm" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="IsReadOnly" Disabled="IsReadOnly"></MudTextField>
+            <MarkdownTextArea Label="@Localizer["Description"]" @bind-Value="@_model.Description" For="@(() => _model.Description)" HelperText="@Localizer["A brief description of the workflow."]" OnBlur="ValidateForm" IsReadOnly="IsReadOnly" />
         </MudStack>
     </EditForm>
 </div>

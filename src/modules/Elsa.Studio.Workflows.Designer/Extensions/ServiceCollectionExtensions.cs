@@ -6,8 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Workflows.Designer.Extensions;
 
+/// <summary>
+/// Provides extension methods for service collection.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds the workflows designer.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <returns>The result of the operation.</returns>
     public static IServiceCollection AddWorkflowsDesigner(this IServiceCollection services)
     {
         return services

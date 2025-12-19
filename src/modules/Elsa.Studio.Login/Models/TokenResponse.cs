@@ -2,6 +2,9 @@
 
 namespace Elsa.Studio.Login.Models;
 
+/// <summary>
+/// Represents a response containing token.
+/// </summary>
 public sealed class TokenResponse
 {
     [JsonPropertyName("access_token")] public string? AccessToken { get; set; }

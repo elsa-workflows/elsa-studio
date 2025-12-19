@@ -13,6 +13,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Inputs;
 
+/// <summary>
+/// Represents the edit input dialog.
+/// </summary>
 public partial class EditInputDialog
 {
     private readonly InputDefinitionModel _model = new();
