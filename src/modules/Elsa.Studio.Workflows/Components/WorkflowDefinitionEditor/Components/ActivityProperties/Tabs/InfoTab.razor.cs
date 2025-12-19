@@ -32,5 +32,6 @@ public partial class InfoTab
         ActivityInfo.Add("Node ID", Activity.GetNodeId());
         ActivityInfo.Add(Localizer["Type"], ActivityDescriptor.TypeName, link == null ? null : $"/workflows/definitions/{link}/edit");
         ActivityInfo.Add(Localizer["Description"], ActivityDescriptor.Description);
+        ActivityInfo.Add(Localizer["Version"], ActivityDescriptor.Version.ToString());
     }
 }

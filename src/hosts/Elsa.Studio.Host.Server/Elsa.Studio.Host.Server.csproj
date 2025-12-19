@@ -15,7 +15,6 @@
         <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorServer\Elsa.Studio.Core.BlazorServer.csproj" />
         <ProjectReference Include="..\..\framework\Elsa.Studio.Translations\Elsa.Studio.Translations.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Labels\Elsa.Studio.Labels.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorServer\Elsa.Studio.Localization.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
