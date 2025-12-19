@@ -73,7 +73,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task ReloadTableAsync()
     {
-        await Table.ReloadServerData();
+        await InvokeAsync(Table.ReloadServerData);
     }
 
     private bool CanRollback(WorkflowDefinitionSummary workflowDefinitionSummary)

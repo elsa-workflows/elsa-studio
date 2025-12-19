@@ -29,7 +29,11 @@
                 <MudTooltip Text="@Localizer["Publish the current workflow"]" Delay="1000">
                     <MudButtonGroup Color="Color.Default" Variant="Variant.Text" DropShadow="false">
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" title="@Localizer["Publish"]" OnClick="@OnPublishClicked"/>
-                        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown">
+                        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Dense="true">
+                            <MudTooltip Text="@Localizer["Save As"]" Inline="false" Delay="1000">
+                                <MudMenuItem Icon="@Icons.Material.Filled.SaveAs" OnClick="@OnSaveAsClick">@Localizer["Save As"]</MudMenuItem>
+                            </MudTooltip>
+                            <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                             @if (_workflowDefinition?.IsPublished == true)
                             {
                                 <MudTooltip Text="@Localizer["Unpublish the current workflow"]" Inline="false" Delay="1000">
@@ -54,3 +58,31 @@
         <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight"/>
     </RadzenSplitterPane>
 </RadzenSplitter>
+
+<script>
+    window.editorHotkeys = {
+        _hotkeyHandler: null,
+        register: function (dotNetRef) {
+            function handler(e) {
+                // Ctrl+S (Windows/Linux) and Cmd+S (Mac)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+                    e.preventDefault();
+                    dotNetRef.invokeMethodAsync('OnHotKeysCtrlS');
+                }
+                // Ctrl+Shift+S (Windows/Linux) and Cmd+Shift+S (Mac) for Save As
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+                    e.preventDefault();
+                    dotNetRef.invokeMethodAsync('OnHotKeysCtrlShiftS');
+                }
+            }
+            window.addEventListener('keydown', handler);
+            this._hotkeyHandler = handler;
+        },
+        dispose: function (dotNetRef) {
+            if (this._hotkeyHandler) {
+                window.removeEventListener('keydown', this._hotkeyHandler);
+                this._hotkeyHandler = null;
+            }
+        }
+    };
+</script>

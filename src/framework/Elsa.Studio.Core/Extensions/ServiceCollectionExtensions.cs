@@ -1,10 +1,10 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.Services;
-using Elsa.Studio.Formatters;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
+using Elsa.Studio.Visualizers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -32,15 +32,15 @@ public static class ServiceCollectionExtensions
             .AddScoped<IExpressionService, DefaultExpressionService>()
             .AddScoped<IStartupTaskRunner, DefaultStartupTaskRunner>()
             .AddScoped<IServerInformationProvider, EmptyServerInformationProvider>()
-            .AddScoped<IClientInformationProvider, AssemblyClientInformationProvider>()
+            .AddScoped<IClientInformationProvider, StaticClientInformationProvider>()
             .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
-            .AddScoped<IWidgetRegistry, DefaultWidgetRegistry>()
-            .AddSingleton<IContentFormatProvider, DefaultContentFormatProvider>()
+            .AddScoped<IActivityTabRegistry, DefaultActivityTabRegistry>()
+            .AddSingleton<IContentVisualizerProvider, DefaultContentVisualizerProvider>()
             .AddUserMessageService<DefaultUserMessageService>()
             ;
 
-        // Content formatter services
-        services.AddContentFormatter<JsonContentFormatter>();
+        // Content visualizers
+        services.AddContentVisualizer<JsonContentVisualizer>();
         
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
@@ -63,6 +63,9 @@ public static class ServiceCollectionExtensions
         return services;
     }
     
+    /// <summary>
+    /// Provides the add remote api.
+    /// </summary>
     public static IServiceCollection AddRemoteApi<TApi>(this IServiceCollection services, BackendApiConfig? config = null) where TApi : class
     {
         services.Configure(config?.ConfigureBackendOptions ?? (_ => { }));
@@ -103,10 +106,10 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the specified <see cref="IContentFormatter"/>.
+    /// Adds the specified <see cref="IContentVisualizer"/>.
     /// </summary>
-    public static IServiceCollection AddContentFormatter<T>(this IServiceCollection services) where T : class, IContentFormatter
+    public static IServiceCollection AddContentVisualizer<T>(this IServiceCollection services) where T : class, IContentVisualizer
     {
-        return services.AddTransient<IContentFormatter, T>();
+        return services.AddTransient<IContentVisualizer, T>();
     }
 }

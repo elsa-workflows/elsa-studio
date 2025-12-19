@@ -6,8 +6,14 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Menu;
 
+/// <summary>
+/// Exposes menu entries for workflows.
+/// </summary>
 public class WorkflowsMenu(ILocalizer localizer) : IMenuProvider
 {
+    /// <summary>
+    /// Provides the get menu items async.
+    /// </summary>
     public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
         var menuItems = new List<MenuItem>

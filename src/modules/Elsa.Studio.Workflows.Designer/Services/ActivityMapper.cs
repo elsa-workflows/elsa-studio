@@ -17,6 +17,9 @@ internal class ActivityMapper(
     IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry)
     : IActivityMapper
 {
+    /// <summary>
+    /// Provides the map activity.
+    /// </summary>
     public X6ActivityNode MapActivity(JsonObject activity, ActivityStats? activityStats = null)
     {
         var activityId = activity.GetId();
@@ -47,6 +50,11 @@ internal class ActivityMapper(
         return node;
     }
 
+    /// <summary>
+    /// Gets the ports.
+    /// </summary>
+    /// <param name="activity">The activity.</param>
+    /// <returns>The result of the operation.</returns>
     public X6Ports GetPorts(JsonObject activity)
     {
         // Create input ports.
@@ -62,6 +70,11 @@ internal class ActivityMapper(
         };
     }
 
+    /// <summary>
+    /// Gets the out ports.
+    /// </summary>
+    /// <param name="activity">The activity.</param>
+    /// <returns>The result of the operation.</returns>
     public IEnumerable<X6Port> GetOutPorts(JsonObject activity)
     {
         var activityType = activity.GetTypeName();
@@ -116,6 +129,11 @@ internal class ActivityMapper(
         return ports;
     }
 
+    /// <summary>
+    /// Gets the in ports.
+    /// </summary>
+    /// <param name="activity">The activity.</param>
+    /// <returns>The result of the operation.</returns>
     public IEnumerable<X6Port> GetInPorts(JsonObject activity)
     {
         var displaySettings = activityDisplaySettingsRegistry.GetSettings(activity.GetTypeName());

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties;
 
+/// <summary>
+/// Represents the workflow properties.
+/// </summary>
 public partial class WorkflowProperties
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;

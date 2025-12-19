@@ -12,6 +12,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
+/// <summary>
+/// Represents the version tab.
+/// </summary>
 public partial class VersionTab
 {
     [Parameter] public ActivityDescriptor ActivityDescriptor { get; set; } = default!;

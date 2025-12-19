@@ -16,6 +16,9 @@ public partial class TaskTab
     
     /// The activity descriptor.
     [Parameter]
+    /// <summary>
+    /// Gets or sets the activity descriptor.
+    /// </summary>
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     
     /// An event raised when the activity is updated.

@@ -1,4 +1,4 @@
-﻿using Elsa.Studio.Abstractions;
+using Elsa.Studio.Abstractions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization.Components;
 

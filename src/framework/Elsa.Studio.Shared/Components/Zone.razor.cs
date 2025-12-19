@@ -12,12 +12,18 @@ public partial class Zone : IDisposable
     /// Gets or sets the zone name.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the name.
+    /// </summary>
     public string Name { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the attributes that are passed to the widgets.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the attributes.
+    /// </summary>
     public IDictionary<string, object?> Attributes { get; set; } = new Dictionary<string, object?>();
 
     [Inject] private IWidgetRegistry WidgetRegistry { get; set; } = default!;

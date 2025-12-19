@@ -17,4 +17,7 @@ public interface IEnvironmentsClient
     Task<ListEnvironmentsResponse> ListEnvironmentsAsync(CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Represents a response containing list environments.
+/// </summary>
 public record ListEnvironmentsResponse(ICollection<ServerEnvironment> Environments, string? DefaultEnvironmentName);

@@ -5,8 +5,16 @@ using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Localization.BlazorServer.Extensions;
 
+/// <summary>
+/// Provides extension methods for web application.
+/// </summary>
 public static class WebApplicationExtensions
 {
+    /// <summary>
+    /// Configures the elsa localization.
+    /// </summary>
+    /// <param name="app">The web application to configure.</param>
+    /// <returns>The result of the operation.</returns>
     public static WebApplication UseElsaLocalization(this WebApplication app)
     {
         var localisationOptions = app.Services.GetService<IOptions<LocalizationOptions>>()?.Value;

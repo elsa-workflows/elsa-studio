@@ -41,6 +41,8 @@ public partial class TestTab
     private DataPanelModel ActivityState { get; set; } = [];
     private DataPanelModel Outcomes { get; set; } = [];
     private DataPanelModel Output { get; set; } = [];
+    private DataPanelModel Fault { get; set; }
+
     private bool HasRun { get; set; }
     private bool IsRunning { get; set; }
 
@@ -88,5 +90,15 @@ public partial class TestTab
         ActivityState = activityState;
         Outcomes = outcomesData ?? [];
         Output = outputData;
+
+        if (response.Exception is not null)
+        {
+            var fault = new DataPanelModel
+            {
+                { "Message", response.Exception?.Message },
+                { "StackTrace", response.Exception?.StackTrace }
+            };
+            Fault = fault;
+        }
     }
 }

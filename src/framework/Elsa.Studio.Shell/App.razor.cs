@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Shell;
 
+/// <summary>
+/// Represents the app.
+/// </summary>
 public partial class App
 {
     [Inject] private IEnumerable<IFeature> Modules { get; set; } = null!;
