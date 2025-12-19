@@ -16,7 +16,7 @@ public class DataPanelModel : List<DataPanelItem>
     /// <summary>
     /// Provides the add.
     /// </summary>
-    public void Add(string label, string? text = null, string? link = null) => Add(new DataPanelItem(label, text, link));
+    public void Add(string label, string? text = null, string? link = null, string? labelToolTip = null) => Add(new DataPanelItem(label, text, link, LabelToolTip: labelToolTip));
 }
 
 /// <summary>
