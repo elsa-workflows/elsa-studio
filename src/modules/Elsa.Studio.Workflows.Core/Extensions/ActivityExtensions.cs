@@ -1,6 +1,5 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Elsa.Studio.Workflows.Extensions;
 
