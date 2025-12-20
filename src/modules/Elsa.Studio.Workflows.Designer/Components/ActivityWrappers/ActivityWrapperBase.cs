@@ -137,11 +137,11 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         if (needsSizeUpdate)
         {
             await UpdateSizeAsync();
-            _previousShowDescription = currentShowDescription;
-            _previousDescription = Description;
-            _previousPortCount = currentPortCount;
         }
 
+        _previousShowDescription = currentShowDescription;
+        _previousDescription = Description;
+        _previousPortCount = currentPortCount;
         _isFirstRender = false;
     }
 
