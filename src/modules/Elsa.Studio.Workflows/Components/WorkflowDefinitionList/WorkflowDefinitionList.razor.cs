@@ -334,9 +334,10 @@ public partial class WorkflowDefinitionList
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
+        var reasons = string.Join(", ", results.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
         var message = results.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
-            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm];
+            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}. Reason: {2}", failedResultCount, failedWorkflowsTerm, reasons] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}. Reasons: {2}", failedResultCount, failedWorkflowsTerm, reasons];
         var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         Snackbar.Add(message, severity, options =>
         {
