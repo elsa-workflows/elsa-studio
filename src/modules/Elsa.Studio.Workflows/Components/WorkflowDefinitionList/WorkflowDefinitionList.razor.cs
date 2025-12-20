@@ -1,12 +1,16 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Localization;
+using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
@@ -35,8 +39,9 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
-
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
@@ -123,15 +128,14 @@ public partial class WorkflowDefinitionList
             FullWidth = true,
             MaxWidth = MaxWidth.Small
         };
-
-        var dialogInstance = await DialogService.ShowAsync<CreateWorkflowDialog>(Localizer["New workflow"], parameters, options);
+        
+        var dialogComponentType = CreateWorkflowDialogComponentProvider.GetComponentType();
+        var dialogInstance = await DialogService.ShowAsync(dialogComponentType, Localizer["New workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
 
         if (!dialogResult.Canceled)
         {
-            var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
-            var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(newWorkflowModel.Name!, newWorkflowModel.Description!);
-
+            var result = (Result<WorkflowDefinition, ValidationErrors>)dialogResult.Data!;
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
         }
@@ -351,9 +355,10 @@ public partial class WorkflowDefinitionList
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
+        var reasons = string.Join(", ", results.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
         var message = results.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
-            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm];
+            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}. Reason: {2}", failedResultCount, failedWorkflowsTerm, reasons] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}. Reasons: {2}", failedResultCount, failedWorkflowsTerm, reasons];
         var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         UserMessageService.ShowSnackbarTextMessage(message, severity, options =>
         {

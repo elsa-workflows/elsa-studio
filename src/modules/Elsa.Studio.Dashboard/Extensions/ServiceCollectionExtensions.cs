@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Elsa.Studio.Dashboard.Extensions;
 
 /// <summary>
-/// Provides service registration helpers for the dashboard module.
+/// Provides extension methods for configuring dashboard services.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the dashboard feature and its menu provider.
+    /// Adds the dashboard module services to the service collection.
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddDashboardModule(this IServiceCollection services)
     {
         return services

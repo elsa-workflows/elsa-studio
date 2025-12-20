@@ -6,15 +6,15 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Elsa.Studio.DomInterop.Extensions;
 
 /// <summary>
-/// Provides extension methods for registering DOM interop services with the dependency injection container.
+/// Provides extension methods for configuring DOM interop services.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers services that facilitate DOM interactions via JavaScript interop.
+    /// Adds DOM interop services to the service collection.
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddDomInterop(this IServiceCollection services)
     {
         services.TryAddScoped<IDomAccessor, DomJsInterop>();
@@ -23,22 +23,22 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers services that expose clipboard functionality via JavaScript interop.
+    /// Adds clipboard interop services to the service collection.
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddClipboardInterop(this IServiceCollection services)
     {
         services.TryAddScoped<IClipboard, ClipboardJsInterop>();
 
         return services;
     }
-
+    
     /// <summary>
-    /// Registers services that allow downloading files from streams using JavaScript interop.
+    /// Adds file download interop services to the service collection.
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddDownloadInterop(this IServiceCollection services)
     {
         services.TryAddScoped<IFiles, FilesJsInterop>();

@@ -10,7 +10,7 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Activ
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Extensions;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -23,13 +23,14 @@ using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Extensions;
 using ThrottleDebounce;
 using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// A component that allows the user to edit a workflow definition.
-public partial class WorkflowEditor : IAsyncDisposable
+public partial class WorkflowEditor : WorkflowEditorComponentBase, INotificationHandler<ImportedWorkflowDefinition>, IDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _autoSave = true;
@@ -114,6 +115,8 @@ public partial class WorkflowEditor : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        Mediator.Subscribe<ImportedWorkflowDefinition>(this);
+        
         _workflowDefinition = WorkflowDefinition;
 
         await ActivityRegistry.EnsureLoadedAsync();
@@ -149,6 +152,13 @@ public partial class WorkflowEditor : IAsyncDisposable
             await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
         }
     }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Mediator.Unsubscribe(this);
+        _rateLimitedSaveChangesAsync.Dispose();
+    }    
 
     private async Task HandleChangesAsync(bool readDiagram)
     {
@@ -433,6 +443,13 @@ public partial class WorkflowEditor : IAsyncDisposable
         _isDirty = false;
 
         StateHasChanged();
+    }
+    
+    async Task INotificationHandler<ImportedWorkflowDefinition>.HandleAsync(ImportedWorkflowDefinition notification, CancellationToken cancellationToken)
+    {
+        var definition = notification.WorkflowDefinition;
+        await SetWorkflowDefinitionAsync(definition);
+        await _diagramDesigner.LoadActivityAsync(definition.Root);
     }
 
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)

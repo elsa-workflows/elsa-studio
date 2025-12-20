@@ -15,16 +15,20 @@
 
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
 
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         ThemeService.CurrentThemeChanged += OnThemeChanged;
-        StateHasChanged();
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+        ThemeService.IsDarkMode = true; // Set dark mode as default
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         ThemeService.CurrentThemeChanged -= OnThemeChanged;
     }
 
-    private void OnThemeChanged() => StateHasChanged();
+    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
+    private void OnDarkModeChanged() => InvokeAsync(StateHasChanged);
 }

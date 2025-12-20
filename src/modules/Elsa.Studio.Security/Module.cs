@@ -3,7 +3,7 @@ using Elsa.Studio.Abstractions;
 namespace Elsa.Studio.Security;
 
 /// <summary>
-/// Declares the security management feature for the studio host.
+/// Represents the security feature module for the Elsa Studio application.
 /// </summary>
 public class Feature : FeatureBase
 {

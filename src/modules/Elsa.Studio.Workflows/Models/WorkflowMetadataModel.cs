@@ -20,5 +20,5 @@ public class WorkflowMetadataModel
     /// <summary>
     /// Gets or sets the description of the workflow.
     /// </summary>
-    public string? Description { get; set; } = default!;
+    public string? Description { get; set; } = null!;
 }

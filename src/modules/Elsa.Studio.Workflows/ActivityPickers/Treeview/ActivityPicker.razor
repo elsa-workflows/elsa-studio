@@ -1,0 +1,78 @@
+@using Elsa.Studio.Workflows.Services
+@using Variant = MudBlazor.Variant
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using System.Text.Json.Nodes
+@using System.Text.Json
+@using Elsa.Studio.Workflows.Domain.Contracts
+@using Elsa.Studio.Workflows.Models
+@using Elsa.Studio.Workflows.UI.Contracts
+@inherits StudioComponentBase
+@using Microsoft.Extensions.Localization
+@inject ILocalizer Localizer
+
+<style>
+    /* Required to resolve an issue where double clicking a parent tree node causes all childeren to be selected during drag and drop. */
+    .mud-treeview, .mud-treeview * {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -khtml-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+    }
+</style>
+
+<MudTabs Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="@Localizer["Activities"]">
+        <Well>
+            <MudStack>
+                <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center">
+                    <MudTextField T="string"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  Label="@Localizer["Search"]"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  TextChanged="OnTextChanged"
+                                  Immediate="true"
+                                  Clearable="true" >
+                        
+                    </MudTextField>
+                    <MudTooltip Text="@(_expanded ? "Collapse All" : "Expand All")">
+                        <MudIconButton Icon="@(_expanded? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
+                                       onclick="OnExpandClicked"
+                                       Size="Size.Medium" />
+                    </MudTooltip>
+                </MudStack>
+                <div style="@($"overflow-y: scroll; max-height: calc(100vh - var(--mud-appbar-height) - 150px);")">
+                    <MudTreeView @ref="_treeView"
+                                 Items="@_treeItemData"
+                                 FilterFunc="@(x => MatchesName((ActivityTreeItem)x))"
+                                 SelectionMode="MudBlazor.SelectionMode.SingleSelection"
+                                 Dense="true">
+                        <ItemTemplate>
+                            @{
+                                var item = (ActivityTreeItem)context;
+                            }
+                            <MudTreeViewItem Text="@(Localizer[item.Text])"
+                                             Icon="@(item.IconWithColor)"
+                                             Visible="@item.Visible"
+                                             Items="@item.Children"
+                                             OnDoubleClick="@(() => OnItemDoubleClick(item))"
+                                             title="@Localizer[item.ActivityDescriptor?.Description]"
+                                             @bind-Expanded="@item.Expanded"
+                                             draggable="@(item.ActivityDescriptor is not null ? "true" : "false")"
+                                             @ondragstart="@((e) => {
+                                                 if (item.ActivityDescriptor is not null)
+                                                 {
+                                                     OnDragStart(item.ActivityDescriptor);
+                                                 }
+                                             })">
+                            </MudTreeViewItem>
+                        </ItemTemplate>
+                    </MudTreeView>
+                </div>
+            </MudStack>
+        </Well>
+    </MudTabPanel>
+</MudTabs>

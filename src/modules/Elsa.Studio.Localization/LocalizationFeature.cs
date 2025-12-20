@@ -1,22 +1,19 @@
-﻿using Elsa.Studio.Abstractions;
+using Elsa.Studio.Abstractions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization.Components;
 
 namespace Elsa.Studio.Localization;
 
 /// <summary>
-/// Registers localization UI elements and services for the studio shell.
+/// Represents the localization feature for the application, extending the base functionality of <see cref="FeatureBase"/>.
+/// It provides a mechanism to initialize the language picker component in the application bar.
 /// </summary>
 public class LocalizationFeature(IAppBarService appBarService) : FeatureBase
 {
-    /// <summary>
-    /// Adds the language picker to the application bar when the feature initializes.
-    /// </summary>
-    /// <param name="cancellationToken">A token used to cancel the initialization.</param>
-    /// <returns>A completed task once the menu item is registered.</returns>
+    /// <inheritdoc />
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        appBarService.AddAppBarItem<LanguagePicker>();
+        appBarService.AddComponent<LanguagePicker>();
 
         return ValueTask.CompletedTask;
     }

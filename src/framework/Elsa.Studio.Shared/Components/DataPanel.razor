@@ -29,8 +29,8 @@
                     @foreach (var item in data)
                     {
                         <tr Class="hover-row">
-                            <td style="width: 200px;">@item.Label</td>
-                            <td>
+                            <td style="width: 200px;" title="@item.LabelToolTip">@item.Label</td>
+                            <td> 
                                 <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
                                     <MudTooltip Text="@Localizer["View"]">
                                         @if (!string.IsNullOrWhiteSpace(item.Text))
@@ -128,7 +128,6 @@
     [Parameter] public string NoDataMessage { get; set; } = "No data available.";
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
-
     [Inject] private IClipboard Clipboard { get; set; } = null!;
 
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
