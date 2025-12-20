@@ -127,8 +127,9 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         var designerMetadata = activity.GetDesignerMetadata();
         var hasValidSize = designerMetadata.Size?.Width > 0 && designerMetadata.Size?.Height > 0;
         
-        // Skip initial size calculation if activity already has a valid size
-        // This significantly improves performance during initial workflow load
+        // Determine if size update is needed:
+        // 1. First render without valid size - need to calculate
+        // 2. Subsequent renders when size-affecting properties changed
         var needsSizeUpdate = (_isFirstRender && !hasValidSize) ||
                             (!_isFirstRender && (currentShowDescription != _previousShowDescription ||
                             Description != _previousDescription ||
@@ -150,7 +151,8 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         if (!string.IsNullOrEmpty(ElementId))
         {
             var size = Activity.GetDesignerMetadata().Size;
-            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
+            var portCount = Ports.Count;
+            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size, portCount);
         }
     }
 }

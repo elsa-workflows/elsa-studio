@@ -2,20 +2,20 @@ import {activityTagName, createActivityElement} from "../internal/create-activit
 import {Activity, Size} from "../models";
 
 // Cache for storing calculated activity sizes
-// Key format: "activityType:showsDescription:hasIcon"
+// Key format: "activityType:showsDescription:hasIcon:portCount"
 const sizeCache = new Map<string, Size>();
 
 // Queue for batching size calculations
-let calculationQueue: Array<{activity: Activity, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
+let calculationQueue: Array<{activity: Activity, portCount?: number, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
 let batchTimer: number | null = null;
 
-function getCacheKey(activity: Activity): string {
+function getCacheKey(activity: Activity, portCount?: number): string {
     const type = activity.type || 'unknown';
     const hasDescription = !!activity.metadata?.description;
     const showDescription = activity.metadata?.showDescription === true;
     const hasIcon = !!activity.metadata?.icon;
-    // Simplified key - can be enhanced to include port count if needed
-    return `${type}:${hasDescription && showDescription}:${hasIcon}`;
+    const ports = portCount ?? 0;
+    return `${type}:${hasDescription && showDescription}:${hasIcon}:${ports}`;
 }
 
 function processBatch() {
@@ -37,16 +37,17 @@ function processBatch() {
     const bodyElement = document.getElementsByTagName('body')[0];
     bodyElement.appendChild(container);
 
-    const measurements: Array<{wrapper: HTMLElement, activity: Activity, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
+    const measurements: Array<{wrapper: HTMLElement, activity: Activity, portCount?: number, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
 
     // Create all elements at once
     for (const item of batch) {
-        const cacheKey = getCacheKey(item.activity);
+        const cacheKey = getCacheKey(item.activity, item.portCount);
         
         // Check cache first
         const cachedSize = sizeCache.get(cacheKey);
         if (cachedSize) {
-            item.resolve(cachedSize);
+            // Return a shallow copy to prevent mutation
+            item.resolve({...cachedSize});
             continue;
         }
 
@@ -59,6 +60,7 @@ function processBatch() {
         measurements.push({
             wrapper,
             activity: item.activity,
+            portCount: item.portCount,
             resolve: item.resolve,
             reject: item.reject
         });
@@ -112,10 +114,11 @@ function processBatch() {
                 };
                 
                 // Cache the size
-                const cacheKey = getCacheKey(measurement.activity);
+                const cacheKey = getCacheKey(measurement.activity, measurement.portCount);
                 sizeCache.set(cacheKey, size);
                 
-                measurement.resolve(size);
+                // Return a shallow copy to prevent mutation
+                measurement.resolve({...size});
             } catch (error) {
                 measurement.reject(error);
             }
@@ -129,18 +132,19 @@ function processBatch() {
     checkAllSizes();
 }
 
-export function calculateActivitySize(activity: Activity): Promise<Size> {
+export function calculateActivitySize(activity: Activity, portCount?: number): Promise<Size> {
     // Check cache first
-    const cacheKey = getCacheKey(activity);
+    const cacheKey = getCacheKey(activity, portCount);
     const cachedSize = sizeCache.get(cacheKey);
     
     if (cachedSize) {
-        return Promise.resolve(cachedSize);
+        // Return a shallow copy to prevent mutation
+        return Promise.resolve({...cachedSize});
     }
 
     // Add to batch queue
     return new Promise((resolve, reject) => {
-        calculationQueue.push({activity, resolve, reject});
+        calculationQueue.push({activity, portCount, resolve, reject});
 
         // Schedule batch processing
         if (batchTimer === null) {
