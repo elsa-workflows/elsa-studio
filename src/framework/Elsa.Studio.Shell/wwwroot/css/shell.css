@@ -69,7 +69,7 @@
 }
 
 /*****************************************************
-* Set Radzen primary colour to match the MudBlazor theme
+* Set Radzen primary color to match the MudBlazor theme
 ******************************************************/
 :root {
     --rz-primary-lighter: #E3F2FD !important;
