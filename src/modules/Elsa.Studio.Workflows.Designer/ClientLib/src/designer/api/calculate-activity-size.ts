@@ -77,6 +77,8 @@ function processBatch() {
             const activityElement = measurement.wrapper.getElementsByTagName(activityTagName)[0];
             
             if (!activityElement) {
+                // Activity element not yet present; batch is not ready.
+                allReady = false;
                 continue;
             }
             
