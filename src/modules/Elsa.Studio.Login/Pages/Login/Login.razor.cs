@@ -1,12 +1,12 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
-using Elsa.Studio.Login.Pages.Login.Models;
 using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
+using Radzen;
 
 namespace Elsa.Studio.Login.Pages.Login;
 
@@ -19,8 +19,6 @@ namespace Elsa.Studio.Login.Pages.Login;
 /// </summary>
 public partial class Login
 {
-    private readonly LoginModel _model = new();
-    
     [Inject] private IJwtAccessor JwtAccessor { get; set; } = null!;
     [Inject] private ICredentialsValidator CredentialsValidator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
@@ -29,7 +27,7 @@ public partial class Login
     [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = null!;
     [Inject] private IServerInformationProvider ServerInformationProvider { get; set; } = null!;
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
-    
+
     private string ClientVersion { get; set; } = "3.0.0";
     private string ServerVersion { get; set; } = "3.0.0";
 
@@ -42,9 +40,9 @@ public partial class Login
         ServerVersion = string.Join('.', serverInformation.PackageVersion.Split('.').Take(2));
     }
 
-    private async Task TryLogin()
+    private async Task TryLogin(LoginArgs args)
     {
-        var isValid = await ValidateCredentials(_model.Username, _model.Password);
+        var isValid = await ValidateCredentials(args.Username, args.Password);
         if (!isValid)
         {
             UserMessageService.ShowSnackbarTextMessage("Invalid credentials. Please try again", Severity.Error);

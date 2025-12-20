@@ -1,34 +1,10 @@
-﻿@using Elsa.Studio.Contracts
-@inherits LayoutComponentBase
-@implements IDisposable
-@inject IThemeService ThemeService
+﻿@inherits LayoutComponentBase
+@using Radzen.Blazor
 
-<MudThemeProvider Theme="CurrentTheme" IsDarkMode="@true"/>
-<MudSnackbarProvider/>
-<MudPopoverProvider/>
+<RadzenTheme Theme="material" />
 
-<MudLayout>
-    @Body
-</MudLayout>
-
-@code {
-
-    private MudTheme CurrentTheme => ThemeService.CurrentTheme;
-
-    /// <inheritdoc />
-    protected override void OnInitialized()
-    {
-        ThemeService.CurrentThemeChanged += OnThemeChanged;
-        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
-        ThemeService.IsDarkMode = true; // Set dark mode as default
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        ThemeService.CurrentThemeChanged -= OnThemeChanged;
-    }
-
-    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
-    private void OnDarkModeChanged() => InvokeAsync(StateHasChanged);
-}
+<RadzenLayout>
+    <RadzenBody Style="padding: 0px">
+        @Body
+    </RadzenBody>
+</RadzenLayout>

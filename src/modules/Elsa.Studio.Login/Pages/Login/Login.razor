@@ -1,35 +1,48 @@
 ﻿@page "/login"
+@using Elsa.Studio.Localization
+@using Radzen.Blazor
 @inherits StudioComponentBase
+@inject ILocalizer Localizer
 @layout BasicLayout
 
-@* <div class="login-backdrop" style="left:0; top: 0; bottom:0; right:0; position: fixed; background-color: red; background-image: url(_content/Elsa.Studio.Login/bg.jpg); background-repeat: no-repeat; background-size: cover;"> *@
-<div class="d-flex justify-end flex-grow-1">
-    <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Href="https://v3.elsaworkflows.io/" Target="_blank" title="Documentation"/>
-    <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/elsa-workflows/elsa-core" Target="_blank" title="Source code"/>
-</div>
+<div class="login-page" style="background-image: url('/_content/Elsa.Studio.Shell/img/login_background.png'); background-size:cover; min-height:100%;">
+    <RadzenStack Gap="3" Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.End">
+        <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Inherit" Href="https://v3.elsaworkflows.io/" Target="_blank" title="Documentation" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/elsa-workflows/elsa-core" Target="_blank" title="Source code" />
+    </RadzenStack>
 
-<MudContainer MaxWidth="MaxWidth.Small">
-    <MudStack Spacing="10">
-        <h2 class="LoginTitle">Elsa @ServerVersion</h2>
-        <MudPaper Elevation="1">
-            <MudGrid Spacing="0" Justify="Justify.Center">
-                <MudItem md="9" xs="7" Class="pa-4 mx-auto my-4">
-                    <MudStack Spacing="1">
-                        <MudText Typo="Typo.h5">Login</MudText>
-                        <EditForm Model="@_model" OnValidSubmit="TryLogin">
-                            <div class="d-flex flex-column">
-                                <DataAnnotationsValidator/>
-                                <MudTextField Label="Username" Required="true" Variant="Variant.Outlined" For="@(() => _model.Username)" @bind-Value="_model.Username" autocomplete="username"/>
-                                <MudTextField Label="Password" Required="true" Variant="Variant.Outlined" For="@(() => _model.Password)" @bind-Value="_model.Password" InputType="InputType.Password" autocomplete="current-password"/>
-                                <MudCheckBox @bind-Value="_model.RememberMe" Label="Remember me"/>
-                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 align-self-end">Login</MudButton>
-                            </div>
-                        </EditForm>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
-    </MudStack>
-    <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mt-2">Elsa Studio @ClientVersion</MudText>
-</MudContainer>
-@* </div> *@
+    <RadzenRow Gap="0" class="rz-my-12 rz-mx-auto rz-border-radius-6 rz-shadow-10" Style="width: 100%; max-width: 800px; overflow: hidden;">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-text-align-center rz-p-12 rz-background-color-info"
+                        Style="height: 100%; display:flex; flex-direction:column; justify-content:space-between; background: var(--rz-primary-light) no-repeat 100% 70% fixed">
+                
+                <RadzenStack Gap="6" AlignItems="Radzen.AlignItems.Center">
+                    <RadzenImage Path="_content/Elsa.Studio.Shell/img/icon.png" Style="width: 3rem; padding-bottom: 1rem" AlternateText="url image" />
+                    <RadzenText TextStyle="TextStyle.DisplayH3" TagName="TagName.H2" class="rz-color-white">Elsa Studio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-color-white">The visual workflow editor!</RadzenText>
+                </RadzenStack>
+
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-white">@ClientVersion</RadzenText>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-12">
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-mb-6">
+                    Login
+                </RadzenText>
+                <RadzenTemplateForm Data="@("LoginValues")">
+                    <RadzenLogin Login="@TryLogin"
+                                 UserNameAutoCompleteType="AutoCompleteType.Username"
+                                 PasswordAutoCompleteType="AutoCompleteType.CurrentPassword"
+                                 UserText="@Localizer["Username"]"
+                                 PasswordText="@Localizer["Password"]"
+                                 RememberMeText="@Localizer["Remember Me"]"
+                                 AllowRememberMe="true"
+                                 AllowRegister="false"
+                                 AllowResetPassword="false"
+                                 ShowLoginButton="true" />
+                </RadzenTemplateForm>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+</div>
