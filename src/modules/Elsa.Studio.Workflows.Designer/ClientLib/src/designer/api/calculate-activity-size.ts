@@ -2,7 +2,7 @@ import {activityTagName, createActivityElement} from "../internal/create-activit
 import {Activity, Size} from "../models";
 
 // Cache for storing calculated activity sizes
-// Key format: "activityType:hasDescription:hasIcon:hasPorts"
+// Key format: "activityType:showsDescription:hasIcon"
 const sizeCache = new Map<string, Size>();
 
 // Queue for batching size calculations
