@@ -6,7 +6,7 @@
   </p>
 </a>
 
-[![Nuget](https://img.shields.io/nuget/v/elsa)](https://www.nuget.org/packages/Elsa.Studio.Shell/)
+[![Nuget](https://img.shields.io/nuget/v/elsa)](https://www.nuget.org/packages/Elsa.Studio/)
 [![Build status](https://github.com/elsa-workflows/elsa-studio/actions/workflows/packages.yml/badge.svg?branch=main)](https://github.com/elsa-workflows/elsa-studio/actions/workflows/packages.yml)
 [![Discord](https://img.shields.io/discord/814605913783795763?label=chat&logo=discord)](https://discord.gg/hhChk5H472)
 [![Stack Overflow questions](https://img.shields.io/badge/stackoverflow-elsa_workflows-orange.svg)]( http://stackoverflow.com/questions/tagged/elsa-workflows )
