@@ -39,11 +39,11 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
     /// <summary>
     /// Provides the task.
     /// </summary>
-    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null)
+    public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null, int? portCount = null)
     {
         var serializerOptions = GetSerializerOptions();
         var activityJson = JsonSerializer.Serialize(activity, serializerOptions);
-        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activityJson, size));
+        await TryInvokeAsync(module => module.InvokeVoidAsync("updateActivitySize", elementId, activityJson, size, portCount));
     }
 
     /// <summary>
