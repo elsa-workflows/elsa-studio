@@ -18,7 +18,10 @@ namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 public abstract class ActivityWrapperBase : StudioComponentBase
 {
     private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-    
+    private bool _isFirstRender = true;
+    private bool _previousShowDescription;
+    private string? _previousDescription;
+    private int _previousPortCount;
 
     /// <summary>
     /// Gets or sets the element ID.
@@ -112,13 +115,35 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         Label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
         TypeName = descriptor?.DisplayName ?? "Unknown Activity";
         Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
-        ShowDescription = activity.GetShowDescription() == true;
+        var currentShowDescription = activity.GetShowDescription() == true;
+        ShowDescription = currentShowDescription;
         Color = displaySettings.Color;
         Icon = displaySettings.Icon;
         ActivityDescriptor = descriptor!;
         Ports = descriptor != null ? ActivityPortService.GetPorts(new PortProviderContext(descriptor, activity)).ToList() : [];
 
-        await UpdateSizeAsync();
+        // Only update size if something that affects size has changed
+        var currentPortCount = Ports.Count;
+        var designerMetadata = activity.GetDesignerMetadata();
+        var hasValidSize = designerMetadata.Size?.Width > 0 && designerMetadata.Size?.Height > 0;
+        
+        // Determine if size update is needed:
+        // 1. First render without valid size - need to calculate
+        // 2. Subsequent renders when size-affecting properties changed
+        var needsSizeUpdate = (_isFirstRender && !hasValidSize) ||
+                            (!_isFirstRender && (currentShowDescription != _previousShowDescription ||
+                            Description != _previousDescription ||
+                            currentPortCount != _previousPortCount));
+
+        if (needsSizeUpdate)
+        {
+            await UpdateSizeAsync();
+        }
+
+        _previousShowDescription = currentShowDescription;
+        _previousDescription = Description;
+        _previousPortCount = currentPortCount;
+        _isFirstRender = false;
     }
 
     private async Task UpdateSizeAsync()
@@ -126,7 +151,8 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         if (!string.IsNullOrEmpty(ElementId))
         {
             var size = Activity.GetDesignerMetadata().Size;
-            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size);
+            var portCount = Ports.Count;
+            await DesignerInterop.UpdateActivitySizeAsync(ElementId, Activity, size, portCount);
         }
     }
 }
