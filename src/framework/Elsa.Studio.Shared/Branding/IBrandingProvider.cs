@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Elsa.Studio.Branding.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Branding;
 
@@ -11,6 +12,16 @@ public interface IBrandingProvider
     /// The name of the application.
     /// </summary>
     [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with an AppName.")] string AppName { get; }
+
+    /// <summary>
+    /// The name of the application with the version.
+    /// </summary>
+    [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with an AppNameWithVersion.")] string AppNameWithVersion { get; }
+
+    /// <summary>
+    /// The tagline of the application.
+    /// </summary>
+    string AppTagline { get; }
 
     /// <summary>
     /// Logo on a white background.
@@ -26,4 +37,14 @@ public interface IBrandingProvider
     /// The component to render. Use this to completely customize the branding component.
     /// </summary>
     RenderFragment Branding { get; }
+
+    /// <summary>
+    /// Represents branding configuration options for the login page.
+    /// </summary>
+    LoginBranding Login { get; }
+
+    /// <summary>
+    /// Represents the default app bar display icons options.
+    /// </summary>
+    DefaultAppBarIcons AppBarIcons { get; }
 }
