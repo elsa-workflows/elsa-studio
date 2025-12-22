@@ -10,6 +10,18 @@ namespace Elsa.Studio.Branding;
 /// </summary>
 public class DefaultBrandingProvider : IBrandingProvider
 {
+    private LoginBranding LoginBranding { get; } = new()
+    {
+        BackgroundUrl = GetLoginBackgroundUrl(false),
+        BackgroundReverseUrl = GetLoginBackgroundUrl(true)
+    };
+
+    private DefaultAppBarIcons AppBarIconsConfig { get; } = new()
+    {
+        ShowDocumentationLink = true,
+        ShowGitHubLink = true
+    };
+
     /// <inheritdoc />
     public virtual string AppName => "Elsa Studio";
 
@@ -26,7 +38,7 @@ public class DefaultBrandingProvider : IBrandingProvider
     public virtual string LogoReverseUrl => GetLogoUrl(true);
 
     /// <inheritdoc />
-    public virtual string Favicon16Url => FindAppFileUrl("favicon-16x16.png", "_content /Elsa.Studio.Shell/");
+    public virtual string Favicon16Url => FindAppFileUrl("favicon-16x16.png", "_content/Elsa.Studio.Shell/");
 
     /// <inheritdoc />
     public virtual string Favicon32Url => FindAppFileUrl("favicon-32x32.png", "_content/Elsa.Studio.Shell/");
@@ -48,20 +60,12 @@ public class DefaultBrandingProvider : IBrandingProvider
     /// <summary>
     /// Represents branding configuration options for the login page.
     /// </summary>
-    public virtual LoginBranding Login => new()
-    {
-        BackgroundUrl = GetLoginBackgroundUrl(false),
-        BackgroundReverseUrl = GetLoginBackgroundUrl(true)
-    };
+    public virtual LoginBranding Login => LoginBranding;
 
     /// <summary>
     /// Represents the default app bar display icons options.
     /// </summary>
-    public virtual DefaultAppBarIcons AppBarIcons => new()
-    {
-        ShowDocumentationLink = true,
-        ShowGitHubLink = true
-    };
+    public virtual DefaultAppBarIcons AppBarIcons => AppBarIconsConfig;
 
     private string GetLogoUrl(bool reverse)
     {
@@ -69,37 +73,27 @@ public class DefaultBrandingProvider : IBrandingProvider
         return FindAppFileUrl(fileName, "_content/Elsa.Studio.Shell/img/");
     }
 
-    private string GetLoginBackgroundUrl(bool reverse)
+    private static string GetLoginBackgroundUrl(bool reverse)
     {
         var fileName = reverse ? "login_background_dark.png" : "login_background_light.png";
         return FindAppFileUrl(fileName, "_content/Elsa.Studio.Shell/img/");
     }
 
-    private string FindAppFileUrl(string fileName, string fallbackPath)
+    private static string FindAppFileUrl(string fileName, string fallbackPath)
     {
-        var fallbackFile = Path.Combine(fallbackPath, fileName);
-        try
+        var fallbackFile = $"{(fallbackPath ?? string.Empty).TrimEnd('/')}/{fileName}";
+        var candidates = new[]
         {
-            var candidates = new[]
-            {
-                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName),
-                Path.Combine(AppContext.BaseDirectory ?? string.Empty, "wwwroot", "img", fileName),
-                Path.Combine(Directory.GetCurrentDirectory(), "img", fileName)
-            };
+            Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName),
+            Path.Combine(AppContext.BaseDirectory ?? string.Empty, "wwwroot", "img", fileName),
+            Path.Combine(Directory.GetCurrentDirectory(), "img", fileName)
+        };
 
-            foreach (var path in candidates)
-            {
-                if (string.IsNullOrWhiteSpace(path))
-                    continue;
+        var existing = candidates
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .FirstOrDefault(p => File.Exists(p));
 
-                if (File.Exists(path))
-                    return "/img/" + fileName;
-            }
-        }
-        catch
-        {
-            return fallbackFile;
-        }
+        if (existing is not null) return "/img/" + fileName;
 
         return fallbackFile;
     }

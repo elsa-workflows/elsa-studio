@@ -1,7 +1,7 @@
 ﻿namespace Elsa.Studio.Branding.Models;
 
 /// <summary>
-/// Represents the default toolbar link display options.
+/// Gets the configuration for app bar icon visibility, controlling which default toolbar buttons are displayed.
 /// </summary>
 public class DefaultAppBarIcons
 {
