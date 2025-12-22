@@ -34,6 +34,21 @@ public interface IBrandingProvider
     [Obsolete("Use Branding instead to provide a custom component, or configure the DefaultBrandingProvider with a LogoReverseUrl.")] string? LogoReverseUrl { get; }
 
     /// <summary>
+    /// The URL for the 16x16 favicon.
+    /// </summary>
+    string Favicon16Url { get; }
+
+    /// <summary>
+    /// The URL for the 32x32 favicon.
+    /// </summary>
+    string Favicon32Url { get; }
+
+    /// <summary>
+    /// The URL for the apple touch icon.
+    /// </summary>
+    string AppleTouchIconUrl { get; }
+
+    /// <summary>
     /// The component to render. Use this to completely customize the branding component.
     /// </summary>
     RenderFragment Branding { get; }

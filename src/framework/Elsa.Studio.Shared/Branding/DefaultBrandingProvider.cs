@@ -25,6 +25,15 @@ public class DefaultBrandingProvider : IBrandingProvider
     /// <inheritdoc />
     public virtual string LogoReverseUrl => GetLogoUrl(true);
 
+    /// <inheritdoc />
+    public virtual string Favicon16Url => FindAppFileUrl("favicon-16x16.png", "_content /Elsa.Studio.Shell/");
+
+    /// <inheritdoc />
+    public virtual string Favicon32Url => FindAppFileUrl("favicon-32x32.png", "_content/Elsa.Studio.Shell/");
+
+    /// <inheritdoc />
+    public virtual string AppleTouchIconUrl => FindAppFileUrl("apple-touch-icon.png", "_content/Elsa.Studio.Shell/");
+
     /// <summary>
     /// Provides the render fragment.
     /// </summary>
