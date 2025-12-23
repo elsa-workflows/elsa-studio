@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
@@ -5,7 +7,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Api.Client.Shared.Enums;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
@@ -18,6 +19,8 @@ using MudBlazor;
 using Refit;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
@@ -96,116 +99,8 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         WorkflowDefinitions = filteredWorkflowDefinitions;
     }
 
-    private void ParseQueryParameters()
-    {
-        if (_initializedFromQuery)
-            return;
-
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = ParseQueryString(uri.Query);
-
-        // Search term
-        if (query.TryGetValue("search", out var searchValues))
-            SearchTerm = searchValues ?? string.Empty;
-
-        // Has incidents
-        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues, out var incidents))
-            HasIncidents = incidents;
-
-        // Statuses (comma separated names)
-        if (query.TryGetValue("statuses", out var statusesValues) && !string.IsNullOrWhiteSpace(statusesValues))
-        {
-            SelectedStatuses = statusesValues
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(s =>
-                {
-                    return Enum.TryParse<WorkflowStatus>(s, true, out var st) ? (WorkflowStatus?)st : null;
-                })
-                .Where(v => v.HasValue)
-                .Select(v => v!.Value)
-                .ToList();
-        }
-
-        // SubStatuses
-        if (query.TryGetValue("substatuses", out var substatusesValues) && !string.IsNullOrWhiteSpace(substatusesValues))
-        {
-            SelectedSubStatuses = substatusesValues
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(s =>
-                {
-                    return Enum.TryParse<WorkflowSubStatus>(s, true, out var st) ? (WorkflowSubStatus?)st : null;
-                })
-                .Where(v => v.HasValue)
-                .Select(v => v!.Value)
-                .ToList();
-        }
-
-        // Definitions (comma separated definition ids)
-        if (query.TryGetValue("defs", out var defsValues) && !string.IsNullOrWhiteSpace(defsValues))
-        {
-            var ids = defsValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            SelectedWorkflowDefinitions = WorkflowDefinitions.Where(wd => ids.Contains(wd.DefinitionId)).ToList();
-        }
-
-        // Timestamp filters - encoded as ts=Column|Operator|Date|Time (multiple separated by comma)
-        if (query.TryGetValue("ts", out var tsValues) && !string.IsNullOrWhiteSpace(tsValues))
-        {
-            TimestampFilters = tsValues
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(item => item.Split('|'))
-                .Where(parts => parts.Length >= 3)
-                .Select(parts =>
-                {
-                    var model = new TimestampFilterModel
-                    {
-                        Column = parts[0],
-                        Date = parts[2]
-                    };
-
-                    if (Enum.TryParse<TimestampFilterOperator>(parts[1], true, out var op))
-                        model.Operator = op;
-
-                    if (parts.Length >= 4)
-                        model.Time = parts[3];
-
-                    return model;
-                })
-                .ToList();
-        }
-        
-        _initializedFromQuery = true;
-    }
-
-    private static Dictionary<string, string> ParseQueryString(string query)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (string.IsNullOrEmpty(query)) return result;
-        if (query.StartsWith("?")) query = query[1..];
-
-        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var idx = part.IndexOf('=');
-            if (idx >= 0)
-            {
-                var key = Uri.UnescapeDataString(part[..idx]);
-                var val = Uri.UnescapeDataString(part[(idx + 1)..]);
-                result[key] = val;
-            }
-            else
-            {
-                var key = Uri.UnescapeDataString(part);
-                result[key] = string.Empty;
-            }
-        }
-        return result;
-    }
-
     private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
-        // Ensure query parameters are parsed before the first load (in case they weren't parsed in OnInitialized)
-        ParseQueryParameters();
-
         var request = new ListWorkflowInstancesRequest
         {
             Page = state.Page,
@@ -272,66 +167,104 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
+    private void ParseQueryParameters()
+    {
+        if (_initializedFromQuery) return;
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
+        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues.ToString(), out var incidents)) HasIncidents = incidents;
+        if (query.TryGetValue("statuses", out var statusesValues) && !StringValues.IsNullOrEmpty(statusesValues))
+        {
+            SelectedStatuses = statusesValues.ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => Enum.TryParse<WorkflowStatus>(s, true, out var st) ? (WorkflowStatus?)st : null)
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
+        }
+        if (query.TryGetValue("substatuses", out var substatusesValues) && !StringValues.IsNullOrEmpty(substatusesValues))
+        {
+            SelectedSubStatuses = substatusesValues.ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => Enum.TryParse<WorkflowSubStatus>(s, true, out var st) ? (WorkflowSubStatus?)st : null)
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
+        }
+        if (query.TryGetValue("defs", out var defsValues) && !StringValues.IsNullOrEmpty(defsValues))
+        {
+            var ids = defsValues.ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            SelectedWorkflowDefinitions = WorkflowDefinitions.Where(wd => ids.Contains(wd.DefinitionId)).ToList();
+        }
+        if (query.TryGetValue("ts", out var tsValues) && !StringValues.IsNullOrEmpty(tsValues))
+        {
+            var raw = tsValues.ToString();
+
+            try
+            {
+                var bytes = Convert.FromBase64String(raw);
+                var json = Encoding.UTF8.GetString(bytes);
+                var opts = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+                var decoded = JsonSerializer.Deserialize<List<TimestampFilterModel>>(json, opts);
+                TimestampFilters = decoded ?? new List<TimestampFilterModel>();
+            }
+            catch
+            {
+                TimestampFilters = new List<TimestampFilterModel>();
+            }
+        }
+
+        _initializedFromQuery = true;
+    }
+
     private void TryUpdateUrlFromState(TableState state)
     {
         try
         {
+            if (!_initializedFromQuery)
+                return;
+
             var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
             var baseUri = uri.GetLeftPart(UriPartial.Path);
-
             var query = new Dictionary<string, string?>();
 
             // paging & sorting
             query["page"] = state.Page.ToString();
             query["pageSize"] = state.PageSize.ToString();
-            if (!string.IsNullOrWhiteSpace(state.SortLabel))
-                query["sort"] = state.SortLabel;
+            if (!string.IsNullOrWhiteSpace(state.SortLabel)) query["sort"] = state.SortLabel;
             query["sortDir"] = state.SortDirection == SortDirection.Descending ? "desc" : "asc";
 
             // filters
-            if (!string.IsNullOrWhiteSpace(SearchTerm))
-                query["search"] = SearchTerm;
+            if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
+            if (HasIncidents != null) query["hasIncidents"] = HasIncidents.ToString();
+            if (SelectedStatuses.Any()) query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
+            if (SelectedSubStatuses.Any()) query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
+            if (SelectedWorkflowDefinitions.Any()) query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
+            if (TimestampFilters.Any()) query["ts"] = EncodeTimestampFiltersToBase64Json(TimestampFilters); // Encode timestamp filters as JSON then base64 to avoid delimiter collisions
 
-            if (HasIncidents != null)
-                query["hasIncidents"] = HasIncidents.ToString();
+            // Build query string using QueryHelpers
+            var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!);
+            var newUri = QueryHelpers.AddQueryString(baseUri, dict);
 
-            if (SelectedStatuses.Any())
-                query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
-
-            if (SelectedSubStatuses.Any())
-                query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
-
-            if (SelectedWorkflowDefinitions.Any())
-                query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
-
-            if (TimestampFilters.Any())
-            {
-                // encode as Column|Operator|Date|Time per filter and join with comma
-                var encoded = TimestampFilters.Select(tf => string.Join('|', new[] { tf.Column ?? string.Empty, tf.Operator.ToString(), tf.Date ?? string.Empty, tf.Time ?? string.Empty }));
-                query["ts"] = string.Join(',', encoded);
-            }
-            
-            // Build query string manually to avoid dependency on WebUtilities in all targets
-            var kv = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToList();
-            if (kv.Any())
-            {
-                var qs = string.Join('&', kv.Select(p => Uri.EscapeDataString(p.Key) + "=" + Uri.EscapeDataString(p.Value!)));
-                var newUri = baseUri + "?" + qs;
-
-                // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
-                if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal))
-                    NavigationManager.NavigateTo(newUri, replace: true);
-            }
-            else
-            {
-                if (!string.Equals(NavigationManager.Uri, baseUri, StringComparison.Ordinal))
-                    NavigationManager.NavigateTo(baseUri, replace: true);
-            }
+            // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
+            if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal)) NavigationManager.NavigateTo(newUri, replace: true);
         }
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Failed to update URL with table state.");
         }
+    }
+
+    private string EncodeTimestampFiltersToBase64Json(IEnumerable<TimestampFilterModel> filters)
+    {
+        var opts = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = false };
+        var json = JsonSerializer.Serialize(filters, opts);
+        var bytes = Encoding.UTF8.GetBytes(json);
+        return Convert.ToBase64String(bytes);
     }
 
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
