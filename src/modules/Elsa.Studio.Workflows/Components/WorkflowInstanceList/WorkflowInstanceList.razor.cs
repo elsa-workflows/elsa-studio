@@ -79,8 +79,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
         // Try to read filters from query string (must happen after workflow definitions are loaded so SelectedWorkflowDefinitions can be resolved)
         ParseQueryParameters();
-
-        // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
         StartElapsedTimer();
     }
 
@@ -117,23 +115,29 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         // Statuses (comma separated names)
         if (query.TryGetValue("statuses", out var statusesValues) && !string.IsNullOrWhiteSpace(statusesValues))
         {
-            SelectedStatuses.Clear();
-            foreach (var s in statusesValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (Enum.TryParse<WorkflowStatus>(s, true, out var st))
-                    SelectedStatuses.Add(st);
-            }
+            SelectedStatuses = statusesValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s =>
+                {
+                    return Enum.TryParse<WorkflowStatus>(s, true, out var st) ? (WorkflowStatus?)st : null;
+                })
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
         }
 
         // SubStatuses
         if (query.TryGetValue("substatuses", out var substatusesValues) && !string.IsNullOrWhiteSpace(substatusesValues))
         {
-            SelectedSubStatuses.Clear();
-            foreach (var s in substatusesValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (Enum.TryParse<WorkflowSubStatus>(s, true, out var st))
-                    SelectedSubStatuses.Add(st);
-            }
+            SelectedSubStatuses = substatusesValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s =>
+                {
+                    return Enum.TryParse<WorkflowSubStatus>(s, true, out var st) ? (WorkflowSubStatus?)st : null;
+                })
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
         }
 
         // Definitions (comma separated definition ids)
@@ -146,12 +150,11 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         // Timestamp filters - encoded as ts=Column|Operator|Date|Time (multiple separated by comma)
         if (query.TryGetValue("ts", out var tsValues) && !string.IsNullOrWhiteSpace(tsValues))
         {
-            TimestampFilters.Clear();
-            var all = tsValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var item in all)
-            {
-                var parts = item.Split('|');
-                if (parts.Length >= 3)
+            TimestampFilters = tsValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(item => item.Split('|'))
+                .Where(parts => parts.Length >= 3)
+                .Select(parts =>
                 {
                     var model = new TimestampFilterModel
                     {
@@ -165,9 +168,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                     if (parts.Length >= 4)
                         model.Time = parts[3];
 
-                    TimestampFilters.Add(model);
-                }
-            }
+                    return model;
+                })
+                .ToList();
         }
         
         _initializedFromQuery = true;
@@ -177,19 +180,16 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        if (string.IsNullOrEmpty(query))
-            return result;
-
-        if (query.StartsWith("?"))
-            query = query.Substring(1);
+        if (string.IsNullOrEmpty(query)) return result;
+        if (query.StartsWith("?")) query = query[1..];
 
         foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
             var idx = part.IndexOf('=');
             if (idx >= 0)
             {
-                var key = Uri.UnescapeDataString(part.Substring(0, idx));
-                var val = Uri.UnescapeDataString(part.Substring(idx + 1));
+                var key = Uri.UnescapeDataString(part[..idx]);
+                var val = Uri.UnescapeDataString(part[(idx + 1)..]);
                 result[key] = val;
             }
             else
@@ -198,7 +198,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                 result[key] = string.Empty;
             }
         }
-
         return result;
     }
 
@@ -588,7 +587,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
     private void StopElapsedTimer()
     {
