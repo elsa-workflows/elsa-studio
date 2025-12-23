@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Api.Client.Shared.Enums;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
@@ -27,6 +28,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
     private Timer? _elapsedTimer;
+    private bool _initializedFromQuery;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -41,13 +43,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
-
-    private string SearchTerm { get; set; } = string.Empty;
-    private bool? HasIncidents { get; set; }
-    private bool IsDateRangePopoverOpen { get; set; }
 
     /// The selected statuses to filter by.
     private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
@@ -58,14 +57,31 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     // The selected timestamp filters to filter by.
     private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
 
+    private string SearchTerm { get; set; } = string.Empty;
+    private bool IsPolling { get; set; } = true;
+    private bool? HasIncidents { get; set; }
+    private bool IsDateRangePopoverOpen { get; set; }
+
+    private void Reload() => _table.ReloadServerData();
+    private async Task ViewAsync(string instanceId) => await ViewWorkflowInstance.InvokeAsync(instanceId);
+    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition) => definition?.Name;
+    private void ToggleDateRangePopover() => IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
+    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
+    private Task OnImportClicked() => DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
+
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        // Load workflow definitions first so query parsing can match definitions
         await LoadWorkflowDefinitionsAsync();
 
+        // Try to read filters from query string (must happen after workflow definitions are loaded so SelectedWorkflowDefinitions can be resolved)
+        ParseQueryParameters();
+
         // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
-        //StartElapsedTimer();
+        StartElapsedTimer();
     }
 
     private async Task LoadWorkflowDefinitionsAsync()
@@ -82,8 +98,115 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         WorkflowDefinitions = filteredWorkflowDefinitions;
     }
 
+    private void ParseQueryParameters()
+    {
+        if (_initializedFromQuery)
+            return;
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = ParseQueryString(uri.Query);
+
+        // Search term
+        if (query.TryGetValue("search", out var searchValues))
+            SearchTerm = searchValues ?? string.Empty;
+
+        // Has incidents
+        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues, out var incidents))
+            HasIncidents = incidents;
+
+        // Statuses (comma separated names)
+        if (query.TryGetValue("statuses", out var statusesValues) && !string.IsNullOrWhiteSpace(statusesValues))
+        {
+            SelectedStatuses.Clear();
+            foreach (var s in statusesValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (Enum.TryParse<WorkflowStatus>(s, true, out var st))
+                    SelectedStatuses.Add(st);
+            }
+        }
+
+        // SubStatuses
+        if (query.TryGetValue("substatuses", out var substatusesValues) && !string.IsNullOrWhiteSpace(substatusesValues))
+        {
+            SelectedSubStatuses.Clear();
+            foreach (var s in substatusesValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (Enum.TryParse<WorkflowSubStatus>(s, true, out var st))
+                    SelectedSubStatuses.Add(st);
+            }
+        }
+
+        // Definitions (comma separated definition ids)
+        if (query.TryGetValue("defs", out var defsValues) && !string.IsNullOrWhiteSpace(defsValues))
+        {
+            var ids = defsValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            SelectedWorkflowDefinitions = WorkflowDefinitions.Where(wd => ids.Contains(wd.DefinitionId)).ToList();
+        }
+
+        // Timestamp filters - encoded as ts=Column|Operator|Date|Time (multiple separated by comma)
+        if (query.TryGetValue("ts", out var tsValues) && !string.IsNullOrWhiteSpace(tsValues))
+        {
+            TimestampFilters.Clear();
+            var all = tsValues.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var item in all)
+            {
+                var parts = item.Split('|');
+                if (parts.Length >= 3)
+                {
+                    var model = new TimestampFilterModel
+                    {
+                        Column = parts[0],
+                        Date = parts[2]
+                    };
+
+                    if (Enum.TryParse<TimestampFilterOperator>(parts[1], true, out var op))
+                        model.Operator = op;
+
+                    if (parts.Length >= 4)
+                        model.Time = parts[3];
+
+                    TimestampFilters.Add(model);
+                }
+            }
+        }
+        
+        _initializedFromQuery = true;
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string query)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrEmpty(query))
+            return result;
+
+        if (query.StartsWith("?"))
+            query = query.Substring(1);
+
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var idx = part.IndexOf('=');
+            if (idx >= 0)
+            {
+                var key = Uri.UnescapeDataString(part.Substring(0, idx));
+                var val = Uri.UnescapeDataString(part.Substring(idx + 1));
+                result[key] = val;
+            }
+            else
+            {
+                var key = Uri.UnescapeDataString(part);
+                result[key] = string.Empty;
+            }
+        }
+
+        return result;
+    }
+
     private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
+        // Ensure query parameters are parsed before the first load (in case they weren't parsed in OnInitialized)
+        ParseQueryParameters();
+
         var request = new ListWorkflowInstancesRequest
         {
             Page = state.Page,
@@ -119,7 +242,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
                 x.Id,
                 x.CorrelationId,
-                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? "",
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? string.Empty,
                 x.Version,
                 x.Name,
                 x.Status,
@@ -130,6 +253,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                 x.FinishedAt));
 
             _totalCount = (int)workflowInstancesResponse.TotalCount;
+
+            // Update URL to reflect current table state & filters
+            TryUpdateUrlFromState(state);
+
             return new() { TotalItems = _totalCount, Items = rows };
         }
         catch (TaskCanceledException)
@@ -146,6 +273,68 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
+    private void TryUpdateUrlFromState(TableState state)
+    {
+        try
+        {
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var baseUri = uri.GetLeftPart(UriPartial.Path);
+
+            var query = new Dictionary<string, string?>();
+
+            // paging & sorting
+            query["page"] = state.Page.ToString();
+            query["pageSize"] = state.PageSize.ToString();
+            if (!string.IsNullOrWhiteSpace(state.SortLabel))
+                query["sort"] = state.SortLabel;
+            query["sortDir"] = state.SortDirection == SortDirection.Descending ? "desc" : "asc";
+
+            // filters
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+                query["search"] = SearchTerm;
+
+            if (HasIncidents != null)
+                query["hasIncidents"] = HasIncidents.ToString();
+
+            if (SelectedStatuses.Any())
+                query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
+
+            if (SelectedSubStatuses.Any())
+                query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
+
+            if (SelectedWorkflowDefinitions.Any())
+                query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
+
+            if (TimestampFilters.Any())
+            {
+                // encode as Column|Operator|Date|Time per filter and join with comma
+                var encoded = TimestampFilters.Select(tf => string.Join('|', new[] { tf.Column ?? string.Empty, tf.Operator.ToString(), tf.Date ?? string.Empty, tf.Time ?? string.Empty }));
+                query["ts"] = string.Join(',', encoded);
+            }
+            
+            // Build query string manually to avoid dependency on WebUtilities in all targets
+            var kv = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToList();
+            if (kv.Any())
+            {
+                var qs = string.Join('&', kv.Select(p => Uri.EscapeDataString(p.Key) + "=" + Uri.EscapeDataString(p.Value!)));
+                var newUri = baseUri + "?" + qs;
+
+                // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
+                if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal))
+                    NavigationManager.NavigateTo(newUri, replace: true);
+            }
+            else
+            {
+                if (!string.Equals(NavigationManager.Uri, baseUri, StringComparison.Ordinal))
+                    NavigationManager.NavigateTo(baseUri, replace: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to update URL with table state.");
+        }
+    }
+
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
     {
         try
@@ -157,10 +346,11 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             Logger.LogWarning("Failed to list workflow instances due to a timeout.");
             return new()
             {
-                Items = []
+                Items = Array.Empty<WorkflowInstanceSummary>()
             };
         }
     }
+
 
     private TimestampFilter Map(TimestampFilterModel source)
     {
@@ -188,13 +378,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _ => null
         };
     }
-
-    private async Task ViewAsync(string instanceId)
-    {
-        await ViewWorkflowInstance.InvokeAsync(instanceId);
-    }
-
-    private void Reload() => _table.ReloadServerData();
 
     private bool FilterWorkflowDefinitions(WorkflowDefinitionSummary workflowDefinition, string term)
     {
@@ -224,19 +407,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _ => Color.Default,
         };
     }
-
-    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
-    {
-        return definition?.Name;
-    }
-
-    private void ToggleDateRangePopover()
-    {
-        IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
-    }
-
-    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -332,9 +502,12 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         Reload();
     }
 
-    private Task OnImportClicked()
+    private async Task OnBulkExportClicked()
     {
-        return DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        var download = await WorkflowInstanceService.BulkExportAsync(workflowInstanceIds);
+        var fileName = download.FileName;
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
@@ -347,13 +520,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         Reload();
     }
 
-    private async Task OnBulkExportClicked()
-    {
-        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
-        var download = await WorkflowInstanceService.BulkExportAsync(workflowInstanceIds);
-        var fileName = download.FileName;
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
-    }
 
     private async Task OnSelectedWorkflowDefinitionsChanged(IEnumerable<WorkflowDefinitionSummary> values)
     {
@@ -412,10 +578,17 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         ToggleDateRangePopover();
     }
 
-    private void StartElapsedTimer()
+    private void OnPollingChanged(bool enabled)
     {
-        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        IsPolling = enabled;
+
+        if (IsPolling)
+            StartElapsedTimer();
+        else
+            StopElapsedTimer();
     }
+
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
     private void StopElapsedTimer()
     {

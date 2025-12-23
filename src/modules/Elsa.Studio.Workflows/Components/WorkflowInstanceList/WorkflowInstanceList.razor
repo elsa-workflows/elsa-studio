@@ -43,6 +43,9 @@
                     @* <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
                 </MudMenu>
                 <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">@Localizer["Import"]</MudButton>
+                <MudTooltip Text="@(IsPolling ? Localizer["Pause polling"] : Localizer["Enable polling"])"> 
+                    <MudIconButton Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))" Class="ml-0" />
+                </MudTooltip>
             </MudPaper>
 
             <MudSpacer />
