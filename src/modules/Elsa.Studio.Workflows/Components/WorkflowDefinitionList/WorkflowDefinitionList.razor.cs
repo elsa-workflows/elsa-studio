@@ -13,7 +13,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 
@@ -26,13 +25,11 @@ public partial class WorkflowDefinitionList
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
     private const int truncationLength = 40;
-    private bool _initializedFromQuery;
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private NavigationManager Navigation { get; set; }
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
@@ -43,18 +40,11 @@ public partial class WorkflowDefinitionList
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
-
-    /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
-    {
-        ParseQueryParameters();
-    }
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
@@ -113,47 +103,27 @@ public partial class WorkflowDefinitionList
         };
     }
 
-    private void ParseQueryParameters()
+    /// <inheritdoc/>
+    protected override void ApplyQueryParameters(IDictionary<string, string> query)
     {
-        if (_initializedFromQuery) return;
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = QueryHelpers.ParseQuery(uri.Query);
-
         // Paging
-        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table?.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
 
-        // Filtering from query
-        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
-        _initializedFromQuery = true;
+        // Filters
+        if (query.TryGetValue("search", out var searchValue)) SearchTerm = searchValue;
     }
 
-    private void TryUpdateUrlFromState(TableState state)
+    /// <inheritdoc/>
+    protected override Dictionary<string, string?> BuildQueryFromState(TableState state)
     {
-        try
+        var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
-            if (!_initializedFromQuery) return;
+            ["pageSize"] = state.PageSize.ToString()
+        };
 
-            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-            var baseUri = uri.GetLeftPart(UriPartial.Path);
-            var query = new Dictionary<string, string?>();
+        if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
 
-            // Paging
-            query["pageSize"] = state.PageSize.ToString();
-
-            // Filters
-            if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
-            
-            // Build query string using QueryHelpers
-            var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!);
-            var newUri = QueryHelpers.AddQueryString(baseUri, dict);
-
-            // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
-            if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal)) NavigationManager.NavigateTo(newUri, replace: true);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to update URL with table state.");
-        }
+        return query;
     }
 
     private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)

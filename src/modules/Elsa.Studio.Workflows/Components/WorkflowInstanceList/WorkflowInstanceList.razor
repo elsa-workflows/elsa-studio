@@ -1,5 +1,5 @@
-@inherits StudioComponentBase
-
+@inherits Elsa.Studio.Shared.Components.QueryTableComponentBase
+@inject ILocalizer Localizer
 @using System.Globalization
 @using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
 @using Elsa.Api.Client.Resources.WorkflowInstances.Enums
@@ -8,8 +8,6 @@
 @using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models
 @using Elsa.Studio.Workflows.Services
 @using Microsoft.Extensions.Localization
-@inject ILocalizer Localizer
-
 @using AlignItems = MudBlazor.AlignItems
 @using Variant = MudBlazor.Variant
 

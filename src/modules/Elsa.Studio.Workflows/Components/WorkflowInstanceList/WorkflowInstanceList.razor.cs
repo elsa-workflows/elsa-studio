@@ -19,7 +19,6 @@ using MudBlazor;
 using Refit;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
@@ -31,7 +30,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
     private Timer? _elapsedTimer;
-    private bool _initializedFromQuery;
 
     /// <summary>
     /// An event that is invoked when a workflow definition is edited.
@@ -46,7 +44,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
@@ -73,12 +70,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
     private Task OnImportClicked() => DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
 
-
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
-        ParseQueryParameters();
         StartElapsedTimer();
     }
 
@@ -164,16 +159,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
-    private void ParseQueryParameters()
+    /// <inheritdoc/>
+    protected override void ApplyQueryParameters(IDictionary<string, string> query)
     {
-        if (_initializedFromQuery) return;
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = QueryHelpers.ParseQuery(uri.Query);
-
         // Paging
-        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
 
-        // Filtering from query
+        // Filters
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
         if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues.ToString(), out var incidents)) HasIncidents = incidents;
         if (query.TryGetValue("statuses", out var statusesValues) && !StringValues.IsNullOrEmpty(statusesValues))
@@ -215,52 +207,27 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             }
             catch
             {
-                TimestampFilters = new List<TimestampFilterModel>();
+                TimestampFilters = [];
             }
         }
-
-        _initializedFromQuery = true;
     }
 
-    private void TryUpdateUrlFromState(TableState state)
+    /// <inheritdoc/>
+    protected override Dictionary<string, string?> BuildQueryFromState(TableState state)
     {
-        try
+        var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
-            if (!_initializedFromQuery) return;
-            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-            var baseUri = uri.GetLeftPart(UriPartial.Path);
-            var query = new Dictionary<string, string?>();
+            ["pageSize"] = state.PageSize.ToString()
+        };
 
-            // Paging
-            query["pageSize"] = state.PageSize.ToString();
+        if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
+        if (HasIncidents != null) query["hasIncidents"] = HasIncidents.ToString();
+        if (SelectedStatuses.Any()) query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
+        if (SelectedSubStatuses.Any()) query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
+        if (SelectedWorkflowDefinitions.Any()) query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
+        if (TimestampFilters.Any()) query["ts"] = EncodeTimestampFiltersToBase64Json(TimestampFilters); // Encode timestamp filters as JSON then base64 to avoid delimiter collisions
 
-            // Filters
-            if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
-            if (HasIncidents != null) query["hasIncidents"] = HasIncidents.ToString();
-            if (SelectedStatuses.Any()) query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
-            if (SelectedSubStatuses.Any()) query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
-            if (SelectedWorkflowDefinitions.Any()) query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
-            if (TimestampFilters.Any()) query["ts"] = EncodeTimestampFiltersToBase64Json(TimestampFilters); // Encode timestamp filters as JSON then base64 to avoid delimiter collisions
-
-            // Build query string using QueryHelpers
-            var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!);
-            var newUri = QueryHelpers.AddQueryString(baseUri, dict);
-
-            // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
-            if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal)) NavigationManager.NavigateTo(newUri, replace: true);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to update URL with table state.");
-        }
-    }
-
-    private string EncodeTimestampFiltersToBase64Json(IEnumerable<TimestampFilterModel> filters)
-    {
-        var opts = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = false };
-        var json = JsonSerializer.Serialize(filters, opts);
-        var bytes = Encoding.UTF8.GetBytes(json);
-        return Convert.ToBase64String(bytes);
+        return query;
     }
 
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
