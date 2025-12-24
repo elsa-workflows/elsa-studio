@@ -147,52 +147,52 @@ public partial class DiagramDesignerWrapper
         }
     }
 
-    private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
-    {
-        var targetNodeId = activityToSelect?.GetId() ?? nodeId;
-        if (string.IsNullOrEmpty(targetNodeId))
-            return;
 
-        // Bail out if it's the same as last time
-        if (targetNodeId == _lastSelectedNodeId)
-            return;
+     private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
+  {
+      var targetNodeId = activityToSelect?.GetId() ?? nodeId;
+      if (string.IsNullOrEmpty(targetNodeId))
+          return;
 
-        // Remember for the next call
-        _lastSelectedNodeId = targetNodeId;
+      // Bail out if it's the same as last time
+      if (targetNodeId == _lastSelectedNodeId)
+          return;
 
-        if (nodeId == null)
-            return;
+      // Remember for the next call
+      _lastSelectedNodeId = targetNodeId;
 
-        // Load the selected node path from the backend.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(
-            WorkflowDefinitionVersionId,
-            nodeId
-        );
-        if (pathSegmentsResponse == null)
-            return;
+      if (nodeId == null)
+          return;
 
-        await IndexActivityNodes(pathSegmentsResponse.Container.Activity);
-        
-        activityToSelect = pathSegmentsResponse.ChildNode.Activity;
-        var pathSegments = pathSegmentsResponse.PathSegments.ToList();
-        StateHasChanged();
+      // Load the selected node path from the backend.
+      var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(
+          WorkflowDefinitionVersionId,
+          nodeId
+      );
 
-        // Reassign the current path.
-        await UpdatePathSegmentsAsync(segments =>
-        {
-            segments.Clear();
+      if (pathSegmentsResponse == null)
+          return;
 
-            foreach (var segment in pathSegments)
-                segments.Push(segment);
-        });
-        
-        // Display the new segment.
-        _currentContainerActivity = null;
-        await DisplayCurrentSegmentAsync();
+      activityToSelect = pathSegmentsResponse.ChildNode.Activity;
+      var pathSegments = pathSegmentsResponse.PathSegments.ToList();
+      StateHasChanged();
 
-        // Select the activity.
-        await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
-    }
+      // Reassign the current path.
+      await UpdatePathSegmentsAsync(segments =>
+      {
+          segments.Clear();
+
+          foreach (var segment in pathSegments)
+              segments.Push(segment);
+      });
+
+      // Display the new segment.
+      _currentContainerActivity = null;
+      await DisplayCurrentSegmentAsync();
+
+      // Select the activity.
+      await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
+  }
 
     /// Updates the stats of the specified activity.
     /// <param name="activityId">The ID of the activity to update.</param>
@@ -469,7 +469,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (!IsReadOnly)
+        if (IsReadOnly)
             return;
 
         // If the activity is a workflow definition activity, then open the workflow definition editor.
@@ -485,101 +485,115 @@ public partial class DiagramDesignerWrapper
             await ActivityUpdated.InvokeAsync(activity);
     }
 
-    private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
-    {
-        var nodes = _indexedActivityNodes;
-        var selectedActivity = args.Activity;
-        var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode)
-            ? selectedActivityNode.Activity
-            : null;
 
-        if (activity is null)
-            return;
+  private async Task OnActivityEmbeddedPortSelected(ActivityEmbeddedPortSelectedArgs args)
+ {
+     var nodes = _indexedActivityNodes;
+     var selectedActivity = args.Activity;
+     var activity = nodes.TryGetValue(selectedActivity.GetNodeId(), out var selectedActivityNode)
+         ? selectedActivityNode.Activity
+         : null;
 
-        var portName = args.PortName;
-        var activityTypeName = activity.GetTypeName();
-        var activityVersion = activity.GetVersion();
-        var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-        var portProviderContext = new PortProviderContext(activityDescriptor, activity);
-        var portProvider = ActivityPortService.GetProvider(portProviderContext);
-        var embeddedActivity = portProvider.ResolvePort(portName, portProviderContext);
+     if (activity is null)
+         return;
 
-        if (embeddedActivity == null)
-        {
-            // Lazy load.
-            if (activityDescriptor.CustomProperties.ContainsKey("WorkflowDefinitionVersionId"))
-            {
-                var parentNodeId = activity.GetNodeId();
-                var selectedActivityGraph =
-                    await WorkflowDefinitionService.FindSubgraphAsync(
-                        WorkflowDefinitionVersionId,
-                        parentNodeId
-                    )
-                    ?? throw new InvalidOperationException(
-                        $"Could not find selected activity graph for {parentNodeId}"
-                    );
-                var propName = portName.Camelize();
-                var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
-                embeddedActivity = selectedPortActivity;
-                portProvider.AssignPort(args.PortName, embeddedActivity, new(activityDescriptor, activity));
-                await IndexActivityNodes(selectedActivityGraph.Activity);
-            }
-        }
+     var portName = args.PortName;
+     var activityTypeName = activity.GetTypeName();
+     var activityVersion = activity.GetVersion();
+     var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
+     var portProviderContext = new PortProviderContext(activityDescriptor, activity);
+     var portProvider = ActivityPortService.GetProvider(portProviderContext);
+     var embeddedActivity = portProvider.ResolvePort(portName, portProviderContext);
 
-        if (embeddedActivity != null)
-        {
-            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
+     if (embeddedActivity == null)
+     {
+         // Lazy load.
+         if (activityDescriptor.CustomProperties.ContainsKey("WorkflowDefinitionVersionId"))
+         {
+             var parentNodeId = activity.GetNodeId();
+             var selectedActivityGraph =
+                 await WorkflowDefinitionService.FindSubgraphAsync(
+                     WorkflowDefinitionVersionId,
+                     parentNodeId
+                 )
+                 ?? throw new InvalidOperationException(
+                     $"Could not find selected activity graph for {parentNodeId}"
+                 );
+             var propName = portName.Camelize();
+             var selectedPortActivity = (JsonObject)selectedActivityGraph.Activity[propName]!;
+             embeddedActivity = selectedPortActivity;
+             portProvider.AssignPort(
+                 args.PortName,
+                 embeddedActivity,
+                 new PortProviderContext(activityDescriptor, activity)
+             );
+             await IndexActivityNodes(selectedActivityGraph.Activity);
+         }
+     }
 
-            // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
-            if (
-                embeddedActivityTypeName != "Elsa.Flowchart"
-                && embeddedActivityTypeName != "Elsa.Workflow"
-            )
-            {
-                if (ActivitySelected.HasDelegate)
-                    await ActivitySelected.InvokeAsync(embeddedActivity);
-                return;
-            }
+     if (embeddedActivity != null)
+     {
+         var childDescriptor = ActivityRegistry.Find(
+             embeddedActivity.GetTypeName(),
+             embeddedActivity.GetVersion()
+         )!;
+         var childPortContext = new PortProviderContext(childDescriptor, embeddedActivity);
+         var childPortProvider = ActivityPortService.GetProvider(childPortContext);
+         var childPorts = childPortProvider.GetPorts(childPortContext);
 
-            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
-        }
-        else
-        {
-            if (!IsReadOnly)
-            {
-                var embeddedActivityId = IdentityGenerator.GenerateId();
-                // Create a flowchart and embed it into the activity.
-                embeddedActivity = new(new Dictionary<string, JsonNode?>
-                {
-                    ["id"] = embeddedActivityId,
-                    ["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivityId}",
-                    ["type"] = "Elsa.Flowchart",
-                    ["version"] = 1,
-                    ["name"] = "Flowchart1",
-                });
+         // if it has _no_ ports, it’s just a leaf — show the property editor:
+         if (!childPorts.Any())
+         {
+             if (ActivitySelected.HasDelegate)
+                 await ActivitySelected.InvokeAsync(embeddedActivity);
 
-                portProvider.AssignPort(args.PortName, embeddedActivity, new(activityDescriptor, activity));
+             return;
+         }
+     }
+     else
+     {
+         if (!IsReadOnly)
+         {
+             var embeddedActivityId = IdentityGenerator.GenerateId();
+             // Create a flowchart and embed it into the activity.
+             embeddedActivity = new JsonObject(
+                 new Dictionary<string, JsonNode?>
+                 {
+                     ["id"] = embeddedActivityId,
+                     ["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivityId}",
+                     ["type"] = "Elsa.Flowchart",
+                     ["version"] = 1,
+                     ["name"] = "Flowchart1",
+                 }
+             );
 
-                // Update the graph in the designer.
-                await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
-            }
-            else
-            {
-                return;
-            }
-        }
+             portProvider.AssignPort(
+                 args.PortName,
+                 embeddedActivity,
+                 new PortProviderContext(activityDescriptor, activity)
+             );
 
-        // Create a new path segment of the container activity and push it onto the stack.
-        var segment = new ActivityPathSegment(
-            activity.GetNodeId(),
-            activity.GetId(),
-            activity.GetTypeName(),
-            args.PortName
-        );
+             // Update the graph in the designer.
+             await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
+         }
+         else
+         {
+             return;
+         }
+     }
 
-        await UpdatePathSegmentsAsync(segments => segments.Push(segment));
-        await DisplayCurrentSegmentAsync();
-    }
+     // Create a new path segment of the container activity and push it onto the stack.
+     var segment = new ActivityPathSegment(
+         activity.GetNodeId(),
+         activity.GetId(),
+         activity.GetTypeName(),
+         args.PortName
+     );
+
+     await UpdatePathSegmentsAsync(segments => segments.Push(segment));
+     await DisplayCurrentSegmentAsync();
+ }
+
 
     private async Task OnGraphUpdated()
     {
