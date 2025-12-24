@@ -171,7 +171,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         // Paging
-        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table?.SetRowsPerPage(pageSize);
 
         // Filtering from query
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
