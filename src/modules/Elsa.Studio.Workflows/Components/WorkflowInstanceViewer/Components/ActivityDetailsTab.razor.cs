@@ -53,8 +53,10 @@ public partial class ActivityDetailsTab
         var activity = Activity;
         var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
         var activityId = activity.GetId();
+        var activityNodeId = activity.GetNodeId();
         var activityName = activity.GetName();
         var activityType = activity.GetTypeName();
+        var activityDescription = activity.GetDescription();
         var execution = LastActivityExecution;
         var activityVersion = activity.GetVersion();
         var exception = execution?.Exception;
@@ -65,11 +67,13 @@ public partial class ActivityDetailsTab
         var activityInfo = new DataPanelModel
         {
             new DataPanelItem("ID", activityId),
+            new DataPanelItem("Node ID", activityNodeId),
             new DataPanelItem(Localizer["Name"], activityName),
             new DataPanelItem(Localizer["Type"], activityType,
                 string.IsNullOrWhiteSpace(workflowDefinitionId)
                     ? null
                     : $"/workflows/definitions/{workflowDefinitionId}/edit"),
+            new DataPanelItem(Localizer["Description"], activityDescription),
             new DataPanelItem(Localizer["Version"], activityVersion.ToString())
         };
 

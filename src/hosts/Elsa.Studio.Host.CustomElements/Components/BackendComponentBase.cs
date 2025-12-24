@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Host.CustomElements.Components;
 
+/// <summary>
+/// Represents the backend component base.
+/// </summary>
 public abstract class BackendComponentBase : StudioComponentBase
 {
     [Parameter] public string? RemoteEndpoint { get; set; }

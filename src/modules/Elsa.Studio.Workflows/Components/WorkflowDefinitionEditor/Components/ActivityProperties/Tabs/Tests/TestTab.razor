@@ -13,6 +13,10 @@
     else if (!IsRunning)
     {
         <DataPanel Title="@Localizer["Status"]" Data="Status" ShowNoDataAlert="true" NoDataMessage="@Localizer["No status was recorded."]"/>
+        @if (Fault is not null)
+        {
+            <DataPanel Title="@Localizer["Fault"]" Data="Fault" />
+        }
         <DataPanel Title="@Localizer["State"]" Data="ActivityState" ShowNoDataAlert="true" NoDataMessage="@Localizer["No state was recorded."]"/>
         <DataPanel Title="@Localizer["Outcomes"]" Data="Outcomes" ShowNoDataAlert="true" NoDataMessage="@Localizer["No outcomes were recorded."]"/>
         <DataPanel Title="@Localizer["Output"]" Data="Output" ShowNoDataAlert="true" NoDataMessage="@Localizer["No output was recorded."]"/>

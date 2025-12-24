@@ -116,7 +116,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     {
         _workflowDefinition = WorkflowEditor.WorkflowDefinition!;
         _selectedWorkflowDefinition = _workflowDefinition;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();

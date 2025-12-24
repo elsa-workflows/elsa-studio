@@ -5,6 +5,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 namespace Elsa.Studio.Workflows.Domain.Notifications;
 
 /// <summary>
-/// A notification sent when a workflow definition failed to publish.
+/// Represents the notification published when a workflow definition publishing is failed.
 /// </summary>
 public record WorkflowDefinitionPublishingFailed(WorkflowDefinition WorkflowDefinition, ValidationErrors Errors) : INotification;

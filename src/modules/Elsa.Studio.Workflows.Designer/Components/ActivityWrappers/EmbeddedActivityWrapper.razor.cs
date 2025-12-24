@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Designer.Components.ActivityWrappers;
 
+/// <summary>
+/// Represents the embedded activity wrapper base.
+/// </summary>
 public abstract class EmbeddedActivityWrapperBase : StudioComponentBase
 {
     [Parameter] public string? ElementId { get; set; }
@@ -21,12 +24,33 @@ public abstract class EmbeddedActivityWrapperBase : StudioComponentBase
     [Inject] IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
     [Inject] IServiceProvider ServiceProvider { get; set; } = null!;
 
+    /// <summary>
+    /// Provides the can start workflow.
+    /// </summary>
     protected bool CanStartWorkflow => Activity.GetCanStartWorkflow() == true;
+    /// <summary>
+    /// Gets or sets the label.
+    /// </summary>
     protected string Label { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the description.
+    /// </summary>
     protected string Description { get; private set; } = null!;
+    /// <summary>
+    /// Indicates whether show description.
+    /// </summary>
     protected bool ShowDescription { get; private set; }
+    /// <summary>
+    /// Gets or sets the color.
+    /// </summary>
     protected string Color  { get; private set; } = null!;
+    /// <summary>
+    /// Gets or sets the icon.
+    /// </summary>
     protected string? Icon  { get; private set; }
+    /// <summary>
+    /// Gets or sets the activity descriptor.
+    /// </summary>
     protected ActivityDescriptor ActivityDescriptor  { get; private set; } = null!;
 
     /// <inheritdoc />

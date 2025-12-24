@@ -10,9 +10,18 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
+/// <summary>
+/// Represents the workflow editor component base.
+/// </summary>
 public abstract class WorkflowEditorComponentBase : StudioComponentBase
 {
+    /// <summary>
+    /// Provides the  workflow definition.
+    /// </summary>
     protected WorkflowDefinition? _workflowDefinition;
+    /// <summary>
+    /// Indicates whether is progressing.
+    /// </summary>
     protected bool IsProgressing { get; set; }
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
@@ -70,15 +79,31 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
         }
     }
 
+    /// <summary>
+    /// Helper method to show progress while executing an async operation (void return)
+    /// </summary>
     protected async Task ProgressAsync(Func<Task> action)
     {
         IsProgressing = true;
         StateHasChanged();
-        await action.Invoke();
-        IsProgressing = false;
-        StateHasChanged();
+ 
+        try
+        {
+            await action.Invoke();
+        }
+        finally
+        {
+            IsProgressing = false;
+            StateHasChanged();
+        }
     }
 
+    /// <summary>
+    /// Shows progress while executing an asynchronous operation that returns a value.
+    /// </summary>
+    /// <typeparam name="T">The type of result produced by the operation.</typeparam>
+    /// <param name="action">The asynchronous action to execute.</param>
+    /// <returns>The result returned by <paramref name="action"/>.</returns>
     protected async Task<T> ProgressAsync<T>(Func<Task<T>> action)
     {
         IsProgressing = true;

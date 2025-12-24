@@ -1,7 +1,5 @@
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
-using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Studio.Contracts;
@@ -9,6 +7,7 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
@@ -19,9 +18,12 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
+using System.Text.Json.Nodes;
+using Elsa.Studio.Workflows.Extensions;
 using ThrottleDebounce;
 using Variant = MudBlazor.Variant;
 
@@ -64,17 +66,32 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
     [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+
+    /// <summary>
+    /// Invoked when the "Ctrl+S" hotkeys are pressed, triggering the save operation.
+    /// </summary>
+    [JSInvokable] public async Task OnHotKeysCtrlS() => await OnSaveClick();
+
+    /// <summary>
+    /// Invoked when the "Ctrl+Shift+S" hotkeys are pressed, triggering the save as operation.
+    /// </summary>
+    [JSInvokable] public async Task OnHotKeysCtrlShiftS() => await OnSaveAsClick();
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
+
+    private DotNetObjectReference<WorkflowEditor>? _dotNetRef;
 
     private RadzenSplitterPane ActivityPropertiesPane
     {
@@ -129,7 +146,11 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             await UpdateActivityPropertiesVisibleHeightAsync();
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
+        }
     }
 
     /// <inheritdoc />
@@ -161,7 +182,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition => await SetWorkflowDefinitionAsync(definition));
 
         _isDirty = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         return result;
     }
@@ -192,45 +213,57 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
-        await InvokeAsync(async () =>
+        await InvokeAsync(() =>
         {
             if (showLoader)
             {
                 IsProgressing = true;
                 StateHasChanged();
             }
-
-            // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
-            // Therefore, we need to wrap this in a try/catch block.
-            try
-            {
-                var result = await SaveAsync(readDiagram, publish);
-                await result.OnSuccessAsync(response =>
-                {
-                    onSuccess?.Invoke(response);
-                    return Task.CompletedTask;
-                }).ConfigureAwait(false);
-
-                await result.OnFailedAsync(errors =>
-                {
-                    onFailure?.Invoke(errors);
-                    UserMessageService.ShowSnackbarTextMessage(
-                        errors.Errors.Select(x => x.ErrorMessage),
-                        Severity.Error,
-                        options => options.VisibleStateDuration = 5000
-                    );
-                    return Task.CompletedTask;
-                });
-            }
-            finally
-            {
-                if (showLoader)
-                {
-                    IsProgressing = false;
-                    StateHasChanged();
-                }
-            }
         });
+        
+        // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
+        // Therefore, we need to wrap this in a try/catch block.
+        try
+        {
+            var result = await SaveAsync(readDiagram, publish);
+            await result.OnSuccessAsync(async response =>
+            {
+                var currentSelectedActivityId = SelectedActivityId;
+                    
+                await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
+                    
+                if (!string.IsNullOrEmpty(currentSelectedActivityId))
+                {
+                    await RefreshSelectedActivityAsync(currentSelectedActivityId);
+                }
+                    
+                await InvokeAsync(StateHasChanged);
+                    
+                if (onSuccess != null)
+                    await onSuccess(response);
+                    
+            }).ConfigureAwait(false);
+
+            await result.OnFailedAsync(errors =>
+            {
+                onFailure?.Invoke(errors);
+                UserMessageService.ShowSnackbarTextMessage(
+                    errors.Errors.Select(x => x.ErrorMessage),
+                    Severity.Error,
+                    options => options.VisibleStateDuration = 5000
+                );
+                return Task.CompletedTask;
+            });
+        }
+        finally
+        {
+            if (showLoader)
+            {
+                IsProgressing = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 
     private void SelectActivity(JsonObject activity)
@@ -253,9 +286,49 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
 
-    private async Task<IWorkflowDefinitionsApi> GetApiAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Refreshes the selected activity reference to point to the updated activity in the current workflow definition.
+    /// This is needed after saving changes to ensure the UI displays the latest activity state.
+    /// </summary>
+    private async Task RefreshSelectedActivityAsync(string activityId)
     {
-        return await BackendApiClientProvider.GetApiAsync<IWorkflowDefinitionsApi>(cancellationToken);
+        if (_workflowDefinition?.Root == null || string.IsNullOrEmpty(activityId))
+            return;
+
+        // Find the updated activity in the current workflow definition
+        var updatedActivity = await FindActivityByIdAsync(_workflowDefinition.Root, activityId);
+        
+        if (updatedActivity != null)
+        {
+            // Update the selected activity reference without triggering a disruptive UI refresh.
+            // We avoid calling SelectActivity() which sets the activity to null and calls StateHasChanged() multiple times.
+            SelectedActivity = updatedActivity;
+            SelectedActivityId = updatedActivity.GetId();
+            ActivityDescriptor = ActivityRegistry.Find(updatedActivity.GetTypeName(), updatedActivity.GetVersion());
+            
+            // Only call StateHasChanged once to update the UI without disrupting focus
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <summary>
+    /// Recursively searches for an activity with the specified ID in the activity tree.
+    /// </summary>
+    private async Task<JsonObject?> FindActivityByIdAsync(JsonObject rootActivity, string activityId)
+    {
+        // Use the activity visitor to traverse the entire activity graph
+        var activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(rootActivity);
+        
+        // Look for the activity in the activity node lookup
+        foreach (var node in activityGraph.ActivityNodeLookup.Values)
+        {
+            if (node.Activity.GetId() == activityId)
+            {
+                return node.Activity;
+            }
+        }
+        
+        return null;
     }
 
     private async Task UpdateActivityPropertiesVisibleHeightAsync()
@@ -285,6 +358,13 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
             return Task.CompletedTask;
         });
+    }
+
+    private async Task OnSaveAsClick()
+    {
+        var result = await WorkflowCloningService.SaveAs(WorkflowDefinition);
+        if (result is null) return;
+        if (result.IsSuccess) NavigationManager.NavigateTo($"workflows/definitions/{result?.Success?.WorkflowDefinition.DefinitionId}/edit");
     }
 
     private async Task OnPublishClicked()
@@ -422,6 +502,17 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             snackbarOptions.SnackbarVariant = Variant.Filled;
             snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
             snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            _dotNetRef.Dispose();
+            _dotNetRef = null;
         }
     }
 }

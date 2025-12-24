@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
@@ -14,7 +15,6 @@ using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -25,6 +25,7 @@ public partial class WorkflowDefinitionList
     private MudTable<WorkflowDefinitionRow> _table = null!;
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
+    private const int truncationLength = 40;
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
@@ -33,12 +34,14 @@ public partial class WorkflowDefinitionList
     [Inject] private NavigationManager Navigation { get; set; }
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
+    [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
@@ -136,6 +139,20 @@ public partial class WorkflowDefinitionList
             await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
             result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
         }
+    }
+
+    private async Task OnDuplicateWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    {
+        var originalDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
+        if (originalDefinition == null)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Original workflow definition not found."], Severity.Error);
+            return;
+        }
+
+        var result = await WorkflowCloningService.Duplicate(originalDefinition);
+        if (result is null) return;
+        if (result.IsSuccess) Reload();
     }
 
     private async Task EditAsync(string definitionId)
@@ -338,9 +355,10 @@ public partial class WorkflowDefinitionList
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
+        var reasons = string.Join(", ", results.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
         var message = results.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
-            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}.", failedResultCount, failedWorkflowsTerm];
+            successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}. Reason: {2}", failedResultCount, failedWorkflowsTerm, reasons] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}. Reasons: {2}", failedResultCount, failedWorkflowsTerm, reasons];
         var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         UserMessageService.ShowSnackbarTextMessage(message, severity, options =>
         {
@@ -392,6 +410,25 @@ public partial class WorkflowDefinitionList
         await WorkflowDefinitionService.RetractAsync(definitionId);
         UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow retracted"], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
         Reload();
+    }
+
+    private async Task OnViewDescriptionClicked(string value)
+    {
+        DialogParameters<MarkdownEditor> param = new()
+        {
+            { x => x.Label, "Description" },
+            { x => x.Value, value },
+            { x => x.IsReadOnly, true }
+        };
+        DialogOptions options = new()
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            FullWidth = true,
+            FullScreen = false,
+            MaxWidth = MaxWidth.Large
+        };
+        await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
     }
 
     private record WorkflowDefinitionRow(

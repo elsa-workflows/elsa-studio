@@ -20,12 +20,18 @@ public partial class ActivityPropertiesPanel
     /// Gets or sets the workflow definition.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the workflow definition.
+    /// </summary>
     public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// <summary>
     /// Gets or sets the activity.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the activity.
+    /// </summary>
     public JsonObject? Activity { get; set; }
 
     /// <summary>
@@ -49,17 +55,24 @@ public partial class ActivityPropertiesPanel
     /// Gets or sets a callback that is invoked when the activity is updated.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the on activity updated callback.
+    /// </summary>
     public Func<JsonObject, Task>? OnActivityUpdated { get; set; }
 
     /// <summary>
     /// Gets or sets the visible pane height.
     /// </summary>
     [Parameter]
+    /// <summary>
+    /// Gets or sets the visible pane height.
+    /// </summary>
     public int VisiblePaneHeight { get; set; }
 
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;
-    [Inject] private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
     [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = null!;
+    [Inject] private IActivityTabRegistry ActivityTabRegistry { get; set; } = null!;
+    private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
 
     private ActivityDescriptor? activityDescriptor;
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
@@ -85,9 +98,10 @@ public partial class ActivityPropertiesPanel
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var descriptors = await ExpressionService.ListDescriptorsAsync();
+        var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
-        ExpressionDescriptorProvider.AddRange(descriptors);
+        ExpressionDescriptorProvider.AddRange(expressionDescriptors);
+        PluginTabs = ActivityTabRegistry.List().ToList();
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.

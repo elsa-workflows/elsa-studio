@@ -6,6 +6,9 @@ using MudExtensions;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outcomes;
 
+/// <summary>
+/// Represents the outcomes section.
+/// </summary>
 public partial class OutcomesSection
 {
     private MudChipField<string> _chipField = default!;

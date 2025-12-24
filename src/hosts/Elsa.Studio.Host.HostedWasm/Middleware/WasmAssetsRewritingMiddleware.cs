@@ -8,6 +8,10 @@ public class WasmAssetsRewritingMiddleware(RequestDelegate next, ILogger<WasmAss
 {
     private static readonly string[] TargetSegments = { "_content", "_framework" };
 
+    /// <summary>
+    /// Invokes the handler asynchronously.
+    /// </summary>
+    /// <param name="context">The context.</param>
     public async Task InvokeAsync(HttpContext context)
     {
         if (context.Request.Path.HasValue && NeedsRewriting(context.Request.Path.Value!))

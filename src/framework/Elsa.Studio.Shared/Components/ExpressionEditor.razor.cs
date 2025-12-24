@@ -17,7 +17,7 @@ namespace Elsa.Studio.Components;
 /// </summary>
 public partial class ExpressionEditor : IDisposable
 {
-    private readonly string[] _expressionTypeBlacklist = ["Literal", "Object", "Variable"];
+    private readonly string[] _expressionTypeBlacklist = ["Literal", "Object", "Variable", "Input"];
     private string? _selectedExpressionType;
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;

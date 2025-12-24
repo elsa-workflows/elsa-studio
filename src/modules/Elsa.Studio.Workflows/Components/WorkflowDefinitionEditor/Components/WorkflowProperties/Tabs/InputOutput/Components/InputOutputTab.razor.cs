@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components;
 
+/// <summary>
+/// Represents the input output tab.
+/// </summary>
 public partial class InputOutputTab
 {
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;

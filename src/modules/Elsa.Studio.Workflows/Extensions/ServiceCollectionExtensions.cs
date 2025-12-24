@@ -13,7 +13,6 @@ using Elsa.Studio.Workflows.Menu;
 using Elsa.Studio.Workflows.Services;
 using Elsa.Studio.Workflows.Widgets;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;
 
 
 namespace Elsa.Studio.Workflows.Extensions;
@@ -32,6 +31,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, WorkflowsMenu>()
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
+            .AddScoped<IWorkflowCloningDialogService, WorkflowCloningDialogService>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
             .AddWorkflowsCore()

@@ -5,6 +5,7 @@ using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Monaco.Handlers;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Radzen;
 
 namespace Elsa.Studio.Extensions;
 
@@ -28,6 +29,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITimeFormatter, DefaultTimeFormatter>();
         services.AddScoped<ITimeZoneProvider, UtcTimeZoneProvider>();
         services.AddScoped<IBrandingProvider, DefaultBrandingProvider>();
+
+        // Required for the Radzen.Blazor.RadzenHtmlEditorLink component to work.
+        services.AddRadzenComponents();
+
         return services;
     }
 }

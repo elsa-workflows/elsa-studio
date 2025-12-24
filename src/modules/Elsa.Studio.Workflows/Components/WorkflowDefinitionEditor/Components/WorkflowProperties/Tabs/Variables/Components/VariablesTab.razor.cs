@@ -10,6 +10,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Variables.Components;
 
+/// <summary>
+/// Represents the variables tab.
+/// </summary>
 public partial class VariablesTab
 {
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();

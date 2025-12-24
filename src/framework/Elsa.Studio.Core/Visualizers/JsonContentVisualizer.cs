@@ -1,12 +1,12 @@
 ﻿using Elsa.Studio.Contracts;
 using System.Text.Json;
 
-namespace Elsa.Studio.Formatters
+namespace Elsa.Studio.Visualizers
 {
     /// <summary>
-    /// Provides a Json content formatter.
+    /// Provides a Json content visualizer.
     /// </summary>
-    public class JsonContentFormatter : IContentFormatter
+    public class JsonContentVisualizer : IContentVisualizer
     {
         /// <inheritdoc/>
         public string Name => "Json";
@@ -15,7 +15,7 @@ namespace Elsa.Studio.Formatters
         public string Syntax => "json";
 
         /// <inheritdoc/>
-        public bool CanFormat(object input)
+        public bool CanVisualize(object input)
         {
             if (input is not string str) return false;
             str = str.Trim();
@@ -23,7 +23,7 @@ namespace Elsa.Studio.Formatters
         }
 
         /// <inheritdoc/>
-        public string? ToText(object input)
+        public string? ToPretty(object input)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace Elsa.Studio.Formatters
         }
 
         /// <inheritdoc/>
-        public TabulatedContentFormat? ToTable(object input)
+        public TabulatedContentVisualizer? ToTable(object input)
         {
             if (input is not string str) return null;
 
@@ -78,7 +78,7 @@ namespace Elsa.Studio.Formatters
                     rows.Add(row);
                 }
 
-                return new TabulatedContentFormat
+                return new TabulatedContentVisualizer
                 {
                     Headers = headerList,
                     Rows = rows
@@ -89,6 +89,7 @@ namespace Elsa.Studio.Formatters
                 return null;
             }
         }
+
         private string JsonElementToString(JsonElement element)
         {
             return element.ValueKind switch

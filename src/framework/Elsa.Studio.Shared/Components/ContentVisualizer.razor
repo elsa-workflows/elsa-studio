@@ -28,13 +28,13 @@
             </MudTooltip>
             <MudSelect T="string"
                        @bind-Value="SelectedItem"
-                       Label="Formatter"
+                       Label="Visualizer"
                        Dense="true"
                        FitContent="true"
                        Class="ml-2 mr-2"
                        Margin="Margin.Dense"
                        Variant="Variant.Outlined">
-                @foreach (var formatter in AvailableFormatters)
+                @foreach (var formatter in AvailableVisualizers)
                 {
                     <MudSelectItem Value="@formatter.Name">@formatter.Name</MudSelectItem>
                 }
@@ -54,13 +54,13 @@
                         ApplyEffectsToContainer="true"
                         PanelClass="pa-4">
                 <MudPaper Height="655px" Width="100%" Elevation="0">
-                    <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(FormattedText is not null)">
+                    <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(Pretty is not null)">
                         <StandaloneCodeEditor @ref="_monacoEditor"
                                               Id="@_monacoEditorId"
                                               ConstructionOptions="ConfigureMonacoEditor"
                                               CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
                     </MudTabPanel>
-                    <MudTabPanel Text="@Localizer["Tabular"]" Visible="@(FormattedTable is not null)">
+                    <MudTabPanel Text="@Localizer["Tabular"]" Visible="@(Table is not null)">
                         <MudSimpleTable Style="@($"height:655px; width:1080px;")"
                                         FixedHeader="true"
                                         Outlined="true"
@@ -68,18 +68,18 @@
                                         Dense="true"
                                         Elevation="0"
                                         Bordered="false">
-                            @if (FormattedTable?.Headers != null)
+                            @if (Table?.Headers != null)
                             {
                                 <thead>
                                     <tr>
-                                        @foreach (var header in FormattedTable?.Headers)
+                                        @foreach (var header in Table?.Headers)
                                         {
                                             <th>@header</th>
                                         }
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var row in FormattedTable?.Rows)
+                                    @foreach (var row in Table?.Rows)
                                     {
                                         <tr>
                                             @foreach (var x in row)

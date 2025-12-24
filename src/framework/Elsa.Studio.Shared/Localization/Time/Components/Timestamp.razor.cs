@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Localization.Time.Components;
 
+/// <summary>
+/// Represents the timestamp.
+/// </summary>
 public partial class Timestamp : ComponentBase
 {
     /// <summary>

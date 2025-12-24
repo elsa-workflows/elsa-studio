@@ -1,10 +1,10 @@
-﻿using Elsa.Studio.Branding;
+using Elsa.Studio.Branding;
 
 namespace Elsa.Studio.Host.Server
 {
     /// <inheritdoc />
     public class StudioBrandingProvider : DefaultBrandingProvider
     {
-        public override string AppName => "Elsa Studio 3.7";
+        public override string AppName => "Elsa Studio 3.6";
     }
 }
