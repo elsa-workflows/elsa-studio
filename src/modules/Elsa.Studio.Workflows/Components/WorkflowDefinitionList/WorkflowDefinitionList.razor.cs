@@ -6,15 +6,15 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -26,6 +26,7 @@ public partial class WorkflowDefinitionList
     private HashSet<WorkflowDefinitionRow> _selectedRows = new();
     private long _totalCount;
     private const int truncationLength = 40;
+    private bool _initializedFromQuery;
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
@@ -42,12 +43,17 @@ public partial class WorkflowDefinitionList
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
+
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
+        ParseQueryParameters();
+
         var request = new ListWorkflowDefinitionsRequest
         {
             IsSystem = false,
@@ -93,11 +99,57 @@ public partial class WorkflowDefinitionList
             })
             .ToList();
 
+        // Update URL to reflect current table state & filters
+        TryUpdateUrlFromState(state);
+
         return new TableData<WorkflowDefinitionRow>
         {
             TotalItems = (int)_totalCount,
             Items = workflowDefinitionRows
         };
+    }
+
+    private void ParseQueryParameters()
+    {
+        if (_initializedFromQuery) return;
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        // Paging
+        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table.SetRowsPerPage(pageSize);
+
+        // Filtering from query
+        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
+        _initializedFromQuery = true;
+    }
+
+    private void TryUpdateUrlFromState(TableState state)
+    {
+        try
+        {
+            if (!_initializedFromQuery) return;
+
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var baseUri = uri.GetLeftPart(UriPartial.Path);
+            var query = new Dictionary<string, string?>();
+
+            // Paging
+            query["pageSize"] = state.PageSize.ToString();
+
+            // Filters
+            if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
+            
+            // Build query string using QueryHelpers
+            var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!);
+            var newUri = QueryHelpers.AddQueryString(baseUri, dict);
+
+            // Only navigate if URL actually changed (prevents unnecessary history entries / re-render loops)
+            if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal)) NavigationManager.NavigateTo(newUri, replace: true);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to update URL with table state.");
+        }
     }
 
     private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)
