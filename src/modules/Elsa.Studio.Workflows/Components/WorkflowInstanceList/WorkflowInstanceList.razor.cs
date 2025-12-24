@@ -77,11 +77,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        // Load workflow definitions first so query parsing can match definitions
         await LoadWorkflowDefinitionsAsync();
-
-        // Try to read filters from query string (must happen after workflow definitions are loaded so SelectedWorkflowDefinitions can be resolved)
-        ParseQueryParameters();
         StartElapsedTimer();
     }
 
@@ -101,6 +97,8 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
+        ParseQueryParameters();
+
         var request = new ListWorkflowInstancesRequest
         {
             Page = state.Page,
@@ -173,6 +171,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = QueryHelpers.ParseQuery(uri.Query);
 
+        // Paging
+        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table.SetRowsPerPage(pageSize);
+
+        // Filtering from query
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
         if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues.ToString(), out var incidents)) HasIncidents = incidents;
         if (query.TryGetValue("statuses", out var statusesValues) && !StringValues.IsNullOrEmpty(statusesValues))
@@ -225,20 +227,15 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         try
         {
-            if (!_initializedFromQuery)
-                return;
-
+            if (!_initializedFromQuery) return;
             var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
             var baseUri = uri.GetLeftPart(UriPartial.Path);
             var query = new Dictionary<string, string?>();
 
-            // paging & sorting
-            query["page"] = state.Page.ToString();
+            // Paging
             query["pageSize"] = state.PageSize.ToString();
-            if (!string.IsNullOrWhiteSpace(state.SortLabel)) query["sort"] = state.SortLabel;
-            query["sortDir"] = state.SortDirection == SortDirection.Descending ? "desc" : "asc";
 
-            // filters
+            // Filters
             if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
             if (HasIncidents != null) query["hasIncidents"] = HasIncidents.ToString();
             if (SelectedStatuses.Any()) query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
