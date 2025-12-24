@@ -50,10 +50,14 @@ public partial class WorkflowDefinitionList
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
 
-    private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
     {
         ParseQueryParameters();
+    }
 
+    private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
+    {
         var request = new ListWorkflowDefinitionsRequest
         {
             IsSystem = false,
@@ -116,7 +120,7 @@ public partial class WorkflowDefinitionList
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         // Paging
-        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("pageSize", out var pageSizeValues) && int.TryParse(pageSizeValues.ToString(), out var pageSize)) _table?.SetRowsPerPage(pageSize);
 
         // Filtering from query
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();

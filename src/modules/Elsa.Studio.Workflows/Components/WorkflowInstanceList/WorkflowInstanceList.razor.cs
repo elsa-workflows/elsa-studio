@@ -78,6 +78,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override async Task OnInitializedAsync()
     {
         await LoadWorkflowDefinitionsAsync();
+        ParseQueryParameters();
         StartElapsedTimer();
     }
 
@@ -97,8 +98,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task<TableData<WorkflowInstanceRow>> LoadData(TableState state, CancellationToken cancellationToken)
     {
-        ParseQueryParameters();
-
         var request = new ListWorkflowInstancesRequest
         {
             Page = state.Page,
