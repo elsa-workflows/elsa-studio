@@ -17,6 +17,8 @@ namespace Elsa.Studio.Shared.Components
         [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
         [Inject] protected ILogger<QueryTableComponentBase>? Logger { get; set; }
 
+        public int initialPage = 0;
+
         /// <summary>
         /// Gets or sets the initial number of items to include in each page of results.
         /// </summary>

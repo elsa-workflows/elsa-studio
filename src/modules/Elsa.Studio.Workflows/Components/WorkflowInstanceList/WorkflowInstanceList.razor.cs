@@ -163,7 +163,8 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override void ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
-        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize); 
 
         // Filters
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
@@ -217,6 +218,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
+            ["page"] = (state.Page + 1).ToString(),
             ["pageSize"] = state.PageSize.ToString()
         };
 

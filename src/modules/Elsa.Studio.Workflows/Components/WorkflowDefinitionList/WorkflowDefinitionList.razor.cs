@@ -107,6 +107,7 @@ public partial class WorkflowDefinitionList
     protected override void ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
         if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
 
         // Filters
@@ -118,6 +119,7 @@ public partial class WorkflowDefinitionList
     {
         var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
+            ["page"] = (state.Page + 1).ToString(),
             ["pageSize"] = state.PageSize.ToString()
         };
 
