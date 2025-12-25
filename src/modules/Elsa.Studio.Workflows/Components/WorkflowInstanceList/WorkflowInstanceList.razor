@@ -42,6 +42,7 @@
                     @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
                 </MudMenu>
                 <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Actions"]" Color="Color.Primary" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Refresh" OnClick="@_table.ReloadServerData" title="Refresh (Ctrl + R)">@Localizer["Refresh"]</MudMenuItem>
                     <MudMenuItem Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))">@(IsPolling ? Localizer["Pause Polling"] : Localizer["Enable Polling"])</MudMenuItem>
                     <MudDivider />
                     <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
@@ -287,6 +288,29 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
+
+<script>
+    window.editorHotkeys = {
+        _hotkeyHandler: null,
+        register: function (dotNetRef) {
+            function handler(e) {
+                // Ctrl+R (Windows/Linux) and Cmd+R (Mac)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                    e.preventDefault();
+                    dotNetRef.invokeMethodAsync('OnHotKeysCtrlR');
+                }
+            }
+            window.addEventListener('keydown', handler);
+            this._hotkeyHandler = handler;
+        },
+        dispose: function (dotNetRef) {
+            if (this._hotkeyHandler) {
+                window.removeEventListener('keydown', this._hotkeyHandler);
+                this._hotkeyHandler = null;
+            }
+        }
+    };
+</script>
 
 <style>
     .mw-300 {

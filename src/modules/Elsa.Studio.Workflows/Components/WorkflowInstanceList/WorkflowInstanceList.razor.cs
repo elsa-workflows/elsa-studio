@@ -1,10 +1,8 @@
-using System.Text.Json;
-using System.Text;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
@@ -15,17 +13,21 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using MudBlazor;
-using Refit;
-using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Microsoft.JSInterop;
+using MudBlazor;
+using Refit;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
 /// Represents the workflow instances list page.
 public partial class WorkflowInstanceList : IAsyncDisposable
 {
+    private DotNetObjectReference<WorkflowInstanceList>? _dotNetRef;
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
@@ -41,9 +43,15 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
+
+    /// <summary>
+    /// Invoked when the "Ctrl+R" hotkeys are pressed, triggering the refresh operation.
+    /// </summary>
+    [JSInvokable] public void OnHotKeysCtrlR() => _table.ReloadServerData();
 
     private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
     private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
@@ -75,6 +83,17 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         await LoadWorkflowDefinitionsAsync();
         StartElapsedTimer();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task LoadWorkflowDefinitionsAsync()
@@ -495,9 +514,15 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
-    ValueTask IAsyncDisposable.DisposeAsync()
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
     {
         StopElapsedTimer();
-        return ValueTask.CompletedTask;
+        if (_dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            _dotNetRef.Dispose();
+            _dotNetRef = null;
+        }
     }
 }
