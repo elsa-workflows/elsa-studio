@@ -41,10 +41,12 @@
               @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" Dense="true">
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
-                <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
             </MudMenu>
             <MudSpacer />
 

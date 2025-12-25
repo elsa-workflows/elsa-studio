@@ -36,15 +36,16 @@
         <ToolBarContent>
             <MudPaper Class="gap-3 d-flex" Elevation="0">
                 <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
-                    <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
-                    <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
                     @* <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem> *@
-                    @* <MudMenuItem OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
+                    @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@
                 </MudMenu>
-                <MudButton StartIcon="@Icons.Material.Filled.FileUpload" Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnImportClicked">@Localizer["Import"]</MudButton>
-                <MudTooltip Text="@(IsPolling ? Localizer["Pause polling"] : Localizer["Enable polling"])"> 
-                    <MudIconButton Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))" Class="ml-0" />
-                </MudTooltip>
+                <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Actions"]" Color="Color.Primary" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
+                    <MudMenuItem Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))">@(IsPolling ? Localizer["Pause Polling"] : Localizer["Enable Polling"])</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
+                </MudMenu>
             </MudPaper>
 
             <MudSpacer />
@@ -267,8 +268,8 @@
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
                     <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@Localizer["View"]</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
                     @* Disabled until we fix an issue with Workflow Instance Exports. *@
                     @* <MudDivider DividerType="DividerType.FullWidth"></MudDivider> *@
                     @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">Export</MudMenuItem> *@
