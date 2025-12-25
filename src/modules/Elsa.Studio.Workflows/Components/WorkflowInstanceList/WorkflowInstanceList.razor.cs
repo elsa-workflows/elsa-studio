@@ -164,14 +164,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     {
         // Paging
         if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
-        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize); 
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
 
         // Filters
-        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues.ToString();
-        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues.ToString(), out var incidents)) HasIncidents = incidents;
+        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues;
+        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues, out var incidents)) HasIncidents = incidents;
         if (query.TryGetValue("statuses", out var statusesValues) && !StringValues.IsNullOrEmpty(statusesValues))
         {
-            SelectedStatuses = statusesValues.ToString()
+            SelectedStatuses = statusesValues
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(s => Enum.TryParse<WorkflowStatus>(s, true, out var st) ? (WorkflowStatus?)st : null)
                 .Where(v => v.HasValue)
@@ -180,7 +180,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
         if (query.TryGetValue("substatuses", out var substatusesValues) && !StringValues.IsNullOrEmpty(substatusesValues))
         {
-            SelectedSubStatuses = substatusesValues.ToString()
+            SelectedSubStatuses = substatusesValues
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(s => Enum.TryParse<WorkflowSubStatus>(s, true, out var st) ? (WorkflowSubStatus?)st : null)
                 .Where(v => v.HasValue)
@@ -189,15 +189,14 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
         if (query.TryGetValue("defs", out var defsValues) && !StringValues.IsNullOrEmpty(defsValues))
         {
-            var ids = defsValues.ToString()
+            var ids = defsValues
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             SelectedWorkflowDefinitions = WorkflowDefinitions.Where(wd => ids.Contains(wd.DefinitionId)).ToList();
         }
         if (query.TryGetValue("ts", out var tsValues) && !StringValues.IsNullOrEmpty(tsValues))
         {
-            var raw = tsValues.ToString();
-
+            var raw = tsValues;
             try
             {
                 var bytes = Convert.FromBase64String(raw);

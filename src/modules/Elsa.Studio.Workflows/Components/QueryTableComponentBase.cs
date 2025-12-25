@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
-namespace Elsa.Studio.Shared.Components
+namespace Elsa.Studio.Workflows.Components
 {
     /// <summary>
     /// Base component that provides common URL query parsing and update logic for
     /// table components that want to reflect state in the query string.
-    /// Derive components must implement ApplyQueryParameters and BuildQueryFromState.
+    /// Derived components must implement ApplyQueryParameters and BuildQueryFromState.
     /// </summary>
     public abstract class QueryTableComponentBase : StudioComponentBase
     {
@@ -17,12 +17,10 @@ namespace Elsa.Studio.Shared.Components
         [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
         [Inject] protected ILogger<QueryTableComponentBase>? Logger { get; set; }
 
-        public int initialPage = 0;
-
         /// <summary>
-        /// Gets or sets the initial number of items to include in each page of results.
+        /// Specifies the initial page index used when starting pagination operations.
         /// </summary>
-        //public int InitialPageSize { get; set; } = 10;
+        protected int initialPage = 0;
 
         /// <inheritdoc/>
         protected override async Task OnAfterRenderAsync(bool firstRender)
