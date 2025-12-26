@@ -1,24 +1,24 @@
+using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Localization.Time;
-using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.Login.BlazorServer.Extensions;
-using Elsa.Studio.Login.HttpMessageHandlers;
-using Elsa.Studio.Models;
-using Elsa.Studio.Shell.Extensions;
-using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Host.Server;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
-using Elsa.Studio.Translations;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Elsa.Studio.Branding;
-using Elsa.Studio.Contracts;
-using Elsa.Studio.Host.Server;
+using Elsa.Studio.Localization.Time;
+using Elsa.Studio.Localization.Time.Providers;
+using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Login.HttpMessageHandlers;
+using Elsa.Studio.Models;
+using Elsa.Studio.Shell.Extensions;
+using Elsa.Studio.Translations;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
+using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);

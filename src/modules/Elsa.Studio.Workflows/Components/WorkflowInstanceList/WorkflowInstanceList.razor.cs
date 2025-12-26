@@ -14,6 +14,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -47,26 +48,27 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
+    [Inject] private IOptions<WorkflowInstanceListPollingOptions> PollingOptions { get; set; } = default!;
 
     /// <summary>
     /// Invoked when the "Ctrl+R" hotkeys are pressed, triggering the refresh operation.
     /// </summary>
     [JSInvokable] public void OnHotKeysCtrlR() => _table.ReloadServerData();
 
-    private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
-    private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+    private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = [];
+    private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = [];
 
     /// The selected statuses to filter by.
-    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
+    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = [];
 
     /// The selected sub-statuses to filter by.
-    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
+    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = [];
 
     // The selected timestamp filters to filter by.
-    private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
+    private List<TimestampFilterModel> TimestampFilters { get; set; } = [];
 
     private string SearchTerm { get; set; } = string.Empty;
-    private bool IsPolling { get; set; } = true;
+    private bool IsPolling { get; set; }
     private bool? HasIncidents { get; set; }
     private bool IsDateRangePopoverOpen { get; set; }
 
@@ -81,6 +83,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        IsPolling = PollingOptions.Value.AutoPollingEnabled;
         await LoadWorkflowDefinitionsAsync();
         StartElapsedTimer();
     }
@@ -503,7 +506,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(PollingOptions.Value.PollingIntervalSeconds));
 
     private void StopElapsedTimer()
     {

@@ -43,7 +43,7 @@
                 </MudMenu>
                 <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Actions"]" Color="Color.Primary" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Refresh" OnClick="@_table.ReloadServerData" title="Refresh (Ctrl + R)">@Localizer["Refresh"]</MudMenuItem>
-                    <MudMenuItem Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))">@(IsPolling ? Localizer["Pause Polling"] : Localizer["Enable Polling"])</MudMenuItem>
+                    <MudMenuItem Icon="@(IsPolling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)" OnClick="@(() => OnPollingChanged(!IsPolling))" title="@($"Poll every {PollingOptions.Value.PollingIntervalSeconds}'s")">@(IsPolling ? Localizer["Pause Polling"] : Localizer["Enable Polling"])</MudMenuItem>
                     <MudDivider />
                     <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
                 </MudMenu>
