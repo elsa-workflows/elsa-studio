@@ -68,7 +68,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private List<TimestampFilterModel> TimestampFilters { get; set; } = [];
 
     private string SearchTerm { get; set; } = string.Empty;
-    private bool IsPolling { get; set; }
+    private bool EnablePolling { get; set; }
     private bool? HasIncidents { get; set; }
     private bool IsDateRangePopoverOpen { get; set; }
 
@@ -83,7 +83,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        IsPolling = PollingOptions.Value.AutoPollingEnabled;
+        EnablePolling = PollingOptions.Value.Enabled;
         await LoadWorkflowDefinitionsAsync();
         StartElapsedTimer();
     }
@@ -498,15 +498,15 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private void OnPollingChanged(bool enabled)
     {
-        IsPolling = enabled;
+        EnablePolling = enabled;
 
-        if (IsPolling)
+        if (EnablePolling)
             StartElapsedTimer();
         else
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(PollingOptions.Value.PollingIntervalSeconds));
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
 
     private void StopElapsedTimer()
     {

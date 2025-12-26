@@ -8,11 +8,11 @@
         /// <summary>
         /// Whether polling is enabled by default.
         /// </summary>
-        public bool AutoPollingEnabled { get; set; }
+        public bool Enabled { get; set; }
 
         /// <summary>
         /// Interval in seconds between automatic refreshes.
         /// </summary>
-        public int PollingIntervalSeconds { get; set; }
+        public int IntervalSeconds { get; set; }
     }
 }
