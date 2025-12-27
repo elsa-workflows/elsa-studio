@@ -22,12 +22,18 @@ namespace Elsa.Studio.Workflows.Components
         /// </summary>
         protected int initialPage = 0;
 
+        /// <summary>
+        /// Specifies the initial number of items to display per page.
+        /// </summary>
+        protected int initialPageSize = 10;
+
+
         /// <inheritdoc/>
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
-                ParseQueryParameters();
+                await ParseQueryParameters();
                 StateHasChanged();
             }
 
@@ -38,7 +44,7 @@ namespace Elsa.Studio.Workflows.Components
         /// Parses the current URI's query string and delegates to <see cref="ApplyQueryParameters"/>.
         /// Only runs once unless you clear _initializedFromQuery or call ParseQueryParameters(force: true).
         /// </summary>
-        protected void ParseQueryParameters(bool force = false)
+        protected async Task ParseQueryParameters(bool force = false)
         {
             if (_initializedFromQuery && !force) return;
 
@@ -52,7 +58,7 @@ namespace Elsa.Studio.Workflows.Components
 
                 try
                 {
-                    ApplyQueryParameters(dict);
+                    await ApplyQueryParameters(dict);
                 }
                 catch (Exception ex)
                 {
@@ -102,7 +108,8 @@ namespace Elsa.Studio.Workflows.Components
         /// to their local component state in this method.
         /// </summary>
         /// <param name="query">Key -> string value dictionary (single values only).</param>
-        protected abstract void ApplyQueryParameters(IDictionary<string, string> query);
+        //protected abstract void ApplyQueryParameters(IDictionary<string, string> query);
+        protected abstract Task ApplyQueryParameters(IDictionary<string, string> query);
 
         /// <summary>
         /// Derived components must return the query dictionary to represent the current state

@@ -21,18 +21,19 @@
     </div>
 
     <MudTable @ref="_table"
-              T="WorkflowInstanceRow"
-              ServerData="LoadData"
-              Dense="true"
-              Hover="true"
-              Elevation="0"
-              OnRowClick="@OnRowClick"
-              RowStyle="cursor: pointer;"
-              MultiSelection="true"
-              SelectOnRowClick="false"
-              CurrentPage="initialPage"
-              Class="instances-table"
-              @bind-SelectedItems="_selectedRows">
+                T="WorkflowInstanceRow"
+                ServerData="LoadData"
+                Dense="true"
+                Hover="true"
+                Elevation="0"
+                OnRowClick="@OnRowClick"
+                RowStyle="cursor: pointer;"
+                MultiSelection="true"
+                SelectOnRowClick="false"
+                CurrentPage="initialPage"
+                RowsPerPage="initialPageSize"
+                Class="instances-table"
+                @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudPaper Class="gap-3 d-flex" Elevation="0">
                 <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
@@ -58,85 +59,85 @@
             </MudSelect>
 
             <MudTextField T="string"
-                          Text="@SearchTerm"
-                          Placeholder="@Localizer["Search on Id, Definition Id, Definition Version Id, Correlation Id"]"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          AdornmentIcon="@Icons.Material.Outlined.Search"
-                          Adornment="Adornment.End"
-                          Clearable="true"
-                          DebounceInterval="1500"
-                          Immediate="true"
-                          Class="me-3 mt-1"
-                          ValueChanged="@OnSearchTermChanged" />
+                            Text="@SearchTerm"
+                            Placeholder="@Localizer["Search on Id, Definition Id, Definition Version Id, Correlation Id"]"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            AdornmentIcon="@Icons.Material.Outlined.Search"
+                            Adornment="Adornment.End"
+                            Clearable="true"
+                            DebounceInterval="1500"
+                            Immediate="true"
+                            Class="me-3 mt-1"
+                            ValueChanged="@OnSearchTermChanged" />
 
             <MudSelectExtended T="WorkflowDefinitionSummary"
-                               Label="@Localizer["Workflows"]"
-                               AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
-                               MultiSelection="true"
-                               ItemCollection="@WorkflowDefinitions"
-                               SearchBox="true"
-                               SearchBoxAutoFocus="true"
-                               AnchorOrigin="Origin.BottomCenter"
-                               Variant="Variant.Outlined"
-                               Margin="Margin.Dense"
-                               Clearable="true"
-                               SearchBoxClearable="true"
-                               Dense="true"
-                               ChipSize="Size.Small"
-                               ChipVariant="Variant.Filled"
-                               ChipCloseable="true"
-                               InputMode="InputMode.search"
-                               Immediate="true"
-                               NoWrap="true"
-                               SelectValueOnTab="true"
-                               PopoverClass="mw-300"
-                               InputClass="me-3"
-                               SearchFunc="@FilterWorkflowDefinitions"
-                               ValuePresenter="ValuePresenter.Chip"
-                               SelectedValues="@SelectedWorkflowDefinitions"
-                               SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged"
-                               ToStringFunc="@GetWorkflowDefinitionDisplayText">
+                                Label="@Localizer["Workflows"]"
+                                AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+                                MultiSelection="true"
+                                ItemCollection="@WorkflowDefinitions"
+                                SearchBox="true"
+                                SearchBoxAutoFocus="true"
+                                AnchorOrigin="Origin.BottomCenter"
+                                Variant="Variant.Outlined"
+                                Margin="Margin.Dense"
+                                Clearable="true"
+                                SearchBoxClearable="true"
+                                Dense="true"
+                                ChipSize="Size.Small"
+                                ChipVariant="Variant.Filled"
+                                ChipCloseable="true"
+                                InputMode="InputMode.search"
+                                Immediate="true"
+                                NoWrap="true"
+                                SelectValueOnTab="true"
+                                PopoverClass="mw-300"
+                                InputClass="me-3"
+                                SearchFunc="@FilterWorkflowDefinitions"
+                                ValuePresenter="ValuePresenter.Chip"
+                                SelectedValues="@SelectedWorkflowDefinitions"
+                                SelectedValuesChanged="OnSelectedWorkflowDefinitionsChanged"
+                                ToStringFunc="@GetWorkflowDefinitionDisplayText">
             </MudSelectExtended>
 
             <MudSelectExtended T="WorkflowStatus"
-                               Label="@Localizer["Status"]"
-                               AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
-                               ValuePresenter="ValuePresenter.Chip"
-                               MultiSelection="true"
-                               Variant="Variant.Outlined"
-                               Margin="Margin.Dense"
-                               AnchorOrigin="Origin.BottomCenter"
-                               Dense="true"
-                               ChipSize="Size.Small"
-                               ChipVariant="Variant.Filled"
-                               ChipCloseable="true"
-                               Clearable="true"
-                               PopoverClass="mw-300"
-                               InputClass="me-3"
-                               SelectedValues="SelectedStatuses"
-                               SelectedValuesChanged="OnSelectedStatusesChanged">
+                                Label="@Localizer["Status"]"
+                                AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+                                ValuePresenter="ValuePresenter.Chip"
+                                MultiSelection="true"
+                                Variant="Variant.Outlined"
+                                Margin="Margin.Dense"
+                                AnchorOrigin="Origin.BottomCenter"
+                                Dense="true"
+                                ChipSize="Size.Small"
+                                ChipVariant="Variant.Filled"
+                                ChipCloseable="true"
+                                Clearable="true"
+                                PopoverClass="mw-300"
+                                InputClass="me-3"
+                                SelectedValues="SelectedStatuses"
+                                SelectedValuesChanged="OnSelectedStatusesChanged">
                 <MudSelectItemExtended Value="WorkflowStatus.Running">@Localizer["Running"]</MudSelectItemExtended>
                 <MudSelectItemExtended Value="WorkflowStatus.Finished">@Localizer["Finished"]</MudSelectItemExtended>
             </MudSelectExtended>
 
             <MudSelectExtended T="WorkflowSubStatus"
-                               Label="@Localizer["Sub status"]"
-                               AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
-                               ValuePresenter="ValuePresenter.Chip"
-                               MultiSelection="true"
-                               Variant="Variant.Outlined"
-                               Margin="Margin.Dense"
-                               AnchorOrigin="Origin.BottomCenter"
-                               Dense="true"
-                               ChipSize="Size.Small"
-                               ChipVariant="Variant.Filled"
-                               ChipCloseable="true"
-                               Clearable="true"
-                               PopoverClass="mw-300"
-                               InputClass="me-3"
-                               SelectedValues="SelectedSubStatuses"
-                               SelectedValuesChanged="OnSelectedSubStatusesChanged">
+                                Label="@Localizer["Sub status"]"
+                                AdornmentIcon="@Icons.Material.Outlined.PlayArrow"
+                                ValuePresenter="ValuePresenter.Chip"
+                                MultiSelection="true"
+                                Variant="Variant.Outlined"
+                                Margin="Margin.Dense"
+                                AnchorOrigin="Origin.BottomCenter"
+                                Dense="true"
+                                ChipSize="Size.Small"
+                                ChipVariant="Variant.Filled"
+                                ChipCloseable="true"
+                                Clearable="true"
+                                PopoverClass="mw-300"
+                                InputClass="me-3"
+                                SelectedValues="SelectedSubStatuses"
+                                SelectedValuesChanged="OnSelectedSubStatusesChanged">
                 <MudSelectItemExtended Value="WorkflowSubStatus.Executing">@Localizer["Executing"]</MudSelectItemExtended>
                 <MudSelectItemExtended Value="WorkflowSubStatus.Suspended">@Localizer["Suspended"]</MudSelectItemExtended>
                 <MudSelectItemExtended Value="WorkflowSubStatus.Finished">@Localizer["Finished"]</MudSelectItemExtended>
@@ -180,13 +181,13 @@
                                 </td>
                                 <td>
                                     <MudTextField T="string"
-                                                  Label="@Localizer["Time"]"
-                                                  Variant="Variant.Outlined"
-                                                  InputType="InputType.Time"
-                                                  Format="hh:mm:ss:mm"
-                                                  Clearable="true"
-                                                  AdornmentIcon="@Icons.Material.Filled.Timer"
-                                                  @bind-Value="timestampFilter.Time" />
+                                                    Label="@Localizer["Time"]"
+                                                    Variant="Variant.Outlined"
+                                                    InputType="InputType.Time"
+                                                    Format="hh:mm:ss:mm"
+                                                    Clearable="true"
+                                                    AdornmentIcon="@Icons.Material.Filled.Timer"
+                                                    @bind-Value="timestampFilter.Time" />
                                     @* <MudTimePicker Label="Time" Variant="Variant.Outlined" Clearable="true" @bind-Text="timestampFilter.Time"/> *@
                                 </td>
                             </tr>
@@ -258,10 +259,10 @@
             </MudTd>
             <MudTd DataLabel="@Localizer["IncidentCount"]">
                 <MudChip T="string"
-                         Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
-                         Value="@context.IncidentCount.ToString()"
-                         Variant="Variant.Text"
-                         Size="Size.Small" />
+                            Color="@(context.IncidentCount == 0 ? Color.Transparent : Color.Error)"
+                            Value="@context.IncidentCount.ToString()"
+                            Variant="Variant.Text"
+                            Size="Size.Small" />
             </MudTd>
             <MudTd DataLabel="@Localizer["CreatedAt"]"><Timestamp Value="context.CreatedAt" /></MudTd>
             <MudTd DataLabel="@Localizer["UpdatedAt"]"><Timestamp Value="context.UpdatedAt" /></MudTd>

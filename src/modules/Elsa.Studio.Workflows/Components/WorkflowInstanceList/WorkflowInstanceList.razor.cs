@@ -28,6 +28,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 /// Represents the workflow instances list page.
 public partial class WorkflowInstanceList : IAsyncDisposable
 {
+    private Task _loadWorkflowsTask = Task.CompletedTask;
     private DotNetObjectReference<WorkflowInstanceList>? _dotNetRef;
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
@@ -84,8 +85,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override async Task OnInitializedAsync()
     {
         EnablePolling = PollingOptions.Value.IsEnabledByDefault;
-        await LoadWorkflowDefinitionsAsync();
-        StartElapsedTimer();
+        _loadWorkflowsTask = LoadWorkflowDefinitionsAsync();
     }
 
     /// <inheritdoc/>
@@ -95,6 +95,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         {
             _dotNetRef = DotNetObjectReference.Create(this);
             await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
+            StartElapsedTimer();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -182,11 +183,11 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     }
 
     /// <inheritdoc/>
-    protected override void ApplyQueryParameters(IDictionary<string, string> query)
+    protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
         if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
-        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) initialPageSize = pageSize;
 
         // Filters
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues;
@@ -211,6 +212,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
         if (query.TryGetValue("defs", out var defsValues) && !StringValues.IsNullOrEmpty(defsValues))
         {
+            // Ensure WorkflowDefinitions are loaded
+            await _loadWorkflowsTask;
+
             var ids = defsValues
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -506,7 +510,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
 
     private void StopElapsedTimer()
     {

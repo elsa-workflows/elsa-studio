@@ -104,7 +104,7 @@ public partial class WorkflowDefinitionList
     }
 
     /// <inheritdoc/>
-    protected override void ApplyQueryParameters(IDictionary<string, string> query)
+    protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
         if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
