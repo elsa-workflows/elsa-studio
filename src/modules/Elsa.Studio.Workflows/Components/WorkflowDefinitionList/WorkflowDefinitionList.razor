@@ -1,8 +1,8 @@
-﻿@inherits StudioComponentBase
+﻿@inherits Elsa.Studio.Workflows.Components.QueryTableComponentBase
+@inject ILocalizer Localizer
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
 @using Microsoft.Extensions.Localization
-@inject ILocalizer Localizer
 
 <style>
     .definitions-table .mud-table-cell .mud-checkbox {
@@ -36,20 +36,23 @@
               RowStyle="cursor: pointer;"
               MultiSelection="true"
               SelectOnRowClick="false"
+              CurrentPage="initialPage"
               Class="definitions-table"
               @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" Dense="true">
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
-                <MudMenuItem Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
-                <MudMenuItem Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
             </MudMenu>
             <MudSpacer />
 
             <MudTextField T="string"
                           Text="@SearchTerm"
-                          Placeholder="@Localizer["Search on name, description, id, definition id"]"
+                          Placeholder="@Localizer["Search on Id, Name, Description, Definition Id"]"
                           Variant="Variant.Outlined"
                           AdornmentIcon="@Icons.Material.Outlined.Search"
                           Adornment="Adornment.End"
@@ -57,7 +60,7 @@
                           DebounceInterval="1500"
                           Immediate="true"
                           Class="d-flex flex-row justify-end align-end gap-3 flex-wrap pl-2 pr-6 py-6 mt-0"
-                          Style="height: 36.5px;"
+                          Style="height: 36.5px; width: 400px"
                           ValueChanged="@OnSearchTermChanged" />
 
             <MudButtonGroup Color="@(IsReadOnlyMode? Color.Default: Color.Primary)" Variant="Variant.Filled" DropShadow="true">
