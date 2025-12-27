@@ -55,7 +55,7 @@ public static class ServiceCollectionExtensions
 
         services.Configure<WorkflowInstanceListPollingOptions>(opts =>
         {
-            opts.Enabled = true;
+            opts.IsEnabledByDefault = true;
             opts.IntervalSeconds = 10;
         });
 

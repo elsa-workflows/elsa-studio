@@ -83,7 +83,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        EnablePolling = PollingOptions.Value.Enabled;
+        EnablePolling = PollingOptions.Value.IsEnabledByDefault;
         await LoadWorkflowDefinitionsAsync();
         StartElapsedTimer();
     }
