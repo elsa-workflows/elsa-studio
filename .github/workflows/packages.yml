@@ -12,6 +12,7 @@ on:
       - 'patch/*'
       - 'rc/*'
       - 'develop/*'
+      - 'release/*'
   release:
     types: [ prereleased, published ]
 env:
