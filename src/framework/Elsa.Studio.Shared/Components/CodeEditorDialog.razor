@@ -1,0 +1,122 @@
+﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using Elsa.Studio.Localization
+@using Microsoft.JSInterop
+@using Radzen.Blazor
+@inject ILocalizer Localizer
+@inject IDialogService DialogService
+
+<style>
+    .monaco-editor-container {
+        height: 655px !important;
+    }
+</style>
+
+<MudDialog>
+    <TitleContent>
+        <MudToolBar Dense="true" Gutters="false">
+            <MudStack Spacing="0">
+                <MudStack AlignItems=AlignItems.Center Row=true>
+                    <MudText Typo="Typo.h5">@Label</MudText>
+                    <MudText Typo="Typo.body2" Color="@Color.Info">@LanguageLabel</MudText>
+                </MudStack>
+                <MudText Typo="Typo.caption">@HelperText</MudText>
+            </MudStack>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Outlined.Save" Size="Size.Medium" OnClick="OnSaveClicked" />
+            <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+        </MudToolBar>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Height="665px" Width="100%" Elevation="0">
+            <StandaloneCodeEditor @ref="_monacoEditor"
+                                  Id="@_monacoEditorId"
+                                  ConstructionOptions="ConfigureMonacoEditor"
+                                  OnDidInit="OnMonacoInitializedAsync"
+                                  OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                  CssClass="studio-expression-input-monaco-editor" />
+        </MudPaper>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public string Value { get; set; } = null!;
+    [Parameter] public string Label { get; set; } = null!;
+    [Parameter] public string HelperText { get; set; } = null!;
+    [Parameter] public string LanguageLabel { get; set; } = null!;
+    [Parameter] public string MonacoLanguage { get; set; } = null!;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+
+    private StandaloneCodeEditor? _monacoEditor = null!;
+    private bool _isInternalContentChange;
+    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private string? _lastMonacoEditorContent;
+    private string _initialValue;
+
+    private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
+    {
+        return new()
+        {
+            Language = MonacoLanguage,
+            Value = Value,
+            FontFamily = "Roboto Mono, monospace",
+            RenderLineHighlight = "none",
+            FixedOverflowWidgets = true,
+            Minimap = new()
+            {
+                Enabled = false
+            },
+            AutomaticLayout = true,
+            LineNumbers = "on",
+            Theme = "vs",
+            RoundedSelection = true,
+            ScrollBeyondLastLine = false,
+            OverviewRulerLanes = 0,
+            OverviewRulerBorder = false,
+            LineDecorationsWidth = 0,
+            HideCursorInOverviewRuler = true,
+            GlyphMargin = false,
+            ReadOnly = false,
+            DomReadOnly = false
+        };
+    }
+
+    private async Task OnMonacoInitializedAsync()
+    {
+        _initialValue = Value;
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        _lastMonacoEditorContent = Value;
+        await model.SetValue(Value);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+    }
+
+    private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
+    {
+        if (_isInternalContentChange)
+            return;
+
+        var value = await _monacoEditor!.GetValue();
+        if (value == _lastMonacoEditorContent)
+            return;
+
+        Value = value;
+    }
+
+    private void OnSaveClicked() => MudDialog.Close(DialogResult.Ok(Value));
+    private async Task OnClosedClicked()
+    {
+        if (Value != _initialValue)
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                "Discard Changes",
+                "Are you sure you want to discard changes?",
+                yesText: "Yes", cancelText: "Cancel");
+            if (result != true) return;
+        }
+        MudDialog.Close();
+    }
+}
