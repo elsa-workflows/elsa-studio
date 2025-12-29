@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using ThrottleDebounce;
-using static MudBlazor.Colors;
 
 namespace Elsa.Studio.UIHints.Components;
 

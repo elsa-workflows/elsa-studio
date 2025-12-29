@@ -30,6 +30,13 @@ public partial class ExpressionInput : IDisposable
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
 
+    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
+    [Inject] private IUIHintService UIHintService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+
     /// <inheritdoc />
     public ExpressionInput()
     {
@@ -51,13 +58,6 @@ public partial class ExpressionInput : IDisposable
     /// </summary>
     [Parameter] public bool IsCodeOnly { get; set; }
 
-    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
-    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
-    [Inject] private IUIHintService UIHintService { get; set; } = null!;
-    [Inject] private IDialogService DialogService { get; set; } = null!;
-
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
     private string MonacoLanguage => SelectedExpressionDescriptor?.GetMonacoLanguage() ?? string.Empty;
@@ -74,7 +74,6 @@ public partial class ExpressionInput : IDisposable
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
-
     private string? MonacoSyntax { get; set; }
     private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
