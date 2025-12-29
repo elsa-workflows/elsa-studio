@@ -257,7 +257,7 @@ public partial class ExpressionInput : IDisposable
             { x => x.Label, DisplayName },
             { x => x.HelperText, Description },
             { x => x.Value, _lastMonacoEditorContent },
-            { x => x.LanguageLabel, ButtonLabel },
+            { x => x.LanguageLabel, SelectedExpressionDescriptor?.Type ?? ButtonLabel },
             { x => x.MonacoLanguage, MonacoLanguage },
         };
 
@@ -267,10 +267,11 @@ public partial class ExpressionInput : IDisposable
 
         if (dialogResult?.Data is string newValue && InputValue != newValue)
         {
+            _lastMonacoEditorContent = newValue;
             var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
             input.Expression = new(_selectedExpressionType, newValue);
-            _lastMonacoEditorContent = newValue;
-            await ThrottleValueChangedCallbackAsync(input);
+            await EditorContext.OnValueChanged(input);
+
             var model = await _monacoEditor!.GetModel();
             await model.SetValue(InputValue);
         }
