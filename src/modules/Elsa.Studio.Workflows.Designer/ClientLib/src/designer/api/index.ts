@@ -3,6 +3,7 @@ export * from './calculate-activity-size';
 export * from './center-content';
 export * from './create-graph';
 export * from './dispose-graph';
+export * from './export-content';
 export * from './graph-bindings';
 export * from './load-graph';
 export * from './paste-cells';

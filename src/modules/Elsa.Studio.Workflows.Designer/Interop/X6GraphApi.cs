@@ -1,10 +1,11 @@
+using Elsa.Studio.Workflows.Designer.Contracts;
+using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Options;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Elsa.Studio.Workflows.Designer.Contracts;
-using Elsa.Studio.Workflows.Designer.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
 
@@ -87,13 +88,30 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
     }
 
+    /// <summary>
     /// Zoom the canvas to fit the content.
+    /// </summary>
+    /// <returns></returns>
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
 
+    /// <summary>
     /// Center the canvas content.
+    /// </summary>
+    /// <returns></returns>
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
 
+    /// <summary>
+    /// Exports the graphs content to a supplied format.
+    /// </summary>
+    /// <param name="captureOptions">The capture options</param>
+    /// <returns></returns>
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await InvokeAsync(module => module.InvokeVoidAsync($"exportContentTo{captureOptions.Format}", _containerId, captureOptions));
+
+    /// <summary>
     /// Adjusts the graph layout.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <returns></returns>
     public async Task AutoLayoutAsync(X6Graph graph)
     {
         var serializedGraph = SerializeGraph(graph);
