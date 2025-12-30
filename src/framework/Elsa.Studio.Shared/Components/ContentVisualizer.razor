@@ -16,7 +16,7 @@
             <MudSpacer />
             <MudTooltip>
                 <TooltipContent>
-                     @(IsReadOnly? Localizer["Read Only"] : Localizer["Temporary Edit"])
+                    @(IsReadOnly? Localizer["Read Only"] : Localizer["Temporary Edit"])
                 </TooltipContent>
                 <ChildContent>
                     <MudToggleIconButton @bind-Toggled="IsReadOnly"
@@ -39,20 +39,22 @@
                     <MudSelectItem Value="@formatter.Name">@formatter.Name</MudSelectItem>
                 }
             </MudSelect>
-            <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+            <MudTooltip Text="Close">
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+            </MudTooltip>
         </MudToolBar>
     </TitleContent>
     <DialogContent>
         <MudStack>
             <MudTabs Position="MudBlazor.Position.Left"
-                        @bind-ActivePanelIndex="TabIndex"
-                        MinimumTabWidth="120px"
-                        Rounded="true"
-                        Border="true"
-                        Outlined="true"
-                        KeepPanelsAlive="true"
-                        ApplyEffectsToContainer="true"
-                        PanelClass="pa-4">
+                     @bind-ActivePanelIndex="TabIndex"
+                     MinimumTabWidth="120px"
+                     Rounded="true"
+                     Border="true"
+                     Outlined="true"
+                     KeepPanelsAlive="true"
+                     ApplyEffectsToContainer="true"
+                     PanelClass="pa-4">
                 <MudPaper Height="655px" Width="100%" Elevation="0">
                     <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(Pretty is not null)">
                         <StandaloneCodeEditor @ref="_monacoEditor"
@@ -90,7 +92,7 @@
                                     }
                                 </tbody>
                             }
-                            
+
                         </MudSimpleTable>
                     </MudTabPanel>
                     <MudTabPanel Text="@Localizer["Raw"]">
