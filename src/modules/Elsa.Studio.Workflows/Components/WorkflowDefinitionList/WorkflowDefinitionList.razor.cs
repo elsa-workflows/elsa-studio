@@ -6,15 +6,14 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
-using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -31,7 +30,6 @@ public partial class WorkflowDefinitionList
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private NavigationManager Navigation { get; set; }
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
@@ -42,6 +40,8 @@ public partial class WorkflowDefinitionList
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
+
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
@@ -93,11 +93,39 @@ public partial class WorkflowDefinitionList
             })
             .ToList();
 
+        // Update URL to reflect current table state & filters
+        TryUpdateUrlFromState(state);
+
         return new TableData<WorkflowDefinitionRow>
         {
             TotalItems = (int)_totalCount,
             Items = workflowDefinitionRows
         };
+    }
+
+    /// <inheritdoc/>
+    protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
+    {
+        // Paging
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
+
+        // Filters
+        if (query.TryGetValue("search", out var searchValue)) SearchTerm = searchValue;
+    }
+
+    /// <inheritdoc/>
+    protected override Dictionary<string, string?> BuildQueryFromState(TableState state)
+    {
+        var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["page"] = (state.Page + 1).ToString(),
+            ["pageSize"] = state.PageSize.ToString()
+        };
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
+
+        return query;
     }
 
     private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)

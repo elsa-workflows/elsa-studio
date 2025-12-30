@@ -1,8 +1,8 @@
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.Alterations.Contracts;
 using Elsa.Api.Client.Resources.Alterations.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
@@ -13,16 +13,23 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Refit;
-using Elsa.Api.Client.Resources.WorkflowInstances.Models;
-using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceList;
 
 /// Represents the workflow instances list page.
 public partial class WorkflowInstanceList : IAsyncDisposable
 {
+    private Task _loadWorkflowsTask = Task.CompletedTask;
+    private DotNetObjectReference<WorkflowInstanceList>? _dotNetRef;
     private MudTable<WorkflowInstanceRow> _table = null!;
     private HashSet<WorkflowInstanceRow> _selectedRows = new();
     private int _totalCount;
@@ -38,34 +45,59 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
+    [Inject] private IOptions<WorkflowInstanceListPollingOptions> PollingOptions { get; set; } = default!;
 
-    private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
-    private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = new List<WorkflowDefinitionSummary>();
+    /// <summary>
+    /// Invoked when the "Ctrl+R" hotkeys are pressed, triggering the refresh operation.
+    /// </summary>
+    [JSInvokable] public void OnHotKeysCtrlR() => _table.ReloadServerData();
+
+    private ICollection<WorkflowDefinitionSummary> WorkflowDefinitions { get; set; } = [];
+    private ICollection<WorkflowDefinitionSummary> SelectedWorkflowDefinitions { get; set; } = [];
+
+    /// The selected statuses to filter by.
+    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = [];
+
+    /// The selected sub-statuses to filter by.
+    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = [];
+
+    // The selected timestamp filters to filter by.
+    private List<TimestampFilterModel> TimestampFilters { get; set; } = [];
 
     private string SearchTerm { get; set; } = string.Empty;
+    private bool EnablePolling { get; set; }
     private bool? HasIncidents { get; set; }
     private bool IsDateRangePopoverOpen { get; set; }
 
-    /// The selected statuses to filter by.
-    private ICollection<WorkflowStatus> SelectedStatuses { get; set; } = new List<WorkflowStatus>();
-
-    /// The selected sub-statuses to filter by.
-    private ICollection<WorkflowSubStatus> SelectedSubStatuses { get; set; } = new List<WorkflowSubStatus>();
-
-    // The selected timestamp filters to filter by.
-    private ICollection<TimestampFilterModel> TimestampFilters { get; set; } = new List<TimestampFilterModel>();
-
+    private void Reload() => _table.ReloadServerData();
+    private async Task ViewAsync(string instanceId) => await ViewWorkflowInstance.InvokeAsync(instanceId);
+    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition) => definition?.Name;
+    private void ToggleDateRangePopover() => IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
+    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
+    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
+    private Task OnImportClicked() => DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        await LoadWorkflowDefinitionsAsync();
+        EnablePolling = PollingOptions.Value.IsEnabledByDefault;
+        _loadWorkflowsTask = LoadWorkflowDefinitionsAsync();
+    }
 
-        // Disable auto refresh until we implement a way to maintain the selected state, pagination etc. 
-        //StartElapsedTimer();
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.register", _dotNetRef);
+            StartElapsedTimer();
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task LoadWorkflowDefinitionsAsync()
@@ -119,7 +151,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             var rows = filteredWorkflowInstances.Select(x => new WorkflowInstanceRow(
                 x.Id,
                 x.CorrelationId,
-                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? "",
+                workflowDefinitionVersionsLookup[x.DefinitionVersionId]?.Name ?? string.Empty,
                 x.Version,
                 x.Name,
                 x.Status,
@@ -130,6 +162,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
                 x.FinishedAt));
 
             _totalCount = (int)workflowInstancesResponse.TotalCount;
+
+            // Update URL to reflect current table state & filters
+            TryUpdateUrlFromState(state);
+
             return new() { TotalItems = _totalCount, Items = rows };
         }
         catch (TaskCanceledException)
@@ -146,6 +182,81 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
+    /// <inheritdoc/>
+    protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
+    {
+        // Paging
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) initialPageSize = pageSize;
+
+        // Filters
+        if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues;
+        if (query.TryGetValue("hasIncidents", out var incidentsValues) && bool.TryParse(incidentsValues, out var incidents)) HasIncidents = incidents;
+        if (query.TryGetValue("statuses", out var statusesValues) && !StringValues.IsNullOrEmpty(statusesValues))
+        {
+            SelectedStatuses = statusesValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => Enum.TryParse<WorkflowStatus>(s, true, out var st) ? (WorkflowStatus?)st : null)
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
+        }
+        if (query.TryGetValue("substatuses", out var substatusesValues) && !StringValues.IsNullOrEmpty(substatusesValues))
+        {
+            SelectedSubStatuses = substatusesValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => Enum.TryParse<WorkflowSubStatus>(s, true, out var st) ? (WorkflowSubStatus?)st : null)
+                .Where(v => v.HasValue)
+                .Select(v => v!.Value)
+                .ToList();
+        }
+        if (query.TryGetValue("defs", out var defsValues) && !StringValues.IsNullOrEmpty(defsValues))
+        {
+            // Ensure WorkflowDefinitions are loaded
+            await _loadWorkflowsTask;
+
+            var ids = defsValues
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            SelectedWorkflowDefinitions = WorkflowDefinitions.Where(wd => ids.Contains(wd.DefinitionId)).ToList();
+        }
+        if (query.TryGetValue("ts", out var tsValues) && !StringValues.IsNullOrEmpty(tsValues))
+        {
+            var raw = tsValues;
+            try
+            {
+                var bytes = Convert.FromBase64String(raw);
+                var json = Encoding.UTF8.GetString(bytes);
+                var opts = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+                var decoded = JsonSerializer.Deserialize<List<TimestampFilterModel>>(json, opts);
+                TimestampFilters = decoded ?? new List<TimestampFilterModel>();
+            }
+            catch
+            {
+                TimestampFilters = [];
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override Dictionary<string, string?> BuildQueryFromState(TableState state)
+    {
+        var query = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["page"] = (state.Page + 1).ToString(),
+            ["pageSize"] = state.PageSize.ToString()
+        };
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm)) query["search"] = SearchTerm;
+        if (HasIncidents != null) query["hasIncidents"] = HasIncidents.ToString();
+        if (SelectedStatuses.Any()) query["statuses"] = string.Join(',', SelectedStatuses.Select(s => s.ToString()));
+        if (SelectedSubStatuses.Any()) query["substatuses"] = string.Join(',', SelectedSubStatuses.Select(s => s.ToString()));
+        if (SelectedWorkflowDefinitions.Any()) query["defs"] = string.Join(',', SelectedWorkflowDefinitions.Select(d => d.DefinitionId));
+        if (TimestampFilters.Any()) query["ts"] = EncodeTimestampFiltersToBase64Json(TimestampFilters); // Encode timestamp filters as JSON then base64 to avoid delimiter collisions
+
+        return query;
+    }
+
     private async Task<PagedListResponse<WorkflowInstanceSummary>> TryListWorkflowDefinitionsAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken)
     {
         try
@@ -157,10 +268,11 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             Logger.LogWarning("Failed to list workflow instances due to a timeout.");
             return new()
             {
-                Items = []
+                Items = Array.Empty<WorkflowInstanceSummary>()
             };
         }
     }
+
 
     private TimestampFilter Map(TimestampFilterModel source)
     {
@@ -188,13 +300,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _ => null
         };
     }
-
-    private async Task ViewAsync(string instanceId)
-    {
-        await ViewWorkflowInstance.InvokeAsync(instanceId);
-    }
-
-    private void Reload() => _table.ReloadServerData();
 
     private bool FilterWorkflowDefinitions(WorkflowDefinitionSummary workflowDefinition, string term)
     {
@@ -224,19 +329,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             _ => Color.Default,
         };
     }
-
-    private string? GetWorkflowDefinitionDisplayText(WorkflowDefinitionSummary? definition)
-    {
-        return definition?.Name;
-    }
-
-    private void ToggleDateRangePopover()
-    {
-        IsDateRangePopoverOpen = !IsDateRangePopoverOpen;
-    }
-
-    private void OnViewClicked(string instanceId) => _ = ViewAsync(instanceId);
-    private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceRow> e) => _ = ViewAsync(e.Item!.WorkflowInstanceId);
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
@@ -332,9 +424,12 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         Reload();
     }
 
-    private Task OnImportClicked()
+    private async Task OnBulkExportClicked()
     {
-        return DomAccessor.ClickElementAsync("#instance-file-upload-button-wrapper input[type=file]");
+        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
+        var download = await WorkflowInstanceService.BulkExportAsync(workflowInstanceIds);
+        var fileName = download.FileName;
+        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
@@ -347,13 +442,6 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         Reload();
     }
 
-    private async Task OnBulkExportClicked()
-    {
-        var workflowInstanceIds = _selectedRows.Select(x => x.WorkflowInstanceId).ToList();
-        var download = await WorkflowInstanceService.BulkExportAsync(workflowInstanceIds);
-        var fileName = download.FileName;
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
-    }
 
     private async Task OnSelectedWorkflowDefinitionsChanged(IEnumerable<WorkflowDefinitionSummary> values)
     {
@@ -412,10 +500,17 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         ToggleDateRangePopover();
     }
 
-    private void StartElapsedTimer()
+    private void OnPollingChanged(bool enabled)
     {
-        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        EnablePolling = enabled;
+
+        if (EnablePolling)
+            StartElapsedTimer();
+        else
+            StopElapsedTimer();
     }
+
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
 
     private void StopElapsedTimer()
     {
@@ -426,9 +521,15 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         }
     }
 
-    ValueTask IAsyncDisposable.DisposeAsync()
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
     {
         StopElapsedTimer();
-        return ValueTask.CompletedTask;
+        if (_dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
+            _dotNetRef.Dispose();
+            _dotNetRef = null;
+        }
     }
 }
