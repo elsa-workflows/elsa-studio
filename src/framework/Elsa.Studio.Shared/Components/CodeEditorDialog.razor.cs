@@ -12,6 +12,7 @@ namespace Elsa.Studio.Components
         private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
         private string? _lastMonacoEditorContent;
         private string _initialValue;
+
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
         [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
@@ -21,8 +22,6 @@ namespace Elsa.Studio.Components
         [Parameter] public string HelperText { get; set; } = null!;
         [Parameter] public string LanguageLabel { get; set; } = null!;
         [Parameter] public string MonacoLanguage { get; set; } = null!;
-
-        private bool canSave => _lastMonacoEditorContent != _initialValue;
 
         private async Task OnMonacoInitializedAsync()
         {
@@ -75,18 +74,6 @@ namespace Elsa.Studio.Components
             Value = value;
         }
 
-        private void OnSaveClicked() => MudDialog.Close(DialogResult.Ok(Value));
-        private async Task OnClosedClicked()
-        {
-            if (Value != _initialValue)
-            {
-                bool? result = await DialogService.ShowMessageBox(
-                    "Discard Changes",
-                    "Are you sure you want to discard changes?",
-                    yesText: "Yes", cancelText: "Cancel");
-                if (result != true) return;
-            }
-            MudDialog.Close();
-        }
+        private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
     }
 }

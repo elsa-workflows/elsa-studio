@@ -22,15 +22,13 @@
                 <MudText Typo="Typo.caption">@HelperText</MudText>
             </MudStack>
             <MudSpacer />
-            @if (canSave)
-            {
-                <MudIconButton Icon="@Icons.Material.Outlined.Save" Size="Size.Medium" OnClick="OnSaveClicked" Color="@Color.Info" />
-            }
-            <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+            <MudTooltip Text="Close">
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+            </MudTooltip>
         </MudToolBar>
     </TitleContent>
     <DialogContent>
-        <MudPaper Height="668px" Width="100%" Elevation="0">
+        <MudPaper Height="655px" Width="100%" Elevation="0">
             <StandaloneCodeEditor @ref="_monacoEditor"
                                   Id="@_monacoEditorId"
                                   ConstructionOptions="ConfigureMonacoEditor"
