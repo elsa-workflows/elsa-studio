@@ -25,7 +25,7 @@ public partial class ExpressionInput : IDisposable
     private string _selectedExpressionTypeDisplayName = DefaultSyntax;
     private StandaloneCodeEditor? _monacoEditor = null!;
     private bool _isInternalContentChange;
-    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
@@ -255,7 +255,7 @@ public partial class ExpressionInput : IDisposable
         {
             { x => x.Label, DisplayName },
             { x => x.HelperText, Description },
-            { x => x.Value, _lastMonacoEditorContent },
+            { x => x.Value, _lastMonacoEditorContent ?? InputValue ?? string.Empty },
             { x => x.LanguageLabel, SelectedExpressionDescriptor?.Type ?? ButtonLabel },
             { x => x.MonacoLanguage, MonacoLanguage },
         };

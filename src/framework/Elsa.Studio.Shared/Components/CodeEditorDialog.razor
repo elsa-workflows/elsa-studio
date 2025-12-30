@@ -1,9 +1,5 @@
-﻿@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
-@using Elsa.Studio.Localization
-@using Microsoft.JSInterop
-@using Radzen.Blazor
+﻿@using Elsa.Studio.Localization
 @inject ILocalizer Localizer
-@inject IDialogService DialogService
 
 <style>
     .monaco-editor-container {
@@ -22,7 +18,7 @@
                 <MudText Typo="Typo.caption">@HelperText</MudText>
             </MudStack>
             <MudSpacer />
-            <MudTooltip Text="Close">
+            <MudTooltip Text="@Localizer["Close"]">
                 <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
             </MudTooltip>
         </MudToolBar>

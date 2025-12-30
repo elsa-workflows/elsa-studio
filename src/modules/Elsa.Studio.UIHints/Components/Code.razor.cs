@@ -19,7 +19,7 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Code : IDisposable
 {
-    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
     private string _monacoLanguage = "";
     private string? _lastMonacoEditorContent;
@@ -43,7 +43,7 @@ public partial class Code : IDisposable
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
-    private InputDescriptor _inputDescriptor => EditorContext.InputDescriptor;
+    private InputDescriptor InputDescriptor => EditorContext.InputDescriptor;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -134,10 +134,10 @@ public partial class Code : IDisposable
     {
         var param = new DialogParameters<CodeEditorDialog>
         {
-            { x => x.Label, _inputDescriptor.DisplayName },
-            { x => x.HelperText, _inputDescriptor.Description },
-            { x => x.Value, _lastMonacoEditorContent },
-            { x => x.LanguageLabel, _inputDescriptor.DefaultSyntax },
+            { x => x.Label, InputDescriptor.DisplayName },
+            { x => x.HelperText, InputDescriptor.Description },
+            { x => x.Value, _lastMonacoEditorContent ?? InputValue ?? string.Empty },
+            { x => x.LanguageLabel, InputDescriptor.DefaultSyntax },
             { x => x.MonacoLanguage, _monacoLanguage },
         };
 

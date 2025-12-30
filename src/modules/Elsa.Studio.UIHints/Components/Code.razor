@@ -4,7 +4,7 @@
 <FieldExtension UIHintComponent="@InputUIHints.CodeEditor" EditorContext="@EditorContext">
     <ChildContent>
         <MudStack AlignItems=AlignItems.Start Spacing="4" Row=true>
-            <MudField Variant="Variant.Outlined" Label="@Localizer[_inputDescriptor.DisplayName]" HelperText="@Localizer[_inputDescriptor.Description]" Margin="Margin.Dense">
+            <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName]" HelperText="@Localizer[InputDescriptor.Description]" Margin="Margin.Dense">
                 <StandaloneCodeEditor @ref="_monacoEditor"
                                       Id="@_monacoEditorId"
                                       ConstructionOptions="ConfigureMonacoEditor"

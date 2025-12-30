@@ -7,11 +7,10 @@ namespace Elsa.Studio.Components
 {
     public partial class CodeEditorDialog
     {
+        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
         private StandaloneCodeEditor? _monacoEditor = null!;
         private bool _isInternalContentChange;
-        private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
         private string? _lastMonacoEditorContent;
-        private string _initialValue;
 
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
@@ -25,7 +24,6 @@ namespace Elsa.Studio.Components
 
         private async Task OnMonacoInitializedAsync()
         {
-            _initialValue = Value;
             _isInternalContentChange = true;
             var model = await _monacoEditor!.GetModel();
             _lastMonacoEditorContent = Value;
@@ -72,6 +70,7 @@ namespace Elsa.Studio.Components
                 return;
 
             Value = value;
+            _lastMonacoEditorContent = value;
         }
 
         private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
