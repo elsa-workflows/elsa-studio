@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{C5
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{B7464426-9B29-4CF9-9B9C-6941D9E99060}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0D17508F-2117-49C0-B661-4F3118C8126C}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\packages.yml = .github\workflows\packages.yml

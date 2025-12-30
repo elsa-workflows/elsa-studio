@@ -106,7 +106,7 @@ public partial class WorkflowInstanceDetails
         {
             return WorkflowDefinition == null
                 ? new DataPanelModel()
-                : new DataPanelModel(WorkflowDefinition.Variables.Select(entry => new DataPanelItem(entry.Name, GetVariableValue(entry))));
+                : new DataPanelModel(WorkflowDefinition.Variables.Select(entry => new DataPanelItem(entry.Name, GetVariableValue(entry), LabelToolTip: entry.Id)));
         }
     }
 

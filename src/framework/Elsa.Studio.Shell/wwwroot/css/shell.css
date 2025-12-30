@@ -68,3 +68,14 @@
     inset: calc(100% - 20px) auto auto calc(100% - 20px)
 }
 
+/*****************************************************
+* Set Radzen primary color to match the MudBlazor theme
+******************************************************/
+:root {
+    --rz-primary-lighter: #E3F2FD !important;
+    --rz-primary-light: #90CAF9 !important;
+    --rz-primary: #2196F3 !important;
+    --rz-primary-dark: #1976D2 !important;
+    --rz-primary-darker: #0D47A1 !important;
+    --rz-switch-checked-circle-background-color: #2196F3 !important;
+}
