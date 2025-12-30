@@ -1,0 +1,36 @@
+﻿@using Elsa.Studio.Localization
+@inject ILocalizer Localizer
+
+<style>
+    .monaco-editor-container {
+        height: 655px !important;
+    }
+</style>
+
+<MudDialog>
+    <TitleContent>
+        <MudToolBar Dense="true" Gutters="false">
+            <MudStack Spacing="0">
+                <MudStack AlignItems=AlignItems.Center Row=true>
+                    <MudText Typo="Typo.h5">@Label</MudText>
+                    <MudText Typo="Typo.body2" Color="@Color.Info">@LanguageLabel</MudText>
+                </MudStack>
+                <MudText Typo="Typo.caption">@HelperText</MudText>
+            </MudStack>
+            <MudSpacer />
+            <MudTooltip Text="@Localizer["Close"]">
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Medium" OnClick="OnClosedClicked" />
+            </MudTooltip>
+        </MudToolBar>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Height="655px" Width="100%" Elevation="0">
+            <StandaloneCodeEditor @ref="_monacoEditor"
+                                  Id="@_monacoEditorId"
+                                  ConstructionOptions="ConfigureMonacoEditor"
+                                  OnDidInit="OnMonacoInitializedAsync"
+                                  OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                  CssClass="studio-expression-input-monaco-editor" />
+        </MudPaper>
+    </DialogContent>
+</MudDialog>

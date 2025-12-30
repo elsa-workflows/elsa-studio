@@ -1,21 +1,22 @@
 @using BlazorMonaco.Editor
 @inject ILocalizer Localizer
 
-@{
-    var inputDescriptor = EditorContext.InputDescriptor;
-    var displayName = inputDescriptor.DisplayName;
-    var description = inputDescriptor.Description;
-}
-
 <FieldExtension UIHintComponent="@InputUIHints.CodeEditor" EditorContext="@EditorContext">
     <ChildContent>
-        <MudField Variant="Variant.Outlined" Label="@Localizer[displayName]" HelperText="@Localizer[description]" Margin="Margin.Dense">
-            <StandaloneCodeEditor @ref="_monacoEditor"
-                                  Id="@_monacoEditorId"
-                                  ConstructionOptions="ConfigureMonacoEditor"
-                                  OnDidInit="OnMonacoInitializedAsync"
-                                  OnDidChangeModelContent="OnMonacoContentChanged"
-                                  CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
-        </MudField>
+        <MudStack AlignItems=AlignItems.Start Spacing="4" Row=true>
+            <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName]" HelperText="@Localizer[InputDescriptor.Description]" Margin="Margin.Dense">
+                <StandaloneCodeEditor @ref="_monacoEditor"
+                                      Id="@_monacoEditorId"
+                                      ConstructionOptions="ConfigureMonacoEditor"
+                                      OnDidInit="OnMonacoInitializedAsync"
+                                      OnDidChangeModelContent="OnMonacoContentChanged"
+                                      CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
+
+            </MudField>
+            <MudIconButton Icon="@Icons.Material.Outlined.EditNote"
+                           OnClick="ShowScriptEditor"
+                           title="@Localizer["Edit"]"
+                           Style="width:auto;" />
+        </MudStack>
     </ChildContent>
 </FieldExtension>

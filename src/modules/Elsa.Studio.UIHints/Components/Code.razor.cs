@@ -2,12 +2,14 @@ using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Shared.UIHints.CodeEditor;
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.UIHints.Components;
@@ -17,7 +19,7 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Code : IDisposable
 {
-    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
     private string _monacoLanguage = "";
     private string? _lastMonacoEditorContent;
@@ -27,6 +29,7 @@ public partial class Code : IDisposable
 
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
 
     /// <inheritdoc />
     public Code()
@@ -40,6 +43,7 @@ public partial class Code : IDisposable
     [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
+    private InputDescriptor InputDescriptor => EditorContext.InputDescriptor;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -124,6 +128,32 @@ public partial class Code : IDisposable
 
         foreach (var handler in MonacoHandlers)
             await handler.InitializeAsync(context);
+    }
+
+    private async Task ShowScriptEditor()
+    {
+        var param = new DialogParameters<CodeEditorDialog>
+        {
+            { x => x.Label, InputDescriptor.DisplayName },
+            { x => x.HelperText, InputDescriptor.Description },
+            { x => x.Value, _lastMonacoEditorContent ?? InputValue ?? string.Empty },
+            { x => x.LanguageLabel, InputDescriptor.DefaultSyntax },
+            { x => x.MonacoLanguage, _monacoLanguage },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, FullWidth = true, MaxWidth = MaxWidth.Large };
+        var dialogRef = await DialogService.ShowAsync<CodeEditorDialog>("Code", param, options);
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult?.Data is string newValue && InputValue != newValue)
+        {
+            _lastMonacoEditorContent = newValue;
+            var expression = Expression.CreateLiteral(newValue);
+            await EditorContext.UpdateExpressionAsync(expression);
+
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(newValue);
+        }
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();
