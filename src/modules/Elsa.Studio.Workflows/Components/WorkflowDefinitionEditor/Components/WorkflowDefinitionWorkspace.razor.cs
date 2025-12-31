@@ -1,12 +1,13 @@
-using System.Text.Json.Nodes;
+using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -16,22 +17,30 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     private MudDynamicTabs _dynamicTabs = null!;
     private WorkflowDefinition? _workflowDefinition = null!;
     private WorkflowDefinition? _selectedWorkflowDefinition = null!;
-    
+    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
+    private StandaloneCodeEditor? _monacoEditor;
+    private bool _isInternalContentChange;
+    private string? _lastMonacoEditorContent;
+
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+
     /// Gets or sets the workflow definition to edit.
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
-    
+
     /// Gets or sets a specific version of the workflow definition to view.
     [Parameter] public WorkflowDefinition SelectedWorkflowDefinition { get; set; } = null!;
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
     [Parameter] public Func<string, Task>? WorkflowDefinitionExecuted { get; set; }
-    
+
     /// Gets or sets the event that occurs when the workflow definition version is updated.
     [Parameter] public Func<WorkflowDefinition, Task>? WorkflowDefinitionVersionSelected { get; set; }
-    
+
     /// Gets or sets the event that occurs when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    private WorkflowEditor WorkflowEditor { get; set; } = null!;
 
     /// An event that is invoked when the workflow definition is updated.
     public event Func<Task>? WorkflowDefinitionUpdated;
@@ -45,10 +54,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
 
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
-    [Inject] private IMediator Mediator { get; set; } = null!;
-
-    private WorkflowEditor WorkflowEditor { get; set; } = null!;
+    /// Gets the workflow definition serialized as a formatted JSON string.
+    public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -62,20 +69,20 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     {
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
-        
+
         if (_selectedWorkflowDefinition == null)
             _selectedWorkflowDefinition = _workflowDefinition;
     }
-    
+
     /// Displays the specified workflow definition version.
     public async Task DisplayWorkflowDefinitionVersionAsync(WorkflowDefinition workflowDefinition)
     {
-        if(_selectedWorkflowDefinition == workflowDefinition)
+        if (_selectedWorkflowDefinition == workflowDefinition)
             return;
-        
+
         _selectedWorkflowDefinition = workflowDefinition;
-        
-        if(workflowDefinition.IsLatest)
+
+        if (workflowDefinition.IsLatest)
             _workflowDefinition = workflowDefinition;
 
         if (WorkflowDefinitionVersionSelected != null)
@@ -83,22 +90,16 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
         StateHasChanged();
     }
-    
+
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => _selectedWorkflowDefinition;
-    
+
     /// Determines whether the workspace is currently viewing a specific version of a workflow definition.
-    public bool IsSelectedDefinition(string definitionVersionId)
-    {
-        return _selectedWorkflowDefinition?.Id == definitionVersionId;
-    }
-    
+    public bool IsSelectedDefinition(string definitionVersionId) => _selectedWorkflowDefinition?.Id == definitionVersionId;
+
     /// Gets the selected workflow definition.
-    public WorkflowDefinition? GetSelectedDefinition()
-    {
-        return _selectedWorkflowDefinition;
-    }
-    
+    public WorkflowDefinition? GetSelectedDefinition() => _selectedWorkflowDefinition;
+
     /// Displays the latest version of a workflow definition asynchronously.
     public async Task DisplayLatestWorkflowDefinitionVersionAsync()
     {
@@ -110,6 +111,10 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     private async Task OnWorkflowDefinitionPropsUpdated()
     {
         await WorkflowEditor.NotifyWorkflowChangedAsync();
+        await UpdateMonacoFromEditorAsync();
+
+        if (WorkflowDefinitionUpdated != null)
+            await WorkflowDefinitionUpdated();
     }
 
     private async Task OnWorkflowDefinitionUpdated()
@@ -117,8 +122,108 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         _workflowDefinition = WorkflowEditor.WorkflowDefinition!;
         _selectedWorkflowDefinition = _workflowDefinition;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
+    {
+        return new()
+        {
+            Language = "json",
+            Value = WorkflowDefinitionSerialized,
+            FontFamily = "Roboto Mono, monospace",
+            RenderLineHighlight = "none",
+            FixedOverflowWidgets = true,
+            Minimap = new()
+            {
+                Enabled = false
+            },
+            AutomaticLayout = true,
+            LineNumbers = "on",
+            Theme = "vs",
+            RoundedSelection = true,
+            ScrollBeyondLastLine = false,
+            OverviewRulerLanes = 0,
+            OverviewRulerBorder = false,
+            LineDecorationsWidth = 0,
+            HideCursorInOverviewRuler = true,
+            GlyphMargin = false,
+            ReadOnly = false,
+            DomReadOnly = false
+        };
+    }
+
+    // Monaco content changed by user. Parse and apply into the visual editor.
+    private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
+    {
+        if (_isInternalContentChange)
+            return;
+
+        var value = await _monacoEditor!.GetValue();
+        if (value == _lastMonacoEditorContent)
+            return;
+
+        _lastMonacoEditorContent = value;
+        await UpdateCodeViewAsync(value);
+        StateHasChanged();
+    }
+
+    // Apply JSON into the editor components safely.
+    private async Task UpdateCodeViewAsync(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        WorkflowDefinition? deserialized = null;
+        try
+        {
+            deserialized = JsonSerializer.Deserialize<WorkflowDefinition?>(value);
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON: ignore and optionally surface error to user/validation elsewhere.
+            return;
+        }
+
+        if (deserialized == null)
+            return;
+
+        // If the deserialized object is equivalent to the current WorkflowEditor definition, skip.
+        var incomingJson = JsonSerializer.Serialize(deserialized, new JsonSerializerOptions { WriteIndented = true });
+        if (string.Equals(WorkflowDefinitionSerialized, incomingJson, StringComparison.Ordinal))
+            return;
+
+        WorkflowEditor.WorkflowDefinition = deserialized;
+
+        await WorkflowEditor.NotifyWorkflowChangedAsync();
+        _workflowDefinition = WorkflowEditor.WorkflowDefinition;
+        _selectedWorkflowDefinition = _workflowDefinition;
 
         if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
+    }
+
+    // Push the editor's current workflow JSON into the Monaco editor.
+    private async Task UpdateMonacoFromEditorAsync()
+    {
+        if (_monacoEditor == null)
+            return;
+
+        try
+        {
+            _isInternalContentChange = true;
+            var model = await _monacoEditor.GetModel();
+            var json = WorkflowDefinitionSerialized;
+
+            // Avoid unnecessary updates if identical.
+            if (json == _lastMonacoEditorContent)
+                return;
+
+            _lastMonacoEditorContent = json;
+            await model.SetValue(json);
+        }
+        finally
+        {
+            _isInternalContentChange = false;
+        }
     }
 }

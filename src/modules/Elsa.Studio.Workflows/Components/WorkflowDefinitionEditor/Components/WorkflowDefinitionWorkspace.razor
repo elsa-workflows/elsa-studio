@@ -1,8 +1,15 @@
+@using BlazorMonaco.Editor
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
+
+<style>
+    .monaco-editor-container {
+        height: 1000px !important;
+    }
+</style>
 
 <CascadingValue Value="this">
     <RadzenSplitter Orientation="Orientation.Horizontal">
@@ -36,6 +43,15 @@
                                                              ActivitySelected="ActivitySelected"/>
                         }
 
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Code View"]" ShowCloseIcon="false" Style="height: 100%">
+                        <MudCard Style="height: 100%">
+                            <StandaloneCodeEditor @ref="_monacoEditor"
+                                                  Id="@_monacoEditorId"
+                                                  ConstructionOptions="ConfigureMonacoEditor"
+                                                  OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                                  CssClass="studio-expression-input-monaco-editor" />
+                        </MudCard>
                     </MudTabPanel>
 
                 </MudDynamicTabs>
