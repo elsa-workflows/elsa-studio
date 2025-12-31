@@ -1,6 +1,7 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -8,19 +9,22 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
 /// A workspace for editing a workflow definition.
-public partial class WorkflowDefinitionWorkspace : IWorkspace
+public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 {
+    private readonly RateLimitedFunc<Task> _throttledValueChanged;
+    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
+    private int _tabIndex = 0;
+    private bool _isInternalContentChange;
+    private string? _lastMonacoEditorContent;
     private MudDynamicTabs _dynamicTabs = null!;
     private WorkflowDefinition? _workflowDefinition = null!;
     private WorkflowDefinition? _selectedWorkflowDefinition = null!;
-    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
-    private bool _isInternalContentChange;
-    private string? _lastMonacoEditorContent;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
 
@@ -56,6 +60,12 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// Gets the workflow definition serialized as a formatted JSON string.
     public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });
+    
+    /// <inheritdoc />
+    public WorkflowDefinitionWorkspace()
+    {
+        _throttledValueChanged = Debouncer.Debounce(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+    }
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -152,12 +162,16 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         };
     }
 
-    // Monaco content changed by user. Parse and apply into the visual editor.
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
         if (_isInternalContentChange)
             return;
 
+        await _throttledValueChanged.InvokeAsync();
+    }
+
+    private async Task InvokeValueChangedCallback()
+    {
         var value = await _monacoEditor!.GetValue();
         if (value == _lastMonacoEditorContent)
             return;
@@ -167,7 +181,6 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         StateHasChanged();
     }
 
-    // Apply JSON into the editor components safely.
     private async Task UpdateCodeViewAsync(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -194,9 +207,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
         WorkflowEditor.WorkflowDefinition = deserialized;
 
-        await WorkflowEditor.NotifyWorkflowChangedAsync();
-        _workflowDefinition = WorkflowEditor.WorkflowDefinition;
-        _selectedWorkflowDefinition = _workflowDefinition;
+        await OnWorkflowDefinitionUpdated();
 
         if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
@@ -205,13 +216,13 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     // Push the editor's current workflow JSON into the Monaco editor.
     private async Task UpdateMonacoFromEditorAsync()
     {
-        if (_monacoEditor == null)
+        if (_tabIndex == 0)
             return;
 
         try
         {
             _isInternalContentChange = true;
-            var model = await _monacoEditor.GetModel();
+            var model = await _monacoEditor!.GetModel();
             var json = WorkflowDefinitionSerialized;
 
             // Avoid unnecessary updates if identical.
@@ -226,4 +237,6 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
             _isInternalContentChange = false;
         }
     }
+
+    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
 }

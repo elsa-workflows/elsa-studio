@@ -18,8 +18,8 @@
             @if (_selectedWorkflowDefinition != null)
             {
                 <MudDynamicTabs @ref="@_dynamicTabs"
+                                @bind-ActivePanelIndex="@_tabIndex"
                                 Style="height: 100%"
-                                ActivePanelIndex="0"
                                 AddIconClass="d-none"
                                 AddIconToolTip="@Localizer["Click to open a new workflow tab"]" CloseIconToolTip="@Localizer["Close workflow"]"
                                 Elevation="0"
@@ -45,13 +45,11 @@
 
                     </MudTabPanel>
                     <MudTabPanel Text="@Localizer["Code View"]" ShowCloseIcon="false" Style="height: 100%">
-                        <MudCard Style="height: 100%">
-                            <StandaloneCodeEditor @ref="_monacoEditor"
-                                                  Id="@_monacoEditorId"
-                                                  ConstructionOptions="ConfigureMonacoEditor"
-                                                  OnDidChangeModelContent="OnMonacoContentChangedAsync"
-                                                  CssClass="studio-expression-input-monaco-editor" />
-                        </MudCard>
+                        <StandaloneCodeEditor @ref="_monacoEditor"
+                                                Id="@_monacoEditorId"
+                                                ConstructionOptions="ConfigureMonacoEditor"
+                                                OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                                CssClass="studio-expression-input-monaco-editor" />
                     </MudTabPanel>
 
                 </MudDynamicTabs>
