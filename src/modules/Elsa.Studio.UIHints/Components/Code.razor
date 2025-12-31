@@ -3,20 +3,23 @@
 
 <FieldExtension UIHintComponent="@InputUIHints.CodeEditor" EditorContext="@EditorContext">
     <ChildContent>
-        <MudStack AlignItems=AlignItems.Start Spacing="4" Row=true>
-            <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName]" HelperText="@Localizer[InputDescriptor.Description]" Margin="Margin.Dense">
-                <StandaloneCodeEditor @ref="_monacoEditor"
-                                      Id="@_monacoEditorId"
-                                      ConstructionOptions="ConfigureMonacoEditor"
-                                      OnDidInit="OnMonacoInitializedAsync"
-                                      OnDidChangeModelContent="OnMonacoContentChanged"
-                                      CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
+        <MudStack AlignItems=AlignItems.Start Row=true>
+            <div class="flex-1" style="min-width:0;">
+                <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName]" HelperText="@Localizer[InputDescriptor.Description]" Margin="Margin.Dense">
+                    <StandaloneCodeEditor @ref="_monacoEditor"
+                                          Id="@_monacoEditorId"
+                                          ConstructionOptions="ConfigureMonacoEditor"
+                                          OnDidInit="OnMonacoInitializedAsync"
+                                          OnDidChangeModelContent="OnMonacoContentChanged"
+                                          CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
 
-            </MudField>
-            <MudIconButton Icon="@Icons.Material.Outlined.EditNote"
-                           OnClick="ShowScriptEditor"
-                           title="@Localizer["Edit"]"
-                           Style="width:auto;" />
+                </MudField>
+            </div>
+            <div style="display:inline-flex;">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote"
+                               OnClick="ShowScriptEditor"
+                               title="@Localizer["Edit"]" />
+            </div>
         </MudStack>
     </ChildContent>
 </FieldExtension>

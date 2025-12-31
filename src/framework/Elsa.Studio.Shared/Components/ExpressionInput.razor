@@ -4,9 +4,8 @@
 @using Elsa.Studio.Localization
 @inject ILocalizer Localizer
 
-<div class="d-flex flex-grow-1 gap-4 align-content-start relative">
-    <div class="flex-1">
-
+<MudStack Row="true">
+    <div class="flex-1" style="min-width:0;">
         @if (ShowMonacoEditor)
         {
             <FieldExtension UIHintComponent=@ComponentType EditorContext="@EditorContext">
@@ -26,7 +25,6 @@
         {
             <FieldExtension UIHintComponent=@ComponentType EditorContext="@EditorContext" ChildContent="@ChildContent" />
         }
-
     </div>
     @if (EditorContext.InputDescriptor.IsWrapped)
     {
@@ -55,14 +53,13 @@
                 </MudMenu>
                 @if (MonacoSyntaxExist)
                 {
-                    <div style="display:inline-flex; width:auto;">
+                    <div style="display:inline-flex;">
                         <MudIconButton Icon="@Icons.Material.Outlined.EditNote"
                                        OnClick="ShowScriptEditor"
-                                       title="@Localizer["Edit"]"
-                                       Style="width:auto;" />
+                                       title="@Localizer["Edit"]" />
                     </div>
                 }
             </MudStack>
         </div>
     }
-</div>
+</MudStack>
