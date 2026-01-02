@@ -25,7 +25,7 @@
                                 Elevation="0"
                                 ApplyEffectsToContainer>
 
-                    <MudTabPanel Text="@_selectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
+                    <MudTabPanel Icon="@Icons.Material.Outlined.AccountTree" Text="@_selectedWorkflowDefinition.Name" ShowCloseIcon="false" Style="height: 100%">
                         @if (!IsReadOnly)
                         {
                             <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId"
@@ -44,12 +44,38 @@
                         }
 
                     </MudTabPanel>
-                    <MudTabPanel Text="@Localizer["Code View"]" ShowCloseIcon="false" Style="height: 100%">
-                        <StandaloneCodeEditor @ref="_monacoEditor"
-                                                Id="@_monacoEditorId"
-                                                ConstructionOptions="ConfigureMonacoEditor"
-                                                OnDidChangeModelContent="OnMonacoContentChangedAsync"
-                                                CssClass="studio-expression-input-monaco-editor" />
+                    <MudTabPanel Icon="@Icons.Material.Outlined.Code" Text="@Localizer["Code View"]" ShowCloseIcon="false" Style="height: 100%">
+                        <MudStack>
+                            <MudPaper Class="ma-2" Style="height: 100%" Elevation="0" Outlined="true">
+                                <MudToolBar Dense="true">
+                                    <MudSpacer />
+                                    <MudTooltip Text="@Localizer["Auto apply changes to editor."]">
+                                        <MudSwitch T="bool" @bind-Value="@_autoApply" Color="Color.Primary" Label="@Localizer["Auto-apply"]" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="@Localizer["Apply changes to editor."]">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Label="@Localizer["Apply"]" OnClick="OnApplyClicked" />
+                                    </MudTooltip>
+                                </MudToolBar>
+                                @if (!string.IsNullOrWhiteSpace(_applyErrorMessage))
+                                {
+                                    <MudAlert Severity="Severity.Error" Dense="true">
+                                        <MudStack Row=true AlignItems="MudBlazor.AlignItems.Center">
+                                            @_applyErrorMessage
+                                            <MudTooltip Text="@Localizer["Reload from editor"]">
+                                                <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
+                                                               Size="Size.Small"
+                                                               OnClick="ReloadMonacoClick" />
+                                            </MudTooltip>
+                                        </MudStack>
+                                    </MudAlert>
+                                }
+                            </MudPaper>
+                            <StandaloneCodeEditor @ref="_monacoEditor"
+                                                    Id="@_monacoEditorId"
+                                                    ConstructionOptions="ConfigureMonacoEditor"
+                                                    OnDidChangeModelContent="OnMonacoContentChangedAsync"
+                                                    CssClass="studio-expression-input-monaco-editor" />
+                        </MudStack>
                     </MudTabPanel>
 
                 </MudDynamicTabs>

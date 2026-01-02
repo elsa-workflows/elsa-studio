@@ -18,9 +18,11 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 {
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
+    private bool _autoApply = true;
     private int _tabIndex = 0;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
+    private string _applyErrorMessage = string.Empty;
     private MudDynamicTabs _dynamicTabs = null!;
     private WorkflowDefinition? _workflowDefinition = null!;
     private WorkflowDefinition? _selectedWorkflowDefinition = null!;
@@ -64,7 +66,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     /// <inheritdoc />
     public WorkflowDefinitionWorkspace()
     {
-        _throttledValueChanged = Debouncer.Debounce(InvokeValueChangedCallback, TimeSpan.FromMilliseconds(500));
+        _throttledValueChanged = Debouncer.Debounce(UpdateEditorFromMonacoAsync, TimeSpan.FromMilliseconds(500));
     }
 
     /// <inheritdoc />
@@ -136,6 +138,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
+        _applyErrorMessage = string.Empty;
         return new()
         {
             Language = "json",
@@ -164,43 +167,47 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange)
+        if (_isInternalContentChange || !_autoApply)
             return;
 
         await _throttledValueChanged.InvokeAsync();
     }
 
-    private async Task InvokeValueChangedCallback()
+    private async Task OnApplyClicked() => await UpdateEditorFromMonacoAsync();
+
+    private async Task UpdateEditorFromMonacoAsync()
     {
         var value = await _monacoEditor!.GetValue();
-        if (value == _lastMonacoEditorContent)
+        if (string.Equals(value, _lastMonacoEditorContent))
             return;
-
         _lastMonacoEditorContent = value;
-        await UpdateCodeViewAsync(value);
-        StateHasChanged();
-    }
-
-    private async Task UpdateCodeViewAsync(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
 
         WorkflowDefinition? deserialized = null;
         try
         {
-            deserialized = JsonSerializer.Deserialize<WorkflowDefinition?>(value);
+            try
+            {
+                deserialized = JsonSerializer.Deserialize<WorkflowDefinition?>(value);
+            }
+            catch (JsonException ex)
+            {
+                _applyErrorMessage = ex.Message;
+                return;
+            }
+
+            if (deserialized == null)
+            {
+                _applyErrorMessage = "Failed to deserialize workflow definition.";
+                return;
+            }
+
+            _applyErrorMessage = string.Empty;
         }
-        catch (JsonException)
+        finally
         {
-            // Invalid JSON: ignore and optionally surface error to user/validation elsewhere.
-            return;
+            await InvokeAsync(StateHasChanged);
         }
 
-        if (deserialized == null)
-            return;
-
-        // If the deserialized object is equivalent to the current WorkflowEditor definition, skip.
         var incomingJson = JsonSerializer.Serialize(deserialized, new JsonSerializerOptions { WriteIndented = true });
         if (string.Equals(WorkflowDefinitionSerialized, incomingJson, StringComparison.Ordinal))
             return;
@@ -211,12 +218,13 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
         if (WorkflowDefinitionUpdated != null)
             await WorkflowDefinitionUpdated();
+
+        await InvokeAsync(StateHasChanged);
     }
 
-    // Push the editor's current workflow JSON into the Monaco editor.
     private async Task UpdateMonacoFromEditorAsync()
     {
-        if (_tabIndex == 0)
+        if (_tabIndex != 1 || _monacoEditor is null)
             return;
 
         try
@@ -236,6 +244,15 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
         {
             _isInternalContentChange = false;
         }
+    }
+
+    private async Task ReloadMonacoClick()
+    {
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        await model.SetValue(WorkflowDefinitionSerialized);
+        await UpdateEditorFromMonacoAsync();
+        _isInternalContentChange = false;
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();
