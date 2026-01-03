@@ -15,7 +15,7 @@
             GraphUpdated="@OnGraphUpdated"
             ActivityUpdated="@OnActivityUpdated">
             <CustomToolbarItems>
-                <MudSwitch T="bool?" Value="@AutoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPosition="LabelPosition.Start" ValueChanged="@OnAutoSaveChanged" />
+                <MudSwitch T="bool?" Value="@AutoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPlacement="Placement.Start" ValueChanged="@OnAutoSaveChanged" />
                 <MudTooltip Text="@Localizer["Save"]" Delay="1000">
                     <MudBadge Color="@(_isDirty ? Color.Warning : Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                         <MudIconButton Icon="@Icons.Material.Outlined.Save" title="@Localizer["Save"]" OnClick="@OnSaveClick" />

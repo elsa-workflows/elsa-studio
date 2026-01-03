@@ -122,9 +122,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     }
 
     /// Gets or sets a flag indicating whether the workflow definition is dirty.
-    public async Task NotifyWorkflowChangedAsync()
+    public async Task NotifyWorkflowChangedAsync(bool force = false)
     {
-        await HandleChangesAsync(false);
+        await HandleChangesAsync(false, force);
     }
 
     /// <inheritdoc />
