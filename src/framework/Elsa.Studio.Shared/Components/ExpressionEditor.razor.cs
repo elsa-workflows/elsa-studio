@@ -22,7 +22,7 @@ public partial class ExpressionEditor : IDisposable
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
     private bool _isInitialized;
-    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<Expression, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
