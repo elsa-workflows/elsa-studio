@@ -3,7 +3,6 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
-using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -63,6 +62,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
+    private bool _isCodeViewTab => _tabIndex == 1;
 
     /// Gets the workflow definition serialized as a formatted JSON string.
     public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });
@@ -229,7 +229,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     private async Task UpdateMonacoFromEditorAsync()
     {
-        if (_tabIndex != 1 || _monacoEditor is null)
+        if (!_isCodeViewTab || _monacoEditor is null)
             return;
 
         try
@@ -237,8 +237,6 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
             _isInternalContentChange = true;
             var model = await _monacoEditor!.GetModel();
             var json = WorkflowDefinitionSerialized;
-
-            // Avoid unnecessary updates if identical.
             if (json == _lastMonacoEditorContent)
                 return;
 
@@ -253,11 +251,17 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     private async Task ReloadMonacoClick()
     {
-        _isInternalContentChange = true;
-        var model = await _monacoEditor!.GetModel();
-        await model.SetValue(WorkflowDefinitionSerialized);
-        await UpdateEditorFromMonacoAsync();
-        _isInternalContentChange = false;
+        try
+        {
+            _isInternalContentChange = true;
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(WorkflowDefinitionSerialized);
+            await UpdateEditorFromMonacoAsync();
+        }
+        finally
+        {
+            _isInternalContentChange = false;
+        }
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();
