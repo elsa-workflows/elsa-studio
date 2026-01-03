@@ -2,10 +2,13 @@ using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -18,7 +21,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 {
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
-    private bool _autoApply = true;
+    private bool _autoApply;
     private int _tabIndex = 0;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
@@ -29,6 +32,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     private StandaloneCodeEditor? _monacoEditor;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = default!;
 
     /// Gets or sets the workflow definition to edit.
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
@@ -72,6 +76,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        _autoApply = WorkflowDefinitionOptions.Value.AutoApplyMonacoChanges;
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
     }
