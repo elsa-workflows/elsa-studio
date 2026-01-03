@@ -31,7 +31,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     private StandaloneCodeEditor? _monacoEditor;
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
-    [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = default!;
+    [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// Gets or sets the workflow definition to edit.
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!;
@@ -76,7 +76,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        _autoApply = WorkflowDefinitionOptions.Value.AutoApplyMonacoChanges;
+        _autoApply = WorkflowDefinitionOptions.Value.AutoApplyCodeViewChanges;
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
     }

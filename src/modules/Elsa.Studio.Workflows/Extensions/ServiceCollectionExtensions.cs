@@ -56,7 +56,8 @@ public static class ServiceCollectionExtensions
         
         services.Configure<WorkflowDefinitionOptions>(opts =>
         {
-            opts.AutoApplyMonacoChanges = true;
+            opts.AutoSaveChanges = true;
+            opts.AutoApplyCodeViewChanges = true;
         });
         services.Configure<WorkflowInstanceListPollingOptions>(opts =>
         {

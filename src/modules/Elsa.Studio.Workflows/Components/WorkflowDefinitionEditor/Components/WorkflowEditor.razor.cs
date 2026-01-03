@@ -7,10 +7,12 @@ using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -18,12 +20,12 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 using System.Text.Json.Nodes;
-using Elsa.Studio.Workflows.Extensions;
 using ThrottleDebounce;
 using Variant = MudBlazor.Variant;
 
@@ -33,7 +35,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowEditor : WorkflowEditorComponentBase, INotificationHandler<ImportedWorkflowDefinition>, IDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    private bool _autoSave = true;
+    private bool _autoSave;
     private bool _isDirty;
     private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
@@ -75,6 +77,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// <summary>
     /// Invoked when the "Ctrl+S" hotkeys are pressed, triggering the save operation.
@@ -116,7 +119,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     protected override async Task OnInitializedAsync()
     {
         Mediator.Subscribe<ImportedWorkflowDefinition>(this);
-        
+
+        _autoSave= WorkflowDefinitionOptions.Value.AutoSaveChanges;
         _workflowDefinition = WorkflowDefinition;
 
         await ActivityRegistry.EnsureLoadedAsync();
