@@ -63,6 +63,7 @@
                         {
                             <WorkflowEditor @key="_selectedWorkflowDefinition.DefinitionId"
                                             @ref="WorkflowEditor"
+                                            @bind-AutoSave="_autoSave"
                                             WorkflowDefinition="_selectedWorkflowDefinition"
                                             WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"
                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"

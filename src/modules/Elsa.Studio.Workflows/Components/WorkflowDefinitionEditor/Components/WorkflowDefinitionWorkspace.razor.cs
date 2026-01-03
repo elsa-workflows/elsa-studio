@@ -20,6 +20,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 {
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
+    private bool _autoSave;
     private bool _autoApply;
     private int _tabIndex = 0;
     private bool _isInternalContentChange;
@@ -50,6 +51,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     private WorkflowEditor WorkflowEditor { get; set; } = null!;
+    private bool _isCodeViewTab => _tabIndex == 1;
 
     /// An event that is invoked when the workflow definition is updated.
     public event Func<Task>? WorkflowDefinitionUpdated;
@@ -62,7 +64,6 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
-    private bool _isCodeViewTab => _tabIndex == 1;
 
     /// Gets the workflow definition serialized as a formatted JSON string.
     public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });
@@ -76,6 +77,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        _autoSave = WorkflowDefinitionOptions.Value.AutoSaveChangesByDefault;
         _autoApply = WorkflowDefinitionOptions.Value.AutoApplyCodeViewChangesByDefault;
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
@@ -217,14 +219,13 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
         if (string.Equals(WorkflowDefinitionSerialized, incomingJson, StringComparison.Ordinal))
             return;
 
-        WorkflowEditor.WorkflowDefinition = deserialized;
+        if (WorkflowEditor != null)
+            await WorkflowEditor.ApplyWorkflowDefinitionAsync(deserialized);
 
         await OnWorkflowDefinitionUpdated();
 
-        if (WorkflowDefinitionUpdated != null)
+        if (WorkflowDefinitionUpdated is not null)
             await WorkflowDefinitionUpdated();
-
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task UpdateMonacoFromEditorAsync()

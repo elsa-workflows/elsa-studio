@@ -35,7 +35,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 public partial class WorkflowEditor : WorkflowEditorComponentBase, INotificationHandler<ImportedWorkflowDefinition>, IDisposable
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
-    private bool _autoSave;
     private bool _isDirty;
     private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
@@ -58,6 +57,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
+
+    [Parameter] public bool AutoSave { get; set; }
+    [Parameter] public EventCallback<bool> AutoSaveChanged { get; set; }
 
     /// Gets the selected activity ID.
     public string? SelectedActivityId { get; private set; }
@@ -109,6 +111,16 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
     }
 
+    /// <summary>
+    /// Applies the specified workflow definition asynchronously to the current context.
+    /// </summary>
+    /// <param name="workflowDefinition">The workflow definition to apply. Cannot be null.</param>
+    public async Task ApplyWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
+    {
+        await SetWorkflowDefinitionAsync(workflowDefinition);
+        await HandleChangesAsync(false, true);
+    }
+
     /// Gets or sets a flag indicating whether the workflow definition is dirty.
     public async Task NotifyWorkflowChangedAsync()
     {
@@ -120,7 +132,6 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         Mediator.Subscribe<ImportedWorkflowDefinition>(this);
 
-        _autoSave= WorkflowDefinitionOptions.Value.AutoSaveChangesByDefault;
         _workflowDefinition = WorkflowDefinition;
 
         await ActivityRegistry.EnsureLoadedAsync();
@@ -164,13 +175,16 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         _rateLimitedSaveChangesAsync.Dispose();
     }    
 
-    private async Task HandleChangesAsync(bool readDiagram)
+    private async Task HandleChangesAsync(bool readDiagram, bool force = false)
     {
         _isDirty = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
-        if (_autoSave)
-            await SaveChangesRateLimitedAsync(readDiagram);
+        if (AutoSave)
+            if (force)
+                await SaveChangesAsync(readDiagram, showLoader: false, publish: false);
+            else
+                await SaveChangesRateLimitedAsync(readDiagram);
     }
 
     private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
@@ -212,7 +226,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task SaveChangesRateLimitedAsync(bool readDiagram)
     {
-        await _rateLimitedSaveChangesAsync.InvokeAsync(readDiagram);
+        await _rateLimitedSaveChangesAsync!.InvokeAsync(readDiagram);
     }
 
     private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
@@ -225,7 +239,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 StateHasChanged();
             }
         });
-        
+
         // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
         // Therefore, we need to wrap this in a try/catch block.
         try
@@ -234,19 +248,19 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             await result.OnSuccessAsync(async response =>
             {
                 var currentSelectedActivityId = SelectedActivityId;
-                    
+
                 await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
-                    
+
                 if (!string.IsNullOrEmpty(currentSelectedActivityId))
                 {
                     await RefreshSelectedActivityAsync(currentSelectedActivityId);
                 }
-                    
+
                 await InvokeAsync(StateHasChanged);
-                    
+
                 if (onSuccess != null)
                     await onSuccess(response);
-                    
+
             }).ConfigureAwait(false);
 
             await result.OnFailedAsync(errors =>
@@ -301,7 +315,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         // Find the updated activity in the current workflow definition
         var updatedActivity = await FindActivityByIdAsync(_workflowDefinition.Root, activityId);
-        
+
         if (updatedActivity != null)
         {
             // Update the selected activity reference without triggering a disruptive UI refresh.
@@ -309,7 +323,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             SelectedActivity = updatedActivity;
             SelectedActivityId = updatedActivity.GetId();
             ActivityDescriptor = ActivityRegistry.Find(updatedActivity.GetTypeName(), updatedActivity.GetVersion());
-            
+
             // Only call StateHasChanged once to update the UI without disrupting focus
             await InvokeAsync(StateHasChanged);
         }
@@ -419,9 +433,11 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnAutoSaveChanged(bool? value)
     {
-        _autoSave = value ?? false;
+        AutoSave = value ?? false;
+        if (AutoSaveChanged.HasDelegate)
+            await AutoSaveChanged.InvokeAsync(AutoSave);
 
-        if (_autoSave)
+        if (AutoSave)
             await SaveChangesAsync(true, false, false);
     }
 
