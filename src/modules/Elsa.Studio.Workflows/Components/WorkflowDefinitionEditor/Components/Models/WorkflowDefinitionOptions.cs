@@ -8,11 +8,11 @@
         /// <summary>
         /// Gets or sets a value indicating whether changes are automatically saved.
         /// </summary>
-        public bool AutoSaveChanges { get; set; }
+        public bool AutoSaveChangesByDefault { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether changes made in the Monaco editor are automatically applied to the workflow definition.
         /// </summary>
-        public bool AutoApplyCodeViewChanges { get; set; }
+        public bool AutoApplyCodeViewChangesByDefault { get; set; }
     }
 }

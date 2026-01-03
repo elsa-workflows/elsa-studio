@@ -120,7 +120,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         Mediator.Subscribe<ImportedWorkflowDefinition>(this);
 
-        _autoSave= WorkflowDefinitionOptions.Value.AutoSaveChanges;
+        _autoSave= WorkflowDefinitionOptions.Value.AutoSaveChangesByDefault;
         _workflowDefinition = WorkflowDefinition;
 
         await ActivityRegistry.EnsureLoadedAsync();

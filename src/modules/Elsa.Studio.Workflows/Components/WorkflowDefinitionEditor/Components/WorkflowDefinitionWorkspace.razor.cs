@@ -76,7 +76,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace, IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        _autoApply = WorkflowDefinitionOptions.Value.AutoApplyCodeViewChanges;
+        _autoApply = WorkflowDefinitionOptions.Value.AutoApplyCodeViewChangesByDefault;
         _workflowDefinition = WorkflowDefinition;
         _selectedWorkflowDefinition = SelectedWorkflowDefinition;
     }
