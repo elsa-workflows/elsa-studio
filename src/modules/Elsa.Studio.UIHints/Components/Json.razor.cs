@@ -14,7 +14,7 @@ namespace Elsa.Studio.UIHints.Components;
 /// </summary>
 public partial class Json : IDisposable
 {
-    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<Task> _throttledValueChanged;

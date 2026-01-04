@@ -22,7 +22,7 @@ namespace Elsa.Studio.Components
         private TabulatedContentVisualizer? Table;
         private IContentVisualizer SelectedVisualizer = new DefaultContentVisualizer();
         private List<IContentVisualizer> AvailableVisualizers = new();
-        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
         private StandaloneCodeEditor? _monacoEditor;
 
         public bool IsReadOnly

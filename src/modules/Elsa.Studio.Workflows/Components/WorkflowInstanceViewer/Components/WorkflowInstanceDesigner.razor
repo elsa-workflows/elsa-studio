@@ -17,7 +17,7 @@
                 WorkflowInstanceId="@WorkflowInstance.Id"
                 PathChanged="PathChanged">
                 <CustomToolbarItems>
-                    <MudTooltip Text="@Localizer["Edit Workflow Definition"]">
+                    <MudTooltip Text="@Localizer["Edit Workflow Definition"]" Delay="500">
                         <MudIconButton
                             Icon="@Icons.Material.Outlined.EditNote"
                             OnClick="@(() => OnEditClicked())">

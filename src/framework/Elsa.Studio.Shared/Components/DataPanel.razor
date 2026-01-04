@@ -30,14 +30,14 @@
                     {
                         <tr Class="hover-row">
                             <td style="width: 200px;" title="@item.LabelToolTip">@item.Label</td>
-                            <td> 
+                            <td>
                                 <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                                    <MudTooltip Text="@Localizer["View"]">
-                                        @if (!string.IsNullOrWhiteSpace(item.Text))
-                                        {
-                                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" Title="@Localizer["View"]" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
-                                        }
-                                    </MudTooltip>
+                                    @if (!string.IsNullOrWhiteSpace(item.Text))
+                                    {
+                                        <MudTooltip Text="@Localizer["View"]" Delay="500">
+                                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
+                                        </MudTooltip>
+                                    }
                                     @if (!string.IsNullOrWhiteSpace(item.Link))
                                     {
                                         <MudLink Typo="Typo.body2" Href="@item.Link">@item.Text</MudLink>
@@ -58,8 +58,8 @@
                                             {
                                                 <div>
                                                     @item.Text.Substring(0, truncationLength)
-                                                    <MudTooltip Text="@Localizer["Show all"]">
-                                                        <MudLink OnClick="@(() => OnViewClicked(item!))" title="@Localizer["Show all"]"><small>[...]</small></MudLink>
+                                                    <MudTooltip Text="@Localizer["Show all"]" Delay="500">
+                                                        <MudLink OnClick="@(() => OnViewClicked(item!))"><small>[...]</small></MudLink>
                                                     </MudTooltip>
                                                 </div>
                                             }
@@ -72,8 +72,8 @@
                                 </MudStack>
                             </td>
                             <td style="width: 50px;">
-                                <MudTooltip Text="Copy">
-                                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Title="@Localizer["Copy"]" OnClick="@(x => OnCopyClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" />
+                                <MudTooltip Text="@Localizer["Copy"]" Delay="500">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="@(x => OnCopyClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" />
                                 </MudTooltip>
                             </td>
                         </tr>
@@ -101,26 +101,22 @@
     /// <summary>
     /// The data to display.
     /// </summary>
-    [Parameter]
-    public DataPanelModel Data { get; set; } = new();
+    [Parameter] public DataPanelModel Data { get; set; } = new();
 
     /// <summary>
     /// If true, empty values will be hidden.
     /// </summary>
-    [Parameter]
-    public bool HideEmptyValues { get; set; }
+    [Parameter] public bool HideEmptyValues { get; set; }
 
     /// <summary>
     /// If true, a message will be displayed when there is no data.
     /// </summary>
-    [Parameter]
-    public bool ShowNoDataAlert { get; set; }
+    [Parameter] public bool ShowNoDataAlert { get; set; }
 
     /// <summary>
     /// The title of the data panel
     /// </summary>
-    [Parameter]
-    public string Title { get; set; } = null!;
+    [Parameter] public string Title { get; set; } = null!;
 
     /// <summary>
     /// The message to display when there is no data.
@@ -129,16 +125,18 @@
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
     [Inject] private IClipboard Clipboard { get; set; } = null!;
-
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
-
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    protected override void OnInitialized()
+    {
+        NoDataMessage = NoDataMessage ?? Localizer["No data available."];
+    }
 
     private async Task OnCopyClicked(DataPanelItem item)
     {
         await Clipboard.CopyText(item.Text);
-        Snackbar.Add($"{item.Label} copied", Severity.Success);
+        Snackbar.Add($"{item.Label} {Localizer["copied"]}", Severity.Success);
     }
 
     private async Task OnViewClicked(DataPanelItem item)
@@ -154,6 +152,6 @@
         {
             { nameof(DataPanelItem), item }
         };
-        await DialogService.ShowAsync<ContentVisualizer>("View content", parameters, options);
+        await DialogService.ShowAsync<ContentVisualizer>(Localizer["View content"], parameters, options);
     }
 }
