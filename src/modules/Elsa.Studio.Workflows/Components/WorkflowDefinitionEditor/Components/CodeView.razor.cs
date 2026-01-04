@@ -140,7 +140,7 @@ public partial class CodeView : IDisposable
 
             if (deserialized == null)
             {
-                _applyErrorMessage = "Failed to deserialize workflow definition.";
+                _applyErrorMessage = Localizer["Failed to deserialize workflow definition."];
                 return false;
             }
 
