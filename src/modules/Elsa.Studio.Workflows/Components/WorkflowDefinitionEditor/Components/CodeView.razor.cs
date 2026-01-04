@@ -58,7 +58,10 @@ public partial class CodeView : IDisposable
         try
         {
             _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
+            if (_monacoEditor is null)
+                return;
+
+            var model = await _monacoEditor.GetModel();
             if (json == _lastMonacoEditorContent)
                 return;
 
