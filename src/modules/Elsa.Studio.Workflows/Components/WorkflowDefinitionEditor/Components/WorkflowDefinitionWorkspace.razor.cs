@@ -131,7 +131,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnChildApply(WorkflowDefinition deserialized)
+    private async Task OnApplyWorkflowDefinition(WorkflowDefinition deserialized)
     {
         var incomingJson = JsonSerializer.Serialize(deserialized, new JsonSerializerOptions { WriteIndented = true });
         if (string.Equals(WorkflowDefinitionSerialized, incomingJson, StringComparison.Ordinal))

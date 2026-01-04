@@ -1,10 +1,12 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
+using Elsa.Studio.Localization;
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using System.Text.Json;
 using ThrottleDebounce;
-using Microsoft.AspNetCore.Components;
-using Elsa.Studio.Localization;
-using Elsa.Studio.Extensions;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
@@ -18,16 +20,34 @@ public partial class CodeView : IDisposable
     private RateLimitedFunc<Task> _throttledValueChanged;
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
+    [Inject] protected IUserMessageService UserMessageService { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the serialized representation of the workflow definition.
+    /// </summary>
     [Parameter] public string WorkflowDefinitionSerialized { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the callback function to apply a workflow definition asynchronously.
+    /// </summary>
     [Parameter] public Func<WorkflowDefinition, Task>? ApplyWorkflowDefinition { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether changes are applied automatically without requiring explicit user
+    /// action.
+    /// </summary>
     [Parameter] public bool AutoApply { get; set; }
+
+    /// <summary>
+    /// Gets or sets the callback that is invoked when the auto-apply setting changes.
+    /// </summary>
     [Parameter] public EventCallback<bool> AutoApplyChanged { get; set; }
 
+    /// <inheritdoc/>
     protected override void OnInitialized()
     {
         _throttledValueChanged = Debouncer.Debounce(UpdateEditorFromCodeViewAsync, TimeSpan.FromMilliseconds(500));
+        _lastMonacoEditorContent = WorkflowDefinitionSerialized;
     }
     /// <summary>
     /// Updates the code view in the editor with the specified JSON content asynchronously.
@@ -88,15 +108,23 @@ public partial class CodeView : IDisposable
         await _throttledValueChanged.InvokeAsync();
     }
 
-    private async Task OnApplyClicked() => await UpdateEditorFromCodeViewAsync();
+    private async Task OnApplyClicked()
+    {
+        var success = await UpdateEditorFromCodeViewAsync();
+        if (success)
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Changes applied"], Severity.Success);
+    }
 
-    private async Task UpdateEditorFromCodeViewAsync()
+    private async Task<bool> UpdateEditorFromCodeViewAsync()
     {
         var value = await _monacoEditor!.GetValue();
         if (string.Equals(value, _lastMonacoEditorContent))
-            return;
-        _lastMonacoEditorContent = value;
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["No changes to apply"], Severity.Info);
+            return false;
+        }
 
+        _lastMonacoEditorContent = value;
         WorkflowDefinition? deserialized = null;
         try
         {
@@ -107,13 +135,13 @@ public partial class CodeView : IDisposable
             catch (JsonException ex)
             {
                 _applyErrorMessage = ex.Message;
-                return;
+                return false;
             }
 
             if (deserialized == null)
             {
                 _applyErrorMessage = "Failed to deserialize workflow definition.";
-                return;
+                return false;
             }
 
             _applyErrorMessage = string.Empty;
@@ -123,8 +151,20 @@ public partial class CodeView : IDisposable
             await InvokeAsync(StateHasChanged);
         }
 
-        if (ApplyWorkflowDefinition is not null)
+        if (ApplyWorkflowDefinition is null)
+            return true;
+
+        try
+        {
             await ApplyWorkflowDefinition(deserialized);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _applyErrorMessage = ex.Message;
+            await InvokeAsync(StateHasChanged);
+            return false;
+        }
     }
 
     private async Task ReloadMonacoClick()
@@ -141,9 +181,10 @@ public partial class CodeView : IDisposable
             _isInternalContentChange = false;
         }
     }
-    private async Task OnAutoApplyChanged(bool? value)
+
+    private async Task OnAutoApplyChanged(bool value)
     {
-        AutoApply = value ?? false;
+        AutoApply = value;
         if (AutoApplyChanged.HasDelegate)
             await AutoApplyChanged.InvokeAsync(AutoApply);
 
