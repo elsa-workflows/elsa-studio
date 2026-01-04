@@ -66,17 +66,20 @@
                                                              ActivitySelected="ActivitySelected" />
                         }
                     </MudTabPanel>
-                    <MudTabPanel Icon="@Icons.Material.Outlined.Code"
-                                 Text="@Localizer["Code View"]"
-                                 ShowCloseIcon="false"
-                                 Style="height:100%;">
-                        <div class="code-tab-content">
-                            <CodeView @ref="CodeView"
-                                      @bind-AutoApply="_autoApply"
-                                      WorkflowDefinitionSerialized="@WorkflowDefinitionSerialized"
-                                      ApplyWorkflowDefinition="OnApplyWorkflowDefinition" />
-                        </div>
-                    </MudTabPanel>
+                    @if (!IsReadOnly)
+                    {
+                        <MudTabPanel Icon="@Icons.Material.Outlined.Code"
+                                     Text="@Localizer["Code View"]"
+                                     ShowCloseIcon="false"
+                                     Style="height:100%;">
+                            <div class="code-tab-content">
+                                <CodeView @ref="CodeView"
+                                          @bind-AutoApply="_autoApply"
+                                          WorkflowDefinitionSerialized="@WorkflowDefinitionSerialized"
+                                          ApplyWorkflowDefinition="OnApplyWorkflowDefinition" />
+                            </div>
+                        </MudTabPanel>
+                    }
                 </MudDynamicTabs>
             }
         </RadzenSplitterPane>
