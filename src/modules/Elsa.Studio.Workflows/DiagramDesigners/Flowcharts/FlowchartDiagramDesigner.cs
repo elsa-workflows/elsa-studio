@@ -96,7 +96,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
             {
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(3, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
+                childBuilder.AddAttribute(2, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
                 childBuilder.CloseComponent();
             }));
 
