@@ -23,6 +23,11 @@ public partial class CodeView : IDisposable
     [Inject] protected IUserMessageService UserMessageService { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the component is in read-only mode.
+    /// </summary>
+    [Parameter] public bool IsReadOnly { get; set; }
+
+    /// <summary>
     /// Gets or sets the serialized representation of the workflow definition.
     /// </summary>
     [Parameter] public string WorkflowDefinitionSerialized { get; set; } = string.Empty;
@@ -98,14 +103,14 @@ public partial class CodeView : IDisposable
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
             GlyphMargin = false,
-            ReadOnly = false,
-            DomReadOnly = false
+            ReadOnly = IsReadOnly,
+            DomReadOnly = IsReadOnly
         };
     }
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange || !AutoApply)
+        if (_isInternalContentChange || !AutoApply || IsReadOnly)
             return;
 
         await _throttledValueChanged.InvokeAsync();
