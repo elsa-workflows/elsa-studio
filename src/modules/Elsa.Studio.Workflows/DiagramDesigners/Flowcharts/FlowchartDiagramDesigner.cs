@@ -91,11 +91,11 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
         {
             builder.OpenComponent<MudTooltip>(0);
             builder.AddAttribute(1, nameof(MudTooltip.Text), description);
+            builder.AddAttribute(1, nameof(MudTooltip.Delay), 500d);
             builder.AddAttribute(2, nameof(MudTooltip.ChildContent), (RenderFragment)(childBuilder =>
             {
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(2, "title", title);
                 childBuilder.AddAttribute(3, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
                 childBuilder.CloseComponent();
             }));
