@@ -139,7 +139,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
             return;
 
         if (WorkflowEditor != null)
-        await WorkflowEditor.ApplyWorkflowDefinitionAsync(deserialized);
+            await WorkflowEditor.ApplyWorkflowDefinitionAsync(deserialized);
         await OnWorkflowDefinitionUpdated();
 
         if (WorkflowDefinitionUpdated is not null)
