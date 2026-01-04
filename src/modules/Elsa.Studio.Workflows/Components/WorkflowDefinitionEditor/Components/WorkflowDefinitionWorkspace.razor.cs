@@ -118,7 +118,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         if (WorkflowEditor != null)
             await WorkflowEditor.NotifyWorkflowChangedAsync(_isCodeViewTab);
 
-        if (_isCodeViewTab)
+        if (_isCodeViewTab && CodeView is not null)
             await CodeView.UpdateCodeViewFromEditorAsync(WorkflowDefinitionSerialized);
 
         if (WorkflowDefinitionUpdated != null)
