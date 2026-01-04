@@ -113,7 +113,7 @@ public partial class Settings
         var o = wf.Options ?? new WorkflowOptions();
 
         var parsedLogPersistence = GetLogPersistenceConfiguration();
-        var expression = parsedLogPersistence?.Expression != null ? JsonSerializer.Serialize(parsedLogPersistence.Expression, _serializerOptions) : string.Empty;
+        var expression = parsedLogPersistence?.Expression ?? null;
         var strategyType = parsedLogPersistence?.StrategyType ?? string.Empty;
 
         return string.Concat(

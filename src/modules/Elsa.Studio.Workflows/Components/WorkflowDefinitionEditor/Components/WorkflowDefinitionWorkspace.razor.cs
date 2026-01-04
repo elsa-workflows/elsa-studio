@@ -55,7 +55,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public bool HasWorkflowEditPermission => (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) > 0;
 
     /// Gets the selected activity ID.
-    public string? SelectedActivityId => WorkflowEditor.SelectedActivityId;
+    public string? SelectedActivityId => WorkflowEditor?.SelectedActivityId;
 
     /// Gets the workflow definition serialized as a formatted JSON string.
     public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });

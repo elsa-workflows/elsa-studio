@@ -121,7 +121,7 @@
     /// <summary>
     /// The message to display when there is no data.
     /// </summary>
-    [Parameter] public string NoDataMessage { get; set; } = "No data available.";
+    [Parameter] public string NoDataMessage { get; set; } = null!;
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
     [Inject] private IClipboard Clipboard { get; set; } = null!;
@@ -130,13 +130,13 @@
 
     protected override void OnInitialized()
     {
-        NoDataMessage = NoDataMessage ?? Localizer["No data available."];
+        NoDataMessage ??= Localizer["No data available."];
     }
 
     private async Task OnCopyClicked(DataPanelItem item)
     {
         await Clipboard.CopyText(item.Text);
-        Snackbar.Add($"{item.Label} {Localizer["copied"]}", Severity.Success);
+        Snackbar.Add(Localizer["{0} copied", item.Label], Severity.Success);
     }
 
     private async Task OnViewClicked(DataPanelItem item)

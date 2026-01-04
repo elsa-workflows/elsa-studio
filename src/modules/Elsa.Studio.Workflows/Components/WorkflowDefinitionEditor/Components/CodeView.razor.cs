@@ -10,6 +10,9 @@ using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 
+/// <summary>
+/// Provides a Monaco-based code editor for viewing and editing workflow definitions as JSON.
+/// </summary>
 public partial class CodeView : IDisposable
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
@@ -54,6 +57,7 @@ public partial class CodeView : IDisposable
         _throttledValueChanged = Debouncer.Debounce(UpdateEditorFromCodeViewAsync, TimeSpan.FromMilliseconds(500));
         _lastMonacoEditorContent = WorkflowDefinitionSerialized;
     }
+
     /// <summary>
     /// Updates the code view in the editor with the specified JSON content asynchronously.
     /// </summary>
