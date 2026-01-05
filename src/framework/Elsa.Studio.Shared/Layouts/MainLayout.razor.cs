@@ -34,8 +34,8 @@ public partial class MainLayout : IDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        AppBarService.AddComponent<Documentation>(10);
-        AppBarService.AddComponent<GitHub>(15);
+        if (BrandingProvider.AppBarIcons.ShowDocumentationLink) AppBarService.AddComponent<Documentation>(10);
+        if (BrandingProvider.AppBarIcons.ShowGitHubLink) AppBarService.AddComponent<GitHub>(15);
         AppBarService.AddComponent<DarkModeToggle>(20);
         AppBarService.AddComponent<ProductInfo>(25);
         

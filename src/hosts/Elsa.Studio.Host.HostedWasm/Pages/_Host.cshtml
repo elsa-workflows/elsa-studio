@@ -1,6 +1,8 @@
 ﻿@page "/"
+@using Elsa.Studio.Branding
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IConfiguration Configuration;
+@inject IBrandingProvider BrandingProvider
 @{
     var apiUrl = Configuration["Hosting:ApiUrl"];
     
@@ -18,9 +20,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Elsa Studio 3</title>
     <base href="@baseRef"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="_content/Elsa.Studio.Shell/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="_content/Elsa.Studio.Shell/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="_content/Elsa.Studio.Shell/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="@BrandingProvider.AppleTouchIconUrl">
+    <link rel="icon" type="image/png" sizes="32x32" href="@BrandingProvider.Favicon32Url">
+    <link rel="icon" type="image/png" sizes="16x16" href="@BrandingProvider.Favicon16Url">
     <link rel="manifest" href="_content/Elsa.Studio.Shell/site.webmanifest">
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet"/>
