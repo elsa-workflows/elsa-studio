@@ -4,6 +4,8 @@ using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.ActivityPickers.Accordion;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -51,6 +53,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWidget, WorkflowDefinitionInfoWidget>();
         services.AddScoped<IActivityPickerComponentProvider, AccordionActivityPickerComponentProvider>();
         services.AddScoped<ICreateWorkflowDialogComponentProvider, DefaultCreateWorkflowDialogComponentProvider>();
+        
+        services.Configure<WorkflowDefinitionOptions>(opts =>
+        {
+            opts.AutoSaveChangesByDefault = true;
+            opts.AutoApplyCodeViewChangesByDefault = true;
+        });
+        services.Configure<WorkflowInstanceListPollingOptions>(opts =>
+        {
+            opts.IsEnabledByDefault = true;
+            opts.IntervalSeconds = 10;
+        });
 
         return services;
     }

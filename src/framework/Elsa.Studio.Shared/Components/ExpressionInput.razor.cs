@@ -25,10 +25,17 @@ public partial class ExpressionInput : IDisposable
     private string _selectedExpressionTypeDisplayName = DefaultSyntax;
     private StandaloneCodeEditor? _monacoEditor = null!;
     private bool _isInternalContentChange;
-    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+    private string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private string? _lastMonacoEditorContent;
     private RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
+
+    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
+    [Inject] private IUIHintService UIHintService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
 
     /// <inheritdoc />
     public ExpressionInput()
@@ -51,11 +58,6 @@ public partial class ExpressionInput : IDisposable
     /// </summary>
     [Parameter] public bool IsCodeOnly { get; set; }
 
-    [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
-    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
-    [Inject] private IUIHintService UIHintService { get; set; } = null!;
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
     private string MonacoLanguage => SelectedExpressionDescriptor?.GetMonacoLanguage() ?? string.Empty;
@@ -72,7 +74,6 @@ public partial class ExpressionInput : IDisposable
     private string DisplayName => EditorContext.InputDescriptor.DisplayName ?? EditorContext.InputDescriptor.Name;
     private string? Description => EditorContext.InputDescriptor.Description;
     private string InputValue => EditorContext.GetExpressionValueOrDefault();
-
     private string? MonacoSyntax { get; set; }
     private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
@@ -246,6 +247,33 @@ public partial class ExpressionInput : IDisposable
 
         foreach (var handler in MonacoHandlers)
             await handler.InitializeAsync(context);
+    }
+
+    private async Task ShowScriptEditor()
+    {
+        var param = new DialogParameters<CodeEditorDialog>
+        {
+            { x => x.Label, DisplayName },
+            { x => x.HelperText, Description },
+            { x => x.Value, _lastMonacoEditorContent ?? InputValue ?? string.Empty },
+            { x => x.LanguageLabel, SelectedExpressionDescriptor?.Type ?? ButtonLabel },
+            { x => x.MonacoLanguage, MonacoLanguage },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, FullWidth = true, MaxWidth = MaxWidth.Large };
+        var dialogRef = await DialogService.ShowAsync<CodeEditorDialog>(DisplayName, param, options);
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult?.Data is string newValue && InputValue != newValue)
+        {
+            _lastMonacoEditorContent = newValue;
+            var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
+            input.Expression = new(_selectedExpressionType, newValue);
+            await EditorContext.OnValueChanged(input);
+
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(InputValue);
+        }
     }
 
     /// <inheritdoc />

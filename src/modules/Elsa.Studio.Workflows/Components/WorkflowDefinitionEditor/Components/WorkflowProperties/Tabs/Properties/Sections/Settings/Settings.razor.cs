@@ -1,18 +1,18 @@
+using Elsa.Api.Client.Resources.CommitStrategies.Models;
 using Elsa.Api.Client.Resources.IncidentStrategies.Models;
+using Elsa.Api.Client.Resources.LogPersistenceStrategies;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.UI.Contracts;
-using Microsoft.AspNetCore.Components;
-using System.Text.Json;
-using Elsa.Api.Client.Resources.CommitStrategies.Models;
-using Elsa.Api.Client.Resources.LogPersistenceStrategies;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
+using Microsoft.AspNetCore.Components;
+using System.Text.Json;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -54,33 +54,78 @@ public partial class Settings
     private LogPersistenceConfiguration? _logPersistenceConfiguration;
     private CommitStrategyDescriptor? _selectedCommitStrategy;
     private ExpressionEditor _logPersistenceExpressionEditor = null!;
+    private Task? _loadLookupsTask;
+    private string? _lastSignature;
+    private Expression? _pendingLogPersistenceExpression;
+    private bool _needsLogPersistenceExpressionValue;
 
     /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
-        var incidentStrategies = (await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToList();
-        var commitStrategies = (await CommitStrategiesProvider.GetWorkflowCommitStrategiesAsync()).ToList();
-        _incidentStrategies = new IncidentStrategyDescriptor?[] { null }.Concat(incidentStrategies).ToList();
-        _commitStrategies = new CommitStrategyDescriptor?[] { null }.Concat(commitStrategies).ToList();
-        _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
-        _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition!.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
-        _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition!.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
-        _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x?.Name == WorkflowDefinition!.Options.CommitStrategyName) ?? _commitStrategies.FirstOrDefault();
-        _logPersistenceConfiguration = GetLogPersistenceConfiguration();
-        _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
-        await _logPersistenceExpressionEditor.UpdateAsync(_logPersistenceConfiguration?.Expression);
+        _loadLookupsTask ??= LoadLookupsAsync();
+        return _loadLookupsTask;
     }
 
-    private LogPersistenceMode? GetLegacyGetLogPersistenceMode()
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
     {
-        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var value) && value != null!)
-        {
-            var persistenceString = ((JsonElement)value).GetProperty("default");
-            return (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
-        }
+        if (WorkflowDefinition == null)
+            return;
 
-        return null;
+        _loadLookupsTask ??= LoadLookupsAsync();
+        await _loadLookupsTask;
+
+        var signature = BuildOptionsSignature(WorkflowDefinition);
+        if (string.Equals(signature, _lastSignature, StringComparison.Ordinal))
+            return;
+        _lastSignature = signature;
+
+        _selectedActivationStrategy = _activationStrategies.FirstOrDefault(x => x.TypeName == WorkflowDefinition.Options.ActivationStrategyType) ?? _activationStrategies.FirstOrDefault();
+        _selectedIncidentStrategy = _incidentStrategies.FirstOrDefault(x => x?.TypeName == WorkflowDefinition.Options.IncidentStrategyType) ?? _incidentStrategies.FirstOrDefault();
+        _selectedCommitStrategy = _commitStrategies.FirstOrDefault(x => x?.Name == WorkflowDefinition.Options.CommitStrategyName) ?? _commitStrategies.FirstOrDefault();
+        _logPersistenceConfiguration = GetLogPersistenceConfiguration();
+        _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
+
+        _pendingLogPersistenceExpression = _logPersistenceConfiguration?.Expression;
+        _needsLogPersistenceExpressionValue = true;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_needsLogPersistenceExpressionValue && _logPersistenceExpressionEditor != null)
+        {
+            _needsLogPersistenceExpressionValue = false;
+            await _logPersistenceExpressionEditor.UpdateAsync(_pendingLogPersistenceExpression);
+        }
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        _activationStrategies = (await WorkflowActivationStrategyService.GetWorkflowActivationStrategiesAsync()).ToList();
+        _logPersistenceStrategyDescriptors = (await LogPersistenceStrategyService.GetLogPersistenceStrategiesAsync()).ToList();
+        _incidentStrategies = new IncidentStrategyDescriptor?[] { null }.Concat((await IncidentStrategiesProvider.GetIncidentStrategiesAsync()).ToArray()).ToList();
+        _commitStrategies = new CommitStrategyDescriptor?[] { null }.Concat((await CommitStrategiesProvider.GetWorkflowCommitStrategiesAsync()).ToArray()).ToList();
+    }
+
+    private string BuildOptionsSignature(WorkflowDefinition wf)
+    {
+        var o = wf.Options ?? new WorkflowOptions();
+
+        var parsedLogPersistence = GetLogPersistenceConfiguration();
+        var expression = parsedLogPersistence?.Expression ?? null;
+        var strategyType = parsedLogPersistence?.StrategyType ?? string.Empty;
+
+        return string.Concat(
+            o.ActivationStrategyType ?? string.Empty, '|',
+            o.IncidentStrategyType ?? string.Empty, '|',
+            o.CommitStrategyName ?? string.Empty, '|',
+            (o.UsableAsActivity.HasValue ? (o.UsableAsActivity.Value ? "1" : "0") : string.Empty), '|',
+            o.AutoUpdateConsumingWorkflows ? "1" : "0", '|',
+            o.ActivityCategory ?? string.Empty, '|',
+            strategyType, '|',
+            expression
+        );
     }
 
     private LogPersistenceConfiguration? GetLogPersistenceConfiguration()
@@ -99,6 +144,17 @@ public partial class Settings
             EvaluationMode = LogPersistenceEvaluationMode.Strategy,
             StrategyType = strategyDescriptor?.TypeName
         };
+    }
+
+    private LogPersistenceMode? GetLegacyGetLogPersistenceMode()
+    {
+        if (WorkflowDefinition!.CustomProperties.TryGetValue("logPersistenceMode", out var value) && value != null!)
+        {
+            var persistenceString = ((JsonElement)value).GetProperty("default");
+            return (LogPersistenceMode)Enum.Parse(typeof(LogPersistenceMode), persistenceString.ToString());
+        }
+
+        return null;
     }
 
     private async Task RaiseWorkflowUpdatedAsync()

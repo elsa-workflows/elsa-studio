@@ -22,7 +22,7 @@ namespace Elsa.Studio.Components
         private TabulatedContentVisualizer? Table;
         private IContentVisualizer SelectedVisualizer = new DefaultContentVisualizer();
         private List<IContentVisualizer> AvailableVisualizers = new();
-        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid()}:N";
+        private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
         private StandaloneCodeEditor? _monacoEditor;
 
         public bool IsReadOnly
@@ -57,15 +57,10 @@ namespace Elsa.Studio.Components
         [Parameter] public DataPanelItem DataPanelItem { get; set; } = null!;
 
         [Inject] private ILocalizer Localizer { get; set; } = null!;
-
         [Inject] private IContentVisualizerProvider VisualizationProvider { get; set; } = null!;
-
         [Inject] private IClipboard Clipboard { get; set; } = null!;
-
         [Inject] private ISnackbar Snackbar { get; set; } = null!;
-
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-
 
         /// <summary>
         /// Performs the on initialized operation.

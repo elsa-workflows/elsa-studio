@@ -14,9 +14,6 @@ namespace Elsa.Studio.Login.Pages.Login;
 /// The login page.
 /// </summary>
 [AllowAnonymous]
-/// <summary>
-/// Represents the login.
-/// </summary>
 public partial class Login
 {
     [Inject] private IJwtAccessor JwtAccessor { get; set; } = null!;
