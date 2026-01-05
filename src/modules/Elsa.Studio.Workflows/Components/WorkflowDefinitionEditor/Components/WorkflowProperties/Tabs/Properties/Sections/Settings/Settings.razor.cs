@@ -56,8 +56,8 @@ public partial class Settings
     private ExpressionEditor _logPersistenceExpressionEditor = null!;
     private Task? _loadLookupsTask;
     private string? _lastSignature;
-    private Expression? _pendingExpressionUpdate;
-    private bool _needsExpressionEditorSync;
+    private Expression? _pendingLogPersistenceExpressionUpdate;
+    private bool _needsLogPersistenceExpressionEditorSync;
 
     /// <inheritdoc />
     protected override Task OnInitializedAsync()
@@ -86,17 +86,17 @@ public partial class Settings
         _logPersistenceConfiguration = GetLogPersistenceConfiguration();
         _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
 
-        _pendingExpressionUpdate = _logPersistenceConfiguration?.Expression;
-        _needsExpressionEditorSync = true;
+        _pendingLogPersistenceExpressionUpdate = _logPersistenceConfiguration?.Expression;
+        _needsLogPersistenceExpressionEditorSync = true;
     }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_needsExpressionEditorSync && _logPersistenceExpressionEditor != null)
+        if (_needsLogPersistenceExpressionEditorSync && _logPersistenceExpressionEditor != null)
         {
-            _needsExpressionEditorSync = false;
-            await _logPersistenceExpressionEditor.UpdateAsync(_pendingExpressionUpdate);
+            _needsLogPersistenceExpressionEditorSync = false;
+            await _logPersistenceExpressionEditor.UpdateAsync(_pendingLogPersistenceExpressionUpdate);
         }
     }
 
