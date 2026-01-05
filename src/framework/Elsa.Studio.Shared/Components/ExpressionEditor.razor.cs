@@ -1,11 +1,13 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.Scripting.Extensions;
 using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
 using ThrottleDebounce;
@@ -52,6 +54,8 @@ public partial class ExpressionEditor : IDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
     [Inject] private IUIHintService UIHintService { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+
     private IEnumerable<ExpressionDescriptor> BrowsableExpressionDescriptors => _expressionDescriptors.Where(x => x.IsBrowsable);
     private ExpressionDescriptor? SelectedExpressionDescriptor => _expressionDescriptors.FirstOrDefault(x => x.Type == _selectedExpressionType);
     private string SelectedExpressionTypeDisplayName => SelectedExpressionDescriptor?.DisplayName ?? DefaultOption;
@@ -221,6 +225,40 @@ public partial class ExpressionEditor : IDisposable
 
         foreach (var handler in MonacoHandlers)
             await handler.InitializeAsync(context);
+    }
+
+   private async Task ShowScriptEditor()
+    {
+        var currentValue = _lastMonacoEditorContent ?? Expression?.Value?.ToString() ?? string.Empty;
+        var languageLabel = SelectedExpressionDescriptor?.Type ?? ButtonLabel;
+
+        var param = new DialogParameters<CodeEditorDialog>
+        {
+            { x => x.Label, DisplayName },
+            { x => x.HelperText, Description },
+            { x => x.Value, currentValue },
+            { x => x.LanguageLabel, languageLabel },
+            { x => x.MonacoLanguage, MonacoLanguage },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, FullWidth = true, MaxWidth = MaxWidth.Large };
+        var dialogRef = await DialogService.ShowAsync<CodeEditorDialog>(DisplayName, param, options);
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult?.Data is string newValue && newValue != currentValue)
+        {
+            _lastMonacoEditorContent = newValue;
+
+            // Map dialog result back to the Expression model and notify the consumer.
+            var expressionType = _selectedExpressionType ?? DefaultOption;
+            var updatedExpression = new Expression(expressionType, newValue);
+            
+            Expression = updatedExpression;
+            if (ExpressionChanged != null)
+               await ExpressionChanged.Invoke(Expression);
+
+            await UpdateMonacoEditorAsync(Expression);
+        }
     }
 
     /// <inheritdoc />
