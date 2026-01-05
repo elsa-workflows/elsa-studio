@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Elsa.Labels.Entities;
+using Elsa.Studio.Labels.Models;
 
 namespace Elsa.Studio.Labels.Comparers;
 

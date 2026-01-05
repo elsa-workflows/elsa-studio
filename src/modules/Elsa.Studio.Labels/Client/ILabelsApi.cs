@@ -1,5 +1,4 @@
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Labels.Entities;
 using Elsa.Studio.Labels.Models;
 using Refit;
 

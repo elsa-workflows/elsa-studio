@@ -2,11 +2,12 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
 @using Elsa.Studio.Workflows.Services
+@using LabelModel = Elsa.Studio.Labels.Models.Label
 @inject ILocalizer Localizer
 
 <MudDialog>
     <DialogContent>
-        <MudTable T="Elsa.Labels.Entities.Label"
+        <MudTable T="LabelModel"
                   @bind-SelectedItems="_selectedLabels"
                   ServerData="@ServerReload"
                   Dense="true"
@@ -23,13 +24,13 @@
             </ColGroup>
             <HeaderContent>
                 <MudTh>
-                    <MudTableSortLabel SortLabel="Name" T="Elsa.Labels.Entities.Label">@Localizer["Name"]</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Name" T="LabelModel">@Localizer["Name"]</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortLabel="Scope" T="Elsa.Labels.Entities.Label">@Localizer["Description"]</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Scope" T="LabelModel">@Localizer["Description"]</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortLabel="Scope" T="Elsa.Labels.Entities.Label">@Localizer["Color"]</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Scope" T="LabelModel">@Localizer["Color"]</MudTableSortLabel>
                 </MudTh>
             </HeaderContent>
             <RowTemplate>

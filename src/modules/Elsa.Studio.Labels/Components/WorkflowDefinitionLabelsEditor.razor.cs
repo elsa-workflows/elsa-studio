@@ -1,6 +1,5 @@
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowExecutionContexts.Models;
-using Elsa.Labels.Entities;
 using Elsa.Studio.Labels.Client;
 using Elsa.Studio.Labels.Contracts;
 using Elsa.Studio.Labels.Models;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Utilities;
 using MudExtensions;
-using Open.Linq.AsyncExtensions;
 
 namespace Elsa.Studio.Labels.Components;
 
@@ -66,11 +64,11 @@ public partial class WorkflowDefinitionLabelsEditor
 
         var dialogInstance = await DialogService.ShowAsync<SelectLabelDialog>("Selecteer Label", parameters, options);
         var dialogResult = await dialogInstance.Result;
-        if (dialogResult is { Canceled: false, Data: IEnumerable<Elsa.Labels.Entities.Label> selectedLabels })
+        if (dialogResult is { Canceled: false, Data: IEnumerable<Label> selectedLabels })
         {
             try
             {
-                Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, selectedLabels.Select(it => it.Id)).ToList();
+                Labels = (await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, selectedLabels.Select(it => it.Id))).ToList();
             }
             catch (Exception e)
             {
@@ -79,7 +77,7 @@ public partial class WorkflowDefinitionLabelsEditor
         }
     }
 
-    private Elsa.Labels.Entities.Label ToLabel(WorkflowDefinitionLabelDescriptor descriptor) => new Elsa.Labels.Entities.Label
+    private Label ToLabel(WorkflowDefinitionLabelDescriptor descriptor) => new Label
     {
         Id = descriptor.Id,
         Name = descriptor.Name,
@@ -93,7 +91,7 @@ public partial class WorkflowDefinitionLabelsEditor
         if (labelToRemove != null)
         {
             Labels.Remove(labelToRemove);
-            Labels = await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, Labels.Select(it => it.Id)).ToList();
+            Labels = (await workflowDefinitionLabelsProvider.UpdateAsync(WorkflowDefinition.Id, Labels.Select(it => it.Id))).ToList();
         }
     }
 }

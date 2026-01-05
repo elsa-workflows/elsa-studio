@@ -1,5 +1,4 @@
-﻿using Elsa.Labels.Entities;
-using Elsa.Studio.Labels.Models;
+﻿using Elsa.Studio.Labels.Models;
 
 namespace Elsa.Studio.Labels.Contracts;
 

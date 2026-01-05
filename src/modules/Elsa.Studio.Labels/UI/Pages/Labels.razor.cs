@@ -6,6 +6,8 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
+using LabelModel = Elsa.Studio.Labels.Models.Label;
+
 namespace Elsa.Studio.Labels.UI.Pages;
 
 /// <summary>
@@ -14,8 +16,8 @@ namespace Elsa.Studio.Labels.UI.Pages;
 [UsedImplicitly]
 public partial class Labels
 {
-    private MudTable<Elsa.Labels.Entities.Label> _table = null!;
-    private HashSet<Elsa.Labels.Entities.Label> _selectedRows = new();
+    private MudTable<LabelModel> _table = null!;
+    private HashSet<LabelModel> _selectedRows = new();
 
     /// <summary>
     /// Gets or sets the dialog service for displaying dialogs.
@@ -52,12 +54,12 @@ public partial class Labels
     /// <param name="state">The table state.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The table data.</returns>
-    private async Task<TableData<Elsa.Labels.Entities.Label>> ServerReload(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<LabelModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var apiClient = await GetApiAsync();
         var labels = await apiClient.ListAsync(cancellationToken);
 
-        return new TableData<Elsa.Labels.Entities.Label>
+        return new TableData<LabelModel>
         {
             TotalItems = (int)labels.Count,
             Items = labels.Items
@@ -131,7 +133,7 @@ public partial class Labels
     /// Handles a row click event in the table.
     /// </summary>
     /// <param name="e">The event arguments.</param>
-    private async Task OnRowClick(TableRowClickEventArgs<Elsa.Labels.Entities.Label> e)
+    private async Task OnRowClick(TableRowClickEventArgs<LabelModel> e)
     {
         await EditAsync(e.Item!.Id);
     }
@@ -140,7 +142,7 @@ public partial class Labels
     /// Handles the delete button click for a specific label.
     /// </summary>
     /// <param name="model">The label to delete.</param>
-    private async Task OnDeleteClicked(Elsa.Labels.Entities.Label model)
+    private async Task OnDeleteClicked(LabelModel model)
     {
         var result = await DialogService.ShowMessageBox("Delete label?", "Are you sure you want to delete this label?", yesText: "Delete", cancelText: "Cancel");
 
