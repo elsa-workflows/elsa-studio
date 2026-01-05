@@ -3,12 +3,12 @@
 namespace Elsa.Studio.Labels.Contracts;
 
 /// <summary>
-/// Provides workflow contexts.
+/// Provides services to list and update workflow definition labels.
 /// </summary>
 public interface IWorkflowDefinitionLabelsProvider
 {
     /// <summary>
-    /// Returns a list of workflow context provider descriptors.
+    /// Returns a list of labels associated with the specified workflow definition ID.
     /// </summary>
     /// <param name="workflowDefinitionId">The ID of the workflow definition.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
