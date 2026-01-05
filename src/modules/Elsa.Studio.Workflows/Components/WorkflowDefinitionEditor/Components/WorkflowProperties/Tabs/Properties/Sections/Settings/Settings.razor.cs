@@ -1,18 +1,18 @@
+using Elsa.Api.Client.Resources.CommitStrategies.Models;
 using Elsa.Api.Client.Resources.IncidentStrategies.Models;
+using Elsa.Api.Client.Resources.LogPersistenceStrategies;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowActivationStrategies.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
-using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.UI.Contracts;
-using Microsoft.AspNetCore.Components;
-using System.Text.Json;
-using Elsa.Api.Client.Resources.CommitStrategies.Models;
-using Elsa.Api.Client.Resources.LogPersistenceStrategies;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Serialization;
 using Elsa.Api.Client.Shared.Enums;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Components;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.UI.Contracts;
+using Microsoft.AspNetCore.Components;
+using System.Text.Json;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Settings;
 
@@ -56,8 +56,8 @@ public partial class Settings
     private ExpressionEditor _logPersistenceExpressionEditor = null!;
     private Task? _loadLookupsTask;
     private string? _lastSignature;
-    private Expression? _pendingLogPersistenceExpressionUpdate;
-    private bool _needsLogPersistenceExpressionEditorSync;
+    private Expression? _pendingLogPersistenceExpression;
+    private bool _needsLogPersistenceExpressionValue;
 
     /// <inheritdoc />
     protected override Task OnInitializedAsync()
@@ -86,17 +86,17 @@ public partial class Settings
         _logPersistenceConfiguration = GetLogPersistenceConfiguration();
         _selectedLogPersistenceStrategy = _logPersistenceStrategyDescriptors.FirstOrDefault(x => x.TypeName == _logPersistenceConfiguration?.StrategyType) ?? _logPersistenceStrategyDescriptors.FirstOrDefault();
 
-        _pendingLogPersistenceExpressionUpdate = _logPersistenceConfiguration?.Expression;
-        _needsLogPersistenceExpressionEditorSync = true;
+        _pendingLogPersistenceExpression = _logPersistenceConfiguration?.Expression;
+        _needsLogPersistenceExpressionValue = true;
     }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_needsLogPersistenceExpressionEditorSync && _logPersistenceExpressionEditor != null)
+        if (_needsLogPersistenceExpressionValue && _logPersistenceExpressionEditor != null)
         {
-            _needsLogPersistenceExpressionEditorSync = false;
-            await _logPersistenceExpressionEditor.UpdateAsync(_pendingLogPersistenceExpressionUpdate);
+            _needsLogPersistenceExpressionValue = false;
+            await _logPersistenceExpressionEditor.UpdateAsync(_pendingLogPersistenceExpression);
         }
     }
 
