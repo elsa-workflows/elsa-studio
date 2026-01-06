@@ -40,7 +40,7 @@ namespace Elsa.Studio.Components
                 Value = Value,
                 FontFamily = "Roboto Mono, monospace",
                 RenderLineHighlight = "none",
-                FixedOverflowWidgets = true,
+                FixedOverflowWidgets = false,
                 Minimap = new()
                 {
                     Enabled = false
