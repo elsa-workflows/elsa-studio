@@ -12,6 +12,7 @@ on:
       - 'patch/*'
       - 'rc/*'
       - 'develop/*'
+      - 'release/*'
   release:
     types: [ prereleased, published ]
 env:
@@ -35,7 +36,7 @@ jobs:
           PACKAGE_PREFIX=$(echo $BRANCH_NAME | rev | cut -d/ -f1 | rev | tr '_' '-')
 
           # If the branch name is main, use the preview version. Otherwise, use the branch name as the version prefix.
-          if [[ "${BRANCH_NAME}" == "main" || "${BRANCH_NAME}" =~ ^rc/ || "${BRANCH_NAME}" =~ ^develop/ || "${BRANCH_NAME}" =~ ^patch/ ]]; then
+          if [[ "${BRANCH_NAME}" == "main" || "${BRANCH_NAME}" =~ ^rc/ || "${BRANCH_NAME}" =~ ^develop/ || "${BRANCH_NAME}" =~ ^patch/ || "${BRANCH_NAME}" =~ ^release/ ]]; then
               PACKAGE_PREFIX="preview"
           fi
 
@@ -50,7 +51,7 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-            git branch --remote --contains | grep origin/main
+            git branch --remote --contains | grep -E 'origin/(main|release/)'
           else
             git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
             git branch --remote --contains | grep origin/${BRANCH_NAME}

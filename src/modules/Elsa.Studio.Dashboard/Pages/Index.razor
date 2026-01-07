@@ -1,6 +1,5 @@
 ﻿@page "/"
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 
 <PageTitle>Index</PageTitle>
@@ -8,6 +7,6 @@
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="@Localizer["Dashboard"]"></PageHeading>
     <MudText Class="mb-8">@Localizer["Manage all the things"]</MudText>
-    <MudAlert Severity="Severity.Normal">@Localizer["You can find documentation and examples here"]: <MudLink Href="https://v3.elsaworkflows.io/" Typo="Typo.body2" Color="Color.Inherit"><b>v3.elsaworkflows.io</b></MudLink></MudAlert>
+    <MudAlert Severity="Severity.Normal">@Localizer["You can find documentation and examples here"]: <MudLink Href="https://docs.elsaworkflows.io/" Typo="Typo.body2" Color="Color.Inherit"><b>docs.elsaworkflows.io</b></MudLink></MudAlert>
 
 </MudContainer>
