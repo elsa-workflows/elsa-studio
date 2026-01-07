@@ -1,10 +1,9 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -14,6 +13,8 @@ using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
@@ -137,7 +138,14 @@ public partial class FlowchartDesignerWrapper
     /// Centers the content of the designer.
     /// </summary>
     public async Task CenterContentAsync() => await Designer.CenterContentAsync();
-
+    
+    /// <summary>
+    /// Exports the graphs content to a supplied format.
+    /// </summary>
+    /// <param name="captureOptions">The capture options</param>
+    /// <returns></returns>
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await Designer.ExportContentToFormatAsync(captureOptions);
+    
     /// <summary>
     /// Auto layouts the flowchart.
     /// </summary>
@@ -207,7 +215,4 @@ public partial class FlowchartDesignerWrapper
         if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(Flowchart);
     }
-
-    private async Task OnZoomToFitClick() => await Designer.ZoomToFitAsync();
-    private async Task OnCenterContentClick() => await Designer.CenterContentAsync();
 }

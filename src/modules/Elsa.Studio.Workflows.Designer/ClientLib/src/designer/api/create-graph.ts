@@ -4,7 +4,8 @@ import {Snapline} from "@antv/x6-plugin-snapline";
 import {Transform} from "@antv/x6-plugin-transform";
 import {Keyboard} from "@antv/x6-plugin-keyboard";
 import {Clipboard} from '@antv/x6-plugin-clipboard';
-import {History} from '@antv/x6-plugin-history';
+import { History } from '@antv/x6-plugin-history';
+import { Export } from "@antv/x6-plugin-export";
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
@@ -108,6 +109,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             },
         }
     });
+
+    graph.use(new Export());
 
     graph.use(
         new History({

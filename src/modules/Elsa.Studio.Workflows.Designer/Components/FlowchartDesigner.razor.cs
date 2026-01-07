@@ -327,6 +327,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// </summary>
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
 
+    /// <summary>
+    /// Exports the graphs content to a supplied format.
+    /// </summary>
+    /// <param name="captureOptions">The capture options</param>
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await ScheduleGraphActionAsync(() => _graphApi.ExportContentToFormatAsync(captureOptions));
+
     /// Update the Graph Layout.
     public async Task AutoLayoutAsync(
         JsonObject activity,
