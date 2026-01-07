@@ -6,12 +6,9 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Elsa.Studio.Workflows.UI.Args;
-using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
-using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -21,108 +18,76 @@ namespace Elsa.Studio.Workflows.Shared.Components;
 /// A wrapper around the diagram designer that provides a breadcrumb and a toolbar.
 public partial class DiagramDesignerWrapper
 {
+    private string? _lastSelectedNodeId;
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private JsonObject? _currentContainerActivity;
     private List<BreadcrumbItem> _breadcrumbItems = new();
-    private IDictionary<string, ActivityStats> _activityStats =
-        new Dictionary<string, ActivityStats>();
+    private IDictionary<string, ActivityStats> _activityStats = new Dictionary<string, ActivityStats>();
     private ActivityGraph _activityGraph = null!;
-    private IDictionary<string, ActivityNode> _indexedActivityNodes =
-        new Dictionary<string, ActivityNode>();
+    private IDictionary<string, ActivityNode> _indexedActivityNodes = new Dictionary<string, ActivityNode>();
 
-    /// The workflow definition version ID.
-    [Parameter]
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] private IActivityPortService ActivityPortService { get; set; } = null!;
+    [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+
     /// <summary>
     /// Gets or sets the workflow definition version id.
     /// </summary>
-    public string WorkflowDefinitionVersionId { get; set; } = null!;
+    [Parameter] public string WorkflowDefinitionVersionId { get; set; } = null!;
 
-    /// The root activity to display.
-    [Parameter]
     /// <summary>
-    /// Gets or sets the activity.
+    /// Gets or sets the root activity.
     /// </summary>
-    public JsonObject Activity { get; set; } = null!;
+    [Parameter] public JsonObject Activity { get; set; } = null!;
 
-    /// Whether the designer is read-only.
-    [Parameter]
     /// <summary>
     /// Indicates whether is read only.
     /// </summary>
-    public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
 
-    /// The workflow instance ID, if any.
-    [Parameter]
     /// <summary>
     /// Gets or sets the workflow instance id.
     /// </summary>
-    public string? WorkflowInstanceId { get; set; }
+    [Parameter] public string? WorkflowInstanceId { get; set; }
 
-    /// A custom toolbar to display.
-    [Parameter]
     /// <summary>
     /// Gets or sets the custom toolbar items.
     /// </summary>
-    public RenderFragment? CustomToolbarItems { get; set; }
+    [Parameter] public RenderFragment? CustomToolbarItems { get; set; }
 
-    /// Whether the designer is progressing.
-    [Parameter]
     /// <summary>
     /// Indicates whether is progressing.
     /// </summary>
-    public bool IsProgressing { get; set; }
+    [Parameter] public bool IsProgressing { get; set; }
 
-    /// An event raised when an activity is selected.
-    [Parameter]
     /// <summary>
-    /// Gets or sets the activity selected event callback.
+    /// Gets or sets the callback event when an activity is selected.
     /// </summary>
-    public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
-    /// An event raised when an embedded port is selected.
+    /// <summary>
+    /// Gets or sets the callback event when an embedded port is selected.
+    /// </summary>
     [Parameter] public EventCallback GraphUpdated { get; set; }
     
+    /// <summary>
+    /// Gets or sets the callback event when the activity is updated.
+    /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivityUpdated { get; set; }
 
-    /// An event raised when the path changes.
-    [Parameter]
     /// <summary>
-    /// Gets or sets the path changed event callback.
+    /// Gets or sets the callback event when a path is changed.
     /// </summary>
-    public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
+    [Parameter] public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
-    [Inject]
-    private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
-
-    [Inject]
-    private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
-
-    [Inject]
-    private IActivityPortService ActivityPortService { get; set; } = null!;
-
-    [Inject]
-    private IActivityRegistry ActivityRegistry { get; set; } = null!;
-
-    [Inject]
-    private IIdentityGenerator IdentityGenerator { get; set; } = null!;
-
-    [Inject]
-    private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
-
-    [Inject]
-    private IActivityVisitor ActivityVisitor { get; set; } = null!;
-
-    [Inject]
-    private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = null!;
-
-    private ActivityPathSegment? CurrentPathSegment =>
-        _pathSegments.TryPeek(out var segment) ? segment : null;
-
-    private string? _lastSelectedNodeId;
+    private ActivityPathSegment? CurrentPathSegment => _pathSegments.TryPeek(out var segment) ? segment : null;
 
     /// Selects the activity with the specified ID.
     /// <param name="activityId">The ID of the activity ID select.</param>
