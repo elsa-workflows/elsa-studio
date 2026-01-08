@@ -30,5 +30,9 @@ public class OidcTokenRefreshOptions
     /// Optional override for the client secret.
     /// </summary>
     public string? ClientSecret { get; set; }
-}
 
+    /// <summary>
+    /// Determines how the module performs access-token refresh in Blazor Server.
+    /// </summary>
+    public OidcTokenRefreshStrategy Strategy { get; set; } = OidcTokenRefreshStrategy.BestEffort;
+}

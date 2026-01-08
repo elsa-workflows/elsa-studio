@@ -2,6 +2,7 @@ using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
@@ -95,6 +96,19 @@ else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase
         // to allow calling userinfo with the issued access token.
         // options.GetClaimsFromUserInfoEndpoint = false;
     });
+
+    // Optional: Persisted silent refresh.
+    // When enabled, a background ping calls POST /authentication/refresh to renew the auth cookie on a normal HTTP request.
+    var refreshStrategy = configuration["Authentication:OpenIdConnect:TokenRefresh:Strategy"];
+    if (string.Equals(refreshStrategy, nameof(OidcTokenRefreshStrategy.Persisted), StringComparison.OrdinalIgnoreCase))
+    {
+        builder.Services.Configure<OidcTokenRefreshOptions>(options => options.Strategy = OidcTokenRefreshStrategy.Persisted);
+
+        builder.Services.AddOidcPersistedRefreshBackgroundPing(options =>
+        {
+            configuration.GetSection("Authentication:OpenIdConnect:TokenRefresh:Ping").Bind(options);
+        });
+    }
 }
 else
 {

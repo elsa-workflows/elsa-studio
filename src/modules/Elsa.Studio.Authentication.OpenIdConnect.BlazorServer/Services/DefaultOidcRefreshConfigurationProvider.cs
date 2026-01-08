@@ -42,6 +42,6 @@ public class DefaultOidcRefreshConfigurationProvider(
         if (string.IsNullOrWhiteSpace(tokenEndpoint))
             return null;
 
-        return new OidcRefreshConfiguration(tokenEndpoint, clientId, clientSecret);
+        return new(tokenEndpoint, clientId, clientSecret);
     }
 }

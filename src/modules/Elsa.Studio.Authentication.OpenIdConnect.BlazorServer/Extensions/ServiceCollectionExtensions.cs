@@ -35,6 +35,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOidcTokenAccessor, ServerOidcTokenAccessor>();
         services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
         services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();
+        services.AddScoped<OidcCookieTokenRefresher>();
+        services.AddScoped<BrowserRefreshPingService>();
+        services.AddOptions<OidcPersistedRefreshClientOptions>();
+        services.AddScoped<OidcTokenRefreshOptionsAccessor>();
 
         // Configure ASP.NET Core authentication with cookie and OIDC
         services.AddAuthentication(authOptions =>
@@ -80,7 +84,7 @@ public static class ServiceCollectionExtensions
                 }
 
                 // Configure token validation parameters
-                oidcOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                oidcOptions.TokenValidationParameters = new()
                 {
                     NameClaimType = "name",
                     RoleClaimType = "role",

@@ -1,0 +1,11 @@
+@using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services
+@inject BrowserRefreshPingService PingService
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await PingService.StartAsync();
+    }
+}
+

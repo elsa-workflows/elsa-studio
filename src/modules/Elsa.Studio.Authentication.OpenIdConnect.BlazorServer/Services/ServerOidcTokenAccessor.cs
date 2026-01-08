@@ -20,6 +20,7 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessor
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptions<OidcTokenRefreshOptions> _refreshOptions;
     private readonly IOidcRefreshConfigurationProvider _refreshConfigurationProvider;
+    private readonly OidcCookieTokenRefresher _cookieTokenRefresher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerOidcTokenAccessor"/> class.
@@ -29,13 +30,15 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessor
         ITokenRefreshCoordinator refreshCoordinator,
         IHttpClientFactory httpClientFactory,
         IOptions<OidcTokenRefreshOptions> refreshOptions,
-        IOidcRefreshConfigurationProvider refreshConfigurationProvider)
+        IOidcRefreshConfigurationProvider refreshConfigurationProvider,
+        OidcCookieTokenRefresher cookieTokenRefresher)
     {
         _httpContextAccessor = httpContextAccessor;
         _refreshCoordinator = refreshCoordinator;
         _httpClientFactory = httpClientFactory;
         _refreshOptions = refreshOptions;
         _refreshConfigurationProvider = refreshConfigurationProvider;
+        _cookieTokenRefresher = cookieTokenRefresher;
     }
 
     /// <inheritdoc />
@@ -48,7 +51,20 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessor
 
         // Ensure we have a fresh access token when asked for one.
         if (string.Equals(tokenName, "access_token", StringComparison.Ordinal))
-            await TryRefreshAccessTokenAsync(httpContext, cancellationToken);
+        {
+            var options = _refreshOptions.Value;
+
+            if (options.EnableRefreshTokens && options.Strategy == OidcTokenRefreshStrategy.Persisted)
+            {
+                // In Persisted mode, try to renew the cookie if this is a normal HTTP request.
+                // During Blazor circuit activity, Response.HasStarted is typically true and renewal will be skipped.
+                await _cookieTokenRefresher.TryRefreshAndRenewCookieAsync(httpContext, cancellationToken);
+            }
+            else
+            {
+                await TryRefreshAccessTokenAsync(httpContext, cancellationToken);
+            }
+        }
 
         // Retrieve the token from the authentication properties.
         return await httpContext.GetTokenAsync(tokenName);
@@ -59,6 +75,15 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessor
         var options = _refreshOptions.Value;
 
         if (!options.EnableRefreshTokens)
+            return;
+
+        // BestEffort refresh can only persist tokens by renewing the cookie.
+        // In Persisted mode, cookie renewal is performed via the /authentication/refresh endpoint.
+        if (options.Strategy != OidcTokenRefreshStrategy.BestEffort)
+            return;
+
+        // If headers are already sent, we cannot renew the cookie without throwing.
+        if (httpContext.Response.HasStarted)
             return;
 
         // SaveTokens must be enabled or tokens won't be in the auth cookie.

@@ -308,6 +308,12 @@ builder.Services.Configure<OidcTokenRefreshOptions>(options =>
 
 - `SaveTokens` must be `true` (otherwise no tokens are available in the auth cookie).
 - `offline_access` should be requested (otherwise a refresh token is typically not issued).
+- **Strategy**:
+  - `BestEffort` (default): the module only renews the auth cookie when response headers can still be written.
+  - `Persisted`: the module renews the auth cookie via the dedicated `POST /authentication/refresh` endpoint.
+- **Blazor Server note**: once the initial page load is complete, most calls happen over the SignalR circuit where HTTP headers have already been sent. In that context, cookies cannot be updated.
+  - With `BestEffort`, this means the app will eventually fall back to a normal OIDC re-authentication when the access token expires.
+  - With `Persisted`, you should periodically call the refresh endpoint (e.g., a background ping) so renewal happens in a non-circuit HTTP request.
 - If no refresh token is available, or refresh fails, the module does not throw; the next API call will typically result in a normal auth challenge.
 
 ### Microsoft Entra ID notes
@@ -342,3 +348,31 @@ builder.Services.Configure<OidcTokenRefreshOptions>(options =>
     options.ClientSecret = "..."; // optional
 });
 ```
+
+### Host configuration example (appsettings.json)
+
+In the Blazor Server host, you can enable persisted silent refresh purely via configuration:
+
+```json
+{
+  "Authentication": {
+    "Provider": "OpenIdConnect",
+    "OpenIdConnect": {
+      "Authority": "https://login.microsoftonline.com/{tenantId}/v2.0",
+      "ClientId": "...",
+      "ClientSecret": "...",
+      "Scopes": ["openid", "profile", "offline_access"],
+      "SaveTokens": true,
+      "TokenRefresh": {
+        "Strategy": "Persisted",
+        "Ping": {
+          "RefreshEndpointPath": "/authentication/refresh",
+          "Interval": "00:01:00"
+        }
+      }
+    }
+  }
+}
+```
+
+> Set `TokenRefresh:Strategy` to `BestEffort` (or omit it) to disable persisted refresh.

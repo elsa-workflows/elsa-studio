@@ -1,0 +1,11 @@
+@using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Components
+@using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models
+@using Microsoft.Extensions.Options
+
+@inject IOptions<OidcTokenRefreshOptions> Options
+
+@if (Options.Value.Strategy == OidcTokenRefreshStrategy.Persisted)
+{
+    <OidcPersistedRefreshPing />
+}
+
