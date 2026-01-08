@@ -38,5 +38,5 @@ public class OpenIdConnectConfiguration
     /// <summary>
     /// Enables PKCE (Proof Key for Code Exchange) for the authorization code flow.
     /// </summary>
-    public bool UsePkce { get; set; } = false;
+    public bool UsePkce { get; set; }
 }
