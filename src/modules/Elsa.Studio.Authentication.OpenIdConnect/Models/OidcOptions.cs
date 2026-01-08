@@ -1,9 +1,11 @@
+using Elsa.Studio.Authentication.Abstractions.Models;
+
 namespace Elsa.Studio.Authentication.OpenIdConnect.Models;
 
 /// <summary>
 /// Configuration options for OpenID Connect authentication.
 /// </summary>
-public class OidcOptions
+public class OidcOptions : AuthenticationOptions
 {
     /// <summary>
     /// Gets or sets the authority URL of the OpenID Connect provider.
@@ -26,11 +28,6 @@ public class OidcOptions
     public string ResponseType { get; set; } = "code";
 
     /// <summary>
-    /// Gets or sets the scopes to request.
-    /// </summary>
-    public string[] Scopes { get; set; } = ["openid", "profile", "offline_access"];
-
-    /// <summary>
     /// Gets or sets whether to use PKCE (Proof Key for Code Exchange).
     /// </summary>
     public bool UsePkce { get; set; } = true;
@@ -51,11 +48,6 @@ public class OidcOptions
     public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
 
     /// <summary>
-    /// Gets or sets whether to require HTTPS metadata.
-    /// </summary>
-    public bool RequireHttpsMetadata { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets whether to get claims from the user info endpoint.
     /// </summary>
     public bool GetClaimsFromUserInfoEndpoint { get; set; } = true;
@@ -64,4 +56,13 @@ public class OidcOptions
     /// Gets or sets the metadata address (optional, auto-discovered from Authority if not set).
     /// </summary>
     public string? MetadataAddress { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OidcOptions"/> class.
+    /// </summary>
+    public OidcOptions()
+    {
+        // Set default OIDC scopes
+        Scopes = ["openid", "profile", "offline_access"];
+    }
 }

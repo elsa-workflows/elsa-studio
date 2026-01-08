@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Description>Shared abstractions for authentication providers in Elsa Studio.</Description>
+        <PackageTags>elsa studio authentication abstractions</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\framework\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+    </ItemGroup>
+
+</Project>

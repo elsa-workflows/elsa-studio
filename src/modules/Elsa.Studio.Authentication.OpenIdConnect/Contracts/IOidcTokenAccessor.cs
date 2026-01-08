@@ -1,15 +1,12 @@
+using Elsa.Studio.Authentication.Abstractions.Contracts;
+
 namespace Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 
 /// <summary>
 /// Provides access to OIDC tokens stored in the authentication context.
+/// Extends <see cref="ITokenAccessor"/> with OIDC-specific functionality if needed.
 /// </summary>
-public interface IOidcTokenAccessor
+public interface IOidcTokenAccessor : ITokenAccessor
 {
-    /// <summary>
-    /// Retrieves an authentication token by name.
-    /// </summary>
-    /// <param name="tokenName">The name of the token to retrieve (e.g., "access_token", "id_token", "refresh_token").</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The token value, or null if not available.</returns>
-    Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default);
+    // Can add OIDC-specific methods here in the future if needed
 }

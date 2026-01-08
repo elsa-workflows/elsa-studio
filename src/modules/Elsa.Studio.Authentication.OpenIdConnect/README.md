@@ -6,6 +6,8 @@ A modern, best-practices OpenID Connect (OIDC) authentication module for Elsa St
 
 This module provides a clean, decoupled alternative to the OIDC implementation in `Elsa.Studio.Login`. It uses Microsoft's native authentication packages for automatic token management, PKCE support, and proper integration with ASP.NET Core and Blazor frameworks.
 
+**Note**: This is one of potentially many authentication providers for Elsa Studio. It extends the shared `Elsa.Studio.Authentication.Abstractions` to provide OIDC-specific functionality.
+
 ### Key Benefits
 
 - **Automatic Token Management**: Tokens are automatically refreshed by the framework
@@ -14,17 +16,24 @@ This module provides a clean, decoupled alternative to the OIDC implementation i
 - **Hosting Model Optimized**: Separate implementations for Blazor Server and WebAssembly
 - **Clean Architecture**: No browser storage manipulation, uses framework-managed authentication state
 - **Security Best Practices**: Cookie-based sessions for Server, secure token provider for WASM
+- **Shared Abstractions**: Uses common patterns from `Elsa.Studio.Authentication.Abstractions`
 
 ## Architecture
 
 ### Project Structure
 
 ```
+Elsa.Studio.Authentication.Abstractions/
+├── Contracts/
+│   └── ITokenAccessor.cs               # Shared token accessor abstraction
+└── Models/
+    └── AuthenticationOptions.cs        # Base authentication options
+
 Elsa.Studio.Authentication.OpenIdConnect/
 ├── Contracts/
-│   └── IOidcTokenAccessor.cs           # Token accessor abstraction
+│   └── IOidcTokenAccessor.cs           # OIDC-specific token accessor (extends ITokenAccessor)
 ├── Models/
-│   └── OidcOptions.cs                  # OIDC configuration model
+│   └── OidcOptions.cs                  # OIDC configuration (extends AuthenticationOptions)
 └── Services/
     └── OidcAuthenticationProvider.cs   # IAuthenticationProvider implementation
 
@@ -146,18 +155,20 @@ Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm/
 
 ### OidcOptions
 
+`OidcOptions` extends `AuthenticationOptions` from `Elsa.Studio.Authentication.Abstractions`.
+
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `Authority` | `string` | OIDC provider authority URL | Required |
 | `ClientId` | `string` | Client ID registered with provider | Required |
 | `ClientSecret` | `string?` | Client secret (Server only, optional) | `null` |
 | `ResponseType` | `string` | OAuth2 response type | `"code"` |
-| `Scopes` | `string[]` | Requested scopes | `["openid", "profile", "offline_access"]` |
+| `Scopes` | `string[]` | Requested scopes (inherited) | `["openid", "profile", "offline_access"]` |
 | `UsePkce` | `bool` | Enable PKCE | `true` |
 | `SaveTokens` | `bool` | Save tokens in auth properties (Server) | `true` |
 | `CallbackPath` | `string` | Authentication callback path | `"/signin-oidc"` |
 | `SignedOutCallbackPath` | `string` | Sign-out callback path | `"/signout-callback-oidc"` |
-| `RequireHttpsMetadata` | `bool` | Require HTTPS for metadata | `true` |
+| `RequireHttpsMetadata` | `bool` | Require HTTPS for metadata (inherited) | `true` |
 | `GetClaimsFromUserInfoEndpoint` | `bool` | Fetch claims from UserInfo | `true` |
 | `MetadataAddress` | `string?` | Custom metadata address | Auto-discovered |
 
@@ -263,9 +274,14 @@ app.UseAuthorization();
 
 ## Related Packages
 
+- `Elsa.Studio.Authentication.Abstractions` (Shared authentication abstractions)
 - `Microsoft.AspNetCore.Authentication.OpenIdConnect` (Server)
 - `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (WASM)
 - `Elsa.Studio.Core` (Core interfaces)
+
+## Building Your Own Authentication Provider
+
+If you need to implement a different authentication mechanism (OAuth2, JWT, SAML, etc.), refer to the `Elsa.Studio.Authentication.Abstractions` package documentation for guidance on creating new authentication providers that follow the same patterns.
 
 ## License
 

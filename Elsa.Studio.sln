@@ -91,6 +91,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm", "src\modules\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.csproj", "{AED216D2-620D-4446-931F-BDEF357DA805}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.Abstractions", "src\modules\Elsa.Studio.Authentication.Abstractions\Elsa.Studio.Authentication.Abstractions.csproj", "{09E284E0-7F8E-4346-962F-90F3FBA8837D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -461,6 +463,18 @@ Global
 		{AED216D2-620D-4446-931F-BDEF357DA805}.Release|x64.Build.0 = Release|Any CPU
 		{AED216D2-620D-4446-931F-BDEF357DA805}.Release|x86.ActiveCfg = Release|Any CPU
 		{AED216D2-620D-4446-931F-BDEF357DA805}.Release|x86.Build.0 = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|x64.Build.0 = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Debug|x86.Build.0 = Debug|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|x64.ActiveCfg = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|x64.Build.0 = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|x86.ActiveCfg = Release|Any CPU
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -500,6 +514,7 @@ Global
 		{F6F4CD65-8E0C-5401-A668-108C6C0E8CD1} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{E88C478A-6B8C-46F3-941C-BEBD798ECD06} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{AED216D2-620D-4446-931F-BDEF357DA805} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{09E284E0-7F8E-4346-962F-90F3FBA8837D} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8719CC-CF87-45E1-BE1A-13842F951B28}
