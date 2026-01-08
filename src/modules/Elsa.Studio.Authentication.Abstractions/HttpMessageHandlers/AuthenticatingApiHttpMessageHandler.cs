@@ -17,7 +17,10 @@ public class AuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blazorSe
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var sp = blazorServiceAccessor.Services;
-        var authenticationProvider = sp.GetRequiredService<IAuthenticationProvider>();
+        var authenticationProvider = sp.GetService<IAuthenticationProvider>();
+
+        if (authenticationProvider == null)
+            return await base.SendAsync(request, cancellationToken);
 
         var accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, cancellationToken);
 
@@ -29,4 +32,3 @@ public class AuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blazorSe
         return await base.SendAsync(request, cancellationToken);
     }
 }
-

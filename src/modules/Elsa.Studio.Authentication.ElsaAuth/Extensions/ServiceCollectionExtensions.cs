@@ -26,7 +26,9 @@ public static class ServiceCollectionExtensions
             .AddAuthorizationCore()
             .AddAuthenticationInfrastructure()
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-            .AddScoped<IUnauthorizedComponentProvider, DefaultUnauthorizedComponentProvider>();
+            .AddScoped<IUnauthorizedComponentProvider, DefaultUnauthorizedComponentProvider>()
+            .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
+            .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
 
         // Default token claims mapping.
         services.TryAddSingleton<IConfigureOptions<IdentityTokenOptions>, DefaultIdentityTokenOptionsSetup>();

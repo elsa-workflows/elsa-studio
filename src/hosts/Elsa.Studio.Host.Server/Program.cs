@@ -1,6 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
-using Elsa.Studio.Authentication.ElsaAuth.Extensions;
 using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Branding;

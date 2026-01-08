@@ -9,7 +9,7 @@ namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 /// <summary>
 /// An implementation of <see cref="ICredentialsValidator"/> that consumes endpoints from Elsa.Identity.
 /// </summary>
-public class ElsaIdentityCredentialsValidator(IBackendApiClientProvider backendApiClientProvider) : ICredentialsValidator
+public class ElsaIdentityCredentialsValidator(IAnonymousBackendApiClientProvider backendApiClientProvider) : ICredentialsValidator
 {
     /// <inheritdoc />
     public async ValueTask<ValidateCredentialsResult> ValidateCredentialsAsync(string username, string password, CancellationToken cancellationToken = default)
