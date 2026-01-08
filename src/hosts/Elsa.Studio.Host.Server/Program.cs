@@ -31,10 +31,10 @@ builder.Services.AddServerSideBlazor(options =>
     // Register the root components.
     // V2 activity wrapper by default.
     options.RootComponents.RegisterCustomElsaStudioElements();
-    
+
     // To use V1 activity wrapper layout, specify the V1 component instead:
     //options.RootComponents.RegisterCustomElsaStudioElements(typeof(Elsa.Studio.Workflows.Designer.Components.ActivityWrappers.V1.EmbeddedActivityWrapper));
-    
+
     options.RootComponents.MaxJSRootComponents = 1000;
 });
 
@@ -59,7 +59,7 @@ var localizationConfig = new LocalizationConfig
     {
         configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
         options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
-            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []) .ToArray();
+            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []).ToArray();
     }
 };
 
@@ -68,13 +68,14 @@ builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioB
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddLoginModule();
-builder.Services.UseElsaIdentity();
+//builder.Services.UseElsaIdentity();
 // builder.Services.UseOAuth2(options =>
 // {
 //     options.ClientId = "ElsaStudio";
 //     options.TokenEndpoint = "https://localhost:44366/connect/token";
 //     options.Scope = "YourSite offline_access";
 // });
+builder.Services.UseOpenIdConnect(openid => configuration.GetSection("Authentication:OpenIdConnect").Bind(openid));
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
