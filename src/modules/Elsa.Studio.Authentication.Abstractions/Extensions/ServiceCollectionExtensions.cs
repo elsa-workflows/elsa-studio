@@ -17,7 +17,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
     {
         // Used by API clients to attach access tokens.
-        services.TryAddScoped<BearerTokenHttpMessageHandler>();
         services.TryAddScoped<AuthenticatingApiHttpMessageHandler>();
 
         // Used by modules (e.g. Workflows) to retrieve tokens without depending on a specific auth provider.

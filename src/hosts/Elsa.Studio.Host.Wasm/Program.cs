@@ -29,7 +29,7 @@ builder.RootComponents.RegisterCustomElsaStudioElements();
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
-    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(BearerTokenHttpMessageHandler), 
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
 };
 
 var localizationConfig = new LocalizationConfig

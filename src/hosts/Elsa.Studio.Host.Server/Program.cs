@@ -43,7 +43,7 @@ var backendApiConfig = new BackendApiConfig
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
     ConfigureHttpClientBuilder = options =>
     {
-        options.AuthenticationHandler = typeof(BearerTokenHttpMessageHandler);
+        options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
         options.ConfigureHttpClient = (_, client) =>
         {
             // Set a long time out to simplify debugging both Elsa Studio and the Elsa Server backend.
