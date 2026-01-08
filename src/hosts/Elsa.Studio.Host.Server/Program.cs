@@ -1,3 +1,5 @@
+using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
@@ -9,9 +11,6 @@ using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.Login.BlazorServer.Extensions;
-using Elsa.Studio.Login.Extensions;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
@@ -44,7 +43,7 @@ var backendApiConfig = new BackendApiConfig
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
     ConfigureHttpClientBuilder = options =>
     {
-        options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
+        options.AuthenticationHandler = typeof(BearerTokenHttpMessageHandler);
         options.ConfigureHttpClient = (_, client) =>
         {
             // Set a long time out to simplify debugging both Elsa Studio and the Elsa Server backend.
@@ -67,15 +66,26 @@ builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
 builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
-builder.Services.AddLoginModule();
-//builder.Services.UseElsaIdentity();
+// OIDC provides the auth pipeline + unauthorized redirect behavior, so we don't need the legacy Login module.
+//builder.Services.AddLoginModule();
 // builder.Services.UseOAuth2(options =>
 // {
 //     options.ClientId = "ElsaStudio";
 //     options.TokenEndpoint = "https://localhost:44366/connect/token";
 //     options.Scope = "YourSite offline_access";
 // });
-builder.Services.UseOpenIdConnect(openid => configuration.GetSection("Authentication:OpenIdConnect").Bind(openid));
+//builder.Services.UseOpenIdConnect(openid => configuration.GetSection("Authentication:OpenIdConnect").Bind(openid));
+
+builder.Services.AddOidcAuthentication(options =>
+{
+    configuration.GetSection("Authentication:Oidc").Bind(options);
+
+    // If you see a 401 from the OIDC handler while calling the "userinfo" endpoint,
+    // either disable UserInfo retrieval (recommended for most setups), or configure your IdP/app registration
+    // to allow calling userinfo with the issued access token.
+    // options.GetClaimsFromUserInfoEndpoint = false;
+});
+
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -121,6 +131,7 @@ app.UseElsaLocalization();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapBlazorHub();

@@ -1,6 +1,8 @@
+using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.ComponentProviders;
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -87,6 +89,12 @@ public static class ServiceCollectionExtensions
 
         // Add authorization services
         services.AddAuthorizationCore();
+
+        // Use an OIDC-aware unauthorized component that initiates a challenge.
+        services.AddScoped<IUnauthorizedComponentProvider, OidcUnauthorizedComponentProvider>();
+
+        // Shared auth infrastructure (e.g. delegating handlers).
+        services.AddAuthenticationInfrastructure();
 
         return services;
     }

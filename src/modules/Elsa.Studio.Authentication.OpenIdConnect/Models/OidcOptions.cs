@@ -50,7 +50,12 @@ public class OidcOptions : AuthenticationOptions
     /// <summary>
     /// Gets or sets whether to get claims from the user info endpoint.
     /// </summary>
-    public bool GetClaimsFromUserInfoEndpoint { get; set; } = true;
+    /// <remarks>
+    /// When enabled, the OIDC handler calls the provider's <c>userinfo</c> endpoint after authentication.
+    /// Some providers or app registrations may return 401 from <c>userinfo</c> unless specific permissions/scopes
+    /// are configured.
+    /// </remarks>
+    public bool GetClaimsFromUserInfoEndpoint { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the metadata address (optional, auto-discovered from Authority if not set).
