@@ -41,14 +41,31 @@ builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
 
-// Remove legacy Login module for OIDC-based auth.
-//builder.Services.AddLoginModule();
-//builder.Services.UseElsaIdentity();
+// Choose authentication provider.
+// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
+var authProvider = configuration["Authentication:Provider"];
+if (string.IsNullOrWhiteSpace(authProvider))
+    authProvider = "OpenIdConnect";
 
-builder.Services.AddElsaOidcAuthentication(options =>
+authProvider = authProvider.Trim();
+
+if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
 {
-    configuration.GetSection("Authentication:Oidc").Bind(options);
-});
+    // Elsa Identity (username/password against Elsa backend) + login UI at /login.
+    Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions.ServiceCollectionExtensions.AddElsaAuth(builder.Services);
+    Elsa.Studio.Authentication.ElsaAuth.UI.Extensions.ServiceCollectionExtensions.AddElsaAuthUI(builder.Services);
+}
+else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddElsaOidcAuthentication(options =>
+    {
+        configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
+    });
+}
+else
+{
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
+}
 
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();

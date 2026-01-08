@@ -22,7 +22,12 @@
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.Abstractions\Elsa.Studio.Authentication.Abstractions.csproj" />
+
+      <!-- Auth providers (select via configuration). -->
       <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaAuth.BlazorWasm\Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaAuth.UI\Elsa.Studio.Authentication.ElsaAuth.UI.csproj" />
+
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
     </ItemGroup>
