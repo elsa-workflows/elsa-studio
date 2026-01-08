@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        // The WASM host must provide the /authentication/{action} route hosting RemoteAuthenticatorView.
+        NavigationManager.NavigateTo("authentication/login");
+    }
+}
+
