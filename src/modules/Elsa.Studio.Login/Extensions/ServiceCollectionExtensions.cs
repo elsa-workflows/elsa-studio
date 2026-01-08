@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
                 .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
             ;
     }
 
@@ -40,7 +41,6 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
             ;
     }
@@ -71,7 +71,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Configures the login module to use OpenIdConnect (OIDC)
     /// </summary>
-    public static IServiceCollection UseOpenIdConnect(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
+    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
     {
         services.Configure(configure);
 
@@ -79,6 +79,9 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
                 .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
                 .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
+                .AddScoped<IOpenIdConnectPkceService, OpenIdConnectPkceService>()
+                .AddScoped<IOidcBrowserStateStore, SessionStorageOidcStateStore>();
+
             ;
     }
 }
