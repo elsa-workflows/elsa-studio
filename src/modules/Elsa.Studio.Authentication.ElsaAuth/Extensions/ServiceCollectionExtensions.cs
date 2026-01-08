@@ -30,6 +30,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
             .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
 
+            services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
+            services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();
+
         // Default token claims mapping.
         services.TryAddSingleton<IConfigureOptions<IdentityTokenOptions>, DefaultIdentityTokenOptionsSetup>();
 

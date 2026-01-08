@@ -3,6 +3,7 @@ using Elsa.Studio.Authentication.Abstractions.Services;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 
 namespace Elsa.Studio.Authentication.Abstractions.Extensions;
 
@@ -21,6 +22,9 @@ public static class ServiceCollectionExtensions
 
         // Used by modules (e.g. Workflows) to retrieve tokens without depending on a specific auth provider.
         services.TryAddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>();
+
+        // Coordinates refresh operations to prevent refresh storms under parallel requests.
+        services.TryAddScoped<ITokenRefreshCoordinator, TokenRefreshCoordinator>();
 
         return services;
     }

@@ -34,4 +34,13 @@ public class BlazorServerJwtAccessor : IJwtAccessor
 
         return await _localStorageService.GetItemAsync<string>(name);
     }
+
+    /// <inheritdoc />
+    public async ValueTask ClearTokenAsync(string name)
+    {
+        if (IsPrerendering())
+            return;
+
+        await _localStorageService.RemoveItemAsync(name);
+    }
 }

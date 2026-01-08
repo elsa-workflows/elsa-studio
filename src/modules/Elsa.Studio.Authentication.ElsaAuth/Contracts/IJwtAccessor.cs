@@ -14,4 +14,9 @@ public interface IJwtAccessor
     /// Writes a token by name.
     /// </summary>
     ValueTask WriteTokenAsync(string name, string token);
+
+    /// <summary>
+    /// Removes a token from storage.
+    /// </summary>
+    ValueTask ClearTokenAsync(string name);
 }

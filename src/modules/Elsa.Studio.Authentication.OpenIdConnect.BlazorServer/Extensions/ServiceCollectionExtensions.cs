@@ -7,8 +7,8 @@ using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 
@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<IOidcTokenAccessor, ServerOidcTokenAccessor>();
         services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
+        services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();
 
         // Configure ASP.NET Core authentication with cookie and OIDC
         services.AddAuthentication(authOptions =>
@@ -95,6 +96,9 @@ public static class ServiceCollectionExtensions
 
         // Shared auth infrastructure (e.g. delegating handlers).
         services.AddAuthenticationInfrastructure();
+
+        services.AddOptions<OidcTokenRefreshOptions>();
+        services.AddHttpClient("Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous");
 
         return services;
     }

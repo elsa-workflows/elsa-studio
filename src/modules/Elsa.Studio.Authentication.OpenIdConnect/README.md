@@ -265,24 +265,80 @@ app.UseAuthorization();
    - Tokens are not available during pre-rendering
    - Use `@attribute [Authorize]` to ensure authentication before render
 
-## Security Considerations
+## Silent access token refresh (Blazor Server)
 
-- **Server**: Uses secure, HTTP-only cookies. Tokens never exposed to browser.
-- **WASM**: Tokens managed by framework with proper expiry and renewal.
-- **PKCE**: Enabled by default to protect against authorization code interception.
-- **HTTPS**: Required for metadata endpoints in production (configurable for dev).
+On Blazor Server, Elsa Studio uses the standard ASP.NET Core Cookie + OpenID Connect handler.
+When you set `SaveTokens = true`, the handler stores `access_token`, `refresh_token` (if issued) and `expires_at` in the authentication cookie properties.
 
-## Related Packages
+This module can **silently refresh the access token** when it is about to expire by:
+- reading `expires_at` / `refresh_token` from the auth cookie
+- calling the OIDC provider's `token_endpoint` using the `refresh_token` grant
+- updating the tokens stored in the auth cookie (via `SignInAsync`)
 
-- `Elsa.Studio.Authentication.Abstractions` (Shared authentication abstractions)
-- `Microsoft.AspNetCore.Authentication.OpenIdConnect` (Server)
-- `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (WASM)
-- `Elsa.Studio.Core` (Core interfaces)
+### Flip-a-switch configuration
 
-## Building Your Own Authentication Provider
+The only thing you need to do to enable silent refresh is to keep refresh tokens enabled and request `offline_access`:
 
-If you need to implement a different authentication mechanism (OAuth2, JWT, SAML, etc.), refer to the `Elsa.Studio.Authentication.Abstractions` package documentation for guidance on creating new authentication providers that follow the same patterns.
+```csharp
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
 
-## License
+builder.Services.AddOidcAuthentication(options =>
+{
+    options.Authority = "https://login.microsoftonline.com/{tenantId}/v2.0"; // or your provider
+    options.ClientId = "...";
 
-This module is part of Elsa Studio and follows the same license terms.
+    // Required if you want the handler to store tokens in the auth cookie.
+    options.SaveTokens = true;
+
+    // Required if you want refresh tokens.
+    // Note: some providers/app registrations might not issue a refresh token even if requested.
+    options.Scopes = new[] { "openid", "profile", "offline_access" };
+});
+
+// Optional: control refresh behavior.
+builder.Services.Configure<OidcTokenRefreshOptions>(options =>
+{
+    options.EnableRefreshTokens = true; // default
+    options.RefreshSkew = TimeSpan.FromMinutes(2); // default
+});
+```
+
+### Prerequisites and behavior
+
+- `SaveTokens` must be `true` (otherwise no tokens are available in the auth cookie).
+- `offline_access` should be requested (otherwise a refresh token is typically not issued).
+- If no refresh token is available, or refresh fails, the module does not throw; the next API call will typically result in a normal auth challenge.
+
+### Microsoft Entra ID notes
+
+For Microsoft Entra ID (Azure AD), the authority usually looks like:
+- Tenant-specific: `https://login.microsoftonline.com/{tenantId}/v2.0`
+- Or common endpoint (multi-tenant apps): `https://login.microsoftonline.com/common/v2.0`
+
+Refresh tokens depend on:
+- requesting `offline_access`
+- your app registration configuration / consent
+- Entra token policies (token lifetimes, session policies)
+
+If you don't receive a refresh token, the app will still work, but access-token renewal will require re-authentication.
+
+### Advanced overrides (rarely needed)
+
+By default, the module auto-discovers the `token_endpoint` from OIDC metadata and uses the configured `ClientId`/`ClientSecret` from `AddOidcAuthentication`.
+
+You can override any of these via `OidcTokenRefreshOptions`:
+
+```csharp
+builder.Services.Configure<OidcTokenRefreshOptions>(options =>
+{
+    options.EnableRefreshTokens = true;
+
+    // Override token endpoint discovery.
+    options.TokenEndpoint = "https://issuer.example.com/oauth2/v2.0/token";
+
+    // Override client credentials.
+    options.ClientId = "...";
+    options.ClientSecret = "..."; // optional
+});
+```

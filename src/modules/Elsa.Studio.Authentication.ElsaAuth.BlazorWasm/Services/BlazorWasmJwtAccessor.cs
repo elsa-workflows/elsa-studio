@@ -15,5 +15,7 @@ public class BlazorWasmJwtAccessor : IJwtAccessor
 
     /// <inheritdoc />
     public async ValueTask WriteTokenAsync(string name, string token) => await _localStorageService.SetItemAsStringAsync(name, token);
-}
 
+    /// <inheritdoc />
+    public async ValueTask ClearTokenAsync(string name) => await _localStorageService.RemoveItemAsync(name);
+}
