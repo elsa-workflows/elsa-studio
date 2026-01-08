@@ -3,6 +3,7 @@
 namespace Elsa.Studio.Login.Services;
 
 /// <inheritdoc />
+[Obsolete("Elsa.Studio.Login is obsolete. Use Elsa.Studio.Authentication.Abstractions.Services.DefaultAuthenticationProviderManager / AddAuthenticationInfrastructure instead.")]
 public class DefaultAuthenticationProviderManager(IEnumerable<IAuthenticationProvider> authenticationProviders) : IAuthenticationProviderManager
 {
     /// <inheritdoc />

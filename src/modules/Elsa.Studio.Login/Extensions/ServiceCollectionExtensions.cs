@@ -1,87 +1,61 @@
+using Elsa.Studio.Authentication.ElsaAuth.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.ComponentProviders;
-using Elsa.Studio.Login.Contracts;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Login.Models;
-using Elsa.Studio.Login.Services;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Login.Extensions;
 
-/// <summary>
-/// Contains extension methods for the <see cref="IServiceCollection"/> interface.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds the login module to the service collection.
     /// </summary>
+    [Obsolete("Elsa.Studio.Login is obsolete. Use Elsa.Studio.Authentication.ElsaAuth (or Elsa.Studio.Authentication.OpenIdConnect for OIDC) instead.")]
     public static IServiceCollection AddLoginModuleCore(this IServiceCollection services)
     {
-        return services
-                .AddScoped<IFeature, LoginFeature>()
-                .AddOptions()
-                .AddAuthorizationCore()
-                .AddScoped<AuthenticatingApiHttpMessageHandler>()
-                .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-            ;
+        // Keep legacy UI/feature registrations.
+        services
+            .AddScoped<IFeature, LoginFeature>()
+            .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>();
+
+        // Delegate the authentication plumbing to ElsaAuth.
+        services.AddElsaAuthCore();
+
+        return services;
     }
 
     /// <summary>
-    /// Configures the login module to use elsa identity
+    /// Configures the login module to use elsa identity.
     /// </summary>
-    public static IServiceCollection UseElsaIdentity(this IServiceCollection services)
-    {
-        return services
-                .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
-                .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
-                .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
-                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
-                .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
-            ;
-    }
+    [Obsolete("Elsa.Studio.Login is obsolete. Use services.AddElsaAuthCore().UseElsaIdentityAuth() instead.")]
+    public static IServiceCollection UseElsaIdentity(this IServiceCollection services) => services.UseElsaIdentityAuth();
 
     /// <summary>
     /// Configures the service collection to use OAuth2 for credential validation and related services.
     /// </summary>
+    [Obsolete("OAuth2 support via Elsa.Studio.Login is obsolete. ElsaAuth no longer contains OAuth2. If you need OAuth2, keep using the legacy Elsa.Studio.Login OAuth2 implementation or migrate to a dedicated future OAuth2 module.")]
     public static IServiceCollection UseOAuth2(this IServiceCollection services, Action<OAuth2CredentialsValidatorOptions> configure)
     {
-        services.Configure(configure);
-        
-        services.AddHttpClient<OAuth2HttpClient>(httpClient =>
-        {
-            var options = services.BuildServiceProvider().GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
-            httpClient.BaseAddress = new(options.TokenEndpoint);
-        });
-        
-        return services
-                .AddScoped<ICredentialsValidator, OAuth2CredentialsValidator>()
-                .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
-                .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-            ;
+        _ = configure;
+
+        throw new NotSupportedException(
+            "OAuth2 support has been removed from Elsa.Studio.Authentication.ElsaAuth. " +
+            "For OIDC use Elsa.Studio.Authentication.OpenIdConnect.*. " +
+            "For legacy OAuth2 (ROPC) keep using the obsolete Elsa.Studio.Login implementation." );
     }
 
     /// <summary>
-    /// Configures the login module to use OpenIdConnect (OIDC)
+    /// Configures the login module to use OpenIdConnect (OIDC).
     /// </summary>
-    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
+    [Obsolete("Elsa.Studio.Login OIDC integration is obsolete. Use Elsa.Studio.Authentication.OpenIdConnect.BlazorServer or Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.")]
+    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<Elsa.Studio.Login.Models.OpenIdConnectConfiguration> configure)
     {
-        services.Configure(configure);
+        _ = configure;
 
-        return services
-                .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
-                .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
-                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
-                .AddScoped<IOpenIdConnectPkceService, OpenIdConnectPkceService>()
-                .AddScoped<IOidcBrowserStateStore, SessionStorageOidcStateStore>();
-
-            ;
+        throw new NotSupportedException(
+            "The legacy in-app OIDC code-flow is no longer available via Elsa.Studio.Authentication.ElsaAuth. " +
+            "Migrate to the new modules: Elsa.Studio.Authentication.OpenIdConnect.BlazorServer (server) or " +
+            "Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm (WASM)." );
     }
 }
