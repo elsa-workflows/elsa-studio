@@ -8,7 +8,6 @@ namespace Elsa.Studio.Login.HttpMessageHandlers;
 /// <summary>
 /// An <see cref="HttpMessageHandler"/> that configures the outgoing HTTP request to use the access token as bearer token.
 /// </summary>
-[Obsolete("This handler has moved to Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers.AuthenticatingApiHttpMessageHandler. Update hosts/modules to reference the new handler.")]
 public class AuthenticatingApiHttpMessageHandler(IRefreshTokenService refreshTokenService, IBlazorServiceAccessor blazorServiceAccessor)
     : DelegatingHandler
 {
@@ -35,5 +34,3 @@ public class AuthenticatingApiHttpMessageHandler(IRefreshTokenService refreshTok
         return response;
     }
 }
-
-

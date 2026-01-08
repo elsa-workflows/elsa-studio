@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 
 /// <inheritdoc/>
-internal class ElsaIdentityAuthorizationService(NavigationManager navigationManager) : IAuthorizationService
+public class ElsaIdentityAuthorizationService(NavigationManager navigationManager) : IAuthorizationService
 {
     /// <inheritdoc/>
     public Task RedirectToAuthorizationServer()

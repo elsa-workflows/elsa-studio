@@ -24,11 +24,6 @@ public class OpenIdConnectConfiguration
     /// The client_id as which this application is registered with the authorization server
     /// </summary>
     public required string ClientId { get; set; }
-    
-    /// <summary>
-    /// The client_secret as which this application is registered with the authorization server.
-    /// </summary>
-    public string? ClientSecret { get; set; }
 
     /// <summary>
     /// The scopes to request, defaulting to: openid profile offline_access
@@ -38,5 +33,5 @@ public class OpenIdConnectConfiguration
     /// <summary>
     /// Enables PKCE (Proof Key for Code Exchange) for the authorization code flow.
     /// </summary>
-    public bool UsePkce { get; set; }
+    public bool UsePkce { get; set; } = false;
 }

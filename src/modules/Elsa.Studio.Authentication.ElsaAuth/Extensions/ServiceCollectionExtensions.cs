@@ -33,17 +33,4 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-
-    /// <summary>
-    /// Configures ElsaAuth to use Elsa Identity (username/password to Elsa backend, stores JWTs).
-    /// </summary>
-    public static IServiceCollection UseElsaIdentityAuth(this IServiceCollection services)
-    {
-        return services
-            .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
-            .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
-            .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
-            .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
-            .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
-    }
 }
