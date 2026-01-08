@@ -1,10 +1,11 @@
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.ComponentProviders;
 using Elsa.Studio.Contracts;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
+using Elsa.Studio.Authentication.Abstractions.Extensions;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
 
@@ -16,10 +17,13 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds OpenID Connect authentication services for Blazor WebAssembly.
     /// </summary>
+    /// <remarks>
+    /// Named to avoid ambiguity with Microsoft.Extensions.DependencyInjection.WebAssemblyAuthenticationServiceCollectionExtensions.AddOidcAuthentication.
+    /// </remarks>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Configuration callback for OIDC options.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddOidcAuthentication(
+    public static IServiceCollection AddElsaOidcAuthentication(
         this IServiceCollection services,
         Action<OidcOptions> configure)
     {
@@ -54,6 +58,20 @@ public static class ServiceCollectionExtensions
             }
         });
 
+        // Provide an OIDC-aware unauthorized component.
+        services.AddScoped<IUnauthorizedComponentProvider, OidcUnauthorizedComponentProvider>();
+
+        // Shared auth infrastructure (e.g. delegating handlers).
+        services.AddAuthenticationInfrastructure();
+
         return services;
     }
+
+    /// <summary>
+    /// Adds OpenID Connect authentication services for Blazor WebAssembly.
+    /// </summary>
+    [Obsolete("Use AddElsaOidcAuthentication instead to avoid ambiguity with Microsoft.Extensions.DependencyInjection.WebAssemblyAuthenticationServiceCollectionExtensions.AddOidcAuthentication.")]
+    public static IServiceCollection AddOidcAuthentication(
+        this IServiceCollection services,
+        Action<OidcOptions> configure) => services.AddElsaOidcAuthentication(configure);
 }

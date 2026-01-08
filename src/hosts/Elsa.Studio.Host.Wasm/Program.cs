@@ -1,3 +1,4 @@
+using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
 using Elsa.Studio.Shell.Extensions;
@@ -7,15 +8,13 @@ using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.Login.BlazorWasm.Extensions;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
-using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -30,7 +29,7 @@ builder.RootComponents.RegisterCustomElsaStudioElements();
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
-    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(BearerTokenHttpMessageHandler), 
 };
 
 var localizationConfig = new LocalizationConfig
@@ -41,8 +40,16 @@ var localizationConfig = new LocalizationConfig
 builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
-builder.Services.AddLoginModule();
-builder.Services.UseElsaIdentity();
+
+// Remove legacy Login module for OIDC-based auth.
+//builder.Services.AddLoginModule();
+//builder.Services.UseElsaIdentity();
+
+builder.Services.AddElsaOidcAuthentication(options =>
+{
+    configuration.GetSection("Authentication:Oidc").Bind(options);
+});
+
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -61,3 +68,4 @@ await startupTaskRunner.RunStartupTasksAsync();
 
 // Run the application.
 await app.RunAsync();
+
