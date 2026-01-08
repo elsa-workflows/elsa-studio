@@ -115,6 +115,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dashboard", "dashboard", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.ElsaAuth.UI", "src\modules\Elsa.Studio.Authentication.ElsaAuth.UI\Elsa.Studio.Authentication.ElsaAuth.UI.csproj", "{9953E8DA-2ADD-42CA-957F-1DFDB284BEFD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{60B07BD6-80AE-496A-B5C4-55EBB12EF3BC}"
+	ProjectSection(SolutionItems) = preProject
+		doc\AUTHENTICATION_ARCHITECTURE.md = doc\AUTHENTICATION_ARCHITECTURE.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
