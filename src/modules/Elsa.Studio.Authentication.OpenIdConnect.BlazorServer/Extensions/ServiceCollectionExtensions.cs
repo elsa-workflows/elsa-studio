@@ -30,10 +30,9 @@ public static class ServiceCollectionExtensions
         var options = new OidcOptions();
         configure(options);
 
-        // The shared OidcOptions defaults are oriented towards Blazor WebAssembly.
-        // For Blazor Server, ensure we use the standard ASP.NET Core OIDC callback endpoints unless explicitly overridden.
-        options.CallbackPath = string.IsNullOrWhiteSpace(options.CallbackPath) ? "/signin-oidc" : options.CallbackPath;
-        options.SignedOutCallbackPath = string.IsNullOrWhiteSpace(options.SignedOutCallbackPath) ? "/signout-callback-oidc" : options.SignedOutCallbackPath;
+        // Set Blazor Server defaults for callback paths if not explicitly specified.
+        options.CallbackPath ??= "/signin-oidc";
+        options.SignedOutCallbackPath ??= "/signout-callback-oidc";
 
         // Register the token accessor
         services.AddHttpContextAccessor();

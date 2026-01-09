@@ -48,7 +48,7 @@ public class OidcOptions : AuthenticationOptions
     /// When using the Blazor WebAssembly authentication stack, the identity provider expects an absolute <c>redirect_uri</c>.
     /// The framework will convert these paths into absolute URIs based on the current base URI.
     /// </remarks>
-    public string CallbackPath { get; set; } = "/authentication/login-callback";
+    public string? CallbackPath { get; set; }
 
     /// <summary>
     /// Gets or sets the sign-out callback path.
@@ -59,7 +59,7 @@ public class OidcOptions : AuthenticationOptions
     /// <item><description>Blazor WebAssembly uses <c>/authentication/logout-callback</c>.</description></item>
     /// </list>
     /// </remarks>
-    public string SignedOutCallbackPath { get; set; } = "/authentication/logout-callback";
+    public string? SignedOutCallbackPath { get; set; }
 
     /// <summary>
     /// Gets or sets whether to get claims from the user info endpoint.

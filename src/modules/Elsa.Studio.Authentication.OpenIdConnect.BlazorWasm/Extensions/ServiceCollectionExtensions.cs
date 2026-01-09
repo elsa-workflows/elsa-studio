@@ -27,8 +27,12 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         Action<OidcOptions> configure)
     {
-        var options = new OidcOptions();
+         var options = new OidcOptions();
         configure(options);
+
+        // Set Blazor WASM defaults for callback paths if not explicitly specified.
+        options.CallbackPath ??= "/authentication/login-callback";
+        options.SignedOutCallbackPath ??= "/authentication/logout-callback";
 
         // Register options for access by services
         services.AddSingleton(options);
@@ -45,7 +49,7 @@ public static class ServiceCollectionExtensions
             wasmOptions.ProviderOptions.Authority = options.Authority;
             wasmOptions.ProviderOptions.ClientId = options.ClientId;
             wasmOptions.ProviderOptions.ResponseType = options.ResponseType;
-
+            
             var scopes = options.Scopes
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Trim())
