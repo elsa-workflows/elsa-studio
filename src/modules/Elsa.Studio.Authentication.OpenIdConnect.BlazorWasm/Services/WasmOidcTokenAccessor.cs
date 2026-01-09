@@ -1,5 +1,4 @@
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
-using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
@@ -7,18 +6,20 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
 /// <summary>
 /// Blazor WASM implementation of <see cref="IOidcTokenAccessor"/> that uses the built-in token provider.
 /// </summary>
+/// <remarks>
+/// This accessor supports scope-aware token requests, enabling incremental consent scenarios
+/// where different tokens are needed for different API audiences (e.g., Graph vs. backend API).
+/// </remarks>
 public class WasmOidcTokenAccessor : IOidcTokenAccessorWithScopes
 {
     private readonly IAccessTokenProvider _tokenProvider;
-    private readonly OidcOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WasmOidcTokenAccessor"/> class.
     /// </summary>
-    public WasmOidcTokenAccessor(IAccessTokenProvider tokenProvider, OidcOptions options)
+    public WasmOidcTokenAccessor(IAccessTokenProvider tokenProvider)
     {
         _tokenProvider = tokenProvider;
-        _options = options;
     }
 
     /// <inheritdoc />

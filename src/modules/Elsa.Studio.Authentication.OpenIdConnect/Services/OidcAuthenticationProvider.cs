@@ -7,18 +7,8 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.Services;
 /// <summary>
 /// Implementation of <see cref="IAuthenticationProvider"/> that retrieves tokens from OIDC authentication.
 /// </summary>
-public class OidcAuthenticationProvider : IAuthenticationProvider, IScopedAccessTokenProvider
+public class OidcAuthenticationProvider(IOidcTokenAccessor tokenAccessor) : IAuthenticationProvider, IScopedAccessTokenProvider
 {
-    private readonly IOidcTokenAccessor _tokenAccessor;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OidcAuthenticationProvider"/> class.
-    /// </summary>
-    public OidcAuthenticationProvider(IOidcTokenAccessor tokenAccessor)
-    {
-        _tokenAccessor = tokenAccessor;
-    }
-
     /// <inheritdoc />
     public async Task<string?> GetAccessTokenAsync(string tokenName, CancellationToken cancellationToken = default)
     {
@@ -31,7 +21,7 @@ public class OidcAuthenticationProvider : IAuthenticationProvider, IScopedAccess
             _ => tokenName
         };
 
-        return await _tokenAccessor.GetTokenAsync(oidcTokenName, cancellationToken);
+        return await tokenAccessor.GetTokenAsync(oidcTokenName, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -46,13 +36,8 @@ public class OidcAuthenticationProvider : IAuthenticationProvider, IScopedAccess
             _ => tokenName
         };
 
-        // If the accessor supports scoped token requests, use it
-        if (_tokenAccessor is IOidcTokenAccessorWithScopes scopedAccessor)
-        {
-            return await scopedAccessor.GetTokenAsync(oidcTokenName, scopes, cancellationToken);
-        }
-
-        // Fall back to non-scoped accessor for backward compatibility
-        return await _tokenAccessor.GetTokenAsync(oidcTokenName, cancellationToken);
+        // All OIDC token accessors now support scoped requests
+        var scopedAccessor = (IOidcTokenAccessorWithScopes)tokenAccessor;
+        return await scopedAccessor.GetTokenAsync(oidcTokenName, scopes, cancellationToken);
     }
 }
