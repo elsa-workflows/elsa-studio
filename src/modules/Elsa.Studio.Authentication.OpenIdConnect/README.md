@@ -113,7 +113,7 @@ Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm/
    using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
 
    // Configure OIDC authentication
-   builder.Services.AddOidcAuthentication(options =>
+   builder.Services.AddElsaOidcAuthentication(options =>
    {
        options.Authority = "https://your-identity-server.com";
        options.ClientId = "elsa-studio-wasm";
@@ -124,11 +124,84 @@ Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm/
    });
    ```
 
+   > **Note**: Use `AddElsaOidcAuthentication` instead of `AddOidcAuthentication` to avoid ambiguity with Microsoft's extension method.
+
+3. **Add Authentication Components** in `App.razor`:
+   ```razor
+   <CascadingAuthenticationState>
+       <Router AppAssembly="@typeof(App).Assembly">
+           <Found Context="routeData">
+               <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                   <NotAuthorized>
+                       <RedirectToLogin />
+                   </NotAuthorized>
+               </AuthorizeRouteView>
+           </Found>
+       </Router>
+   </CascadingAuthenticationState>
+   ```
 3. **Authentication Routes**
 
    This module ships the required `/authentication/{action}` route (hosting `RemoteAuthenticatorView`) as part of the `Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm` assembly.
 
    That means integrators **do not** need to add an `Authentication.razor` file to their host project, as long as they use Elsa Studio's shell router that includes module assemblies (which the default Elsa Studio hosts do).
+
+### Azure AD / Microsoft Entra ID (Blazor WebAssembly)
+
+Azure AD has specific requirements for Blazor WebAssembly applications:
+
+1. **App Registration Setup**:
+   - Register your application in Azure AD (Azure Portal > Microsoft Entra ID > App registrations)
+   - Set "Supported account types" based on your needs (single/multi-tenant)
+   - Add a redirect URI for SPA: `https://your-app.com/authentication/login-callback`
+   - Enable "Access tokens" and "ID tokens" under "Implicit grant and hybrid flows"
+   - Create an API scope for your backend API (e.g., `api://your-api-id/elsa-server-api`)
+
+2. **Scopes Configuration**:
+   ```csharp
+   using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
+
+   builder.Services.AddElsaOidcAuthentication(options =>
+   {
+       options.Authority = "https://login.microsoftonline.com/{tenant-id}/v2.0";
+       options.ClientId = "{client-id}";
+       
+       // IMPORTANT: Only include API scopes for your backend
+       // Do NOT mix Microsoft Graph scopes with custom API scopes
+       // Azure AD v2.0 only allows one resource per token request
+       options.Scopes = new[] 
+       { 
+           "openid",                                      // Required for OIDC
+           "profile",                                     // User profile claims
+           "offline_access",                              // Refresh tokens
+           "api://{your-api-id}/elsa-server-api"         // Your API scope
+       };
+       
+       options.ResponseType = "code";
+       options.CallbackPath = "/authentication/login-callback";
+       options.SignedOutCallbackPath = "/authentication/logout-callback";
+   });
+   ```
+
+3. **Key Considerations**:
+   - **Single Resource per Token**: Azure AD v2.0 only allows scopes for ONE resource per token. Don't mix Graph API scopes (`https://graph.microsoft.com/.default`) with your custom API scopes.
+   - **Scope Format**: Use the full scope URI format: `api://{application-id}/{scope-name}`
+   - **Standard Scopes**: The framework automatically filters standard OIDC scopes (`openid`, `profile`, `email`, `offline_access`) and only passes resource scopes during token requests.
+   - **UserInfo Endpoint**: If you encounter 401 errors from the userinfo endpoint, set `options.GetClaimsFromUserInfoEndpoint = false` (most Azure AD setups don't require this).
+
+4. **Backend API Configuration**:
+   Your backend API must accept tokens from Azure AD:
+   ```csharp
+   // In your API's Program.cs
+   builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+       .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+   ```
+
+5. **Troubleshooting Azure AD**:
+   - **AADSTS28000** (Multi-resource error): Remove Graph scopes from `options.Scopes`, only include your API scope
+   - **AADSTS28003** (Scope not found): Verify the API scope is exposed in your app registration
+   - **401 from userinfo**: Set `GetClaimsFromUserInfoEndpoint = false` in options
+   - **Login succeeds but redirects to /login-failed**: Ensure your API scope is correctly configured and the token audience matches your API's expected audience
 
 ## Configuration Options
 

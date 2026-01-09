@@ -30,6 +30,9 @@ public static class ServiceCollectionExtensions
         var options = new OidcOptions();
         configure(options);
 
+        // Register options for access by services
+        services.AddSingleton(options);
+
         // Register the token accessor
         services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
         services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
