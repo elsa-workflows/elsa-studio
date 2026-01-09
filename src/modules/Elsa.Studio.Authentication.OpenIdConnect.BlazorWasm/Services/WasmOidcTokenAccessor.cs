@@ -44,19 +44,13 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessor
             
             // Request token with explicit scopes to ensure Azure AD receives the scope parameter
             // in both authorization and token exchange requests
-            AccessTokenResult tokenResult;
-            if (resourceScopes.Length > 0)
-            {
-                tokenResult = await _tokenProvider.RequestAccessToken(new AccessTokenRequestOptions
+            var tokenResult = resourceScopes.Length > 0
+                ? await _tokenProvider.RequestAccessToken(new AccessTokenRequestOptions
                 {
                     Scopes = resourceScopes
-                });
-            }
-            else
-            {
+                })
                 // Fallback to default scopes if no resource scopes configured
-                tokenResult = await _tokenProvider.RequestAccessToken();
-            }
+                : await _tokenProvider.RequestAccessToken();
             
             if (tokenResult.TryGetToken(out var token))
             {
