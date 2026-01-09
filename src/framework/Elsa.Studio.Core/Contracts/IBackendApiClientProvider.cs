@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Elsa.Studio.Contracts;
 
 /// <summary>
@@ -15,5 +17,5 @@ public interface IBackendApiClientProvider
     /// </summary>
     /// <typeparam name="T">The API client type.</typeparam>
     /// <returns>The API client.</returns>
-    ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class;
+    ValueTask<T> GetApiAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(CancellationToken cancellationToken = default) where T : class;
 }

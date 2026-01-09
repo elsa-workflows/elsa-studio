@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 namespace Elsa.Studio.Login.BlazorWasm.Services;
 
 /// <inheritdoc />
+[Obsolete("Elsa.Studio.Login.* is obsolete. Use Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Services.BlazorWasmJwtParser instead.")]
 public class BlazorWasmJwtParser : IJwtParser
 {
     // Taken and adapted from: https://trystanwilcock.com/2022/09/28/net-6-0-blazor-webassembly-jwt-token-authentication-from-scratch-c-sharp-wasm-tutorial/

@@ -4,6 +4,7 @@ using Elsa.Studio.Login.Contracts;
 namespace Elsa.Studio.Login.BlazorWasm.Services;
 
 /// <inheritdoc />
+[Obsolete("Elsa.Studio.Login.* is obsolete. Use Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Services.BlazorWasmJwtAccessor instead.")]
 public class BlazorWasmJwtAccessor : IJwtAccessor
 {
     private readonly ILocalStorageService _localStorageService;

@@ -1,3 +1,8 @@
+using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
+using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
@@ -9,9 +14,6 @@ using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.Login.BlazorServer.Extensions;
-using Elsa.Studio.Login.Extensions;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
@@ -67,15 +69,39 @@ builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
 builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
-builder.Services.AddLoginModule();
-//builder.Services.UseElsaIdentity();
-// builder.Services.UseOAuth2(options =>
-// {
-//     options.ClientId = "ElsaStudio";
-//     options.TokenEndpoint = "https://localhost:44366/connect/token";
-//     options.Scope = "YourSite offline_access";
-// });
-builder.Services.UseOpenIdConnect(openid => configuration.GetSection("Authentication:OpenIdConnect").Bind(openid));
+
+// Choose authentication provider.
+// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
+var authProvider = configuration["Authentication:Provider"];
+if (string.IsNullOrWhiteSpace(authProvider))
+    authProvider = "OpenIdConnect";
+
+authProvider = authProvider.Trim();
+
+if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
+{
+    // Elsa Identity (username/password against Elsa backend) + login UI at /login.
+    builder.Services.AddElsaAuth();
+    builder.Services.AddElsaAuthUI();
+}
+else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
+{
+    // OpenID Connect.
+    builder.Services.AddOidcAuthentication(options =>
+    {
+        configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
+
+        // If you see a 401 from the OIDC handler while calling the "userinfo" endpoint,
+        // either disable UserInfo retrieval (recommended for most setups), or configure your IdP/app registration
+        // to allow calling userinfo with the issued access token.
+        // options.GetClaimsFromUserInfoEndpoint = false;
+    });
+}
+else
+{
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
+}
+
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -121,6 +147,7 @@ app.UseElsaLocalization();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapBlazorHub();

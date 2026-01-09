@@ -1,0 +1,43 @@
+using System.Security.Claims;
+using Elsa.Studio.Authentication.ElsaAuth.Contracts;
+using Elsa.Studio.Authentication.ElsaAuth.Models;
+using Elsa.Studio.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Options;
+
+namespace Elsa.Studio.Authentication.ElsaAuth.Services;
+
+/// <summary>
+/// Provides the authentication state for the current user based on a JWT token.
+/// </summary>
+public class AccessTokenAuthenticationStateProvider(
+    IJwtAccessor jwtAccessor,
+    IJwtParser jwtParser,
+    IOptions<IdentityTokenOptions> options)
+    : AuthenticationStateProvider
+{
+    /// <inheritdoc />
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        var token = await jwtAccessor.ReadTokenAsync(TokenNames.IdToken)
+            ?? await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+
+        if (string.IsNullOrWhiteSpace(token))
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+
+        var claims = jwtParser.Parse(token).ToList();
+
+        if (claims.IsExpired())
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+
+        var identity = new ClaimsIdentity(claims, "jwt", options.Value.NameClaimType, options.Value.RoleClaimType);
+        var user = new ClaimsPrincipal(identity);
+
+        return new AuthenticationState(user);
+    }
+
+    /// <summary>
+    /// Notifies the authentication state has changed.
+    /// </summary>
+    public void NotifyAuthenticationStateChanged() => NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+}

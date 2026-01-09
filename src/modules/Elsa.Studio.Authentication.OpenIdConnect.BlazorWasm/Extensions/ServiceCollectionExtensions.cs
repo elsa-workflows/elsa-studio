@@ -1,0 +1,88 @@
+using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
+using Elsa.Studio.Authentication.OpenIdConnect.Models;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.ComponentProviders;
+using Elsa.Studio.Contracts;
+using Microsoft.Extensions.DependencyInjection;
+using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
+using Elsa.Studio.Authentication.Abstractions.Extensions;
+
+namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
+
+/// <summary>
+/// Extension methods for configuring OpenID Connect authentication in Blazor WebAssembly.
+/// </summary>
+public static class ServiceCollectionExtensions
+{
+    /// <summary>
+    /// Adds OpenID Connect authentication services for Blazor WebAssembly.
+    /// </summary>
+    /// <remarks>
+    /// Named to avoid ambiguity with Microsoft.Extensions.DependencyInjection.WebAssemblyAuthenticationServiceCollectionExtensions.AddOidcAuthentication.
+    /// </remarks>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">Configuration callback for OIDC options.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddElsaOidcAuthentication(
+        this IServiceCollection services,
+        Action<OidcOptions> configure)
+    {
+         var options = new OidcOptions();
+        configure(options);
+
+        // Set Blazor WASM defaults for callback paths if not explicitly specified.
+        options.CallbackPath ??= "/authentication/login-callback";
+        options.SignedOutCallbackPath ??= "/authentication/logout-callback";
+
+        // Register options for access by services
+        services.AddSingleton(options);
+
+        // Register the token accessor
+        services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
+        services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
+        services.AddScoped<IFeature, OpenIdConnectBlazorWasmFeature>();
+
+        // Configure WASM authentication using the built-in framework.
+        // Note: Entra ID requires absolute redirect URIs.
+        services.AddOidcAuthentication(wasmOptions =>
+        {
+            wasmOptions.ProviderOptions.Authority = options.Authority;
+            wasmOptions.ProviderOptions.ClientId = options.ClientId;
+            wasmOptions.ProviderOptions.ResponseType = options.ResponseType;
+            
+            var scopes = options.Scopes
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // Ensure we always request at least the OIDC basics.
+            if (scopes.Count == 0)
+                scopes.AddRange(["openid", "profile"]);
+
+            // Clear any default scopes that might have been added by the framework
+            wasmOptions.ProviderOptions.DefaultScopes.Clear();
+
+            foreach (var scope in scopes)
+                wasmOptions.ProviderOptions.DefaultScopes.Add(scope);
+
+            if (!string.IsNullOrWhiteSpace(options.MetadataAddress))
+                wasmOptions.ProviderOptions.MetadataUrl = options.MetadataAddress;
+
+            // Only override redirect URIs when AppBaseUrl is provided. Otherwise, let the framework infer absolute URIs.
+            if (!string.IsNullOrWhiteSpace(options.AppBaseUrl))
+            {
+                wasmOptions.ProviderOptions.RedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.CallbackPath}";
+                wasmOptions.ProviderOptions.PostLogoutRedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.SignedOutCallbackPath}";
+            }
+        });
+
+        // Provide an OIDC-aware unauthorized component.
+        services.AddScoped<IUnauthorizedComponentProvider, OidcUnauthorizedComponentProvider>();
+
+        // Shared auth infrastructure (e.g. delegating handlers).
+        services.AddAuthenticationInfrastructure();
+
+        return services;
+    }
+}

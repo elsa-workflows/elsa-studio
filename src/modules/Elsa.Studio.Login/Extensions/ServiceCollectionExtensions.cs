@@ -26,9 +26,7 @@ public static class ServiceCollectionExtensions
                 .AddAuthorizationCore()
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-            ;
+                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>();
     }
 
     /// <summary>
@@ -41,8 +39,8 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
-            ;
     }
 
     /// <summary>
@@ -51,37 +49,40 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection UseOAuth2(this IServiceCollection services, Action<OAuth2CredentialsValidatorOptions> configure)
     {
         services.Configure(configure);
-        
-        services.AddHttpClient<OAuth2HttpClient>(httpClient =>
+
+        services.AddHttpClient<OAuth2HttpClient>((sp, httpClient) =>
         {
-            var options = services.BuildServiceProvider().GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
+            var options = sp.GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
             httpClient.BaseAddress = new(options.TokenEndpoint);
         });
-        
+
         return services
                 .AddScoped<ICredentialsValidator, OAuth2CredentialsValidator>()
                 .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
                 .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-            ;
+                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>();
     }
 
     /// <summary>
-    /// Configures the login module to use OpenIdConnect (OIDC)
+    /// Configures the login module to use OpenIdConnect (OIDC).
     /// </summary>
-    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
+    public static IServiceCollection UseOpenIdConnect(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
     {
         services.Configure(configure);
 
         return services
                 .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
                 .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
-                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
-                .AddScoped<IOpenIdConnectPkceService, OpenIdConnectPkceService>()
-                .AddScoped<IOidcBrowserStateStore, SessionStorageOidcStateStore>();
+                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>();
+    }
 
-            ;
+    /// <summary>
+    /// Configures the login module to use OpenIdConnect (OIDC).
+    /// </summary>
+    [Obsolete("Elsa.Studio.Login.* is obsolete. Prefer Elsa.Studio.Authentication.OpenIdConnect.*. UseOpenIdConnectCore is kept for backwards compatibility.")]
+    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
+    {
+        return services.UseOpenIdConnect(configure);
     }
 }

@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var returnUrl = Uri.EscapeDataString(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+        NavigationManager.NavigateTo($"/login?returnUrl={returnUrl}", true);
+    }
+}
+

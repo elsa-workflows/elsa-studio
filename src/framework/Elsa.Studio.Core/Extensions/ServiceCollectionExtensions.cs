@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddDefaultApiClients(config?.ConfigureHttpClientBuilder);
         services.TryAddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>();
         services.TryAddScoped<IBackendApiClientProvider, DefaultBackendApiClientProvider>();
+        services.TryAddScoped<IAnonymousBackendApiClientProvider, DefaultAnonymousBackendApiClientProvider>();
         return services;
     }
     
