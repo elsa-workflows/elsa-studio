@@ -140,18 +140,11 @@ Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm/
        </Router>
    </CascadingAuthenticationState>
    ```
+3. **Authentication Routes**
 
-4. **Add Authentication Routes**:
-   Create `Authentication.razor`:
-   ```razor
-   @page "/authentication/{action}"
-   @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-   <RemoteAuthenticatorView Action="@Action" />
+   This module ships the required `/authentication/{action}` route (hosting `RemoteAuthenticatorView`) as part of the `Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm` assembly.
 
-   @code {
-       [Parameter] public string? Action { get; set; }
-   }
-   ```
+   That means integrators **do not** need to add an `Authentication.razor` file to their host project, as long as they use Elsa Studio's shell router that includes module assemblies (which the default Elsa Studio hosts do).
 
 ### Azure AD / Microsoft Entra ID (Blazor WebAssembly)
 
@@ -435,3 +428,38 @@ In the Blazor Server host, you can enable persisted silent refresh purely via co
 ```
 
 > Set `TokenRefresh:Strategy` to `BestEffort` (or omit it) to disable persisted refresh.
+
+### Microsoft Entra ID: `graph.microsoft.com/oidc/userinfo` returns 401
+
+On Blazor WebAssembly, Microsoft's built-in OIDC stack may call the OIDC UserInfo endpoint.
+With Microsoft Entra ID, this endpoint is hosted on Microsoft Graph (e.g. `https://graph.microsoft.com/oidc/userinfo`).
+
+If you see a login failure with a browser console error like:
+
+- `graph.microsoft.com/oidc/userinfo: 401 (Unauthorized)`
+
+add a Microsoft Graph delegated permission scope such as `User.Read`.
+
+#### Example (`appsettings.json`)
+
+```json
+{
+  "Authentication": {
+    "Provider": "OpenIdConnect",
+    "OpenIdConnect": {
+      "Scopes": [
+        "openid",
+        "profile",
+        "offline_access",
+        "https://graph.microsoft.com/User.Read",
+        "api://{your-api-app-id}/elsa-server-api"
+      ]
+    }
+  }
+}
+```
+
+Then, in the Entra app registration:
+
+- Add Microsoft Graph → **Delegated permissions** → `User.Read`
+- Grant admin consent (or ensure user consent is allowed in your tenant)

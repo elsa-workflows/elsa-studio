@@ -34,6 +34,13 @@
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+
+<!-- Azure AD scope patch - must load before AuthenticationService.js -->
+<script src="auth-interop.js"></script>
+
+<!-- Required for Microsoft.AspNetCore.Components.WebAssembly.Authentication (RemoteAuthenticatorView/RemoteAuthenticationService). -->
+<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+
 <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

@@ -50,28 +50,40 @@ public static class ServiceCollectionExtensions
         // Register the token accessor
         services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
         services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
+        services.AddScoped<IFeature, OpenIdConnectBlazorWasmFeature>();
 
-        // Configure WASM authentication using the built-in framework
+        // Configure WASM authentication using the built-in framework.
+        // Note: Entra ID requires absolute redirect URIs.
         services.AddOidcAuthentication(wasmOptions =>
         {
-            // Configure the authentication provider options
             wasmOptions.ProviderOptions.Authority = options.Authority;
             wasmOptions.ProviderOptions.ClientId = options.ClientId;
             wasmOptions.ProviderOptions.ResponseType = options.ResponseType;
 
-            // Configure scopes
-            foreach (var scope in options.Scopes)
-            {
-                wasmOptions.ProviderOptions.DefaultScopes.Add(scope);
-            }
+            var scopes = options.Scopes
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            // Set redirect URIs
-            wasmOptions.ProviderOptions.RedirectUri = options.CallbackPath;
-            wasmOptions.ProviderOptions.PostLogoutRedirectUri = options.SignedOutCallbackPath;
+            // Ensure we always request at least the OIDC basics.
+            if (scopes.Count == 0)
+                scopes.AddRange(["openid", "profile"]);
+
+            // Clear any default scopes that might have been added by the framework
+            wasmOptions.ProviderOptions.DefaultScopes.Clear();
+
+            foreach (var scope in scopes)
+                wasmOptions.ProviderOptions.DefaultScopes.Add(scope);
 
             if (!string.IsNullOrWhiteSpace(options.MetadataAddress))
-            {
                 wasmOptions.ProviderOptions.MetadataUrl = options.MetadataAddress;
+
+            // Only override redirect URIs when AppBaseUrl is provided. Otherwise, let the framework infer absolute URIs.
+            if (!string.IsNullOrWhiteSpace(options.AppBaseUrl))
+            {
+                wasmOptions.ProviderOptions.RedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.CallbackPath}";
+                wasmOptions.ProviderOptions.PostLogoutRedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.SignedOutCallbackPath}";
             }
         });
 
@@ -83,12 +95,4 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-
-    /// <summary>
-    /// Adds OpenID Connect authentication services for Blazor WebAssembly.
-    /// </summary>
-    [Obsolete("Use AddElsaOidcAuthentication instead to avoid ambiguity with Microsoft.Extensions.DependencyInjection.WebAssemblyAuthenticationServiceCollectionExtensions.AddOidcAuthentication.")]
-    public static IServiceCollection AddOidcAuthentication(
-        this IServiceCollection services,
-        Action<OidcOptions> configure) => services.AddElsaOidcAuthentication(configure);
 }

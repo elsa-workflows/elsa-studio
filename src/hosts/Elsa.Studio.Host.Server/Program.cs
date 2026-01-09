@@ -96,19 +96,6 @@ else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase
         // to allow calling userinfo with the issued access token.
         // options.GetClaimsFromUserInfoEndpoint = false;
     });
-
-    // Optional: Persisted silent refresh.
-    // When enabled, a background ping calls POST /authentication/refresh to renew the auth cookie on a normal HTTP request.
-    var refreshStrategy = configuration["Authentication:OpenIdConnect:TokenRefresh:Strategy"];
-    if (string.Equals(refreshStrategy, nameof(OidcTokenRefreshStrategy.Persisted), StringComparison.OrdinalIgnoreCase))
-    {
-        builder.Services.Configure<OidcTokenRefreshOptions>(options => options.Strategy = OidcTokenRefreshStrategy.Persisted);
-
-        builder.Services.AddOidcPersistedRefreshBackgroundPing(options =>
-        {
-            configuration.GetSection("Authentication:OpenIdConnect:TokenRefresh:Ping").Bind(options);
-        });
-    }
 }
 else
 {

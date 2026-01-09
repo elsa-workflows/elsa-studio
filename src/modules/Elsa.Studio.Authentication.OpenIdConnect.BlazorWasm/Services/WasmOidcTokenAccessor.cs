@@ -29,7 +29,7 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessor
         // The framework handles token refresh automatically
         
         // Map token names to what the framework expects
-        if (tokenName == "access_token" || tokenName == "AccessToken")
+        if (tokenName == "access_token" || string.Equals(tokenName, "accessToken", StringComparison.OrdinalIgnoreCase))
         {
             // Get all resource scopes (excluding standard OIDC scopes)
             // This is critical for Azure AD which requires explicit scopes during token requests
