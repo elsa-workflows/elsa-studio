@@ -1,7 +1,6 @@
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
 
@@ -16,10 +15,10 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessor
     /// <summary>
     /// Initializes a new instance of the <see cref="WasmOidcTokenAccessor"/> class.
     /// </summary>
-    public WasmOidcTokenAccessor(IAccessTokenProvider tokenProvider, IOptions<OidcOptions> options)
+    public WasmOidcTokenAccessor(IAccessTokenProvider tokenProvider, OidcOptions options)
     {
         _tokenProvider = tokenProvider;
-        _options = options.Value;
+        _options = options;
     }
 
     /// <inheritdoc />
@@ -39,8 +38,8 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessor
             };
             
             var resourceScopes = _options.Scopes
-                .Where(s => !standardScopes.Contains(s))
-                .ToArray();
+                ?.Where(s => !standardScopes.Contains(s))
+                .ToArray() ?? Array.Empty<string>();
             
             // Request token with explicit scopes to ensure Azure AD receives the scope parameter
             // in both authorization and token exchange requests

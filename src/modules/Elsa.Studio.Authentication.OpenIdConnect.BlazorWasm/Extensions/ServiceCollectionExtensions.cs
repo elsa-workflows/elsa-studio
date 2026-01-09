@@ -31,21 +31,7 @@ public static class ServiceCollectionExtensions
         configure(options);
 
         // Register options for access by services
-        services.Configure<OidcOptions>(opt =>
-        {
-            opt.Authority = options.Authority;
-            opt.ClientId = options.ClientId;
-            opt.ClientSecret = options.ClientSecret;
-            opt.ResponseType = options.ResponseType;
-            opt.UsePkce = options.UsePkce;
-            opt.SaveTokens = options.SaveTokens;
-            opt.CallbackPath = options.CallbackPath;
-            opt.SignedOutCallbackPath = options.SignedOutCallbackPath;
-            opt.GetClaimsFromUserInfoEndpoint = options.GetClaimsFromUserInfoEndpoint;
-            opt.MetadataAddress = options.MetadataAddress;
-            opt.Scopes = options.Scopes;
-            opt.RequireHttpsMetadata = options.RequireHttpsMetadata;
-        });
+        services.AddSingleton(options);
 
         // Register the token accessor
         services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
