@@ -38,14 +38,28 @@ public class OidcOptions : AuthenticationOptions
     public bool SaveTokens { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the callback path for handling the authentication response (Server only).
+    /// Gets or sets the callback path for handling the authentication response.
     /// </summary>
-    public string CallbackPath { get; set; } = "/signin-oidc";
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><description>Blazor Server typically uses <c>/signin-oidc</c>.</description></item>
+    /// <item><description>Blazor WebAssembly uses <c>/authentication/login-callback</c>.</description></item>
+    /// </list>
+    /// When using the Blazor WebAssembly authentication stack, the identity provider expects an absolute <c>redirect_uri</c>.
+    /// The framework will convert these paths into absolute URIs based on the current base URI.
+    /// </remarks>
+    public string CallbackPath { get; set; } = "/authentication/login-callback";
 
     /// <summary>
-    /// Gets or sets the sign-out callback path (Server only).
+    /// Gets or sets the sign-out callback path.
     /// </summary>
-    public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><description>Blazor Server typically uses <c>/signout-callback-oidc</c>.</description></item>
+    /// <item><description>Blazor WebAssembly uses <c>/authentication/logout-callback</c>.</description></item>
+    /// </list>
+    /// </remarks>
+    public string SignedOutCallbackPath { get; set; } = "/authentication/logout-callback";
 
     /// <summary>
     /// Gets or sets whether to get claims from the user info endpoint.
@@ -61,6 +75,16 @@ public class OidcOptions : AuthenticationOptions
     /// Gets or sets the metadata address (optional, auto-discovered from Authority if not set).
     /// </summary>
     public string? MetadataAddress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the base URL of the application (primarily for Blazor WebAssembly) used to build absolute redirect URIs.
+    /// </summary>
+    /// <remarks>
+    /// Microsoft Entra ID requires <c>redirect_uri</c> to be an absolute URI. In many cases the framework can infer the base URI,
+    /// but if your host setup or reverse proxying causes relative redirect URIs to be sent, set this to the app origin, e.g.
+    /// <c>https://localhost:9009</c>.
+    /// </remarks>
+    public string AppBaseUrl { get; set; } = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OidcOptions"/> class.
