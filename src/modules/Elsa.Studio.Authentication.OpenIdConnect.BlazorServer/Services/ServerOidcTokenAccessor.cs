@@ -4,6 +4,7 @@ using System.Text.Json;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;

@@ -1,21 +1,17 @@
 using Blazored.LocalStorage;
-using Elsa.Studio.Authentication.ElsaAuth.Contracts;
+using Elsa.Studio.Authentication.ElsaAuth.Services;
 
 namespace Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Services;
 
-/// <inheritdoc />
-public class BlazorWasmJwtAccessor : IJwtAccessor
+/// <summary>
+/// Blazor WebAssembly implementation of JWT accessor.
+/// </summary>
+public class BlazorWasmJwtAccessor : JwtAccessorBase
 {
-    private readonly ILocalStorageService _localStorageService;
-
-    public BlazorWasmJwtAccessor(ILocalStorageService localStorageService) => _localStorageService = localStorageService;
-
-    /// <inheritdoc />
-    public async ValueTask<string?> ReadTokenAsync(string name) => await _localStorageService.GetItemAsync<string>(name);
-
-    /// <inheritdoc />
-    public async ValueTask WriteTokenAsync(string name, string token) => await _localStorageService.SetItemAsStringAsync(name, token);
-
-    /// <inheritdoc />
-    public async ValueTask ClearTokenAsync(string name) => await _localStorageService.RemoveItemAsync(name);
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BlazorWasmJwtAccessor"/> class.
+    /// </summary>
+    public BlazorWasmJwtAccessor(ILocalStorageService localStorageService) : base(localStorageService)
+    {
+    }
 }

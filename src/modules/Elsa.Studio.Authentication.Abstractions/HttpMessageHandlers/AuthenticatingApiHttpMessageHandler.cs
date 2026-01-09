@@ -25,28 +25,20 @@ public class AuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blazorSe
         if (authenticationProvider == null)
             return await base.SendAsync(request, cancellationToken);
 
-        string? accessToken;
+        // Try to get scopes from TokenPurposeOptions (legacy) or from the provider's AuthenticationOptions
+        string[]? scopes = null;
 
-        // Check if the provider supports scoped token requests (OIDC providers)
-        if (authenticationProvider is IScopedAccessTokenProvider scopedProvider)
+        var purposeOptions = sp.GetService<IOptions<TokenPurposeOptions>>()?.Value;
+        if (purposeOptions != null)
         {
-            // Get token purpose configuration
-            var purposeOptions = sp.GetService<IOptions<TokenPurposeOptions>>()?.Value;
-
-            string[]? scopes = null;
-            
-            // Get scopes for the backend API purpose
-            purposeOptions?.ScopesByPurpose.TryGetValue(purposeOptions.BackendApiPurpose, out scopes);
-
-            // Request token with backend API scopes if configured
-            accessToken = await scopedProvider.GetAccessTokenAsync(TokenNames.AccessToken, scopes, cancellationToken);
+            // Legacy path: TokenPurposeOptions still configured separately
+            purposeOptions.ScopesByPurpose.TryGetValue(purposeOptions.BackendApiPurpose, out scopes);
         }
-        else
-        {
-            // Non-scoped providers (e.g., ElsaAuth JWT provider)
-            // These use a single token for all backend calls
-            accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, cancellationToken);
-        }
+
+        // Request token with backend API scopes if configured
+        // Note: IAuthenticationProvider now has a default implementation that delegates to the non-scoped version
+        // when scopes are not supported by the provider
+        var accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, scopes, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = null;

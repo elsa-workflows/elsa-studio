@@ -1,7 +1,8 @@
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
-using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.ComponentProviders;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Components;
+using Elsa.Studio.ComponentProviders;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
@@ -78,7 +79,7 @@ public static class ServiceCollectionExtensions
         });
 
         // Provide an OIDC-aware unauthorized component.
-        services.AddScoped<IUnauthorizedComponentProvider, OidcUnauthorizedComponentProvider>();
+        services.AddScoped<IUnauthorizedComponentProvider, GenericComponentProvider<NavigateToLogin>>();
 
         // Shared auth infrastructure (e.g. delegating handlers).
         services.AddAuthenticationInfrastructure();
