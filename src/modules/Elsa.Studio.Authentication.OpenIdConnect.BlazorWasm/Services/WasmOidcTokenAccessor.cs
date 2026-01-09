@@ -7,7 +7,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
 /// <summary>
 /// Blazor WASM implementation of <see cref="IOidcTokenAccessor"/> that uses the built-in token provider.
 /// </summary>
-public class WasmOidcTokenAccessor : IOidcTokenAccessor
+public class WasmOidcTokenAccessor : IOidcTokenAccessorWithScopes
 {
     private readonly IAccessTokenProvider _tokenProvider;
     private readonly OidcOptions _options;
@@ -22,42 +22,39 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessor
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    public Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    {
+        // Forward to scoped overload with null scopes (use default behavior)
+        return GetTokenAsync(tokenName, scopes: null, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetTokenAsync(string tokenName, IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
     {
         // For WASM, we use the IAccessTokenProvider to get the current access token
         // The framework handles token refresh automatically
-        
+
         // Map token names to what the framework expects
         if (string.Equals(tokenName, "access_token", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(tokenName, "accessToken", StringComparison.OrdinalIgnoreCase))
         {
-            // Get all resource scopes (excluding standard OIDC scopes)
-            // This is critical for Azure AD which requires explicit scopes during token requests
-            var standardScopes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) 
-            { 
-                "openid", "profile", "email", "offline_access" 
-            };
-            
-            var resourceScopes = _options.Scopes
-                ?.Where(s => !standardScopes.Contains(s))
-                .ToArray() ?? Array.Empty<string>();
-            
-            // Request token with explicit scopes to ensure Azure AD receives the scope parameter
-            // in both authorization and token exchange requests
-            var tokenResult = resourceScopes.Length > 0
+            // If specific scopes are requested, use them (e.g., for backend API calls)
+            // Otherwise, request with default scopes (e.g., for Graph/userinfo calls)
+            var requestedScopes = scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+
+            var tokenResult = requestedScopes?.Length > 0
                 ? await _tokenProvider.RequestAccessToken(new AccessTokenRequestOptions
                 {
-                    Scopes = resourceScopes
+                    Scopes = requestedScopes
                 })
-                // Fallback to default scopes if no resource scopes configured
                 : await _tokenProvider.RequestAccessToken();
-            
+
             if (tokenResult.TryGetToken(out var token))
             {
                 return token.Value;
             }
         }
-        
+
         // For other token types (id_token, refresh_token), we can't directly access them
         // in WASM for security reasons - they're managed by the authentication framework
         return null;

@@ -1,5 +1,8 @@
+using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 
@@ -22,7 +25,29 @@ public class AuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blazorSe
         if (authenticationProvider == null)
             return await base.SendAsync(request, cancellationToken);
 
-        var accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, cancellationToken);
+        string? accessToken;
+
+        // Check if the provider supports scoped token requests
+        if (authenticationProvider is IScopedAccessTokenProvider scopedProvider)
+        {
+            // Try to get token purpose configuration
+            var purposeOptions = sp.GetService<IOptions<TokenPurposeOptions>>()?.Value;
+
+            string[]? scopes = null;
+            if (purposeOptions != null)
+            {
+                // Get scopes for the backend API purpose
+                purposeOptions.ScopesByPurpose.TryGetValue(purposeOptions.BackendApiPurpose, out scopes);
+            }
+
+            // Request token with backend API scopes if configured
+            accessToken = await scopedProvider.GetAccessTokenAsync(TokenNames.AccessToken, scopes, cancellationToken);
+        }
+        else
+        {
+            // Fall back to non-scoped token request
+            accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, cancellationToken);
+        }
 
         if (string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = null;
