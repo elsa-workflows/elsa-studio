@@ -1,4 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
@@ -34,8 +35,10 @@ public static class ServiceCollectionExtensions
         options.CallbackPath ??= "/signin-oidc";
         options.SignedOutCallbackPath ??= "/signout-callback-oidc";
 
-        // Register the token accessor
+        // Register the token accessor and cache
         services.AddHttpContextAccessor();
+        services.AddMemoryCache();
+        services.AddSingleton<IScopedTokenCache, MemoryScopedTokenCache>();
         services.AddScoped<IOidcTokenAccessor, ServerOidcTokenAccessor>();
         services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
         services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();

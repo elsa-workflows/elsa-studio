@@ -1,4 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
 using Elsa.Studio.Shell.Extensions;
@@ -40,6 +41,9 @@ var localizationConfig = new LocalizationConfig
 builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
+
+// Configure token purposes for scope-aware token acquisition
+builder.Services.Configure<TokenPurposeOptions>(configuration.GetSection("Authentication:TokenPurposes"));
 
 // Choose authentication provider.
 // Supported values: "OpenIdConnect" (default) or "ElsaAuth".
