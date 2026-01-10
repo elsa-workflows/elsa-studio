@@ -15,7 +15,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// <summary>
 /// Blazor Server implementation of <see cref="IOidcTokenAccessor"/> that retrieves tokens from the authenticated HTTP context.
 /// </summary>
-public class ServerOidcTokenAccessor : IOidcTokenAccessorWithScopes
+public class ServerOidcTokenAccessor : IOidcTokenAccessor
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ITokenRefreshCoordinator _refreshCoordinator;
@@ -40,6 +40,7 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessorWithScopes
         _httpContextAccessor = httpContextAccessor;
         _refreshCoordinator = refreshCoordinator;
         _httpClientFactory = httpClientFactory;
+        _httpClientFactory = httpClientFactory;
         _refreshOptions = refreshOptions;
         _refreshConfigurationProvider = refreshConfigurationProvider;
         _cookieTokenRefresher = cookieTokenRefresher;
@@ -47,48 +48,65 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessorWithScopes
     }
 
     /// <inheritdoc />
-    public Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    public Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        // Forward to scoped overload with null scopes (use default cookie token)
-        return GetTokenAsync(tokenName, scopes: null, cancellationToken);
+        return GetAccessTokenAsync(scopes: null, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetTokenAsync(string tokenName, IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
     {
         var httpContext = _httpContextAccessor.HttpContext;
 
         if (httpContext?.User.Identity?.IsAuthenticated != true)
             return null;
 
-        // If scopes are provided and token is access_token, acquire scope-specific token
+        // If scopes are provided, acquire scope-specific token
         var scopeArray = scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-        var isAccessToken = string.Equals(tokenName, "access_token", StringComparison.Ordinal);
         
-        if (scopeArray?.Length > 0 && isAccessToken)
+        if (scopeArray?.Length > 0)
         {
             return await GetScopedAccessTokenAsync(httpContext, scopeArray, cancellationToken);
         }
 
         // Otherwise, use existing cookie token refresh flow
-        if (isAccessToken)
-        {
-            var options = _refreshOptions.Value;
+        var options = _refreshOptions.Value;
 
-            if (options is { EnableRefreshTokens: true, Strategy: OidcTokenRefreshStrategy.Persisted })
-            {
-                // In Persisted mode, try to renew the cookie if this is a normal HTTP request.
-                // During Blazor circuit activity, Response.HasStarted is typically true and renewal will be skipped.
-                await _cookieTokenRefresher.TryRefreshAndRenewCookieAsync(httpContext, cancellationToken);
-            }
-            else
-            {
-                await TryRefreshAccessTokenAsync(httpContext, cancellationToken);
-            }
+        if (options is { EnableRefreshTokens: true, Strategy: OidcTokenRefreshStrategy.Persisted })
+        {
+            // In Persisted mode, try to renew the cookie if this is a normal HTTP request.
+            // During Blazor circuit activity, Response.HasStarted is typically true and renewal will be skipped.
+            await _cookieTokenRefresher.TryRefreshAndRenewCookieAsync(httpContext, cancellationToken);
+        }
+        else
+        {
+            await TryRefreshAccessTokenAsync(httpContext, cancellationToken);
         }
 
         // Retrieve the token from the authentication properties.
-        return await httpContext.GetTokenAsync(tokenName);
+        return await httpContext.GetTokenAsync("access_token");
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetIdTokenAsync(CancellationToken cancellationToken = default)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        if (httpContext?.User.Identity?.IsAuthenticated != true)
+            return null;
+
+        return await httpContext.GetTokenAsync("id_token");
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken = default)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        if (httpContext?.User.Identity?.IsAuthenticated != true)
+            return null;
+
+        return await httpContext.GetTokenAsync("refresh_token");
     }
 
     /// <summary>

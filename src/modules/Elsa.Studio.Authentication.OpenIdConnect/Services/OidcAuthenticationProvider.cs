@@ -1,5 +1,4 @@
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
-using Elsa.Studio.Authentication.OpenIdConnect.Helpers;
 using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.Services;
@@ -10,19 +9,14 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.Services;
 public class OidcAuthenticationProvider(IOidcTokenAccessor tokenAccessor) : IAuthenticationProvider
 {
     /// <inheritdoc />
-    public async Task<string?> GetAccessTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        var oidcTokenName = TokenNameMapper.MapToOidcTokenName(tokenName);
-        return await tokenAccessor.GetTokenAsync(oidcTokenName, cancellationToken);
+        return await tokenAccessor.GetAccessTokenAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetAccessTokenAsync(string tokenName, IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken = default)
     {
-        var oidcTokenName = TokenNameMapper.MapToOidcTokenName(tokenName);
-
-        // All OIDC token accessors now support scoped requests
-        var scopedAccessor = (IOidcTokenAccessorWithScopes)tokenAccessor;
-        return await scopedAccessor.GetTokenAsync(oidcTokenName, scopes, cancellationToken);
+        return await tokenAccessor.GetAccessTokenAsync(scopes, cancellationToken);
     }
 }

@@ -25,20 +25,19 @@ public class AuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blazorSe
         if (authenticationProvider == null)
             return await base.SendAsync(request, cancellationToken);
 
-        // Try to get scopes from TokenPurposeOptions (legacy) or from the provider's AuthenticationOptions
+        // Check if BackendApiScopes are configured for OIDC multi-audience scenarios
         string[]? scopes = null;
 
-        var purposeOptions = sp.GetService<IOptions<TokenPurposeOptions>>()?.Value;
-        if (purposeOptions != null)
+        var backendOptions = sp.GetService<IOptions<BackendApiScopeOptions>>()?.Value;
+        if (backendOptions?.Scopes?.Length > 0)
         {
-            // Legacy path: TokenPurposeOptions still configured separately
-            purposeOptions.ScopesByPurpose.TryGetValue(purposeOptions.BackendApiPurpose, out scopes);
+            scopes = backendOptions.Scopes;
         }
 
-        // Request token with backend API scopes if configured
-        // Note: IAuthenticationProvider now has a default implementation that delegates to the non-scoped version
-        // when scopes are not supported by the provider
-        var accessToken = await authenticationProvider.GetAccessTokenAsync(TokenNames.AccessToken, scopes, cancellationToken);
+        // Request token with backend API scopes if configured, otherwise use default
+        var accessToken = scopes?.Length > 0
+            ? await authenticationProvider.GetAccessTokenAsync(scopes, cancellationToken)
+            : await authenticationProvider.GetAccessTokenAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = null;

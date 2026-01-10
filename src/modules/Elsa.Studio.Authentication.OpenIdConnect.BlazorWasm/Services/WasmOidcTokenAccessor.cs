@@ -10,7 +10,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
 /// This accessor supports scope-aware token requests, enabling incremental consent scenarios
 /// where different tokens are needed for different API audiences (e.g., Graph vs. backend API).
 /// </remarks>
-public class WasmOidcTokenAccessor : IOidcTokenAccessorWithScopes
+public class WasmOidcTokenAccessor : IOidcTokenAccessor
 {
     private readonly IAccessTokenProvider _tokenProvider;
 
@@ -23,41 +23,49 @@ public class WasmOidcTokenAccessor : IOidcTokenAccessorWithScopes
     }
 
     /// <inheritdoc />
-    public Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    public Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        // Forward to scoped overload with null scopes (use default behavior)
-        return GetTokenAsync(tokenName, scopes: null, cancellationToken);
+        return GetAccessTokenAsync(scopes: null, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetTokenAsync(string tokenName, IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(IEnumerable<string>? scopes, CancellationToken cancellationToken = default)
     {
         // For WASM, we use the IAccessTokenProvider to get the current access token
         // The framework handles token refresh automatically
 
-        // Map token names to what the framework expects
-        if (string.Equals(tokenName, "access_token", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(tokenName, "accessToken", StringComparison.OrdinalIgnoreCase))
-        {
-            // If specific scopes are requested, use them (e.g., for backend API calls)
-            // Otherwise, request with default scopes (e.g., for Graph/userinfo calls)
-            var requestedScopes = scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+        // If specific scopes are requested, use them (e.g., for backend API calls)
+        // Otherwise, request with default scopes (e.g., for Graph/userinfo calls)
+        var requestedScopes = scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
 
-            var tokenResult = requestedScopes?.Length > 0
-                ? await _tokenProvider.RequestAccessToken(new AccessTokenRequestOptions
-                {
-                    Scopes = requestedScopes
-                })
-                : await _tokenProvider.RequestAccessToken();
-
-            if (tokenResult.TryGetToken(out var token))
+        var tokenResult = requestedScopes?.Length > 0
+            ? await _tokenProvider.RequestAccessToken(new AccessTokenRequestOptions
             {
-                return token.Value;
-            }
+                Scopes = requestedScopes
+            })
+            : await _tokenProvider.RequestAccessToken();
+
+        if (tokenResult.TryGetToken(out var token))
+        {
+            return token.Value;
         }
 
-        // For other token types (id_token, refresh_token), we can't directly access them
-        // in WASM for security reasons - they're managed by the authentication framework
         return null;
+    }
+
+    /// <inheritdoc />
+    public Task<string?> GetIdTokenAsync(CancellationToken cancellationToken = default)
+    {
+        // ID tokens are not directly accessible in WASM for security reasons
+        // They're managed internally by the authentication framework
+        return Task.FromResult<string?>(null);
+    }
+
+    /// <inheritdoc />
+    public Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken = default)
+    {
+        // Refresh tokens are not directly accessible in WASM for security reasons
+        // They're managed internally by the authentication framework
+        return Task.FromResult<string?>(null);
     }
 }

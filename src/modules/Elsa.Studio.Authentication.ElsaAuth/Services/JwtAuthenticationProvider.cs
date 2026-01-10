@@ -14,13 +14,9 @@ public class JwtAuthenticationProvider(
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromMinutes(2);
 
     /// <inheritdoc />
-    public async Task<string?> GetAccessTokenAsync(string tokenName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        // Only the access token participates in refresh.
-        if (!string.Equals(tokenName, TokenNames.AccessToken, StringComparison.Ordinal))
-            return await jwtAccessor.ReadTokenAsync(tokenName);
-
-        var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        var accessToken = await jwtAccessor.ReadTokenAsync("accessToken");
 
         if (string.IsNullOrWhiteSpace(accessToken))
             return null;
@@ -34,13 +30,21 @@ public class JwtAuthenticationProvider(
         if (!refreshResponse.IsAuthenticated)
         {
             // Refresh failed: clear local tokens so the app can transition to unauthenticated state.
-            await jwtAccessor.ClearTokenAsync(TokenNames.AccessToken);
-            await jwtAccessor.ClearTokenAsync(TokenNames.RefreshToken);
-            await jwtAccessor.ClearTokenAsync(TokenNames.IdToken);
+            await jwtAccessor.ClearTokenAsync("accessToken");
+            await jwtAccessor.ClearTokenAsync("refreshToken");
+            await jwtAccessor.ClearTokenAsync("idToken");
             return null;
         }
 
-        return await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        return await jwtAccessor.ReadTokenAsync("accessToken");
+    }
+
+    /// <inheritdoc />
+    public Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken = default)
+    {
+        // ElsaAuth does not support scope-specific tokens
+        // Always return the default access token
+        return GetAccessTokenAsync(cancellationToken);
     }
 
     private bool IsExpiredOrNearExpiry(string jwt)

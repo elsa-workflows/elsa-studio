@@ -8,10 +8,23 @@ namespace Elsa.Studio.Authentication.Abstractions.Contracts;
 public interface ITokenAccessor
 {
     /// <summary>
-    /// Retrieves an authentication token by name.
+    /// Retrieves the access token.
     /// </summary>
-    /// <param name="tokenName">The name of the token to retrieve (e.g., "access_token", "id_token", "refresh_token").</param>
     /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The token value, or null if not available.</returns>
-    Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default);
+    /// <returns>The access token value, or null if not available.</returns>
+    Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the ID token.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The ID token value, or null if not available.</returns>
+    Task<string?> GetIdTokenAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the refresh token.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The refresh token value, or null if not available.</returns>
+    Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken = default);
 }
