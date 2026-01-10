@@ -1,8 +1,8 @@
-using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
+using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
@@ -40,13 +40,49 @@ builder.Services.AddServerSideBlazor(options =>
     options.RootComponents.MaxJSRootComponents = 1000;
 });
 
+// Choose authentication provider.
+// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
+var authProvider = configuration["Authentication:Provider"];
+if (string.IsNullOrWhiteSpace(authProvider))
+    authProvider = "OpenIdConnect";
+
+authProvider = authProvider.Trim();
+
+Type authenticationHandler;
+
+if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
+{
+    // Elsa Identity (username/password against Elsa backend) + login UI at /login.
+    builder.Services.AddElsaAuth();
+    builder.Services.AddElsaAuthUI();
+    authenticationHandler = typeof(Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers.ElsaAuthAuthenticatingApiHttpMessageHandler);
+}
+else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
+{
+    // OpenID Connect.
+    builder.Services.AddOidcAuthentication(options =>
+    {
+        configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
+
+        // If you see a 401 from the OIDC handler while calling the "userinfo" endpoint,
+        // either disable UserInfo retrieval (recommended for most setups), or configure your IdP/app registration
+        // to allow calling userinfo with the issued access token.
+        // options.GetClaimsFromUserInfoEndpoint = false;
+    });
+    authenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler);
+}
+else
+{
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
+}
+
 // Register shell services and modules.
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
     ConfigureHttpClientBuilder = options =>
     {
-        options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
+        options.AuthenticationHandler = authenticationHandler;
         options.ConfigureHttpClient = (_, client) =>
         {
             // Set a long time out to simplify debugging both Elsa Studio and the Elsa Server backend.
@@ -69,38 +105,6 @@ builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
 builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
-
-// Choose authentication provider.
-// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
-var authProvider = configuration["Authentication:Provider"];
-if (string.IsNullOrWhiteSpace(authProvider))
-    authProvider = "OpenIdConnect";
-
-authProvider = authProvider.Trim();
-
-if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
-{
-    // Elsa Identity (username/password against Elsa backend) + login UI at /login.
-    builder.Services.AddElsaAuth();
-    builder.Services.AddElsaAuthUI();
-}
-else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
-{
-    // OpenID Connect.
-    builder.Services.AddOidcAuthentication(options =>
-    {
-        configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
-
-        // If you see a 401 from the OIDC handler while calling the "userinfo" endpoint,
-        // either disable UserInfo retrieval (recommended for most setups), or configure your IdP/app registration
-        // to allow calling userinfo with the issued access token.
-        // options.GetClaimsFromUserInfoEndpoint = false;
-    });
-}
-else
-{
-    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
-}
 
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();

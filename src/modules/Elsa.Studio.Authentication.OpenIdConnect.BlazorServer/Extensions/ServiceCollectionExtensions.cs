@@ -1,4 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
@@ -9,9 +10,7 @@ using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
-using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
-using System.Linq;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 
@@ -34,10 +33,10 @@ public static class ServiceCollectionExtensions
         configure(options);
 
         // Ensure we always request the minimal identity scopes.
-        var configuredScopes = options.Scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? Array.Empty<string>();
+        var configuredScopes = options.AuthenticationScopes?.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? Array.Empty<string>();
         if (configuredScopes.Length == 0)
             configuredScopes = ["openid", "profile", "offline_access"];
-        options.Scopes = configuredScopes;
+        options.AuthenticationScopes = configuredScopes;
 
         // Set Blazor Server defaults for callback paths if not explicitly specified.
         options.CallbackPath ??= "/signin-oidc";
@@ -46,9 +45,10 @@ public static class ServiceCollectionExtensions
         // Register the token accessor and cache
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
+        services.AddSingleton(options);
         services.AddSingleton<IScopedTokenCache, MemoryScopedTokenCache>();
         services.AddScoped<IOidcTokenAccessor, ServerOidcTokenAccessor>();
-        services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
+        services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();
         services.AddScoped<OidcCookieTokenRefresher>();
         services.AddScoped<BrowserRefreshPingService>();
@@ -85,7 +85,7 @@ public static class ServiceCollectionExtensions
 
                 // Configure scopes
                 oidcOptions.Scope.Clear();
-                foreach (var scope in options.Scopes)
+                foreach (var scope in options.AuthenticationScopes)
                 {
                     oidcOptions.Scope.Add(scope);
                 }

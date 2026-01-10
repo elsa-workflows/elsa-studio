@@ -1,12 +1,26 @@
-using Elsa.Studio.Authentication.Abstractions.Models;
-
 namespace Elsa.Studio.Authentication.OpenIdConnect.Models;
 
 /// <summary>
 /// Configuration options for OpenID Connect authentication.
 /// </summary>
-public class OidcOptions : AuthenticationOptions
+public class OidcOptions
 {
+    /// <summary>
+    /// Scopes requested during authentication/sign-in.
+    /// These typically include identity-related scopes like openid, profile, email.
+    /// </summary>
+    public string[] AuthenticationScopes { get; set; } = ["openid", "profile", "offline_access"];
+
+    /// <summary>
+    /// Scopes requested when obtaining access tokens for backend API calls.
+    /// Used in multi-audience scenarios where the API requires different scopes.
+    /// </summary>
+    public string[] BackendApiScopes { get; set; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Gets or sets whether to require HTTPS for metadata endpoints.
+    /// </summary>
+    public bool RequireHttpsMetadata { get; set; } = true;
     /// <summary>
     /// Gets or sets the authority URL of the OpenID Connect provider.
     /// </summary>
@@ -85,13 +99,4 @@ public class OidcOptions : AuthenticationOptions
     /// <c>https://localhost:9009</c>.
     /// </remarks>
     public string AppBaseUrl { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OidcOptions"/> class.
-    /// </summary>
-    public OidcOptions()
-    {
-        // Set default OIDC scopes
-        Scopes = ["openid", "profile", "offline_access"];
-    }
 }

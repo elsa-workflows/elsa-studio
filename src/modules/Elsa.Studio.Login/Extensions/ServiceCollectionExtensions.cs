@@ -1,3 +1,4 @@
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.ComponentProviders;
 using Elsa.Studio.Login.Contracts;
@@ -26,7 +27,9 @@ public static class ServiceCollectionExtensions
                 .AddAuthorizationCore()
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>();
+                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
+                .AddScoped<IHttpConnectionOptionsConfigurator, LoginAuthHttpConnectionOptionsConfigurator>();
+            ;
     }
 
     /// <summary>
@@ -41,6 +44,7 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
                 .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
+            ;
     }
 
     /// <summary>
@@ -49,23 +53,25 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection UseOAuth2(this IServiceCollection services, Action<OAuth2CredentialsValidatorOptions> configure)
     {
         services.Configure(configure);
-
-        services.AddHttpClient<OAuth2HttpClient>((sp, httpClient) =>
+        
+        services.AddHttpClient<OAuth2HttpClient>(httpClient =>
         {
-            var options = sp.GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
+            var options = services.BuildServiceProvider().GetRequiredService<IOptions<OAuth2CredentialsValidatorOptions>>().Value;
             httpClient.BaseAddress = new(options.TokenEndpoint);
         });
-
+        
         return services
                 .AddScoped<ICredentialsValidator, OAuth2CredentialsValidator>()
                 .AddScoped<IAuthorizationService, ElsaIdentityAuthorizationService>()
                 .AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>()
                 .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
-                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>();
+                .AddScoped<IEndSessionService, ElsaIdentityEndSessionService>()
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
+            ;
     }
 
     /// <summary>
-    /// Configures the login module to use OpenIdConnect (OIDC).
+    /// Configures the login module to use OpenIdConnect (OIDC)
     /// </summary>
     public static IServiceCollection UseOpenIdConnect(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
     {
@@ -74,15 +80,7 @@ public static class ServiceCollectionExtensions
         return services
                 .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
                 .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
-                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>();
-    }
-
-    /// <summary>
-    /// Configures the login module to use OpenIdConnect (OIDC).
-    /// </summary>
-    [Obsolete("Elsa.Studio.Login.* is obsolete. Prefer Elsa.Studio.Authentication.OpenIdConnect.*. UseOpenIdConnectCore is kept for backwards compatibility.")]
-    public static IServiceCollection UseOpenIdConnectCore(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
-    {
-        return services.UseOpenIdConnect(configure);
+                .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
+            ;
     }
 }

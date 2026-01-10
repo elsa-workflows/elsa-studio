@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Elsa.Studio.Authentication.ElsaAuth.BlazorWasm\Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
     </ItemGroup>
 

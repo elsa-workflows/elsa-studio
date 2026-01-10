@@ -1,4 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
@@ -29,7 +30,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
             .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<Unauthorized>>()
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
-            .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
+            .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>()
+            .AddScoped<IHttpConnectionOptionsConfigurator, ElsaAuthHttpConnectionOptionsConfigurator>();
 
             services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
             services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();

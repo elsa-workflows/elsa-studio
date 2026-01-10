@@ -7,7 +7,6 @@ namespace Elsa.Studio.Login.BlazorServer.Services;
 /// <summary>
 /// Implements the <see cref="IJwtAccessor"/> interface for server-side Blazor.
 /// </summary>
-[Obsolete("Elsa.Studio.Login.* is obsolete. Use Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Services.BlazorServerJwtAccessor instead.")]
 public class BlazorServerJwtAccessor : IJwtAccessor
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

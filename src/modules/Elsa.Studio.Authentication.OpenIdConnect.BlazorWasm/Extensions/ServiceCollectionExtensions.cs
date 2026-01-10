@@ -1,11 +1,11 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Components;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
-using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
 using Elsa.Studio.Authentication.Abstractions.Extensions;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
 
         // Register the token accessor
         services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
-        services.AddScoped<IAuthenticationProvider, OidcAuthProvider>();
+        services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         services.AddScoped<IFeature, OpenIdConnectBlazorWasmFeature>();
 
         // Configure WASM authentication using the built-in framework.
@@ -51,7 +51,7 @@ public static class ServiceCollectionExtensions
             wasmOptions.ProviderOptions.ClientId = options.ClientId;
             wasmOptions.ProviderOptions.ResponseType = options.ResponseType;
             
-            var scopes = options.Scopes
+            var scopes = options.AuthenticationScopes
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)

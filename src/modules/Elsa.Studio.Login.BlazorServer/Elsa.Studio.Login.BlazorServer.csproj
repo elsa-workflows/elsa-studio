@@ -11,7 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Elsa.Studio.Authentication.ElsaAuth.BlazorServer\Elsa.Studio.Authentication.ElsaAuth.BlazorServer.csproj" />
       <ProjectReference Include="..\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
     </ItemGroup>
 

@@ -1,5 +1,4 @@
-﻿using Elsa.Studio.Contracts;
-using Elsa.Studio.Login.Contracts;
+﻿using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.Services;
 
@@ -7,16 +6,8 @@ namespace Elsa.Studio.Login.Services;
 public class JwtAuthenticationProvider(IJwtAccessor jwtAccessor) : IAuthenticationProvider
 {
     /// <inheritdoc />
-    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(string tokenName, CancellationToken cancellationToken = default)
     {
-        return await jwtAccessor.ReadTokenAsync("accessToken");
-    }
-
-    /// <inheritdoc />
-    public Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken = default)
-    {
-        // Login module does not support scope-specific tokens
-        // Always return the default access token
-        return GetAccessTokenAsync(cancellationToken);
+        return await jwtAccessor.ReadTokenAsync(tokenName);
     }
 }

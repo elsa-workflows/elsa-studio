@@ -1,4 +1,3 @@
-using Elsa.Studio.Authentication.Abstractions.HttpMessageHandlers;
 using Elsa.Studio.Authentication.Abstractions.Services;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,12 +16,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
     {
-        // Used by API clients to attach access tokens.
-        services.TryAddScoped<AuthenticatingApiHttpMessageHandler>();
-
-        // Used by modules (e.g. Workflows) to retrieve tokens without depending on a specific auth provider.
-        services.TryAddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>();
-
         // Coordinates refresh operations to prevent refresh storms under parallel requests.
         services.TryAddScoped<ITokenRefreshCoordinator, TokenRefreshCoordinator>();
 

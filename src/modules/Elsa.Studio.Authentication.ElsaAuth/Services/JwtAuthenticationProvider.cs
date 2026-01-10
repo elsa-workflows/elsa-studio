@@ -1,5 +1,4 @@
 using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 
 namespace Elsa.Studio.Authentication.ElsaAuth.Services;
@@ -37,14 +36,6 @@ public class JwtAuthenticationProvider(
         }
 
         return await jwtAccessor.ReadTokenAsync("accessToken");
-    }
-
-    /// <inheritdoc />
-    public Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken = default)
-    {
-        // ElsaAuth does not support scope-specific tokens
-        // Always return the default access token
-        return GetAccessTokenAsync(cancellationToken);
     }
 
     private bool IsExpiredOrNearExpiry(string jwt)

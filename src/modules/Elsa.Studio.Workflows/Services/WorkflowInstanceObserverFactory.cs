@@ -1,6 +1,7 @@
 using System.Net;
 using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowInstances.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
@@ -14,7 +15,7 @@ public class WorkflowInstanceObserverFactory(
     IBackendApiClientProvider backendApiClientProvider,
     IRemoteFeatureProvider remoteFeatureProvider,
     ILogger<WorkflowInstanceObserverFactory> logger,
-    IAuthenticationProviderManager authenticationProviderManager) : IWorkflowInstanceObserverFactory
+    IHttpConnectionOptionsConfigurator httpConnectionOptionsConfigurator) : IWorkflowInstanceObserverFactory
 {
     /// <inheritdoc />
     public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId)
@@ -48,11 +49,11 @@ public class WorkflowInstanceObserverFactory(
         // Set up the SignalR connection.
         var baseUrl = backendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
-        var token = await authenticationProviderManager.GetAccessTokenAsync(cancellationToken);
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl,  options =>
+            .WithUrl(hubUrl, options =>
             {
-               options.AccessTokenProvider = () => Task.FromResult(token);
+                // Configure authentication via the provider-specific configurator
+                httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken).GetAwaiter().GetResult();
             })
             .Build();
 
