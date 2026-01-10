@@ -37,10 +37,10 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
            ┌───────────────┴───────────────┬─────────────────┐
            ▼                               ▼                 ▼
 ┌──────────────────────┐      ┌──────────────────┐   ┌─────────────┐
-│  OIDC Provider       │      │  OAuth2 Provider │   │ Future      │
-│  • IOidcTokenAccessor│      │  (Future)        │   │ Providers   │
-│  • OidcOptions       │      │                  │   │ (JWT, SAML) │
-│  • Server & WASM     │      │                  │   │             │
+│  OIDC Provider       │      │  ElsaAuth        │   │ Future      │
+│  • IOidcTokenAccessor│      │  Provider        │   │ Providers   │
+│  • OidcOptions       │      │  • JWT tokens    │   │ (JWT, SAML) │
+│  • Server & WASM     │      │  • Server & WASM │   │             │
 └──────────────────────┘      └──────────────────┘   └─────────────┘
 ```
 
@@ -66,31 +66,53 @@ Token returned to application
 
 ### 2. Provider Registration
 
-Multiple authentication providers can be registered simultaneously:
+Authentication providers are registered in the service collection and used by the application:
 
 ```csharp
-// Example: Register OIDC for API calls, JWT for specific endpoints
-services.AddOidcAuthentication(options => { /* OIDC config */ });
-services.AddJwtAuthentication(options => { /* JWT config */ });
+// Example: Register ElsaAuth for Elsa Identity authentication
+services.AddElsaAuth();
+services.AddElsaAuthUI();
 
+// OR
+
+// Example: Register OIDC for OpenID Connect authentication
+services.AddOidcAuthentication(options => { /* OIDC config */ });
+
+// Multiple providers can be registered if needed, though typically only one is used
 // The manager will try each provider until a valid token is found
 ```
 
 ### 3. Hosting Model Differences
 
 #### Blazor Server
+
+**OpenID Connect**:
 - Uses ASP.NET Core authentication middleware
 - Tokens stored server-side in authentication properties
 - Accessed via `HttpContext.GetTokenAsync()`
 - Cookie-based session management
 - No client-side token exposure
 
+**ElsaAuth**:
+- Uses ASP.NET Core authentication
+- Tokens stored server-side in session
+- JWT-based authentication with Elsa backend
+- Cookie-based session management
+
 #### Blazor WebAssembly
+
+**OpenID Connect**:
 - Uses `Microsoft.AspNetCore.Components.WebAssembly.Authentication`
 - Tokens managed by browser-based authentication framework
 - Accessed via `IAccessTokenProvider`
 - Automatic token refresh before expiry
 - Secure token storage in browser
+
+**ElsaAuth**:
+- Uses Blazored.LocalStorage for token persistence
+- JWT tokens stored in browser local storage
+- Manual token refresh handling
+- Credentials validated against Elsa Identity backend
 
 ## Standard Interfaces
 
@@ -145,21 +167,39 @@ Standard token names are defined in `TokenNames` class:
 
 ### Current Providers
 
-#### 1. Elsa.Studio.Login (Legacy)
-- **Location**: `src/modules/Elsa.Studio.Login`
-- **Supports**: OIDC, OAuth2, Elsa Identity
-- **Status**: Maintained for backward compatibility
-- **Note**: Tight coupling with general login functionality
+#### 1. Elsa.Studio.Authentication.ElsaAuth
+- **Location**: `src/modules/Elsa.Studio.Authentication.ElsaAuth*`
+- **Supports**: Elsa Identity (username/password authentication against Elsa backend)
+- **Modules**:
+  - `Elsa.Studio.Authentication.ElsaAuth` - Core ElsaAuth functionality
+  - `Elsa.Studio.Authentication.ElsaAuth.BlazorServer` - Blazor Server implementation
+  - `Elsa.Studio.Authentication.ElsaAuth.BlazorWasm` - Blazor WebAssembly implementation
+  - `Elsa.Studio.Authentication.ElsaAuth.UI` - Login UI components (login page, unauthorized redirects)
+- **Features**:
+  - Username/password authentication
+  - JWT token storage and management
+  - Automatic token refresh via refresh tokens
+  - Works with Elsa.Identity backend module
 
-#### 2. Elsa.Studio.Authentication.OpenIdConnect (New)
-- **Location**: `src/modules/Elsa.Studio.Authentication.OpenIdConnect`
+#### 2. Elsa.Studio.Authentication.OpenIdConnect
+- **Location**: `src/modules/Elsa.Studio.Authentication.OpenIdConnect*`
 - **Supports**: OpenID Connect
-- **Hosting**: Separate packages for Server and WASM
+- **Modules**:
+  - `Elsa.Studio.Authentication.OpenIdConnect` - Core OIDC functionality
+  - `Elsa.Studio.Authentication.OpenIdConnect.BlazorServer` - Blazor Server implementation
+  - `Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm` - Blazor WebAssembly implementation
 - **Features**:
   - Uses Microsoft's built-in OIDC handlers
   - Automatic token refresh
   - PKCE support
   - Cookie-based auth (Server) or framework-managed (WASM)
+  - Silent token refresh on Blazor Server
+
+#### 3. Elsa.Studio.Login (Legacy/Deprecated)
+- **Location**: `src/modules/Elsa.Studio.Login`
+- **Supports**: OIDC, OAuth2, Elsa Identity
+- **Status**: Deprecated - Use `Elsa.Studio.Authentication.ElsaAuth` or `Elsa.Studio.Authentication.OpenIdConnect` instead
+- **Note**: Maintained for backward compatibility but new projects should use the new authentication modules
 
 ### Future Providers (Examples)
 
@@ -176,12 +216,13 @@ Standard token names are defined in `TokenNames` class:
 The `AuthenticatingApiHttpMessageHandler` automatically adds authentication tokens to API requests:
 
 ```csharp
-// In Elsa.Studio.Login
+// In authentication modules
 public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(...)
     {
-        var token = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        var token = await authenticationProviderManager
+            .GetAuthenticationTokenAsync(TokenNames.AccessToken);
         request.Headers.Authorization = new("Bearer", token);
         // ... handle 401 with token refresh
     }
@@ -224,22 +265,38 @@ Blazor's `AuthenticationStateProvider` is used for UI authorization:
 ## Security Considerations
 
 ### Server Hosting
+
+**OpenID Connect**:
 - ✅ Tokens never exposed to client browser
 - ✅ Cookie-based authentication with HTTP-only cookies
 - ✅ Secure server-side session management
 - ✅ HTTPS-only cookies in production
 
+**ElsaAuth**:
+- ✅ Tokens stored server-side in session
+- ✅ Cookie-based session management
+- ✅ No direct client-side token exposure
+
 ### WASM Hosting
+
+**OpenID Connect**:
 - ✅ Tokens managed by authentication framework
 - ✅ Automatic token expiry and renewal
 - ✅ Access tokens available, but refresh tokens hidden
 - ✅ Uses standard browser security features
+
+**ElsaAuth**:
+- ⚠️ JWT tokens stored in browser local storage
+- ✅ Token refresh via refresh tokens
+- ⚠️ Tokens accessible via browser dev tools (standard for SPA authentication)
+- ✅ Automatic cleanup on logout
 
 ### General
 - ✅ PKCE enabled by default for OIDC
 - ✅ HTTPS required for metadata endpoints
 - ✅ Token refresh on 401 responses
 - ✅ Secure token storage per hosting model
+- ✅ Authorization state managed via `AuthenticationStateProvider`
 
 ## Implementation Guide
 
@@ -257,7 +314,29 @@ See `src/modules/Elsa.Studio.Authentication.Abstractions/README.md` for detailed
 
 ### Using an Authentication Provider
 
-**Blazor Server**:
+**ElsaAuth (Elsa Identity) - Blazor Server**:
+```csharp
+// Register ElsaAuth services
+builder.Services.AddElsaAuth();
+
+// Register UI components (login page, unauthorized redirects)
+builder.Services.AddElsaAuthUI();
+
+// Middleware
+app.UseAuthentication();
+app.UseAuthorization();
+```
+
+**ElsaAuth (Elsa Identity) - Blazor WASM**:
+```csharp
+// Register ElsaAuth services
+builder.Services.AddElsaAuth();
+
+// Register UI components (login page, unauthorized redirects)
+builder.Services.AddElsaAuthUI();
+```
+
+**OpenID Connect - Blazor Server**:
 ```csharp
 builder.Services.AddOidcAuthentication(options =>
 {
@@ -271,9 +350,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 ```
 
-**Blazor WASM**:
+**OpenID Connect - Blazor WASM**:
 ```csharp
-builder.Services.AddOidcAuthentication(options =>
+builder.Services.AddElsaOidcAuthentication(options =>
 {
     options.Authority = "https://identity-server.com";
     options.ClientId = "elsa-studio-wasm";
@@ -283,16 +362,73 @@ builder.Services.AddOidcAuthentication(options =>
 
 ## Migration Path
 
-### From Elsa.Studio.Login to New Providers
+### From Elsa.Studio.Login to New Authentication Modules
 
-The new authentication providers are designed to coexist with the legacy `Elsa.Studio.Login`:
+The new authentication modules (`Elsa.Studio.Authentication.ElsaAuth` and `Elsa.Studio.Authentication.OpenIdConnect`) are designed to replace the legacy `Elsa.Studio.Login` module:
 
-1. **Phase 1**: Add new provider alongside existing Login module
-2. **Phase 2**: Test new provider with your identity server
-3. **Phase 3**: Switch to new provider by removing Login module registration
-4. **Phase 4**: Remove Login module dependency once stable
+1. **Phase 1**: Identify your authentication method
+   - If using Elsa Identity (username/password): Migrate to `Elsa.Studio.Authentication.ElsaAuth`
+   - If using OIDC: Migrate to `Elsa.Studio.Authentication.OpenIdConnect`
 
-No breaking changes to existing applications.
+2. **Phase 2**: Update service registrations
+   - Replace `AddLoginModuleCore()` with appropriate new module registration
+   - Replace `UseElsaIdentity()` with `AddElsaAuth()` + `AddElsaAuthUI()`
+   - Replace `UseOpenIdConnect()` with `AddOidcAuthentication()` (Server) or `AddElsaOidcAuthentication()` (WASM)
+
+3. **Phase 3**: Test authentication flow
+   - Verify login/logout works correctly
+   - Verify API calls are authenticated
+   - Verify SignalR connections work
+
+4. **Phase 4**: Remove Login module dependency
+
+### Migration Examples
+
+#### From Elsa.Studio.Login (Elsa Identity) to ElsaAuth
+
+**Before (Blazor Server)**:
+```csharp
+builder.Services.AddLoginModuleCore()
+    .UseElsaIdentity();
+```
+
+**After (Blazor Server)**:
+```csharp
+builder.Services.AddElsaAuth();
+builder.Services.AddElsaAuthUI();
+```
+
+#### From Elsa.Studio.Login (OIDC) to OpenIdConnect
+
+**Before (Blazor Server)**:
+```csharp
+builder.Services.AddLoginModuleCore()
+    .UseOpenIdConnect(options =>
+    {
+        options.AuthEndpoint = "https://identity-server.com/connect/authorize";
+        options.TokenEndpoint = "https://identity-server.com/connect/token";
+        options.EndSessionEndpoint = "https://identity-server.com/connect/endsession";
+        options.ClientId = "elsa-studio";
+        options.ClientSecret = "secret";
+        options.Scopes = new[] { "openid", "profile", "elsa_api" };
+    });
+```
+
+**After (Blazor Server)**:
+```csharp
+builder.Services.AddOidcAuthentication(options =>
+{
+    options.Authority = "https://identity-server.com"; // Auto-discovers endpoints
+    options.ClientId = "elsa-studio";
+    options.ClientSecret = "secret";
+    options.Scopes = new[] { "openid", "profile", "elsa_api", "offline_access" };
+});
+
+app.UseAuthentication();
+app.UseAuthorization();
+```
+
+No breaking changes to existing applications - the legacy module continues to work.
 
 ## Troubleshooting
 
@@ -303,7 +439,7 @@ No breaking changes to existing applications.
    - Check registration order
    - Ensure only desired provider is registered
 
-2. **Tokens not available in WASM**
+2. **Tokens not available in WASM (OpenIdConnect)**
    - Only access tokens directly accessible
    - Refresh/ID tokens managed by framework
 
@@ -311,16 +447,28 @@ No breaking changes to existing applications.
    - Check token scopes match API requirements
    - Verify `AuthenticatingApiHttpMessageHandler` is registered
    - Check identity server returns correct audience
+   - For ElsaAuth: Verify Elsa.Identity backend is configured correctly
 
 4. **SignalR connections fail**
-   - Ensure `offline_access` scope for refresh tokens
+   - Ensure `offline_access` scope for refresh tokens (OpenIdConnect)
    - Verify token provider returns valid token
    - Check SignalR hub authentication configuration
 
+5. **ElsaAuth login fails**
+   - Verify backend URL is correctly configured
+   - Ensure Elsa.Identity module is installed and configured in backend
+   - Check username/password credentials are correct
+
+6. **Configuration-based provider selection not working**
+   - Verify `Authentication:Provider` setting in `appsettings.json`
+   - Supported values: "OpenIdConnect" or "ElsaAuth"
+   - Check that the appropriate configuration section exists (`Authentication:OpenIdConnect` for OIDC)
+
 ## Resources
 
-- [Elsa.Studio.Authentication.Abstractions README](../modules/Elsa.Studio.Authentication.Abstractions/README.md)
-- [Elsa.Studio.Authentication.OpenIdConnect README](../modules/Elsa.Studio.Authentication.OpenIdConnect/README.md)
+- [Elsa.Studio.Authentication.Abstractions README](../src/modules/Elsa.Studio.Authentication.Abstractions/README.md)
+- [Elsa.Studio.Authentication.OpenIdConnect README](../src/modules/Elsa.Studio.Authentication.OpenIdConnect/README.md)
+- [Elsa.Studio.Authentication.ElsaAuth.UI README](../src/modules/Elsa.Studio.Authentication.ElsaAuth.UI/README.md)
 - [Microsoft Authentication Documentation](https://learn.microsoft.com/en-us/aspnet/core/blazor/security/)
 
 ## Future Enhancements
