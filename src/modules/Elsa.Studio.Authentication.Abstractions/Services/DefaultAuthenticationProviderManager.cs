@@ -8,13 +8,11 @@ namespace Elsa.Studio.Authentication.Abstractions.Services;
 public class DefaultAuthenticationProviderManager(IEnumerable<IAuthenticationProvider> authenticationProviders) : IAuthenticationProviderManager
 {
     /// <inheritdoc />
-    public async Task<string?> GetAuthenticationTokenAsync(string? tokenName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        var effectiveTokenName = tokenName ?? TokenNames.AccessToken;
-
         foreach (var authenticationProvider in authenticationProviders)
         {
-            var token = await authenticationProvider.GetAccessTokenAsync(effectiveTokenName, cancellationToken);
+            var token = await authenticationProvider.GetAccessTokenAsync(cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(token))
                 return token;

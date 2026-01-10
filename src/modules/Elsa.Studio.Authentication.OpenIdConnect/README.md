@@ -231,16 +231,49 @@ Both implementations provide access to tokens via the standard `IAuthenticationP
 ```csharp
 @inject IAuthenticationProviderManager AuthProviderManager
 
-var accessToken = await AuthProviderManager.GetAuthenticationTokenAsync(TokenNames.AccessToken);
+var accessToken = await AuthProviderManager.GetAccessTokenAsync();
 ```
 
-### Token Names
+### Scope-Specific Token Access (OIDC Multi-Audience)
 
-- `TokenNames.AccessToken` - Access token for API calls
-- `TokenNames.IdToken` - ID token (Server only)
-- `TokenNames.RefreshToken` - Refresh token (Server only, if available)
+For scenarios where different APIs require different scopes (e.g., Microsoft Graph vs. your backend API), you can request scope-specific tokens directly:
 
-> **Note**: In Blazor WASM, only access tokens are directly accessible. ID and refresh tokens are managed internally by the framework for security.
+```csharp
+@inject IAuthenticationProvider AuthProvider
+
+// Get token for backend API
+var backendScopes = new[] { "api://my-api/elsa-server-api" };
+var backendToken = await AuthProvider.GetAccessTokenAsync(backendScopes);
+
+// Get token for Microsoft Graph
+var graphScopes = new[] { "https://graph.microsoft.com/User.Read" };
+var graphToken = await AuthProvider.GetAccessTokenAsync(graphScopes);
+```
+
+**Configuration** (appsettings.json):
+
+```json
+{
+  "Authentication": {
+    "OpenIdConnect": {
+      "Scopes": ["openid", "profile", "offline_access", "https://graph.microsoft.com/User.Read"]
+    },
+    "BackendApiScopes": {
+      "Scopes": ["api://my-api/elsa-server-api"]
+    }
+  }
+}
+```
+
+The `BackendApiScopes` are automatically used by the HTTP message handler when calling the Elsa backend API.
+
+### Token Types
+
+- **Access Token** - Access token for API calls (available in both Server and WASM)
+- **ID Token** - ID token with user claims (Server only - via `ITokenAccessor.GetIdTokenAsync()`)
+- **Refresh Token** - Refresh token for silent renewal (Server only - via `ITokenAccessor.GetRefreshTokenAsync()`)
+
+> **Note**: In Blazor WASM, only access tokens are directly accessible through the provider. ID and refresh tokens are managed internally by the framework for security and are not exposed to application code.
 
 ## SignalR Integration
 

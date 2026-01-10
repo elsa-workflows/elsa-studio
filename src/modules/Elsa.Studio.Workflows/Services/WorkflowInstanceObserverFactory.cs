@@ -48,7 +48,7 @@ public class WorkflowInstanceObserverFactory(
         // Set up the SignalR connection.
         var baseUrl = backendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
-        var token = await authenticationProviderManager.GetAuthenticationTokenAsync(TokenNames.AccessToken, cancellationToken);
+        var token = await authenticationProviderManager.GetAccessTokenAsync(cancellationToken);
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl,  options =>
             {

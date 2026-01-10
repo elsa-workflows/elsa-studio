@@ -42,8 +42,8 @@ builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
 
-// Configure token purposes for scope-aware token acquisition
-builder.Services.Configure<TokenPurposeOptions>(configuration.GetSection("Authentication:TokenPurposes"));
+// Configure backend API scopes for OIDC multi-audience scenarios
+builder.Services.Configure<BackendApiScopeOptions>(configuration.GetSection("Authentication:BackendApiScopes"));
 
 // Choose authentication provider.
 // Supported values: "OpenIdConnect" (default) or "ElsaAuth".

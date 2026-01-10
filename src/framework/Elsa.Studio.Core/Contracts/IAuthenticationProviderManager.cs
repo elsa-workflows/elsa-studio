@@ -6,10 +6,9 @@
 public interface IAuthenticationProviderManager
 {
     /// <summary>
-    /// Asynchronously retrieves an authentication token using the available authentication providers.
+    /// Asynchronously retrieves an access token using the available authentication providers.
     /// </summary>
-    /// <param name="tokenName">The name of the token to retrieve.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task representing the asynchronous operation. The task result contains the authentication token as a string, or null if no valid token is available.</returns>
-    Task<string?> GetAuthenticationTokenAsync(string? tokenName, CancellationToken cancellationToken = default);
+    /// <returns>A task representing the asynchronous operation. The task result contains the access token as a string, or null if no valid token is available.</returns>
+    Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default);
 }
