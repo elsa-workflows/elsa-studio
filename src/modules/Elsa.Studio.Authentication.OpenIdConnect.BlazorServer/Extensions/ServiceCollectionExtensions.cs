@@ -117,7 +117,7 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationInfrastructure();
 
         services.AddOptions<OidcTokenRefreshOptions>();
-        services.AddHttpClient("Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous");
+        services.AddHttpClient(OidcCookieTokenRefresher.AnonymousClientName);
 
         return services;
     }

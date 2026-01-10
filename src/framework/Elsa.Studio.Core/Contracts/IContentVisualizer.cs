@@ -1,4 +1,6 @@
-﻿namespace Elsa.Studio.Contracts
+﻿using Elsa.Studio.Models;
+
+namespace Elsa.Studio.Contracts
 {
     /// <summary>
     /// Defines a contract for visualizing objects into Visualized representations.

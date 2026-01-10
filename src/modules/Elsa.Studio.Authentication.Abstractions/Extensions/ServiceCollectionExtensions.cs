@@ -1,8 +1,5 @@
-using Elsa.Studio.Authentication.Abstractions.Services;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Elsa.Studio.Authentication.Abstractions.Contracts;
 
 namespace Elsa.Studio.Authentication.Abstractions.Extensions;
 
@@ -16,9 +13,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
     {
-        // Coordinates refresh operations to prevent refresh storms under parallel requests.
-        services.TryAddScoped<ITokenRefreshCoordinator, TokenRefreshCoordinator>();
-
+        // No services to register at this level anymore.
         return services;
     }
 }

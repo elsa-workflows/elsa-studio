@@ -1,6 +1,5 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Core.Services;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
@@ -41,13 +40,17 @@ public static class ServiceCollectionExtensions
 
         // Content visualizers
         services.AddContentVisualizer<JsonContentVisualizer>();
-        
+
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
 
         //Localization
         services.AddSingleton<ILocalizationProvider, DefaultLocalizationProvider>();
         services.AddSingleton<ILocalizer, DefaultLocalizer>();
+
+        // Single-flight coordinator for preventing concurrent operations.
+        services.TryAddScoped<ISingleFlightCoordinator, SingleFlightCoordinator>();
+
         return services;
     }
     

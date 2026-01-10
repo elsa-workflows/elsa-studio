@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
-using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
+using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -14,12 +14,12 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// Intended to be invoked from a normal HTTP endpoint where headers can still be written.
 /// </summary>
 public class OidcCookieTokenRefresher(
-    ITokenRefreshCoordinator refreshCoordinator,
+    ISingleFlightCoordinator refreshCoordinator,
     IOidcRefreshConfigurationProvider refreshConfigurationProvider,
     IHttpClientFactory httpClientFactory,
     IOptions<OidcTokenRefreshOptions> refreshOptions)
 {
-    private const string AnonymousClientName = "Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous";
+    internal const string AnonymousClientName = "Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous";
 
     /// <summary>
     /// Attempts to refresh tokens and renew the cookie if needed.

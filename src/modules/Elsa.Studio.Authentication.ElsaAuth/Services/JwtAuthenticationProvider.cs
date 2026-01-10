@@ -1,5 +1,5 @@
-using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
+using Elsa.Studio.Contracts;
 
 namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 
@@ -7,7 +7,7 @@ namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 public class JwtAuthenticationProvider(
     IJwtAccessor jwtAccessor,
     IJwtParser jwtParser,
-    ITokenRefreshCoordinator refreshCoordinator,
+    ISingleFlightCoordinator refreshCoordinator,
     IRefreshTokenService refreshTokenService) : IAuthenticationProvider
 {
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromMinutes(2);

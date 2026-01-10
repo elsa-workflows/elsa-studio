@@ -1,9 +1,9 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
+using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
@@ -14,7 +14,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// </summary>
 public class ServerOidcTokenAccessor(
     IHttpContextAccessor httpContextAccessor,
-    ITokenRefreshCoordinator refreshCoordinator,
+    ISingleFlightCoordinator refreshCoordinator,
     IHttpClientFactory httpClientFactory,
     OidcOptions oidcOptions,
     IOidcRefreshConfigurationProvider refreshConfigurationProvider,
@@ -62,8 +62,7 @@ public class ServerOidcTokenAccessor(
         if (refreshConfig == null)
             return null;
 
-        // Use coordinator to prevent concurrent requests for same scope set
-        var lockKey = $"{userKey}:{scopeKey}";
+        // Use coordinator to prevent concurrent requests for same scope set.
         string? newToken = null;
 
         await refreshCoordinator.RunAsync(async ct =>

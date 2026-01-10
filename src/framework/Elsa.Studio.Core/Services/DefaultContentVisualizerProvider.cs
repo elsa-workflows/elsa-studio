@@ -1,7 +1,7 @@
 ﻿using Elsa.Studio.Contracts;
 using Elsa.Studio.Visualizers;
 
-namespace Elsa.Studio.Core.Services
+namespace Elsa.Studio.Services
 {
     /// <summary>
     /// The default content visualizer provider.

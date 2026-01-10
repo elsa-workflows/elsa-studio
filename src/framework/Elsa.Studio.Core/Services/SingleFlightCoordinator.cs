@@ -1,11 +1,11 @@
-using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Elsa.Studio.Contracts;
 
-namespace Elsa.Studio.Authentication.Abstractions.Services;
+namespace Elsa.Studio.Services;
 
 /// <summary>
-/// Default implementation of <see cref="ITokenRefreshCoordinator"/>.
+/// Default implementation of <see cref="ISingleFlightCoordinator"/>.
 /// </summary>
-public class TokenRefreshCoordinator : ITokenRefreshCoordinator
+public class SingleFlightCoordinator : ISingleFlightCoordinator
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
@@ -24,4 +24,3 @@ public class TokenRefreshCoordinator : ITokenRefreshCoordinator
         }
     }
 }
-

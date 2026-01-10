@@ -1,4 +1,5 @@
 ﻿using Elsa.Studio.Contracts;
+using Elsa.Studio.Models;
 
 namespace Elsa.Studio.Visualizers
 {
