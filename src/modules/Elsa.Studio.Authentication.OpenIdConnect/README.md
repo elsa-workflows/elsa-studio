@@ -355,10 +355,16 @@ app.UseAuthorization();
 On Blazor Server, Elsa Studio uses the standard ASP.NET Core Cookie + OpenID Connect handler.
 When you set `SaveTokens = true`, the handler stores `access_token`, `refresh_token` (if issued) and `expires_at` in the authentication cookie properties.
 
-This module can **silently refresh the access token** when it is about to expire by:
-- reading `expires_at` / `refresh_token` from the auth cookie
-- calling the OIDC provider's `token_endpoint` using the `refresh_token` grant
-- updating the tokens stored in the auth cookie (via `SignInAsync`)
+This module **automatically refreshes the access token** using the standard ASP.NET Core pattern:
+`CookieAuthenticationEvents.OnValidatePrincipal`. This event fires on every HTTP request, checks if the token is about to expire, and refreshes it if needed—**no JavaScript required**.
+
+### How it works
+
+1. On each HTTP request, the cookie authentication handler validates the principal
+2. `OidcCookieAuthenticationEvents.OnValidatePrincipal` checks if `expires_at` is within the skew window (default: 2 minutes)
+3. If expiring soon, it calls the OIDC provider's `token_endpoint` with the `refresh_token` grant
+4. The new tokens are stored in the cookie (via `context.ShouldRenew = true`)
+5. The user continues without interruption
 
 ### Flip-a-switch configuration
 
@@ -393,13 +399,19 @@ builder.Services.Configure<OidcTokenRefreshOptions>(options =>
 
 - `SaveTokens` must be `true` (otherwise no tokens are available in the auth cookie).
 - `offline_access` should be requested (otherwise a refresh token is typically not issued).
-- **Strategy**:
-  - `BestEffort` (default): the module only renews the auth cookie when response headers can still be written.
-  - `Persisted`: the module renews the auth cookie via the dedicated `POST /authentication/refresh` endpoint.
-- **Blazor Server note**: once the initial page load is complete, most calls happen over the SignalR circuit where HTTP headers have already been sent. In that context, cookies cannot be updated.
-  - With `BestEffort`, this means the app will eventually fall back to a normal OIDC re-authentication when the access token expires.
-  - With `Persisted`, you should periodically call the refresh endpoint (e.g., a background ping) so renewal happens in a non-circuit HTTP request.
-- If no refresh token is available, or refresh fails, the module does not throw; the next API call will typically result in a normal auth challenge.
+- Token refresh happens automatically on every HTTP request via `OnValidatePrincipal`—this is the standard ASP.NET Core pattern used by most OIDC implementations.
+- If no refresh token is available, or refresh fails, the principal is rejected and the user is redirected to re-authenticate.
+
+### Optional: Browser-side ping for idle tabs
+
+For long-lived idle browser tabs (where no HTTP requests occur), you can optionally add the `OidcPersistedRefreshPing` component to your layout. This periodically POSTs to a refresh endpoint to keep the session alive:
+
+```razor
+@* In your MainLayout.razor - OPTIONAL, only if needed for idle tab scenarios *@
+<OidcPersistedRefreshPing />
+```
+
+**Most applications don't need this** because normal user interaction generates HTTP requests that trigger `OnValidatePrincipal`.
 
 ### Microsoft Entra ID notes
 

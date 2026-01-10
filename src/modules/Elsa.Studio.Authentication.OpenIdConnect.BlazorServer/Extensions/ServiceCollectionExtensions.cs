@@ -49,11 +49,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IScopedTokenCache, MemoryScopedTokenCache>();
         services.AddScoped<ITokenProvider, ServerTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
-        services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();
-        services.AddScoped<OidcCookieTokenRefresher>();
-        services.AddScoped<BrowserRefreshPingService>();
-        services.AddOptions<OidcPersistedRefreshClientOptions>();
-        services.AddScoped<OidcTokenRefreshOptionsAccessor>();
+        
+        // Shared token refresh service used by both session refresh and backend API token acquisition
+        services.AddScoped<TokenRefreshService>();
+        
+        // Cookie authentication events for automatic session token refresh (standard ASP.NET Core pattern)
+        services.AddScoped<AuthCookieEvents>();
 
         // Configure ASP.NET Core authentication with cookie and OIDC
         services.AddAuthentication(authOptions =>
@@ -69,6 +70,9 @@ public static class ServiceCollectionExtensions
                 cookieOptions.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
                 cookieOptions.ExpireTimeSpan = TimeSpan.FromHours(8);
                 cookieOptions.SlidingExpiration = true;
+                
+                // Use custom events for automatic token refresh on every request validation
+                cookieOptions.EventsType = typeof(AuthCookieEvents);
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, oidcOptions =>
             {
@@ -115,9 +119,9 @@ public static class ServiceCollectionExtensions
 
         // Shared auth infrastructure (e.g. delegating handlers).
         services.AddAuthenticationInfrastructure();
-
-        services.AddOptions<OidcTokenRefreshOptions>();
-        services.AddHttpClient(OidcCookieTokenRefresher.AnonymousClientName);
+        
+        // HTTP client for token refresh requests (no auth headers)
+        services.AddHttpClient(TokenRefreshService.AnonymousHttpClientName);
 
         return services;
     }

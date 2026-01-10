@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text.Json;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
@@ -15,9 +14,8 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 public class ServerTokenProvider(
     IHttpContextAccessor httpContextAccessor,
     ISingleFlightCoordinator refreshCoordinator,
-    IHttpClientFactory httpClientFactory,
     OidcOptions oidcOptions,
-    IOidcRefreshConfigurationProvider refreshConfigurationProvider,
+    TokenRefreshService tokenRefreshService,
     IScopedTokenCache scopedTokenCache)
     : ITokenProvider
 {
@@ -41,7 +39,10 @@ public class ServerTokenProvider(
     private async Task<string?> GetScopedAccessTokenAsync(HttpContext httpContext, string[] scopes, CancellationToken cancellationToken)
     {
         // Get user identifier for cache key
-        var userKey = httpContext.User.FindFirstValue("sub") ?? httpContext.User.FindFirstValue("oid") ?? httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userKey = httpContext.User.FindFirstValue("sub") 
+                      ?? httpContext.User.FindFirstValue("oid") 
+                      ?? httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
         if (string.IsNullOrWhiteSpace(userKey))
             return null;
 
@@ -58,10 +59,6 @@ public class ServerTokenProvider(
         if (string.IsNullOrWhiteSpace(refreshToken))
             return null;
 
-        var refreshConfig = await refreshConfigurationProvider.GetAsync(cancellationToken);
-        if (refreshConfig == null)
-            return null;
-
         // Use coordinator to prevent concurrent requests for same scope set.
         string? newToken = null;
 
@@ -75,43 +72,20 @@ public class ServerTokenProvider(
                 return 0;
             }
 
-            // Request token with explicit scopes
-            var httpClient = httpClientFactory.CreateClient("Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous");
+            // Use the shared token refresh service
+            var result = await tokenRefreshService.RefreshTokenAsync(refreshToken, scopes, ct);
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, refreshConfig.TokenEndpoint);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["grant_type"] = "refresh_token",
-                ["client_id"] = refreshConfig.ClientId,
-                ["refresh_token"] = refreshToken,
-                ["scope"] = string.Join(" ", scopes),
-                ["client_secret"] = refreshConfig.ClientSecret ?? string.Empty
-            }.Where(x => !string.IsNullOrWhiteSpace(x.Value)));
-
-            var response = await httpClient.SendAsync(request, ct);
-
-            if (!response.IsSuccessStatusCode)
+            if (!result.Success)
                 return 0;
-
-            var payload = await response.Content.ReadAsStringAsync(ct);
-            using var doc = JsonDocument.Parse(payload);
-
-            var accessToken = doc.RootElement.TryGetProperty("access_token", out var at) ? at.GetString() : null;
-            var expiresInSeconds = doc.RootElement.TryGetProperty("expires_in", out var exp) ? exp.GetInt32() : 0;
-
-            if (string.IsNullOrWhiteSpace(accessToken) || expiresInSeconds <= 0)
-                return 0;
-
-            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
 
             // Cache the token
             await scopedTokenCache.SetAsync(userKey, scopeKey, new()
             {
-                AccessToken = accessToken,
-                ExpiresAt = expiresAt
+                AccessToken = result.AccessToken!,
+                ExpiresAt = result.ExpiresAt
             }, ct);
 
-            newToken = accessToken;
+            newToken = result.AccessToken;
             return 0;
         }, cancellationToken);
 
