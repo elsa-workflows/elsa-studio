@@ -8,12 +8,12 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.Services;
 /// OIDC implementation of <see cref="IHttpConnectionOptionsConfigurator"/> that configures SignalR connections
 /// to use OIDC access tokens with appropriate scopes.
 /// </summary>
-public class OidcHttpConnectionOptionsConfigurator(IOidcTokenAccessor tokenAccessor) : IHttpConnectionOptionsConfigurator
+public class OidcHttpConnectionOptionsConfigurator(ITokenProvider tokenProvider) : IHttpConnectionOptionsConfigurator
 {
     /// <inheritdoc />
     public Task ConfigureAsync(HttpConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
     {
-        connectionOptions.AccessTokenProvider = async () => await tokenAccessor.GetAccessTokenAsync(cancellationToken);
+        connectionOptions.AccessTokenProvider = async () => await tokenProvider.GetAccessTokenAsync(cancellationToken);
         return Task.CompletedTask;
     }
 }

@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddSingleton(options);
         services.AddSingleton<IScopedTokenCache, MemoryScopedTokenCache>();
-        services.AddScoped<IOidcTokenAccessor, ServerOidcTokenAccessor>();
+        services.AddScoped<ITokenProvider, ServerTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         services.AddScoped<IOidcRefreshConfigurationProvider, DefaultOidcRefreshConfigurationProvider>();
         services.AddScoped<OidcCookieTokenRefresher>();

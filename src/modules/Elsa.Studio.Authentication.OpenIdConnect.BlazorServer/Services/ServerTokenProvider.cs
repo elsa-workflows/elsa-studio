@@ -10,16 +10,16 @@ using Microsoft.AspNetCore.Http;
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 
 /// <summary>
-/// Blazor Server implementation of <see cref="IOidcTokenAccessor"/> that retrieves tokens from the authenticated HTTP context.
+/// Blazor Server implementation of <see cref="ITokenProvider"/> that retrieves tokens from the authenticated HTTP context.
 /// </summary>
-public class ServerOidcTokenAccessor(
+public class ServerTokenProvider(
     IHttpContextAccessor httpContextAccessor,
     ISingleFlightCoordinator refreshCoordinator,
     IHttpClientFactory httpClientFactory,
     OidcOptions oidcOptions,
     IOidcRefreshConfigurationProvider refreshConfigurationProvider,
     IScopedTokenCache scopedTokenCache)
-    : IOidcTokenAccessor
+    : ITokenProvider
 {
     /// <inheritdoc />
     public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)

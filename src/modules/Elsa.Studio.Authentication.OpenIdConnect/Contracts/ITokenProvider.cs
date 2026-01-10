@@ -4,7 +4,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 /// Provides access to OIDC tokens stored in the authentication context.
 /// Extends <see cref="ITokenAccessor"/> with OIDC-specific functionality for scope-aware token acquisition.
 /// </summary>
-public interface IOidcTokenAccessor
+public interface ITokenProvider
 {
     /// <summary>
     /// Gets an access token with specific scopes.

@@ -19,8 +19,8 @@ public class OidcAuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor blaz
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var sp = blazorServiceAccessor.Services;
-        var tokenAccessor = sp.GetRequiredService<IOidcTokenAccessor>();
-        var accessToken = await tokenAccessor.GetAccessTokenAsync(cancellationToken);
+        var tokenProvider = sp.GetRequiredService<ITokenProvider>();
+        var accessToken = await tokenProvider.GetAccessTokenAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = new("Bearer", accessToken);

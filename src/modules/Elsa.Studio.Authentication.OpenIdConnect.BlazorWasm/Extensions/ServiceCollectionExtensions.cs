@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(options);
 
         // Register the token accessor
-        services.AddScoped<IOidcTokenAccessor, WasmOidcTokenAccessor>();
+        services.AddScoped<ITokenProvider, WasmTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         services.AddScoped<IFeature, OpenIdConnectBlazorWasmFeature>();
 
