@@ -15,7 +15,7 @@ public class TokenRefreshService
     /// <summary>
     /// The name of the HTTP client used for token refresh requests (no auth headers).
     /// </summary>
-    public const string AnonymousHttpClientName = "Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous";
+    internal const string AnonymousHttpClientName = "Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Anonymous";
     
     /// <summary>
     /// Default time before token expiry to attempt refresh.

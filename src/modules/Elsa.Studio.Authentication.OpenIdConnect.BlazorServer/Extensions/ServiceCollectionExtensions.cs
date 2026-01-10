@@ -1,7 +1,6 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Extensions;
-using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
@@ -10,7 +9,8 @@ using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
-using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 
@@ -20,14 +20,24 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
+    /// Default retry policy: 3 retries with exponential backoff (1s, 2s, 4s) for transient HTTP failures.
+    /// </summary>
+    public static IAsyncPolicy<HttpResponseMessage> DefaultRetryPolicy => HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .OrResult(r => r.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt - 1)));
+
+    /// <summary>
     /// Adds OpenID Connect authentication services for Blazor Server.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Configuration callback for OIDC options.</param>
+    /// <param name="configureRetryPolicy">Optional factory to provide a custom retry policy. If null, uses <see cref="DefaultRetryPolicy"/>.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddOidcAuthentication(
         this IServiceCollection services,
-        Action<OidcOptions> configure)
+        Action<OidcOptions> configure,
+        Func<IAsyncPolicy<HttpResponseMessage>>? configureRetryPolicy = null)
     {
         var options = new OidcOptions();
         configure(options);
@@ -42,11 +52,9 @@ public static class ServiceCollectionExtensions
         options.CallbackPath ??= "/signin-oidc";
         options.SignedOutCallbackPath ??= "/signout-callback-oidc";
 
-        // Register the token accessor and cache
+        // Register core services
         services.AddHttpContextAccessor();
-        services.AddMemoryCache();
         services.AddSingleton(options);
-        services.AddSingleton<IScopedTokenCache, MemoryScopedTokenCache>();
         services.AddScoped<ITokenProvider, ServerTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         
@@ -120,8 +128,10 @@ public static class ServiceCollectionExtensions
         // Shared auth infrastructure (e.g. delegating handlers).
         services.AddAuthenticationInfrastructure();
         
-        // HTTP client for token refresh requests (no auth headers)
-        services.AddHttpClient(TokenRefreshService.AnonymousHttpClientName);
+        // HTTP client for token refresh requests with retry policy
+        var retryPolicy = configureRetryPolicy?.Invoke() ?? DefaultRetryPolicy;
+        services.AddHttpClient(TokenRefreshService.AnonymousHttpClientName)
+            .AddPolicyHandler(retryPolicy);
 
         return services;
     }
