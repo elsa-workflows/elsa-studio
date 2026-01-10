@@ -4,26 +4,25 @@ using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Elsa.Studio.Localization.BlazorWasm.Extensions
+namespace Elsa.Studio.Localization.BlazorWasm.Extensions;
+
+/// <summary>
+/// Provides WebAssembly-specific service registration helpers for localization.
+/// </summary>
+public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Provides WebAssembly-specific service registration helpers for localization.
+    /// Adds localization services tailored for the Blazor WebAssembly host.
     /// </summary>
-    public static class ServiceCollectionExtensions
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="localizationConfig">The configuration to apply to localization services.</param>
+    /// <returns>The result of the operation.</returns>
+    public static IServiceCollection AddLocalizationModule(this IServiceCollection services, LocalizationConfig localizationConfig)
     {
-        /// <summary>
-        /// Adds localization services tailored for the Blazor WebAssembly host.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        /// <param name="localizationConfig">The configuration to apply to localization services.</param>
-        /// <returns>The result of the operation.</returns>
-        public static IServiceCollection AddLocalizationModule(this IServiceCollection services, LocalizationConfig localizationConfig)
-        {
-            services.AddLocalizationModuleCore(localizationConfig);
+        services.AddLocalizationModuleCore(localizationConfig);
 
-            services.AddScoped<ICultureService, BlazorWasmCultureService>();
+        services.AddScoped<ICultureService, BlazorWasmCultureService>();
 
-            return services;
-        }
+        return services;
     }
 }

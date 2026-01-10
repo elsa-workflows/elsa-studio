@@ -7,15 +7,13 @@ using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
-using Elsa.Studio.Login.BlazorWasm.Extensions;
-using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
-using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -26,11 +24,41 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.RootComponents.RegisterCustomElsaStudioElements();
 
+// Choose authentication provider.
+// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
+var authProvider = configuration["Authentication:Provider"];
+if (string.IsNullOrWhiteSpace(authProvider))
+    authProvider = "OpenIdConnect";
+
+authProvider = authProvider.Trim();
+
+Type authenticationHandler;
+
+if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
+{
+    // Elsa Identity (username/password against Elsa backend) + login UI at /login.
+    Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions.ServiceCollectionExtensions.AddElsaAuth(builder.Services);
+    Elsa.Studio.Authentication.ElsaAuth.UI.Extensions.ServiceCollectionExtensions.AddElsaAuthUI(builder.Services);
+    authenticationHandler = typeof(Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers.ElsaAuthAuthenticatingApiHttpMessageHandler);
+}
+else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddElsaOidcAuthentication(options =>
+    {
+        configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
+    });
+    authenticationHandler = typeof(Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers.OidcAuthenticatingApiHttpMessageHandler);
+}
+else
+{
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
+}
+
 // Register shell services and modules.
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
-    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(AuthenticatingApiHttpMessageHandler), 
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = authenticationHandler,
 };
 
 var localizationConfig = new LocalizationConfig
@@ -41,8 +69,7 @@ var localizationConfig = new LocalizationConfig
 builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
-builder.Services.AddLoginModule();
-builder.Services.UseElsaIdentity();
+
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
@@ -61,3 +88,4 @@ await startupTaskRunner.RunStartupTasksAsync();
 
 // Run the application.
 await app.RunAsync();
+

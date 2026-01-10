@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿namespace Elsa.Studio.Models;
+
+/// <summary>
 /// Represents a tabulated content visualizer consisting of headers and rows.
 /// </summary>
 public class TabulatedContentVisualizer

@@ -1,0 +1,11 @@
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        // The WASM host must provide the /authentication/{action} route hosting RemoteAuthenticatorView.
+        // Use an absolute path and force a full page load to avoid issues when we're in a nested route.
+        var url = "/authentication/login";
+        NavigationManager.NavigateTo(url, forceLoad: true);
+    }
+}

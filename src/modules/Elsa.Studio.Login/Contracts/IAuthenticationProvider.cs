@@ -1,4 +1,4 @@
-﻿namespace Elsa.Studio.Contracts;
+﻿namespace Elsa.Studio.Login.Contracts;
 
 /// <summary>
 /// Defines a provider for retrieving an access token for authentication purposes.
