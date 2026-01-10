@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
 using OidcAuthProvider = Elsa.Studio.Authentication.OpenIdConnect.Services.OidcAuthenticationProvider;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
+using System.Linq;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 
@@ -31,6 +32,12 @@ public static class ServiceCollectionExtensions
     {
         var options = new OidcOptions();
         configure(options);
+
+        // Ensure we always request the minimal identity scopes.
+        var configuredScopes = options.Scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? Array.Empty<string>();
+        if (configuredScopes.Length == 0)
+            configuredScopes = ["openid", "profile", "offline_access"];
+        options.Scopes = configuredScopes;
 
         // Set Blazor Server defaults for callback paths if not explicitly specified.
         options.CallbackPath ??= "/signin-oidc";
