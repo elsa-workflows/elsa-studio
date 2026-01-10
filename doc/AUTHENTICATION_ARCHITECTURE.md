@@ -22,7 +22,6 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Elsa.Studio.Core                              │
-│  • ITokenProvider - Gets access tokens for API calls             │
 │  • ISingleFlightCoordinator - Prevents concurrent token refresh  │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
@@ -32,9 +31,10 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
 │  OpenIdConnect       │      │  ElsaAuth                │
 │  Provider            │      │  Provider                │
 │  ────────────────    │      │  ──────────────────────  │
-│  • OidcOptions       │      │  • JWT tokens            │
-│  • Server & WASM     │      │  • Server & WASM         │
-│  • Auto token refresh│      │  • Elsa Identity backend │
+│  • ITokenProvider    │      │  • JWT tokens            │
+│  • OidcOptions       │      │  • Server & WASM         │
+│  • Server & WASM     │      │  • Elsa Identity backend │
+│  • Auto token refresh│      │                          │
 └──────────────────────┘      └──────────────────────────┘
 ```
 

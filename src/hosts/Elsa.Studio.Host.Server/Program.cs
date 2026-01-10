@@ -41,10 +41,10 @@ builder.Services.AddServerSideBlazor(options =>
 });
 
 // Choose authentication provider.
-// Supported values: "OpenIdConnect" (default) or "ElsaAuth".
+// Supported values: "OpenIdConnect" or "ElsaAuth" (default).
 var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
-    authProvider = "OpenIdConnect";
+    authProvider = "ElsaAuth";
 
 authProvider = authProvider.Trim();
 
