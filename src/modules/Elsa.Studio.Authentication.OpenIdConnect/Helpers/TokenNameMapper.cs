@@ -1,5 +1,3 @@
-using Elsa.Studio.Contracts;
-
 namespace Elsa.Studio.Authentication.OpenIdConnect.Helpers;
 
 /// <summary>

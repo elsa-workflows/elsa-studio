@@ -1,8 +1,4 @@
-using System.Diagnostics;
-using System.Security.Claims;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Authentication.ElsaAuth.Models;
-using Elsa.Studio.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 

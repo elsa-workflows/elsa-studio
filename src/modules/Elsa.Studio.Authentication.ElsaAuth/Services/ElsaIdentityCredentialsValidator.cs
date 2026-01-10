@@ -17,6 +17,6 @@ public class ElsaIdentityCredentialsValidator(IAnonymousBackendApiClientProvider
         var api = await backendApiClientProvider.GetApiAsync<ILoginApi>(cancellationToken);
         var request = new LoginRequest(username, password);
         var response = await api.LoginAsync(request, cancellationToken);
-        return new ValidateCredentialsResult(response.IsAuthenticated, response.AccessToken, response.RefreshToken);
+        return new(response.IsAuthenticated, response.AccessToken, response.RefreshToken);
     }
 }

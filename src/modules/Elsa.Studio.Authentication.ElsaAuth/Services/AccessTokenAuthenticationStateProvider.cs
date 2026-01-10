@@ -23,17 +23,17 @@ public class AccessTokenAuthenticationStateProvider(
             ?? await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
 
         if (string.IsNullOrWhiteSpace(token))
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            return new(new(new ClaimsIdentity()));
 
         var claims = jwtParser.Parse(token).ToList();
 
         if (claims.IsExpired())
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            return new(new(new ClaimsIdentity()));
 
         var identity = new ClaimsIdentity(claims, "jwt", options.Value.NameClaimType, options.Value.RoleClaimType);
         var user = new ClaimsPrincipal(identity);
 
-        return new AuthenticationState(user);
+        return new(user);
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
+using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Components;
-using Elsa.Studio.ComponentProviders;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Models;
@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
             .AddAuthorizationCore()
             .AddAuthenticationInfrastructure()
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-            .AddScoped<IUnauthorizedComponentProvider, GenericComponentProvider<Unauthorized>>()
+            .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<Unauthorized>>()
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
             .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>();
 

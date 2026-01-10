@@ -4,7 +4,6 @@ using System.Text.Json;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
-using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
@@ -64,17 +63,19 @@ public class ServerOidcTokenAccessor : IOidcTokenAccessorWithScopes
 
         // If scopes are provided and token is access_token, acquire scope-specific token
         var scopeArray = scopes?.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-        if (scopeArray?.Length > 0 && string.Equals(tokenName, "access_token", StringComparison.Ordinal))
+        var isAccessToken = string.Equals(tokenName, "access_token", StringComparison.Ordinal);
+        
+        if (scopeArray?.Length > 0 && isAccessToken)
         {
             return await GetScopedAccessTokenAsync(httpContext, scopeArray, cancellationToken);
         }
 
         // Otherwise, use existing cookie token refresh flow
-        if (string.Equals(tokenName, "access_token", StringComparison.Ordinal))
+        if (isAccessToken)
         {
             var options = _refreshOptions.Value;
 
-            if (options.EnableRefreshTokens && options.Strategy == OidcTokenRefreshStrategy.Persisted)
+            if (options is { EnableRefreshTokens: true, Strategy: OidcTokenRefreshStrategy.Persisted })
             {
                 // In Persisted mode, try to renew the cookie if this is a normal HTTP request.
                 // During Blazor circuit activity, Response.HasStarted is typically true and renewal will be skipped.
