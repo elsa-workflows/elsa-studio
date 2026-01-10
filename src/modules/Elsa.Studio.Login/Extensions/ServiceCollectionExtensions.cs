@@ -1,6 +1,7 @@
+using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Login.ComponentProviders;
+using Elsa.Studio.Login.Components;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Login.Models;
@@ -27,7 +28,7 @@ public static class ServiceCollectionExtensions
                 .AddAuthorizationCore()
                 .AddScoped<AuthenticatingApiHttpMessageHandler>()
                 .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
-                .AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>()
+                .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<RedirectToLogin>>()
                 .AddScoped<IHttpConnectionOptionsConfigurator, LoginAuthHttpConnectionOptionsConfigurator>();
             ;
     }

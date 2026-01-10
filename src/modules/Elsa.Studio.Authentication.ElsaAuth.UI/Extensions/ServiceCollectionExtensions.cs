@@ -1,4 +1,5 @@
-using Elsa.Studio.Authentication.ElsaAuth.UI.ComponentProviders;
+using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
+using Elsa.Studio.Authentication.ElsaAuth.UI.Components;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +16,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddElsaAuthUI(this IServiceCollection services)
     {
         // Provide a default unauthorized UI for Elsa Identity.
-        services.AddScoped<IUnauthorizedComponentProvider, RedirectToLoginUnauthorizedComponentProvider>();
+        services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<RedirectToLogin>>();
 
         // Optional shell feature (adds app-bar login state UI).
         services.AddScoped<IFeature, LoginFeature>();

@@ -1,7 +1,6 @@
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Services;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
