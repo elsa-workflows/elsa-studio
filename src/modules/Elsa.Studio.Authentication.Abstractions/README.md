@@ -24,11 +24,15 @@ The core abstraction for retrieving authentication tokens from any authenticatio
 ```csharp
 public interface ITokenAccessor
 {
-    Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken = default);
+    Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default);
+    Task<string?> GetIdTokenAsync(CancellationToken cancellationToken = default);
+    Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken = default);
 }
 ```
 
 **Usage**: Authentication providers implement this interface to provide access to tokens stored in their specific context (HTTP context, browser storage, etc.).
+
+**Design**: Uses explicit methods instead of string-based token names for type safety and discoverability.
 
 ### AuthenticationOptions
 
@@ -66,10 +70,22 @@ using Elsa.Studio.Authentication.Abstractions.Contracts;
 
 public class CustomTokenAccessor : ITokenAccessor
 {
-    public async Task<string?> GetTokenAsync(string tokenName, CancellationToken cancellationToken)
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
-        // Retrieve token from your provider's storage/context
-        return await GetTokenFromCustomSource(tokenName);
+        // Retrieve access token from your provider's storage/context
+        return await GetAccessTokenFromCustomSource();
+    }
+
+    public async Task<string?> GetIdTokenAsync(CancellationToken cancellationToken)
+    {
+        // Retrieve ID token if supported
+        return await GetIdTokenFromCustomSource();
+    }
+
+    public async Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken)
+    {
+        // Retrieve refresh token if supported
+        return await GetRefreshTokenFromCustomSource();
     }
 }
 ```
@@ -89,10 +105,15 @@ public class CustomAuthenticationProvider : IAuthenticationProvider
         _tokenAccessor = tokenAccessor;
     }
 
-    public async Task<string?> GetAccessTokenAsync(string tokenName, CancellationToken cancellationToken)
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
-        // Map standard token names to provider-specific names if needed
-        return await _tokenAccessor.GetTokenAsync(tokenName, cancellationToken);
+        return await _tokenAccessor.GetAccessTokenAsync(cancellationToken);
+    }
+
+    public Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken)
+    {
+        // If your provider doesn't support scope-specific tokens, delegate to the default method
+        return GetAccessTokenAsync(cancellationToken);
     }
 }
 ```
