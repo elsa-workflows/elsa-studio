@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Configuration callback for OIDC options.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddElsaOidcAuthentication(
+    public static IServiceCollection AddOpenIdConnectAuth(
         this IServiceCollection services,
         Action<OidcOptions> configure)
     {

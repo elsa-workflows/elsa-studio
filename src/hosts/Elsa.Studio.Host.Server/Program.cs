@@ -46,8 +46,6 @@ var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
     authProvider = "ElsaAuth";
 
-authProvider = authProvider.Trim();
-
 Type authenticationHandler;
 
 if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
@@ -60,7 +58,7 @@ if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
     // OpenID Connect.
-    builder.Services.AddOidcAuthentication(options =>
+    builder.Services.AddOpenIdConnectAuth(options =>
     {
         configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
 
@@ -112,8 +110,8 @@ builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
 // Replace some services with other implementations.
-builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPickerComponentProvider>();
+
 // Uncomment for the Accordion Activity Picker
 //builder.Services.AddScoped<IActivityPickerComponentProvider>(sp => new AccordionActivityPickerComponentProvider
 //{

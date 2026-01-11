@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">Configuration callback for OIDC options.</param>
     /// <param name="configureRetryPolicy">Optional factory to provide a custom retry policy. If null, uses <see cref="DefaultRetryPolicy"/>.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddOidcAuthentication(
+    public static IServiceCollection AddOpenIdConnectAuth(
         this IServiceCollection services,
         Action<OidcOptions> configure,
         Func<IAsyncPolicy<HttpResponseMessage>>? configureRetryPolicy = null)

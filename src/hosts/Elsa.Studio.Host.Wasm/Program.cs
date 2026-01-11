@@ -35,8 +35,6 @@ var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
     authProvider = "OpenIdConnect";
 
-authProvider = authProvider.Trim();
-
 Type authenticationHandler;
 
 if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
@@ -48,7 +46,7 @@ if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
-    services.AddElsaOidcAuthentication(options =>
+    services.AddOpenIdConnectAuth(options =>
     {
         configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
     });
@@ -78,9 +76,6 @@ services.AddRemoteBackend(backendApiConfig);
 services.AddDashboardModule();
 services.AddWorkflowsModule();
 services.AddLocalizationModule(localizationConfig);
-
-// Replace some services with other implementations.
-services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Build the application.
 var app = builder.Build();
