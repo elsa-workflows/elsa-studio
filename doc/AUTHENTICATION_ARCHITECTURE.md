@@ -16,7 +16,7 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Elsa Studio Application                      │
-│  (Workflows, Dashboard, etc. - uses ITokenProvider)              │
+│  (Workflows, Dashboard, etc.)                                    │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
                            ▼
@@ -31,10 +31,10 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
 │  OpenIdConnect       │      │  ElsaAuth                │
 │  Provider            │      │  Provider                │
 │  ────────────────    │      │  ──────────────────────  │
-│  • ITokenProvider    │      │  • JWT tokens            │
-│  • OidcOptions       │      │  • Server & WASM         │
-│  • Server & WASM     │      │  • Elsa Identity backend │
-│  • Auto token refresh│      │                          │
+│  • ITokenProvider    │      │  • IAuthenticationProvider│
+│  • OidcOptions       │      │  • JWT tokens            │
+│  • Server & WASM     │      │  • Server & WASM         │
+│  • Auto token refresh│      │  • Auto token refresh    │
 └──────────────────────┘      └──────────────────────────┘
 ```
 
@@ -151,7 +151,81 @@ Uses Microsoft's built-in `Microsoft.AspNetCore.Components.WebAssembly.Authentic
 
 ## ElsaAuth Provider
 
-For Elsa Identity (username/password authentication against Elsa backend):
+For Elsa Identity (username/password authentication against Elsa backend).
+
+### Architecture
+
+The ElsaAuth provider uses JWT tokens stored in browser storage (WASM) or server-side session (Server), with automatic token refresh:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 API Call / SignalR Connection                    │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  JwtAuthenticationProvider                       │
+│  • Implements IAuthenticationProvider                           │
+│  • Reads access token from IJwtAccessor                         │
+│  • Checks if token is expiring (within 2 min skew)              │
+│  • If expiring: calls IRefreshTokenService (single-flight)      │
+│  • If refresh fails: clears all tokens → unauthenticated        │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   IRefreshTokenService                           │
+│  • Calls Elsa backend's refresh endpoint                        │
+│  • Returns IsAuthenticated + new tokens                         │
+│  • Tokens stored via IJwtAccessor                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| `JwtAuthenticationProvider` | Implements `IAuthenticationProvider`. Gets access tokens with automatic refresh before expiry. |
+| `IRefreshTokenService` | Calls Elsa backend to refresh tokens. |
+| `IJwtAccessor` | Reads/writes JWT tokens (LocalStorage for WASM, session for Server). |
+| `IJwtParser` | Parses JWT to extract expiry claim. |
+
+### Token Flow
+
+```csharp
+public class JwtAuthenticationProvider : IAuthenticationProvider
+{
+    private static readonly TimeSpan RefreshSkew = TimeSpan.FromMinutes(2);
+
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
+    {
+        var accessToken = await jwtAccessor.ReadTokenAsync("accessToken");
+        
+        if (string.IsNullOrWhiteSpace(accessToken))
+            return null;
+
+        if (!IsExpiredOrNearExpiry(accessToken))
+            return accessToken;
+
+        // Single-flight refresh via ISingleFlightCoordinator
+        var refreshResponse = await refreshCoordinator.RunAsync(
+            refreshTokenService.RefreshTokenAsync, cancellationToken);
+
+        if (!refreshResponse.IsAuthenticated)
+        {
+            // Clear all tokens on refresh failure
+            await jwtAccessor.ClearTokenAsync("accessToken");
+            await jwtAccessor.ClearTokenAsync("refreshToken");
+            await jwtAccessor.ClearTokenAsync("idToken");
+            return null;
+        }
+
+        return await jwtAccessor.ReadTokenAsync("accessToken");
+    }
+}
+```
+
+### Configuration
 
 ```csharp
 // Blazor Server
@@ -183,18 +257,52 @@ public class AuthenticatingApiHttpMessageHandler : DelegatingHandler
 
 ### 2. SignalR Connections
 
-Tokens are retrieved for SignalR hub connections:
+SignalR connections are authenticated via `IHttpConnectionOptionsConfigurator`, which is defined in `Elsa.Studio.Authentication.Abstractions` and implemented by each authentication provider.
 
+**Interface** (`Elsa.Studio.Authentication.Abstractions`):
 ```csharp
-var token = await tokenProvider.GetAccessTokenAsync(cancellationToken);
-    
-var connection = new HubConnectionBuilder()
-    .WithUrl(hubUrl, options => 
-    {
-        options.AccessTokenProvider = () => Task.FromResult(token);
-    })
-    .Build();
+public interface IHttpConnectionOptionsConfigurator
+{
+    Task ConfigureAsync(HttpConnectionOptions options, CancellationToken cancellationToken = default);
+}
 ```
+
+**OIDC Implementation** (`Elsa.Studio.Authentication.OpenIdConnect`):
+```csharp
+public class OidcHttpConnectionOptionsConfigurator(ITokenProvider tokenProvider) : IHttpConnectionOptionsConfigurator
+{
+    public Task ConfigureAsync(HttpConnectionOptions options, CancellationToken cancellationToken = default)
+    {
+        options.AccessTokenProvider = async () => await tokenProvider.GetAccessTokenAsync(cancellationToken);
+        return Task.CompletedTask;
+    }
+}
+```
+
+**Usage in WorkflowInstanceObserverFactory** (`Elsa.Studio.Workflows`):
+```csharp
+public class WorkflowInstanceObserverFactory(
+    // ...
+    IHttpConnectionOptionsConfigurator httpConnectionOptionsConfigurator)
+{
+    public async Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context)
+    {
+        var connection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, options =>
+            {
+                // Delegates to the provider-specific configurator (e.g., OIDC, ElsaAuth)
+                httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken).GetAwaiter().GetResult();
+            })
+            .Build();
+        // ...
+    }
+}
+```
+
+This design allows different authentication providers to configure SignalR connections appropriately:
+- **OIDC**: Sets `AccessTokenProvider` to return tokens from `ITokenProvider`
+- **ElsaAuth**: Could set authorization headers or cookies
+- **Custom providers**: Implement their own configuration logic
 
 ## Security Considerations
 
@@ -212,6 +320,20 @@ var connection = new HubConnectionBuilder()
 - ✅ Tokens managed by Microsoft's authentication framework
 - ✅ Automatic token expiry and renewal
 - ✅ Access tokens available, refresh tokens hidden from app code
+
+### Blazor Server (ElsaAuth)
+
+- ✅ JWT tokens stored server-side in session
+- ✅ Automatic token refresh via `JwtAuthenticationProvider` (2 min skew)
+- ✅ Single-flight coordination prevents concurrent refresh requests
+- ✅ Tokens cleared on refresh failure
+
+### Blazor WebAssembly (ElsaAuth)
+
+- ⚠️ JWT tokens stored in browser LocalStorage
+- ✅ Automatic token refresh via `JwtAuthenticationProvider` (2 min skew)
+- ✅ Single-flight coordination prevents concurrent refresh requests
+- ✅ Tokens cleared on refresh failure
 
 ## File Structure
 
@@ -240,13 +362,40 @@ Extensions/
 
 ```
 Models/
-└── OidcOptions.cs              # Configuration options
+└── OidcOptions.cs                          # Configuration options
 
 Services/
-└── OidcHttpConnectionOptionsConfigurator.cs
+└── OidcHttpConnectionOptionsConfigurator.cs  # SignalR connection auth config
 
 Contracts/
-└── ITokenProvider.cs           # Token provider interface
+└── ITokenProvider.cs                       # Token provider interface
+```
+
+### Elsa.Studio.Authentication.Abstractions
+
+```
+Contracts/
+└── IHttpConnectionOptionsConfigurator.cs   # SignalR auth configuration interface
+
+HttpMessageHandlers/
+└── AuthenticatingApiHttpMessageHandler.cs  # Adds auth headers to API requests
+```
+
+### Elsa.Studio.Authentication.ElsaAuth
+
+```
+Services/
+├── JwtAuthenticationProvider.cs            # IAuthenticationProvider with auto-refresh
+├── ElsaIdentityRefreshTokenService.cs      # Calls Elsa backend refresh endpoint
+├── ElsaAuthHttpConnectionOptionsConfigurator.cs  # SignalR connection auth config
+├── JwtAccessorBase.cs                      # Base class for token storage
+└── AccessTokenAuthenticationStateProvider.cs  # Blazor auth state
+
+Contracts/
+├── IAuthenticationProvider.cs              # Token provider interface
+├── IRefreshTokenService.cs                 # Token refresh interface
+├── IJwtAccessor.cs                         # Token storage interface
+└── IJwtParser.cs                           # JWT parsing interface
 ```
 
 ## Troubleshooting

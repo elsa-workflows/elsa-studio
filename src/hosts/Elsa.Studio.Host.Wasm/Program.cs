@@ -1,3 +1,4 @@
+using Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
 using Elsa.Studio.Shell.Extensions;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
+using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -39,7 +41,7 @@ if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
     // Elsa Identity (username/password against Elsa backend) + login UI at /login.
     Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions.ServiceCollectionExtensions.AddElsaAuth(builder.Services);
     Elsa.Studio.Authentication.ElsaAuth.UI.Extensions.ServiceCollectionExtensions.AddElsaAuthUI(builder.Services);
-    authenticationHandler = typeof(Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers.ElsaAuthAuthenticatingApiHttpMessageHandler);
+    authenticationHandler = typeof(ElsaAuthAuthenticatingApiHttpMessageHandler);
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
@@ -47,7 +49,7 @@ else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase
     {
         configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
     });
-    authenticationHandler = typeof(Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers.OidcAuthenticatingApiHttpMessageHandler);
+    authenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler);
 }
 else
 {

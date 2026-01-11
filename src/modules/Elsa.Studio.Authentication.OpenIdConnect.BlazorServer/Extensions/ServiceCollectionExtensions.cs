@@ -1,6 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
@@ -124,9 +123,6 @@ public static class ServiceCollectionExtensions
 
         // Use an OIDC-aware unauthorized component that initiates a challenge.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<ChallengeToLogin>>();
-
-        // Shared auth infrastructure (e.g. delegating handlers).
-        services.AddAuthenticationInfrastructure();
         
         // HTTP client for token refresh requests with retry policy
         var retryPolicy = configureRetryPolicy?.Invoke() ?? DefaultRetryPolicy;
