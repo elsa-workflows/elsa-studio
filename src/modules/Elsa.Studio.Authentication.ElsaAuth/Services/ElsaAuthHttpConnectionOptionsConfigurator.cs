@@ -8,7 +8,7 @@ namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 /// ElsaAuth implementation of <see cref="IHttpConnectionOptionsConfigurator"/> that configures SignalR connections
 /// to use JWT access tokens.
 /// </summary>
-public class ElsaAuthHttpConnectionOptionsConfigurator(IAuthenticationProvider authenticationProvider) : IHttpConnectionOptionsConfigurator
+public class ElsaAuthHttpConnectionOptionsConfigurator(ITokenProvider tokenProvider) : IHttpConnectionOptionsConfigurator
 {
     /// <inheritdoc />
     public Task ConfigureAsync(HttpConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
@@ -16,7 +16,7 @@ public class ElsaAuthHttpConnectionOptionsConfigurator(IAuthenticationProvider a
         // Configure access token provider for SignalR connection
         connectionOptions.AccessTokenProvider = async () =>
         {
-            var token = await authenticationProvider.GetAccessTokenAsync(cancellationToken);
+            var token = await tokenProvider.GetAccessTokenAsync(cancellationToken);
             return token ?? string.Empty;
         };
 

@@ -3,7 +3,7 @@
 /// <summary>
 /// Defines a provider for retrieving authentication tokens.
 /// </summary>
-public interface IAuthenticationProvider
+public interface ITokenProvider
 {
     /// <summary>
     /// Asynchronously retrieves an access token for authentication purposes.

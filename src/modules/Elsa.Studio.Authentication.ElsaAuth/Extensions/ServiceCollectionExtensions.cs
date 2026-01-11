@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
             .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<Unauthorized>>()
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
-            .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>()
+            .AddScoped<ITokenProvider, JwtTokenProvider>()
             .AddSingleton<IJwtParser, JwtParser>()
             .AddScoped<IHttpConnectionOptionsConfigurator, ElsaAuthHttpConnectionOptionsConfigurator>();
 

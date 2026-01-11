@@ -17,7 +17,7 @@ public class ElsaAuthAuthenticatingApiHttpMessageHandler(IBlazorServiceAccessor 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var sp = blazorServiceAccessor.Services;
-        var authenticationProvider = sp.GetService<IAuthenticationProvider>();
+        var authenticationProvider = sp.GetService<ITokenProvider>();
 
         if (authenticationProvider == null)
             return await base.SendAsync(request, cancellationToken);

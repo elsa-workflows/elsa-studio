@@ -4,11 +4,11 @@ using Elsa.Studio.Contracts;
 namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 
 /// <inheritdoc />
-public class JwtAuthenticationProvider(
+public class JwtTokenProvider(
     IJwtAccessor jwtAccessor,
     IJwtParser jwtParser,
     ISingleFlightCoordinator refreshCoordinator,
-    IRefreshTokenService refreshTokenService) : IAuthenticationProvider
+    IRefreshTokenService refreshTokenService) : ITokenProvider
 {
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromMinutes(2);
 
