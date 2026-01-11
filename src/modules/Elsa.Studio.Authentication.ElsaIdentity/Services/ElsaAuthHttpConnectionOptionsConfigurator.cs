@@ -13,12 +13,8 @@ public class ElsaIdentityHttpConnectionOptionsConfigurator(ITokenProvider tokenP
     /// <inheritdoc />
     public Task ConfigureAsync(HttpConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
     {
-        // Configure access token provider for SignalR connection
-        connectionOptions.AccessTokenProvider = async () =>
-        {
-            var token = await tokenProvider.GetAccessTokenAsync(cancellationToken);
-            return token ?? string.Empty;
-        };
+        // Configure access token provider for SignalR connection.
+        connectionOptions.AccessTokenProvider = async () => await tokenProvider.GetAccessTokenAsync(cancellationToken);
 
         return Task.CompletedTask;
     }
