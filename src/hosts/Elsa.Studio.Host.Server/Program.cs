@@ -1,7 +1,7 @@
 using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
-using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
@@ -55,7 +55,7 @@ if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
     // Elsa Identity (username/password against Elsa backend) + login UI at /login.
     builder.Services.AddElsaAuth();
     builder.Services.AddElsaAuthUI();
-    authenticationHandler = typeof(Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers.ElsaAuthAuthenticatingApiHttpMessageHandler);
+    authenticationHandler = typeof(ElsaAuthAuthenticatingApiHttpMessageHandler);
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
@@ -96,8 +96,8 @@ var localizationConfig = new LocalizationConfig
     ConfigureLocalizationOptions = options =>
     {
         configuration.GetSection(LocalizationOptions.LocalizationSection).Bind(options);
-        options.SupportedCultures = new[] { options?.DefaultCulture ?? new LocalizationOptions().DefaultCulture }
-            .Concat(options?.SupportedCultures.Where(culture => culture != options?.DefaultCulture) ?? []).ToArray();
+        options.SupportedCultures = new[] { options.DefaultCulture }
+            .Concat(options.SupportedCultures.Where(culture => culture != options.DefaultCulture) ?? []).ToArray();
     }
 };
 

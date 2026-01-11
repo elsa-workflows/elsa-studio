@@ -1,4 +1,6 @@
+using Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers;
+using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
 using Elsa.Studio.Shell.Extensions;
@@ -20,6 +22,7 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 var configuration = builder.Configuration;
+var services = builder.Services;
 
 // Register root components.
 builder.RootComponents.Add<App>("#app");
@@ -39,13 +42,13 @@ Type authenticationHandler;
 if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
 {
     // Elsa Identity (username/password against Elsa backend) + login UI at /login.
-    Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions.ServiceCollectionExtensions.AddElsaAuth(builder.Services);
-    Elsa.Studio.Authentication.ElsaAuth.UI.Extensions.ServiceCollectionExtensions.AddElsaAuthUI(builder.Services);
+    services.AddElsaAuth();
+    services.AddElsaAuthUI();
     authenticationHandler = typeof(ElsaAuthAuthenticatingApiHttpMessageHandler);
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddElsaOidcAuthentication(options =>
+    services.AddElsaOidcAuthentication(options =>
     {
         configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
     });
@@ -68,16 +71,16 @@ var localizationConfig = new LocalizationConfig
     ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
 };
 
-builder.Services.AddCore();
-builder.Services.AddShell();
-builder.Services.AddRemoteBackend(backendApiConfig);
+services.AddCore();
+services.AddShell();
+services.AddRemoteBackend(backendApiConfig);
 
-builder.Services.AddDashboardModule();
-builder.Services.AddWorkflowsModule();
-builder.Services.AddLocalizationModule(localizationConfig);
+services.AddDashboardModule();
+services.AddWorkflowsModule();
+services.AddLocalizationModule(localizationConfig);
 
 // Replace some services with other implementations.
-builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
+services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
 // Build the application.
 var app = builder.Build();

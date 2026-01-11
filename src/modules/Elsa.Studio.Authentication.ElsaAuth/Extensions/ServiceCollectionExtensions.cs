@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Components;
@@ -22,15 +23,17 @@ public static class ServiceCollectionExtensions
         services
             .AddOptions()
             .AddAuthorizationCore()
+            .AddBlazoredLocalStorage()
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
             .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<Unauthorized>>()
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
             .AddScoped<IAuthenticationProvider, JwtAuthenticationProvider>()
+            .AddSingleton<IJwtParser, JwtParser>()
             .AddScoped<IHttpConnectionOptionsConfigurator, ElsaAuthHttpConnectionOptionsConfigurator>();
 
-            services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
-            services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();
-            
+        services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
+        services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();
+
         return services;
     }
 }

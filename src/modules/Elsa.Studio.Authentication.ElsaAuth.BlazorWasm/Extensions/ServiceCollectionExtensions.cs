@@ -1,8 +1,6 @@
-using Blazored.LocalStorage;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Extensions;
 using Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Services;
-using Elsa.Studio.Authentication.ElsaAuth.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Authentication.ElsaAuth.BlazorWasm.Extensions;
@@ -18,8 +16,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddElsaAuth(this IServiceCollection services)
     {
         services.AddElsaAuthCore();
-        services.AddBlazoredLocalStorage();
-        services.AddSingleton<IJwtParser, JwtParser>();
         services.AddScoped<IJwtAccessor, BlazorWasmJwtAccessor>();
 
         return services;

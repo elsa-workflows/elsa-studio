@@ -15,10 +15,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddElsaAuthUI(this IServiceCollection services)
     {
-        // Provide a default unauthorized UI for Elsa Identity.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<RedirectToLogin>>();
-
-        // Optional shell feature (adds app-bar login state UI).
         services.AddScoped<IFeature, LoginFeature>();
 
         return services;
