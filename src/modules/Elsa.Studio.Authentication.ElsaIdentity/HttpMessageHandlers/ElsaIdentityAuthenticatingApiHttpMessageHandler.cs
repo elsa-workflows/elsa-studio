@@ -26,8 +26,6 @@ public class ElsaIdentityAuthenticatingApiHttpMessageHandler(IBlazorServiceAcces
         var accessToken = await authenticationProvider.GetAccessTokenAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(accessToken))
-            request.Headers.Authorization = null;
-        else
             request.Headers.Authorization = new("Bearer", accessToken);
 
         return await base.SendAsync(request, cancellationToken);
