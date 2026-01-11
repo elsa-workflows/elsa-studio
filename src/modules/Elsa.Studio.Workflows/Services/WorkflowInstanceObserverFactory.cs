@@ -5,6 +5,7 @@ using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Models;
+using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 
@@ -49,13 +50,23 @@ public class WorkflowInstanceObserverFactory(
         // Set up the SignalR connection.
         var baseUrl = backendApiClientProvider.Url;
         var hubUrl = new Uri(baseUrl, "hubs/workflow-instance").ToString();
+        
+        // Store options reference for async configuration after connection build
+        HttpConnectionOptions? capturedOptions = null;
+        
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, options =>
             {
-                // Configure authentication via the provider-specific configurator
-                httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken).GetAwaiter().GetResult();
+                // Store reference to options for async configuration below
+                capturedOptions = options;
             })
             .Build();
+        
+        // Configure authentication asynchronously after connection is created
+        if (capturedOptions != null)
+        {
+            await httpConnectionOptionsConfigurator.ConfigureAsync(capturedOptions, cancellationToken);
+        }
 
         var observer = new SignalRWorkflowInstanceObserver(connection);
 
