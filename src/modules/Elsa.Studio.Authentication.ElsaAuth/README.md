@@ -21,7 +21,7 @@ This module provides the shared authentication services and abstractions for imp
 
 ### Contracts
 
-- **`IAuthenticationProvider`** - Provides access to authentication tokens and user information
+- **`ITokenProvider`** - Provides access to authentication tokens and user information
 - **`ICredentialsValidator`** - Validates username/password credentials against Elsa backend
 - **`IJwtAccessor`** - Platform-specific JWT token storage abstraction (implemented by hosting modules)
 - **`IJwtParser`** - Parses JWT tokens to extract claims and expiration

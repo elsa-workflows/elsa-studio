@@ -31,7 +31,7 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
 │  OpenIdConnect       │      │  ElsaAuth                │
 │  Provider            │      │  Provider                │
 │  ────────────────    │      │  ──────────────────────  │
-│  • ITokenProvider    │      │  • IAuthenticationProvider│
+│  • ITokenProvider    │      │  • ITokenProvider        │
 │  • OidcOptions       │      │  • JWT tokens            │
 │  • Server & WASM     │      │  • Server & WASM         │
 │  • Auto token refresh│      │  • Auto token refresh    │
