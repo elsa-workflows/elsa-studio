@@ -25,7 +25,7 @@ public class ElsaIdentityAuthenticatingApiHttpMessageHandler(IBlazorServiceAcces
         // Get access token (with automatic refresh if needed).
         var accessToken = await authenticationProvider.GetAccessTokenAsync(cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(accessToken))
+        if (!string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = new("Bearer", accessToken);
 
         return await base.SendAsync(request, cancellationToken);

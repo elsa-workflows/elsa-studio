@@ -8,7 +8,7 @@ namespace Elsa.Studio.Components;
 public partial class CodeEditorDialog
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
-    private StandaloneCodeEditor? _monacoEditor = null!;
+    private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
 

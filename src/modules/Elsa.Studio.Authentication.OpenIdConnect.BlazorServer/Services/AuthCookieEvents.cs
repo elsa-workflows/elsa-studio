@@ -83,13 +83,11 @@ public class AuthCookieEvents : CookieAuthenticationEvents
         {
             // Re-check expiry inside the lock (another request may have refreshed already)
             var currentExpiresAtString = tokens.FirstOrDefault(t => t.Name == "expires_at")?.Value;
-            if (DateTimeOffset.TryParse(currentExpiresAtString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var currentExpiresAt))
+            if (DateTimeOffset.TryParse(currentExpiresAtString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var currentExpiresAt) &&
+                currentExpiresAt > DateTimeOffset.UtcNow.Add(TokenRefreshService.DefaultRefreshSkew))
             {
-                if (currentExpiresAt > DateTimeOffset.UtcNow.Add(TokenRefreshService.DefaultRefreshSkew))
-                {
-                    didRefresh = true; // Already refreshed by another request
-                    return 0;
-                }
+                didRefresh = true; // Already refreshed by another request
+                return 0;
             }
 
             // Use the shared token refresh service
