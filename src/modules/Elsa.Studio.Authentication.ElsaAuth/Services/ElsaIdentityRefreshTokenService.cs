@@ -22,7 +22,7 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
 
         // Setup request to get new tokens.
         var url = remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
-        var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+        using var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
         refreshRequestMessage.Headers.Authorization = new("Bearer", refreshToken);
 
         // IMPORTANT: Use an anonymous HttpClient (no AuthenticatingApiHttpMessageHandler) to avoid recursion.

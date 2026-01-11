@@ -3,33 +3,47 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
-namespace Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Services;
+namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 
-/// <inheritdoc />
-public class BlazorServerJwtParser : IJwtParser
+/// <summary>
+/// Default implementation of <see cref="IJwtParser"/> that parses JWT tokens and extracts claims.
+/// </summary>
+public class JwtParser : IJwtParser
 {
     /// <inheritdoc />
     public IEnumerable<Claim> Parse(string jwt)
     {
         if (string.IsNullOrWhiteSpace(jwt))
-            return Array.Empty<Claim>();
+            return [];
 
         var parts = jwt.Split('.', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2)
-            return Array.Empty<Claim>();
+            return [];
 
-        var payloadJson = DecodeBase64UrlToString(parts[1]);
+        JsonDocument document;
 
-        using var document = JsonDocument.Parse(payloadJson);
-        if (document.RootElement.ValueKind != JsonValueKind.Object)
-            return Array.Empty<Claim>();
+        try
+        {
+            var payloadJson = DecodeBase64UrlToString(parts[1]);
+            document = JsonDocument.Parse(payloadJson);
+        }
+        catch
+        {
+            return [];
+        }
 
-        var claims = new List<Claim>();
+        using (document)
+        {
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                return [];
 
-        foreach (var property in document.RootElement.EnumerateObject())
-            AddClaimsFromJson(property.Name, property.Value, claims);
+            var claims = new List<Claim>();
 
-        return claims;
+            foreach (var property in document.RootElement.EnumerateObject())
+                AddClaimsFromJson(property.Name, property.Value, claims);
+
+            return claims;
+        }
     }
 
     private static void AddClaimsFromJson(string type, JsonElement value, ICollection<Claim> claims)
@@ -47,25 +61,25 @@ public class BlazorServerJwtParser : IJwtParser
 
             case JsonValueKind.Object:
                 // For nested objects, store the raw JSON.
-                claims.Add(new Claim(type, value.GetRawText(), ClaimValueTypes.String));
+                claims.Add(new(type, value.GetRawText(), ClaimValueTypes.String));
                 return;
 
             case JsonValueKind.True:
             case JsonValueKind.False:
-                claims.Add(new Claim(type, value.GetBoolean() ? "true" : "false", ClaimValueTypes.Boolean));
+                claims.Add(new(type, value.GetBoolean() ? "true" : "false", ClaimValueTypes.Boolean));
                 return;
 
             case JsonValueKind.Number:
                 // Preserve as string; callers can interpret.
-                claims.Add(new Claim(type, value.GetRawText(), ClaimValueTypes.String));
+                claims.Add(new(type, value.GetRawText(), ClaimValueTypes.String));
                 return;
 
             case JsonValueKind.String:
-                claims.Add(new Claim(type, value.GetString() ?? string.Empty, ClaimValueTypes.String));
+                claims.Add(new(type, value.GetString() ?? string.Empty, ClaimValueTypes.String));
                 return;
 
             default:
-                claims.Add(new Claim(type, value.ToString(), ClaimValueTypes.String));
+                claims.Add(new(type, value.ToString(), ClaimValueTypes.String));
                 return;
         }
     }

@@ -7,19 +7,8 @@ namespace Elsa.Studio.Authentication.ElsaAuth.Services;
 /// Abstract base class for JWT token accessor implementations that use local storage.
 /// Provides common functionality for reading, writing, and clearing tokens.
 /// </summary>
-public abstract class JwtAccessorBase : IJwtAccessor
+public abstract class JwtAccessorBase(ILocalStorageService localStorageService) : IJwtAccessor
 {
-    private readonly ILocalStorageService _localStorageService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="JwtAccessorBase"/> class.
-    /// </summary>
-    /// <param name="localStorageService">The local storage service.</param>
-    protected JwtAccessorBase(ILocalStorageService localStorageService)
-    {
-        _localStorageService = localStorageService;
-    }
-
     /// <summary>
     /// Determines whether storage operations can be performed.
     /// Override this method to implement platform-specific checks (e.g., prerendering detection).
@@ -33,7 +22,7 @@ public abstract class JwtAccessorBase : IJwtAccessor
         if (!CanAccessStorage())
             return null;
 
-        return await _localStorageService.GetItemAsync<string>(name);
+        return await localStorageService.GetItemAsync<string>(name);
     }
 
     /// <inheritdoc />
@@ -42,7 +31,7 @@ public abstract class JwtAccessorBase : IJwtAccessor
         if (!CanAccessStorage())
             return;
 
-        await _localStorageService.SetItemAsStringAsync(name, token);
+        await localStorageService.SetItemAsStringAsync(name, token);
     }
 
     /// <inheritdoc />
@@ -51,6 +40,6 @@ public abstract class JwtAccessorBase : IJwtAccessor
         if (!CanAccessStorage())
             return;
 
-        await _localStorageService.RemoveItemAsync(name);
+        await localStorageService.RemoveItemAsync(name);
     }
 }

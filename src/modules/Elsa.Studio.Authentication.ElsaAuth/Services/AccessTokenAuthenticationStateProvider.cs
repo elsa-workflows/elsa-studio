@@ -19,8 +19,7 @@ public class AccessTokenAuthenticationStateProvider(
     /// <inheritdoc />
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await jwtAccessor.ReadTokenAsync(TokenNames.IdToken)
-            ?? await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        var token = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
 
         if (string.IsNullOrWhiteSpace(token))
             return new(new(new ClaimsIdentity()));

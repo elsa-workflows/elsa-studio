@@ -7,21 +7,10 @@ namespace Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Services;
 /// <summary>
 /// Blazor Server implementation of JWT accessor with prerendering support.
 /// </summary>
-public class BlazorServerJwtAccessor : JwtAccessorBase
+public class BlazorServerJwtAccessor(IHttpContextAccessor httpContextAccessor, ILocalStorageService localStorageService) : JwtAccessorBase(localStorageService)
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BlazorServerJwtAccessor"/> class.
-    /// </summary>
-    public BlazorServerJwtAccessor(IHttpContextAccessor httpContextAccessor, ILocalStorageService localStorageService)
-        : base(localStorageService)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
     /// <inheritdoc />
     protected override bool CanAccessStorage() => !IsPrerendering();
 
-    private bool IsPrerendering() => _httpContextAccessor.HttpContext?.Response.HasStarted == false;
+    private bool IsPrerendering() => httpContextAccessor.HttpContext?.Response.HasStarted == false;
 }

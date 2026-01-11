@@ -1,15 +1,11 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Authentication.Abstractions.Extensions;
 using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
-using Elsa.Studio.Authentication.ElsaAuth.Models;
 using Elsa.Studio.Authentication.ElsaAuth.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Authentication.ElsaAuth.Extensions;
 
@@ -26,7 +22,6 @@ public static class ServiceCollectionExtensions
         services
             .AddOptions()
             .AddAuthorizationCore()
-            .AddAuthenticationInfrastructure()
             .AddScoped<AuthenticationStateProvider, AccessTokenAuthenticationStateProvider>()
             .AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<Unauthorized>>()
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
@@ -35,10 +30,7 @@ public static class ServiceCollectionExtensions
 
             services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
             services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();
-
-        // Default token claims mapping.
-        services.TryAddSingleton<IConfigureOptions<IdentityTokenOptions>, DefaultIdentityTokenOptionsSetup>();
-
+            
         return services;
     }
 }

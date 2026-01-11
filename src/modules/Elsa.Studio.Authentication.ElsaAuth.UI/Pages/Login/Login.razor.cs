@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaAuth.Contracts;
 using Elsa.Studio.Authentication.ElsaAuth.Services;
 using Elsa.Studio.Contracts;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -14,6 +15,7 @@ namespace Elsa.Studio.Authentication.ElsaAuth.UI.Pages.Login;
 /// The login page.
 /// </summary>
 [AllowAnonymous]
+[UsedImplicitly]
 public partial class Login
 {
     [Inject] private IJwtAccessor JwtAccessor { get; set; } = null!;

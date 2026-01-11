@@ -4,144 +4,194 @@ Shared abstractions for authentication providers in Elsa Studio.
 
 ## Overview
 
-This package provides common interfaces and base classes that can be shared across different authentication provider implementations (OIDC, OAuth2, JWT, SAML, etc.). It promotes consistency and reusability across authentication modules.
+This package provides common interfaces that can be shared across different authentication provider implementations. It contains two key abstractions:
+
+1. **IHttpConnectionOptionsConfigurator** - For configuring SignalR connections with authentication
+2. **UnauthorizedComponentProvider<TComponent>** - A generic component provider for rendering unauthorized UI
 
 ## Purpose
 
 The abstractions package allows:
 
-1. **Multiple Authentication Providers**: Support various authentication mechanisms without duplicating code
-2. **Consistent Patterns**: Provide a common token access pattern across all providers
+1. **SignalR Authentication**: Provide a consistent way for authentication providers to configure SignalR connections
+2. **Unauthorized UI Rendering**: Simplify registration of custom unauthorized components
 3. **Extensibility**: Make it easy to add new authentication providers
 4. **Decoupling**: Keep provider-specific code separate while maintaining shared contracts
 
 ## Abstractions
 
-### ITokenAccessor
+### IHttpConnectionOptionsConfigurator
 
-The core abstraction for retrieving authentication tokens from any authentication provider.
+Configures HTTP connection options for SignalR connections based on the active authentication provider.
 
 ```csharp
-public interface ITokenAccessor
+public interface IHttpConnectionOptionsConfigurator
 {
-    Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default);
-    Task<string?> GetIdTokenAsync(CancellationToken cancellationToken = default);
-    Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Configures the HTTP connection options for a SignalR connection.
+    /// </summary>
+    /// <param name="options">The HTTP connection options to configure.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task ConfigureAsync(HttpConnectionOptions options, CancellationToken cancellationToken = default);
 }
 ```
 
-**Usage**: Authentication providers implement this interface to provide access to tokens stored in their specific context (HTTP context, browser storage, etc.).
+**Purpose**: Different authentication providers need to configure SignalR connections differently:
+- OIDC providers set access token providers with specific scopes
+- JWT-based providers set authorization headers
+- Cookie-based providers configure cookie handling
 
-**Design**: Uses explicit methods instead of string-based token names for type safety and discoverability.
+**Usage**: Each authentication provider implements this interface to configure SignalR connections appropriately. The configurator is injected into services that need to establish SignalR connections (e.g., `WorkflowInstanceObserverFactory`).
 
-### AuthenticationOptions
+### UnauthorizedComponentProvider<TComponent>
 
-A base class for authentication configuration that can be extended by specific providers.
+A generic component provider that renders a specific component type when users are unauthorized.
 
 ```csharp
-public abstract class AuthenticationOptions
+public class UnauthorizedComponentProvider<TComponent> : IUnauthorizedComponentProvider 
+    where TComponent : IComponent
 {
-    public string[] Scopes { get; set; }
-    public bool RequireHttpsMetadata { get; set; }
+    public RenderFragment GetUnauthorizedComponent() => builder => builder.CreateComponent<TComponent>();
 }
 ```
 
-**Usage**: Provider-specific options classes inherit from this to add their own configuration properties.
+**Purpose**: Eliminates the need to create separate provider classes for each unauthorized component.
+
+**Usage**: Authentication modules register this generic provider with their specific unauthorized component type (e.g., login page, redirect component, challenge component).
 
 ## Example: Implementing a New Authentication Provider
 
-### 1. Create Provider-Specific Options
-
-```csharp
-using Elsa.Studio.Authentication.Abstractions.Models;
-
-public class CustomAuthOptions : AuthenticationOptions
-{
-    public string Authority { get; set; }
-    public string ClientId { get; set; }
-    // Add provider-specific properties
-}
-```
-
-### 2. Implement ITokenAccessor
+### 1. Implement IHttpConnectionOptionsConfigurator
 
 ```csharp
 using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Microsoft.AspNetCore.Http.Connections.Client;
 
-public class CustomTokenAccessor : ITokenAccessor
+public class CustomAuthHttpConnectionOptionsConfigurator : IHttpConnectionOptionsConfigurator
 {
-    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
+    private readonly ICustomAuthenticationProvider _authenticationProvider;
+
+    public CustomAuthHttpConnectionOptionsConfigurator(ICustomAuthenticationProvider authenticationProvider)
     {
-        // Retrieve access token from your provider's storage/context
-        return await GetAccessTokenFromCustomSource();
+        _authenticationProvider = authenticationProvider;
     }
 
-    public async Task<string?> GetIdTokenAsync(CancellationToken cancellationToken)
+    public Task ConfigureAsync(HttpConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
     {
-        // Retrieve ID token if supported
-        return await GetIdTokenFromCustomSource();
-    }
+        // Configure access token provider for SignalR connection
+        connectionOptions.AccessTokenProvider = async () =>
+        {
+            var token = await _authenticationProvider.GetAccessTokenAsync(cancellationToken);
+            return token ?? string.Empty;
+        };
 
-    public async Task<string?> GetRefreshTokenAsync(CancellationToken cancellationToken)
-    {
-        // Retrieve refresh token if supported
-        return await GetRefreshTokenFromCustomSource();
+        return Task.CompletedTask;
     }
 }
 ```
 
-### 3. Implement IAuthenticationProvider
+### 2. Create an Unauthorized Component
 
 ```csharp
+using Microsoft.AspNetCore.Components;
+
+public class CustomUnauthorizedPage : ComponentBase
+{
+    protected override void OnInitialized()
+    {
+        // Redirect to login, show message, etc.
+    }
+}
+```
+
+### 3. Register Services
+
+```csharp
+using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Authentication.Abstractions.Contracts;
 
-public class CustomAuthenticationProvider : IAuthenticationProvider
-{
-    private readonly ITokenAccessor _tokenAccessor;
-
-    public CustomAuthenticationProvider(ITokenAccessor tokenAccessor)
-    {
-        _tokenAccessor = tokenAccessor;
-    }
-
-    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
-    {
-        return await _tokenAccessor.GetAccessTokenAsync(cancellationToken);
-    }
-
-    public Task<string?> GetAccessTokenAsync(IEnumerable<string> scopes, CancellationToken cancellationToken)
-    {
-        // If your provider doesn't support scope-specific tokens, delegate to the default method
-        return GetAccessTokenAsync(cancellationToken);
-    }
-}
-```
-
-### 4. Register Services
-
-```csharp
-services.AddScoped<ITokenAccessor, CustomTokenAccessor>();
-services.AddScoped<IAuthenticationProvider, CustomAuthenticationProvider>();
+services.AddScoped<IHttpConnectionOptionsConfigurator, CustomAuthHttpConnectionOptionsConfigurator>();
+services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<CustomUnauthorizedPage>>();
 ```
 
 ## Existing Implementations
 
 The following authentication providers use these abstractions:
 
-- **Elsa.Studio.Authentication.OpenIdConnect** - OpenID Connect authentication
-  - `IOidcTokenAccessor : ITokenAccessor` - OIDC-specific token accessor
-  - `OidcOptions : AuthenticationOptions` - OIDC configuration
-  - Implementations for Blazor Server and WebAssembly
+### OpenID Connect (OIDC)
+- **IHttpConnectionOptionsConfigurator**: `OidcHttpConnectionOptionsConfigurator` - Configures SignalR with OIDC access tokens
+- **IUnauthorizedComponentProvider**: 
+  - `UnauthorizedComponentProvider<ChallengeToLogin>` (Blazor Server)
+  - `UnauthorizedComponentProvider<NavigateToLogin>` (Blazor WebAssembly)
+
+### Elsa Auth
+- **IHttpConnectionOptionsConfigurator**: `ElsaAuthHttpConnectionOptionsConfigurator` - Configures SignalR with JWT access tokens
+- **IUnauthorizedComponentProvider**: `UnauthorizedComponentProvider<Unauthorized>` or `UnauthorizedComponentProvider<RedirectToLogin>`
+
+### Login Module
+- **IHttpConnectionOptionsConfigurator**: `LoginAuthHttpConnectionOptionsConfigurator` - Uses authentication provider manager
+- **IUnauthorizedComponentProvider**: `UnauthorizedComponentProvider<RedirectToLogin>`
+
+## How SignalR Configuration Works
+
+1. **Service Registration**: Authentication modules register their `IHttpConnectionOptionsConfigurator` implementation
+2. **SignalR Connection**: When a SignalR connection is needed (e.g., for real-time workflow updates), services inject the configurator
+3. **Configuration**: The configurator sets up the connection options with appropriate authentication tokens
+4. **Connection**: SignalR establishes the connection with the configured authentication
+
+Example from `WorkflowInstanceObserverFactory`:
+
+```csharp
+public class WorkflowInstanceObserverFactory(
+    IHttpConnectionOptionsConfigurator httpConnectionOptionsConfigurator) : IWorkflowInstanceObserverFactory
+{
+    public async Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context)
+    {
+        var connection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, async options =>
+            {
+                await httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken);
+            })
+            .Build();
+        // ...
+    }
+}
+```
+
+## How Unauthorized Component Rendering Works
+
+1. **Service Registration**: Authentication modules register their unauthorized component using `UnauthorizedComponentProvider<TComponent>`
+2. **Authorization Check**: The app layout (e.g., `MainLayout.razor`) checks if the user is authorized
+3. **Component Rendering**: If unauthorized, the layout retrieves the component from `IUnauthorizedComponentProvider.GetUnauthorizedComponent()`
+4. **Display**: The unauthorized component is rendered (typically showing a login page or redirecting)
+
+## Integration with Elsa Studio Core
+
+These abstractions work alongside the authentication infrastructure defined in `Elsa.Studio.Core`:
+
+```
+Elsa.Studio.Core
+├── IUnauthorizedComponentProvider  ← Interface for unauthorized UI
+│
+Elsa.Studio.Authentication.Abstractions
+├── IHttpConnectionOptionsConfigurator     ← SignalR connection configuration
+└── UnauthorizedComponentProvider<T>       ← Generic unauthorized component implementation
+```
+
+## Dependencies
+
+This package references:
+- **Elsa.Studio.Core** - Core abstractions and contracts
+- **Microsoft.AspNetCore.SignalR.Client** - SignalR connection types
 
 ## Design Philosophy
 
-### Why Abstractions?
+### Why These Abstractions?
 
-1. **Separation of Concerns**: Core token access logic is separated from provider-specific implementations
-2. **Testability**: Easy to mock token accessors for unit testing
-3. **Flexibility**: New authentication providers can be added without modifying existing code
-4. **Future-Proof**: Changes to one provider don't affect others
+1. **SignalR Configuration**: All authentication providers need to configure SignalR connections, so a shared abstraction prevents code duplication
+2. **Generic Component Provider**: Using generics eliminates boilerplate code for each unauthorized component
+3. **Minimal Surface Area**: We only abstract what's truly common across providers
+4. **Focused Purpose**: Each abstraction has a single, clear responsibility
 
 ### Why Not More Abstractions?
 
@@ -150,35 +200,7 @@ We intentionally keep the abstraction layer minimal:
 - Different authentication providers have significantly different flows
 - Over-abstraction can make implementations harder to understand
 - Provider-specific optimizations should not be constrained by abstractions
-- The `IAuthenticationProvider` interface in `Elsa.Studio.Core` is already very flexible
-
-## Integration with Elsa Studio Core
-
-These abstractions work alongside the existing authentication infrastructure:
-
-```
-Elsa.Studio.Core
-├── IAuthenticationProvider          ← Called by Elsa Studio
-│   └── Implemented by providers     ← Uses ITokenAccessor internally
-│
-Elsa.Studio.Authentication.Abstractions
-├── ITokenAccessor                   ← Provider-agnostic token access
-└── AuthenticationOptions            ← Shared configuration
-```
-
-## Relationship with IAuthenticationProviderManager
-
-The `IAuthenticationProviderManager` (from `Elsa.Studio.Core`) iterates through registered `IAuthenticationProvider` implementations to find a valid token. This allows multiple authentication providers to coexist, with the manager selecting the first one that returns a token.
-
-## Future Extensions
-
-Potential additions to the abstractions:
-
-- `ITokenRefreshHandler` - For providers that support token refresh
-- `IAuthenticationStateProvider` - For providers that need custom authentication state
-- `IAuthenticationEventHandler` - For handling sign-in/sign-out events
-
-These would be added only when multiple providers require the same pattern.
+- Token acquisition patterns vary too much to abstract effectively
 
 ## License
 
