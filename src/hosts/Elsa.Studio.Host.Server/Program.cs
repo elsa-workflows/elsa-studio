@@ -12,6 +12,9 @@ using Elsa.Studio.Host.Server;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
+using Elsa.Studio.Login.BlazorServer.Extensions;
+using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
@@ -66,6 +69,12 @@ else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase
         // options.GetClaimsFromUserInfoEndpoint = false;
     });
     authenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler);
+}
+else if (authProvider.Equals("ElsaLogin", StringComparison.OrdinalIgnoreCase))
+{
+    // Legacy Elsa Login (username/password against Elsa backend) + login UI at /login.
+    builder.Services.AddLoginModule().UseElsaIdentity();
+    authenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
 }
 else
 {
