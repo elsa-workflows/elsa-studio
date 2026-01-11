@@ -379,7 +379,7 @@ builder.Services.Configure<BackendApiScopeOptions>(options =>
 
 - **`Elsa.Studio.Authentication.OpenIdConnect`** - Shared OIDC abstractions and models
 - **`Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm`** - WebAssembly alternative to this module
-- **`Elsa.Studio.Authentication.ElsaAuth.BlazorServer`** - Elsa Identity (JWT) alternative
+- **`Elsa.Studio.Authentication.ElsaIdentity.BlazorServer`** - Elsa Identity (JWT) alternative
 
 ## See Also
 

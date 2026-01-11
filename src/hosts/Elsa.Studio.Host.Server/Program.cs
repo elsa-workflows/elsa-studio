@@ -1,6 +1,6 @@
-using Elsa.Studio.Authentication.ElsaAuth.BlazorServer.Extensions;
-using Elsa.Studio.Authentication.ElsaAuth.HttpMessageHandlers;
-using Elsa.Studio.Authentication.ElsaAuth.UI.Extensions;
+using Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.Extensions;
+using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
+using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
@@ -12,8 +12,6 @@ using Elsa.Studio.Host.Server;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
-using Elsa.Studio.Localization.Time;
-using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
@@ -41,19 +39,19 @@ builder.Services.AddServerSideBlazor(options =>
 });
 
 // Choose authentication provider.
-// Supported values: "OpenIdConnect" or "ElsaAuth" (default).
+// Supported values: "OpenIdConnect" or "ElsaIdentity" (default).
 var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
-    authProvider = "ElsaAuth";
+    authProvider = "ElsaIdentity";
 
 Type authenticationHandler;
 
-if (authProvider.Equals("ElsaAuth", StringComparison.OrdinalIgnoreCase))
+if (authProvider.Equals("ElsaIdentity", StringComparison.OrdinalIgnoreCase))
 {
     // Elsa Identity (username/password against Elsa backend) + login UI at /login.
-    builder.Services.AddElsaAuth();
-    builder.Services.AddElsaAuthUI();
-    authenticationHandler = typeof(ElsaAuthAuthenticatingApiHttpMessageHandler);
+    builder.Services.AddElsaIdentity();
+    builder.Services.AddElsaIdentityUI();
+    authenticationHandler = typeof(ElsaIdentityAuthenticatingApiHttpMessageHandler);
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
@@ -71,7 +69,7 @@ else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase
 }
 else
 {
-    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaAuth'.");
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaIdentity'.");
 }
 
 // Register shell services and modules.

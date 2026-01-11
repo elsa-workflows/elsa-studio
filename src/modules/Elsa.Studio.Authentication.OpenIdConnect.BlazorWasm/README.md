@@ -458,7 +458,7 @@ Blazor WebAssembly makes cross-origin requests from the browser:
 
 - **`Elsa.Studio.Authentication.OpenIdConnect`** - Shared OIDC abstractions and models
 - **`Elsa.Studio.Authentication.OpenIdConnect.BlazorServer`** - Server alternative to this module
-- **`Elsa.Studio.Authentication.ElsaAuth.BlazorWasm`** - Elsa Identity (JWT) alternative
+- **`Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm`** - Elsa Identity (JWT) alternative
 
 ## See Also
 

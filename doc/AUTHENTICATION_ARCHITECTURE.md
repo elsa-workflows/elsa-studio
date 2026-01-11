@@ -28,7 +28,7 @@ Elsa Studio supports multiple authentication providers through a flexible, exten
            ┌───────────────┴───────────────┐
            ▼                               ▼
 ┌──────────────────────┐      ┌──────────────────────────┐
-│  OpenIdConnect       │      │  ElsaAuth                │
+│  OpenIdConnect       │      │  ElsaIdentity                │
 │  Provider            │      │  Provider                │
 │  ────────────────    │      │  ──────────────────────  │
 │  • ITokenProvider    │      │  • ITokenProvider        │
@@ -149,13 +149,13 @@ Uses Microsoft's built-in `Microsoft.AspNetCore.Components.WebAssembly.Authentic
 - Automatic token refresh before expiry
 - Secure token storage in browser
 
-## ElsaAuth Provider
+## ElsaIdentity Provider
 
 For Elsa Identity (username/password authentication against Elsa backend).
 
 ### Architecture
 
-The ElsaAuth provider uses JWT tokens stored in browser storage (WASM) or server-side session (Server), with automatic token refresh:
+The ElsaIdentity provider uses JWT tokens stored in browser storage (WASM) or server-side session (Server), with automatic token refresh:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -229,12 +229,12 @@ public class JwtAuthenticationProvider : IAuthenticationProvider
 
 ```csharp
 // Blazor Server
-builder.Services.AddElsaAuth();
-builder.Services.AddElsaAuthUI();
+builder.Services.AddElsaIdentity();
+builder.Services.AddElsaIdentityUI();
 
 // Blazor WASM
-builder.Services.AddElsaAuth();
-builder.Services.AddElsaAuthUI();
+builder.Services.AddElsaIdentity();
+builder.Services.AddElsaIdentityUI();
 ```
 
 ## Integration Points
@@ -290,7 +290,7 @@ public class WorkflowInstanceObserverFactory(
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, options =>
             {
-                // Delegates to the provider-specific configurator (e.g., OIDC, ElsaAuth)
+                // Delegates to the provider-specific configurator (e.g., OIDC, ElsaIdentity)
                 httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken).GetAwaiter().GetResult();
             })
             .Build();
@@ -301,7 +301,7 @@ public class WorkflowInstanceObserverFactory(
 
 This design allows different authentication providers to configure SignalR connections appropriately:
 - **OIDC**: Sets `AccessTokenProvider` to return tokens from `ITokenProvider`
-- **ElsaAuth**: Could set authorization headers or cookies
+- **ElsaIdentity**: Could set authorization headers or cookies
 - **Custom providers**: Implement their own configuration logic
 
 ## Security Considerations
@@ -321,14 +321,14 @@ This design allows different authentication providers to configure SignalR conne
 - ✅ Automatic token expiry and renewal
 - ✅ Access tokens available, refresh tokens hidden from app code
 
-### Blazor Server (ElsaAuth)
+### Blazor Server (ElsaIdentity)
 
 - ✅ JWT tokens stored server-side in session
 - ✅ Automatic token refresh via `JwtAuthenticationProvider` (2 min skew)
 - ✅ Single-flight coordination prevents concurrent refresh requests
 - ✅ Tokens cleared on refresh failure
 
-### Blazor WebAssembly (ElsaAuth)
+### Blazor WebAssembly (ElsaIdentity)
 
 - ⚠️ JWT tokens stored in browser LocalStorage
 - ✅ Automatic token refresh via `JwtAuthenticationProvider` (2 min skew)
@@ -381,13 +381,13 @@ HttpMessageHandlers/
 └── AuthenticatingApiHttpMessageHandler.cs  # Adds auth headers to API requests
 ```
 
-### Elsa.Studio.Authentication.ElsaAuth
+### Elsa.Studio.Authentication.ElsaIdentity
 
 ```
 Services/
 ├── JwtAuthenticationProvider.cs            # IAuthenticationProvider with auto-refresh
 ├── ElsaIdentityRefreshTokenService.cs      # Calls Elsa backend refresh endpoint
-├── ElsaAuthHttpConnectionOptionsConfigurator.cs  # SignalR connection auth config
+├── ElsaIdentityHttpConnectionOptionsConfigurator.cs  # SignalR connection auth config
 ├── JwtAccessorBase.cs                      # Base class for token storage
 └── AccessTokenAuthenticationStateProvider.cs  # Blazor auth state
 

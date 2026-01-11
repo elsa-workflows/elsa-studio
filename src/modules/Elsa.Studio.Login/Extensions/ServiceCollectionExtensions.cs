@@ -15,6 +15,7 @@ namespace Elsa.Studio.Login.Extensions;
 /// <summary>
 /// Contains extension methods for the <see cref="IServiceCollection"/> interface.
 /// </summary>
+[Obsolete("Use ElsaIdentity instead.")]
 public static class ServiceCollectionExtensions
 {
     /// <summary>

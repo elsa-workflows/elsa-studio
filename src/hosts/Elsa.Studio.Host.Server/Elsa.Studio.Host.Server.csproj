@@ -14,11 +14,10 @@
         <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
         <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorServer\Elsa.Studio.Core.BlazorServer.csproj" />
         <ProjectReference Include="..\..\framework\Elsa.Studio.Translations\Elsa.Studio.Translations.csproj" />
-
-        <!-- Auth providers (select via configuration). -->
+        
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.OpenIdConnect.BlazorServer\Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.csproj" />
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaAuth.BlazorServer\Elsa.Studio.Authentication.ElsaAuth.BlazorServer.csproj" />
-        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaAuth.UI\Elsa.Studio.Authentication.ElsaAuth.UI.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.UI\Elsa.Studio.Authentication.ElsaIdentity.UI.csproj" />
 
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Labels\Elsa.Studio.Labels.csproj" />

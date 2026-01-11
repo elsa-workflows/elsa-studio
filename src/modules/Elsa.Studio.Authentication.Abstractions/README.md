@@ -124,11 +124,11 @@ The following authentication providers use these abstractions:
   - `UnauthorizedComponentProvider<ChallengeToLogin>` (Blazor Server)
   - `UnauthorizedComponentProvider<NavigateToLogin>` (Blazor WebAssembly)
 
-### Elsa Auth
-- **IHttpConnectionOptionsConfigurator**: `ElsaAuthHttpConnectionOptionsConfigurator` - Configures SignalR with JWT access tokens
+### Elsa Identity
+- **IHttpConnectionOptionsConfigurator**: `ElsaIdentityHttpConnectionOptionsConfigurator` - Configures SignalR with JWT access tokens
 - **IUnauthorizedComponentProvider**: `UnauthorizedComponentProvider<Unauthorized>` or `UnauthorizedComponentProvider<RedirectToLogin>`
 
-### Login Module
+### Login Module (deprecated)
 - **IHttpConnectionOptionsConfigurator**: `LoginAuthHttpConnectionOptionsConfigurator` - Uses authentication provider manager
 - **IUnauthorizedComponentProvider**: `UnauthorizedComponentProvider<RedirectToLogin>`
 
