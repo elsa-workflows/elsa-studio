@@ -11,40 +11,25 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// <summary>
 /// Blazor Server implementation of <see cref="ITokenProvider"/> that retrieves tokens from the authenticated HTTP context.
 /// </summary>
-public class ServerTokenProvider : ITokenProvider
+public class ServerTokenProvider(
+    IHttpContextAccessor httpContextAccessor,
+    ISingleFlightCoordinator refreshCoordinator,
+    OidcOptions oidcOptions,
+    TokenRefreshService tokenRefreshService)
+    : ITokenProvider
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ISingleFlightCoordinator _refreshCoordinator;
-    private readonly OidcOptions _oidcOptions;
-    private readonly TokenRefreshService _tokenRefreshService;
-    
     // Simple in-memory cache for backend API tokens (when different scopes are needed)
     private static readonly ConcurrentDictionary<string, CachedToken> TokenCache = new();
-
-    /// <summary>
-    /// Creates a new instance.
-    /// </summary>
-    public ServerTokenProvider(
-        IHttpContextAccessor httpContextAccessor,
-        ISingleFlightCoordinator refreshCoordinator,
-        OidcOptions oidcOptions,
-        TokenRefreshService tokenRefreshService)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _refreshCoordinator = refreshCoordinator;
-        _oidcOptions = oidcOptions;
-        _tokenRefreshService = tokenRefreshService;
-    }
 
     /// <inheritdoc />
     public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
+        var httpContext = httpContextAccessor.HttpContext;
 
         if (httpContext?.User.Identity?.IsAuthenticated != true)
             return null;
 
-        var backendScopes = _oidcOptions.BackendApiScopes?
+        var backendScopes = oidcOptions.BackendApiScopes?
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToArray() ?? [];
         
@@ -82,7 +67,7 @@ public class ServerTokenProvider : ITokenProvider
 
         string? newToken = null;
 
-        await _refreshCoordinator.RunAsync(async ct =>
+        await refreshCoordinator.RunAsync(async ct =>
         {
             // Re-check cache after lock
             if (TokenCache.TryGetValue(cacheKey, out var cachedAfterLock) && cachedAfterLock.ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
@@ -91,7 +76,7 @@ public class ServerTokenProvider : ITokenProvider
                 return 0;
             }
 
-            var result = await _tokenRefreshService.RefreshTokenAsync(refreshToken, scopes, ct);
+            var result = await tokenRefreshService.RefreshTokenAsync(refreshToken, scopes, ct);
 
             if (!result.Success)
                 return 0;

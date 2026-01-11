@@ -10,7 +10,10 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// Handles the core OAuth2 refresh token grant flow.
 /// This is shared between session token refresh and backend API token acquisition.
 /// </summary>
-public class TokenRefreshService
+public class TokenRefreshService(
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<OpenIdConnectOptions> oidcOptionsMonitor,
+    ILogger<TokenRefreshService> logger)
 {
     /// <summary>
     /// The name of the HTTP client used for token refresh requests (no auth headers).
@@ -21,23 +24,6 @@ public class TokenRefreshService
     /// Default time before token expiry to attempt refresh.
     /// </summary>
     public static readonly TimeSpan DefaultRefreshSkew = TimeSpan.FromMinutes(2);
-    
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IOptionsMonitor<OpenIdConnectOptions> _oidcOptionsMonitor;
-    private readonly ILogger<TokenRefreshService> _logger;
-
-    /// <summary>
-    /// Creates a new instance.
-    /// </summary>
-    public TokenRefreshService(
-        IHttpClientFactory httpClientFactory,
-        IOptionsMonitor<OpenIdConnectOptions> oidcOptionsMonitor,
-        ILogger<TokenRefreshService> logger)
-    {
-        _httpClientFactory = httpClientFactory;
-        _oidcOptionsMonitor = oidcOptionsMonitor;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Performs a token refresh using the OAuth2 refresh_token grant.
@@ -51,8 +37,7 @@ public class TokenRefreshService
         string[]? scopes = null,
         CancellationToken cancellationToken = default)
     {
-        var oidcOptions = _oidcOptionsMonitor.Get(OpenIdConnectDefaults.AuthenticationScheme);
-        
+        var oidcOptions = oidcOptionsMonitor.Get(OpenIdConnectDefaults.AuthenticationScheme);
         var clientId = oidcOptions.ClientId;
         var clientSecret = oidcOptions.ClientSecret;
         string? tokenEndpoint = null;
@@ -66,12 +51,12 @@ public class TokenRefreshService
 
         if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(tokenEndpoint))
         {
-            _logger.LogWarning("Could not resolve OIDC configuration for token refresh");
+            logger.LogWarning("Could not resolve OIDC configuration for token refresh");
             return TokenRefreshResult.Failed();
         }
 
         // Build and send request
-        var httpClient = _httpClientFactory.CreateClient(AnonymousHttpClientName);
+        var httpClient = httpClientFactory.CreateClient(AnonymousHttpClientName);
 
         var parameters = new Dictionary<string, string>
         {
@@ -95,7 +80,7 @@ public class TokenRefreshService
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Token refresh failed with status {StatusCode}: {Error}", 
+            logger.LogWarning("Token refresh failed with status {StatusCode}: {Error}", 
                 response.StatusCode, errorContent);
             return TokenRefreshResult.Failed();
         }
@@ -110,13 +95,13 @@ public class TokenRefreshService
 
         if (string.IsNullOrWhiteSpace(newAccessToken) || expiresInSeconds <= 0)
         {
-            _logger.LogWarning("Token refresh response missing access_token or expires_in");
+            logger.LogWarning("Token refresh response missing access_token or expires_in");
             return TokenRefreshResult.Failed();
         }
 
         var expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
 
-        _logger.LogDebug("Token refreshed successfully, new expiry: {ExpiresAt}", expiresAt);
+        logger.LogDebug("Token refreshed successfully, new expiry: {ExpiresAt}", expiresAt);
 
         return new()
         {
