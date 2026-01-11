@@ -17,9 +17,6 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds OpenID Connect authentication services for Blazor WebAssembly.
     /// </summary>
-    /// <remarks>
-    /// Named to avoid ambiguity with Microsoft.Extensions.DependencyInjection.WebAssemblyAuthenticationServiceCollectionExtensions.AddOidcAuthentication.
-    /// </remarks>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Configuration callback for OIDC options.</param>
     /// <returns>The service collection for chaining.</returns>
