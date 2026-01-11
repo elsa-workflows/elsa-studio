@@ -66,12 +66,6 @@ public static class ServiceCollectionExtensions
             if (!string.IsNullOrWhiteSpace(options.MetadataAddress))
                 wasmOptions.ProviderOptions.MetadataUrl = options.MetadataAddress;
 
-            // Only override redirect URIs when AppBaseUrl is provided. Otherwise, let the framework infer absolute URIs.
-            if (!string.IsNullOrWhiteSpace(options.AppBaseUrl))
-            {
-                wasmOptions.ProviderOptions.RedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.CallbackPath}";
-                wasmOptions.ProviderOptions.PostLogoutRedirectUri = $"{options.AppBaseUrl.TrimEnd('/')}{options.SignedOutCallbackPath}";
-            }
         });
 
         // Provide an OIDC-aware unauthorized component.

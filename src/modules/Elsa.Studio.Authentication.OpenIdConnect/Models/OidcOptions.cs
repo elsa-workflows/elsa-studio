@@ -89,14 +89,4 @@ public class OidcOptions
     /// Gets or sets the metadata address (optional, auto-discovered from Authority if not set).
     /// </summary>
     public string? MetadataAddress { get; set; }
-
-    /// <summary>
-    /// Gets or sets the base URL of the application (primarily for Blazor WebAssembly) used to build absolute redirect URIs.
-    /// </summary>
-    /// <remarks>
-    /// Microsoft Entra ID requires <c>redirect_uri</c> to be an absolute URI. In many cases the framework can infer the base URI,
-    /// but if your host setup or reverse proxying causes relative redirect URIs to be sent, set this to the app origin, e.g.
-    /// <c>https://localhost:9009</c>.
-    /// </remarks>
-    public string AppBaseUrl { get; set; } = string.Empty;
 }
