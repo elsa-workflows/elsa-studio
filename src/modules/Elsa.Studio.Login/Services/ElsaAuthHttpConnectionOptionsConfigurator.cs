@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http.Connections.Client;
 namespace Elsa.Studio.Login.Services;
 
 /// <summary>
-/// ElsaIdentity implementation of <see cref="IHttpConnectionOptionsConfigurator"/> that configures SignalR connections
+/// Login authentication implementation of <see cref="IHttpConnectionOptionsConfigurator"/> that configures SignalR connections
 /// to use JWT access tokens.
 /// </summary>
 public class LoginAuthHttpConnectionOptionsConfigurator(IAuthenticationProviderManager authenticationProvider) : IHttpConnectionOptionsConfigurator

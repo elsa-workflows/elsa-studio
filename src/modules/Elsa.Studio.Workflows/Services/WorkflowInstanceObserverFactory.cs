@@ -53,6 +53,8 @@ public class WorkflowInstanceObserverFactory(
             .WithUrl(hubUrl, options =>
             {
                 // Configure authentication via the provider-specific configurator
+                // Note: Using GetAwaiter().GetResult() here is necessary because WithUrl expects a synchronous Action<HttpConnectionOptions>.
+                // This is safe in this context as we're in the configuration phase before the connection starts.
                 httpConnectionOptionsConfigurator.ConfigureAsync(options, cancellationToken).GetAwaiter().GetResult();
             })
             .Build();
