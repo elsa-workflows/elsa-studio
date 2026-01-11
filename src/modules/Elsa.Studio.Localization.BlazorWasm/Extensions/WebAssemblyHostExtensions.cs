@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Elsa.Studio.Localization.BlazorWasm.Extensions;
 
@@ -24,9 +19,8 @@ public static class WebAssemblyHostExtensions
 
         const string defaultCulture = "en-US";
         var js = host.Services.GetRequiredService<IJSRuntime>();
-        var module = await js.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Localization.BlazorWasm/blazorCulture.js");
-        var result = await js.InvokeAsync<string>("blazorCulture.get");
-
+        await js.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Localization.BlazorWasm/blazorCulture.js");
+        var result = await js.InvokeAsync<string?>("blazorCulture.get");
         var culture = CultureInfo.GetCultureInfo(result ?? defaultCulture);
 
         if (result == null)
