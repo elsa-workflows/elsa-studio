@@ -124,8 +124,9 @@ public partial class DiagramDesignerWrapper
 
     private string? _lastSelectedNodeId;
 
-    /// Selects the activity with the specified ID.
-    /// <param name="activityId">The ID of the activity ID select.</param>
+    /// Selects the activity with the specified ID; optionally specifying a node ID to load the selected node path from the backend when activity cannot be found in current container.
+    /// <param name="activityId">The ID of the activity to select.</param>
+    /// <param name="nodeId">The node ID of the activity to select.</param>
     public async Task SelectActivityByActivityIdAsync(string activityId, string? nodeId = null)
     {
         var containerActivity = GetCurrentContainerActivity();
