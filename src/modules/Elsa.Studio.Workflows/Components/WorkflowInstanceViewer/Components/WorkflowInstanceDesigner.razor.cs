@@ -114,7 +114,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         await _designer.SelectActivityByActivityIdAsync(activityId);
     }
 
-    async Task SelectActivityByIdAsync(string activityId, string nodeId)
+    /// <summary>
+    /// Selects the activity with the specified ID, and if not found in the current container, uses the node ID to navigate to the correct container first.
+    /// </summary>
+    /// <param name="activityId"></param>
+    /// <param name="nodeId"></param>
+    /// <returns></returns>
+    public async Task SelectActivityByIdAsync(string activityId, string nodeId)
     {
         if (_designer == null) return;
         await _designer.SelectActivityByActivityIdAsync(activityId, nodeId);
