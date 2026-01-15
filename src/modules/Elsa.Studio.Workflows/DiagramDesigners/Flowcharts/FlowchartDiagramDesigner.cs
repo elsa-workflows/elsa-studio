@@ -78,11 +78,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
     {
         yield return DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
         yield return DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
-
-        if (!isReadonly)
-        {
-            yield return DisplayToolboxItem(localizer["Auto layout"], Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
-        }
+        yield return DisplayToolboxItem(localizer["Auto layout"], Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
     }
 
     private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)

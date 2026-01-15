@@ -40,44 +40,27 @@ public partial class DiagramDesignerWrapper
 
     /// The root activity to display.
     [Parameter]
-    /// <summary>
-    /// Gets or sets the activity.
-    /// </summary>
     public JsonObject Activity { get; set; } = null!;
 
     /// Whether the designer is read-only.
     [Parameter]
-    /// <summary>
-    /// Indicates whether is read only.
-    /// </summary>
     public bool IsReadOnly { get; set; }
 
     /// The workflow instance ID, if any.
     [Parameter]
-    /// <summary>
-    /// Gets or sets the workflow instance id.
-    /// </summary>
     public string? WorkflowInstanceId { get; set; }
 
     /// A custom toolbar to display.
     [Parameter]
-    /// <summary>
-    /// Gets or sets the custom toolbar items.
-    /// </summary>
     public RenderFragment? CustomToolbarItems { get; set; }
 
     /// Whether the designer is progressing.
     [Parameter]
     /// <summary>
-    /// Indicates whether is progressing.
-    /// </summary>
     public bool IsProgressing { get; set; }
 
     /// An event raised when an activity is selected.
     [Parameter]
-    /// <summary>
-    /// Gets or sets the activity selected event callback.
-    /// </summary>
     public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// An event raised when an embedded port is selected.
@@ -87,9 +70,6 @@ public partial class DiagramDesignerWrapper
 
     /// An event raised when the path changes.
     [Parameter]
-    /// <summary>
-    /// Gets or sets the path changed event callback.
-    /// </summary>
     public EventCallback<DesignerPathChangedArgs> PathChanged { get; set; }
 
     [Inject]
@@ -124,15 +104,16 @@ public partial class DiagramDesignerWrapper
 
     private string? _lastSelectedNodeId;
 
-    /// Selects the activity with the specified ID.
-    /// <param name="activityId">The ID of the activity ID select.</param>
-    public async Task SelectActivityByActivityIdAsync(string activityId)
+    /// Selects the activity with the specified ID; optionally specifying a node ID to load the selected node path from the backend when activity cannot be found in current container.
+    /// <param name="activityId">The ID of the activity to select.</param>
+    /// <param name="nodeId">The node ID of the activity to select.</param>
+    public async Task SelectActivityByActivityIdAsync(string activityId, string? nodeId = null)
     {
         var containerActivity = GetCurrentContainerActivity();
         var activities = containerActivity.GetActivities();
         var activityToSelect = activities.FirstOrDefault(x => x.GetId() == activityId);
 
-        await SelectActivityAsync(activityToSelect);
+        await SelectActivityAsync(activityToSelect, nodeId);
     }
 
     /// Selects the activity with the specified node ID.
