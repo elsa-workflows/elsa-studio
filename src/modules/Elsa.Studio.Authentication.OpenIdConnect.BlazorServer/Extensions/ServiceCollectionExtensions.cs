@@ -112,8 +112,8 @@ public static class ServiceCollectionExtensions
                 // Configure token validation parameters
                 oidcOptions.TokenValidationParameters = new()
                 {
-                    NameClaimType = "name",
-                    RoleClaimType = "role",
+                    NameClaimType = options.NameClaimType,
+                    RoleClaimType = options.RoleClaimType,
                     ValidateIssuer = true
                 };
             });

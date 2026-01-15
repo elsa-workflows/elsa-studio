@@ -89,4 +89,14 @@ public class OidcOptions
     /// Gets or sets the metadata address (optional, auto-discovered from Authority if not set).
     /// </summary>
     public string? MetadataAddress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the claim type to use for the user's name.
+    /// </summary>
+    public string NameClaimType { get; set; } = "name";
+
+    /// <summary>
+    /// Gets or sets the claim type to use for the user's roles.
+    /// </summary>
+    public string RoleClaimType { get; set; } = "role";
 }
