@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
@@ -92,6 +93,9 @@ public class X6GraphApi
 
     /// Center the canvas content.
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
+
+    /// Exports the graphs content to a supplied 
+    public async Task ExportContentToFormatAsync(CaptureOptions captureOptions) => await InvokeAsync(module => module.InvokeVoidAsync($"exportContentTo{captureOptions.Format}", _containerId, captureOptions));
 
     /// Adjusts the graph layout.
     public async Task AutoLayoutAsync(X6Graph graph)
