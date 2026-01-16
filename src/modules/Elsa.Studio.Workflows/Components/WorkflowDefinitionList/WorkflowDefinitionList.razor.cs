@@ -89,7 +89,8 @@ public partial class WorkflowDefinitionList
                     definition.Name,
                     definition.Description,
                     definition.IsPublished,
-                    (definition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0);
+                    (definition?.Links?.Count(l => l.Rel == "publish") ?? 0) == 0,
+                    definition.IsMaterializerAvailable);
             })
             .ToList();
 
@@ -200,6 +201,9 @@ public partial class WorkflowDefinitionList
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
     {
+        if (!e.Item.IsMaterializerAvailable)
+            return;
+
         await EditAsync(e.Item.DefinitionId);
     }
 
@@ -467,5 +471,6 @@ public partial class WorkflowDefinitionList
         string? Name,
         string? Description,
         bool IsPublished,
-        bool IsReadOnlyMode);
+        bool IsReadOnlyMode,
+        bool IsMaterializerAvailable);
 }
