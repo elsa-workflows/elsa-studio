@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Elsa.Studio.Contracts;
 
@@ -6,7 +7,7 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// Decorates an API client with a Blazor service accessor, ensuring that the service provider is available to the API client when calling DI-resolved delegating handlers.
 /// </summary>
-public class BlazorScopedProxyApi<T> : DispatchProxy
+public class BlazorScopedProxyApi<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T> : DispatchProxy
 {
     private T _decoratedApi = default!;
     private IBlazorServiceAccessor _blazorServiceAccessor = null!;

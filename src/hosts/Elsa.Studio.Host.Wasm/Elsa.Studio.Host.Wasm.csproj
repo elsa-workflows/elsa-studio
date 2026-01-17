@@ -21,9 +21,14 @@
       <ProjectReference Include="..\..\bundles\Elsa.Studio\Elsa.Studio.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.Core.BlazorWasm\Elsa.Studio.Core.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\framework\Elsa.Studio.DomInterop\Elsa.Studio.DomInterop.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.Abstractions\Elsa.Studio.Authentication.Abstractions.csproj" />
+        
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm\Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm\Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.UI\Elsa.Studio.Authentication.ElsaIdentity.UI.csproj" />
+
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
-      <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
     </ItemGroup>
 
 </Project>

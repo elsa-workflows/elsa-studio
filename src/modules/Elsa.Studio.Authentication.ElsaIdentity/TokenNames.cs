@@ -1,4 +1,4 @@
-namespace Elsa.Studio;
+namespace Elsa.Studio.Authentication.ElsaIdentity;
 
 /// <summary>
 /// Represents the token names.
@@ -9,10 +9,7 @@ public static class TokenNames
     /// Provides the access token value.
     /// </summary>
     public const string AccessToken = "accessToken";
-    /// <summary>
-    /// Provides the id token value.
-    /// </summary>
-    public const string IdToken = "idToken";
+
     /// <summary>
     /// Provides the refresh token value.
     /// </summary>
