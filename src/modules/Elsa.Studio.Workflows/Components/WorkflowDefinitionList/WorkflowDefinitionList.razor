@@ -12,11 +12,6 @@
     .definitions-table .mud-table-toolbar {
         margin-bottom: 12px;
     }
-
-    .unavailable-row {
-        opacity: 0.5;
-        background-color: rgba(128, 128, 128, 0.05);
-    }
 </style>
 
 @if (IsReadOnlyMode)
@@ -39,7 +34,6 @@
               Elevation="0"
               OnRowClick="@OnRowClick"
               RowStyle="cursor: pointer;"
-              RowClassFunc="@((context, _) => !context.IsMaterializerAvailable ? "unavailable-row" : "")"
               MultiSelection="true"
               SelectOnRowClick="false"
               CurrentPage="initialPage"
@@ -99,23 +93,11 @@
         <RowTemplate>
             <MudTd DataLabel="ID">@context.DefinitionId</MudTd>
             <MudTd DataLabel="@Localizer["Name"]">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <MudTooltip Text="@context.Name">
-                        <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                            @context.Name
-                        </div>
-                    </MudTooltip>
-                    @if (!context.IsMaterializerAvailable)
-                    {
-                        <MudChip T="string"
-                                 Icon="@Icons.Material.Filled.Warning"
-                                 Color="Color.Warning"
-                                 Size="Size.Small"
-                                 Text="@Localizer["Materializer Unavailable"]"
-                                 Variant="Variant.Text">
-                        </MudChip>
-                    }
-                </div>
+                <MudTooltip Text="@context.Name">
+                    <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        @context.Name
+                    </div>
+                </MudTooltip>
             </MudTd>
             <MudTd DataLabel="@Localizer["Latest version"]" Style="text-align:left">@context.LatestVersion</MudTd>
             <MudTd DataLabel="@Localizer["Published version"]" Style="text-align:left">@(context.PublishedVersion?.ToString() ?? "-")</MudTd>
@@ -138,30 +120,24 @@
             </MudTd>
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
-                    @if (!context.IsMaterializerAvailable)
+                    @if (!IsReadOnlyMode && !context.IsReadOnlyMode)
                     {
-                        <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["Edit"]</MudMenuItem>
                     }
                     else
                     {
-                        @if (!IsReadOnlyMode && !context.IsReadOnlyMode)
-                        {
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["Edit"]</MudMenuItem>
-                        }
-                        else
-                        {
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["View"]</MudMenuItem>
-                        }
-                        <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">@Localizer["Run"]</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Outlined.CopyAll" OnClick="@(() => OnDuplicateWorkflowClicked(context))">@Localizer["Duplicate"]</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
-                        <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                        <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
-                        <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                        <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">@Localizer["Export"]</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Pageview" OnClick="@(() => OnEditClicked(context.DefinitionId))">@Localizer["View"]</MudMenuItem>
                     }
+                    <MudMenuItem Icon="@Icons.Material.Outlined.PlayArrow" OnClick="@(() => OnRunWorkflowClicked(context))">@Localizer["Run"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CopyAll" OnClick="@(() => OnDuplicateWorkflowClicked(context))">@Localizer["Duplicate"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
+                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
+                    <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">@Localizer["Export"]</MudMenuItem>
+
                 </MudMenu>
             </MudTd>
         </RowTemplate>
