@@ -21,6 +21,7 @@ public abstract class ActivityWrapperBase : StudioComponentBase
     private bool _isFirstRender = true;
     private bool _previousShowDescription;
     private string? _previousDescription;
+    private string? _previousLabel;
     private int _previousPortCount;
 
     /// <summary>
@@ -124,16 +125,15 @@ public abstract class ActivityWrapperBase : StudioComponentBase
 
         // Only update size if something that affects size has changed
         var currentPortCount = Ports.Count;
-        var designerMetadata = activity.GetDesignerMetadata();
-        var hasValidSize = designerMetadata.Size?.Width > 0 && designerMetadata.Size?.Height > 0;
         
         // Determine if size update is needed:
-        // 1. First render without valid size - need to calculate
-        // 2. Subsequent renders when size-affecting properties changed
-        var needsSizeUpdate = (_isFirstRender && !hasValidSize) ||
-                            (!_isFirstRender && (currentShowDescription != _previousShowDescription ||
+        // 1. First render - always recalculate to ensure proper sizing (component may be re-instantiated)
+        // 2. Subsequent renders when size-affecting properties changed (label, description, showDescription, portCount)
+        var needsSizeUpdate = _isFirstRender ||
+                            Label != _previousLabel ||
+                            currentShowDescription != _previousShowDescription ||
                             Description != _previousDescription ||
-                            currentPortCount != _previousPortCount));
+                            currentPortCount != _previousPortCount;
 
         if (needsSizeUpdate)
         {
@@ -142,6 +142,7 @@ public abstract class ActivityWrapperBase : StudioComponentBase
 
         _previousShowDescription = currentShowDescription;
         _previousDescription = Description;
+        _previousLabel = Label;
         _previousPortCount = currentPortCount;
         _isFirstRender = false;
     }
