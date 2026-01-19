@@ -2,7 +2,7 @@ import {activityTagName, createActivityElement} from "../internal/create-activit
 import {Activity, Size} from "../models";
 
 // Cache for storing calculated activity sizes
-// Key format: "activityType:showsDescription:hasIcon:portCount"
+// Key format: "activityType:showsDescription:hasIcon:portCount:displayTextLength:descriptionLength"
 const sizeCache = new Map<string, Size>();
 
 // Queue for batching size calculations
@@ -11,11 +11,17 @@ let batchTimer: number | null = null;
 
 function getCacheKey(activity: Activity, portCount?: number): string {
     const type = activity.type || 'unknown';
-    const hasDescription = !!activity.metadata?.description;
+    const displayText = activity.metadata?.displayText || '';
+    const description = activity.metadata?.description || '';
+    const hasDescription = !!description;
     const showDescription = activity.metadata?.showDescription === true;
     const hasIcon = !!activity.metadata?.icon;
     const ports = portCount ?? 0;
-    return `${type}:${hasDescription && showDescription}:${hasIcon}:${ports}`;
+    // Include display text and description lengths to differentiate activities with different text content
+    // Using length is more efficient than hashing the full text, while still catching size-affecting changes
+    const displayTextKey = displayText.length;
+    const descriptionKey = hasDescription && showDescription ? description.length : 0;
+    return `${type}:${hasDescription && showDescription}:${hasIcon}:${ports}:${displayTextKey}:${descriptionKey}`;
 }
 
 function processBatch() {
