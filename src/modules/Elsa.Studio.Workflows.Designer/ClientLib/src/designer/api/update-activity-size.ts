@@ -62,8 +62,11 @@ export async function enforceMinimumNodeSize(node: Node): Promise<boolean> {
         return false;
     }
 
-    // Calculate the minimum size based on content
-    const minSize = await calculateActivitySize(activity);
+    // Determine the number of ports on the node, defaulting to 0 if unavailable.
+    const portCount = node.ports?.items?.length ?? 0;
+
+    // Calculate the minimum size based on content and port count
+    const minSize = await calculateActivitySize(activity, portCount);
     const currentSize = node.size();
     
     let needsResize = false;
