@@ -1,4 +1,4 @@
-﻿@inherits Elsa.Studio.Workflows.Components.QueryTableComponentBase
+@inherits Elsa.Studio.Workflows.Components.QueryTableComponentBase
 @inject ILocalizer Localizer
 @using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
@@ -11,6 +11,11 @@
 
     .definitions-table .mud-table-toolbar {
         margin-bottom: 12px;
+    }
+
+    .unavailable-row {
+        opacity: 0.7;
+        background-color: rgba(128, 128, 128, 0.05);
     }
 </style>
 

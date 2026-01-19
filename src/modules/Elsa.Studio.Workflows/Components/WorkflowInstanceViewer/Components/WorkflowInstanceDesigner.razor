@@ -1,6 +1,5 @@
 @using Orientation = Radzen.Orientation
 @using Elsa.Api.Client.Resources.WorkflowInstances.Enums
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 @inherits StudioComponentBase
 
@@ -13,7 +12,7 @@
                 WorkflowDefinitionVersionId="@WorkflowDefinition.Id"
                 Activity="RootActivity"
                 ActivitySelected="OnActivitySelected"
-                IsReadOnly="false"
+                IsReadOnly="true"
                 WorkflowInstanceId="@WorkflowInstance.Id"
                 PathChanged="PathChanged">
                 <CustomToolbarItems>
