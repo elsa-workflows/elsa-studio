@@ -517,4 +517,7 @@
   <data name="No inputs" xml:space="preserve">
     <value>Keine Eingabe</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Ausstehend</value>
+  </data>
 </root>

@@ -1455,6 +1455,9 @@
   <data name="Break out of a loop." xml:space="preserve">
     <value>Sortir d'une boucle.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>En attente</value>
+  </data>
   <data name="Cancelled" xml:space="preserve">
     <value>Annulé</value>
   </data>

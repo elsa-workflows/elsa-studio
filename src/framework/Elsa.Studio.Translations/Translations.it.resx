@@ -88,4 +88,7 @@
   <data name="A brief description of this output." xml:space="preserve">
     <value>Una breve descrizione di questo output.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>In attesa</value>
+  </data>
 </root>

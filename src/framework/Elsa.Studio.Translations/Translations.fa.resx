@@ -442,4 +442,7 @@
   <data name="If" xml:space="preserve">
     <value>اگر</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>در انتظار</value>
+  </data>
 </root>

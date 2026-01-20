@@ -1570,4 +1570,7 @@
   <data name="Include" xml:space="preserve">
     <value>Включати</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Очікує</value>
+  </data>
 </root>

@@ -1321,4 +1321,7 @@
   <data name="A function to compute the correlation ID to associate a dispatched workflow with." xml:space="preserve">
     <value>Gönderilen bir iş akışını ilişkilendirmek için kullanılacak korelasyon ID’sini hesaplayan bir fonksiyon.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Beklemede</value>
+  </data>
 </root>

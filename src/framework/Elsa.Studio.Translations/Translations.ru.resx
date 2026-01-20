@@ -988,4 +988,7 @@
   <data name="Assign the current value to the specified variable." xml:space="preserve">
     <value>Присвоить текущее значение указанной переменной.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
 </root>

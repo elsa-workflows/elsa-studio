@@ -988,4 +988,7 @@
   <data name="Input/output" xml:space="preserve">
     <value>Invoer/uitvoer</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>In behandeling</value>
+  </data>
 </root>

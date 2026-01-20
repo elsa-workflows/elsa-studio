@@ -106,4 +106,7 @@
   <data name="A description about the role and purpose of this input variable." xml:space="preserve">
     <value>وصف لدور وهدف هذا المتغير.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>قيد الانتظار</value>
+  </data>
 </root>

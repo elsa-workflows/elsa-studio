@@ -451,4 +451,7 @@
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
 </root>

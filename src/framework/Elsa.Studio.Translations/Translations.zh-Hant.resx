@@ -124,4 +124,7 @@
   <data name="Category" xml:space="preserve">
     <value>類別</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>待處理</value>
+  </data>
 </root>

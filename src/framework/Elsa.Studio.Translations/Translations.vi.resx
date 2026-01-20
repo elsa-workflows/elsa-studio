@@ -67,4 +67,7 @@
   <data name="30 days" xml:space="preserve">
     <value>30 ngày</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Đang chờ xử lý</value>
+  </data>
 </root>
