@@ -42,6 +42,7 @@
               MultiSelection="true"
               SelectOnRowClick="false"
               CurrentPage="initialPage"
+      
               Class="definitions-table"
               @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
@@ -77,6 +78,7 @@
                 </MudMenu>
             </MudButtonGroup>
         </ToolBarContent>
+
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel SortLabel="ID" T="WorkflowDefinitionRow">@Localizer["Definition ID"]</MudTableSortLabel>

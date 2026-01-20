@@ -433,4 +433,7 @@
   <data name="Info" xml:space="preserve">
     <value>Informació</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendent</value>
+  </data>
 </root>

@@ -103,4 +103,7 @@
   <data name="A description about the role and purpose of this agent." xml:space="preserve">
     <value>En beskrivning av agentens roll och syfte.</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Väntande</value>
+  </data>
 </root>

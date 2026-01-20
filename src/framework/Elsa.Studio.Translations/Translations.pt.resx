@@ -598,4 +598,7 @@
   <data name="Publish the current workflow" xml:space="preserve">
     <value>Publicar workflow atual</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendente</value>
+  </data>
 </root>
