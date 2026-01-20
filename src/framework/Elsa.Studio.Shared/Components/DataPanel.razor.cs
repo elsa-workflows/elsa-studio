@@ -75,14 +75,7 @@ public partial class DataPanel : ComponentBase
             return;
         }
 
-        // Priority 3: ValueComponent (legacy render fragment)
-        if (item.ValueComponent != null)
-        {
-            builder.AddContent(0, item.ValueComponent);
-            return;
-        }
-
-        // Priority 4: Format-based rendering (new system using dedicated components)
+        // Priority 3: Format-based rendering (new system using dedicated components)
         var displayText = GetFormattedValue(item);
         builder.OpenComponent<DataPanelValueRenderer>(0);
         builder.AddAttribute(1, "Item", item);

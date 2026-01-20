@@ -24,7 +24,7 @@ public record DataPanelItem(
     Func<Task>? OnClick = null,
     string? LabelToolTip = null,
     RenderFragment? LabelComponent = null,
-    RenderFragment? ValueComponent = null,
+    //RenderFragment? ValueComponent = null,
     object? Value = null,
     DataPanelItemFormat Format = DataPanelItemFormat.Auto,
     string? FormatString = null,
