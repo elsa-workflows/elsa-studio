@@ -12,21 +12,37 @@ namespace Elsa.Studio.Workflows.Components
     /// </summary>
     public abstract class QueryTableComponentBase : StudioComponentBase
     {
-        protected bool _initializedFromQuery;
+        /// <summary>
+        /// Provides an abstraction for managing navigation functionality, including
+        /// generating and manipulating URIs, navigating between pages, and retrieving
+        /// the current URI in a Blazor environment. Accessible as a dependency via dependency injection.
+        /// </summary>
+        [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
 
-        [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+        /// <summary>
+        /// Provides a mechanism for logging diagnostic messages and warnings
+        /// within the component. Useful for debugging and tracking application
+        /// behavior related to query parsing and URL navigation.
+        /// Typically injected via dependency injection.
+        /// </summary>
         [Inject] protected ILogger<QueryTableComponentBase>? Logger { get; set; }
 
         /// <summary>
         /// Specifies the initial page index used when starting pagination operations.
         /// </summary>
-        protected int initialPage = 0;
+        protected int InitialPage { get; set; } = 0;
 
         /// <summary>
         /// Specifies the initial number of items to display per page.
         /// </summary>
-        protected int initialPageSize = 10;
+        protected int InitialPageSize { get; set; } = 10;
 
+        /// <summary>
+        /// Indicates whether the component's state has been successfully initialized based
+        /// on query parameters from the current URL. This property helps ensure query parsing
+        /// happens only once unless explicitly forced.
+        /// </summary>
+        private bool InitializedFromQuery { get; set; }
 
         /// <inheritdoc/>
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -44,9 +60,9 @@ namespace Elsa.Studio.Workflows.Components
         /// Parses the current URI's query string and delegates to <see cref="ApplyQueryParameters"/>.
         /// Only runs once unless you clear _initializedFromQuery or call ParseQueryParameters(force: true).
         /// </summary>
-        protected async Task ParseQueryParameters(bool force = false)
+        private async Task ParseQueryParameters(bool force = false)
         {
-            if (_initializedFromQuery && !force) return;
+            if (InitializedFromQuery && !force) return;
 
             try
             {
@@ -65,7 +81,7 @@ namespace Elsa.Studio.Workflows.Components
                     Logger?.LogDebug(ex, "Error while applying query parameters in derived component.");
                 }
 
-                _initializedFromQuery = true;
+                InitializedFromQuery = true;
             }
             catch (Exception ex)
             {
@@ -81,17 +97,13 @@ namespace Elsa.Studio.Workflows.Components
         {
             try
             {
-                if (!_initializedFromQuery)
+                if (!InitializedFromQuery)
                     return;
 
                 var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
                 var baseUri = uri.GetLeftPart(UriPartial.Path);
-
-                var query = BuildQueryFromState(state) ?? new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-
-                // Trim empty values
-                var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!, StringComparer.OrdinalIgnoreCase);
-
+                var query = BuildQueryFromState(state);
+                var dict = query.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
                 var newUri = QueryHelpers.AddQueryString(baseUri, dict);
 
                 if (!string.Equals(NavigationManager.Uri, newUri, StringComparison.Ordinal))
