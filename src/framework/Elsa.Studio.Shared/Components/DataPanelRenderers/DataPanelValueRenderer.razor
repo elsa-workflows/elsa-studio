@@ -25,6 +25,10 @@
     {
         <DataPanelTimestampValue Value="@timestamp" />
     }
+    else if (Item.Format == DataPanelItemFormat.Code)
+    {
+        <DataPanelCodeValue Code="@DisplayText" />
+    }
     else
     {
         <DataPanelTextValue DisplayText="@DisplayText" TruncationLength="@TruncationLength" OnViewClicked="@OnViewClicked" />

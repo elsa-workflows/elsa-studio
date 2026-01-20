@@ -16,7 +16,7 @@
             <tbody>
                 @{
                     var data = HideEmptyValues
-                    ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Text) || x.LabelComponent != null || x.ValueComponent != null).ToList()
+                    ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Text) || x.Value != null || x.LabelComponent != null || x.ValueComponent != null).ToList()
                     : Data;
                 }
                 @if (data.Any())

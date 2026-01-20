@@ -193,7 +193,7 @@ public partial class WorkflowInstanceDetails
                     new DataPanelItem("ActivityNodeId", i.ActivityNodeId),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
                     new DataPanelItem("InnerException", i.Exception?.InnerException != null ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message : ""),
-                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? ""),
+                    new DataPanelItem(Label: "StackTrace", Value: i.Exception?.StackTrace ?? "", Format: DataPanelItemFormat.Code),
                     new DataPanelItem(
                         LabelComponent: builder =>
                         {
