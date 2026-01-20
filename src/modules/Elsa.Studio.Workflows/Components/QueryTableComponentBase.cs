@@ -25,7 +25,7 @@ namespace Elsa.Studio.Workflows.Components
         /// behavior related to query parsing and URL navigation.
         /// Typically injected via dependency injection.
         /// </summary>
-        [Inject] protected ILogger<QueryTableComponentBase>? Logger { get; set; }
+        [Inject] protected ILogger<QueryTableComponentBase> Logger { get; set; } = null!;
 
         /// <summary>
         /// Specifies the initial page index used when starting pagination operations.
