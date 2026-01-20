@@ -56,9 +56,15 @@
 
     private RenderFragment RenderFormattedContent() => __builder =>
     {
-        @if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime timestamp })
+        @if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime or DateTimeOffset })
         {
-            <DataPanelTimestampValue Value="@timestamp" Format="@(Item.FormatString ?? "G")" />
+            var timestampValue = Item.Value switch
+            {
+                DateTime dt => (DateTimeOffset)dt,
+                DateTimeOffset dto => dto,
+                _ => (DateTimeOffset?)null
+            };
+            <DataPanelTimestampValue Value="@timestampValue" Format="@(Item.FormatString ?? "G")" />
         }
         else if (Item.Format == DataPanelItemFormat.Code)
         {
