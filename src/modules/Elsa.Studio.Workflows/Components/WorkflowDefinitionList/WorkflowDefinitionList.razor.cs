@@ -93,6 +93,9 @@ public partial class WorkflowDefinitionList
             })
             .ToList();
 
+        // Update initialPage to preserve current page during re-renders
+        initialPage = state.Page;
+
         // Update URL to reflect current table state & filters
         TryUpdateUrlFromState(state);
 
