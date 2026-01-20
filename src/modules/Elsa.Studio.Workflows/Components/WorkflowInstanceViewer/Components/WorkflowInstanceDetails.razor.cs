@@ -13,6 +13,8 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using Size = Elsa.Api.Client.Shared.Models.Size;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
@@ -188,12 +190,19 @@ public partial class WorkflowInstanceDetails
                 .Select(i => new DataPanelModel
                 {
                     new DataPanelItem("ActivityId", i.ActivityId),
-                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId, null, () => OnIncidentActivityNodeIdClicked(i.ActivityNodeId)),
+                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
-                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
-                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
-                        : ""),
-                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message : ""),
+                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? ""),
+                    new DataPanelItem(
+                        LabelComponent: builder =>
+                        {
+                            var activityNodeId = i.ActivityNodeId;
+                            builder.OpenComponent<IncidentNavigateButton>(0);
+                            builder.AddAttribute(1, "OnClick", EventCallback.Factory.Create(this, () => OnIncidentActivityNodeIdClicked(activityNodeId)));
+                            builder.CloseComponent();
+                        }
+                    ),
                 });
         }
     }
