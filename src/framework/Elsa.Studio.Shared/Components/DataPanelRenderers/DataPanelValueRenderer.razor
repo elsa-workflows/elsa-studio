@@ -15,23 +15,19 @@
 
     @if (!string.IsNullOrWhiteSpace(Item.Link))
     {
-        <DataPanelLinkValue DisplayText="@DisplayText" Href="@Item.Link" />
+        <MudLink Typo="Typo.body2" Href="@Item.Link">
+            @RenderFormattedContent()
+        </MudLink>
     }
     else if (Item.OnClick != null)
     {
-        <DataPanelClickableValue DisplayText="@DisplayText" OnClick="@(async () => await Item.OnClick())" />
-    }
-    else if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime timestamp })
-    {
-        <DataPanelTimestampValue Value="@timestamp" />
-    }
-    else if (Item.Format == DataPanelItemFormat.Code)
-    {
-        <DataPanelCodeValue Code="@DisplayText" />
+        <MudLink Typo="Typo.body2" OnClick="@Item.OnClick">
+            @RenderFormattedContent()
+        </MudLink>
     }
     else
     {
-        <DataPanelTextValue DisplayText="@DisplayText" TruncationLength="@TruncationLength" OnViewClicked="@OnViewClicked" />
+        @RenderFormattedContent()
     }
 </MudStack>
 
@@ -57,4 +53,22 @@
     [Parameter] public EventCallback OnViewClicked { get; set; }
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
+
+    private RenderFragment RenderFormattedContent() => __builder =>
+    {
+        @if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime timestamp })
+        {
+            <DataPanelTimestampValue Value="@timestamp" />
+        }
+        else if (Item.Format == DataPanelItemFormat.Code)
+        {
+            <DataPanelCodeValue Code="@DisplayText" />
+        }
+        else
+        {
+            <DataPanelTextValue DisplayText="@DisplayText"
+                                TruncationLength="@TruncationLength"
+                                OnViewClicked="@OnViewClicked" />
+        }
+    };
 }
