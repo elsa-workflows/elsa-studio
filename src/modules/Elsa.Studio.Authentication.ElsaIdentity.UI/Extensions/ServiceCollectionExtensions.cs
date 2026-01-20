@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddElsaIdentityUI(this IServiceCollection services)
     {
+        services.AddScoped<IFeature, ElsaIdentityUIFeature>();
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<RedirectToLogin>>();
 
         return services;
