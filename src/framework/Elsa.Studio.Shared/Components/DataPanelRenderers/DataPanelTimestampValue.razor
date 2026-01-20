@@ -8,7 +8,7 @@
     /// <summary>
     /// The timestamp value to display.
     /// </summary>
-    [Parameter] public DateTime Value { get; set; }
+    [Parameter] public DateTimeOffset? Value { get; set; } = null;
 
     /// <summary>
     /// The format string to use when displaying the timestamp (e.g., "s" for sortable format, "G" for general).

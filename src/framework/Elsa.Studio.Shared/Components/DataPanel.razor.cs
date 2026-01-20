@@ -135,7 +135,7 @@ public partial class DataPanel : ComponentBase
 
     private string FormatBoolean(object value)
     {
-        return value is bool b ? b ? "Yes" : "No" : value.ToString() ?? string.Empty;
+        return value is bool b ? (b ? Localizer["Yes"] : Localizer["No"]) : value.ToString() ?? string.Empty;
     }
 
     private string FormatJson(object value)
