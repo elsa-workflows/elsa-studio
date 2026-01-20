@@ -80,9 +80,9 @@ public partial class WorkflowInstanceDetails
                 new DataPanelItem(Localizer["Status"], _workflowInstance.Status.ToString()),
                 new DataPanelItem(Localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
                 new DataPanelItem(Localizer["Incidents"], _workflowInstance.IncidentCount.ToString()),
-                new DataPanelItem(Localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
-                new DataPanelItem(Localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
-                new DataPanelItem(Localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem(Label: Localizer["Created"], Value: _workflowInstance.CreatedAt, Format: DataPanelItemFormat.Timestamp),
+                new DataPanelItem(Label: Localizer["Updated"], Value: _workflowInstance.UpdatedAt, Format: DataPanelItemFormat.Timestamp),
+                new DataPanelItem(Label: Localizer["Finished"], Value: _workflowInstance.FinishedAt, Format: DataPanelItemFormat.Timestamp),
                 new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType)),
                 new DataPanelItem(Localizer["Workflow State"], JsonSerializer.Serialize(_workflowInstance.WorkflowState))
             };

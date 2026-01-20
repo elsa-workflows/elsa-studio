@@ -1,8 +1,3 @@
-@using Elsa.Studio.DomInterop.Contracts
-@using Elsa.Studio.Localization
-@using Elsa.Studio.Localization.Time.Components
-@using Elsa.Studio.Models
-
 <style>
     .hover-row:hover .icon-on-hover {
         visibility: visible;
@@ -40,56 +35,11 @@
                                 }
                             </td>
                             <td>
-                                @if (item.ValueComponent != null)
-                                {
-                                    @item.ValueComponent
-                                }
-                                else
-                                {
-                                    <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                                        @if (!string.IsNullOrWhiteSpace(item.Text))
-                                        {
-                                            <MudTooltip Text="@Localizer["View"]" Delay="500">
-                                                <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
-                                            </MudTooltip>
-                                        }
-                                        @if (!string.IsNullOrWhiteSpace(item.Link))
-                                        {
-                                            <MudLink Typo="Typo.body2" Href="@item.Link">@item.Text</MudLink>
-                                        }
-                                        else if (item.OnClick != null)
-                                        {
-                                            <MudLink Typo="Typo.body2" OnClick="@item.OnClick">@item.Text</MudLink>
-                                        }
-                                        else
-                                        {
-                                            @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
-                                            {
-                                                <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
-                                            }
-                                            else
-                                            {
-                                                @if (item.Text?.Length > truncationLength)
-                                                {
-                                                    <div>
-                                                        @item.Text.Substring(0, truncationLength)
-                                                        <MudTooltip Text="@Localizer["Show all"]" Delay="500">
-                                                            <MudLink OnClick="@(() => OnViewClicked(item!))"><small>[...]</small></MudLink>
-                                                        </MudTooltip>
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <span>@item.Text</span>
-                                                }
-                                            }
-                                        }
-                                    </MudStack>
-                                }
+                                @RenderValue(item)
                             </td>
                             <td style="width: 50px;">
                                 <MudTooltip Text="@Localizer["Copy"]" Delay="500">
-                                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="@(x => OnCopyClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" />
+                                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="@(x => OnCopyClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(GetFormattedValue(item)))" />
                                 </MudTooltip>
                             </td>
                         </tr>
@@ -110,64 +60,3 @@
         <MudAlert Severity="Severity.Normal" Dense="true" Variant="Variant.Text">@(NoDataMessage)</MudAlert>
     }
 </div>
-
-@code {
-    private int truncationLength = 300;
-
-    /// <summary>
-    /// The data to display.
-    /// </summary>
-    [Parameter] public DataPanelModel Data { get; set; } = new();
-
-    /// <summary>
-    /// If true, empty values will be hidden.
-    /// </summary>
-    [Parameter] public bool HideEmptyValues { get; set; }
-
-    /// <summary>
-    /// If true, a message will be displayed when there is no data.
-    /// </summary>
-    [Parameter] public bool ShowNoDataAlert { get; set; }
-
-    /// <summary>
-    /// The title of the data panel
-    /// </summary>
-    [Parameter] public string Title { get; set; } = null!;
-
-    /// <summary>
-    /// The message to display when there is no data.
-    /// </summary>
-    [Parameter] public string NoDataMessage { get; set; } = null!;
-
-    [Inject] private ILocalizer Localizer { get; set; } = null!;
-    [Inject] private IClipboard Clipboard { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
-    [Inject] private IDialogService DialogService { get; set; } = null!;
-
-    protected override void OnInitialized()
-    {
-        NoDataMessage ??= Localizer["No data available."];
-    }
-
-    private async Task OnCopyClicked(DataPanelItem item)
-    {
-        await Clipboard.CopyText(item.Text);
-        Snackbar.Add(Localizer["{0} copied", item.Label], Severity.Success);
-    }
-
-    private async Task OnViewClicked(DataPanelItem item)
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            Position = DialogPosition.Center,
-            FullWidth = true,
-            MaxWidth = MaxWidth.Large
-        };
-        var parameters = new DialogParameters
-        {
-            { nameof(DataPanelItem), item }
-        };
-        await DialogService.ShowAsync<ContentVisualizer>(Localizer["View content"], parameters, options);
-    }
-}

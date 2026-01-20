@@ -1,0 +1,56 @@
+@using Elsa.Studio.Localization
+@using Elsa.Studio.Models
+
+<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+    @if (!string.IsNullOrWhiteSpace(DisplayText))
+    {
+        <MudTooltip Text="@Localizer["View"]" Delay="500">
+            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch"
+                           Size="Size.Small"
+                           OnClick="@OnViewClicked"
+                           Disabled="@(string.IsNullOrWhiteSpace(DisplayText))"
+                           Class="icon-on-hover" />
+        </MudTooltip>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Item.Link))
+    {
+        <DataPanelLinkValue DisplayText="@DisplayText" Href="@Item.Link" />
+    }
+    else if (Item.OnClick != null)
+    {
+        <DataPanelClickableValue DisplayText="@DisplayText" OnClick="@(async () => await Item.OnClick())" />
+    }
+    else if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime timestamp })
+    {
+        <DataPanelTimestampValue Value="@timestamp" />
+    }
+    else
+    {
+        <DataPanelTextValue DisplayText="@DisplayText" TruncationLength="@TruncationLength" OnViewClicked="@OnViewClicked" />
+    }
+</MudStack>
+
+@code {
+    /// <summary>
+    /// The data panel item to render.
+    /// </summary>
+    [Parameter] public DataPanelItem Item { get; set; } = null!;
+
+    /// <summary>
+    /// The formatted display text.
+    /// </summary>
+    [Parameter] public string? DisplayText { get; set; }
+
+    /// <summary>
+    /// The maximum length before truncation.
+    /// </summary>
+    [Parameter] public int TruncationLength { get; set; } = DataPanel.DefaultTruncationLength;
+
+    /// <summary>
+    /// Callback invoked when the view button is clicked.
+    /// </summary>
+    [Parameter] public EventCallback OnViewClicked { get; set; }
+
+    [Inject] private ILocalizer Localizer { get; set; } = null!;
+}

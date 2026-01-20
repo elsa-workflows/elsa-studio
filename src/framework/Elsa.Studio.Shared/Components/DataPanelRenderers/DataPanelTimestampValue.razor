@@ -1,0 +1,12 @@
+@using Elsa.Studio.Localization.Time.Components
+
+<span>
+    <Timestamp Value="@Value" />
+</span>
+
+@code {
+    /// <summary>
+    /// The timestamp value to display.
+    /// </summary>
+    [Parameter] public DateTime Value { get; set; }
+}

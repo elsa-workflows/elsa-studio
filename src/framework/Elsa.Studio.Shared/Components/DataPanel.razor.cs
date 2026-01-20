@@ -1,0 +1,187 @@
+using System.Globalization;
+using Elsa.Studio.Components.DataPanelRenderers;
+using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Localization;
+using Elsa.Studio.Models;
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
+
+namespace Elsa.Studio.Components;
+
+/// <summary>
+/// A component that displays a panel of data items in a tabular format.
+/// </summary>
+public partial class DataPanel : ComponentBase
+{
+    public const int DefaultTruncationLength = 300;
+
+    /// <summary>
+    /// The data to display.
+    /// </summary>
+    [Parameter] public DataPanelModel Data { get; set; } = new();
+
+    /// <summary>
+    /// If true, empty values will be hidden.
+    /// </summary>
+    [Parameter] public bool HideEmptyValues { get; set; }
+
+    /// <summary>
+    /// If true, a message will be displayed when there is no data.
+    /// </summary>
+    [Parameter] public bool ShowNoDataAlert { get; set; }
+
+    /// <summary>
+    /// The title of the data panel
+    /// </summary>
+    [Parameter] public string Title { get; set; } = null!;
+
+    /// <summary>
+    /// The message to display when there is no data.
+    /// </summary>
+    [Parameter] public string? NoDataMessage { get; set; }
+
+    [Inject] private ILocalizer Localizer { get; set; } = null!;
+    [Inject] private IClipboard Clipboard { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        NoDataMessage ??= Localizer["No data available."];
+    }
+
+    private RenderFragment RenderValue(DataPanelItem item) => builder =>
+    {
+        // Priority 1: ValueTemplate (custom render fragment with context)
+        if (item.ValueTemplate != null)
+        {
+            var context = new DataPanelItemContext
+            {
+                Label = item.Label,
+                Value = item.Value,
+                Item = item
+            };
+            builder.AddContent(0, item.ValueTemplate(context));
+            return;
+        }
+
+        // Priority 2: ValueComponentType (reusable custom component)
+        if (item.ValueComponentType != null)
+        {
+            builder.OpenComponent(0, item.ValueComponentType);
+            builder.AddAttribute(1, "Item", item);
+            builder.CloseComponent();
+            return;
+        }
+
+        // Priority 3: ValueComponent (legacy render fragment)
+        if (item.ValueComponent != null)
+        {
+            builder.AddContent(0, item.ValueComponent);
+            return;
+        }
+
+        // Priority 4: Format-based rendering (new system using dedicated components)
+        var displayText = GetFormattedValue(item);
+        builder.OpenComponent<DataPanelValueRenderer>(0);
+        builder.AddAttribute(1, "Item", item);
+        builder.AddAttribute(2, "DisplayText", displayText);
+        builder.AddAttribute(3, "TruncationLength", DefaultTruncationLength);
+        builder.AddAttribute(4, "OnViewClicked", EventCallback.Factory.Create(this, () => OnViewClicked(item)));
+        builder.CloseComponent();
+    };
+
+    /// <summary>
+    /// Gets the formatted value for a data panel item.
+    /// </summary>
+    public string GetFormattedValue(DataPanelItem item)
+    {
+        // Use Text if explicitly provided (backward compatibility)
+        if (!string.IsNullOrWhiteSpace(item.Text))
+            return item.Text;
+
+        // No value to format
+        if (item.Value == null)
+            return string.Empty;
+
+        // Apply format based on Format property
+        return item.Format switch
+        {
+            DataPanelItemFormat.Timestamp => FormatTimestamp(item.Value, item.FormatString),
+            DataPanelItemFormat.Number => FormatNumber(item.Value),
+            DataPanelItemFormat.Boolean => FormatBoolean(item.Value),
+            DataPanelItemFormat.Json => FormatJson(item.Value),
+            DataPanelItemFormat.Auto => FormatAuto(item.Value),
+            _ => item.Value.ToString() ?? string.Empty
+        };
+    }
+
+    private string FormatTimestamp(object value, string? formatString)
+    {
+        return value switch
+        {
+            DateTime dt => string.IsNullOrWhiteSpace(formatString) ? dt.ToString(CultureInfo.CurrentUICulture) : dt.ToString(formatString),
+            DateTimeOffset dto => string.IsNullOrWhiteSpace(formatString) ? dto.ToString() : dto.ToString(formatString),
+            _ => value.ToString() ?? string.Empty
+        };
+    }
+
+    private string FormatNumber(object value)
+    {
+        if (value is int || value is long || value is short || value is byte)
+            return $"{value:N0}";
+        if (value is double || value is float || value is decimal)
+            return $"{value:N2}";
+        return value.ToString() ?? string.Empty;
+    }
+
+    private string FormatBoolean(object value)
+    {
+        return value is bool b ? b ? "Yes" : "No" : value.ToString() ?? string.Empty;
+    }
+
+    private string FormatJson(object value)
+    {
+        return value is string str ? str : System.Text.Json.JsonSerializer.Serialize(value, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private string FormatAuto(object value)
+    {
+        // Auto-detect based on type
+        return value switch
+        {
+            DateTime or DateTimeOffset => FormatTimestamp(value, null),
+            bool => FormatBoolean(value),
+            int or long or short or byte or double or float or decimal => FormatNumber(value),
+            _ => value.ToString() ?? string.Empty
+        };
+    }
+
+    private async Task OnCopyClicked(DataPanelItem item)
+    {
+        var textToCopy = !string.IsNullOrWhiteSpace(item.Text) ? item.Text : GetFormattedValue(item);
+        await Clipboard.CopyText(textToCopy);
+        Snackbar.Add(Localizer["{0} copied", item.Label], Severity.Success);
+    }
+
+    private async Task OnViewClicked(DataPanelItem item)
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large
+        };
+
+        // Create a copy with the formatted text for viewing
+        var itemToView = item with { Text = GetFormattedValue(item) };
+
+        var parameters = new DialogParameters
+        {
+            { nameof(DataPanelItem), itemToView }
+        };
+        await DialogService.ShowAsync<ContentVisualizer>(Localizer["View content"], parameters, options);
+    }
+}
