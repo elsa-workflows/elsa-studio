@@ -36,7 +36,7 @@
                                 }
                                 else
                                 {
-                                    @item.Label
+                                    @(!string.IsNullOrWhiteSpace(item.Label) ? item.Label : "-")
                                 }
                             </td>
                             <td>
