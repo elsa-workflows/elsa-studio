@@ -179,6 +179,8 @@ public partial class WorkflowInstanceDetails
         }
     }
     
+    private ICollection<ActivityIncident> Incidents => _workflowInstance?.WorkflowState.Incidents ?? new List<ActivityIncident>();
+    
     private IEnumerable<DataPanelModel> IncidentsData
     {
         get
