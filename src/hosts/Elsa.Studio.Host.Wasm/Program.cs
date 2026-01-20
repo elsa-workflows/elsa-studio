@@ -16,6 +16,9 @@ using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
+using Elsa.Studio.Login.BlazorWasm.Extensions;
+using Elsa.Studio.Login.Extensions;
+using Elsa.Studio.Login.HttpMessageHandlers;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -38,17 +41,29 @@ Type authenticationHandler;
 if (authProvider.Equals("ElsaIdentity", StringComparison.OrdinalIgnoreCase))
 {
     // Elsa Identity (username/password against Elsa backend) + login UI at /login.
-    services.AddElsaIdentity();
-    services.AddElsaIdentityUI();
+    builder.Services.AddElsaIdentity();
+    builder.Services.AddElsaIdentityUI();
     authenticationHandler = typeof(ElsaIdentityAuthenticatingApiHttpMessageHandler);
 }
 else if (authProvider.Equals("OpenIdConnect", StringComparison.OrdinalIgnoreCase))
 {
-    services.AddOpenIdConnectAuth(options =>
+    // OpenID Connect.
+    builder.Services.AddOpenIdConnectAuth(options =>
     {
         configuration.GetSection("Authentication:OpenIdConnect").Bind(options);
+
+        // If you see a 401 from the OIDC handler while calling the "userinfo" endpoint,
+        // either disable UserInfo retrieval (recommended for most setups), or configure your IdP/app registration
+        // to allow calling userinfo with the issued access token.
+        // options.GetClaimsFromUserInfoEndpoint = false;
     });
     authenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler);
+}
+else if (authProvider.Equals("ElsaLogin", StringComparison.OrdinalIgnoreCase))
+{
+    // Legacy Elsa Login (username/password against Elsa backend) + login UI at /login.
+    builder.Services.AddLoginModule().UseElsaIdentity();
+    authenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
 }
 else
 {
