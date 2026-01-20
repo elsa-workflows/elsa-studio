@@ -13,8 +13,6 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using Size = Elsa.Api.Client.Shared.Models.Size;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 
