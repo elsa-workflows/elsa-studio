@@ -53,7 +53,7 @@ namespace Elsa.Studio.Workflows.Components
 
         /// <summary>
         /// Parses the current URI's query string and delegates to <see cref="ApplyQueryParameters"/>.
-        /// Only runs once unless you clear _initializedFromQuery or call ParseQueryParameters(force: true).
+        /// Only runs once unless you reset <see cref="InitializedFromQuery"/> or call ParseQueryParameters(force: true).
         /// </summary>
         private async Task ParseQueryParameters(bool force = false)
         {
