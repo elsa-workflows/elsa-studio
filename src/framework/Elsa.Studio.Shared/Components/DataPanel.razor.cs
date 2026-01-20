@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Elsa.Studio.Components.DataPanelRenderers;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
@@ -101,10 +102,13 @@ public partial class DataPanel : ComponentBase
         // Apply format based on Format property
         return item.Format switch
         {
+            DataPanelItemFormat.Text => item.Value.ToString() ?? string.Empty,
             DataPanelItemFormat.Timestamp => FormatTimestamp(item.Value, item.FormatString),
             DataPanelItemFormat.Number => FormatNumber(item.Value),
             DataPanelItemFormat.Boolean => FormatBoolean(item.Value),
             DataPanelItemFormat.Json => FormatJson(item.Value),
+            DataPanelItemFormat.Code => item.Value.ToString() ?? string.Empty,
+            DataPanelItemFormat.Markdown => item.Value.ToString() ?? string.Empty,
             DataPanelItemFormat.Auto => FormatAuto(item.Value),
             _ => item.Value.ToString() ?? string.Empty
         };
@@ -136,7 +140,7 @@ public partial class DataPanel : ComponentBase
 
     private string FormatJson(object value)
     {
-        return value is string str ? str : System.Text.Json.JsonSerializer.Serialize(value, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        return value as string ?? JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true });
     }
 
     private string FormatAuto(object value)
