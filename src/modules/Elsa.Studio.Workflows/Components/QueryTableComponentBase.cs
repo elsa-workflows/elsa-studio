@@ -13,17 +13,12 @@ namespace Elsa.Studio.Workflows.Components
     public abstract class QueryTableComponentBase : StudioComponentBase
     {
         /// <summary>
-        /// Provides an abstraction for managing navigation functionality, including
-        /// generating and manipulating URIs, navigating between pages, and retrieving
-        /// the current URI in a Blazor environment. Accessible as a dependency via dependency injection.
+        /// The injected navigation manager.
         /// </summary>
         [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
 
         /// <summary>
-        /// Provides a mechanism for logging diagnostic messages and warnings
-        /// within the component. Useful for debugging and tracking application
-        /// behavior related to query parsing and URL navigation.
-        /// Typically injected via dependency injection.
+        /// The injected logger.
         /// </summary>
         [Inject] protected ILogger<QueryTableComponentBase> Logger { get; set; } = null!;
 
