@@ -186,8 +186,8 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
-        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
-        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) initialPageSize = pageSize;
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) InitialPage = page - 1;
+        if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) InitialPageSize = pageSize;
 
         // Filters
         if (query.TryGetValue("search", out var searchValues)) SearchTerm = searchValues;
