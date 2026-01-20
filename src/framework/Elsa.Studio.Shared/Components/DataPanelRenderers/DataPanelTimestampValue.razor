@@ -1,7 +1,7 @@
 @using Elsa.Studio.Localization.Time.Components
 
 <span>
-    <Timestamp Value="@Value" />
+    <Timestamp Value="@Value" Format="@Format" />
 </span>
 
 @code {
@@ -9,4 +9,9 @@
     /// The timestamp value to display.
     /// </summary>
     [Parameter] public DateTime Value { get; set; }
+
+    /// <summary>
+    /// The format string to use when displaying the timestamp (e.g., "s" for sortable format, "G" for general).
+    /// </summary>
+    [Parameter] public string Format { get; set; } = "G";
 }

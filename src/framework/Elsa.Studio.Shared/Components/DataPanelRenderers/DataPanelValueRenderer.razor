@@ -58,7 +58,7 @@
     {
         @if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime timestamp })
         {
-            <DataPanelTimestampValue Value="@timestamp" />
+            <DataPanelTimestampValue Value="@timestamp" Format="@(Item.FormatString ?? "G")" />
         }
         else if (Item.Format == DataPanelItemFormat.Code)
         {
