@@ -118,8 +118,20 @@ public partial class DataPanel : ComponentBase
     {
         return value switch
         {
-            DateTime dt => string.IsNullOrWhiteSpace(formatString) ? dt.ToString(CultureInfo.CurrentUICulture) : dt.ToString(formatString),
-            DateTimeOffset dto => string.IsNullOrWhiteSpace(formatString) ? dto.ToString() : dto.ToString(formatString),
+            DateTime dt =>
+            {
+                var local = dt.ToLocalTime();
+                return string.IsNullOrWhiteSpace(formatString)
+                    ? local.ToString(CultureInfo.CurrentUICulture)
+                    : local.ToString(formatString, CultureInfo.CurrentUICulture);
+            },
+            DateTimeOffset dto =>
+            {
+                var local = dto.ToLocalTime();
+                return string.IsNullOrWhiteSpace(formatString)
+                    ? local.ToString(CultureInfo.CurrentUICulture)
+                    : local.ToString(formatString, CultureInfo.CurrentUICulture);
+            },
             _ => value.ToString() ?? string.Empty
         };
     }
