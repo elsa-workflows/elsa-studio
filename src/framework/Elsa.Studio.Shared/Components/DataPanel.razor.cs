@@ -14,6 +14,9 @@ namespace Elsa.Studio.Components;
 /// </summary>
 public partial class DataPanel : ComponentBase
 {
+    /// <summary>
+    /// The default maximum length for truncating displayed content in data panel components.
+    /// </summary>
     public const int DefaultTruncationLength = 300;
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
 
