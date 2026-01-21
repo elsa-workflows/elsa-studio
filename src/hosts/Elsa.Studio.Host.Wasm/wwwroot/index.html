@@ -2,43 +2,132 @@
 <html>
 
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>Elsa Studio 3.6</title>
-    <base href="/"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Elsa Studio</title>
+    <base href="/" />
     <link rel="apple-touch-icon" sizes="180x180" href="_content/Elsa.Studio.Shell/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="_content/Elsa.Studio.Shell/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="_content/Elsa.Studio.Shell/favicon-16x16.png">
     <link rel="manifest" href="_content/Elsa.Studio.Shell/site.webmanifest">
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
-    <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" >
+    <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet">
     <link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet">
 </head>
 
 <body>
-<div id="app">
-    <div class="loading-splash mud-container mud-container-maxwidth-false">
-        <h5 class="mud-typography mud-typography-h5 mud-primary-text my-6">Loading...</h5>
+
+    <!-- Initial loading screen for WASM -->
+    <div id="wasm-loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f5f5f5; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <div style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top: 4px solid #1976d2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <div id="loading-text" style="color: #666; font-family: 'Roboto', sans-serif;">Initializing...</div>
+        </div>
     </div>
-</div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
-<script src="_content/BlazorMonaco/jsInterop.js"></script>
-<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
-<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
-<script src="_content/MudBlazor/MudBlazor.min.js"></script>
-<script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
-<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <div id="app"></div>
 
-<!-- Required for Microsoft.AspNetCore.Components.WebAssembly.Authentication (RemoteAuthenticatorView/RemoteAuthenticationService). -->
-<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
 
-<script src="_framework/blazor.webassembly.js"></script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .blazor-ready #wasm-loading {
+            display: none !important;
+        }
+    </style>
+
+    <script src="_content/BlazorMonaco/jsInterop.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+
+    <!-- Required for Microsoft.AspNetCore.Components.WebAssembly.Authentication -->
+    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+        let wasmLoadingHidden = false;
+        let blazorStartAttempted = false;
+
+        function hideWasmLoadingScreen() {
+            if (!wasmLoadingHidden) {
+                wasmLoadingHidden = true;
+                document.body.classList.add('blazor-ready');
+            }
+        }
+
+        function updateLoadingText(text) {
+            const loadingTextEl = document.getElementById('loading-text');
+            if (loadingTextEl) {
+                loadingTextEl.textContent = text;
+            }
+        }
+
+        // Expose functions for Blazor components
+        window.hideAuthLoading = function () {
+            hideWasmLoadingScreen();
+        };
+
+        window.hideWasmLoading = function () {
+            hideWasmLoadingScreen();
+        };
+
+        window.updateLoadingStatus = function (status) {
+            updateLoadingText(status);
+        };
+
+        // Initialize Blazor
+        function initializeBlazor() {
+            if (typeof Blazor === 'undefined') {
+                updateLoadingText('Blazor not loaded');
+                setTimeout(hideWasmLoadingScreen, 2000);
+                return;
+            }
+
+            if (!blazorStartAttempted) {
+                blazorStartAttempted = true;
+                updateLoadingText('Starting Blazor WASM...');
+
+                Blazor.start().then(() => {
+                    updateLoadingText('Loading application...');
+                }).catch((error) => {
+                    if (error.message && error.message.includes('already started')) {
+                        setTimeout(hideWasmLoadingScreen, 100);
+                    } else {
+                        updateLoadingText('Startup failed');
+                        setTimeout(hideWasmLoadingScreen, 2000);
+                    }
+                });
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeBlazor);
+        } else {
+            initializeBlazor();
+        }
+
+        // Safety timeout
+        setTimeout(() => {
+            if (!wasmLoadingHidden) {
+                hideWasmLoadingScreen();
+            }
+        }, 5000);
+    </script>
+
 </body>
 
 </html>
