@@ -21,7 +21,7 @@
             <tbody>
                 @{
                     var data = HideEmptyValues
-                    ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList()
+                    ? Data.Where(x => !string.IsNullOrWhiteSpace(x.Text) || x.LabelComponent != null || x.ValueComponent != null).ToList()
                     : Data;
                 }
                 @if (data.Any())
@@ -29,47 +29,63 @@
                     @foreach (var item in data)
                     {
                         <tr Class="hover-row">
-                            <td style="width: 200px;" title="@item.LabelToolTip">@item.Label</td>
+                            <td style="width: 200px;" title="@item.LabelToolTip">
+                                @if (item.LabelComponent != null)
+                                {
+                                    @item.LabelComponent
+                                }
+                                else
+                                {
+                                    @(!string.IsNullOrWhiteSpace(item.Label) ? item.Label : "-")
+                                }
+                            </td>
                             <td>
-                                <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                                    @if (!string.IsNullOrWhiteSpace(item.Text))
-                                    {
-                                        <MudTooltip Text="@Localizer["View"]" Delay="500">
-                                            <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
-                                        </MudTooltip>
-                                    }
-                                    @if (!string.IsNullOrWhiteSpace(item.Link))
-                                    {
-                                        <MudLink Typo="Typo.body2" Href="@item.Link">@item.Text</MudLink>
-                                    }
-                                    else if (item.OnClick != null)
-                                    {
-                                        <MudLink Typo="Typo.body2" OnClick="@item.OnClick">@item.Text</MudLink>
-                                    }
-                                    else
-                                    {
-                                        @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
+                                @if (item.ValueComponent != null)
+                                {
+                                    @item.ValueComponent
+                                }
+                                else
+                                {
+                                    <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
+                                        @if (!string.IsNullOrWhiteSpace(item.Text))
                                         {
-                                            <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
+                                            <MudTooltip Text="@Localizer["View"]" Delay="500">
+                                                <MudIconButton Icon="@Icons.Material.Outlined.ManageSearch" Size="Size.Small" OnClick="@(() => OnViewClicked(item!))" Disabled="@(string.IsNullOrWhiteSpace(item.Text))" Class="icon-on-hover" />
+                                            </MudTooltip>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(item.Link))
+                                        {
+                                            <MudLink Typo="Typo.body2" Href="@item.Link">@item.Text</MudLink>
+                                        }
+                                        else if (item.OnClick != null)
+                                        {
+                                            <MudLink Typo="Typo.body2" OnClick="@item.OnClick">@item.Text</MudLink>
                                         }
                                         else
                                         {
-                                            @if (item.Text?.Length > truncationLength)
+                                            @if (item.Label == "Created" || item.Label == "Updated" || item.Label == "Finished")
                                             {
-                                                <div>
-                                                    @item.Text.Substring(0, truncationLength)
-                                                    <MudTooltip Text="@Localizer["Show all"]" Delay="500">
-                                                        <MudLink OnClick="@(() => OnViewClicked(item!))"><small>[...]</small></MudLink>
-                                                    </MudTooltip>
-                                                </div>
+                                                <span><Timestamp Value="@Convert.ToDateTime(item.Text)"></Timestamp></span>
                                             }
                                             else
                                             {
-                                                <span>@item.Text</span>
+                                                @if (item.Text?.Length > truncationLength)
+                                                {
+                                                    <div>
+                                                        @item.Text.Substring(0, truncationLength)
+                                                        <MudTooltip Text="@Localizer["Show all"]" Delay="500">
+                                                            <MudLink OnClick="@(() => OnViewClicked(item!))"><small>[...]</small></MudLink>
+                                                        </MudTooltip>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span>@item.Text</span>
+                                                }
                                             }
                                         }
-                                    }
-                                </MudStack>
+                                    </MudStack>
+                                }
                             </td>
                             <td style="width: 50px;">
                                 <MudTooltip Text="@Localizer["Copy"]" Delay="500">

@@ -110,8 +110,8 @@ public partial class DiagramDesignerWrapper
     public async Task SelectActivityByActivityIdAsync(string activityId, string? nodeId = null)
     {
         var containerActivity = GetCurrentContainerActivity();
-        var activities = containerActivity.GetActivities();
-        var activityToSelect = activities.FirstOrDefault(x => x.GetId() == activityId);
+        var activities = containerActivity?.GetActivities();
+        var activityToSelect = activities?.FirstOrDefault(x => x.GetId() == activityId);
 
         await SelectActivityAsync(activityToSelect, nodeId);
     }
@@ -120,12 +120,8 @@ public partial class DiagramDesignerWrapper
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
     {
-        // Assuming _activityGraph.ActivityNodeLookup is your latest index
-        if (_activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var node))
-        {
-            var activity = node.Activity;
-            await SelectActivityAsync(activity, nodeId);
-        }
+        var activity = _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var node) ? node.Activity : null;
+        await SelectActivityAsync(activity, nodeId);
     }
 
     private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
