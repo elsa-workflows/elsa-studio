@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿        @page "/"
 @using Elsa.Studio.Branding
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IConfiguration Configuration;
@@ -18,7 +18,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>Elsa Studio 3</title>
+    <title>Elsa Studio</title>
     <base href="@baseRef"/>
     <link rel="apple-touch-icon" sizes="180x180" href="@BrandingProvider.AppleTouchIconUrl">
     <link rel="icon" type="image/png" sizes="32x32" href="@BrandingProvider.Favicon32Url">
@@ -31,45 +31,122 @@
 </head>
 
 <body>
-<div id="app">
-    <div class="loading-splash mud-container mud-container-maxwidth-false">
-        <h5 class="mud-typography mud-typography-h5 mud-primary-text my-6">Loading...</h5>
+
+<!-- Initial loading screen for HostedWasm -->
+<div id="hosted-wasm-loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f5f5f5; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <div style="text-align: center;">
+        <div style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top: 4px solid #1976d2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <div id="hosted-loading-text" style="color: #666; font-family: 'Roboto', sans-serif;">Initializing...</div>
     </div>
 </div>
+
+<div id="app"></div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .blazor-ready #hosted-wasm-loading {
+        display: none !important;
+    }
+</style>
+
 <script src="_content/BlazorMonaco/jsInterop.js"></script>
 <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
 <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+
 <script>
     window.getClientConfig = function() { return {
         "apiUrl": "@apiUrl"
      } };
 </script>
+
 <script src="_framework/blazor.webassembly.js" autostart="false"></script>
 
-<script type="application/javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        Blazor.start({
-            loadBootResource: function (type, name, defaultUri, integrity) {
-                if (defaultUri.startsWith('http'))
+<script>
+    let hostedWasmLoadingHidden = false;
+    let blazorStartAttempted = false;
+
+    function hideHostedWasmLoadingScreen() {
+        if (!hostedWasmLoadingHidden) {
+            hostedWasmLoadingHidden = true;
+            document.body.classList.add('blazor-ready');
+        }
+    }
+
+    function updateHostedLoadingText(text) {
+        const loadingTextEl = document.getElementById('hosted-loading-text');
+        if (loadingTextEl) {
+            loadingTextEl.textContent = text;
+        }
+    }
+
+    // Expose functions for Blazor components
+    window.hideAuthLoading = function () {
+        hideHostedWasmLoadingScreen();
+    };
+
+    window.hideWasmLoading = function () {
+        hideHostedWasmLoadingScreen();
+    };
+
+    window.updateLoadingStatus = function (status) {
+        updateHostedLoadingText(status);
+    };
+
+    // Initialize Blazor with custom configuration
+    function initializeBlazor() {
+        if (!blazorStartAttempted) {
+            blazorStartAttempted = true;
+            updateHostedLoadingText('Starting Blazor WASM...');
+
+            Blazor.start({
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    if (defaultUri.startsWith('http'))
+                        return defaultUri;
+
+                    if (!defaultUri.startsWith('/'))
+                        return `/${defaultUri}`;
+
                     return defaultUri;
+                }
+            }).then(() => {
+                updateHostedLoadingText('Loading application...');
+            }).catch((error) => {
+                if (error.message && error.message.includes('already started')) {
+                    setTimeout(hideHostedWasmLoadingScreen, 100);
+                } else {
+                    updateHostedLoadingText('Startup failed');
+                    setTimeout(hideHostedWasmLoadingScreen, 2000);
+                }
+            });
+        }
+    }
 
-                if (!defaultUri.startsWith('/'))
-                    return `/${defaultUri}`;
-
-                return defaultUri;
-            }
-        });
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeBlazor();
     });
+
+    // Safety timeout
+    setTimeout(() => {
+        if (!hostedWasmLoadingHidden) {
+            hideHostedWasmLoadingScreen();
+        }
+    }, 5000);
 </script>
+
 </body>
 
 </html>
