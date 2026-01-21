@@ -1,6 +1,7 @@
 @using System.Text.Json.Nodes
 @using Elsa.Api.Client.Extensions
 <MudPaper Width="100%" Class="pa-16">
+    <MudAlert Severity="Severity.Warning">Fallback view active. This activity cannot be rendered because no designer is registered for its type.</MudAlert>
     <MudContainer MaxWidth="MaxWidth.ExtraSmall">
         @if (Activity != null)
         {
