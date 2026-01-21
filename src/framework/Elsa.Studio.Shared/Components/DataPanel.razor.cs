@@ -15,6 +15,7 @@ namespace Elsa.Studio.Components;
 public partial class DataPanel : ComponentBase
 {
     public const int DefaultTruncationLength = 300;
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
 
     /// <summary>
     /// The data to display.
@@ -118,31 +119,24 @@ public partial class DataPanel : ComponentBase
     {
         return value switch
         {
-            DateTime dt =>
-            {
-                var local = dt.ToLocalTime();
-                return string.IsNullOrWhiteSpace(formatString)
-                    ? local.ToString(CultureInfo.CurrentUICulture)
-                    : local.ToString(formatString, CultureInfo.CurrentUICulture);
-            },
-            DateTimeOffset dto =>
-            {
-                var local = dto.ToLocalTime();
-                return string.IsNullOrWhiteSpace(formatString)
-                    ? local.ToString(CultureInfo.CurrentUICulture)
-                    : local.ToString(formatString, CultureInfo.CurrentUICulture);
-            },
+            DateTime dt => string.IsNullOrWhiteSpace(formatString)
+                ? dt.ToLocalTime().ToString(CultureInfo.CurrentUICulture)
+                : dt.ToLocalTime().ToString(formatString, CultureInfo.CurrentUICulture),
+            DateTimeOffset dto => string.IsNullOrWhiteSpace(formatString)
+                ? dto.ToLocalTime().ToString(CultureInfo.CurrentUICulture)
+                : dto.ToLocalTime().ToString(formatString, CultureInfo.CurrentUICulture),
             _ => value.ToString() ?? string.Empty
         };
     }
 
     private string FormatNumber(object value)
     {
-        if (value is int || value is long || value is short || value is byte)
-            return $"{value:N0}";
-        if (value is double || value is float || value is decimal)
-            return $"{value:N2}";
-        return value.ToString() ?? string.Empty;
+        return value switch
+        {
+            int or long or short or byte => $"{value:N0}",
+            double or float or decimal => $"{value:N2}",
+            _ => value.ToString() ?? string.Empty
+        };
     }
 
     private string FormatBoolean(object value)
@@ -152,7 +146,7 @@ public partial class DataPanel : ComponentBase
 
     private string FormatJson(object value)
     {
-        return value as string ?? JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true });
+        return value as string ?? JsonSerializer.Serialize(value, JsonSerializerOptions);
     }
 
     private string FormatAuto(object value)
