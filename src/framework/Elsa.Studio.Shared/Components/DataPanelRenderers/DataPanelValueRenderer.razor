@@ -60,7 +60,13 @@
         {
             var timestampValue = Item.Value switch
             {
-                DateTime dt => (DateTimeOffset)dt,
+                DateTime dt => dt.Kind switch
+                {
+                    DateTimeKind.Utc => new DateTimeOffset(dt),
+                    DateTimeKind.Local => new DateTimeOffset(dt),
+                    DateTimeKind.Unspecified => new DateTimeOffset(DateTime.SpecifyKind(dt, DateTimeKind.Unspecified), TimeSpan.Zero),
+                    _ => new DateTimeOffset(dt)
+                },
                 DateTimeOffset dto => dto,
                 _ => (DateTimeOffset?)null
             };
