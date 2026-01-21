@@ -42,7 +42,7 @@
         </VerticalWell>
         }
     </MudTabPanel>
-    <MudTabPanel Text="@Localizer["Incidents"]">
+    <MudTabPanel Text="@Localizer["Incidents"]" BadgeData="@(Incidents.Count > 0 ? Incidents.Count : null)" BadgeColor="Color.Error">
         <VerticalWell ExtraPadding="50">
             <MudText Typo="Typo.overline" GutterBottom="true" Align="Align.Left">@Localizer["Incidents"]</MudText>
             @if (IncidentsData.Any())

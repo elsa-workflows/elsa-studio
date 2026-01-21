@@ -177,6 +177,8 @@ public partial class WorkflowInstanceDetails
         }
     }
     
+    private ICollection<ActivityIncident> Incidents => _workflowInstance?.WorkflowState.Incidents ?? new List<ActivityIncident>();
+    
     private IEnumerable<DataPanelModel> IncidentsData
     {
         get
@@ -188,12 +190,19 @@ public partial class WorkflowInstanceDetails
                 .Select(i => new DataPanelModel
                 {
                     new DataPanelItem("ActivityId", i.ActivityId),
-                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId, null, () => OnIncidentActivityNodeIdClicked(i.ActivityNodeId)),
+                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
-                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
-                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
-                        : ""),
-                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message : ""),
+                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? ""),
+                    new DataPanelItem(
+                        LabelComponent: builder =>
+                        {
+                            var activityNodeId = i.ActivityNodeId;
+                            builder.OpenComponent<IncidentNavigateButton>(0);
+                            builder.AddAttribute(1, "OnClick", EventCallback.Factory.Create(this, () => OnIncidentActivityNodeIdClicked(activityNodeId)));
+                            builder.CloseComponent();
+                        }
+                    ),
                 });
         }
     }
