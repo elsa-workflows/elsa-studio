@@ -93,6 +93,9 @@ public partial class WorkflowDefinitionList
             })
             .ToList();
 
+        // Update initialPage to preserve current page during re-renders
+        InitialPage = state.Page;
+
         // Update URL to reflect current table state & filters
         TryUpdateUrlFromState(state);
 
@@ -107,7 +110,7 @@ public partial class WorkflowDefinitionList
     protected override async Task ApplyQueryParameters(IDictionary<string, string> query)
     {
         // Paging
-        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) initialPage = page - 1;
+        if (query.TryGetValue("page", out var pageValue) && int.TryParse(pageValue, out var page)) InitialPage = page - 1;
         if (query.TryGetValue("pageSize", out var pageSizeValue) && int.TryParse(pageSizeValue, out var pageSize)) _table.SetRowsPerPage(pageSize);
 
         // Filters

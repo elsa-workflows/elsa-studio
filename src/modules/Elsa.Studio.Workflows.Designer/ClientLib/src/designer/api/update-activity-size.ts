@@ -1,6 +1,7 @@
 import {calculateActivitySize} from "./calculate-activity-size";
 import {Activity, Size} from "../models";
 import {graphBindings} from "./graph-bindings";
+import {Node} from "@antv/x6";
 
 export async function updateActivitySize(elementId: string, activityModel: Activity | string, size?: Size, portCount?: number) {
     // Get wrapper element.
@@ -46,4 +47,45 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
     }
 
     node.size(width, height);
+}
+
+/**
+ * Enforces the minimum size on a node based on its activity content.
+ * If the current size is smaller than the minimum, the node will snap back to the minimum size.
+ * @param node The X6 node to enforce minimum size on
+ * @returns true if the size was adjusted, false otherwise
+ */
+export async function enforceMinimumNodeSize(node: Node): Promise<boolean> {
+    const activity: Activity = node.data;
+    
+    if (!activity) {
+        return false;
+    }
+
+    // Determine the number of ports on the node, defaulting to 0 if unavailable.
+    const portCount = node.ports?.items?.length ?? 0;
+
+    // Calculate the minimum size based on content and port count
+    const minSize = await calculateActivitySize(activity, portCount);
+    const currentSize = node.size();
+    
+    let needsResize = false;
+    let newWidth = currentSize.width;
+    let newHeight = currentSize.height;
+    
+    if (currentSize.width < minSize.width) {
+        newWidth = minSize.width;
+        needsResize = true;
+    }
+    
+    if (currentSize.height < minSize.height) {
+        newHeight = minSize.height;
+        needsResize = true;
+    }
+    
+    if (needsResize) {
+        node.size(newWidth, newHeight);
+    }
+    
+    return needsResize;
 }
