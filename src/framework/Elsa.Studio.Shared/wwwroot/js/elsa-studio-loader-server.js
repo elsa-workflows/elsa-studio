@@ -7,6 +7,10 @@
 (function() {
     'use strict';
 
+    let loadingHidden = false;
+    let blazorReady = false;
+    let initialRenderComplete = false;
+
     // Load required stylesheets
     function loadStyles() {
         const styles = [
@@ -79,11 +83,170 @@
         document.head.insertAdjacentHTML('beforeend', loadingStyle);
     }
 
-    // Initialize Blazor Server with timeout fallback
-    function initializeBlazorServer(maxWaitMs) {
-        maxWaitMs = maxWaitMs || 10000;
-        setTimeout(function() {
+    // Update loading text (minimal usage)
+    function updateLoadingText(text) {
+        const loadingTextEl = document.getElementById('elsa-loading-text');
+        if (loadingTextEl) {
+            loadingTextEl.textContent = text;
+        }
+    }
+
+    // Hide loading screen when actually ready
+    function hideLoadingScreen() {
+        if (!loadingHidden) {
+            loadingHidden = true;
+            console.log('Blazor Server ready - hiding loading screen');
             document.body.classList.add('blazor-ready');
+        }
+    }
+
+    // Check if we should hide loading screen
+    function checkReadiness() {
+        if (blazorReady && initialRenderComplete && !loadingHidden) {
+            hideLoadingScreen();
+        }
+    }
+
+    // Detect when Blazor Server connection is established
+    function detectBlazorConnection() {
+        // Check for Blazor global object and connection
+        if (typeof window.Blazor !== 'undefined') {
+            // Monitor for SignalR connection
+            const originalLog = console.log;
+            console.log = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('SignalR') || message.includes('connected') || message.includes('circuit')) {
+                    blazorReady = true;
+                    checkReadiness();
+                }
+                originalLog.apply(console, args);
+            };
+        }
+
+        // Check for Blazor Server specific DOM changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    for (let node of mutation.addedNodes) {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            // Check for Blazor component markers
+                            if (node.hasAttribute && (
+                                node.hasAttribute('_bl_') || 
+                                node.querySelector && node.querySelector('[_bl_]') ||
+                                node.classList && node.classList.contains('mud-main-content') ||
+                                node.tagName === 'APP'
+                            )) {
+                                if (!blazorReady) {
+                                    blazorReady = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        observer.observe(document.body, { 
+            childList: true, 
+            subtree: true,
+            attributes: true 
+        });
+
+        // Stop observing after readiness is detected
+        setTimeout(() => {
+            if (blazorReady || loadingHidden) {
+                observer.disconnect();
+            }
+        }, 10000);
+    }
+
+    // Detect when initial render is complete
+    function detectRenderCompletion() {
+        // Check for common Blazor/MudBlazor elements
+        function checkForMainContent() {
+            const indicators = [
+                '.mud-main-content',
+                '.mud-layout',
+                '[role="main"]',
+                '.elsa-main-layout',
+                '.mud-drawer',
+                '.mud-appbar'
+            ];
+            
+            for (let selector of indicators) {
+                const element = document.querySelector(selector);
+                if (element && element.offsetHeight > 0) {
+                    initialRenderComplete = true;
+                    checkReadiness();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Use requestAnimationFrame to detect when rendering settles
+        let frameCount = 0;
+        let lastBodyHeight = 0;
+        let stableFrames = 0;
+        
+        function checkRenderStability() {
+            frameCount++;
+            const currentHeight = document.body.offsetHeight;
+            
+            if (currentHeight === lastBodyHeight && currentHeight > 100) {
+                stableFrames++;
+                if (stableFrames >= 5) { // 5 stable frames
+                    if (!initialRenderComplete && checkForMainContent()) {
+                        return;
+                    } else if (!initialRenderComplete && frameCount > 30) {
+                        initialRenderComplete = true;
+                        checkReadiness();
+                        return;
+                    }
+                }
+            } else {
+                stableFrames = 0;
+                lastBodyHeight = currentHeight;
+            }
+            
+            if (frameCount < 100 && !initialRenderComplete) {
+                requestAnimationFrame(checkRenderStability);
+            } else if (!initialRenderComplete) {
+                // Fallback after 100 frames
+                initialRenderComplete = true;
+                checkReadiness();
+            }
+        }
+        
+        // Start checking on next frame
+        requestAnimationFrame(checkRenderStability);
+        
+        // Also check periodically
+        const intervalCheck = setInterval(() => {
+            if (checkForMainContent()) {
+                clearInterval(intervalCheck);
+            } else if (frameCount > 100) {
+                clearInterval(intervalCheck);
+            }
+        }, 200);
+    }
+
+    // Enhanced Blazor Server initialization
+    function initializeBlazorServer(maxWaitMs) {
+        maxWaitMs = maxWaitMs || 8000; // Fallback timeout
+        
+        // Start detection methods
+        setTimeout(() => detectBlazorConnection(), 100);
+        setTimeout(() => detectRenderCompletion(), 500);
+        
+        // Ultimate fallback timeout
+        setTimeout(function() {
+            if (!loadingHidden) {
+                console.warn('Fallback timeout reached - forcing loading screen to hide');
+                blazorReady = true;
+                initialRenderComplete = true;
+                hideLoadingScreen();
+            }
         }, maxWaitMs);
     }
 
@@ -92,7 +255,7 @@
         loadStyles();
         injectLoadingScreen();
         loadScripts();
-        initializeBlazorServer(10000);
+        initializeBlazorServer(8000);
     }
 
     // Run initialization
@@ -104,8 +267,12 @@
 
     // Expose API for manual control if needed
     window.ElsaStudio = window.ElsaStudio || {};
-    window.ElsaStudio.hideLoading = function() {
-        document.body.classList.add('blazor-ready');
+    window.ElsaStudio.hideLoading = hideLoadingScreen;
+    window.ElsaStudio.updateLoadingText = updateLoadingText;
+    window.ElsaStudio.forceReady = function() {
+        blazorReady = true;
+        initialRenderComplete = true;
+        checkReadiness();
     };
 
 })();

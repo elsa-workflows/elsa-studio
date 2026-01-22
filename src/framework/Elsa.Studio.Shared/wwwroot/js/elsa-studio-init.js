@@ -43,7 +43,7 @@
 
         if (!blazorStartAttempted) {
             blazorStartAttempted = true;
-            updateLoadingText('Starting Blazor WASM...');
+            updateLoadingText('Starting...');
 
             Blazor.start(config || {}).then(() => {
                 updateLoadingText('Loading application...');

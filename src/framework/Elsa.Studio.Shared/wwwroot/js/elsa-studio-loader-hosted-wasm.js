@@ -109,7 +109,7 @@
             return;
         }
 
-        updateLoadingText('Starting Blazor WASM...');
+        updateLoadingText('Starting...');
 
         const config = {
             loadBootResource: function (type, name, defaultUri, integrity) {
