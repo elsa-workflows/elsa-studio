@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <Description>Elsa Studio hosting utilities for reusable HTML, CSS, and JavaScript components.</Description>
+    <PackageTags>elsa studio hosting framework</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Elsa.Studio.Core\Elsa.Studio.Core.csproj" />
+  </ItemGroup>
+
+</Project>

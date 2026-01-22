@@ -1,0 +1,47 @@
+@namespace Elsa.Studio.Hosting.Components
+
+@*
+    Elsa Studio Scripts Component - Includes all required JavaScript libraries.
+    Usage: <ElsaStudioScripts Mode="BlazorHostingMode.Server" />
+*@
+
+<script src="_content/BlazorMonaco/jsInterop.js"></script>
+<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+<script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+
+@if (Mode == BlazorHostingMode.WebAssembly)
+{
+    @* Required for Microsoft.AspNetCore.Components.WebAssembly.Authentication *@
+    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+}
+
+@if (Mode == BlazorHostingMode.Server)
+{
+    <script src="_framework/blazor.server.js"></script>
+}
+else if (Mode == BlazorHostingMode.WebAssembly && !AutoStart)
+{
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+}
+else if (Mode == BlazorHostingMode.WebAssembly)
+{
+    <script src="_framework/blazor.webassembly.js"></script>
+}
+
+@code {
+    /// <summary>
+    /// The Blazor hosting mode (Server or WebAssembly).
+    /// </summary>
+    [Parameter]
+    public BlazorHostingMode Mode { get; set; } = BlazorHostingMode.Server;
+
+    /// <summary>
+    /// For WebAssembly mode, whether to auto-start Blazor. Default is true.
+    /// Set to false if you need to configure Blazor startup manually.
+    /// </summary>
+    [Parameter]
+    public bool AutoStart { get; set; } = true;
+}
