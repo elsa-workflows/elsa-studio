@@ -1,4 +1,4 @@
-namespace Elsa.Studio.Hosting.Components;
+namespace Elsa.Studio.Shared.Components.Hosting;
 
 /// <summary>
 /// Represents the Blazor hosting mode.
