@@ -1,0 +1,83 @@
+@using Variant = MudBlazor.Variant
+@using Size = MudBlazor.Size
+@using Elsa.Api.Client.Shared.Models
+@inherits StudioComponentBase
+@inject ILocalizer Localizer
+
+<MudPaper Class="mx-2 mt-2 mb-0" Elevation="0" Outlined="true">
+    <MudToolBar Dense="true">
+        <MudText Typo="Typo.subtitle2">
+            @Localizer["Call stack"]@((Entries.Count > 0) ? $" ({Entries.Count})" : "")
+        </MudText>
+        <MudSpacer />
+        @if (IsLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        }
+    </MudToolBar>
+</MudPaper>
+<div class="px-4" style="overflow-y: auto; height: calc(100vh - var(--mud-appbar-height) - 160px);">
+    @if (SelectedActivity == null)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Class="mt-2">@Localizer["Select an activity to view its call stack."]</MudAlert>
+    }
+    else if (HasError)
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Text" Class="mt-2">@Localizer["Unable to load call stack."]</MudAlert>
+    }
+    else if (Entries.Count == 0)
+    {
+        @if (IsLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Class="mt-2" />
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Class="mt-2">@Localizer["No call stack entries found for the selected activity."]</MudAlert>
+        }
+    }
+    else
+    {
+        <MudTimeline SelectedIndexChanged="OnCallStackEntrySelected" SelectedIndex="SelectedIndex">
+            @for (var index = 0; index < Entries.Count; index++)
+            {
+                var entry = Entries[index];
+                var record = entry.Record;
+                var displaySettings = entry.ActivityDisplaySettings;
+                var activityIcon = displaySettings?.Icon;
+                var iconStyle = !string.IsNullOrWhiteSpace(displaySettings?.Color) ? $"color: {displaySettings.Color};" : null;
+                var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
+                var bgClass = index == SelectedIndex ? "gray lighten-3 rounded" : "";
+                var durationText = entry.Duration.HasValue ? entry.Duration.Value.ToString("hh\\:mm\\:ss\\.fff") : "-";
+                var statusColor = record.Status switch
+                {
+                    ActivityStatus.Pending => Color.Default,
+                    ActivityStatus.Running => Color.Info,
+                    ActivityStatus.Completed => Color.Success,
+                    ActivityStatus.Canceled => Color.Warning,
+                    ActivityStatus.Faulted => Color.Error,
+                    _ => Color.Default
+                    };
+
+                <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="TimelineAlign.Start" Class="@($"cursor-pointer pa-1 {bgClass}")">
+                    <ItemDot>
+                        <MudIcon Icon="@activityIcon" Size="Size.Small" Style="@iconStyle"></MudIcon>
+                    </ItemDot>
+                    <ItemContent>
+                        <MudText Typo="Typo.body2">@displayName</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@record.Status</MudText>
+                    </ItemContent>
+                    <ItemOpposite>
+                        <div class="d-flex justify-end gap-4">
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary"><Timestamp Value="record.StartedAt" /></MudText>
+                        </div>
+                        <div class="d-flex justify-end gap-4">
+                            <MudIcon Icon="@Icons.Material.Outlined.Timer" Size="Size.Small"></MudIcon>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@durationText</MudText>
+                        </div>
+                    </ItemOpposite>
+                </MudTimelineItem>
+            }
+        </MudTimeline>
+    }
+</div>
