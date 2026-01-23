@@ -33,6 +33,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
     /// The activity execution record summaries.
     [Parameter] public ICollection<ActivityExecutionRecordSummary> ActivityExecutionSummaries { get; set; } = new List<ActivityExecutionRecordSummary>();
 
+    /// A callback invoked when an activity execution is selected.
+    [Parameter] public EventCallback<ActivityExecutionRecord?> ExecutionSelected { get; set; }
+
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
 
     private IEnumerable<ActivityExecutionRecordTableRow> Items => ActivityExecutionSummaries.Select((x, i) => new ActivityExecutionRecordTableRow(i + 1, x));
@@ -51,6 +54,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
         SelectedActivityState = new();
         SelectedOutcomesData = new();
         SelectedOutputData = new();
+
+        if (ExecutionSelected.HasDelegate)
+            await ExecutionSelected.InvokeAsync(null);
     }
 
     private void CreateSelectedItemDataModels(ActivityExecutionRecord? record)
@@ -101,6 +107,9 @@ public partial class ActivityExecutionsTab : IAsyncDisposable
             return;
 
         await RefreshSelectedItemAsync(id);
+
+        if (ExecutionSelected.HasDelegate)
+            await ExecutionSelected.InvokeAsync(SelectedItem);
 
         if (SelectedItem == null)
             return;
