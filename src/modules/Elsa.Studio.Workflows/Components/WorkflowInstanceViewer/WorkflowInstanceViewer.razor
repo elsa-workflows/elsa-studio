@@ -1,9 +1,21 @@
 @inherits StudioComponentBase
 @using Orientation = Radzen.Orientation
+@inject ILocalizer Localizer
 
 <RadzenSplitter Orientation="Orientation.Horizontal" Style="height: calc(100vh - var(--mud-appbar-height));">
     <RadzenSplitterPane Size="20%" Min="100px">
-        <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected"/>
+        <MudTabs Elevation="0" ApplyEffectsToContainer="true" KeepPanelsAlive="true" @bind-ActivePanelIndex="_leftPanelTabIndex">
+            <MudTabPanel Text="@Localizer["Journal"]">
+                <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected"/>
+            </MudTabPanel>
+            <MudTabPanel Text="@Localizer["Activity Call Stack"]">
+                <ActivityCallStack
+                    WorkflowInstanceId="@_workflowInstance?.Id"
+                    SelectedActivity="@_selectedActivity"
+                    IsActive="@(_leftPanelTabIndex == 1)"
+                    CallStackEntrySelected="OnCallStackEntrySelected" />
+            </MudTabPanel>
+        </MudTabs>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="80%">
         <WorkflowInstanceWorkspace 

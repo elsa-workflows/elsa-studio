@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.RealTime.Messages;
+using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
@@ -21,6 +22,8 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private WorkflowDefinition _workflowDefinition = default!;
     private WorkflowInstanceWorkspace _workspace = default!;
     private IWorkflowInstanceObserver? _workflowInstanceObserver = default!;
+    private int _leftPanelTabIndex;
+    private JsonObject? _selectedActivity;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -104,9 +107,15 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
     }
 
+    private async Task OnCallStackEntrySelected(ActivityExecutionRecord record)
+    {
+        await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
+    }
+
     private Task OnActivitySelected(JsonObject arg)
     {
         Journal.ClearSelection();
+        _selectedActivity = arg;
         return Task.CompletedTask;
     }
 
