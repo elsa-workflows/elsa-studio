@@ -1,6 +1,5 @@
 @using Orientation = Radzen.Orientation
 @inherits StudioComponentBase
-@using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 
 <CascadingValue Value="this">
@@ -8,7 +7,6 @@
         <RadzenSplitterPane Size="65%">
 
             <MudDynamicTabs
-                @ref="@_dynamicTabs"
                 Style="height: 100%"
                 AddIconClass="d-none"
                 AddIconToolTip="@Localizer["Click to open a new workflow tab"]" CloseIconToolTip="@Localizer["Close workflow"]"
