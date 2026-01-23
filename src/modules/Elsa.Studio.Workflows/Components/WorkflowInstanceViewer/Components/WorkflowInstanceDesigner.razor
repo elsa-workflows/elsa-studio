@@ -45,12 +45,7 @@
                     </MudTabPanel>
 
                     <MudTabPanel Text="@Localizer["Executions"]" BadgeData="@SelectedActivityExecutions.Count">
-                        <ActivityExecutionsTab
-                            @ref="_activityExecutionsTab"
-                            Activity="@SelectedActivity"
-                            ActivityExecutionSummaries="SelectedActivityExecutions"
-                            VisiblePaneHeight="@_propertiesPaneHeight"
-                            ExecutionSelected="OnActivityExecutionSelected"/>
+                        <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutionSummaries="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight"/>
                     </MudTabPanel>
                 }
 

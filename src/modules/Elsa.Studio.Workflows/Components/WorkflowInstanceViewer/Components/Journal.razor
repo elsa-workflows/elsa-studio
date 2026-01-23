@@ -42,11 +42,11 @@
                 var activityDescriptor = journalEntry.ActivityDescriptor;
                 var displaySettings = journalEntry.ActivityDisplaySettings;
                 var activityIcon = displaySettings?.Icon;
+                var activityColor = displaySettings?.Color;
                 var iconStyle = !string.IsNullOrWhiteSpace(displaySettings?.Color) ? $"color: {displaySettings.Color};" : null;
                 var timeMetric = context.TimeMetric;
                 var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
                 var bgClass = journalEntry == SelectedEntry ? "gray lighten-3 rounded" : "";
-
                 var statusColor =
                     record.EventName switch
                     {
@@ -61,7 +61,7 @@
             }
             <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="TimelineAlign.Start" Class="@($"cursor-pointer pa-1 {bgClass}")">
                 <ItemDot>
-                    <MudIcon Icon="@activityIcon" Size="Size.Small" Style="@iconStyle"></MudIcon>
+                    <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                 </ItemDot>
                 <ItemContent>
                     <MudText Typo="Typo.body2">@displayName</MudText>

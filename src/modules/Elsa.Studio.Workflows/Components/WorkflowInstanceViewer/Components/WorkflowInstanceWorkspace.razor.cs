@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
@@ -29,9 +28,6 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     
     /// An event callback that is invoked when an activity is selected.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-
-    /// An event callback that is invoked when an activity execution is selected.
-    [Parameter] public EventCallback<ActivityExecutionRecord?> ActivityExecutionSelected { get; set; }
     
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }

@@ -13,7 +13,6 @@
                     WorkflowInstanceId="@_workflowInstance?.Id"
                     SelectedActivity="@_selectedActivity"
                     IsActive="@(_leftPanelTabIndex == 1)"
-                    SelectedActivityExecutionId="@_selectedActivityExecutionId"
                     CallStackEntrySelected="OnCallStackEntrySelected" />
             </MudTabPanel>
         </MudTabs>
@@ -25,7 +24,6 @@
             WorkflowDefinition="@_workflowDefinition"
             PathChanged="OnDesignerPathChanged" 
             ActivitySelected="OnActivitySelected"
-            ActivityExecutionSelected="OnActivityExecutionSelected"
             EditWorkflowDefinition="EditWorkflowDefinition"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

@@ -53,9 +53,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The activity selected callback.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
-    /// The activity execution selected callback.
-    [Parameter] public EventCallback<ActivityExecutionRecord?> ActivityExecutionSelected { get; set; }
-
     /// An event that is invoked when the workflow definition is requested to be edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
@@ -374,12 +371,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         if (activitySelected.HasDelegate)
             await activitySelected.InvokeAsync(activity);
-    }
-
-    private async Task OnActivityExecutionSelected(ActivityExecutionRecord? record)
-    {
-        if (ActivityExecutionSelected.HasDelegate)
-            await ActivityExecutionSelected.InvokeAsync(record);
     }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)

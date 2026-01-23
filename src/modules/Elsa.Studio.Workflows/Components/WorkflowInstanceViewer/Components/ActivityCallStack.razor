@@ -46,22 +46,14 @@
                 var displaySettings = entry.ActivityDisplaySettings;
                 var activityIcon = displaySettings?.Icon;
                 var iconStyle = !string.IsNullOrWhiteSpace(displaySettings?.Color) ? $"color: {displaySettings.Color};" : null;
+                var activityColor = displaySettings?.Color;
                 var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
                 var bgClass = index == SelectedIndex ? "gray lighten-3 rounded" : "";
                 var durationText = entry.Duration.HasValue ? entry.Duration.Value.ToString("hh\\:mm\\:ss\\.fff") : "-";
-                var statusColor = record.Status switch
-                {
-                    ActivityStatus.Pending => Color.Default,
-                    ActivityStatus.Running => Color.Info,
-                    ActivityStatus.Completed => Color.Success,
-                    ActivityStatus.Canceled => Color.Warning,
-                    ActivityStatus.Faulted => Color.Error,
-                    _ => Color.Default
-                    };
 
-                <MudTimelineItem Color="statusColor" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="TimelineAlign.Start" Class="@($"cursor-pointer pa-1 {bgClass}")">
+                <MudTimelineItem DotStyle="@($"background-color: {activityColor}; color: #ffffff")" Size="Size.Small" Variant="Variant.Filled" TimelineAlign="TimelineAlign.Start" Class="@($"cursor-pointer pa-1 {bgClass}")">
                     <ItemDot>
-                        <MudIcon Icon="@activityIcon" Size="Size.Small" Style="@iconStyle"></MudIcon>
+                        <MudIcon Icon="@activityIcon" Size="Size.Small"></MudIcon>
                     </ItemDot>
                     <ItemContent>
                         <MudText Typo="Typo.body2">@displayName</MudText>
