@@ -11,19 +11,21 @@
             <MudTabPanel Text="@Localizer["Activity Call Stack"]">
                 <ActivityCallStack
                     WorkflowInstanceId="@_workflowInstance?.Id"
-                    SelectedActivity="@_selectedActivity"
+                    ActivityExecutionRecordId="@_selectedActivityExecutionRecordId"
+                    SelectedActivityNodeId="@_selectedActivityNodeId"
                     IsActive="@(_leftPanelTabIndex == 1)"
                     CallStackEntrySelected="OnCallStackEntrySelected" />
             </MudTabPanel>
         </MudTabs>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="80%">
-        <WorkflowInstanceWorkspace 
-            @ref="_workspace" 
-            WorkflowInstance="@_workflowInstance" 
+        <WorkflowInstanceWorkspace
+            @ref="_workspace"
+            WorkflowInstance="@_workflowInstance"
             WorkflowDefinition="@_workflowDefinition"
-            PathChanged="OnDesignerPathChanged" 
+            PathChanged="OnDesignerPathChanged"
             ActivitySelected="OnActivitySelected"
+            ActivityExecutionSelected="OnActivityExecutionSelected"
             EditWorkflowDefinition="EditWorkflowDefinition"/>
     </RadzenSplitterPane>
 </RadzenSplitter>

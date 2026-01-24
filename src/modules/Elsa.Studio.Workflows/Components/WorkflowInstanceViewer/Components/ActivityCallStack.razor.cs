@@ -27,9 +27,14 @@ public partial class ActivityCallStack
     [Parameter] public string? WorkflowInstanceId { get; set; }
 
     /// <summary>
-    /// The selected activity from the designer.
+    /// The selected activity execution record ID to display the call stack for.
     /// </summary>
-    [Parameter] public JsonObject? SelectedActivity { get; set; }
+    [Parameter] public string? ActivityExecutionRecordId { get; set; }
+
+    /// <summary>
+    /// The selected activity node ID (used for pinned mode bidirectional highlighting).
+    /// </summary>
+    [Parameter] public string? SelectedActivityNodeId { get; set; }
 
     /// <summary>
     /// Indicates whether the call stack tab is currently active.
@@ -54,15 +59,14 @@ public partial class ActivityCallStack
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        var activityNodeId = SelectedActivity?.GetNodeId();
-        var key = $"{WorkflowInstanceId}|{activityNodeId}|{IsActive}";
+        var key = $"{WorkflowInstanceId}|{ActivityExecutionRecordId}|{IsActive}";
 
         if (key == _lastKey)
             return;
 
         _lastKey = key;
 
-        if (!IsActive || string.IsNullOrWhiteSpace(activityNodeId) || string.IsNullOrWhiteSpace(WorkflowInstanceId))
+        if (!IsActive || string.IsNullOrWhiteSpace(ActivityExecutionRecordId) || string.IsNullOrWhiteSpace(WorkflowInstanceId))
         {
             _entries.Clear();
             _hasError = false;
@@ -72,16 +76,16 @@ public partial class ActivityCallStack
         }
 
         // When pinned, don't reload the call stack - just try to highlight the activity if it exists in the current stack
-        if (_isPinned)
+        if (_isPinned && !string.IsNullOrWhiteSpace(SelectedActivityNodeId))
         {
-            TrySelectActivityInCurrentStack(activityNodeId);
+            TrySelectActivityInCurrentStack(SelectedActivityNodeId);
             return;
         }
 
-        await LoadCallStackAsync(activityNodeId);
+        await LoadCallStackAsync(ActivityExecutionRecordId);
     }
 
-    private async Task LoadCallStackAsync(string activityNodeId)
+    private async Task LoadCallStackAsync(string activityExecutionRecordId)
     {
         _isLoading = true;
         _hasError = false;
@@ -93,16 +97,8 @@ public partial class ActivityCallStack
         try
         {
             await ActivityRegistry.EnsureLoadedAsync();
-            var summaries = (await ActivityExecutionService.ListSummariesAsync(WorkflowInstanceId!, activityNodeId)).ToList();
 
-            if (!summaries.Any())
-                return;
-
-            var executionId = summaries.Last().Id;
-            if (string.IsNullOrWhiteSpace(executionId))
-                return;
-
-            var callStack = await ActivityExecutionService.GetCallStackAsync(executionId, includeCrossWorkflowChain: true);
+            var callStack = await ActivityExecutionService.GetCallStackAsync(activityExecutionRecordId, includeCrossWorkflowChain: true);
 
             foreach (var record in callStack.Items)
             {
@@ -113,7 +109,7 @@ public partial class ActivityCallStack
                 _entries.Add(new ActivityCallStackEntry(record, activityDescriptor, activityDisplaySettings, duration));
             }
 
-            _selectedExecutionId = executionId;
+            _selectedExecutionId = activityExecutionRecordId;
             _selectedIndex = _entries.Count - 1;
         }
         catch

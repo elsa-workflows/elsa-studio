@@ -24,6 +24,8 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private IWorkflowInstanceObserver? _workflowInstanceObserver = default!;
     private int _leftPanelTabIndex;
     private JsonObject? _selectedActivity;
+    private string? _selectedActivityExecutionRecordId;
+    private string? _selectedActivityNodeId;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -35,6 +37,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
 
     private Journal Journal { get; set; } = default!;
 
@@ -112,10 +115,24 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
     }
 
-    private Task OnActivitySelected(JsonObject arg)
+    private async Task OnActivitySelected(JsonObject arg)
     {
         Journal.ClearSelection();
         _selectedActivity = arg;
+        _selectedActivityNodeId = arg.GetNodeId();
+
+        // Get the last activity execution record ID for this activity
+        var summaries = (await ActivityExecutionService.ListSummariesAsync(_workflowInstance.Id, _selectedActivityNodeId)).ToList();
+        _selectedActivityExecutionRecordId = summaries.LastOrDefault()?.Id;
+    }
+
+    private Task OnActivityExecutionSelected(ActivityExecutionRecord? record)
+    {
+        if (record != null)
+        {
+            _selectedActivityExecutionRecordId = record.Id;
+            _selectedActivityNodeId = record.ActivityNodeId;
+        }
         return Task.CompletedTask;
     }
 

@@ -29,9 +29,9 @@
     </MudToolBar>
 </MudPaper>
 <div class="px-4" style="overflow-y: auto; height: calc(100vh - var(--mud-appbar-height) - 160px);">
-    @if (SelectedActivity == null)
+    @if (string.IsNullOrWhiteSpace(ActivityExecutionRecordId))
     {
-        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Class="mt-2">@Localizer["Select an activity to view its call stack."]</MudAlert>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Class="mt-2">@Localizer["Select an activity execution to view its call stack."]</MudAlert>
     }
     else if (HasError)
     {
