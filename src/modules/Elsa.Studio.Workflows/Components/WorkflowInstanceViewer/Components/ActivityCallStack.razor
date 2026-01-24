@@ -10,6 +10,18 @@
             @Localizer["Call stack"]@((Entries.Count > 0) ? $" ({Entries.Count})" : "")
         </MudText>
         <MudSpacer />
+        @if (Entries.Count > 0)
+        {
+            <MudTooltip Text="@(IsPinned ? Localizer["Unpin call stack"] : Localizer["Pin call stack to keep it fixed while navigating"])" Delay="300">
+                <MudToggleIconButton
+                    @bind-Toggled="@_isPinned"
+                    Icon="@Icons.Material.Outlined.PushPin"
+                    ToggledIcon="@Icons.Material.Filled.PushPin"
+                    Color="@Color.Default"
+                    ToggledColor="@Color.Primary"
+                    Size="Size.Small" />
+            </MudTooltip>
+        }
         @if (IsLoading)
         {
             <MudProgressCircular Indeterminate="true" Size="Size.Small" />

@@ -128,10 +128,10 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// Sets the selected journal entry.
     public async Task SelectWorkflowExecutionLogRecordAsync(JournalEntry entry)
     {
-        var id = entry.Record.Id;
+        var activityId = entry.Record.ActivityId;
         var nodeId = entry.Record.NodeId;
         SelectedWorkflowExecutionLogRecord = entry;
-        await SelectActivityByIdAsync(id, nodeId);
+        await SelectActivityByIdAsync(activityId, nodeId);
         StateHasChanged();
     }
 

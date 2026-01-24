@@ -130,13 +130,21 @@ public partial class DiagramDesignerWrapper
         if (string.IsNullOrEmpty(targetNodeId))
             return;
 
-        // Bail out if it's the same as last time
+        // Exit early if it's the same as last time
         if (targetNodeId == _lastSelectedNodeId)
             return;
 
         // Remember for the next call
         _lastSelectedNodeId = targetNodeId;
 
+        // If we found the activity in the current container, just select it directly
+        if (activityToSelect != null)
+        {
+            await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
+            return;
+        }
+
+        // Activity not found in current container - need to load the path from backend
         if (nodeId == null)
             return;
 
@@ -149,7 +157,7 @@ public partial class DiagramDesignerWrapper
             return;
 
         await IndexActivityNodes(pathSegmentsResponse.Container.Activity);
-        
+
         activityToSelect = pathSegmentsResponse.ChildNode.Activity;
         var pathSegments = pathSegmentsResponse.PathSegments.ToList();
         StateHasChanged();
@@ -162,7 +170,7 @@ public partial class DiagramDesignerWrapper
             foreach (var segment in pathSegments)
                 segments.Push(segment);
         });
-        
+
         // Display the new segment.
         _currentContainerActivity = null;
         await DisplayCurrentSegmentAsync();
@@ -435,13 +443,23 @@ public partial class DiagramDesignerWrapper
     {
         return _diagramDesigner?.DisplayDesigner(new(
             GetCurrentContainerActivityOrRoot(),
-            ActivitySelected,
+            EventCallback.Factory.Create<JsonObject>(this, OnActivitySelected),
             EventCallback.Factory.Create<JsonObject>(this, OnActivityUpdated),
             EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected),
             EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
             EventCallback.Factory.Create(this, OnGraphUpdated),
             IsReadOnly,
             _activityStats));
+    }
+
+    private async Task OnActivitySelected(JsonObject activity)
+    {
+        // Update the last selected node ID to prevent redundant selection calls
+        _lastSelectedNodeId = activity.GetId();
+
+        // Pass through to the original callback
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(activity);
     }
 
     private async Task OnActivityDoubleClick(JsonObject activity)

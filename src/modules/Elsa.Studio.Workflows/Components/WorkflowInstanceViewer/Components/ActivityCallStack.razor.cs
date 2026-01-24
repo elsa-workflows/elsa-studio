@@ -15,11 +15,11 @@ public partial class ActivityCallStack
 {
     private readonly List<ActivityCallStackEntry> _entries = new();
     private bool _isLoading;
-    private bool _wasActive;
-    private string? _lastActivityNodeId;
+    private string? _lastKey;
     private bool _hasError;
     private int _selectedIndex = -1;
     private string? _selectedExecutionId;
+    private bool _isPinned;
 
     /// <summary>
     /// The workflow instance ID associated with the selected activity.
@@ -49,33 +49,36 @@ public partial class ActivityCallStack
     private bool IsLoading => _isLoading;
     private bool HasError => _hasError;
     private int SelectedIndex => _selectedIndex;
+    private bool IsPinned => _isPinned;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        if (!IsActive)
-        {
-            _wasActive = false;
-            return;
-        }
-
         var activityNodeId = SelectedActivity?.GetNodeId();
+        var key = $"{WorkflowInstanceId}|{activityNodeId}|{IsActive}";
 
-        if (string.IsNullOrWhiteSpace(activityNodeId) || string.IsNullOrWhiteSpace(WorkflowInstanceId))
+        if (key == _lastKey)
+            return;
+
+        _lastKey = key;
+
+        if (!IsActive || string.IsNullOrWhiteSpace(activityNodeId) || string.IsNullOrWhiteSpace(WorkflowInstanceId))
         {
             _entries.Clear();
-            _lastActivityNodeId = null;
             _hasError = false;
             _selectedIndex = -1;
             _selectedExecutionId = null;
             return;
         }
 
-        var shouldReload = !_wasActive || activityNodeId != _lastActivityNodeId;
-        _wasActive = true;
+        // When pinned, don't reload the call stack - just try to highlight the activity if it exists in the current stack
+        if (_isPinned)
+        {
+            TrySelectActivityInCurrentStack(activityNodeId);
+            return;
+        }
 
-        if (shouldReload)
-            await LoadCallStackAsync(activityNodeId);
+        await LoadCallStackAsync(activityNodeId);
     }
 
     private async Task LoadCallStackAsync(string activityNodeId)
@@ -93,17 +96,11 @@ public partial class ActivityCallStack
             var summaries = (await ActivityExecutionService.ListSummariesAsync(WorkflowInstanceId!, activityNodeId)).ToList();
 
             if (!summaries.Any())
-            {
-                _lastActivityNodeId = activityNodeId;
                 return;
-            }
 
             var executionId = summaries.Last().Id;
             if (string.IsNullOrWhiteSpace(executionId))
-            {
-                _lastActivityNodeId = activityNodeId;
                 return;
-            }
 
             var callStack = await ActivityExecutionService.GetCallStackAsync(executionId, includeCrossWorkflowChain: true);
 
@@ -116,7 +113,6 @@ public partial class ActivityCallStack
                 _entries.Add(new ActivityCallStackEntry(record, activityDescriptor, activityDisplaySettings, duration));
             }
 
-            _lastActivityNodeId = activityNodeId;
             _selectedExecutionId = executionId;
             _selectedIndex = _entries.Count - 1;
         }
@@ -155,5 +151,25 @@ public partial class ActivityCallStack
 
         if (CallStackEntrySelected != null)
             await CallStackEntrySelected(entry.Record);
+    }
+
+    /// <summary>
+    /// Attempts to find and select an activity in the current call stack by its node ID.
+    /// This is used when the call stack is pinned to provide bidirectional highlighting.
+    /// </summary>
+    private void TrySelectActivityInCurrentStack(string activityNodeId)
+    {
+        for (var i = 0; i < _entries.Count; i++)
+        {
+            if (_entries[i].Record.ActivityNodeId == activityNodeId)
+            {
+                _selectedIndex = i;
+                _selectedExecutionId = _entries[i].Record.Id;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        // Activity not found in current call stack - don't change selection
     }
 }
