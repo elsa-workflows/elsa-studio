@@ -38,6 +38,7 @@ public partial class MainLayout : IDisposable
         if (BrandingProvider.AppBarIcons.ShowGitHubLink) AppBarService.AddComponent<GitHub>(15);
         AppBarService.AddComponent<DarkModeToggle>(20);
         AppBarService.AddComponent<ProductInfo>(25);
+        AppBarService.AddComponent<LogoutButton>(99);
         
         ThemeService.CurrentThemeChanged += OnThemeChanged;
         ThemeService.IsDarkModeChanged += OnDarkModeChanged;
