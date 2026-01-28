@@ -8,11 +8,12 @@ import {History} from '@antv/x6-plugin-history';
 import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
+import {enforceMinimumNodeSize} from "./update-activity-size";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
-    let lastSelectedNode: Node.Properties = null;
+    let lastSelectedNode: any = null;
 
     const graph = new Graph({
         container: containerElement,
@@ -369,10 +370,33 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     };
 
+    // Track if we're currently enforcing minimum size to prevent infinite loops
+    let isEnforcingMinSize = false;
+    
+    const onNodeSizeChanged = async (e: any) => {
+        // Prevent infinite loop when we programmatically resize after enforcing minimum
+        if (isEnforcingMinSize) {
+            return false;
+        }
+        
+        const node = e.node || e.cell;
+        if (node) {
+            isEnforcingMinSize = true;
+            try {
+                await enforceMinimumNodeSize(node);
+            } finally {
+                isEnforcingMinSize = false;
+            }
+        }
+        
+        await interop.raiseGraphUpdated();
+        return false;
+    };
+
     graph.on('node:moved', onGraphUpdated);
     graph.on('node:added', onNodeAdded);
     graph.on('node:removed', onNodeRemoved);
-    graph.on('node:change:size', onGraphUpdated);
+    graph.on('node:change:size', onNodeSizeChanged);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
     graph.on('edge:vertexs:added', onGraphUpdated);

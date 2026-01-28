@@ -11,7 +11,7 @@
         var eventInfo = new DataPanelModel
         {
             new DataPanelItem(Localizer["Name"], record.EventName),
-            new DataPanelItem(Localizer["Timestamp"], TimeFormatter.Format(record.Timestamp, "s")),
+            new DataPanelItem(Label: Localizer["Timestamp"], Value: record.Timestamp, Format: DataPanelItemFormat.Timestamp, FormatString: "s"),
             new DataPanelItem(Localizer["Message"], record.Message)
         };
 

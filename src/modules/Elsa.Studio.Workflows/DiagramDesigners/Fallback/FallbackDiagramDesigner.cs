@@ -1,9 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
-using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
@@ -11,7 +9,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 /// A fallback diagram designer that displays a simplified view of the workflow.
 public class FallbackDiagramDesigner : IDiagramDesigner
 {
-    private JsonObject _activity = default!;
+    private JsonObject _activity = null!;
 
     /// <inheritdoc />
     public Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
