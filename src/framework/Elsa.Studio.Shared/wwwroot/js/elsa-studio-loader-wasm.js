@@ -1,152 +1,86 @@
 /**
- * Elsa Studio Complete Loader for Blazor WebAssembly
- * This script handles all initialization including CSS, scripts, loading screen, and Blazor startup
- * Usage: <script src="_content/Elsa.Studio.Shared/js/elsa-studio-loader-wasm.js"></script>
+ * Elsa Studio Loader for Blazor WebAssembly
+ * Uses ElsaStudioCore for shared functionality with optimized WASM startup
  */
 
 (function() {
     'use strict';
 
-    // Load required stylesheets
-    function loadStyles() {
-        const styles = [
-            '_content/MudBlazor/MudBlazor.min.css',
-            '_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css',
-            '_content/Radzen.Blazor/css/material-base.css',
-            '_content/Elsa.Studio.Shell/css/shell.css'
-        ];
-
-        styles.forEach(href => {
-            if (!document.querySelector(`link[href="${href}"]`)) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = href;
-                document.head.appendChild(link);
-            }
-        });
+    if (!window.ElsaStudioCore) {
+        console.error('ElsaStudioCore not found. Make sure elsa-studio-core.js is loaded first.');
+        return;
     }
 
-    // Load required scripts
-    function loadScripts(callback) {
-        const scripts = [
-            '_content/BlazorMonaco/jsInterop.js',
-            '_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js',
-            '_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js',
-            '_content/MudBlazor/MudBlazor.min.js',
-            '_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js',
-            '_content/Radzen.Blazor/Radzen.Blazor.js',
-            '_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js',
-            '_framework/blazor.webassembly.js'
-        ];
+    let blazorStartAttempted = false;
 
-        let loaded = 0;
-        scripts.forEach(src => {
-            if (document.querySelector(`script[src="${src}"]`)) {
-                loaded++;
-                if (loaded === scripts.length && callback) callback();
-                return;
-            }
-
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = () => {
-                loaded++;
-                if (loaded === scripts.length && callback) callback();
-            };
-            document.body.appendChild(script);
-        });
-    }
-
-    // Inject loading screen HTML
-    function injectLoadingScreen() {
-        if (document.getElementById('elsa-loading')) {
-            return; // Already exists
-        }
-
-        const loadingHtml = `
-            <div id="elsa-loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f5f5f5; display: flex; justify-content: center; align-items: center; z-index: 9999;">
-                <div style="text-align: center;">
-                    <div id="elsa-loading-spinner" style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top: 4px solid #1976d2; border-radius: 50%; animation: elsa-loading-spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                    <div id="elsa-loading-text" style="color: #666; font-family: 'Roboto', sans-serif;">Initializing...</div>
-                </div>
-            </div>
-        `;
-        
-        const loadingStyle = `
-            <style id="elsa-loading-styles">
-                @keyframes elsa-loading-spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-                .blazor-ready #elsa-loading {
-                    display: none !important;
-                }
-            </style>
-        `;
-        
-        document.body.insertAdjacentHTML('afterbegin', loadingHtml);
-        document.head.insertAdjacentHTML('beforeend', loadingStyle);
-    }
-
-    // Initialize Blazor WASM
+    // Initialize Blazor WASM with proper sequencing
     function initializeBlazorWasm(config) {
         if (typeof Blazor === 'undefined') {
-            updateLoadingText('Blazor not loaded');
-            setTimeout(hideLoadingScreen, 2000);
+            setTimeout(() => initializeBlazorWasm(config), 100);
             return;
         }
 
-        updateLoadingText('Starting Blazor WASM...');
-
-        Blazor.start(config || {}).then(() => {
-            updateLoadingText('Loading application...');
-        }).catch((error) => {
-            if (error.message && error.message.includes('already started')) {
-                setTimeout(hideLoadingScreen, 100);
-            } else {
-                console.error('Blazor startup failed:', error);
-                updateLoadingText('Startup failed');
-                setTimeout(hideLoadingScreen, 2000);
-            }
-        });
-    }
-
-    function hideLoadingScreen() {
-        document.body.classList.add('blazor-ready');
-    }
-
-    function updateLoadingText(text) {
-        const loadingTextEl = document.getElementById('elsa-loading-text');
-        if (loadingTextEl) {
-            loadingTextEl.textContent = text;
+        if (!blazorStartAttempted && ElsaStudioCore.monacoReady && ElsaStudioCore.scriptsReady) {
+            blazorStartAttempted = true;
+            ElsaStudioCore.updateProgress(98);
+            ElsaStudioCore.updateLoadingText('Starting application...');
+            
+            Blazor.start(config || {}).then(() => {
+                console.log('Blazor WASM started successfully');
+                ElsaStudioCore.updateProgress(100);
+                ElsaStudioCore.updateLoadingText('Ready');
+                setTimeout(ElsaStudioCore.hideLoadingScreen, 300);
+            }).catch((error) => {
+                console.error('Blazor WASM startup failed:', error);
+                if (!error.message?.includes('already started')) {
+                    ElsaStudioCore.updateLoadingText('Startup failed - reloading...');
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    ElsaStudioCore.hideLoadingScreen();
+                }
+            });
+        } else if (!ElsaStudioCore.monacoReady || !ElsaStudioCore.scriptsReady) {
+            // Wait for dependencies
+            setTimeout(() => initializeBlazorWasm(config), 100);
         }
     }
 
-    // Initialize everything
-    function initialize() {
-        loadStyles();
-        injectLoadingScreen();
-        loadScripts(function() {
-            // Wait a bit for Blazor to be available
-            setTimeout(function() {
-                initializeBlazorWasm();
-            }, 100);
+    // Initialize with WASM-specific optimizations
+    function init() {
+        ElsaStudioCore.initialize({
+            additionalScripts: [
+                '_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js',
+                '_framework/blazor.webassembly.js'
+            ],
+            onProgress: (percentage, status) => {
+                // WASM-specific progress messages
+                if (percentage >= 80) {
+                    ElsaStudioCore.updateLoadingText('Loading WebAssembly...');
+                }
+            },
+            onScriptsLoaded: () => {
+                ElsaStudioCore.updateLoadingText('Preparing WebAssembly...');
+                // Give WASM a moment to initialize before starting Blazor
+                setTimeout(() => initializeBlazorWasm(), 200);
+            },
+            fallbackTimeout: 20000 // WASM needs more time than Server
         });
-
-        // Safety timeout
-        setTimeout(hideLoadingScreen, 5000);
     }
 
     // Run initialization
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        initialize();
+        init();
     }
 
-    // Expose API for manual control if needed
+    // Expose API
     window.ElsaStudio = window.ElsaStudio || {};
-    window.ElsaStudio.hideLoading = hideLoadingScreen;
-    window.ElsaStudio.updateLoadingText = updateLoadingText;
+    window.ElsaStudio.hideLoading = ElsaStudioCore.hideLoadingScreen;
+    window.ElsaStudio.initializeBlazorWasm = initializeBlazorWasm;
+    window.ElsaStudio.forceReady = function() {
+        console.log('Forcing Blazor WASM readiness');
+        ElsaStudioCore.hideLoadingScreen();
+    };
 
 })();

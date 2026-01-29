@@ -1,326 +1,245 @@
 /**
- * Elsa Studio Complete Loader for Blazor Server
- * This script handles all initialization including CSS, scripts, loading screen, and Blazor startup
- * Usage: <script src="_content/Elsa.Studio.Shared/js/elsa-studio-loader-server.js"></script>
+ * Elsa Studio Loader for Blazor Server - Simplified for reliability
+ * Focuses on loading remaining scripts and managing loading screen
  */
 
 (function() {
     'use strict';
 
-    let loadingHidden = false;
+    if (!window.ElsaStudioCore) {
+        console.error('ElsaStudioCore not found. Make sure elsa-studio-core.js is loaded first.');
+        return;
+    }
+
     let blazorReady = false;
     let initialRenderComplete = false;
-    let monacoReady = false;
+    let mudBlazorReady = false;
+    let authenticationReady = false;
 
-    // Load required stylesheets
-    function loadStyles() {
-        const styles = [
-            '_content/MudBlazor/MudBlazor.min.css',
-            '_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css',
-            '_content/Radzen.Blazor/css/material-base.css',
-            '_content/Elsa.Studio.Shell/css/shell.css',
-            '_content/Elsa.Studio.Workflows.Designer/designer.css'
-        ];
-
-        styles.forEach(href => {
-            if (!document.querySelector(`link[href="${href}"]`)) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = href;
-                document.head.appendChild(link);
-            }
-        });
-    }
-
-    // Load Monaco Editor first with proper sequencing
-    function loadMonacoEditor() {
-        return new Promise((resolve, reject) => {
-            // First load the Monaco loader
-            const loaderScript = document.createElement('script');
-            loaderScript.src = '_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js';
-            loaderScript.onload = () => {
-                // Configure RequireJS paths for Monaco
-                if (typeof require !== 'undefined') {
-                    require.config({ 
-                        paths: { 
-                            'vs': '_content/BlazorMonaco/lib/monaco-editor/min/vs' 
-                        } 
-                    });
-                    
-                    // Load Monaco editor main
-                    require(['vs/editor/editor.main'], () => {
-                        console.log('Monaco editor loaded successfully');
-                        monacoReady = true;
-                        resolve();
-                    }, (error) => {
-                        console.error('Failed to load Monaco editor:', error);
-                        reject(error);
-                    });
-                } else {
-                    // Fallback: load editor.main.js directly
-                    const editorScript = document.createElement('script');
-                    editorScript.src = '_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js';
-                    editorScript.onload = () => {
-                        console.log('Monaco editor loaded (fallback method)');
-                        monacoReady = true;
-                        resolve();
-                    };
-                    editorScript.onerror = reject;
-                    document.body.appendChild(editorScript);
-                }
-            };
-            loaderScript.onerror = reject;
-            document.body.appendChild(loaderScript);
-        });
-    }
-
-    // Load remaining scripts after Monaco is ready
-    function loadOtherScripts() {
-        const scripts = [
-            '_content/BlazorMonaco/jsInterop.js',
-            '_content/MudBlazor/MudBlazor.min.js',
-            '_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js',
-            '_content/Radzen.Blazor/Radzen.Blazor.js',
-            '_framework/blazor.server.js'
-        ];
-
-        const loadPromises = scripts.map(src => {
-            return new Promise((resolve, reject) => {
-                if (document.querySelector(`script[src="${src}"]`)) {
-                    resolve(); // Already loaded
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.body.appendChild(script);
-            });
-        });
-
-        return Promise.all(loadPromises);
-    }
-
-    // Load all scripts in proper sequence
-    async function loadScripts() {
-        try {
-            console.log('Loading Monaco editor...');
-            await loadMonacoEditor();
-            console.log('Loading other scripts...');
-            await loadOtherScripts();
-            console.log('All scripts loaded successfully');
-        } catch (error) {
-            console.error('Script loading failed:', error);
-            // Continue anyway - some features might still work
+    // Check if MudBlazor JavaScript is properly loaded
+    function checkMudBlazorReady() {
+        // Check for MudBlazor global objects
+        if (typeof window.mudElementRef !== 'undefined' || 
+            typeof window.MudBlazor !== 'undefined' ||
+            document.querySelector('script[src*="MudBlazor.min.js"]')) {
+            
+            console.log('MudBlazor JavaScript detected');
+            mudBlazorReady = true;
+            return true;
         }
-    }
-
-    // Inject loading screen HTML
-    function injectLoadingScreen() {
-        if (document.getElementById('elsa-loading')) {
-            return; // Already exists
-        }
-
-        const loadingHtml = `
-            <div id="elsa-loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f5f5f5; display: flex; justify-content: center; align-items: center; z-index: 9999;">
-                <div style="text-align: center;">
-                    <div id="elsa-loading-spinner" style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top: 4px solid #1976d2; border-radius: 50%; animation: elsa-loading-spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                    <div id="elsa-loading-text" style="color: #666; font-family: 'Roboto', sans-serif;">Initializing...</div>
-                </div>
-            </div>
-        `;
         
-        const loadingStyle = `
-            <style id="elsa-loading-styles">
-                @keyframes elsa-loading-spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-                .blazor-ready #elsa-loading {
-                    display: none !important;
-                }
-            </style>
-        `;
+        // Give it some time to initialize
+        setTimeout(() => {
+            console.log('MudBlazor timeout - assuming ready');
+            mudBlazorReady = true;
+            checkReadiness();
+        }, 2000);
         
-        document.body.insertAdjacentHTML('afterbegin', loadingHtml);
-        document.head.insertAdjacentHTML('beforeend', loadingStyle);
+        return false;
     }
 
-    // Hide loading screen when actually ready
-    function hideLoadingScreen() {
-        if (!loadingHidden) {
-            loadingHidden = true;
-            console.log('Blazor Server ready - hiding loading screen');
-            document.body.classList.add('blazor-ready');
+    // Check authentication state before hiding loading screen
+    function checkAuthenticationReady() {
+        // First, check if we're in the middle of an authentication redirect
+        const currentUrl = window.location.href;
+        const isAuthRedirect = currentUrl.includes('/authentication/') || 
+                              currentUrl.includes('code=') || 
+                              currentUrl.includes('state=') ||
+                              currentUrl.includes('returnUrl=');
+        
+        if (isAuthRedirect) {
+            console.log('Authentication redirect in progress - waiting...');
+            return false; // Don't hide loading screen during auth redirects
         }
+        
+        // Look for authentication indicators in the DOM
+        const authIndicators = [
+            '.mud-appbar', // Main app bar usually appears when authenticated
+            '.elsa-main-layout',
+            '.authenticated-content',
+            '.mud-layout main', // Main content area
+            '.workflows-page', // Specific to Elsa Studio authenticated pages
+            '.dashboard-page'
+        ];
+        
+        // Check if we're still on a login page
+        const loginIndicators = [
+            '.login-form',
+            '.authentication-form',
+            'form[action*="login"]',
+            '.login-page',
+            '.auth-container'
+        ];
+        
+        const hasAuthContent = authIndicators.some(selector => {
+            const element = document.querySelector(selector);
+            return element && element.offsetHeight > 0;
+        });
+        
+        const hasLoginContent = loginIndicators.some(selector => {
+            const element = document.querySelector(selector);
+            return element && element.offsetHeight > 0;
+        });
+        
+        // If we have authenticated content and no login content
+        if (hasAuthContent && !hasLoginContent) {
+            console.log('Authentication state confirmed - user is logged in with app content');
+            authenticationReady = true;
+            return true;
+        }
+        
+        // If we're on login page, that's also a valid state
+        if (hasLoginContent && !hasAuthContent) {
+            console.log('Login page detected - user needs to authenticate');
+            authenticationReady = true;
+            return true;
+        }
+        
+        // If neither are clearly present, wait longer
+        console.log('Authentication state unclear - waiting for content to appear...');
+        return false;
     }
 
     // Check if we should hide loading screen
     function checkReadiness() {
-        if (blazorReady && initialRenderComplete && monacoReady && !loadingHidden) {
-            hideLoadingScreen();
+        if (blazorReady && initialRenderComplete && mudBlazorReady && authenticationReady && ElsaStudioCore.monacoReady && !ElsaStudioCore.isLoadingHidden) {
+            ElsaStudioCore.updateProgress(100);
+            ElsaStudioCore.updateLoadingText('Ready!');
+            setTimeout(ElsaStudioCore.hideLoadingScreen, 500); // Slightly longer delay for auth
         }
     }
 
-    // Detect when Blazor Server connection is established
+    // Simplified Blazor detection - since blazor.server.js is already loaded
     function detectBlazorConnection() {
+        // Check if Blazor is already available
         if (typeof window.Blazor !== 'undefined') {
-            const originalLog = console.log;
-            console.log = function(...args) {
-                const message = args.join(' ');
-                if (message.includes('SignalR') || message.includes('connected') || message.includes('circuit')) {
-                    blazorReady = true;
-                    checkReadiness();
-                }
-                originalLog.apply(console, args);
-            };
+            console.log('Blazor Server detected');
+            blazorReady = true;
+            checkReadiness();
+            return;
         }
 
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    for (let node of mutation.addedNodes) {
-                        if (node.nodeType === Node.ELEMENT_NODE) {
-                            if (node.hasAttribute && (
-                                node.hasAttribute('_bl_') || 
-                                node.querySelector && node.querySelector('[_bl_]') ||
-                                node.classList && node.classList.contains('mud-main-content') ||
-                                node.tagName === 'APP'
-                            )) {
-                                if (!blazorReady) {
-                                    blazorReady = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        });
-
-        observer.observe(document.body, { 
-            childList: true, 
-            subtree: true,
-            attributes: true 
-        });
-
-        setTimeout(() => {
-            if (blazorReady || loadingHidden) {
-                observer.disconnect();
+        // Monitor for Blazor availability
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+            checkCount++;
+            
+            if (typeof window.Blazor !== 'undefined') {
+                console.log('Blazor Server became available');
+                blazorReady = true;
+                checkReadiness();
+                clearInterval(checkInterval);
+            } else if (checkCount > 50) { // 5 seconds max
+                console.log('Blazor Server timeout - assuming ready');
+                blazorReady = true;
+                checkReadiness();
+                clearInterval(checkInterval);
             }
-        }, 10000);
+        }, 100);
     }
 
-    // Detect when initial render is complete
+    // Simplified render detection with authentication awareness
     function detectRenderCompletion() {
-        function checkForMainContent() {
+        // Check for main UI elements
+        function checkForUI() {
             const indicators = [
                 '.mud-main-content',
-                '.mud-layout',
-                '[role="main"]',
-                '.elsa-main-layout',
-                '.mud-drawer',
-                '.mud-appbar'
+                '.mud-layout', 
+                '.mud-appbar',
+                'main',
+                '[role="main"]'
             ];
             
-            for (let selector of indicators) {
+            return indicators.some(selector => {
                 const element = document.querySelector(selector);
                 if (element && element.offsetHeight > 0) {
-                    initialRenderComplete = true;
-                    checkReadiness();
+                    console.log(`UI detected: ${selector}`);
                     return true;
                 }
-            }
-            return false;
+                return false;
+            });
         }
 
-        let frameCount = 0;
-        let lastBodyHeight = 0;
-        let stableFrames = 0;
+        // Check periodically
+        let checkCount = 0;
+        let authCheckAttempts = 0;
+        const maxAuthCheckAttempts = 10;
         
-        function checkRenderStability() {
-            frameCount++;
-            const currentHeight = document.body.offsetHeight;
+        const checkInterval = setInterval(() => {
+            checkCount++;
             
-            if (currentHeight === lastBodyHeight && currentHeight > 100) {
-                stableFrames++;
-                if (stableFrames >= 5) {
-                    if (!initialRenderComplete && checkForMainContent()) {
-                        return;
-                    } else if (!initialRenderComplete && frameCount > 30) {
-                        initialRenderComplete = true;
+            if (checkForUI()) {
+                initialRenderComplete = true;
+                
+                // Keep checking authentication state with retry logic
+                const authCheckInterval = setInterval(() => {
+                    authCheckAttempts++;
+                    
+                    if (checkAuthenticationReady()) {
+                        console.log('Authentication check passed');
+                        clearInterval(authCheckInterval);
                         checkReadiness();
-                        return;
+                    } else if (authCheckAttempts >= maxAuthCheckAttempts) {
+                        console.log('Authentication check timeout - proceeding anyway');
+                        authenticationReady = true;
+                        clearInterval(authCheckInterval);
+                        checkReadiness();
                     }
-                }
-            } else {
-                stableFrames = 0;
-                lastBodyHeight = currentHeight;
-            }
-            
-            if (frameCount < 100 && !initialRenderComplete) {
-                requestAnimationFrame(checkRenderStability);
-            } else if (!initialRenderComplete) {
+                }, 500); // Check every 500ms
+                
+                clearInterval(checkInterval);
+            } else if (checkCount > 100) { // 10 seconds max
+                console.log('UI detection timeout - assuming ready');
                 initialRenderComplete = true;
+                authenticationReady = true;
                 checkReadiness();
+                clearInterval(checkInterval);
             }
-        }
-        
-        requestAnimationFrame(checkRenderStability);
-        
-        const intervalCheck = setInterval(() => {
-            if (checkForMainContent()) {
-                clearInterval(intervalCheck);
-            } else if (frameCount > 100) {
-                clearInterval(intervalCheck);
-            }
-        }, 200);
+        }, 100);
     }
 
-    // Enhanced Blazor Server initialization
-    function initializeBlazorServer(maxWaitMs) {
-        maxWaitMs = maxWaitMs || 8000;
-        
-        setTimeout(() => detectBlazorConnection(), 100);
-        setTimeout(() => detectRenderCompletion(), 500);
-        
-        setTimeout(function() {
-            if (!loadingHidden) {
-                console.warn('Fallback timeout reached - forcing loading screen to hide');
-                blazorReady = true;
-                initialRenderComplete = true;
-                monacoReady = true; // Force ready on timeout
-                hideLoadingScreen();
-            }
-        }, maxWaitMs);
-    }
-
-    // Initialize everything with proper sequencing
-    async function initialize() {
-        console.log('Starting Elsa Studio initialization...');
-        loadStyles();
-        injectLoadingScreen();
-        
-        // Load scripts asynchronously but track completion
-        loadScripts(); // Don't await - let it load in background
-        
-        initializeBlazorServer(10000); // Give more time for Monaco loading
+    // Initialize with only Monaco and BlazorMonaco scripts (MudBlazor scripts now loaded in HTML)
+    function init() {
+        ElsaStudioCore.initialize({
+            additionalScripts: [
+                // Only Monaco-related scripts since MudBlazor is already loaded
+                '_content/BlazorMonaco/jsInterop.js'
+            ],
+            onScriptsLoaded: () => {
+                ElsaStudioCore.updateLoadingText('Initializing components...');
+                
+                // Check MudBlazor readiness first
+                checkMudBlazorReady();
+                
+                // Give MudBlazor components time to initialize
+                setTimeout(() => {
+                    ElsaStudioCore.updateLoadingText('Starting components');
+                    detectBlazorConnection();
+                }, 200);
+                
+                setTimeout(() => {
+                    ElsaStudioCore.updateLoadingText('Handling security');
+                    detectRenderCompletion();
+                }, 800);
+            },
+            fallbackTimeout: 8000
+        });
     }
 
     // Run initialization
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        initialize();
+        init();
     }
 
     // Expose API
     window.ElsaStudio = window.ElsaStudio || {};
-    window.ElsaStudio.hideLoading = hideLoadingScreen;
+    window.ElsaStudio.hideLoading = ElsaStudioCore.hideLoadingScreen;
     window.ElsaStudio.forceReady = function() {
+        console.log('Forcing readiness');
         blazorReady = true;
         initialRenderComplete = true;
-        monacoReady = true;
         checkReadiness();
     };
 

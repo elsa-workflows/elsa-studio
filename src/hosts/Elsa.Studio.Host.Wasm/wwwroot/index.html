@@ -22,7 +22,8 @@
         <a class="dismiss">🗙</a>
     </div>
 
-    <!-- Elsa Studio complete loader - handles CSS, scripts, loading screen, and initialization -->
+    <!-- Elsa Studio modular loader - loads core first, then WASM-specific initialization -->
+    <script src="_content/Elsa.Studio.Shared/js/elsa-studio-core.js"></script>
     <script src="_content/Elsa.Studio.Shared/js/elsa-studio-loader-wasm.js"></script>
 
 </body>

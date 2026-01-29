@@ -22,10 +22,13 @@ using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Polly;
+using Polly.Extensions.Http;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+var environment = builder.Environment; // Add this for early access to environment
 
 // Register Razor services.
 builder.Services.AddRazorPages();
@@ -39,6 +42,15 @@ builder.Services.AddServerSideBlazor(options =>
     //options.RootComponents.RegisterCustomElsaStudioElements(typeof(Elsa.Studio.Workflows.Designer.Components.ActivityWrappers.V1.EmbeddedActivityWrapper));
 
     options.RootComponents.MaxJSRootComponents = 1000;
+    
+    // Enhanced circuit options for better performance and stability
+    options.DetailedErrors = environment.IsDevelopment();
+    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(3);
+    options.DisconnectedCircuitMaxRetained = 100;
+    options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(1);
+    
+    // Optimize for better performance during feature initialization
+    options.MaxBufferedUnacknowledgedRenderBatches = 10;
 });
 
 // Choose authentication provider.
@@ -81,20 +93,45 @@ else
     throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaIdentity'.");
 }
 
-// Register shell services and modules.
+// Register shell services and modules with enhanced performance configuration.
 var backendApiConfig = new BackendApiConfig
 {
     ConfigureBackendOptions = options => configuration.GetSection("Backend").Bind(options),
     ConfigureHttpClientBuilder = options =>
     {
         options.AuthenticationHandler = authenticationHandler;
-        options.ConfigureHttpClient = (_, client) =>
+        options.ConfigureHttpClient = (serviceProvider, client) =>
         {
-            // Set a long time out to simplify debugging both Elsa Studio and the Elsa Server backend.
-            client.Timeout = TimeSpan.FromHours(1);
+            // Production: Use reasonable timeout for better performance
+            // Development: Use longer timeout for debugging
+            client.Timeout = environment.IsDevelopment() 
+                ? TimeSpan.FromHours(1) 
+                : TimeSpan.FromSeconds(30);
+                
+            // Add performance headers
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+            client.DefaultRequestHeaders.Add("Connection", "keep-alive");
+        };
+        
+        // Add resilience policies for production
+        options.ConfigureHttpClientBuilder = clientBuilder =>
+        {
+            if (!environment.IsDevelopment())
+            {
+                // Add retry policy for transient failures
+                clientBuilder.AddPolicyHandler(HttpPolicyExtensions
+                    .HandleTransientHttpError()
+                    .WaitAndRetryAsync(
+                        retryCount: 2,
+                        sleepDurationProvider: retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt) * 100)));
+            }
         };
     },
 };
+
+// Add performance services
+builder.Services.AddMemoryCache();
 
 var localizationConfig = new LocalizationConfig
 {
@@ -133,11 +170,20 @@ builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPic
 //     options.GraphSettings.Grid.Type = "mesh";
 // });
 
-// Configure SignalR.
+// Configure SignalR with enhanced performance and stability settings.
 builder.Services.AddSignalR(options =>
 {
     // Set MaximumReceiveMessageSize:
     options.MaximumReceiveMessageSize = 5 * 1024 * 1000; // 5MB
+    
+    // Enhanced connection stability for better post-login performance
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.StreamBufferCapacity = 10;
+    
+    // Enable detailed errors in development for debugging
+    options.EnableDetailedErrors = environment.IsDevelopment();
 });
 
 // Build the application.
