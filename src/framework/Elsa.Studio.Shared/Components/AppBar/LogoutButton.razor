@@ -1,1 +1,11 @@
-<MudIconButton Icon="@Icons.Material.Outlined.Logout" Color="Color.Inherit" Href="/login" Target="_self" Title="Logout"/>
+@using Elsa.Studio.Contracts
+<MudIconButton Icon="@Icons.Material.Outlined.Logout" Color="Color.Inherit" OnClick="HandleLogout" Title="Logout"/>
+
+@code {
+    [Inject] private ILogoutService LogoutService { get; set; } = null!;
+
+    private async Task HandleLogout()
+    {
+        await LogoutService.LogoutAsync();
+    }
+}

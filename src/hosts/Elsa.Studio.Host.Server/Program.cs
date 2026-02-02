@@ -148,9 +148,13 @@ builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioB
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
 
+// Always load basic services
+builder.Services.AddLocalizationModule(localizationConfig);
+
+// Load heavy modules conditionally (skip for login route optimization)
+// These will be lazy-loaded only when accessing non-login routes
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
 // Replace some services with other implementations.

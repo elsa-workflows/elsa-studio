@@ -7,6 +7,10 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IBrandingProvider BrandingProvider
 @attribute [AllowAnonymous]
+@{
+    // Check if this is a login route to conditionally load heavy assets
+    var isLoginRoute = Request.Path.Value?.Contains("/login", StringComparison.OrdinalIgnoreCase) == true;
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -27,7 +31,12 @@
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
     <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" />
     <link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet" />
-    <link href="_content/Elsa.Studio.Workflows.Designer/designer.css" rel="stylesheet" />
+    
+    @* Only load heavy CSS for non-login routes *@
+    @if (!isLoginRoute)
+    {
+        <link href="_content/Elsa.Studio.Workflows.Designer/designer.css" rel="stylesheet" />
+    }
 </head>
 <body>
 
@@ -52,9 +61,18 @@
     @* Blazor Server Script *@
     <script src="_framework/blazor.server.js"></script>
     
-    @* Elsa Studio loaders - handles Monaco and loading screen *@
-    <script src="_content/Elsa.Studio.Shared/js/elsa-studio-core.js"></script>
-    <script src="_content/Elsa.Studio.Shared/js/elsa-studio-loader-server.js"></script>
+    @* Only load heavy Elsa scripts for non-login routes *@
+    @if (!isLoginRoute)
+    {
+        @* Elsa Studio loaders - handles Monaco and loading screen *@
+        <script src="_content/Elsa.Studio.Shared/js/elsa-studio-core.js"></script>
+        <script src="_content/Elsa.Studio.Shared/js/elsa-studio-loader-server.js"></script>
+    }
+    else
+    {
+        @* Minimal scripts for login page only *@
+        <script src="_content/Elsa.Studio.Shared/js/elsa-studio-core.js"></script>
+    }
 
 </body>
 </html>
