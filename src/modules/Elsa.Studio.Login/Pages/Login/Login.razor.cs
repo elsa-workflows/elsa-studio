@@ -1,3 +1,4 @@
+using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Models;
@@ -25,6 +26,7 @@ public partial class Login : ComponentBase
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
     [Inject] private IUserMessageService UserMessageService { get; set; } = null!;
     [Inject] private IConfiguration Configuration { get; set; } = null!;
+    [Inject] private IBrandingProvider BrandingProvider { get; set; } = null!;
 
     // Configuration-driven values - NO magic constants
     private string ClientVersion { get; set; } = "Elsa Studio";
@@ -48,10 +50,10 @@ public partial class Login : ComponentBase
         // Read branding configuration - fast local operation
         var brandingSection = Configuration.GetSection(LoginBrandingOptions.SectionName);
         
-        // Set values with fallbacks to avoid null references
-        AppName = brandingSection.GetValue<string>("AppName") ?? "Elsa Studio";
-        AppTagline = brandingSection.GetValue<string>("AppTagline") ?? "Workflow Management";
-        LogoUrl = brandingSection.GetValue<string>("LogoUrl") ?? "/logo.png";
+        // Use BrandingProvider as intelligent default, allow configuration overrides
+        AppName = brandingSection.GetValue<string>("AppName") ?? BrandingProvider.AppName;
+        AppTagline = brandingSection.GetValue<string>("AppTagline") ?? BrandingProvider.AppTagline;
+        LogoUrl = brandingSection.GetValue<string>("LogoUrl") ?? BrandingProvider.LogoUrl; // Smart path resolution!
         ClientVersion = brandingSection.GetValue<string>("ClientVersion") ?? "Elsa Studio";
         ServerVersion = brandingSection.GetValue<string>("ServerVersion") ?? "3.x";
     }

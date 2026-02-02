@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.Contracts;
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
@@ -8,7 +9,7 @@ namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
 /// <summary>
 /// Logout service for ElsaIdentity authentication that clears JWT tokens and navigates instantly to login.
 /// </summary>
-public class ElsaIdentityLogoutService(IJwtAccessor jwtAccessor, NavigationManager navigationManager, IJSRuntime jsRuntime) : ILogoutService
+public class ElsaIdentityLogoutService(IJwtAccessor jwtAccessor, NavigationManager navigationManager, IJSRuntime jsRuntime, IConfiguration configuration) : ILogoutService
 {
     /// <inheritdoc />
     public async Task LogoutAsync()
@@ -31,17 +32,22 @@ public class ElsaIdentityLogoutService(IJwtAccessor jwtAccessor, NavigationManag
             // Continue with navigation even if token cleanup fails
         }
         
-        // Use replace: true for instant, seamless navigation without history entry
-        navigationManager.NavigateTo("/login", forceLoad: false, replace: true);
+        // Use configuration-driven route instead of hardcoded path
+        var loginPath = configuration.GetValue<string>("Routes:LoginPath") ?? "/login";
+        navigationManager.NavigateTo(loginPath, forceLoad: false, replace: true);
     }
     
     private async Task ClearAdditionalAuthStateAsync()
     {
         try
         {
+            // Get storage keys from configuration with fallbacks
+            var userKey = configuration.GetValue<string>("Authentication:StorageKeys:User") ?? "user";
+            var authExpiryKey = configuration.GetValue<string>("Authentication:StorageKeys:AuthExpiry") ?? "authExpiry";
+            
             // Clear any localStorage items that might contain auth state
-            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", "user");
-            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authExpiry");
+            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", userKey);
+            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", authExpiryKey);
         }
         catch (JSException)
         {

@@ -1,5 +1,6 @@
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
@@ -7,7 +8,7 @@ namespace Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
 /// <summary>
 /// Logout service for OpenID Connect authentication that navigates smoothly to the logout endpoint.
 /// </summary>
-public class OidcLogoutService(NavigationManager navigationManager, IJSRuntime jsRuntime) : ILogoutService
+public class OidcLogoutService(NavigationManager navigationManager, IJSRuntime jsRuntime, IConfiguration configuration) : ILogoutService
 {
     /// <inheritdoc />
     public async Task LogoutAsync()
@@ -26,17 +27,21 @@ public class OidcLogoutService(NavigationManager navigationManager, IJSRuntime j
             // Continue with navigation even if cleanup fails
         }
         
-        // Use replace: true for instant, seamless navigation to OIDC logout endpoint
-        navigationManager.NavigateTo("/authentication/logout", forceLoad: false, replace: true);
+        // Use configuration-driven route instead of hardcoded path
+        var logoutPath = configuration.GetValue<string>("Routes:AuthenticationLogoutPath") ?? "/authentication/logout";
+        navigationManager.NavigateTo(logoutPath, forceLoad: false, replace: true);
     }
     
     private async Task ClearClientAuthStateAsync()
     {
         try
         {
+            // Get storage key from configuration with fallback
+            var oidcUserKey = configuration.GetValue<string>("Authentication:StorageKeys:OidcUser") ?? "oidc.user";
+            
             // Clear any client-side authentication state
             await jsRuntime.InvokeVoidAsync("sessionStorage.clear");
-            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", "oidc.user");
+            await jsRuntime.InvokeVoidAsync("localStorage.removeItem", oidcUserKey);
         }
         catch (JSException)
         {
