@@ -15,8 +15,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceWorkspace : IWorkspace
 {
-    private readonly WorkflowInstanceDetails _workflowInstanceDetails = null!;
-    private readonly WorkflowInstanceDesigner _workflowInstanceDesigner = null!;
+    private WorkflowInstanceDetails _workflowInstanceDetails = null!;
+    private WorkflowInstanceDesigner _workflowInstanceDesigner = null!;
     
     /// Gets or sets the workflow instance to view.
     [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
