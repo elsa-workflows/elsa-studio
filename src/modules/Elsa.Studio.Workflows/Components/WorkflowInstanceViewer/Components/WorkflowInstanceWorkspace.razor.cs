@@ -31,7 +31,7 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
     /// An event callback that is invoked when an activity execution is selected.
-    [Parameter] public EventCallback<ActivityExecutionRecord?> ActivityExecutionSelected { get; set; }
+    [Parameter] public EventCallback<string?> ActivityExecutionSelected { get; set; }
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }

@@ -26,6 +26,8 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private JsonObject? _selectedActivity;
     private string? _selectedActivityExecutionRecordId;
     private string? _selectedActivityNodeId;
+    private bool _isExecutionDetailsDrawerOpen;
+    private ActivityExecutionRecord? _selectedExecutionForDrawer;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -113,6 +115,11 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private async Task OnCallStackEntrySelected(ActivityExecutionRecord record)
     {
         await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
+
+        // Open the execution details drawer
+        _selectedExecutionForDrawer = record;
+        _isExecutionDetailsDrawerOpen = true;
+        StateHasChanged();
     }
 
     private async Task OnActivitySelected(JsonObject arg)
@@ -126,14 +133,22 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         _selectedActivityExecutionRecordId = summaries.LastOrDefault()?.Id;
     }
 
-    private Task OnActivityExecutionSelected(ActivityExecutionRecord? record)
+    private async Task OnActivityExecutionSelected(string? executionId)
     {
+        if (string.IsNullOrWhiteSpace(executionId))
+            return;
+
+        // Load the full execution record
+        var record = await ActivityExecutionService.GetAsync(executionId);
+
         if (record != null)
         {
             _selectedActivityExecutionRecordId = record.Id;
             _selectedActivityNodeId = record.ActivityNodeId;
+            _selectedExecutionForDrawer = record;
+            _isExecutionDetailsDrawerOpen = true;
+            StateHasChanged();
         }
-        return Task.CompletedTask;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
