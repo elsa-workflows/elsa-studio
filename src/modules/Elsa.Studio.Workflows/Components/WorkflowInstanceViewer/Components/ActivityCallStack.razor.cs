@@ -19,7 +19,7 @@ public partial class ActivityCallStack
     private bool _hasError;
     private int _selectedIndex = -1;
     private string? _selectedExecutionId;
-    private bool _isPinned;
+    private bool _isPinned = true;
 
     /// <summary>
     /// The workflow instance ID associated with the selected activity.
@@ -76,7 +76,7 @@ public partial class ActivityCallStack
         }
 
         // When pinned, don't reload the call stack - just try to highlight the activity if it exists in the current stack
-        if (_isPinned && !string.IsNullOrWhiteSpace(SelectedActivityNodeId))
+        if (_isPinned && _entries.Any() && !string.IsNullOrWhiteSpace(SelectedActivityNodeId))
         {
             TrySelectActivityInCurrentStack(SelectedActivityNodeId);
             return;

@@ -131,6 +131,13 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         // Get the last activity execution record ID for this activity
         var summaries = (await ActivityExecutionService.ListSummariesAsync(_workflowInstance.Id, _selectedActivityNodeId)).ToList();
         _selectedActivityExecutionRecordId = summaries.LastOrDefault()?.Id;
+
+        if (_selectedActivityExecutionRecordId != null)
+            _selectedExecutionForDrawer = await ActivityExecutionService.GetAsync(_selectedActivityExecutionRecordId);
+        else
+            _selectedExecutionForDrawer = null;
+
+        StateHasChanged();
     }
 
     private async Task OnActivityExecutionSelected(string? executionId)

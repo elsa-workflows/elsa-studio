@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.Resilience.Models;
 using Elsa.Api.Client.Shared.Models;
@@ -33,7 +32,8 @@ public partial class ActivityExecutionDetails : IAsyncDisposable
     {
         await StopRefreshTimerAsync();
 
-        if (ActivityExecution == null)
+        var record = ActivityExecution;
+        if (record == null)
         {
             ActivityState = new();
             OutcomesData = new();
@@ -42,11 +42,11 @@ public partial class ActivityExecutionDetails : IAsyncDisposable
             return;
         }
 
-        CreateDataModels(ActivityExecution);
-        await LoadRetriesAsync(ActivityExecution.Id);
+        CreateDataModels(record);
+        await LoadRetriesAsync(record.Id);
 
-        if (!ActivityExecution.IsFused())
-            RefreshPeriodically(ActivityExecution.Id);
+        if (!record.IsFused())
+            RefreshPeriodically(record.Id);
     }
 
     private void CreateDataModels(ActivityExecutionRecord? record)
@@ -87,12 +87,19 @@ public partial class ActivityExecutionDetails : IAsyncDisposable
     private async Task RefreshAsync(string id)
     {
         var record = await ActivityExecutionService.GetAsync(id);
+        
+        if (record == null)
+        {
+            await StopRefreshTimerAsync();
+            return;
+        }
+
         ActivityExecution = record;
         CreateDataModels(record);
         await LoadRetriesAsync(id);
         await InvokeAsync(StateHasChanged);
 
-        if (record == null || record.IsFused())
+        if (record.IsFused())
             await StopRefreshTimerAsync();
     }
 
