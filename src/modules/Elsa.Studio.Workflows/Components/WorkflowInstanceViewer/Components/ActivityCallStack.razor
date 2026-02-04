@@ -1,6 +1,5 @@
 @using Variant = MudBlazor.Variant
 @using Size = MudBlazor.Size
-@using Elsa.Api.Client.Shared.Models
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
 
@@ -57,7 +56,6 @@
                 var record = entry.Record;
                 var displaySettings = entry.ActivityDisplaySettings;
                 var activityIcon = displaySettings?.Icon;
-                var iconStyle = !string.IsNullOrWhiteSpace(displaySettings?.Color) ? $"color: {displaySettings.Color};" : null;
                 var activityColor = displaySettings?.Color;
                 var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
                 var bgClass = index == SelectedIndex ? "gray lighten-3 rounded" : "";
