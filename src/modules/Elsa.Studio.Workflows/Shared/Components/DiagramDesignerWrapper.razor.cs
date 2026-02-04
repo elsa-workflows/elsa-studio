@@ -454,7 +454,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        // Update the last selected node ID to prevent redundant selection calls
+        // Update the last selected activity ID to prevent redundant selection calls
         _lastSelectedNodeId = activity.GetId();
 
         // Pass through to the original callback
