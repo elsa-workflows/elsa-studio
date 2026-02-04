@@ -42,8 +42,6 @@
                 var activityDescriptor = journalEntry.ActivityDescriptor;
                 var displaySettings = journalEntry.ActivityDisplaySettings;
                 var activityIcon = displaySettings?.Icon;
-                var activityColor = displaySettings?.Color;
-                var iconStyle = !string.IsNullOrWhiteSpace(displaySettings?.Color) ? $"color: {displaySettings.Color};" : null;
                 var timeMetric = context.TimeMetric;
                 var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
                 var bgClass = journalEntry == SelectedEntry ? "gray lighten-3 rounded" : "";
