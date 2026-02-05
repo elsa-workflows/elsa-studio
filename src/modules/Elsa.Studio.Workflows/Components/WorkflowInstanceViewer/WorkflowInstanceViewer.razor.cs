@@ -28,6 +28,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private bool _isExecutionDetailsDrawerOpen;
     private ActivityExecutionRecord? _selectedExecutionForDrawer;
     private bool _isSelectingFromCallStack;
+    private bool _isSelectingFromJournal;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = null!;
@@ -109,7 +110,15 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     private async Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
     {
-        await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
+        _isSelectingFromJournal = true;
+        try
+        {
+            await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
+        }
+        finally
+        {
+            _isSelectingFromJournal = false;
+        }
     }
 
     private async Task OnCallStackEntrySelected(ActivityExecutionRecord record)
@@ -126,16 +135,13 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         }
         finally
         {
-            // Wait for potential selection events from the designer to finish. 
-            // The designer might trigger OnActivitySelected asynchronously.
-            await Task.Delay(500);
             _isSelectingFromCallStack = false;
         }
     }
 
     private async Task OnActivitySelected(JsonObject arg)
     {
-        if (_isSelectingFromCallStack)
+        if (_isSelectingFromCallStack || _isSelectingFromJournal)
             return;
 
         Journal.ClearSelection();
