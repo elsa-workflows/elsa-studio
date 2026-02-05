@@ -18,30 +18,30 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer;
 /// The index page for viewing a workflow instance.
 public partial class WorkflowInstanceViewer : IAsyncDisposable
 {
-    private WorkflowInstance _workflowInstance = default!;
-    private WorkflowDefinition _workflowDefinition = default!;
-    private WorkflowInstanceWorkspace _workspace = default!;
-    private IWorkflowInstanceObserver? _workflowInstanceObserver = default!;
+    private WorkflowInstance _workflowInstance = null!;
+    private WorkflowDefinition _workflowDefinition = null!;
+    private WorkflowInstanceWorkspace _workspace = null!;
+    private IWorkflowInstanceObserver? _workflowInstanceObserver;
     private int _leftPanelTabIndex;
-    private JsonObject? _selectedActivity;
     private string? _selectedActivityExecutionRecordId;
     private string? _selectedActivityNodeId;
     private bool _isExecutionDetailsDrawerOpen;
     private ActivityExecutionRecord? _selectedExecutionForDrawer;
+    private bool _isSelectingFromCallStack;
 
     /// The ID of the workflow instance to view.
-    [Parameter] public string InstanceId { get; set; } = default!;
+    [Parameter] public string InstanceId { get; set; } = null!;
 
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
 
-    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = default!;
+    [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
 
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
-    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = default!;
-    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = default!;
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = null!;
+    [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
 
-    private Journal Journal { get; set; } = default!;
+    private Journal Journal { get; set; } = null!;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -114,18 +114,31 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     private async Task OnCallStackEntrySelected(ActivityExecutionRecord record)
     {
-        await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
+        _isSelectingFromCallStack = true;
+        try
+        {
+            _selectedActivityNodeId = record.ActivityNodeId;
+            _selectedExecutionForDrawer = record;
+            _isExecutionDetailsDrawerOpen = true;
+            StateHasChanged(); // Open drawer and highlight immediately.
 
-        // Open the execution details drawer
-        _selectedExecutionForDrawer = record;
-        _isExecutionDetailsDrawerOpen = true;
-        StateHasChanged();
+            await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
+        }
+        finally
+        {
+            // Wait for potential selection events from the designer to finish. 
+            // The designer might trigger OnActivitySelected asynchronously.
+            await Task.Delay(500);
+            _isSelectingFromCallStack = false;
+        }
     }
 
     private async Task OnActivitySelected(JsonObject arg)
     {
+        if (_isSelectingFromCallStack)
+            return;
+
         Journal.ClearSelection();
-        _selectedActivity = arg;
         _selectedActivityNodeId = arg.GetNodeId();
 
         // Get the last activity execution record ID for this activity
