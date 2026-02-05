@@ -27,8 +27,10 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     private string? _selectedActivityNodeId;
     private bool _isExecutionDetailsDrawerOpen;
     private ActivityExecutionRecord? _selectedExecutionForDrawer;
-    private bool _isSelectingFromCallStack;
-    private bool _isSelectingFromJournal;
+    
+    // Track which node IDs were programmatically selected (not by user clicking in designer)
+    // This prevents OnActivitySelected from clearing journal/call stack selection
+    private string? _programmaticallySelectedNodeId;
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = null!;
@@ -110,42 +112,37 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
 
     private async Task OnWorkflowExecutionLogRecordSelected(JournalEntry entry)
     {
-        _isSelectingFromJournal = true;
-        try
-        {
-            await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
-        }
-        finally
-        {
-            _isSelectingFromJournal = false;
-        }
+        _programmaticallySelectedNodeId = entry.Record.NodeId;
+        await _workspace.SelectWorkflowExecutionLogRecordAsync(entry);
     }
 
     private async Task OnCallStackEntrySelected(ActivityExecutionRecord record)
     {
-        _isSelectingFromCallStack = true;
-        try
-        {
-            _selectedActivityNodeId = record.ActivityNodeId;
-            _selectedExecutionForDrawer = record;
-            _isExecutionDetailsDrawerOpen = true;
-            StateHasChanged(); // Open drawer and highlight immediately.
+        _programmaticallySelectedNodeId = record.ActivityNodeId;
+        _selectedActivityNodeId = record.ActivityNodeId;
+        _selectedExecutionForDrawer = record;
+        _isExecutionDetailsDrawerOpen = true;
+        StateHasChanged(); // Open drawer and highlight immediately.
 
-            await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
-        }
-        finally
-        {
-            _isSelectingFromCallStack = false;
-        }
+        await _workspace.SelectActivityByIdAsync(record.ActivityId, record.ActivityNodeId);
     }
 
     private async Task OnActivitySelected(JsonObject arg)
     {
-        if (_isSelectingFromCallStack || _isSelectingFromJournal)
+        var nodeId = arg.GetNodeId();
+        
+        // If this activity was selected programmatically (from journal or call stack), 
+        // don't clear the journal selection - just clear the tracking variable
+        if (_programmaticallySelectedNodeId == nodeId)
+        {
+            _programmaticallySelectedNodeId = null;
             return;
-
+        }
+        
+        // User clicked directly on an activity in the designer - clear journal selection
+        _programmaticallySelectedNodeId = null;
         Journal.ClearSelection();
-        _selectedActivityNodeId = arg.GetNodeId();
+        _selectedActivityNodeId = nodeId;
 
         // Get the last activity execution record ID for this activity
         var summaries = (await ActivityExecutionService.ListSummariesAsync(_workflowInstance.Id, _selectedActivityNodeId)).ToList();
