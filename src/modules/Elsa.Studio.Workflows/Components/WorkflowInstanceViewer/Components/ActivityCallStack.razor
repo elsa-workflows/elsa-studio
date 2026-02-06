@@ -46,7 +46,18 @@
                     var displaySettings = entry.ActivityDisplaySettings;
                     var activityIcon = displaySettings?.Icon;
                     var activityColor = displaySettings?.Color;
-                    var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
+                    
+                    // UX Logic: prioritize activity name (e.g., "WriteLine1") for visual correlation with designer
+                    // Fall back to custom display name, then to activity type for uniqueness
+                    var designerActivityName = GetActivityName?.Invoke(record.ActivityId);
+                    var customDisplayName = GetCustomActivityName?.Invoke(record.ActivityId);
+                    var typeName = entry.ActivityDescriptor?.DisplayName ?? record.ActivityType;
+                    
+                    // Hierarchy: Activity Name > Custom Display Name > Activity Type
+                    var displayName = !string.IsNullOrWhiteSpace(designerActivityName) 
+                        ? designerActivityName 
+                        : (!string.IsNullOrWhiteSpace(customDisplayName) ? customDisplayName : typeName);
+                    
                     var isSelected = SelectedEntry != null && record.Id == SelectedEntry.Record.Id;
                     var durationText = entry.Duration.HasValue ? entry.Duration.Value.ToString("hh\\:mm\\:ss\\.fff") : "-";
                 }
@@ -62,7 +73,7 @@
                     
                     <div class="mud-timeline-item-content">
                         <MudText Typo="Typo.body2" Style="font-weight: 500;">@displayName</MudText>
-                        <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@record.Status</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@typeName - @record.Status</MudText>
                     </div>
 
                     <div class="mud-timeline-item-divider">

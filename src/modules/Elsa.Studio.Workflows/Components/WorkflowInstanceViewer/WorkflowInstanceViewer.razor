@@ -8,7 +8,7 @@
             <RadzenSplitterPane Size="20%" Min="100px">
                 <MudTabs Elevation="0" ApplyEffectsToContainer="true" KeepPanelsAlive="true" @bind-ActivePanelIndex="_leftPanelTabIndex">
                     <MudTabPanel Text="@Localizer["Journal"]">
-                        <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected"/>
+                        <Journal @ref="Journal" JournalEntrySelected="OnWorkflowExecutionLogRecordSelected" GetCustomActivityName="GetCustomActivityName" GetActivityName="GetActivityName"/>
                     </MudTabPanel>
                     <MudTabPanel Text="@Localizer["Activity Call Stack"]">
                         <ActivityCallStack
@@ -16,7 +16,9 @@
                             ActivityExecutionRecordId="@_selectedActivityExecutionRecordId"
                             SelectedActivityNodeId="@_selectedActivityNodeId"
                             IsActive="@(_leftPanelTabIndex == 1)"
-                            CallStackEntrySelected="OnCallStackEntrySelected" />
+                            CallStackEntrySelected="OnCallStackEntrySelected"
+                            GetCustomActivityName="GetCustomActivityName"
+                            GetActivityName="GetActivityName" />
                     </MudTabPanel>
                 </MudTabs>
             </RadzenSplitterPane>

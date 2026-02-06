@@ -43,7 +43,18 @@
                 var displaySettings = journalEntry.ActivityDisplaySettings;
                 var activityIcon = displaySettings?.Icon;
                 var timeMetric = context.TimeMetric;
-                var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? activityDescriptor?.DisplayName : record.ActivityName;
+                
+                // UX Logic: prioritize activity name (e.g., "WriteLine1") for visual correlation with designer
+                // Fall back to custom display name, then to technical name for uniqueness
+                var designerActivityName = GetActivityName?.Invoke(record.ActivityId);
+                var customDisplayName = GetCustomActivityName?.Invoke(record.ActivityId);
+                var typeName = activityDescriptor?.DisplayName ?? record.ActivityType;
+                
+                // Hierarchy: Activity Name > Custom Display Name > Activity Type
+                var displayName = !string.IsNullOrWhiteSpace(designerActivityName) 
+                    ? designerActivityName 
+                    : (!string.IsNullOrWhiteSpace(customDisplayName) ? customDisplayName : typeName);
+                
                 var bgClass = SelectedEntry != null && journalEntry.Record.Id == SelectedEntry.Record.Id ? "gray lighten-3 rounded" : "";
                 var statusColor =
                     record.EventName switch
@@ -63,7 +74,7 @@
                 </ItemDot>
                 <ItemContent>
                     <MudText Typo="Typo.body2">@displayName</MudText>
-                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@record.EventName</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@typeName - @record.EventName</MudText>
                 </ItemContent>
                 <ItemOpposite>
                     <div class="d-flex justify-end gap-4">

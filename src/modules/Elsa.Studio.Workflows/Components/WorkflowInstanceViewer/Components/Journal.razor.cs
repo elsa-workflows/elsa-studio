@@ -19,6 +19,12 @@ public partial class Journal : IAsyncDisposable
 
     /// Gets or sets a callback invoked when a journal entry is selected.
     [Parameter] public Func<JournalEntry, Task>? JournalEntrySelected { get; set; }
+    
+    /// Gets or sets a function to retrieve the custom display name for an activity by its ID.
+    [Parameter] public Func<string, string?>? GetCustomActivityName { get; set; }
+    
+    /// Gets or sets a function to retrieve the activity name for an activity by its ID.
+    [Parameter] public Func<string, string?>? GetActivityName { get; set; }
 
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;

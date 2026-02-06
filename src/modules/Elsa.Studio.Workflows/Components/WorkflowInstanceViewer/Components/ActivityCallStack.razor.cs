@@ -43,6 +43,16 @@ public partial class ActivityCallStack
     /// </summary>
     [Parameter] public EventCallback<ActivityExecutionRecord> CallStackEntrySelected { get; set; }
 
+    /// <summary>
+    /// Gets or sets a function to retrieve the custom display name for an activity by its ID.
+    /// </summary>
+    [Parameter] public Func<string, string?>? GetCustomActivityName { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a function to retrieve the activity name for an activity by its ID.
+    /// </summary>
+    [Parameter] public Func<string, string?>? GetActivityName { get; set; }
+
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;

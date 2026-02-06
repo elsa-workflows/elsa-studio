@@ -9,6 +9,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
 using Elsa.Studio.Workflows.Shared.Args;
 using Microsoft.AspNetCore.Components;
@@ -31,6 +32,12 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     // Track which node IDs were programmatically selected (not by user clicking in designer)
     // This prevents OnActivitySelected from clearing journal/call stack selection
     private string? _programmaticallySelectedNodeId;
+    
+    // Lookup for custom activity display names (from designer metadata)
+    private readonly Dictionary<string, string> _activityDisplayNameLookup = new();
+    
+    // Lookup for activity names (from designer node)
+    private readonly Dictionary<string, string> _activityNameLookup = new();
 
     /// The ID of the workflow instance to view.
     [Parameter] public string InstanceId { get; set; } = null!;
@@ -43,6 +50,7 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
     [Inject] private IWorkflowInstanceObserverFactory WorkflowInstanceObserverFactory { get; set; } = null!;
     [Inject] private IActivityExecutionService ActivityExecutionService { get; set; } = null!;
+    [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
 
     private Journal Journal { get; set; } = null!;
 
@@ -53,10 +61,52 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         var workflowDefinition = await WorkflowDefinitionService.FindByIdAsync(instance.DefinitionVersionId);
         _workflowInstance = instance;
         _workflowDefinition = workflowDefinition!;
+        
+        // Build the activity display name lookup from the workflow definition
+        await BuildActivityDisplayNameLookupAsync();
+        
         await SelectWorkflowInstanceAsync(instance);
 
         if (_workflowInstance.Status == WorkflowStatus.Running)
             await ObserveWorkflowInstanceAsync();
+    }
+    
+    private async Task BuildActivityDisplayNameLookupAsync()
+    {
+        _activityDisplayNameLookup.Clear();
+        _activityNameLookup.Clear();
+        
+        if (_workflowDefinition?.Root == null)
+            return;
+        
+        var activityGraph = await ActivityVisitor.VisitAndCreateGraphAsync(_workflowDefinition.Root);
+        
+        foreach (var node in activityGraph.ActivityNodeLookup.Values)
+        {
+            var activity = node.Activity;
+            var activityId = activity.GetId();
+            var displayText = activity.GetDisplayText()?.Trim();
+            var activityName = activity.GetName()?.Trim();
+            
+            if (string.IsNullOrWhiteSpace(activityId))
+                continue;
+                
+            if (!string.IsNullOrWhiteSpace(displayText))
+                _activityDisplayNameLookup[activityId] = displayText;
+                
+            if (!string.IsNullOrWhiteSpace(activityName))
+                _activityNameLookup[activityId] = activityName;
+        }
+    }
+    
+    private string? GetCustomActivityName(string activityId)
+    {
+        return _activityDisplayNameLookup.GetValueOrDefault(activityId);
+    }
+    
+    private string? GetActivityName(string activityId)
+    {
+        return _activityNameLookup.GetValueOrDefault(activityId);
     }
 
     private async Task ObserveWorkflowInstanceAsync()
