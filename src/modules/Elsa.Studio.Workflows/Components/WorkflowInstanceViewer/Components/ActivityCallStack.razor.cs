@@ -16,6 +16,7 @@ public partial class ActivityCallStack
     private string? _lastKey;
     private bool _hasError;
     private int _selectedIndex = -1;
+    private ActivityCallStackEntry? _selectedEntry;
 
     /// <summary>
     /// The workflow instance ID associated with the selected activity.
@@ -50,6 +51,13 @@ public partial class ActivityCallStack
     private bool IsLoading => _isLoading;
     private bool HasError => _hasError;
     private int SelectedIndex => _selectedIndex;
+    private ActivityCallStackEntry? SelectedEntry => _selectedEntry;
+    
+    /// <summary>
+    /// Provides indexed entries for virtualization.
+    /// </summary>
+    private List<IndexedCallStackEntry> IndexedEntries => 
+        _entries.Select((entry, index) => new IndexedCallStackEntry(index, entry)).ToList();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -70,6 +78,7 @@ public partial class ActivityCallStack
             _entries.Clear();
             _hasError = false;
             _selectedIndex = -1;
+            _selectedEntry = null;
             return;
         }
 
@@ -82,6 +91,7 @@ public partial class ActivityCallStack
         _hasError = false;
         _entries.Clear();
         _selectedIndex = -1;
+        _selectedEntry = null;
         StateHasChanged();
 
         try
@@ -100,6 +110,7 @@ public partial class ActivityCallStack
             }
 
             _selectedIndex = _entries.Count - 1;
+            _selectedEntry = _entries.LastOrDefault();
         }
         catch
         {
@@ -126,11 +137,13 @@ public partial class ActivityCallStack
         if (index < 0 || index >= _entries.Count)
         {
             _selectedIndex = -1;
+            _selectedEntry = null;
             return;
         }
 
         var entry = _entries[index];
         _selectedIndex = index;
+        _selectedEntry = entry;
 
         if (CallStackEntrySelected.HasDelegate)
             await CallStackEntrySelected.InvokeAsync(entry.Record);
@@ -147,6 +160,7 @@ public partial class ActivityCallStack
             if (_entries[i].Record.ActivityNodeId == activityNodeId)
             {
                 _selectedIndex = i;
+                _selectedEntry = _entries[i];
                 StateHasChanged();
                 return;
             }
@@ -154,4 +168,9 @@ public partial class ActivityCallStack
 
         // Activity not found in current call stack - don't change selection
     }
+    
+    /// <summary>
+    /// Helper record to provide index along with entry for virtualization.
+    /// </summary>
+    private record IndexedCallStackEntry(int Index, ActivityCallStackEntry Entry);
 }

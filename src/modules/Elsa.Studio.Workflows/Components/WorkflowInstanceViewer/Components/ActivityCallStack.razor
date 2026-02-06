@@ -38,18 +38,18 @@
     else
     {
         <MudTimeline TimelineAlign="TimelineAlign.Start">
-            @for (var index = 0; index < Entries.Count; index++)
-            {
-                var localIndex = index;
-                var entry = Entries[index];
-                var record = entry.Record;
-                var displaySettings = entry.ActivityDisplaySettings;
-                var activityIcon = displaySettings?.Icon;
-                var activityColor = displaySettings?.Color;
-                var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
-                var isSelected = index == SelectedIndex;
-                var durationText = entry.Duration.HasValue ? entry.Duration.Value.ToString("hh\\:mm\\:ss\\.fff") : "-";
-
+            <Virtualize Items="@IndexedEntries" Context="item" OverscanCount="20" ItemSize="@(72f)">
+                @{
+                    var index = item.Index;
+                    var entry = item.Entry;
+                    var record = entry.Record;
+                    var displaySettings = entry.ActivityDisplaySettings;
+                    var activityIcon = displaySettings?.Icon;
+                    var activityColor = displaySettings?.Color;
+                    var displayName = string.IsNullOrWhiteSpace(record.ActivityName) ? entry.ActivityDescriptor?.DisplayName ?? record.ActivityType : record.ActivityName;
+                    var isSelected = SelectedEntry != null && record.Id == SelectedEntry.Record.Id;
+                    var durationText = entry.Duration.HasValue ? entry.Duration.Value.ToString("hh\\:mm\\:ss\\.fff") : "-";
+                }
                 @* 
                    We use a manual div structure here instead of MudTimelineItem to achieve:
                    1. 100% row-wide clickability (including the gaps and the line).
@@ -58,7 +58,7 @@
                 *@
                 <div class="mud-timeline-item mud-timeline-item-start cursor-pointer pa-1" 
                      style="@(isSelected ? "background-color: var(--mud-palette-primary-hover); border-radius: 4px;" : "")" 
-                     @onclick="() => OnCallStackEntrySelected(localIndex)">
+                     @onclick="() => OnCallStackEntrySelected(index)">
                     
                     <div class="mud-timeline-item-content">
                         <MudText Typo="Typo.body2" Style="font-weight: 500;">@displayName</MudText>
@@ -85,7 +85,7 @@
                         </div>
                     </div>
                 </div>
-            }
+            </Virtualize>
         </MudTimeline>
     }
 </div>
