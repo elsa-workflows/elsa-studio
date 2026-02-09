@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
@@ -8,6 +9,7 @@ using Elsa.Api.Client.Resources.Resilience.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
@@ -67,7 +69,15 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     /// <inheritdoc />
     public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
-        var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
-        return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
+        try
+        {
+            var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
+            return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
+        }
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            // The Resilience feature is not enabled in Elsa Server or the retry attempts endpoint is not available. Return an empty response.
+            return new PagedListResponse<RetryAttemptRecord> { Items = [] };
+        }
     }
 }
