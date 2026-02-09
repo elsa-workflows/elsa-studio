@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityExecutions.Contracts;
@@ -9,14 +8,13 @@ using Elsa.Api.Client.Resources.Resilience.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Refit;
 
 namespace Elsa.Studio.Workflows.Domain.Services;
 
 /// <summary>
 /// An activity execution service that uses a remote backend to retrieve activity execution reports.
 /// </summary>
-public class RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider) : IActivityExecutionService
+public class RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider, IRemoteFeatureProvider remoteFeatureProvider) : IActivityExecutionService
 {
     /// <inheritdoc />
     public async Task<ActivityExecutionReport> GetReportAsync(string workflowInstanceId, JsonObject containerActivity, CancellationToken cancellationToken = default)
@@ -69,15 +67,11 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     /// <inheritdoc />
     public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
-            return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
-        }
-        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
-        {
-            // The Resilience feature is not enabled in Elsa Server or the retry attempts endpoint is not available. Return an empty response.
+        // Check if the Resilience feature is enabled before making API calls.
+        if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.Resilience", cancellationToken))
             return new PagedListResponse<RetryAttemptRecord> { Items = [] };
-        }
+
+        var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
+        return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
     }
 }
