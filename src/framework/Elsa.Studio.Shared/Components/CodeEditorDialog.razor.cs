@@ -24,12 +24,22 @@ namespace Elsa.Studio.Components
 
         private async Task OnMonacoInitializedAsync()
         {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            _lastMonacoEditorContent = Value;
-            await model.SetValue(Value);
-            _isInternalContentChange = false;
-            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+            try
+            {
+                _isInternalContentChange = true;
+                var model = await _monacoEditor!.GetModel();
+                _lastMonacoEditorContent = Value;
+                await model.SetValue(Value);
+                _isInternalContentChange = false;
+                await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+            }
+            catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+            {
+                // This can happen when the component is being disposed while the Monaco editor is initializing.
+                // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
+                // We can safely ignore this error as the component is being recreated anyway.
+                _isInternalContentChange = false;
+            }
         }
 
         private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)

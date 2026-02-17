@@ -82,13 +82,23 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        _isInternalContentChange = true;
-        var model = await _monacoEditor!.GetModel();
-        _lastMonacoEditorContent = InputValue;
-        await model.SetValue(InputValue);
-        _isInternalContentChange = false;
-        await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
-        await RunMonacoHandlersAsync(_monacoEditor);
+        try
+        {
+            _isInternalContentChange = true;
+            var model = await _monacoEditor!.GetModel();
+            _lastMonacoEditorContent = InputValue;
+            await model.SetValue(InputValue);
+            _isInternalContentChange = false;
+            await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+            await RunMonacoHandlersAsync(_monacoEditor);
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
+            // We can safely ignore this error as the component is being recreated anyway.
+            _isInternalContentChange = false;
+        }
     }
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
@@ -101,17 +111,25 @@ public partial class Code : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        var value = await _monacoEditor!.GetValue();
+        try
+        {
+            var value = await _monacoEditor!.GetValue();
 
-        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-        if (value == _lastMonacoEditorContent)
-            return;
+            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+            if (value == _lastMonacoEditorContent)
+                return;
 
-        _lastMonacoEditorContent = value;
-        var expression = Expression.CreateLiteral(value);
+            _lastMonacoEditorContent = value;
+            var expression = Expression.CreateLiteral(value);
 
-        await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
+            await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // We can safely ignore this error as the component is being recreated anyway.
+        }
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
@@ -151,8 +169,16 @@ public partial class Code : IDisposable
             var expression = Expression.CreateLiteral(newValue);
             await EditorContext.UpdateExpressionAsync(expression);
 
-            var model = await _monacoEditor!.GetModel();
-            await model.SetValue(newValue);
+            try
+            {
+                var model = await _monacoEditor!.GetModel();
+                await model.SetValue(newValue);
+            }
+            catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+            {
+                // This can happen when the component is being disposed while the Monaco editor is initializing.
+                // We can safely ignore this error as the component is being recreated anyway.
+            }
         }
     }
 

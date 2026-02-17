@@ -153,13 +153,23 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        _isInternalContentChange = true;
-        var model = await _monacoEditor!.GetModel();
-        _lastMonacoEditorContent = InputValue;
-        await model.SetValue(InputValue);
-        _isInternalContentChange = false;
-        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-        await RunMonacoHandlersAsync(_monacoEditor);
+        try
+        {
+            _isInternalContentChange = true;
+            var model = await _monacoEditor!.GetModel();
+            _lastMonacoEditorContent = InputValue;
+            await model.SetValue(InputValue);
+            _isInternalContentChange = false;
+            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+            await RunMonacoHandlersAsync(_monacoEditor);
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
+            // We can safely ignore this error as the component is being recreated anyway.
+            _isInternalContentChange = false;
+        }
     }
 
     private async Task OnSyntaxSelectedAsync(string syntax)
@@ -213,17 +223,25 @@ public partial class ExpressionInput : IDisposable
         if (_isInternalContentChange)
             return;
 
-        var value = await _monacoEditor!.GetValue();
+        try
+        {
+            var value = await _monacoEditor!.GetValue();
 
-        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-        if (value == _lastMonacoEditorContent)
-            return;
+            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+            if (value == _lastMonacoEditorContent)
+                return;
 
-        var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-        input.Expression = new(_selectedExpressionType, value);
-        _lastMonacoEditorContent = value;
-        await ThrottleValueChangedCallbackAsync(input);
+            var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
+            input.Expression = new(_selectedExpressionType, value);
+            _lastMonacoEditorContent = value;
+            await ThrottleValueChangedCallbackAsync(input);
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // We can safely ignore this error as the component is being recreated anyway.
+        }
     }
 
     private async Task ThrottleValueChangedCallbackAsync(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
@@ -271,8 +289,16 @@ public partial class ExpressionInput : IDisposable
             input.Expression = new(_selectedExpressionType, newValue);
             await EditorContext.OnValueChanged(input);
 
-            var model = await _monacoEditor!.GetModel();
-            await model.SetValue(InputValue);
+            try
+            {
+                var model = await _monacoEditor!.GetModel();
+                await model.SetValue(InputValue);
+            }
+            catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+            {
+                // This can happen when the component is being disposed while the Monaco editor is initializing.
+                // We can safely ignore this error as the component is being recreated anyway.
+            }
         }
     }
 

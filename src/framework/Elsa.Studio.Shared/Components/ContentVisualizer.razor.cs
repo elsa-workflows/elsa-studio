@@ -107,9 +107,17 @@ namespace Elsa.Studio.Components
             {
                 FormatUsing(visualizer);
 
-                var model = await _monacoEditor!.GetModel();
-                await model.SetValue(Pretty);
-                await Global.SetModelLanguage(JSRuntime, model, SelectedVisualizer.Syntax);
+                try
+                {
+                    var model = await _monacoEditor!.GetModel();
+                    await model.SetValue(Pretty);
+                    await Global.SetModelLanguage(JSRuntime, model, SelectedVisualizer.Syntax);
+                }
+                catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+                {
+                    // This can happen when the component is being disposed while the Monaco editor is initializing.
+                    // We can safely ignore this error as the component is being recreated anyway.
+                }
             }
         }
 

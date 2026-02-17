@@ -77,6 +77,11 @@ public partial class CodeView : IDisposable
             _lastMonacoEditorContent = json;
             await model.SetValue(json);
         }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // We can safely ignore this error as the component is being recreated anyway.
+        }
         finally
         {
             _isInternalContentChange = false;
@@ -187,6 +192,11 @@ public partial class CodeView : IDisposable
             var model = await _monacoEditor!.GetModel();
             await model.SetValue(WorkflowDefinitionSerialized);
             await UpdateEditorFromCodeViewAsync();
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // We can safely ignore this error as the component is being recreated anyway.
         }
         finally
         {

@@ -58,7 +58,7 @@
         </DiagramDesignerWrapper>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesPanel @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight" />
+        <ActivityPropertiesPanel @key="@SelectedActivityId" @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight" />
     </RadzenSplitterPane>
 </RadzenSplitter>
 

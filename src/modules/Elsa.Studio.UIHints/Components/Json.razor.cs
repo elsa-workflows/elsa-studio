@@ -75,17 +75,25 @@ public partial class Json : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        var value = await _monacoEditor!.GetValue();
+        try
+        {
+            var value = await _monacoEditor!.GetValue();
 
-        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-        if (value == _lastMonacoEditorContent)
-            return;
+            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+            if (value == _lastMonacoEditorContent)
+                return;
 
-        _lastMonacoEditorContent = value;
-        var expression = Expression.CreateLiteral(value);
+            _lastMonacoEditorContent = value;
+            var expression = Expression.CreateLiteral(value);
 
-        await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
+            await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
+        }
+        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
+        {
+            // This can happen when the component is being disposed while the Monaco editor is initializing.
+            // We can safely ignore this error as the component is being recreated anyway.
+        }
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();
