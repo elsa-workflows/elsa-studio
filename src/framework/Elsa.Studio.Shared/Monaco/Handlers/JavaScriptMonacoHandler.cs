@@ -31,6 +31,8 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
         if (activityTypeName == null || workflowDefinitionId == null)
             return;
 
+        // propertyName may be null when the handler is called for general activity type definitions
+        // rather than property-specific definitions. The API handles empty string appropriately.
         var data = await typeDefinitionService.GetTypeDefinition(workflowDefinitionId, activityTypeName, propertyName ?? string.Empty);
         
         // Add retry logic with exponential backoff to handle race conditions with Monaco editor initialization
@@ -43,7 +45,6 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
     private async Task InvokeWithRetryAsync(Func<Task> action)
     {
         var delay = InitialDelayMs;
-        JSException? lastException = null;
         
         for (var attempt = 1; attempt <= MaxRetries; attempt++)
         {
@@ -54,8 +55,6 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
             }
             catch (JSException ex)
             {
-                lastException = ex;
-                
                 if (attempt < MaxRetries)
                 {
                     logger.LogWarning(ex, "Failed to initialize Monaco editor on attempt {Attempt} of {MaxRetries}. Retrying after {Delay}ms...", attempt, MaxRetries, delay);
