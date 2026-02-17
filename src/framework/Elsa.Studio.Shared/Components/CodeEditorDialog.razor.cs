@@ -1,4 +1,5 @@
 ﻿using BlazorMonaco.Editor;
+using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -44,7 +45,7 @@ public partial class CodeEditorDialog
 
     private async Task OnMonacoInitializedAsync()
     {
-        try
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             _isInternalContentChange = true;
             var model = await _monacoEditor!.GetModel();
@@ -52,14 +53,7 @@ public partial class CodeEditorDialog
             await model.SetValue(Value);
             _isInternalContentChange = false;
             await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-        }
-        catch (JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
-            // We can safely ignore this error as the component is being recreated anyway.
-            _isInternalContentChange = false;
-        }
+        }, () => _isInternalContentChange = false);
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)

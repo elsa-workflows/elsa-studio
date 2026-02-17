@@ -75,7 +75,7 @@ public partial class Json : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        try
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             var value = await _monacoEditor!.GetValue();
 
@@ -88,12 +88,7 @@ public partial class Json : IDisposable
             var expression = Expression.CreateLiteral(value);
 
             await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // We can safely ignore this error as the component is being recreated anyway.
-        }
+        });
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();

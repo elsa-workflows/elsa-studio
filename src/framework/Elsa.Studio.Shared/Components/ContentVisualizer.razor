@@ -34,7 +34,7 @@
                        Class="ml-2 mr-2"
                        Margin="Margin.Dense"
                        Variant="Variant.Outlined">
-                @foreach (var formatter in AvailableVisualizers)
+                @foreach (var formatter in _availableVisualizers)
                 {
                     <MudSelectItem Value="@formatter.Name">@formatter.Name</MudSelectItem>
                 }
@@ -47,7 +47,7 @@
     <DialogContent>
         <MudStack>
             <MudTabs Position="MudBlazor.Position.Left"
-                     @bind-ActivePanelIndex="TabIndex"
+                     @bind-ActivePanelIndex="_tabIndex"
                      MinimumTabWidth="120px"
                      Rounded="true"
                      Border="true"
@@ -56,13 +56,13 @@
                      ApplyEffectsToContainer="true"
                      PanelClass="pa-4">
                 <MudPaper Height="655px" Width="100%" Elevation="0">
-                    <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(Pretty is not null)">
+                    <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(_pretty is not null)">
                         <StandaloneCodeEditor @ref="_monacoEditor"
                                               Id="@_monacoEditorId"
                                               ConstructionOptions="ConfigureMonacoEditor"
                                               CssClass="studio-expression-input-monaco-editor studio-monaco-editor-large" />
                     </MudTabPanel>
-                    <MudTabPanel Text="@Localizer["Tabular"]" Visible="@(Table is not null)">
+                    <MudTabPanel Text="@Localizer["Tabular"]" Visible="@(_table is not null)">
                         <MudSimpleTable Style="@($"height:655px; width:1080px;")"
                                         FixedHeader="true"
                                         Outlined="true"
@@ -70,18 +70,18 @@
                                         Dense="true"
                                         Elevation="0"
                                         Bordered="false">
-                            @if (Table?.Headers != null)
+                            @if (_table?.Headers != null)
                             {
                                 <thead>
                                     <tr>
-                                        @foreach (var header in Table?.Headers)
+                                        @foreach (var header in _table?.Headers)
                                         {
                                             <th>@header</th>
                                         }
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var row in Table?.Rows)
+                                    @foreach (var row in _table?.Rows)
                                     {
                                         <tr>
                                             @foreach (var x in row)

@@ -26,7 +26,7 @@ public partial class ExpressionEditor : IDisposable
     private bool _isInternalContentChange;
     private bool _isInitialized;
     private string? _lastMonacoEditorContent;
-    private RateLimitedFunc<Expression, Task> _throttledValueChanged;
+    private readonly RateLimitedFunc<Expression, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
     private TaskCompletionSource<bool>? _initializationTcs;
 
@@ -41,12 +41,42 @@ public partial class ExpressionEditor : IDisposable
     /// </summary>
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the expression to be edited.
+    /// </summary>
     [Parameter] public Expression? Expression { get; set; } = new(string.Empty, string.Empty);
+
+    /// <summary>
+    /// Gets or sets the default option to be used when no specific expression type is selected.
+    /// </summary>
     [Parameter] public string DefaultOption { get; set; } = "Default";
+
+    /// <summary>
+    /// The display name associated with the expression being edited.
+    /// </summary>
     [Parameter] public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the description of the expression editor, providing contextual information
+    /// or guidance for the expression being entered by the user.
+    /// </summary>
     [Parameter] public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Indicates whether the expression editor is in read-only mode.
+    /// Prevents modifications to the expression when set to true.
+    /// </summary>
     [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// A dictionary of custom properties that can be used to provide additional metadata
+    /// or configuration for the expression editor.
+    /// </summary>
     [Parameter] public IDictionary<string, object> CustomProperties { get; set; } = new Dictionary<string, object>();
+
+    /// <summary>
+    /// A callback function that is invoked when the expression is changed.
+    /// </summary>
     [Parameter] public Func<Expression?, Task>? ExpressionChanged { get; set; }
 
     [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
@@ -69,7 +99,6 @@ public partial class ExpressionEditor : IDisposable
     private string? ButtonEndIcon => DisplayModePicker ? null : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => DisplayModePicker ? default : Color.Secondary;
 
-    private string? MonacoSyntax { get; set; }
     private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
     /// <summary>
@@ -163,7 +192,7 @@ public partial class ExpressionEditor : IDisposable
         if (_isInternalContentChange)
             return;
 
-        try
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             var value = await _monacoEditor!.GetValue();
 
@@ -175,12 +204,7 @@ public partial class ExpressionEditor : IDisposable
             var expression = new Expression(_selectedExpressionType!, value);
             _lastMonacoEditorContent = value;
             await ThrottleValueChangedCallbackAsync(expression);
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // We can safely ignore this error as the component is being recreated anyway.
-        }
+        });
     }
 
     private async Task ThrottleValueChangedCallbackAsync(Expression expression) => await _throttledValueChanged.InvokeAsync(expression);
@@ -210,28 +234,22 @@ public partial class ExpressionEditor : IDisposable
 
     private async Task UpdateMonacoEditorAsync(Expression? expression)
     {
-        try
-        {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            var expressionText = expression?.Value?.ToString() ?? string.Empty;
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
+            async () =>
+            {
+                _isInternalContentChange = true;
+                var model = await _monacoEditor!.GetModel();
+                var expressionText = expression?.Value?.ToString() ?? string.Empty;
 
-            if (expression?.Type != null)
-                _selectedExpressionType = expression.Type;
+                if (expression?.Type != null)
+                    _selectedExpressionType = expression.Type;
 
-            _lastMonacoEditorContent = expressionText;
-            await model.SetValue(expressionText);
-            _isInternalContentChange = false;
-            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-            await RunMonacoHandlersAsync(_monacoEditor);
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
-            // We can safely ignore this error as the component is being recreated anyway.
-            _isInternalContentChange = false;
-        }
+                _lastMonacoEditorContent = expressionText;
+                await model.SetValue(expressionText);
+                _isInternalContentChange = false;
+                await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+                await RunMonacoHandlersAsync(_monacoEditor);
+            }, () => _isInternalContentChange = false);
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
@@ -245,7 +263,7 @@ public partial class ExpressionEditor : IDisposable
             await handler.InitializeAsync(context);
     }
 
-   private async Task ShowScriptEditor()
+    private async Task ShowScriptEditor()
     {
         var currentValue = _lastMonacoEditorContent ?? Expression?.Value?.ToString() ?? string.Empty;
         var languageLabel = SelectedExpressionDescriptor?.Type ?? ButtonLabel;
@@ -270,10 +288,10 @@ public partial class ExpressionEditor : IDisposable
             // Map dialog result back to the Expression model and notify the consumer.
             var expressionType = _selectedExpressionType ?? DefaultOption;
             var updatedExpression = new Expression(expressionType, newValue);
-            
+
             Expression = updatedExpression;
             if (ExpressionChanged != null)
-               await ExpressionChanged.Invoke(Expression);
+                await ExpressionChanged.Invoke(Expression);
 
             await UpdateMonacoEditorAsync(Expression);
         }

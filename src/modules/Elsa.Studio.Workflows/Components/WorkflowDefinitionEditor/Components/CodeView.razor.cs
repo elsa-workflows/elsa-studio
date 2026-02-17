@@ -64,28 +64,26 @@ public partial class CodeView : IDisposable
     /// <param name="json">The JSON string representing the new content to display in the code editor.</param>
     public async Task UpdateCodeViewFromEditorAsync(string json)
     {
-        try
-        {
-            _isInternalContentChange = true;
-            if (_monacoEditor is null)
-                return;
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
+            async () =>
+            {
+                _isInternalContentChange = true;
+                if (_monacoEditor is null)
+                    return;
 
-            var model = await _monacoEditor.GetModel();
-            if (json == _lastMonacoEditorContent)
-                return;
+                var model = await _monacoEditor.GetModel();
+                if (json == _lastMonacoEditorContent)
+                    return;
 
-            _lastMonacoEditorContent = json;
-            await model.SetValue(json);
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // We can safely ignore this error as the component is being recreated anyway.
-        }
-        finally
-        {
-            _isInternalContentChange = false;
-        }
+                _lastMonacoEditorContent = json;
+                await model.SetValue(json);
+            },
+            () =>
+            {
+                _isInternalContentChange = false; 
+                return Task.CompletedTask;
+            }
+        );
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
@@ -186,22 +184,15 @@ public partial class CodeView : IDisposable
 
     private async Task ReloadMonacoClick()
     {
-        try
-        {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            await model.SetValue(WorkflowDefinitionSerialized);
-            await UpdateEditorFromCodeViewAsync();
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // We can safely ignore this error as the component is being recreated anyway.
-        }
-        finally
-        {
-            _isInternalContentChange = false;
-        }
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
+            async () =>
+            {
+                _isInternalContentChange = true;
+                var model = await _monacoEditor!.GetModel();
+                await model.SetValue(WorkflowDefinitionSerialized);
+                await UpdateEditorFromCodeViewAsync();
+            },
+            () => _isInternalContentChange = false);
     }
 
     private async Task OnAutoApplyChanged(bool value)

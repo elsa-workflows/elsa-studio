@@ -27,8 +27,8 @@ public partial class Code : IDisposable
     private CodeEditorOptions _codeEditorOptions = new();
     private bool _isInternalContentChange;
 
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
     /// <inheritdoc />
@@ -40,7 +40,7 @@ public partial class Code : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
     private InputDescriptor InputDescriptor => EditorContext.InputDescriptor;
@@ -50,18 +50,17 @@ public partial class Code : IDisposable
     {
         _codeEditorOptions = EditorContext.InputDescriptor.GetCodeEditorOptions();
         _monacoLanguage = _codeEditorOptions.Language ?? "javascript";
-        ;
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
             Language = _monacoLanguage,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            Minimap = new()
             {
                 Enabled = false
             },
@@ -82,23 +81,18 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        try
-        {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            _lastMonacoEditorContent = InputValue;
-            await model.SetValue(InputValue);
-            _isInternalContentChange = false;
-            await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
-            await RunMonacoHandlersAsync(_monacoEditor);
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
-            // We can safely ignore this error as the component is being recreated anyway.
-            _isInternalContentChange = false;
-        }
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
+            async () =>
+            {
+                _isInternalContentChange = true;
+                var model = await _monacoEditor!.GetModel();
+                _lastMonacoEditorContent = InputValue;
+                await model.SetValue(InputValue);
+                _isInternalContentChange = false;
+                await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+                await RunMonacoHandlersAsync(_monacoEditor);
+            },
+            () => _isInternalContentChange = false);
     }
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
@@ -111,7 +105,7 @@ public partial class Code : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        try
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             var value = await _monacoEditor!.GetValue();
 
@@ -124,12 +118,7 @@ public partial class Code : IDisposable
             var expression = Expression.CreateLiteral(value);
 
             await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
-        }
-        catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-        {
-            // This can happen when the component is being disposed while the Monaco editor is initializing.
-            // We can safely ignore this error as the component is being recreated anyway.
-        }
+        });
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
@@ -169,16 +158,11 @@ public partial class Code : IDisposable
             var expression = Expression.CreateLiteral(newValue);
             await EditorContext.UpdateExpressionAsync(expression);
 
-            try
+            await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
             {
                 var model = await _monacoEditor!.GetModel();
                 await model.SetValue(newValue);
-            }
-            catch (Microsoft.JSInterop.JSException ex) when (ex.Message.Contains("Couldn't find the editor"))
-            {
-                // This can happen when the component is being disposed while the Monaco editor is initializing.
-                // We can safely ignore this error as the component is being recreated anyway.
-            }
+            });
         }
     }
 
