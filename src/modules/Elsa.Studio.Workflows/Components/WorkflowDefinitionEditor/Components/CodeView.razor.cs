@@ -190,7 +190,7 @@ public partial class CodeView : IDisposable
                 _isInternalContentChange = true;
                 var model = await _monacoEditor!.GetModel();
                 await model.SetValue(WorkflowDefinitionSerialized);
-                await UpdateEditorFromCodeViewAsync();
+                _lastMonacoEditorContent = WorkflowDefinitionSerialized;
             },
             () => _isInternalContentChange = false);
     }
