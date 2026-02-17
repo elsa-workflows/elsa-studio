@@ -1,12 +1,14 @@
 using System.Reflection;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
+using JetBrains.Annotations;
 
 namespace Elsa.Studio.Services;
 
 /// <summary>
 /// Provides client information by extracting metadata from the executing assembly.
 /// </summary>
+[UsedImplicitly]
 public class AssemblyClientInformationProvider : IClientInformationProvider
 {
     /// <inheritdoc />
