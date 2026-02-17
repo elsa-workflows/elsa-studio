@@ -43,24 +43,30 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
     private async Task InvokeWithRetryAsync(Func<Task> action)
     {
         var delay = InitialDelayMs;
+        JSException? lastException = null;
         
         for (var attempt = 1; attempt <= MaxRetries; attempt++)
         {
             try
             {
                 await action();
-                return;
-            }
-            catch (JSException ex) when (attempt < MaxRetries)
-            {
-                logger.LogWarning(ex, "Failed to initialize Monaco editor on attempt {Attempt} of {MaxRetries}. Retrying after {Delay}ms...", attempt, MaxRetries, delay);
-                await Task.Delay(delay);
-                delay *= 2; // Exponential backoff
+                return; // Success!
             }
             catch (JSException ex)
             {
-                // Log the final failure but don't throw - this is a non-critical enhancement feature
-                logger.LogWarning(ex, "Failed to initialize Monaco editor after {MaxRetries} attempts. Type definitions will not be available for IntelliSense.", MaxRetries);
+                lastException = ex;
+                
+                if (attempt < MaxRetries)
+                {
+                    logger.LogWarning(ex, "Failed to initialize Monaco editor on attempt {Attempt} of {MaxRetries}. Retrying after {Delay}ms...", attempt, MaxRetries, delay);
+                    await Task.Delay(delay);
+                    delay *= 2; // Exponential backoff
+                }
+                else
+                {
+                    // Log the final failure but don't throw - this is a non-critical enhancement feature
+                    logger.LogWarning(ex, "Failed to initialize Monaco editor after {MaxRetries} attempts. Type definitions will not be available for IntelliSense.", MaxRetries);
+                }
             }
         }
     }
