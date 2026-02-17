@@ -3,7 +3,7 @@
 <MudText Typo="Typo.body2">Client version: @PackageVersion</MudText>
 
 @code {
-    [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = default!;
+    [Inject] private IClientInformationProvider ClientInformationProvider { get; set; } = null!;
     private string PackageVersion { get; set; } = "Loading...";
 
     /// <inheritdoc />
