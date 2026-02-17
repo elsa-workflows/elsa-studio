@@ -18,7 +18,7 @@ public partial class CodeEditorDialog
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
 
     /// <summary>
-    /// 
+    /// Gets or sets the current code content displayed and edited in the Monaco editor dialog.
     /// </summary>
     [Parameter] public string Value { get; set; } = null!;
 
