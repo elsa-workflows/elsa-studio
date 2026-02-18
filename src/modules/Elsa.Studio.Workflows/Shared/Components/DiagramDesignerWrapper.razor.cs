@@ -140,11 +140,9 @@ public partial class DiagramDesignerWrapper
         if (nodeId == null)
             return;
 
-        // Load the selected node path from the backend.
-        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(
-            WorkflowDefinitionVersionId,
-            nodeId
-        );
+        var pathSegmentsResponse = await WorkflowDefinitionService.GetPathSegmentsAsync(WorkflowDefinitionVersionId, nodeId);
+        
+
         if (pathSegmentsResponse == null)
             return;
 
@@ -446,7 +444,7 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (!IsReadOnly)
+        if (IsReadOnly)
             return;
 
         // If the activity is a workflow definition activity, then open the workflow definition editor.
@@ -505,6 +503,18 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
+
+            var childDescriptor = ActivityRegistry.Find(
+                embeddedActivity.GetTypeName(),
+                embeddedActivity.GetVersion()
+            )!;
+            var childPortContext = new PortProviderContext(childDescriptor, embeddedActivity);
+            var childPortProvider = ActivityPortService.GetProvider(childPortContext);
+            var childPorts = childPortProvider.GetPorts(childPortContext);
+
+            // if it has _no_ ports, it�s just a leaf � show the property editor:
+            if (!childPorts.Any())
+
             var embeddedActivityTypeName = embeddedActivity.GetTypeName();
 
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
@@ -512,13 +522,13 @@ public partial class DiagramDesignerWrapper
                 embeddedActivityTypeName != "Elsa.Flowchart"
                 && embeddedActivityTypeName != "Elsa.Workflow"
             )
+
             {
                 if (ActivitySelected.HasDelegate)
                     await ActivitySelected.InvokeAsync(embeddedActivity);
+
                 return;
             }
-
-            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
         }
         else
         {
