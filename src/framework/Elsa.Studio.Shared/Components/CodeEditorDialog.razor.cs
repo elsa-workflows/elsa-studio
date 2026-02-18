@@ -6,12 +6,13 @@ using MudBlazor;
 
 namespace Elsa.Studio.Components;
 
-public partial class CodeEditorDialog
+public partial class CodeEditorDialog : IDisposable
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
+    private bool _isDisposed;
 
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
@@ -45,6 +46,8 @@ public partial class CodeEditorDialog
 
     private async Task OnMonacoInitializedAsync()
     {
+        if (_isDisposed) return;
+        
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             _isInternalContentChange = true;
@@ -86,7 +89,7 @@ public partial class CodeEditorDialog
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange)
+        if (_isDisposed || _isInternalContentChange)
             return;
 
         var value = await _monacoEditor!.GetValue();
@@ -98,4 +101,10 @@ public partial class CodeEditorDialog
     }
 
     private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _isDisposed = true;
+    }
 }

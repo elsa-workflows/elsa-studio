@@ -69,6 +69,10 @@ public partial class InputsTab
         // Only rebuild display models if the activity/descriptor actually changed
         if (activityOrDescriptorChanged || InputDisplayModels.Count == 0)
         {
+            // Clear old models first to ensure proper disposal of Monaco editors
+            InputDisplayModels = new List<ActivityInputDisplayModel>();
+            await InvokeAsync(StateHasChanged); // Force render cycle to dispose old components
+            
             InputDisplayModels = (await BuildInputEditorModels()).ToList();
             _lastActivityId = currentActivityId;
             _lastActivityDescriptorTypeName = currentDescriptorTypeName;
@@ -117,7 +121,12 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
-            models.Add(new(editor));
+            
+            // Create a stable key based on activity ID and input name to ensure proper component lifecycle
+            var activityId = activity.GetProperty("id")?.ToString() ?? string.Empty;
+            var key = $"{activityId}:{inputDescriptor.Name}";
+            
+            models.Add(new(key, editor));
         }
 
         return models;

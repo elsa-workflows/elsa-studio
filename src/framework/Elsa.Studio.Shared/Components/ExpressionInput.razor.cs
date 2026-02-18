@@ -29,6 +29,7 @@ public partial class ExpressionInput : IDisposable
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
+    private bool _isDisposed;
 
     [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;
@@ -107,9 +108,12 @@ public partial class ExpressionInput : IDisposable
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
 
-        var model = await _monacoEditor.GetModel();
-        await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
-        await RunMonacoHandlersAsync(_monacoEditor);
+        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
+        {
+            var model = await _monacoEditor!.GetModel();
+            await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
+            await RunMonacoHandlersAsync(_monacoEditor);
+        });
     }
 
     /// <inheritdoc />
@@ -153,6 +157,8 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
+        if (_isDisposed) return;
+        
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
             async () =>
             {
@@ -215,7 +221,7 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange)
+        if (_isDisposed || _isInternalContentChange)
             return;
 
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
@@ -288,5 +294,9 @@ public partial class ExpressionInput : IDisposable
     }
 
     /// <inheritdoc />
-    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
+    void IDisposable.Dispose()
+    {
+        _isDisposed = true;
+        _throttledValueChanged.Dispose();
+    }
 }

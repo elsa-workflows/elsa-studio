@@ -21,6 +21,24 @@ public static class JSExceptionExtensions
 }
 
 /// <summary>
+/// Extension methods for <see cref="ObjectDisposedException"/>.
+/// </summary>
+public static class ObjectDisposedExceptionExtensions
+{
+    /// <summary>
+    /// Determines whether the exception is a Monaco editor disposed error.
+    /// This occurs when the Monaco editor's DotNetObjectReference has been disposed
+    /// but operations are still trying to access it, causing a race condition in Blazor WASM.
+    /// </summary>
+    /// <param name="exception">The exception to check.</param>
+    /// <returns>True if the exception is a Monaco editor disposed error; otherwise, false.</returns>
+    public static bool IsMonacoEditorDisposedError(this ObjectDisposedException exception)
+    {
+        return exception.ObjectName.Contains("BlazorMonaco.Editor");
+    }
+}
+
+/// <summary>
 /// Extension methods for executing operations with Monaco editor error handling.
 /// </summary>
 public static class MonacoOperationExtensions
@@ -43,6 +61,13 @@ public static class MonacoOperationExtensions
             // This can happen when the component is being disposed while the Monaco editor is initializing.
             // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
             // We can safely ignore this error as the component is being recreated anyway.
+        }
+        catch (ObjectDisposedException ex) when (ex.IsMonacoEditorDisposedError())
+        {
+            // This can happen when the Monaco editor's DotNetObjectReference has been disposed
+            // but operations are still trying to access it. This is a timing issue in Blazor WASM
+            // where the disposal and creation of Monaco editors can race.
+            // We can safely ignore this error as the component is being disposed anyway.
         }
     }
 
@@ -78,6 +103,13 @@ public static class MonacoOperationExtensions
             // This can happen when the component is being disposed while the Monaco editor is initializing.
             // This is a timing issue in Blazor WASM where the disposal and creation of Monaco editors can race.
             // We can safely ignore this error as the component is being recreated anyway.
+        }
+        catch (ObjectDisposedException ex) when (ex.IsMonacoEditorDisposedError())
+        {
+            // This can happen when the Monaco editor's DotNetObjectReference has been disposed
+            // but operations are still trying to access it. This is a timing issue in Blazor WASM
+            // where the disposal and creation of Monaco editors can race.
+            // We can safely ignore this error as the component is being disposed anyway.
         }
         finally
         {

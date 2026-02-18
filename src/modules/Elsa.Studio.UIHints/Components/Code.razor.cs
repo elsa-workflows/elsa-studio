@@ -26,6 +26,7 @@ public partial class Code : IDisposable
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private CodeEditorOptions _codeEditorOptions = new();
     private bool _isInternalContentChange;
+    private bool _isDisposed;
 
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
@@ -81,6 +82,8 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
+        if (_isDisposed) return;
+        
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
             async () =>
             {
@@ -97,8 +100,7 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange)
-            return;
+        if (_isDisposed || _isInternalContentChange) return;
 
         await _throttledValueChanged.InvokeAsync();
     }
@@ -166,5 +168,9 @@ public partial class Code : IDisposable
         }
     }
 
-    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
+    void IDisposable.Dispose()
+    {
+        _isDisposed = true;
+        _throttledValueChanged.Dispose();
+    }
 }
