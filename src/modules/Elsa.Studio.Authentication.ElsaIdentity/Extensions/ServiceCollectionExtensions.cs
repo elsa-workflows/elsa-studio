@@ -29,7 +29,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICredentialsValidator, ElsaIdentityCredentialsValidator>()
             .AddScoped<ITokenProvider, JwtTokenProvider>()
             .AddSingleton<IJwtParser, JwtParser>()
-            .AddScoped<IHttpConnectionOptionsConfigurator, ElsaIdentityHttpConnectionOptionsConfigurator>();
+            .AddScoped<IHttpConnectionOptionsConfigurator, ElsaIdentityHttpConnectionOptionsConfigurator>()
+            .AddScoped<ILogoutService, ElsaIdentityLogoutService>(); // Register ElsaIdentity-specific logout service
 
         services.AddHttpClient(ElsaIdentityRefreshTokenService.AnonymousClientName);
         services.AddScoped<IRefreshTokenService, ElsaIdentityRefreshTokenService>();
