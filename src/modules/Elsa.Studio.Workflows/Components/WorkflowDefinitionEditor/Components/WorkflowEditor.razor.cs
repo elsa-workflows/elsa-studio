@@ -286,17 +286,6 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task SelectActivityAsync(JsonObject activity)
     {
-        // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
-        // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
-        SelectedActivity = null;
-        ActivityDescriptor = null;
-        
-        // We must await the render cycle to ensure the Monaco editor is fully disposed before creating a new one.
-        // Without this, in Blazor WASM there can be a race condition where the new Monaco editor tries to initialize
-        // before the old one is fully cleaned up, causing JSException: "Couldn't find the editor with id".
-        await InvokeAsync(StateHasChanged);
-        await Task.Yield();
-
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());

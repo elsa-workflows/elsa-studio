@@ -5,4 +5,4 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// <summary>
 /// Represents a activity input display model.
 /// </summary>
-public record ActivityInputDisplayModel(string Key, RenderFragment Editor);
+public record ActivityInputDisplayModel(RenderFragment Editor);
