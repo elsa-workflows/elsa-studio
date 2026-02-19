@@ -21,7 +21,6 @@ public partial class CodeView : IDisposable
     private string? _lastMonacoEditorContent;
     private string _applyErrorMessage = string.Empty;
     private RateLimitedFunc<Task> _throttledValueChanged;
-    private bool _isDisposed;
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
     [Inject] protected IUserMessageService UserMessageService { get; set; } = null!;
@@ -118,7 +117,7 @@ public partial class CodeView : IDisposable
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isDisposed || _isInternalContentChange || !AutoApply || IsReadOnly)
+        if (_isInternalContentChange || !AutoApply || IsReadOnly)
             return;
 
         await _throttledValueChanged.InvokeAsync();
@@ -206,9 +205,5 @@ public partial class CodeView : IDisposable
             await UpdateEditorFromCodeViewAsync();
     }
 
-    void IDisposable.Dispose()
-    {
-        _isDisposed = true;
-        _throttledValueChanged.Dispose();
-    }
+    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
 }

@@ -29,7 +29,6 @@ public partial class ExpressionEditor : IDisposable
     private readonly RateLimitedFunc<Expression, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
     private TaskCompletionSource<bool>? _initializationTcs;
-    private bool _isDisposed;
 
     /// <inheritdoc />
     public ExpressionEditor()
@@ -193,7 +192,7 @@ public partial class ExpressionEditor : IDisposable
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isDisposed || _isInternalContentChange)
+        if (_isInternalContentChange)
             return;
 
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
@@ -224,8 +223,6 @@ public partial class ExpressionEditor : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        if (_isDisposed) return;
-        
         _isInitialized = true;
 
         if (_initializationTcs != null)
@@ -306,7 +303,6 @@ public partial class ExpressionEditor : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        _isDisposed = true;
         _throttledValueChanged.Dispose();
     }
 }

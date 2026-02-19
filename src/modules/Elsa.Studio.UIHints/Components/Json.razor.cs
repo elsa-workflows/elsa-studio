@@ -19,7 +19,6 @@ public partial class Json : IDisposable
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<Task> _throttledValueChanged;
     private CodeEditorOptions _codeEditorOptions = new();
-    private bool _isDisposed;
 
     /// <inheritdoc />
     public Json()
@@ -71,15 +70,11 @@ public partial class Json : IDisposable
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
     {
-        if (_isDisposed) return;
-        
         await _throttledValueChanged.InvokeAsync();
     }
 
     private async Task InvokeValueChangedCallback()
     {
-        if (_isDisposed) return;
-        
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             var value = await _monacoEditor!.GetValue();
@@ -96,9 +91,5 @@ public partial class Json : IDisposable
         });
     }
 
-    void IDisposable.Dispose()
-    {
-        _isDisposed = true;
-        _throttledValueChanged.Dispose();
-    }
+    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
 }

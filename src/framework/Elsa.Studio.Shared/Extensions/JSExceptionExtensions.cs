@@ -1,46 +1,54 @@
 namespace Elsa.Studio.Extensions;
 
 /// <summary>
-/// Extension methods for executing operations with Monaco editor error handling.
+/// Extension methods for executing Monaco editor operations.
 /// </summary>
 public static class MonacoOperationExtensions
 {
     /// <summary>
-    /// Executes an asynchronous operation with automatic error handling for Monaco editor race conditions.
-    /// If a Monaco editor not found error occurs, the operation is gracefully ignored.
-    /// This is useful for operations that may fail due to timing issues when editors are being disposed.
+    /// Executes an asynchronous operation.
+    /// This wrapper is maintained for backward compatibility but simply executes the operation directly.
+    /// The Task.Yield() in InputsTab.OnParametersSetAsync prevents race conditions, making exception handling unnecessary.
     /// </summary>
     /// <param name="operation">The async operation to execute.</param>
-    /// <returns>A task that completes when the operation finishes or the error is caught.</returns>
+    /// <returns>A task that completes when the operation finishes.</returns>
     public static async Task ExecuteMonacoOperationAsync(Func<Task> operation)
     {
         await operation();
     }
 
     /// <summary>
-    /// Executes an asynchronous operation with automatic error handling for Monaco editor race conditions,
-    /// and ensures a finally action is executed regardless of success or failure.
+    /// Executes an asynchronous operation with a finally action.
     /// </summary>
     /// <param name="operation">The async operation to execute.</param>
-    /// <param name="finallyAction">An async action to execute in a finally block.</param>
+    /// <param name="finallyAction">An action to execute in a finally block.</param>
     public static async Task ExecuteMonacoOperationAsync(Func<Task> operation, Action finallyAction)
     {
-        await ExecuteMonacoOperationAsync(operation, () =>
+        try
+        {
+            await operation();
+        }
+        finally
         {
             finallyAction();
-            return Task.CompletedTask;
-        });
+        }
     }
 
     /// <summary>
-    /// Executes an asynchronous operation with automatic error handling for Monaco editor race conditions,
-    /// and ensures a finally action is executed regardless of success or failure.
+    /// Executes an asynchronous operation with an async finally action.
     /// </summary>
     /// <param name="operation">The async operation to execute.</param>
     /// <param name="finallyAction">An async action to execute in a finally block.</param>
     public static async Task ExecuteMonacoOperationAsync(Func<Task> operation, Func<Task> finallyAction)
     {
-        await operation();
+        try
+        {
+            await operation();
+        }
+        finally
+        {
+            await finallyAction();
+        }
     }
 }
 

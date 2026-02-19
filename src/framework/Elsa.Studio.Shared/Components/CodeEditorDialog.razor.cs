@@ -12,7 +12,6 @@ public partial class CodeEditorDialog : IDisposable
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
-    private bool _isDisposed;
 
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
@@ -46,8 +45,6 @@ public partial class CodeEditorDialog : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        if (_isDisposed) return;
-        
         await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
         {
             _isInternalContentChange = true;
@@ -89,7 +86,7 @@ public partial class CodeEditorDialog : IDisposable
 
     private async Task OnMonacoContentChangedAsync(ModelContentChangedEvent e)
     {
-        if (_isDisposed || _isInternalContentChange)
+        if (_isInternalContentChange)
             return;
 
         var value = await _monacoEditor!.GetValue();
@@ -105,6 +102,5 @@ public partial class CodeEditorDialog : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        _isDisposed = true;
     }
 }
