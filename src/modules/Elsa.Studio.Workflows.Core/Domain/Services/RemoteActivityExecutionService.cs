@@ -14,7 +14,7 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// <summary>
 /// An activity execution service that uses a remote backend to retrieve activity execution reports.
 /// </summary>
-public class RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider) : IActivityExecutionService
+public class RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider, IRemoteFeatureProvider remoteFeatureProvider) : IActivityExecutionService
 {
     /// <inheritdoc />
     public async Task<ActivityExecutionReport> GetReportAsync(string workflowInstanceId, JsonObject containerActivity, CancellationToken cancellationToken = default)
@@ -67,6 +67,10 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     /// <inheritdoc />
     public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
+        // Check if the Resilience feature is enabled before making API calls.
+        if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.Resilience", cancellationToken))
+            return new PagedListResponse<RetryAttemptRecord> { Items = [] };
+
         var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
         return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
     }

@@ -6,11 +6,15 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 namespace Elsa.Studio.Workflows.Domain.Services;
 
 /// <inheritdoc />
-public class RemoteResilienceStrategyCatalog(IBackendApiClientProvider backendApiClientProvider) : IResilienceStrategyCatalog
+public class RemoteResilienceStrategyCatalog(IBackendApiClientProvider backendApiClientProvider, IRemoteFeatureProvider remoteFeatureProvider) : IResilienceStrategyCatalog
 {
     /// <inheritdoc />
     public async ValueTask<IEnumerable<JsonObject>> ListAsync(string category, CancellationToken cancellationToken = default)
     {
+        // Check if the Resilience feature is enabled before making API calls.
+        if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.Resilience", cancellationToken))
+            return [];
+
         var api = await backendApiClientProvider.GetApiAsync<IResilienceStrategiesApi>(cancellationToken);
         var response = await api.ListAsync(category, cancellationToken);
 
