@@ -116,11 +116,8 @@ public partial class ContentVisualizer : ComponentBase
         {
             FormatUsing(visualizer);
 
-            await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-            {
-                var model = await _monacoEditor!.GetModel();
-                await Global.SetModelLanguage(JSRuntime, model, _selectedVisualizer.Syntax);
-            });
+            var model = await _monacoEditor!.GetModel();
+            await Global.SetModelLanguage(JSRuntime, model, _selectedVisualizer.Syntax);
         }
     }
 

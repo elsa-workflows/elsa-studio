@@ -75,20 +75,17 @@ public partial class Json : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var value = await _monacoEditor!.GetValue();
+        var value = await _monacoEditor!.GetValue();
 
-            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-            if (value == _lastMonacoEditorContent)
-                return;
+        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+        if (value == _lastMonacoEditorContent)
+            return;
 
-            _lastMonacoEditorContent = value;
-            var expression = Expression.CreateLiteral(value);
+        _lastMonacoEditorContent = value;
+        var expression = Expression.CreateLiteral(value);
 
-            await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
-        });
+        await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
     }
 
     void IDisposable.Dispose() => _throttledValueChanged.Dispose();

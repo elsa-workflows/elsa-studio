@@ -81,18 +81,13 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
-            async () =>
-            {
-                _isInternalContentChange = true;
-                var model = await _monacoEditor!.GetModel();
-                _lastMonacoEditorContent = InputValue;
-                await model.SetValue(InputValue);
-                _isInternalContentChange = false;
-                await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
-                await RunMonacoHandlersAsync(_monacoEditor);
-            },
-            () => _isInternalContentChange = false);
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        _lastMonacoEditorContent = InputValue;
+        await model.SetValue(InputValue);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(JSRuntime, model, _monacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
@@ -104,20 +99,17 @@ public partial class Code : IDisposable
 
     private async Task InvokeValueChangedCallback()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var value = await _monacoEditor!.GetValue();
+        var value = await _monacoEditor!.GetValue();
 
-            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-            if (value == _lastMonacoEditorContent)
-                return;
+        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+        if (value == _lastMonacoEditorContent)
+            return;
 
-            _lastMonacoEditorContent = value;
-            var expression = Expression.CreateLiteral(value);
+        _lastMonacoEditorContent = value;
+        var expression = Expression.CreateLiteral(value);
 
-            await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
-        });
+        await InvokeAsync(async () => await EditorContext.UpdateExpressionAsync(expression));
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)
@@ -157,11 +149,8 @@ public partial class Code : IDisposable
             var expression = Expression.CreateLiteral(newValue);
             await EditorContext.UpdateExpressionAsync(expression);
 
-            await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-            {
-                var model = await _monacoEditor!.GetModel();
-                await model.SetValue(newValue);
-            });
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(newValue);
         }
     }
 

@@ -1,5 +1,4 @@
 ﻿using BlazorMonaco.Editor;
-using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -45,15 +44,12 @@ public partial class CodeEditorDialog : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            _isInternalContentChange = true;
-            var model = await _monacoEditor!.GetModel();
-            _lastMonacoEditorContent = Value;
-            await model.SetValue(Value);
-            _isInternalContentChange = false;
-            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-        }, () => _isInternalContentChange = false);
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        _lastMonacoEditorContent = Value;
+        await model.SetValue(Value);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)

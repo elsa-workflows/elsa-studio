@@ -1,13 +1,11 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.Scripting.Extensions;
 using Elsa.Api.Client.Resources.Scripting.Models;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
 using ThrottleDebounce;
@@ -135,12 +133,9 @@ public partial class ExpressionEditor : IDisposable
         if (string.IsNullOrWhiteSpace(MonacoLanguage))
             return;
 
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var model = await _monacoEditor!.GetModel();
-            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-            await RunMonacoHandlersAsync(_monacoEditor);
-        });
+        var model = await _monacoEditor!.GetModel();
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     /// <inheritdoc />
@@ -195,19 +190,16 @@ public partial class ExpressionEditor : IDisposable
         if (_isInternalContentChange)
             return;
 
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var value = await _monacoEditor!.GetValue();
+        var value = await _monacoEditor!.GetValue();
 
-            // This event gets fired even when the content hasn't changed, for example, when the containing pane is resized.
-            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-            if (value == _lastMonacoEditorContent)
-                return;
+        // This event gets fired even when the content hasn't changed, for example, when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+        if (value == _lastMonacoEditorContent)
+            return;
 
-            var expression = new Expression(_selectedExpressionType!, value);
-            _lastMonacoEditorContent = value;
-            await ThrottleValueChangedCallbackAsync(expression);
-        });
+        var expression = new Expression(_selectedExpressionType!, value);
+        _lastMonacoEditorContent = value;
+        await ThrottleValueChangedCallbackAsync(expression);
     }
 
     private async Task ThrottleValueChangedCallbackAsync(Expression expression) => await _throttledValueChanged.InvokeAsync(expression);
@@ -237,22 +229,18 @@ public partial class ExpressionEditor : IDisposable
 
     private async Task UpdateMonacoEditorAsync(Expression? expression)
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
-            async () =>
-            {
-                _isInternalContentChange = true;
-                var model = await _monacoEditor!.GetModel();
-                var expressionText = expression?.Value?.ToString() ?? string.Empty;
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        var expressionText = expression?.Value?.ToString() ?? string.Empty;
 
-                if (expression?.Type != null)
-                    _selectedExpressionType = expression.Type;
+        if (expression?.Type != null)
+            _selectedExpressionType = expression.Type;
 
-                _lastMonacoEditorContent = expressionText;
-                await model.SetValue(expressionText);
-                _isInternalContentChange = false;
-                await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-                await RunMonacoHandlersAsync(_monacoEditor);
-            }, () => _isInternalContentChange = false);
+        _lastMonacoEditorContent = expressionText;
+        await model.SetValue(expressionText);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     private async Task RunMonacoHandlersAsync(StandaloneCodeEditor editor)

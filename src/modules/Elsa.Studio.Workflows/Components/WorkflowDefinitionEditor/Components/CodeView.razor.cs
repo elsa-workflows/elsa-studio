@@ -64,26 +64,16 @@ public partial class CodeView : IDisposable
     /// <param name="json">The JSON string representing the new content to display in the code editor.</param>
     public async Task UpdateCodeViewFromEditorAsync(string json)
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
-            async () =>
-            {
-                _isInternalContentChange = true;
-                if (_monacoEditor is null)
-                    return;
+        _isInternalContentChange = true;
+        if (_monacoEditor is null)
+            return;
 
-                var model = await _monacoEditor.GetModel();
-                if (json == _lastMonacoEditorContent)
-                    return;
+        var model = await _monacoEditor.GetModel();
+        if (json == _lastMonacoEditorContent)
+            return;
 
-                _lastMonacoEditorContent = json;
-                await model.SetValue(json);
-            },
-            () =>
-            {
-                _isInternalContentChange = false; 
-                return Task.CompletedTask;
-            }
-        );
+        _lastMonacoEditorContent = json;
+        await model.SetValue(json);
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
@@ -184,15 +174,10 @@ public partial class CodeView : IDisposable
 
     private async Task ReloadMonacoClick()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
-            async () =>
-            {
-                _isInternalContentChange = true;
-                var model = await _monacoEditor!.GetModel();
-                await model.SetValue(WorkflowDefinitionSerialized);
-                _lastMonacoEditorContent = WorkflowDefinitionSerialized;
-            },
-            () => _isInternalContentChange = false);
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        await model.SetValue(WorkflowDefinitionSerialized);
+        _lastMonacoEditorContent = WorkflowDefinitionSerialized;
     }
 
     private async Task OnAutoApplyChanged(bool value)

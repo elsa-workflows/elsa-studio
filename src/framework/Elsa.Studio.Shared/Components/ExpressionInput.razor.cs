@@ -107,12 +107,9 @@ public partial class ExpressionInput : IDisposable
         if (string.IsNullOrWhiteSpace(monacoLanguage))
             return;
 
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var model = await _monacoEditor!.GetModel();
-            await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
-            await RunMonacoHandlersAsync(_monacoEditor);
-        });
+        var model = await _monacoEditor!.GetModel();
+        await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     /// <inheritdoc />
@@ -156,18 +153,13 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(
-            async () =>
-            {
-                _isInternalContentChange = true;
-                var model = await _monacoEditor!.GetModel();
-                _lastMonacoEditorContent = InputValue;
-                await model.SetValue(InputValue);
-                _isInternalContentChange = false;
-                await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-                await RunMonacoHandlersAsync(_monacoEditor);
-            },
-            () => _isInternalContentChange = false);
+        _isInternalContentChange = true;
+        var model = await _monacoEditor!.GetModel();
+        _lastMonacoEditorContent = InputValue;
+        await model.SetValue(InputValue);
+        _isInternalContentChange = false;
+        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+        await RunMonacoHandlersAsync(_monacoEditor);
     }
 
     private async Task OnSyntaxSelectedAsync(string syntax)
@@ -221,20 +213,17 @@ public partial class ExpressionInput : IDisposable
         if (_isInternalContentChange)
             return;
 
-        await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-        {
-            var value = await _monacoEditor!.GetValue();
+        var value = await _monacoEditor!.GetValue();
 
-            // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
-            // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
-            if (value == _lastMonacoEditorContent)
-                return;
+        // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
+        // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
+        if (value == _lastMonacoEditorContent)
+            return;
 
-            var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
-            input.Expression = new(_selectedExpressionType, value);
-            _lastMonacoEditorContent = value;
-            await ThrottleValueChangedCallbackAsync(input);
-        });
+        var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
+        input.Expression = new(_selectedExpressionType, value);
+        _lastMonacoEditorContent = value;
+        await ThrottleValueChangedCallbackAsync(input);
     }
 
     private async Task ThrottleValueChangedCallbackAsync(WrappedInput input) => await _throttledValueChanged.InvokeAsync(input);
@@ -282,11 +271,8 @@ public partial class ExpressionInput : IDisposable
             input.Expression = new(_selectedExpressionType, newValue);
             await EditorContext.OnValueChanged(input);
 
-            await MonacoOperationExtensions.ExecuteMonacoOperationAsync(async () =>
-            {
-                var model = await _monacoEditor!.GetModel();
-                await model.SetValue(InputValue);
-            });
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(InputValue);
         }
     }
 
