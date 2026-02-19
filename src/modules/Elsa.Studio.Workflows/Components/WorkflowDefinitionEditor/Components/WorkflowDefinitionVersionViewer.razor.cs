@@ -65,7 +65,7 @@ public partial class WorkflowDefinitionVersionViewer
         if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -82,26 +82,31 @@ public partial class WorkflowDefinitionVersionViewer
         if (_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(_workflowDefinition.Root);
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
-    private void SelectActivity(JsonObject activity)
+    private async Task SelectActivityAsync(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
         // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
         SelectedActivity = null;
         ActivityDescriptor = null;
-        StateHasChanged();
+        
+        // We must await the render cycle to ensure the Monaco editor is fully disposed before creating a new one.
+        // Without this, in Blazor WASM there can be a race condition where the new Monaco editor tries to initialize
+        // before the old one is fully cleaned up, causing JSException: "Couldn't find the editor with id".
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
 
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        SelectActivity(activity);
+        await SelectActivityAsync(activity);
         if(ActivitySelected != null)
             await ActivitySelected(activity);
     }
