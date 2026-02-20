@@ -84,7 +84,7 @@ public partial class OutputsSection
 
     private async Task OnDeleteClicked(OutputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Delete selected output?"], Localizer["Are you sure you want to delete the selected output?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Delete selected output?"], Localizer["Are you sure you want to delete the selected output?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;

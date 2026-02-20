@@ -13,10 +13,10 @@ namespace Elsa.Studio.Workflows.ActivityPickers.Treeview;
 /// </summary>
 public partial class ActivityPicker
 {
-    private bool _expanded = false;
+    private bool _expanded;
     private string _searchText = "";
-    private MudTreeView<string> _treeView;
-    private List<TreeItemData<string>> _treeItemData = [];
+    private MudTreeView<string> _treeView = null!;
+    private readonly List<ITreeItemData<string>> _treeItemData = [];
 
     private IEnumerable<ActivityDescriptor> ActivityDescriptors { get; set; } = new List<ActivityDescriptor>();
 
@@ -59,7 +59,7 @@ public partial class ActivityPicker
             foreach (var category in categories)
             {
                 var node = FindOrCreateCategoryNode(currentLevel, category, activity.Category);
-                currentLevel = node.Children;
+                currentLevel = node.ChildrenList;
             }
 
             // Add the activity node
@@ -67,9 +67,9 @@ public partial class ActivityPicker
             var activityNode = new ActivityTreeItem(activity.DisplayName ?? activity.Name)
             {
                 ActivityDescriptor = activity,
-                CategoryPath = activity.Category,
-                Icon = displaySettings?.Icon,
-                IconColor = displaySettings?.Color
+                CategoryPath = activity.Category ?? string.Empty,
+                Icon = displaySettings.Icon,
+                IconColor = displaySettings.Color
             };
 
             // Insert node in an alphabetically sorted order
@@ -77,18 +77,18 @@ public partial class ActivityPicker
         }
     }
 
-    private ActivityTreeItem FindOrCreateCategoryNode(List<TreeItemData<string>> level, string category, string? path)
+    private ActivityTreeItem FindOrCreateCategoryNode(List<ITreeItemData<string>> level, string category, string? path)
     {
         var node = level.OfType<ActivityTreeItem>().FirstOrDefault(x => x.Text.Equals(category, StringComparison.OrdinalIgnoreCase));
         if (node == null)
         {
-            node = new ActivityTreeItem(category) { CategoryPath = path };
+            node = new(category) { CategoryPath = path ?? string.Empty };
             InsertSorted(level, node);
         }
         return node;
     }
 
-    private void InsertSorted(List<TreeItemData<string>> list, ActivityTreeItem node)
+    private void InsertSorted(List<ITreeItemData<string>> list, ActivityTreeItem node)
     {
         var index = list.OfType<ActivityTreeItem>()
             .ToList()

@@ -85,7 +85,7 @@ public partial class InputsSection
 
     private async Task OnDeleteClicked(InputDefinition input)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Delete selected input?"], Localizer["Are you sure you want to delete the selected input?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Delete selected input?"], Localizer["Are you sure you want to delete the selected input?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;

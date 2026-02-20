@@ -332,7 +332,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnDeleteClicked(WorkflowInstanceRow row)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Delete workflow instance?"], Localizer["Are you sure you want to delete this workflow instance?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Delete workflow instance?"], Localizer["Are you sure you want to delete this workflow instance?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
@@ -344,7 +344,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnCancelClicked(WorkflowInstanceRow row)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Cancel workflow instance?"], Localizer["Are you sure you want to cancel this workflow instance?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Cancel workflow instance?"], Localizer["Are you sure you want to cancel this workflow instance?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (result != true)
             return;
@@ -363,7 +363,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Delete selected workflow instances?"], Localizer["Are you sure you want to delete the selected workflow instances?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Delete selected workflow instances?"], Localizer["Are you sure you want to delete the selected workflow instances?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
             return;
