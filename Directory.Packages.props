@@ -10,7 +10,7 @@
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
-    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.3.0" />
+    <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="9.0.0-rc.1" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="all" />

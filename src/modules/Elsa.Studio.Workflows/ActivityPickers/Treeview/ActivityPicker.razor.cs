@@ -59,7 +59,7 @@ public partial class ActivityPicker
             foreach (var category in categories)
             {
                 var node = FindOrCreateCategoryNode(currentLevel, category, activity.Category);
-                currentLevel = node.Children?.ToList() ?? [];
+                currentLevel = node.ChildrenList;
             }
 
             // Add the activity node
