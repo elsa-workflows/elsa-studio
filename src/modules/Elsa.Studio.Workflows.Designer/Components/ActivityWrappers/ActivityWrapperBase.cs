@@ -106,6 +106,7 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         await ActivityRegistry.EnsureLoadedAsync();
 
         var activity = Activity;
+        var activityName = activity.GetName()?.Trim();
         var activityDisplayText = activity.GetDisplayText()?.Trim();
         var activityDescription = activity.GetDescription()?.Trim();
         var activityType = activity.GetTypeName();
@@ -113,7 +114,10 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        Label = !string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity";
+        // Hierarchy: Activity Name > Custom Display Text > Type Name
+        Label = !string.IsNullOrEmpty(activityName) 
+            ? activityName 
+            : (!string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity");
         TypeName = descriptor?.DisplayName ?? "Unknown Activity";
         Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
         var currentShowDescription = activity.GetShowDescription() == true;

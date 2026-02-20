@@ -31,6 +31,11 @@ public interface IActivityExecutionService
     Task<ActivityExecutionRecord?> GetAsync(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the call stack (execution chain) for a given activity execution.
+    /// </summary>
+    Task<ActivityExecutionCallStack> GetCallStackAsync(string activityExecutionId, bool? includeCrossWorkflowChain = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a paginated list of retry attempt records for a specific activity instance.
     /// </summary>
     Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default);

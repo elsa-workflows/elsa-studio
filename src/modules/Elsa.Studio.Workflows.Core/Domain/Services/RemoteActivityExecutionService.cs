@@ -65,6 +65,13 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     }
 
     /// <inheritdoc />
+    public async Task<ActivityExecutionCallStack> GetCallStackAsync(string activityExecutionId, bool? includeCrossWorkflowChain = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
+    {
+        var api = await backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
+        return await api.GetCallStackAsync(activityExecutionId, includeCrossWorkflowChain, skip, take, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
         var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
