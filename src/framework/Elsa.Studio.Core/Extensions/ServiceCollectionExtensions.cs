@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IBlazorServiceAccessor, BlazorServiceAccessor>()
             .AddScoped<IMenuService, DefaultMenuService>()
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
+            .AddScoped<IThemeProvider, DefaultThemeProvider>()
             .AddScoped<IThemeService, DefaultThemeService>()
             .AddScoped<IAppBarService, DefaultAppBarService>()
             .AddScoped<IFeatureService, DefaultFeatureService>()
