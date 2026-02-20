@@ -227,7 +227,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnDeleteClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Delete workflow?"],
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Delete workflow?"],
             Localizer["Are you sure you want to delete this workflow?"], yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
@@ -240,7 +240,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnCancelClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Cancel running workflow instances?"],
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Cancel running workflow instances?"],
             Localizer["Are you sure you want to cancel all running workflow instances of this workflow definition?"], yesText: Localizer["Yes"], cancelText: Localizer["No"]);
 
         if (result != true)
@@ -263,7 +263,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkDeleteClicked()
     {
-        var result = await DialogService.ShowMessageBox(
+        var result = await DialogService.ShowMessageBoxAsync(
     Localizer["Delete selected workflows?"],
     Localizer["Are you sure you want to delete the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Delete"], cancelText: Localizer["Cancel"]);
 
@@ -278,7 +278,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkPublishClicked()
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Publish selected workflows?"],
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Publish selected workflows?"],
             Localizer["Are you sure you want to publish the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Publish"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
@@ -328,7 +328,7 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkRetractClicked()
     {
-        var result = await DialogService.ShowMessageBox(Localizer["Unpublish selected workflows?"],
+        var result = await DialogService.ShowMessageBoxAsync(Localizer["Unpublish selected workflows?"],
             Localizer["Are you sure you want to unpublish the selected workflows?"] + (_selectedRows.Count(w => w.IsReadOnlyMode) > 0 ? ReadonlyWorkflowsExcluded : ""), yesText: Localizer["Unpublish"], cancelText: Localizer["Cancel"]);
 
         if (result != true)
