@@ -30,5 +30,5 @@ public interface IWorkflowDefinitionEditorService
     /// <summary>
     /// Exports a workflow definition.
     /// </summary>
-    Task<FileDownload> ExportAsync(WorkflowDefinition workflowDefinition, CancellationToken cancellationToken = default);
+    Task<FileDownload> ExportAsync(WorkflowDefinition workflowDefinition, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default);
 }

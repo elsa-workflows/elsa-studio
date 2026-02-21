@@ -254,10 +254,15 @@ public partial class WorkflowDefinitionList
         Reload();
     }
 
-    private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    private async Task OnExportClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
-        var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
+        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+
+        if (includeConsumingWorkflows == null)
+            return;
+
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest, includeConsumingWorkflows.Value);
+        var fileName = download.FileName;
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
     }
 
@@ -366,8 +371,13 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkExportClicked()
     {
+        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+
+        if (includeConsumingWorkflows == null)
+            return;
+
         var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
-        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
+        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds, includeConsumingWorkflows.Value);
         var fileName = download.FileName;
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
         _selectedRows.Clear();
@@ -460,6 +470,29 @@ public partial class WorkflowDefinitionList
             MaxWidth = MaxWidth.Large
         };
         await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
+    }
+
+    /// <summary>
+    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
+    /// or null if the user cancelled.
+    /// </summary>
+    private async Task<bool?> ShowExportOptionsDialogAsync()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<ExportWorkflowDialog>(Localizer["Export"], options);
+        var result = await dialogInstance.Result;
+
+        if (result?.Canceled == true)
+            return null;
+
+        return result?.Data is true;
     }
 
     private record WorkflowDefinitionRow(

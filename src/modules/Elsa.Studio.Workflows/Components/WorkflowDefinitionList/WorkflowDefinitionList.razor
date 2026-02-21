@@ -136,7 +136,7 @@
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
-                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnDownloadClicked(context))">@Localizer["Export"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnExportClicked(context))">@Localizer["Export"]</MudMenuItem>
 
                 </MudMenu>
             </MudTd>

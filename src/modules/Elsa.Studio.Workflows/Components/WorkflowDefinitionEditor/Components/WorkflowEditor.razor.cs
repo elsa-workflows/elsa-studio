@@ -27,6 +27,8 @@ using Radzen;
 using Radzen.Blazor;
 using System.Text.Json.Nodes;
 using ThrottleDebounce;
+using DialogOptions = MudBlazor.DialogOptions;
+using DialogPosition = MudBlazor.DialogPosition;
 using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -437,7 +439,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnExportClicked()
     {
-        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!);
+        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+
+        if (includeConsumingWorkflows == null)
+            return;
+
+        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!, includeConsumingWorkflows.Value);
         var fileName = $"{_workflowDefinition!.Name.Kebaberize()}.json";
         if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
@@ -528,5 +535,28 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             _dotNetRef.Dispose();
             _dotNetRef = null;
         }
+    }
+
+    /// <summary>
+    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
+    /// or null if the user cancelled.
+    /// </summary>
+    private async Task<bool?> ShowExportOptionsDialogAsync()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<WorkflowDefinitionList.ExportWorkflowDialog>(Localizer["Export"], options);
+        var result = await dialogInstance.Result;
+
+        if (result?.Canceled == true)
+            return null;
+
+        return result?.Data is true;
     }
 }
