@@ -1,31 +1,31 @@
 ﻿@using Elsa.Studio.Enums
 
 <style>
-    /* Override Monaco editor height inside this dialog to fill MudPaper (655px).
+    /* Override Monaco editor height inside this ContentVisualizer dialog to fill MudPaper (655px).
        The global .studio-monaco-editor-large sets 320px; we need the full panel height here. */
-    .mud-dialog .monaco-editor-container.studio-monaco-editor-large {
+    .content-visualizer-dialog .monaco-editor-container.studio-monaco-editor-large {
         height: 655px !important;
     }
 
     /* Allow Monaco overlay widgets (read-only tooltip, IntelliSense) to escape
-       clipping containers. The .overflowingContentWidgets div is a direct child
-       of .monaco-editor, which has overflow:hidden. We must also override any
-       ancestor containers that clip. */
-    .mud-dialog .monaco-editor {
+       clipping containers, but scope this behavior to the ContentVisualizer dialog only.
+       The .overflowingContentWidgets div is a direct child of .monaco-editor, which has
+       overflow:hidden. We must also override any ancestor containers that clip. */
+    .content-visualizer-dialog .monaco-editor {
         overflow: visible !important;
     }
-    .mud-dialog .mud-dialog-content,
-    .mud-dialog .mud-focus-trap-child-container,
-    .mud-dialog .mud-tabs,
-    .mud-dialog .mud-tabs-panels,
-    .mud-dialog .mud-tab-panel,
-    .mud-dialog .mud-paper,
-    .mud-dialog .monaco-editor-container {
+    .content-visualizer-dialog .mud-dialog-content,
+    .content-visualizer-dialog .mud-focus-trap-child-container,
+    .content-visualizer-dialog .mud-tabs,
+    .content-visualizer-dialog .mud-tabs-panels,
+    .content-visualizer-dialog .mud-tab-panel,
+    .content-visualizer-dialog .mud-paper,
+    .content-visualizer-dialog .monaco-editor-container {
         overflow: visible !important;
     }
 </style>
 
-<MudDialog>
+<MudDialog Class="content-visualizer-dialog">
     <TitleContent>
         <MudToolBar Dense="true" Gutters="false">
             <MudText Typo="Typo.h5">@DataPanelItem.Label</MudText>
