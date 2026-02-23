@@ -248,11 +248,11 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
 
     /// <inheritdoc />
-    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
+    public async Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionIdExporting(definitionId, versionOptions), cancellationToken);
-        var response = await api.ExportAsync(definitionId, versionOptions, cancellationToken);
+        var response = await api.ExportAsync(definitionId, versionOptions, includeConsumingWorkflows, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault($"workflow-definition-{definitionId}.json");
         var fileDownload = new FileDownload(fileName, response.Content!);
         await mediator.NotifyAsync(new WorkflowDefinitionIdExported(definitionId, versionOptions, fileDownload), cancellationToken);
@@ -261,10 +261,10 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
     }
     
     /// <inheritdoc />
-    public async Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    public async Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
-        var request = new BulkExportWorkflowDefinitionsRequest(ids.ToArray());
+        var request = new BulkExportWorkflowDefinitionsRequest(ids.ToArray(), includeConsumingWorkflows);
         var response = await api.BulkExportAsync(request, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault("workflow-definitions.zip");
         return new(fileName, response.Content!);

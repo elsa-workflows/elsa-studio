@@ -27,6 +27,8 @@ using Radzen;
 using Radzen.Blazor;
 using System.Text.Json.Nodes;
 using ThrottleDebounce;
+using DialogOptions = MudBlazor.DialogOptions;
+using DialogPosition = MudBlazor.DialogPosition;
 using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -139,7 +141,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -154,7 +156,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             return;
 
         await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -284,18 +286,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
     }
 
-    private void SelectActivity(JsonObject activity)
+    private async Task SelectActivityAsync(JsonObject activity)
     {
-        // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
-        // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
-        SelectedActivity = null;
-        ActivityDescriptor = null;
-        StateHasChanged();
-
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
@@ -358,7 +354,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        SelectActivity(activity);
+        await SelectActivityAsync(activity);
         if (ActivitySelected != null) await ActivitySelected(activity);
     }
 
@@ -443,7 +439,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnExportClicked()
     {
-        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!);
+        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+
+        if (includeConsumingWorkflows == null)
+            return;
+
+        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!, includeConsumingWorkflows.Value);
         var fileName = $"{_workflowDefinition!.Name.Kebaberize()}.json";
         if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
@@ -534,5 +535,28 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             _dotNetRef.Dispose();
             _dotNetRef = null;
         }
+    }
+
+    /// <summary>
+    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
+    /// or null if the user cancelled.
+    /// </summary>
+    private async Task<bool?> ShowExportOptionsDialogAsync()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<WorkflowDefinitionList.ExportWorkflowDialog>(Localizer["Export"], options);
+        var result = await dialogInstance.Result;
+
+        if (result?.Canceled == true)
+            return null;
+
+        return result?.Data is true;
     }
 }
