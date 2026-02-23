@@ -1,7 +1,6 @@
 ﻿using BlazorMonaco.Editor;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
-using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Visualizers;
