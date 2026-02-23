@@ -4,11 +4,13 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
 
@@ -38,6 +40,7 @@ public partial class WorkflowDefinitionVersionViewer
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -119,9 +122,37 @@ public partial class WorkflowDefinitionVersionViewer
 
     private async Task OnDownloadClicked()
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(_workflowDefinition.Version));
+        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+
+        if (includeConsumingWorkflows == null)
+            return;
+
+        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(_workflowDefinition.Version), includeConsumingWorkflows.Value);
         var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
         await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+    }
+
+    /// <summary>
+    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
+    /// or null if the user cancelled.
+    /// </summary>
+    private async Task<bool?> ShowExportOptionsDialogAsync()
+    {
+        var options = new MudBlazor.DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = MudBlazor.DialogPosition.Center,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialogInstance = await DialogService.ShowAsync<ExportWorkflowDialog>(Localizer["Export"], options);
+        var result = await dialogInstance.Result;
+
+        if (result?.Canceled == true)
+            return null;
+
+        return result?.Data is true;
     }
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
