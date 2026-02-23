@@ -16,6 +16,8 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// </summary>
 public class RemoteActivityExecutionService(IBackendApiClientProvider backendApiClientProvider, IRemoteFeatureProvider remoteFeatureProvider) : IActivityExecutionService
 {
+    private bool? _isResilienceEnabled;
+
     /// <inheritdoc />
     public async Task<ActivityExecutionReport> GetReportAsync(string workflowInstanceId, JsonObject containerActivity, CancellationToken cancellationToken = default)
     {
@@ -37,7 +39,7 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
             WorkflowInstanceId = workflowInstanceId,
             ActivityNodeId = activityNodeId
         };
-        
+
         var api = await backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         var response = await api.ListAsync(request, cancellationToken);
         return response.Items;
@@ -51,7 +53,7 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
             WorkflowInstanceId = workflowInstanceId,
             ActivityNodeId = activityNodeId
         };
-        
+
         var api = await backendApiClientProvider.GetApiAsync<IActivityExecutionsApi>(cancellationToken);
         var response = await api.ListSummariesAsync(request, cancellationToken);
         return response.Items;
@@ -68,8 +70,11 @@ public class RemoteActivityExecutionService(IBackendApiClientProvider backendApi
     public async Task<PagedListResponse<RetryAttemptRecord>> GetRetriesAsync(string activityInstanceId, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
     {
         // Check if the Resilience feature is enabled before making API calls.
-        if (!await remoteFeatureProvider.IsEnabledAsync("Elsa.Resilience", cancellationToken))
-            return new PagedListResponse<RetryAttemptRecord> { Items = [] };
+        // Cache the result for the lifetime of this scoped service to avoid repeated backend requests.
+        _isResilienceEnabled ??= await remoteFeatureProvider.IsEnabledAsync("Elsa.Resilience", cancellationToken);
+
+        if (!_isResilienceEnabled.Value)
+            return new() { Items = [] };
 
         var api = await backendApiClientProvider.GetApiAsync<IRetryAttemptsApi>(cancellationToken);
         return await api.ListAsync(activityInstanceId, skip, take, cancellationToken);
