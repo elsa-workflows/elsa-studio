@@ -73,14 +73,13 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
     [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
-    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
     [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// <summary>
@@ -439,15 +438,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnExportClicked()
     {
-        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
-
-        if (includeConsumingWorkflows == null)
-            return;
-
-        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!, includeConsumingWorkflows.Value);
-        var fileName = $"{_workflowDefinition!.Name.Kebaberize()}.json";
-        if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!, include));
     }
 
     private async Task OnImportClicked()
@@ -535,28 +527,5 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             _dotNetRef.Dispose();
             _dotNetRef = null;
         }
-    }
-
-    /// <summary>
-    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
-    /// or null if the user cancelled.
-    /// </summary>
-    private async Task<bool?> ShowExportOptionsDialogAsync()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            Position = DialogPosition.Center,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
-        };
-
-        var dialogInstance = await DialogService.ShowAsync<WorkflowDefinitionList.ExportWorkflowDialog>(Localizer["Export"], options);
-        var result = await dialogInstance.Result;
-
-        if (result?.Canceled == true)
-            return null;
-
-        return result?.Data is true;
     }
 }
