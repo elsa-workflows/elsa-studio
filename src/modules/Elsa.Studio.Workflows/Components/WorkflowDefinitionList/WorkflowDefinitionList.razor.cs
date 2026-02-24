@@ -35,11 +35,11 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
-    [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
     [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
 
     private string SearchTerm { get; set; } = string.Empty;
@@ -256,14 +256,8 @@ public partial class WorkflowDefinitionList
 
     private async Task OnExportClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
-
-        if (includeConsumingWorkflows == null)
-            return;
-
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest, includeConsumingWorkflows.Value);
-        var fileName = download.FileName;
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest, include));
     }
 
     private async Task OnBulkDeleteClicked()
@@ -371,15 +365,13 @@ public partial class WorkflowDefinitionList
 
     private async Task OnBulkExportClicked()
     {
-        var includeConsumingWorkflows = await ShowExportOptionsDialogAsync();
+        var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
+        var exported = await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds, include));
 
-        if (includeConsumingWorkflows == null)
+        if (!exported)
             return;
 
-        var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
-        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds, includeConsumingWorkflows.Value);
-        var fileName = download.FileName;
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
         _selectedRows.Clear();
         Reload();
     }
@@ -472,28 +464,6 @@ public partial class WorkflowDefinitionList
         await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
     }
 
-    /// <summary>
-    /// Shows the export options dialog and returns the selected value for includeConsumingWorkflows,
-    /// or null if the user cancelled.
-    /// </summary>
-    private async Task<bool?> ShowExportOptionsDialogAsync()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            Position = DialogPosition.Center,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
-        };
-
-        var dialogInstance = await DialogService.ShowAsync<ExportWorkflowDialog>(Localizer["Export"], options);
-        var result = await dialogInstance.Result;
-
-        if (result?.Canceled == true)
-            return null;
-
-        return result?.Data is true;
-    }
 
     private record WorkflowDefinitionRow(
         string Id,
