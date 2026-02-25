@@ -382,7 +382,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         // Skip graph update when size was changed programmatically (e.g., from updateActivitySize during initial render).
         // This prevents unwanted auto-saves when the server returns different sizes than what the Studio calculated.
         const binding = graphBindings[graphId];
-        if (binding?.suppressGraphUpdated) {
+        if (binding?.suppressGraphUpdated > 0) {
             return false;
         }
         

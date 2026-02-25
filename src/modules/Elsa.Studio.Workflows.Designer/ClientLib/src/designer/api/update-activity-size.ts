@@ -53,11 +53,11 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
         // Suppress graph updated events for programmatic size adjustments (e.g., initial render sizing).
         // This prevents unwanted auto-saves when the calculated size differs from the stored size,
         // which commonly occurs with NotFoundActivity where the server resets sizes on save.
-        graphBinding.suppressGraphUpdated = true;
+        graphBinding.suppressGraphUpdated = (graphBinding.suppressGraphUpdated || 0) + 1;
         try {
             node.size(width, height);
         } finally {
-            graphBinding.suppressGraphUpdated = false;
+            graphBinding.suppressGraphUpdated = Math.max(0, (graphBinding.suppressGraphUpdated || 0) - 1);
         }
     }
 }
