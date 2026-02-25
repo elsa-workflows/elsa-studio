@@ -19,7 +19,8 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
     const graphId = container.id;
 
     // Get graph reference.
-    const {graph} = graphBindings[graphId];
+    const graphBinding = graphBindings[graphId];
+    const graph = graphBinding.graph;
 
     // Parse activity model.
     const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
@@ -46,7 +47,19 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
             height = size.height;
     }
 
-    node.size(width, height);
+    // Only update the node size if it actually changed, to avoid triggering unnecessary graph update events.
+    const currentSize = node.size();
+    if (Math.abs(currentSize.width - width) > 0.5 || Math.abs(currentSize.height - height) > 0.5) {
+        // Suppress graph updated events for programmatic size adjustments (e.g., initial render sizing).
+        // This prevents unwanted auto-saves when the calculated size differs from the stored size,
+        // which commonly occurs with NotFoundActivity where the server resets sizes on save.
+        graphBinding.suppressGraphUpdated = true;
+        try {
+            node.size(width, height);
+        } finally {
+            graphBinding.suppressGraphUpdated = false;
+        }
+    }
 }
 
 /**
