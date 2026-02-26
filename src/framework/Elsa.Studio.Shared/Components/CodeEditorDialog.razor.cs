@@ -1,4 +1,4 @@
-using BlazorMonaco.Editor;
+﻿using BlazorMonaco.Editor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -99,6 +99,4 @@ public partial class CodeEditorDialog : IDisposable
     public void Dispose()
     {
     }
-
-    private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
 }
