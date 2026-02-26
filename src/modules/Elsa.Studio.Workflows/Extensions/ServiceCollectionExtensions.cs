@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IMenuProvider, WorkflowsMenu>()
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddScoped<IWorkflowCloningDialogService, WorkflowCloningDialogService>()
+            .AddScoped<IWorkflowExportDialogService, WorkflowExportDialogService>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
             .AddWorkflowsCore()

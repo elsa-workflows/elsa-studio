@@ -1,4 +1,4 @@
-﻿using BlazorMonaco.Editor;
+using BlazorMonaco.Editor;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
@@ -15,73 +15,81 @@ namespace Elsa.Studio.Components;
 /// </summary>
 public partial class ContentVisualizer : ComponentBase
 {
-    private int TabIndex = 0;
-    private bool isReadOnly = true;
-    private string selectedItem = "";
-    private string? Pretty;
-    private TabulatedContentVisualizer? Table;
-    private IContentVisualizer SelectedVisualizer = new DefaultContentVisualizer();
-    private List<IContentVisualizer> AvailableVisualizers = new();
+    private int _tabIndex;
+    private string _selectedItem = "";
+    private string? _pretty;
+    private TabulatedContentVisualizer? _table;
+    private IContentVisualizer _selectedVisualizer = new DefaultContentVisualizer();
+    private List<IContentVisualizer> _availableVisualizers = new();
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
 
+    /// <summary>
+    /// Indicates whether the editor is in read-only mode.
+    /// </summary>
     public bool IsReadOnly
     {
-        get { return isReadOnly; }
+        get;
         set
         {
-            isReadOnly = value;
-            _monacoEditor.UpdateOptions(
-                new EditorUpdateOptions
+            field = value;
+            _monacoEditor?.UpdateOptions(
+                new()
                 {
                     ReadOnly = value
                 });
         }
-    }
+    } = true;
 
     /// <summary>
     /// Provides the selected item.
     /// </summary>
     public string SelectedItem
     {
-        get { return selectedItem; }
+        get => _selectedItem;
         set
         {
-            selectedItem = value;
-            OnFormatterChanged();
+            _selectedItem = value;
+            _ = OnFormatterChanged();
         }
     }
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the DataPanelItem associated with the ContentVisualizer. This property holds the
+    /// data panel item which includes information like label, text, link, and optional actions that
+    /// can be visualized using a content visualizer.
+    /// </summary>
     [Parameter] public DataPanelItem DataPanelItem { get; set; } = null!;
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
     [Inject] private IContentVisualizerProvider VisualizationProvider { get; set; } = null!;
     [Inject] private IClipboard Clipboard { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
     /// <summary>
     /// Performs the on initialized operation.
     /// </summary>
     protected override void OnInitialized()
     {
-        AvailableVisualizers = VisualizationProvider.GetAll().ToList();
-        SelectedVisualizer = VisualizationProvider.MatchOrDefault(DataPanelItem.Text);
-        selectedItem = SelectedVisualizer.Name;
-        FormatUsing(SelectedVisualizer);
+        _availableVisualizers = VisualizationProvider.GetAll().ToList();
+        if (DataPanelItem.Text != null) 
+            _selectedVisualizer = VisualizationProvider.MatchOrDefault(DataPanelItem.Text);
+        _selectedItem = _selectedVisualizer.Name;
+        FormatUsing(_selectedVisualizer);
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
-            Language = SelectedVisualizer.Syntax,
-            Value = Pretty,
+            Language = _selectedVisualizer.Syntax,
+            Value = _pretty,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            Minimap = new()
             {
                 Enabled = false
             },
@@ -102,29 +110,33 @@ public partial class ContentVisualizer : ComponentBase
 
     private async Task OnFormatterChanged()
     {
-        var visualizer = AvailableVisualizers.FirstOrDefault(f => f.Name == SelectedItem);
+        var visualizer = _availableVisualizers.FirstOrDefault(f => f.Name == SelectedItem);
         if (visualizer != null)
         {
             FormatUsing(visualizer);
 
             var model = await _monacoEditor!.GetModel();
-            await model.SetValue(Pretty);
-            await Global.SetModelLanguage(JSRuntime, model, SelectedVisualizer.Syntax);
+            await Global.SetModelLanguage(JSRuntime, model, _selectedVisualizer.Syntax);
         }
     }
 
     private void FormatUsing(IContentVisualizer visualizer)
     {
-        SelectedVisualizer = visualizer;
-        Pretty = visualizer.ToPretty(DataPanelItem.Text);
-        Table = visualizer.ToTable(DataPanelItem.Text);
-        TabIndex = 0;
+        _selectedVisualizer = visualizer;
+        
+        if (DataPanelItem.Text != null)
+        {
+            _pretty = visualizer.ToPretty(DataPanelItem.Text);
+            _table = visualizer.ToTable(DataPanelItem.Text);
+        }
+
+        _tabIndex = 0;
         StateHasChanged();
     }
 
     private async Task OnCopyClicked()
     {
-        await Clipboard.CopyText(Pretty ?? DataPanelItem.Text);
+        await Clipboard.CopyText(_pretty ?? DataPanelItem.Text ?? string.Empty);
         Snackbar.Add($"{DataPanelItem.Label} copied", Severity.Success);
     }
 

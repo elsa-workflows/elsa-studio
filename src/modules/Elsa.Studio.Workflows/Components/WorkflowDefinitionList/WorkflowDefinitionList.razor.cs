@@ -35,11 +35,11 @@ public partial class WorkflowDefinitionList
     [Inject] private IWorkflowDefinitionEditorService WorkflowDefinitionEditorService { get; set; } = null!;
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionImporter WorkflowDefinitionImporter { get; set; } = null!;
-    [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
     [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
 
     private string SearchTerm { get; set; } = string.Empty;
@@ -254,11 +254,10 @@ public partial class WorkflowDefinitionList
         Reload();
     }
 
-    private async Task OnDownloadClicked(WorkflowDefinitionRow workflowDefinitionRow)
+    private async Task OnExportClicked(WorkflowDefinitionRow workflowDefinitionRow)
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest);
-        var fileName = $"{workflowDefinitionRow.Name.Kebaberize()}.json";
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionService.ExportDefinitionAsync(workflowDefinitionRow.DefinitionId, VersionOptions.Latest, include));
     }
 
     private async Task OnBulkDeleteClicked()
@@ -367,9 +366,12 @@ public partial class WorkflowDefinitionList
     private async Task OnBulkExportClicked()
     {
         var workflowVersionIds = _selectedRows.Select(x => x.Id).ToList();
-        var download = await WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds);
-        var fileName = download.FileName;
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        var exported = await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionService.BulkExportDefinitionsAsync(workflowVersionIds, include));
+
+        if (!exported)
+            return;
+
         _selectedRows.Clear();
         Reload();
     }
@@ -461,6 +463,7 @@ public partial class WorkflowDefinitionList
         };
         await DialogService.ShowAsync<MarkdownEditor>("Description", param, options);
     }
+
 
     private record WorkflowDefinitionRow(
         string Id,

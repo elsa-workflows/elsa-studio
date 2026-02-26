@@ -110,11 +110,11 @@ public class WorkflowDefinitionEditorService(IBackendApiClientProvider backendAp
     }
     
     /// <inheritdoc />
-    public async Task<FileDownload> ExportAsync(WorkflowDefinition workflowDefinition, CancellationToken cancellationToken = default)
+    public async Task<FileDownload> ExportAsync(WorkflowDefinition workflowDefinition, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default)
     {
         var api = await GetApiAsync(cancellationToken);
         await mediator.NotifyAsync(new WorkflowDefinitionExporting(workflowDefinition), cancellationToken);
-        var response = await api.ExportAsync(workflowDefinition.DefinitionId, VersionOptions.SpecificVersion(workflowDefinition.Version), cancellationToken);
+        var response = await api.ExportAsync(workflowDefinition.DefinitionId, VersionOptions.SpecificVersion(workflowDefinition.Version), includeConsumingWorkflows, cancellationToken);
         var fileName = response.GetDownloadedFileNameOrDefault($"workflow-definition-{workflowDefinition.DefinitionId}-v{workflowDefinition.Version}.json");
         var fileDownload = new FileDownload(fileName, response.Content!);
         await mediator.NotifyAsync(new WorkflowDefinitionExported(workflowDefinition, fileDownload), cancellationToken);

@@ -4,10 +4,10 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
-using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
@@ -25,19 +25,18 @@ public partial class WorkflowDefinitionVersionViewer
 
     /// Gets or sets the workflow definition to view.
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
-    
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
 
     /// Gets the ID of the selected activity.
     public string? SelectedActivityId { get; private set; }
-    
+
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = default!;
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = default!;
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private IFiles Files { get; set; } = default!;
+    [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = default!;
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -65,7 +64,7 @@ public partial class WorkflowDefinitionVersionViewer
         if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -73,36 +72,41 @@ public partial class WorkflowDefinitionVersionViewer
     {
         if (WorkflowDefinition == _workflowDefinition)
             return;
-     
+
         _workflowDefinition = WorkflowDefinition;
-        
+
         if (_workflowDefinition?.Root == null)
             return;
 
         if (_diagramDesigner != null)
             await _diagramDesigner.LoadActivityAsync(_workflowDefinition.Root);
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
-    private void SelectActivity(JsonObject activity)
+    private async Task SelectActivityAsync(JsonObject activity)
     {
         // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
         // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
         SelectedActivity = null;
         ActivityDescriptor = null;
-        StateHasChanged();
+
+        // We must await the render cycle to ensure the Monaco editor is fully disposed before creating a new one.
+        // Without this, in Blazor WASM there can be a race condition where the new Monaco editor tries to initialize
+        // before the old one is fully cleaned up, causing JSException: "Couldn't find the editor with id".
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
 
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        SelectActivity(activity);
-        if(ActivitySelected != null)
+        await SelectActivityAsync(activity);
+        if (ActivitySelected != null)
             await ActivitySelected(activity);
     }
 
@@ -114,10 +118,10 @@ public partial class WorkflowDefinitionVersionViewer
 
     private async Task OnDownloadClicked()
     {
-        var download = await WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(_workflowDefinition.Version));
-        var fileName = $"{_workflowDefinition.Name.Kebaberize()}.json";
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionService.ExportDefinitionAsync(_workflowDefinition!.DefinitionId, VersionOptions.SpecificVersion(_workflowDefinition.Version), include));
     }
+
 
     private async Task OnResize(RadzenSplitterResizeEventArgs arg)
     {
