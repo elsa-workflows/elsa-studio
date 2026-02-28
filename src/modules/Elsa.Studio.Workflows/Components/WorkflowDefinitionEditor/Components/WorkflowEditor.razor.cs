@@ -27,6 +27,8 @@ using Radzen;
 using Radzen.Blazor;
 using System.Text.Json.Nodes;
 using ThrottleDebounce;
+using DialogOptions = MudBlazor.DialogOptions;
+using DialogPosition = MudBlazor.DialogPosition;
 using Variant = MudBlazor.Variant;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
@@ -71,14 +73,13 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] private IFiles Files { get; set; } = null!;
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = null!;
     [Inject] private ILogger<WorkflowDefinitionEditor> Logger { get; set; } = null!;
     [Inject] private IWorkflowJsonDetector WorkflowJsonDetector { get; set; } = null!;
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
-    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
+    [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
     [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// <summary>
@@ -139,7 +140,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (_workflowDefinition?.Root == null)
             return;
 
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -154,7 +155,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             return;
 
         await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
-        SelectActivity(_workflowDefinition.Root);
+        await SelectActivityAsync(_workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -284,18 +285,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
     }
 
-    private void SelectActivity(JsonObject activity)
+    private async Task SelectActivityAsync(JsonObject activity)
     {
-        // Setting the activity to null first and then requesting an update is a workaround to ensure that BlazorMonaco gets destroyed first.
-        // Otherwise, the Monaco editor will not be updated with a new value. Perhaps we should consider updating the Monaco Editor via its imperative API instead of via binding.
-        SelectedActivity = null;
-        ActivityDescriptor = null;
-        StateHasChanged();
-
         SelectedActivity = activity;
         SelectedActivityId = activity.GetId();
         ActivityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
@@ -358,7 +353,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnActivitySelected(JsonObject activity)
     {
-        SelectActivity(activity);
+        await SelectActivityAsync(activity);
         if (ActivitySelected != null) await ActivitySelected(activity);
     }
 
@@ -443,10 +438,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnExportClicked()
     {
-        var download = await WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!);
-        var fileName = $"{_workflowDefinition!.Name.Kebaberize()}.json";
-        if (download.Content.CanSeek) download.Content.Seek(0, SeekOrigin.Begin);
-        await Files.DownloadFileFromStreamAsync(fileName, download.Content);
+        await WorkflowExportDialogService.ExportAndDownloadAsync(include =>
+            WorkflowDefinitionEditorService.ExportAsync(_workflowDefinition!, include));
     }
 
     private async Task OnImportClicked()

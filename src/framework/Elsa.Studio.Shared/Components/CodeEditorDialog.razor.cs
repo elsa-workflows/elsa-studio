@@ -1,11 +1,11 @@
-﻿using BlazorMonaco.Editor;
+using BlazorMonaco.Editor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Elsa.Studio.Components;
 
-public partial class CodeEditorDialog
+public partial class CodeEditorDialog : IDisposable
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private StandaloneCodeEditor? _monacoEditor;
@@ -16,10 +16,30 @@ public partial class CodeEditorDialog
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the current code content displayed and edited in the Monaco editor dialog.
+    /// </summary>
     [Parameter] public string Value { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the label for the code editor dialog.
+    /// </summary>
     [Parameter] public string Label { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the helper text for the code editor dialog.
+    /// This text provides additional information or guidance related to the code being edited.
+    /// </summary>
     [Parameter] public string HelperText { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the label for the language selection in the code editor dialog.
+    /// </summary>
     [Parameter] public string LanguageLabel { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the programming language syntax used by the Monaco code editor within the dialog.
+    /// </summary>
     [Parameter] public string MonacoLanguage { get; set; } = null!;
 
     private async Task OnMonacoInitializedAsync()
@@ -71,6 +91,13 @@ public partial class CodeEditorDialog
 
         Value = value;
         _lastMonacoEditorContent = value;
+    }
+
+    private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
     }
 
     private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));

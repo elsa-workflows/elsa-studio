@@ -27,8 +27,8 @@ public partial class Code : IDisposable
     private CodeEditorOptions _codeEditorOptions = new();
     private bool _isInternalContentChange;
 
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IEnumerable<IMonacoHandler> MonacoHandlers { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
     /// <inheritdoc />
@@ -40,7 +40,7 @@ public partial class Code : IDisposable
     /// <summary>
     /// The context for the editor.
     /// </summary>
-    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = default!;
+    [Parameter] public DisplayInputEditorContext EditorContext { get; set; } = null!;
 
     private string InputValue => EditorContext.GetLiteralValueOrDefault();
     private InputDescriptor InputDescriptor => EditorContext.InputDescriptor;
@@ -50,18 +50,17 @@ public partial class Code : IDisposable
     {
         _codeEditorOptions = EditorContext.InputDescriptor.GetCodeEditorOptions();
         _monacoLanguage = _codeEditorOptions.Language ?? "javascript";
-        ;
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
     {
-        return new StandaloneEditorConstructionOptions
+        return new()
         {
             Language = _monacoLanguage,
             Value = InputValue,
             FontFamily = "Roboto Mono, monospace",
             RenderLineHighlight = "none",
-            Minimap = new EditorMinimapOptions
+            Minimap = new()
             {
                 Enabled = false
             },
@@ -93,8 +92,7 @@ public partial class Code : IDisposable
 
     private async Task OnMonacoContentChanged(ModelContentChangedEvent e)
     {
-        if (_isInternalContentChange)
-            return;
+        if (_isInternalContentChange) return;
 
         await _throttledValueChanged.InvokeAsync();
     }
