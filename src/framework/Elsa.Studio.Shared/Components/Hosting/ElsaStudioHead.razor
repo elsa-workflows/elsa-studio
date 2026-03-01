@@ -1,0 +1,23 @@
+@namespace Elsa.Studio.Shared.Components.Hosting
+
+@*
+    Elsa Studio Head Component - Includes all required CSS links.
+    Usage: <ElsaStudioHead />
+*@
+
+<link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+<link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
+<link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet">
+<link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet">
+@if (IncludeDesignerCss)
+{
+    <link href="_content/Elsa.Studio.Workflows.Designer/designer.css" rel="stylesheet">
+}
+
+@code {
+    /// <summary>
+    /// Whether to include the Workflow Designer CSS. Default is true.
+    /// </summary>
+    [Parameter]
+    public bool IncludeDesignerCss { get; set; } = true;
+}
