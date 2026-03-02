@@ -99,6 +99,4 @@ public partial class CodeEditorDialog : IDisposable
     public void Dispose()
     {
     }
-
-    private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
 }
