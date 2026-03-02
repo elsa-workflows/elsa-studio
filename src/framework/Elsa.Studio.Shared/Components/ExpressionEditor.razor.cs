@@ -1,13 +1,11 @@
 using BlazorMonaco.Editor;
 using Elsa.Api.Client.Resources.Scripting.Extensions;
 using Elsa.Api.Client.Resources.Scripting.Models;
-using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
 using ThrottleDebounce;
@@ -26,7 +24,7 @@ public partial class ExpressionEditor : IDisposable
     private bool _isInternalContentChange;
     private bool _isInitialized;
     private string? _lastMonacoEditorContent;
-    private RateLimitedFunc<Expression, Task> _throttledValueChanged;
+    private readonly RateLimitedFunc<Expression, Task> _throttledValueChanged;
     private ICollection<ExpressionDescriptor> _expressionDescriptors = new List<ExpressionDescriptor>();
     private TaskCompletionSource<bool>? _initializationTcs;
 
@@ -41,12 +39,42 @@ public partial class ExpressionEditor : IDisposable
     /// </summary>
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the expression to be edited.
+    /// </summary>
     [Parameter] public Expression? Expression { get; set; } = new(string.Empty, string.Empty);
+
+    /// <summary>
+    /// Gets or sets the default option to be used when no specific expression type is selected.
+    /// </summary>
     [Parameter] public string DefaultOption { get; set; } = "Default";
+
+    /// <summary>
+    /// The display name associated with the expression being edited.
+    /// </summary>
     [Parameter] public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the description of the expression editor, providing contextual information
+    /// or guidance for the expression being entered by the user.
+    /// </summary>
     [Parameter] public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Indicates whether the expression editor is in read-only mode.
+    /// Prevents modifications to the expression when set to true.
+    /// </summary>
     [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// A dictionary of custom properties that can be used to provide additional metadata
+    /// or configuration for the expression editor.
+    /// </summary>
     [Parameter] public IDictionary<string, object> CustomProperties { get; set; } = new Dictionary<string, object>();
+
+    /// <summary>
+    /// A callback function that is invoked when the expression is changed.
+    /// </summary>
     [Parameter] public Func<Expression?, Task>? ExpressionChanged { get; set; }
 
     [Inject] private TypeDefinitionService TypeDefinitionService { get; set; } = null!;
@@ -69,7 +97,6 @@ public partial class ExpressionEditor : IDisposable
     private string? ButtonEndIcon => DisplayModePicker ? null : Icons.Material.Filled.KeyboardArrowDown;
     private Color ButtonEndColor => DisplayModePicker ? default : Color.Secondary;
 
-    private string? MonacoSyntax { get; set; }
     private bool MonacoSyntaxExist => !string.IsNullOrEmpty(MonacoLanguage);
 
     /// <summary>
@@ -106,7 +133,7 @@ public partial class ExpressionEditor : IDisposable
         if (string.IsNullOrWhiteSpace(MonacoLanguage))
             return;
 
-        var model = await _monacoEditor.GetModel();
+        var model = await _monacoEditor!.GetModel();
         await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
         await RunMonacoHandlersAsync(_monacoEditor);
     }
@@ -227,7 +254,7 @@ public partial class ExpressionEditor : IDisposable
             await handler.InitializeAsync(context);
     }
 
-   private async Task ShowScriptEditor()
+    private async Task ShowScriptEditor()
     {
         var currentValue = _lastMonacoEditorContent ?? Expression?.Value?.ToString() ?? string.Empty;
         var languageLabel = SelectedExpressionDescriptor?.Type ?? ButtonLabel;
@@ -252,10 +279,10 @@ public partial class ExpressionEditor : IDisposable
             // Map dialog result back to the Expression model and notify the consumer.
             var expressionType = _selectedExpressionType ?? DefaultOption;
             var updatedExpression = new Expression(expressionType, newValue);
-            
+
             Expression = updatedExpression;
             if (ExpressionChanged != null)
-               await ExpressionChanged.Invoke(Expression);
+                await ExpressionChanged.Invoke(Expression);
 
             await UpdateMonacoEditorAsync(Expression);
         }

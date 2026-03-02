@@ -14,5 +14,6 @@ export interface GraphBinding {
     graphId: string;
     graph: Graph;
     interop: DotNetFlowchartDesigner;
+    suppressGraphUpdated?: number;
 }
 
