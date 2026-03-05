@@ -106,4 +106,28 @@
   <data name="Pending" xml:space="preserve">
     <value>Väntande</value>
   </data>
+  <data name="Add variable" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="A description about the role and purpose of this input variable." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="A description about the secret." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Auto-save" xml:space="preserve">
+    <value></value>
+  </data>
 </root>
