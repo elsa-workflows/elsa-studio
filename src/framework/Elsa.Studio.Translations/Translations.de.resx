@@ -524,6 +524,90 @@
     <value />
   </data>
   <data name="Acknowledge Datasource Event" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Publish the current workflow" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No workflow definitions found" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Outputs" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Presence Penalty" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Log Persistence" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Published version" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No secrets found" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Prompt Template" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No output associated with this execution." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No workflow instances found" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Parser" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="object" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Outcomes" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No variables" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Primitives" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No outcomes associated with this execution." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No state associated with this execution." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Output Properties" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Publish Event" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Open File" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No services found" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="No outputs" xml:space="preserve">
     <value></value>
   </data>
 </root>
