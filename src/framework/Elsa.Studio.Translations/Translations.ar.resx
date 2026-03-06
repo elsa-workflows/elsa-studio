@@ -418,4 +418,13 @@
   <data name="Function" xml:space="preserve">
     <value></value>
   </data>
+  <data name="A technical name for the function" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="A description about the secret." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="A description of this activity to be displayed in the designer." xml:space="preserve">
+    <value></value>
+  </data>
 </root>
