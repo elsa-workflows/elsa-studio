@@ -602,12 +602,12 @@
     <value>Pendente</value>
   </data>
   <data name="Enter a list of possible outcomes for this workflow." xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="For" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
   <data name="If" xml:space="preserve">
-    <value></value>
+    <value />
   </data>
 </root>
