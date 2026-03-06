@@ -520,4 +520,7 @@
   <data name="Pending" xml:space="preserve">
     <value>Ausstehend</value>
   </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value></value>
+  </data>
 </root>
