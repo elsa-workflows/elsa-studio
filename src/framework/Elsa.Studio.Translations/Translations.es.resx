@@ -454,4 +454,43 @@
   <data name="Pending" xml:space="preserve">
     <value>Pendiente</value>
   </data>
+  <data name="Input/output" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="The ID of the activity." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Input Properties" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Variables" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="int" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="An input with this name already exists." xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Inputs" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Function Name" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="For" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="If" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Has Incidents" xml:space="preserve">
+    <value></value>
+  </data>
 </root>
