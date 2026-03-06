@@ -523,4 +523,7 @@
   <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
     <value />
   </data>
+  <data name="Acknowledge Datasource Event" xml:space="preserve">
+    <value></value>
+  </data>
 </root>
