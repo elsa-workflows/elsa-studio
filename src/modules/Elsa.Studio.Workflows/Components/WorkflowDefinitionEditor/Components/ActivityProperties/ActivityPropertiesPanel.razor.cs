@@ -82,6 +82,8 @@ public partial class ActivityPropertiesPanel
         }
     }
 
+    private bool isInitialized = false;
+
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
@@ -89,6 +91,8 @@ public partial class ActivityPropertiesPanel
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
         ExpressionDescriptorProvider.AddRange(expressionDescriptors);
         PluginTabs = ActivityTabRegistry.List().ToList();
+
+        isInitialized = true;
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.

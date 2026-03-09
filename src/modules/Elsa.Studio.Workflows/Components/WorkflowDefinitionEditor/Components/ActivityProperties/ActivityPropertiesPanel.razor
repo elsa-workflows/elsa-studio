@@ -10,7 +10,9 @@
 <CascadingValue Value="ExpressionDescriptorProvider">
     <MudTabs Elevation="0" ApplyEffectsToContainer="true" ActivePanelIndexChanged="@OnActivePanelIndexChanged">
 
-        <MudTabPanel Text="@Localizer["Input"]" Icon="@Icons.Material.Outlined.Input">
+        @if (isInitialized)
+        {
+            <MudTabPanel Text="@Localizer["Input"]" Icon="@Icons.Material.Outlined.Input">
             @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)
             {
                 <ScrollableWell MaxHeight="VisiblePaneHeight">
@@ -142,6 +144,7 @@
                 </ScrollableWell>
             </MudTabPanel>
         }
+        }        
 
     </MudTabs>
 </CascadingValue>
