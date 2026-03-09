@@ -90,7 +90,7 @@ public partial class ActivityPropertiesPanel
         var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
         ExpressionDescriptorProvider.AddRange(expressionDescriptors);
-        Tabs = CreateBuiltInTabs().Concat(ActivityTabRegistry.List()).ToList();
+        Tabs = CreateBuiltInTabs().Concat(ActivityTabRegistry.List()).OrderBy(x => x.Order).ToList();
         _isInitialized = true;
     }
 
@@ -177,7 +177,7 @@ public partial class ActivityPropertiesPanel
             (nameof(InputsTab.OnActivityUpdated), OnActivityUpdated))
         : RenderAlertInWell(Localizer["This activity does not have any input properties."]);
 
-    private RenderFragment RenderOutputsTab() => ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true
+    private RenderFragment RenderOutputsTab() => ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true && WorkflowDefinition != null && Activity != null
         ? RenderScrollableComponent<OutputsTab>(
             (nameof(OutputsTab.WorkflowDefinition), WorkflowDefinition),
             (nameof(OutputsTab.Activity), Activity),
@@ -204,7 +204,7 @@ public partial class ActivityPropertiesPanel
         ? RenderScrollableComponent<CommitStrategyTab>(
             (nameof(CommitStrategyTab.Activity), Activity),
             (nameof(CommitStrategyTab.OnActivityUpdated), OnActivityUpdated))
-        : RenderAlertInWell(Localizer["This activity does not have any common properties."]);
+        : RenderAlertInWell(Localizer["This activity does not have a commit strategy."]);
 
     private RenderFragment RenderTaskTab() => RenderScrollableComponent<TaskTab>(
         (nameof(TaskTab.Activity), Activity),
