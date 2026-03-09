@@ -87,12 +87,17 @@ public partial class ActivityPropertiesPanel
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
-        IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
-        ExpressionDescriptorProvider.AddRange(expressionDescriptors);
-        PluginTabs = ActivityTabRegistry.List().ToList();
-
-        isInitialized = true;
+        try
+        {
+            var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
+            IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
+            ExpressionDescriptorProvider.AddRange(expressionDescriptors);
+            PluginTabs = ActivityTabRegistry.List().ToList();
+        }
+        finally
+        {
+            isInitialized = true;
+        }
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.

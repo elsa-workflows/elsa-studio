@@ -27,24 +27,25 @@
                               Variant="Variant.Text">@Localizer["This activity does not have any input properties."]</MudAlert>
                 </Well>
             }
-        </MudTabPanel>
+            </MudTabPanel>
 
-        <MudTabPanel Text="@Localizer["Output"]" Icon="@Icons.Material.Outlined.Output">
-            @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
-            {
-                <ScrollableWell MaxHeight="VisiblePaneHeight">
-                    <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity"
-                                ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
-                </ScrollableWell>
-            }
-            else
-            {
-                <Well>
-                    <MudAlert Severity="Severity.Normal"
-                              Variant="Variant.Text">@Localizer["This activity does not have any output properties."]</MudAlert>
-                </Well>
-            }
-        </MudTabPanel>
+            <MudTabPanel Text="@Localizer["Output"]" Icon="@Icons.Material.Outlined.Output">
+                @if (ActivityDescriptor?.Outputs.Any(x => x.IsBrowsable != false) == true)
+                {
+                    <ScrollableWell MaxHeight="VisiblePaneHeight">
+                        <OutputsTab WorkflowDefinition="WorkflowDefinition" Activity="Activity"
+                                    ActivityDescriptor="ActivityDescriptor" OnActivityUpdated="OnActivityUpdated"/>
+                    </ScrollableWell>
+                }
+                else
+                {
+                    <Well>
+                        <MudAlert Severity="Severity.Normal"
+                                  Variant="Variant.Text">@Localizer["This activity does not have any output properties."]</MudAlert>
+                    </Well>
+                }
+            </MudTabPanel>
+        }
 
         <MudTabPanel Text="@Localizer["Common"]" Icon="@Icons.Material.Outlined.Notes">
             @if (Activity != null && ActivityDescriptor != null)
@@ -143,7 +144,6 @@
                     @tab.Render((new { WorkflowDefinition, Activity, ActivityDescriptor, OnActivityUpdated }).ToDictionary())
                 </ScrollableWell>
             </MudTabPanel>
-        }
         }        
 
     </MudTabs>
