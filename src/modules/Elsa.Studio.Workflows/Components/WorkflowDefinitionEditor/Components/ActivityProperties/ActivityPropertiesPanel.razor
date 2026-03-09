@@ -1,4 +1,3 @@
-@using Elsa.Api.Client.Extensions
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components
 @using Elsa.Studio.Extensions
@@ -10,7 +9,7 @@
 <CascadingValue Value="ExpressionDescriptorProvider">
     <MudTabs Elevation="0" ApplyEffectsToContainer="true" ActivePanelIndexChanged="@OnActivePanelIndexChanged">
 
-        @if (isInitialized)
+        @if (_isInitialized)
         {
             <MudTabPanel Text="@Localizer["Input"]" Icon="@Icons.Material.Outlined.Input">
                 @if (ActivityDescriptor?.Inputs.Any(x => x.IsBrowsable != false) == true)

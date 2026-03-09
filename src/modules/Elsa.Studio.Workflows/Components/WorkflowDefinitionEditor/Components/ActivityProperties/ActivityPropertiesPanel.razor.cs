@@ -16,6 +16,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.A
 /// </summary>
 public partial class ActivityPropertiesPanel
 {
+    private bool _isInitialized = false;
+    
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>
@@ -34,7 +36,7 @@ public partial class ActivityPropertiesPanel
     [Parameter]
     public ActivityDescriptor? ActivityDescriptor
     {
-        get { return field; }
+        get => field;
         set
         {
             if (field != value)
@@ -82,22 +84,14 @@ public partial class ActivityPropertiesPanel
         }
     }
 
-    private bool isInitialized = false;
-
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
-            IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
-            ExpressionDescriptorProvider.AddRange(expressionDescriptors);
-            PluginTabs = ActivityTabRegistry.List().ToList();
-        }
-        finally
-        {
-            isInitialized = true;
-        }
+        var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
+        IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
+        ExpressionDescriptorProvider.AddRange(expressionDescriptors);
+        PluginTabs = ActivityTabRegistry.List().ToList();
+        _isInitialized = true;
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.
