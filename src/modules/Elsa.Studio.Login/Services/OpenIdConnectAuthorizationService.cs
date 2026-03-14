@@ -61,14 +61,13 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException($"""
-                
                 OIDC token endpoint returned an error response. This can occur if the authorization 
                 code is invalid or has already been used, or if there is a misconfiguration in the OIDC provider. 
                 Please check the OIDC provider's logs for more details on the error.
 
                 Token endpoint URL: {config.TokenEndpoint}
                 Status Code: {response.StatusCode}
-                ReasonPhrase: {response.ReasonPhrase},
+                ReasonPhrase: {response.ReasonPhrase}
                 Error: {await response.Content.ReadAsStringAsync(cancellationToken)}
                 """, null, response.StatusCode);
         }
