@@ -71,7 +71,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
                 ReasonPhrase: {response.ReasonPhrase},
                 Error: {await response.Content.ReadAsStringAsync(cancellationToken)}
                 """, null, response.StatusCode);
-        };
+        }
 
         var tokens = (await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken))!;
 
