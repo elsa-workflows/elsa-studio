@@ -39,11 +39,17 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
 
         var formValues = new List<KeyValuePair<string, string>>
         {
-            new KeyValuePair<string, string>("client_id", config.ClientId),
-            new KeyValuePair<string, string>("code", code),
-            new KeyValuePair<string, string>("grant_type", "authorization_code"),
-            new KeyValuePair<string, string>("redirect_uri", redirectUri)
+            new("client_id", config.ClientId),
+            new("code", code),
+            new("grant_type", "authorization_code"),
+            new("redirect_uri", redirectUri)
         };
+
+        if(!string.IsNullOrWhiteSpace(config.ClientSecret))
+        {
+            formValues.Add(new KeyValuePair<string, string>("client_secret", config.ClientSecret));
+        }
+
         if (config.UsePkce)
         {
             var codeVerifier = await pkceStateService.GetPkceCodeVerifier();

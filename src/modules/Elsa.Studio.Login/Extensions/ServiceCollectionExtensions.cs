@@ -76,6 +76,7 @@ public static class ServiceCollectionExtensions
         services.Configure(configure);
 
         return services
+                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
                 .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
                 .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
