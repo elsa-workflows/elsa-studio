@@ -7,6 +7,12 @@
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
 
+@if (!_isExpressionDescriptorLoaded)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+}
+else
+{
 <CascadingValue Value="ExpressionDescriptorProvider">
     <MudTabs Elevation="0" ApplyEffectsToContainer="true" ActivePanelIndexChanged="@OnActivePanelIndexChanged">
 
@@ -145,3 +151,4 @@
 
     </MudTabs>
 </CascadingValue>
+}

@@ -63,6 +63,7 @@ public partial class ActivityPropertiesPanel
     private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
 
     private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
+    private bool _isExpressionDescriptorLoaded;
     private bool IsResilienceEnabled { get; set; }
     private bool IsResilientActivity => ActivityDescriptor?.CustomProperties.TryGetValue("Resilient", out var resilientObj) == true && resilientObj.ConvertTo<bool>();  
     private bool DisplayResilienceTab => IsResilienceEnabled && IsResilientActivity;
@@ -89,6 +90,7 @@ public partial class ActivityPropertiesPanel
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
         ExpressionDescriptorProvider.AddRange(expressionDescriptors);
         PluginTabs = ActivityTabRegistry.List().ToList();
+        _isExpressionDescriptorLoaded = true;
     }
     /// <summary>
     /// Updates the test result status when the tests status changes.
