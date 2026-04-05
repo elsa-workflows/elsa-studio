@@ -1,4 +1,4 @@
-﻿using BlazorMonaco.Editor;
+using BlazorMonaco.Editor;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;

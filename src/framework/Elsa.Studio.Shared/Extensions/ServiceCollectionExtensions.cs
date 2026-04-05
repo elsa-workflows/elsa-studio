@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
 
         // Time services.
         services.AddScoped<ITimeFormatter, DefaultTimeFormatter>();
-        services.AddScoped<ITimeZoneProvider, UtcTimeZoneProvider>();
+        services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
         services.AddScoped<IBrandingProvider, DefaultBrandingProvider>();
 
         // Required for the Radzen.Blazor.RadzenHtmlEditorLink component to work.

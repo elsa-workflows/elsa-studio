@@ -1,4 +1,4 @@
-﻿namespace Elsa.Studio.Contracts;
+﻿namespace Elsa.Studio.Login.Contracts;
 
 /// <summary>
 /// Defines a manager responsible for handling authentication providers and retrieving authentication tokens.

@@ -1570,4 +1570,7 @@
   <data name="OpenAITextToImage" xml:space="preserve">
     <value>OpenAITextToImage</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Oczekujące</value>
+  </data>
 </root>

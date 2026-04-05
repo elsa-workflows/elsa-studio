@@ -1,6 +1,5 @@
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
-using Elsa.Studio.Core.Services;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
@@ -24,6 +23,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IBlazorServiceAccessor, BlazorServiceAccessor>()
             .AddScoped<IMenuService, DefaultMenuService>()
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
+            .AddScoped<IThemeProvider, DefaultThemeProvider>()
             .AddScoped<IThemeService, DefaultThemeService>()
             .AddScoped<IAppBarService, DefaultAppBarService>()
             .AddScoped<IFeatureService, DefaultFeatureService>()
@@ -41,13 +41,17 @@ public static class ServiceCollectionExtensions
 
         // Content visualizers
         services.AddContentVisualizer<JsonContentVisualizer>();
-        
+
         // Mediator.
         services.AddScoped<IMediator, DefaultMediator>();
 
         //Localization
         services.AddSingleton<ILocalizationProvider, DefaultLocalizationProvider>();
         services.AddSingleton<ILocalizer, DefaultLocalizer>();
+
+        // Single-flight coordinator for preventing concurrent operations.
+        services.TryAddScoped<ISingleFlightCoordinator, SingleFlightCoordinator>();
+
         return services;
     }
     
@@ -60,6 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddDefaultApiClients(config?.ConfigureHttpClientBuilder);
         services.TryAddScoped<IRemoteBackendAccessor, DefaultRemoteBackendAccessor>();
         services.TryAddScoped<IBackendApiClientProvider, DefaultBackendApiClientProvider>();
+        services.TryAddScoped<IAnonymousBackendApiClientProvider, DefaultAnonymousBackendApiClientProvider>();
         return services;
     }
     

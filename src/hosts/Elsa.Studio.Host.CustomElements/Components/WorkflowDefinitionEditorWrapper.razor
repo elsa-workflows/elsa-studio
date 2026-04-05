@@ -12,19 +12,18 @@
 @code
 {
     private bool _shouldRender;
-    private string _definitionId = default!;
 
     /// The ID of the workflow definition to edit.
     [Parameter] public string DefinitionId
     {
-        get => _definitionId;
+        get;
         set
         {
-            if (_definitionId == value) return;
-            _definitionId = value;
+            if (field == value) return;
+            field = value;
             _shouldRender = true;
         }
-    }
+    } = null!;
 
     /// <summary>An event that is invoked when a workflow definition has been executed.</summary>
     /// <remarks>The ID of the workflow instance is provided as the value to the event callback.</remarks>
@@ -39,7 +38,7 @@
     /// Gets the currently selected activity ID.
     public string? SelectedActivityId => WorkflowDefinitionEditor.SelectedActivityId;
 
-    private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = default!;
+    private WorkflowDefinitionEditor WorkflowDefinitionEditor { get; set; } = null!;
 
     /// Gets the currently selected workflow definition version.
     public WorkflowDefinition? GetSelectedWorkflowDefinitionVersion() => WorkflowDefinitionEditor.GetSelectedWorkflowDefinitionVersion();

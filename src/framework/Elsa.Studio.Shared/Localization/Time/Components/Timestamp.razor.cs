@@ -22,7 +22,7 @@ public partial class Timestamp : ComponentBase
     /// </summary>
     [Parameter] public string EmptyString { get; set; } = string.Empty;
     
-    [Inject] private ITimeFormatter TimeFormatter { get; set; } = default!;
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = null!;
     
     private string GetDisplayString()
     {

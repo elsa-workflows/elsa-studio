@@ -1629,4 +1629,7 @@
 	<data name="Load" xml:space="preserve">
     <value>Load</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
 </root>

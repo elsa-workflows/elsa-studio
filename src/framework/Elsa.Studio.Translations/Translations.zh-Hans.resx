@@ -1570,4 +1570,7 @@
   <data name="Provider Type" xml:space="preserve">
     <value>提供者类型</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>待处理</value>
+  </data>
 </root>

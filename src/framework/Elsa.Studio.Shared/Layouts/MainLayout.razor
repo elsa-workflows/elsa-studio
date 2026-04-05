@@ -6,7 +6,7 @@
 <MudSnackbarProvider/>
 
 <MudLayout>
-    <MudAppBar Elevation="0" Color="Color.Inherit">
+    <MudAppBar Elevation="0" Color="Color.Inherit" Class="studio-appbar">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
         @foreach (var appBarItem in AppBarService.AppBarComponents)

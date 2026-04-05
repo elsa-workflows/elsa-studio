@@ -1,4 +1,4 @@
-﻿using BlazorMonaco.Editor;
+using BlazorMonaco.Editor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;

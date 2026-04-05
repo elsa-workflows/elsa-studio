@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Resources.ActivityExecutions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Studio.Workflows.Pages.WorkflowInstances.View.Models;
@@ -14,9 +15,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 /// </summary>
 public partial class WorkflowInstanceWorkspace : IWorkspace
 {
-    private WorkflowInstanceDetails _workflowInstanceDetails = default!;
-    private WorkflowInstanceDesigner _workflowInstanceDesigner = default!;
-    private MudDynamicTabs _dynamicTabs = default!;
+    private WorkflowInstanceDetails _workflowInstanceDetails = null!;
+    private WorkflowInstanceDesigner _workflowInstanceDesigner = null!;
     
     /// Gets or sets the workflow instance to view.
     [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
@@ -29,7 +29,10 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     
     /// An event callback that is invoked when an activity is selected.
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-    
+
+    /// An event callback that is invoked when an activity execution is selected.
+    [Parameter] public EventCallback<string?> ActivityExecutionSelected { get; set; }
+
     /// An event that is invoked when a workflow definition is edited.
     [Parameter] public EventCallback<string> EditWorkflowDefinition { get; set; }
     /// <inheritdoc />
@@ -48,6 +51,12 @@ public partial class WorkflowInstanceWorkspace : IWorkspace
     public async Task OnIncidentActivityNodeIdClicked(string activityNodeId)
     {
         await _workflowInstanceDesigner.SelectActivityAsync(activityNodeId);
+    }
+
+    /// Selects the associated activity in the designer.
+    public async Task SelectActivityByIdAsync(string activityId, string nodeId)
+    {
+        await _workflowInstanceDesigner.SelectActivityByIdAsync(activityId, nodeId);
     }
     
     private async Task OnPathChanged(DesignerPathChangedArgs args)

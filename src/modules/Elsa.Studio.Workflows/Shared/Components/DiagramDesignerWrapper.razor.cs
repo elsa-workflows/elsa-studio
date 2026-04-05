@@ -110,8 +110,8 @@ public partial class DiagramDesignerWrapper
     public async Task SelectActivityByActivityIdAsync(string activityId, string? nodeId = null)
     {
         var containerActivity = GetCurrentContainerActivity();
-        var activities = containerActivity.GetActivities();
-        var activityToSelect = activities.FirstOrDefault(x => x.GetId() == activityId);
+        var activities = containerActivity?.GetActivities();
+        var activityToSelect = activities?.FirstOrDefault(x => x.GetId() == activityId);
 
         await SelectActivityAsync(activityToSelect, nodeId);
     }
@@ -120,12 +120,8 @@ public partial class DiagramDesignerWrapper
     /// <param name="nodeId">The ID of the activity node to select.</param>
     public async Task SelectActivityAsync(string nodeId)
     {
-        // Assuming _activityGraph.ActivityNodeLookup is your latest index
-        if (_activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var node))
-        {
-            var activity = node.Activity;
-            await SelectActivityAsync(activity, nodeId);
-        }
+        var activity = _activityGraph.ActivityNodeLookup.TryGetValue(nodeId, out var node) ? node.Activity : null;
+        await SelectActivityAsync(activity, nodeId);
     }
 
     private async Task SelectActivityAsync(JsonObject? activityToSelect, string? nodeId = null)
@@ -134,13 +130,21 @@ public partial class DiagramDesignerWrapper
         if (string.IsNullOrEmpty(targetNodeId))
             return;
 
-        // Bail out if it's the same as last time
+        // Exit early if it's the same as last time
         if (targetNodeId == _lastSelectedNodeId)
             return;
 
         // Remember for the next call
         _lastSelectedNodeId = targetNodeId;
 
+        // If we found the activity in the current container, just select it directly
+        if (activityToSelect != null)
+        {
+            await _diagramDesigner!.SelectActivityAsync(activityToSelect.GetId());
+            return;
+        }
+
+        // Activity not found in current container - need to load the path from backend
         if (nodeId == null)
             return;
 
@@ -153,7 +157,7 @@ public partial class DiagramDesignerWrapper
             return;
 
         await IndexActivityNodes(pathSegmentsResponse.Container.Activity);
-        
+
         activityToSelect = pathSegmentsResponse.ChildNode.Activity;
         var pathSegments = pathSegmentsResponse.PathSegments.ToList();
         StateHasChanged();
@@ -166,7 +170,7 @@ public partial class DiagramDesignerWrapper
             foreach (var segment in pathSegments)
                 segments.Push(segment);
         });
-        
+
         // Display the new segment.
         _currentContainerActivity = null;
         await DisplayCurrentSegmentAsync();
@@ -439,13 +443,23 @@ public partial class DiagramDesignerWrapper
     {
         return _diagramDesigner?.DisplayDesigner(new(
             GetCurrentContainerActivityOrRoot(),
-            ActivitySelected,
+            EventCallback.Factory.Create<JsonObject>(this, OnActivitySelected),
             EventCallback.Factory.Create<JsonObject>(this, OnActivityUpdated),
             EventCallback.Factory.Create<ActivityEmbeddedPortSelectedArgs>(this, OnActivityEmbeddedPortSelected),
             EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
             EventCallback.Factory.Create(this, OnGraphUpdated),
             IsReadOnly,
             _activityStats));
+    }
+
+    private async Task OnActivitySelected(JsonObject activity)
+    {
+        // Update the last selected activity ID to prevent redundant selection calls
+        _lastSelectedNodeId = activity.GetId();
+
+        // Pass through to the original callback
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(activity);
     }
 
     private async Task OnActivityDoubleClick(JsonObject activity)

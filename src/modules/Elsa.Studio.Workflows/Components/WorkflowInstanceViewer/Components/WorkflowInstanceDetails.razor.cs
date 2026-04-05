@@ -80,11 +80,11 @@ public partial class WorkflowInstanceDetails
                 new DataPanelItem(Localizer["Status"], _workflowInstance.Status.ToString()),
                 new DataPanelItem(Localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
                 new DataPanelItem(Localizer["Incidents"], _workflowInstance.IncidentCount.ToString()),
-                new DataPanelItem(Localizer["Created"], TimeFormatter.Format(_workflowInstance.CreatedAt)),
-                new DataPanelItem(Localizer["Updated"], TimeFormatter.Format(_workflowInstance.UpdatedAt)),
-                new DataPanelItem(Localizer["Finished"], TimeFormatter.Format(_workflowInstance.FinishedAt)),
+                new DataPanelItem(Label: Localizer["Created"], Value: _workflowInstance.CreatedAt, Format: DataPanelItemFormat.Timestamp),
+                new DataPanelItem(Label: Localizer["Updated"], Value: _workflowInstance.UpdatedAt, Format: DataPanelItemFormat.Timestamp),
+                new DataPanelItem(Label: Localizer["Finished"], Value: _workflowInstance.FinishedAt, Format: DataPanelItemFormat.Timestamp),
                 new DataPanelItem(Localizer["Log Persistence Strategy"], GetLogPersistenceConfigurationDisplayName(GetLogPersistenceConfiguration()?.StrategyType)),
-                new DataPanelItem(Localizer["Workflow State"], JsonSerializer.Serialize(_workflowInstance.WorkflowState))
+                new DataPanelItem(Localizer["Workflow State"], Value: JsonSerializer.Serialize(_workflowInstance.WorkflowState), Format: DataPanelItemFormat.Code)
             };
         }
     }
@@ -177,6 +177,8 @@ public partial class WorkflowInstanceDetails
         }
     }
     
+    private ICollection<ActivityIncident> Incidents => _workflowInstance?.WorkflowState.Incidents ?? new List<ActivityIncident>();
+    
     private IEnumerable<DataPanelModel> IncidentsData
     {
         get
@@ -188,12 +190,19 @@ public partial class WorkflowInstanceDetails
                 .Select(i => new DataPanelModel
                 {
                     new DataPanelItem("ActivityId", i.ActivityId),
-                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId, null, () => OnIncidentActivityNodeIdClicked(i.ActivityNodeId)),
+                    new DataPanelItem("ActivityNodeId", i.ActivityNodeId),
                     new DataPanelItem("Message", i.Exception?.Message ?? ""),
-                    new DataPanelItem("InnerException", i.Exception?.InnerException != null
-                        ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message
-                        : ""),
-                    new DataPanelItem("StackTrace", i.Exception?.StackTrace ?? "")
+                    new DataPanelItem("InnerException", i.Exception?.InnerException != null ? i.Exception?.InnerException.Type + ": " + i.Exception?.InnerException.Message : ""),
+                    new DataPanelItem(Label: "StackTrace", Value: i.Exception?.StackTrace ?? "", Format: DataPanelItemFormat.Code),
+                    new DataPanelItem(
+                        LabelComponent: builder =>
+                        {
+                            var activityNodeId = i.ActivityNodeId;
+                            builder.OpenComponent<IncidentNavigateButton>(0);
+                            builder.AddAttribute(1, "OnClick", EventCallback.Factory.Create(this, () => OnIncidentActivityNodeIdClicked(activityNodeId)));
+                            builder.CloseComponent();
+                        }
+                    ),
                 });
         }
     }

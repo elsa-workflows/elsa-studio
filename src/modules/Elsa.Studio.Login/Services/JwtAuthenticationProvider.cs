@@ -1,5 +1,4 @@
-﻿using Elsa.Studio.Contracts;
-using Elsa.Studio.Login.Contracts;
+﻿using Elsa.Studio.Login.Contracts;
 
 namespace Elsa.Studio.Login.Services;
 
