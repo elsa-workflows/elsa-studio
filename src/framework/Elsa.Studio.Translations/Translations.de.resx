@@ -1223,7 +1223,7 @@
     <value />
   </data>
   <data name="The name of the function that the agent will execute." xml:space="preserve">
-    <value />
+    <value>Der Name der Funktion, welcher der Agent ausführen wird.</value>
   </data>
   <data name="Search" xml:space="preserve">
     <value />
@@ -1244,7 +1244,7 @@
     <value />
   </data>
   <data name="The name of the new secret." xml:space="preserve">
-    <value />
+    <value>Der Name des neuen Geheimnis</value>
   </data>
   <data name="The maximum number" xml:space="preserve">
     <value />
@@ -1430,7 +1430,7 @@
     <value />
   </data>
   <data name="The name of the new agent." xml:space="preserve">
-    <value />
+    <value>Der Name des neuen Agenten.</value>
   </data>
   <data name="The default key to use for the input name when sending the current item to the dispatched workflow. Will not be used if the Items field contain a list of dictionaries" xml:space="preserve">
     <value />
