@@ -1,13 +1,6 @@
-@using Elsa.Studio.Workflows.Services
 @using Variant = MudBlazor.Variant
-@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
-@using System.Text.Json.Nodes
-@using System.Text.Json
-@using Elsa.Studio.Workflows.Domain.Contracts
 @using Elsa.Studio.Workflows.Models
-@using Elsa.Studio.Workflows.UI.Contracts
 @inherits StudioComponentBase
-@using Microsoft.Extensions.Localization
 @inject ILocalizer Localizer
 
 <style>
@@ -48,7 +41,7 @@
                     <MudTreeView @ref="_treeView"
                                  Items="@_treeItemData"
                                  FilterFunc="@(x => MatchesName((ActivityTreeItem)x))"
-                                 SelectionMode="MudBlazor.SelectionMode.SingleSelection"
+                                 SelectionMode="SelectionMode.SingleSelection"
                                  Dense="true">
                         <ItemTemplate>
                             @{
@@ -59,10 +52,10 @@
                                              Visible="@item.Visible"
                                              Items="@item.Children"
                                              OnDoubleClick="@(() => OnItemDoubleClick(item))"
-                                             title="@Localizer[item.ActivityDescriptor?.Description]"
+                                             title="@(item.ActivityDescriptor?.Description is { } description ? Localizer[description] : "")"
                                              @bind-Expanded="@item.Expanded"
                                              draggable="@(item.ActivityDescriptor is not null ? "true" : "false")"
-                                             @ondragstart="@((e) => {
+                                             @ondragstart="@(() => {
                                                  if (item.ActivityDescriptor is not null)
                                                  {
                                                      OnDragStart(item.ActivityDescriptor);

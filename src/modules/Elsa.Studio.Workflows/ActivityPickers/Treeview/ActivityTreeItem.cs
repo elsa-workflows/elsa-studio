@@ -39,12 +39,18 @@ public class ActivityTreeItem : TreeItemData<string>
     public ActivityDescriptor ActivityDescriptor { get; set; }
 
     /// <summary>
+    /// The mutable list backing the <see cref="TreeItemData{T}.Children"/> property.
+    /// </summary>
+    public List<ITreeItemData<string>> ChildrenList { get; }
+
+    /// <summary>
     /// Represents an item in an activity tree, containing text and child items.
     /// </summary>
     /// <param name="text">The text associated with this activity tree item. Cannot be null or empty.</param>
-    public ActivityTreeItem(string text) : base(text)
+    public ActivityTreeItem(string text)
     {
         Text = text;
-        Children = [];
+        ChildrenList = [];
+        Children = ChildrenList;
     }
 }
