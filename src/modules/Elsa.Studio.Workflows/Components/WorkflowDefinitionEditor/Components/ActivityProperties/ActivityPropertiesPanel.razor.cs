@@ -62,7 +62,7 @@ public partial class ActivityPropertiesPanel
     [Inject] private IActivityTabRegistry ActivityTabRegistry { get; set; } = null!;
     private IEnumerable<IActivityTab> PluginTabs { get; set; } = new List<IActivityTab>();
 
-    private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
+    private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = default!;
     private bool IsResilienceEnabled { get; set; }
     private bool IsResilientActivity => ActivityDescriptor?.CustomProperties.TryGetValue("Resilient", out var resilientObj) == true && resilientObj.ConvertTo<bool>();  
     private bool DisplayResilienceTab => IsResilienceEnabled && IsResilientActivity;
@@ -87,6 +87,7 @@ public partial class ActivityPropertiesPanel
     {
         var expressionDescriptors = await ExpressionService.ListDescriptorsAsync();
         IsResilienceEnabled = await RemoteFeatureProvider.IsEnabledAsync("Elsa.Resilience");
+        ExpressionDescriptorProvider = new();
         ExpressionDescriptorProvider.AddRange(expressionDescriptors);
         PluginTabs = ActivityTabRegistry.List().ToList();
     }
