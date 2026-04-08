@@ -101,12 +101,12 @@ public interface IWorkflowDefinitionService
     /// <summary>
     /// Exports a workflow definition.
     /// </summary>
-    Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default);
+    Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Exports a set of workflow definitions.
     /// </summary>
-    Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+    Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the references of a workflow definition.

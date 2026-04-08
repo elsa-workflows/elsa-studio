@@ -12,7 +12,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
@@ -69,6 +68,10 @@ public partial class InputsTab
         // Only rebuild display models if the activity/descriptor actually changed
         if (activityOrDescriptorChanged || InputDisplayModels.Count == 0)
         {
+            // Yield to allow the Blazor renderer to complete the disposal cycle.
+            // This ensures BlazorMonaco's internal editor registry is updated before we create new editors.
+            await Task.Yield();
+            
             InputDisplayModels = (await BuildInputEditorModels()).ToList();
             _lastActivityId = currentActivityId;
             _lastActivityDescriptorTypeName = currentDescriptorTypeName;
@@ -117,6 +120,7 @@ public partial class InputsTab
 
             context.OnValueChanged = async v => await HandleValueChangedAsync(context, v);
             var editor = uiHintHandler.DisplayInputEditor(context);
+            
             models.Add(new(editor));
         }
 
