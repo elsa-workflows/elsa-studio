@@ -47,7 +47,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-storybook": "^0.12.0",
     "prop-types": "^15.8.1",
-    "storybook": "^8.6.11",
-    "vite": "^6.2.4"
+    "storybook": "^8.6.17",
+    "vite": "^6.4.2"
   }
 }
