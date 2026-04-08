@@ -95,7 +95,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnDeleteClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
-        var confirmed = await DialogService.ShowMessageBox(Localizer["Delete version {0}", workflowDefinitionSummary.Version], Localizer["Are you sure you want to delete this version?"]);
+        var confirmed = await DialogService.ShowMessageBoxAsync(Localizer["Delete version {0}", workflowDefinitionSummary.Version], Localizer["Are you sure you want to delete this version?"]);
 
         if (confirmed != true)
             return;
@@ -115,7 +115,7 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnBulkDeleteClicked()
     {
-        var confirmed = await DialogService.ShowMessageBox(Localizer["Delete selected versions"], Localizer["Are you sure you want to delete the selected versions?"]);
+        var confirmed = await DialogService.ShowMessageBoxAsync(Localizer["Delete selected versions"], Localizer["Are you sure you want to delete the selected versions?"]);
 
         if (confirmed != true)
             return;
