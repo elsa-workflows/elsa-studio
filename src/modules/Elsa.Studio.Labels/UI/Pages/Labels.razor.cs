@@ -144,7 +144,7 @@ public partial class Labels
     /// <param name="model">The label to delete.</param>
     private async Task OnDeleteClicked(LabelModel model)
     {
-        var result = await DialogService.ShowMessageBox("Delete label?", "Are you sure you want to delete this label?", yesText: "Delete", cancelText: "Cancel");
+        var result = await DialogService.ShowMessageBoxAsync("Delete label?", "Are you sure you want to delete this label?", yesText: "Delete", cancelText: "Cancel");
 
         if (result != true)
             return;
