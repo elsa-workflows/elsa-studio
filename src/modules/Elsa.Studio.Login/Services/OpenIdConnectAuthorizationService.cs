@@ -61,7 +61,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         };
 
         // Send request.
-        var response = await httpClient.SendAsync(refreshRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = await httpClient.SendAsync(refreshRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
             await ThrowTokenExchangeExceptionAsync(response, config, cancellationToken);
@@ -90,7 +90,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
             config.TokenEndpoint,
             response.StatusCode,
             response.ReasonPhrase,
-            correlationIds,
+            string.IsNullOrWhiteSpace(correlationIds) ? "none" : correlationIds,
             errorSummary);
 
         var message = $"""
@@ -111,7 +111,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
             .Distinct()
             .ToArray();
 
-        return headers.Length > 0 ? string.Join(", ", headers) : "none";
+        return headers.Length > 0 ? string.Join(", ", headers) : string.Empty;
     }
 
     private static async Task<string> ReadErrorSummaryAsync(HttpContent content, CancellationToken cancellationToken)
