@@ -8,6 +8,7 @@ using Elsa.Studio.Login.Models;
 using Elsa.Studio.Login.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Login.Extensions;
@@ -78,11 +79,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection UseOpenIdConnect(this IServiceCollection services, Action<OpenIdConnectConfiguration> configure)
     {
         services.Configure(configure);
+        services.TryAddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>();
 
         return services
                 .AddScoped<IAuthorizationService, OpenIdConnectAuthorizationService>()
                 .AddScoped<IRefreshTokenService, OpenIdConnectRefreshTokenService>()
-                .AddScoped<IAuthenticationProviderManager, DefaultAuthenticationProviderManager>()
                 .AddScoped<IEndSessionService, OpenIdConnectEndSessionService>()
             ;
     }

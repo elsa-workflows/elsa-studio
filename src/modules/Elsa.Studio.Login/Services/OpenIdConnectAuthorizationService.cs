@@ -2,16 +2,21 @@
 using Elsa.Studio.Login.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text;
 
 namespace Elsa.Studio.Login.Services;
 
 /// <inheritdoc/>
-public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOptions<OpenIdConnectConfiguration> configuration, NavigationManager navigationManager, HttpClient httpClient, IOpenIdConnectPkceStateService pkceStateService) : IAuthorizationService
+public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOptions<OpenIdConnectConfiguration> configuration, NavigationManager navigationManager, HttpClient httpClient, IOpenIdConnectPkceStateService pkceStateService, ILogger<OpenIdConnectAuthorizationService> logger) : IAuthorizationService
 {
+    private const int MaxLoggedErrorLength = 1024;
+    private static readonly string[] CorrelationIdHeaderNames = ["traceparent", "request-id", "x-request-id", "x-correlation-id", "x-ms-request-id", "x-ms-correlation-id"];
+
     /// <inheritdoc/>
     public async Task RedirectToAuthorizationServer()
     {
@@ -56,21 +61,10 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         };
 
         // Send request.
-        var response = await httpClient.SendAsync(refreshRequestMessage, cancellationToken);
+        var response = await httpClient.SendAsync(refreshRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"""
-                OIDC token endpoint returned an error response. This can occur if the authorization 
-                code is invalid or has already been used, or if there is a misconfiguration in the OIDC provider. 
-                Please check the OIDC provider's logs for more details on the error.
-
-                Token endpoint URL: {config.TokenEndpoint}
-                Status Code: {response.StatusCode}
-                ReasonPhrase: {response.ReasonPhrase}
-                Error: {await response.Content.ReadAsStringAsync(cancellationToken)}
-                """, null, response.StatusCode);
-        }
+            await ThrowTokenExchangeExceptionAsync(response, config, cancellationToken);
 
         var tokens = (await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken))!;
 
@@ -84,5 +78,87 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
             returnUrl = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(state));
         }
         navigationManager.NavigateTo(returnUrl, true);
+    }
+
+    private async Task ThrowTokenExchangeExceptionAsync(HttpResponseMessage response, OpenIdConnectConfiguration config, CancellationToken cancellationToken)
+    {
+        var errorSummary = await ReadErrorSummaryAsync(response.Content, cancellationToken);
+        var correlationIds = GetCorrelationIds(response);
+
+        logger.LogWarning(
+            "OIDC token exchange failed for endpoint {TokenEndpoint}. Status code: {StatusCode}. Reason phrase: {ReasonPhrase}. Correlation IDs: {CorrelationIds}. Error summary: {ErrorSummary}",
+            config.TokenEndpoint,
+            response.StatusCode,
+            response.ReasonPhrase,
+            correlationIds,
+            errorSummary);
+
+        var message = $"""
+            Authentication failed while completing the OpenID Connect sign-in flow.
+            Status Code: {response.StatusCode}
+            """;
+
+        if (!string.IsNullOrWhiteSpace(correlationIds))
+            message += $"\nCorrelation IDs: {correlationIds}";
+
+        throw new HttpRequestException(message, null, response.StatusCode);
+    }
+
+    private static string GetCorrelationIds(HttpResponseMessage response)
+    {
+        var headers = CorrelationIdHeaderNames
+            .SelectMany(headerName => response.Headers.TryGetValues(headerName, out var values) ? values : [])
+            .Distinct()
+            .ToArray();
+
+        return headers.Length > 0 ? string.Join(", ", headers) : "none";
+    }
+
+    private static async Task<string> ReadErrorSummaryAsync(HttpContent content, CancellationToken cancellationToken)
+    {
+        var (body, truncated) = await ReadContentSnippetAsync(content, cancellationToken);
+        if (string.IsNullOrWhiteSpace(body))
+            return truncated ? "Response body omitted because it exceeded the configured limit." : "Response body was empty.";
+
+        var summary = TryParseErrorSummary(body) ?? body;
+        summary = string.Join(" ", summary.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+        if (summary.Length > MaxLoggedErrorLength)
+            summary = summary[..MaxLoggedErrorLength];
+
+        return truncated ? $"{summary}…" : summary;
+    }
+
+    private static async Task<(string Content, bool Truncated)> ReadContentSnippetAsync(HttpContent content, CancellationToken cancellationToken)
+    {
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        using var reader = new StreamReader(stream);
+
+        var buffer = new char[MaxLoggedErrorLength + 1];
+        var read = await reader.ReadBlockAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+        return (new string(buffer, 0, Math.Min(read, MaxLoggedErrorLength)), read > MaxLoggedErrorLength);
+    }
+
+    private static string? TryParseErrorSummary(string content)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(content);
+            var root = document.RootElement;
+
+            if (root.TryGetProperty("error_description", out var errorDescription) && errorDescription.GetString() is { Length: > 0 } description)
+                return description;
+
+            if (root.TryGetProperty("error", out var error) && error.GetString() is { Length: > 0 } errorCode)
+                return errorCode;
+
+            if (root.TryGetProperty("message", out var message) && message.GetString() is { Length: > 0 } errorMessage)
+                return errorMessage;
+        }
+        catch (JsonException)
+        {
+        }
+
+        return null;
     }
 }
