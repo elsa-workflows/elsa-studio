@@ -167,6 +167,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         }
         catch (JsonException)
         {
+            // Best-effort JSON parsing only; if parsing fails, the caller falls back to the raw response snippet.
         }
 
         return null;
