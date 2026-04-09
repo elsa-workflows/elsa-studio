@@ -121,7 +121,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
             return truncated ? "Response body omitted because it exceeded the configured limit." : "Response body was empty.";
 
         var summary = TryParseErrorSummary(body) ?? body;
-        summary = string.Join(" ", summary.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        summary = string.Join(" ", summary.Split((string[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
         if (summary.Length > MaxLoggedErrorLength)
             summary = summary[..MaxLoggedErrorLength];
@@ -135,8 +135,18 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         using var reader = new StreamReader(stream);
 
         var buffer = new char[MaxLoggedErrorLength + 1];
-        var read = await reader.ReadBlockAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
-        return (new string(buffer, 0, Math.Min(read, MaxLoggedErrorLength)), read > MaxLoggedErrorLength);
+        var totalRead = 0;
+
+        while (totalRead < buffer.Length)
+        {
+            var read = await reader.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead), cancellationToken);
+            if (read == 0)
+                break;
+
+            totalRead += read;
+        }
+
+        return (new string(buffer, 0, Math.Min(totalRead, MaxLoggedErrorLength)), totalRead > MaxLoggedErrorLength);
     }
 
     private static string? TryParseErrorSummary(string content)
