@@ -70,7 +70,7 @@ public partial class ActivityPropertiesPanel
     private IEnumerable<IActivityTab> Tabs { get; set; } = Array.Empty<IActivityTab>();
 
     private IDictionary<string, object?> ActivityTabAttributes => new { WorkflowDefinition, Activity, ActivityDescriptor, OnActivityUpdated, VisiblePaneHeight }.ToDictionary();
-    private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; } = new();
+    private ExpressionDescriptorProvider ExpressionDescriptorProvider { get; set; } = new();
     private bool IsResilienceEnabled { get; set; }
     private bool IsResilientActivity => ActivityDescriptor?.CustomProperties.TryGetValue("Resilient", out var resilientObj) == true && resilientObj.ConvertTo<bool>();
     private bool DisplayResilienceTab => IsResilienceEnabled && IsResilientActivity;
