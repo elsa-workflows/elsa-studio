@@ -25,9 +25,7 @@ public class BackendServiceHttpConnectionOptionsConfigurator(BackendService back
         {
             options.Headers["Authorization"] = $"ApiKey {apiKey}";
         }
-        else if (!string.IsNullOrEmpty(accessToken))
-        {
-            options.AccessTokenProvider = () => Task.FromResult<string?>(accessToken);
+            options.AccessTokenProvider = () => Task.FromResult<string?>(backendService.AccessToken);
         }
 
         return Task.CompletedTask;
