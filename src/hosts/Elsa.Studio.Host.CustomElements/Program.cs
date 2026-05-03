@@ -1,3 +1,4 @@
+using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Contracts;
@@ -51,6 +52,7 @@ builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
+builder.Services.AddScoped<IHttpConnectionOptionsConfigurator, BackendServiceHttpConnectionOptionsConfigurator>();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
