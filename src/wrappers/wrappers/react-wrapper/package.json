@@ -27,7 +27,7 @@
     "@elsa-workflows/elsa-studio-wasm": "^3.4.0-rc1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "uuid": "^11.1.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.11",
