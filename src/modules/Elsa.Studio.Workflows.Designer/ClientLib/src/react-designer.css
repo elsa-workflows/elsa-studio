@@ -1,0 +1,243 @@
+/* ----- Activity host (the inner box that holds the Blazor element) ----- */
+
+.elsa-react-activity-host {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.elsa-react-activity-host {
+    display: inline-block;
+}
+
+.elsa-react-activity-host > elsa-activity-wrapper {
+    display: block;
+}
+
+/* ----- Node container (React Flow's wrapper around our custom node) ----- */
+/* Note: keep dimensions untouched — they come from C# (X6Size). Only style
+   shadows, transitions and selection. */
+
+.elsa-react-flowchart-designer .react-flow__node {
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 6px;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    filter: drop-shadow(0 1px 3px rgba(15, 23, 42, 0.06));
+}
+
+.elsa-react-flowchart-designer .react-flow__node:hover {
+    filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.12));
+}
+
+.elsa-react-flowchart-designer .react-flow__node.selected {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 1px;
+    border-radius: 6px;
+    filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.18));
+}
+
+/* React Flow's default selection halo can cover the activity body — hide it,
+   we replace it with the outline above. */
+.elsa-react-flowchart-designer .react-flow__node-default.selected,
+.elsa-react-flowchart-designer .react-flow__nodesselection-rect {
+    background: transparent;
+}
+
+/* ----- Handles (ports) ----- */
+
+.elsa-react-flowchart-designer .react-flow__handle {
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border: 2px solid #94a3b8;
+    transition: background 0.15s ease, border-color 0.15s ease,
+                box-shadow 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.elsa-react-flowchart-designer .react-flow__handle:hover {
+    width: 12px;
+    height: 12px;
+    background: #0ea5e9;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.18);
+}
+
+/* Left = input, right = output: visually distinguish them. */
+.elsa-react-flowchart-designer .react-flow__handle-left {
+    background: #ffffff;
+    border-color: #38bdf8;
+}
+
+.elsa-react-flowchart-designer .react-flow__handle-right {
+    background: #38bdf8;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 1px #38bdf8;
+}
+
+.elsa-react-flowchart-designer .react-flow__handle-connecting {
+    background: #f59e0b;
+    border-color: #ffffff;
+}
+
+.elsa-react-flowchart-designer .react-flow__handle-valid {
+    background: #10b981;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
+}
+
+/* ----- Edges ----- */
+
+.elsa-react-flowchart-designer .react-flow__edge-path {
+    stroke: #94a3b8;
+    stroke-width: 2;
+    transition: stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+.elsa-react-flowchart-designer .react-flow__edge:hover .react-flow__edge-path {
+    stroke: #0ea5e9;
+    stroke-width: 2.5;
+}
+
+.elsa-react-flowchart-designer .react-flow__edge.selected .react-flow__edge-path {
+    stroke: #0ea5e9;
+    stroke-width: 2.5;
+}
+
+/* Animated "flowing" edges. React Flow ships a default keyframe; we tune the
+   dash size + speed so the flow reads as continuous motion rather than busy. */
+.elsa-react-flowchart-designer .react-flow__edge.animated .react-flow__edge-path {
+    stroke-dasharray: 8 6;
+    animation: elsa-rf-flow 0.9s linear infinite;
+}
+
+.elsa-react-flowchart-designer .react-flow__edge.animated:hover .react-flow__edge-path,
+.elsa-react-flowchart-designer .react-flow__edge.animated.selected .react-flow__edge-path {
+    animation-duration: 0.6s;
+}
+
+@keyframes elsa-rf-flow {
+    to { stroke-dashoffset: -28; }
+}
+
+/* Animated dashed line shown while dragging a new connection. */
+.elsa-react-flowchart-designer .react-flow__connectionline path {
+    stroke: #0ea5e9;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+    animation: elsa-rf-dash 0.6s linear infinite;
+}
+
+@keyframes elsa-rf-dash {
+    to { stroke-dashoffset: -10; }
+}
+
+/* ----- Background dots ----- */
+
+.elsa-react-flowchart-designer .react-flow__background {
+    color: #cbd5e1;
+}
+
+/* ----- MiniMap & Controls polish ----- */
+
+.elsa-react-flowchart-designer .react-flow__minimap,
+.elsa-react-flowchart-designer .react-flow__controls {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.elsa-react-flowchart-designer .react-flow__controls-button {
+    border: none;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+.elsa-react-flowchart-designer .react-flow__controls-button:hover {
+    background: rgba(14, 165, 233, 0.10);
+}
+
+.elsa-react-flowchart-designer .react-flow__minimap-mask {
+    fill: rgba(15, 23, 42, 0.05);
+}
+
+/* ----- Custom edge: hover-delete + vertex handles ----- */
+
+.elsa-react-flowchart-designer .elsa-react-flow-edge-hit {
+    cursor: crosshair;
+    pointer-events: stroke;
+}
+
+.elsa-react-flowchart-designer .elsa-react-flow-edge-vertex {
+    fill: #ffffff;
+    stroke: #0ea5e9;
+    stroke-width: 2;
+    cursor: grab;
+    transition: r 0.15s ease, fill 0.15s ease;
+}
+
+.elsa-react-flowchart-designer .elsa-react-flow-edge-vertex:hover {
+    fill: #0ea5e9;
+    r: 6;
+}
+
+.elsa-react-flowchart-designer .elsa-react-flow-edge-vertex:active {
+    cursor: grabbing;
+}
+
+.elsa-react-flow-edge-remove {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    padding: 0;
+}
+
+.elsa-react-flow-edge-remove:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* ----- Snap / alignment guides ----- */
+
+.elsa-react-flow-snap-lines line {
+    stroke: #f97316;
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+    shape-rendering: crispEdges;
+}
+
+/* ----- Badge ----- */
+
+.elsa-react-flow-badge {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+    pointer-events: none;
+}

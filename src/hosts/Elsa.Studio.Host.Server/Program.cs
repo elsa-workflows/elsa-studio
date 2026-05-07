@@ -20,6 +20,7 @@ using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Extensions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -125,6 +126,9 @@ builder.Services.AddScoped<IActivityPickerComponentProvider, TreeviewActivityPic
 //    // Example - Replace the default category resolver with a custom one.
 //    CategoryDisplayResolver = category => category.Split('/').Last().Trim()
 //});
+
+// Bind designer options from appsettings.json (e.g. "DesignerOptions:UseReactFlow").
+builder.Services.Configure<DesignerOptions>(configuration.GetSection("DesignerOptions"));
 
 // Uncomment for V1 designer theme (default is V2).
 // builder.Services.Configure<DesignerOptions>(options =>

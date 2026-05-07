@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMapperFactory, MapperFactory>()
-            .AddScoped<DesignerJsInterop>();
+            .AddScoped<DesignerJsInterop>()
+            .AddScoped<ReactFlowJsInterop>();
     }
 }
