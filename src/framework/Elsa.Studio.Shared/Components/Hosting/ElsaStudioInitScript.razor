@@ -1,0 +1,69 @@
+@namespace Elsa.Studio.Shared.Components.Hosting
+
+@*
+    Elsa Studio Initialization Script Component - Includes JavaScript for loading screen and Blazor initialization.
+    Usage: <ElsaStudioInitScript Mode="BlazorHostingMode.Server" />
+*@
+
+<script src="_content/Elsa.Studio.Shared/js/elsa-studio-init.js"></script>
+
+@if (Mode == BlazorHostingMode.Server)
+{
+    <script>
+        ElsaStudio.initializeBlazorServer(@MaxWaitTimeMs);
+    </script>
+}
+else if (Mode == BlazorHostingMode.WebAssembly)
+{
+    <script>
+        // Initialize Blazor WASM when DOM is ready
+        function initializeElsaBlazorWasm() {
+            @if (CustomConfig != null)
+            {
+                @:ElsaStudio.initializeBlazorWasm(@CustomConfig);
+            }
+            else
+            {
+                @:ElsaStudio.initializeBlazorWasm();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeElsaBlazorWasm);
+        } else {
+            initializeElsaBlazorWasm();
+        }
+
+        // Safety timeout
+        setTimeout(() => {
+            ElsaStudio.hideLoading();
+        }, @SafetyTimeoutMs);
+    </script>
+}
+
+@code {
+    /// <summary>
+    /// The Blazor hosting mode (Server or WebAssembly).
+    /// </summary>
+    [Parameter]
+    public BlazorHostingMode Mode { get; set; } = BlazorHostingMode.Server;
+
+    /// <summary>
+    /// For Server mode: Maximum time (in milliseconds) to wait before hiding loading screen. Default is 10000 (10 seconds).
+    /// </summary>
+    [Parameter]
+    public int MaxWaitTimeMs { get; set; } = 10000;
+
+    /// <summary>
+    /// For WebAssembly mode: Safety timeout (in milliseconds) to ensure loading screen is hidden. Default is 5000 (5 seconds).
+    /// </summary>
+    [Parameter]
+    public int SafetyTimeoutMs { get; set; } = 5000;
+
+    /// <summary>
+    /// For WebAssembly mode: Custom Blazor configuration as a JavaScript object literal. 
+    /// Example: "{ loadBootResource: function(type, name, defaultUri, integrity) { return defaultUri; } }"
+    /// </summary>
+    [Parameter]
+    public string? CustomConfig { get; set; }
+}

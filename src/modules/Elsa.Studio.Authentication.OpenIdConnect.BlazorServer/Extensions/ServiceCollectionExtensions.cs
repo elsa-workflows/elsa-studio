@@ -124,6 +124,9 @@ public static class ServiceCollectionExtensions
         // Use an OIDC-aware unauthorized component that initiates a challenge.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<ChallengeToLogin>>();
         
+        // Register OIDC-specific logout service (overrides default)
+        services.AddScoped<ILogoutService, OidcLogoutService>();
+        
         // HTTP client for token refresh requests with retry policy
         var retryPolicy = configureRetryPolicy?.Invoke() ?? DefaultRetryPolicy;
         services.AddHttpClient(TokenRefreshService.AnonymousHttpClientName)

@@ -4,6 +4,7 @@ using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Monaco.Handlers;
 using Elsa.Studio.Services;
+using Elsa.Studio.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Radzen;
 
@@ -29,6 +30,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITimeFormatter, DefaultTimeFormatter>();
         services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
         services.AddScoped<IBrandingProvider, DefaultBrandingProvider>();
+
+        // Default logout service (can be overridden by authentication modules)
+        services.AddScoped<ILogoutService, DefaultLogoutService>();
 
         // Required for the Radzen.Blazor.RadzenHtmlEditorLink component to work.
         services.AddRadzenComponents();
