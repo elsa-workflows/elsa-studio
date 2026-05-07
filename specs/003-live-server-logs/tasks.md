@@ -17,12 +17,12 @@
 
 **Purpose**: Create the Studio module shell and register it with the solution.
 
-- [ ] T001 Create `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` with references to Studio shared/core projects and SignalR client packages already used by Studio.
-- [ ] T002 Add `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` to `Elsa.Studio.sln`.
-- [ ] T003 Create `src/modules/Elsa.Studio.ServerLogs/_Imports.razor` with module imports matching adjacent Studio modules.
-- [ ] T004 Create `src/modules/Elsa.Studio.ServerLogs/Feature.cs` for the Studio feature class.
-- [ ] T005 Create `src/modules/Elsa.Studio.ServerLogs/Extensions/ServiceCollectionExtensions.cs` with `AddServerLogsModule`.
-- [ ] T006 Create `src/modules/Elsa.Studio.ServerLogs/Menu/ServerLogsMenu.cs` for the Server Logs menu item.
+- [X] T001 Create `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` with references to Studio shared/core projects and SignalR client packages already used by Studio.
+- [X] T002 Add `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` to `Elsa.Studio.sln`.
+- [X] T003 Create `src/modules/Elsa.Studio.ServerLogs/_Imports.razor` with module imports matching adjacent Studio modules.
+- [X] T004 Create `src/modules/Elsa.Studio.ServerLogs/Feature.cs` for the Studio feature class.
+- [X] T005 Create `src/modules/Elsa.Studio.ServerLogs/Extensions/ServiceCollectionExtensions.cs` with `AddServerLogsModule`.
+- [X] T006 Create `src/modules/Elsa.Studio.ServerLogs/Menu/ServerLogsMenu.cs` for the Server Logs menu item.
 
 ---
 
@@ -32,17 +32,17 @@
 
 **Critical**: No user story work should begin until this phase is complete.
 
-- [ ] T007 Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogLevel.cs` for UI log level values.
-- [ ] T008 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogEvent.cs` from `data-model.md`.
-- [ ] T009 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogSource.cs` from `data-model.md`.
-- [ ] T010 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogFilter.cs` from `data-model.md`.
-- [ ] T011 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogConnectionStatus.cs` for disconnected, connecting, connected, reconnecting, unavailable, and unauthorized states.
-- [ ] T012 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogViewState.cs` for local row cap, pause, auto-scroll, wrap, compact, and discarded-row state.
-- [ ] T013 Create `src/modules/Elsa.Studio.ServerLogs/Client/IServerLogsApi.cs` from `contracts/backend-client.md`.
-- [ ] T014 [P] Create `src/modules/Elsa.Studio.ServerLogs/Contracts/IServerLogService.cs` for recent logs and source loading.
-- [ ] T015 [P] Create `src/modules/Elsa.Studio.ServerLogs/Contracts/IServerLogObserver.cs` for SignalR live subscription lifecycle.
-- [ ] T016 Add remote feature gating metadata to `src/modules/Elsa.Studio.ServerLogs/Feature.cs`.
-- [ ] T017 Register services and menu provider in `src/modules/Elsa.Studio.ServerLogs/Extensions/ServiceCollectionExtensions.cs`.
+- [X] T007 Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogLevel.cs` for UI log level values.
+- [X] T008 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogEvent.cs` from `data-model.md`.
+- [X] T009 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogSource.cs` from `data-model.md`.
+- [X] T010 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogFilter.cs` from `data-model.md`.
+- [X] T011 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogConnectionStatus.cs` for disconnected, connecting, connected, reconnecting, unavailable, and unauthorized states.
+- [X] T012 [P] Create `src/modules/Elsa.Studio.ServerLogs/Models/ServerLogViewState.cs` for local row cap, pause, auto-scroll, wrap, compact, and discarded-row state.
+- [X] T013 Create `src/modules/Elsa.Studio.ServerLogs/Client/IServerLogsApi.cs` from `contracts/backend-client.md`.
+- [X] T014 [P] Create `src/modules/Elsa.Studio.ServerLogs/Contracts/IServerLogService.cs` for recent logs and source loading.
+- [X] T015 [P] Create `src/modules/Elsa.Studio.ServerLogs/Contracts/IServerLogObserver.cs` for SignalR live subscription lifecycle.
+- [X] T016 Add remote feature gating metadata to `src/modules/Elsa.Studio.ServerLogs/Feature.cs`.
+- [X] T017 Register services and menu provider in `src/modules/Elsa.Studio.ServerLogs/Extensions/ServiceCollectionExtensions.cs`.
 
 **Checkpoint**: Module shell, models, contracts, API client, and feature gating compile.
 
@@ -62,14 +62,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Implement recent-log loading in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
-- [ ] T022 [US1] Implement hub URL construction and authenticated connection setup in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
-- [ ] T023 [US1] Implement subscribe, unsubscribe, event callback, connection status, and disposal in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
-- [ ] T024 [US1] Create `/server-logs` route markup in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T025 [US1] Implement page initialization, recent backfill, live observer startup, and disposal in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T026 [US1] Implement compact log row rendering in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T027 [US1] Implement pause/resume, clear, reconnect, auto-scroll, wrap, and compact toolbar actions in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T028 [US1] Add local row cap and discarded-row indicator in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T021 [US1] Implement recent-log loading in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
+- [X] T022 [US1] Implement hub URL construction and authenticated connection setup in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
+- [X] T023 [US1] Implement subscribe, unsubscribe, event callback, connection status, and disposal in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
+- [X] T024 [US1] Create `/server-logs` route markup in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T025 [US1] Implement page initialization, recent backfill, live observer startup, and disposal in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T026 [US1] Implement compact log row rendering in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T027 [US1] Implement pause/resume, clear, reconnect, auto-scroll, wrap, and compact toolbar actions in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T028 [US1] Add local row cap and discarded-row indicator in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 
 **Checkpoint**: User Story 1 is functional and testable as a single-page live log viewer against an enabled backend.
 
@@ -133,7 +133,7 @@
 
 - [ ] T049 Add workflow instance viewer action/link to `/server-logs?workflowInstanceId=...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor`.
 - [ ] T050 Add workflow instance query handling to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T051 Add module reference to bundled Studio in `src/bundles/Elsa.Studio/Elsa.Studio.csproj`.
+- [X] T051 Add module reference to bundled Studio in `src/bundles/Elsa.Studio/Elsa.Studio.csproj`.
 - [ ] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
 - [ ] T053 [P] Add package metadata and tags in `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj`.
 - [ ] T054 Validate the quickstart against a backend with log streaming enabled and update `specs/003-live-server-logs/quickstart.md`.
