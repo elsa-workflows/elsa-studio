@@ -129,6 +129,62 @@ function fromReactFlowEdge(edge: Edge): ElsaEdge {
     };
 }
 
+// Pick the "default" outgoing edge from a node — prefer one whose sourceHandle
+// is exactly "Done" (Elsa's canonical default port), else the first 'out'
+// edge we find. Used to bridge predecessors to successors when a node in the
+// middle is removed.
+function pickDefaultOutgoing(edges: Edge[], nodeId: string): Edge | undefined {
+    const outs = edges.filter(e => e.source === nodeId);
+    if (outs.length === 0) return undefined;
+    return outs.find(e => (e.sourceHandle ?? '').toLowerCase() === 'done') ?? outs[0];
+}
+
+// Walk forward from `fromId` along default-output edges, skipping any nodes in
+// `removedIds`, until we land on a surviving target. Returns null if we reach
+// a dead end or detect a cycle.
+function findFirstAliveSuccessor(
+    fromId: string,
+    removedIds: Set<string>,
+    allEdges: Edge[],
+    visited: Set<string> = new Set(),
+): { target: string; targetHandle?: string | null } | null {
+    if (visited.has(fromId)) return null;
+    visited.add(fromId);
+    const def = pickDefaultOutgoing(allEdges, fromId);
+    if (!def) return null;
+    if (removedIds.has(def.target)) {
+        return findFirstAliveSuccessor(def.target, removedIds, allEdges, visited);
+    }
+    return { target: def.target, targetHandle: def.targetHandle ?? null };
+}
+
+// Builds bridge edges that re-link predecessors of removed nodes to the first
+// surviving successor reachable via default-output edges. De-duplicates so we
+// never produce two parallel edges between the same source/target/handles.
+function computeReconnectingBridges(removedIds: Set<string>, allEdges: Edge[]): Edge[] {
+    const bridges: Edge[] = [];
+    const seen = new Set<string>();
+    for (const removedId of removedIds) {
+        const incoming = allEdges.filter(e => e.target === removedId && !removedIds.has(e.source));
+        if (incoming.length === 0) continue;
+        const successor = findFirstAliveSuccessor(removedId, removedIds, allEdges);
+        if (!successor) continue;
+        for (const inEdge of incoming) {
+            const key = `${inEdge.source}:${inEdge.sourceHandle ?? ''}->${successor.target}:${successor.targetHandle ?? ''}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            bridges.push({
+                id: `${key}#bridge-${Date.now()}-${bridges.length}`,
+                source: inEdge.source,
+                target: successor.target,
+                sourceHandle: inEdge.sourceHandle ?? undefined,
+                targetHandle: successor.targetHandle ?? undefined,
+            });
+        }
+    }
+    return bridges;
+}
+
 function fromReactFlowNode(node: Node<ActivityNodeData>): ElsaActivityNode {
     // Prefer the measured size (the rendered body's actual dimensions) over a
     // stale persisted size; fall back through style and finally a sensible
@@ -273,20 +329,43 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         onEmbeddedPortClickRef.current(activity, portName);
     }, []);
 
-    // ----- Delete-from-button on activity ----------------------------------
-    // Activity nodes render a small × button when selected; clicking it routes
-    // through this stable callback. We use a ref so the closure that nodes
-    // capture stays valid as readOnly/snapshot/interop change.
-    const onDeleteNodeRef = useRef<(nodeId: string) => void>(() => {});
-    onDeleteNodeRef.current = useCallback((nodeId: string) => {
-        if (readOnlyRef.current) return;
-        const nextNodes = nodesRef.current.filter(n => n.id !== nodeId);
-        const nextEdges = edgesRef.current.filter(e => e.source !== nodeId && e.target !== nodeId);
+    // ----- Remove nodes and bridge surviving neighbors ---------------------
+    // Used by both the × delete button on activities and the Delete key path.
+    // For each removed node, looks up its predecessors and the first alive
+    // successor via the default outgoing port (Done or first 'out'), then
+    // links predecessor → successor so the user doesn't have to manually
+    // re-stitch the workflow.
+    const removeNodesWithBridge = useCallback((nodeIds: string[]) => {
+        if (readOnlyRef.current || nodeIds.length === 0) return;
+        const removedIds = new Set(nodeIds);
+        const allEdges = edgesRef.current;
+        const bridges = computeReconnectingBridges(removedIds, allEdges);
+
+        // De-dup against any pre-existing edge that already matches a bridge.
+        const existing = new Set(allEdges
+            .filter(e => !removedIds.has(e.source) && !removedIds.has(e.target))
+            .map(e => `${e.source}:${e.sourceHandle ?? ''}->${e.target}:${e.targetHandle ?? ''}`));
+        const filteredBridges = bridges.filter((b: Edge) =>
+            !existing.has(`${b.source}:${b.sourceHandle ?? ''}->${b.target}:${b.targetHandle ?? ''}`),
+        );
+
+        const nextNodes = nodesRef.current.filter(n => !removedIds.has(n.id));
+        const nextEdges = [
+            ...allEdges.filter(e => !removedIds.has(e.source) && !removedIds.has(e.target)),
+            ...filteredBridges,
+        ];
         setNodes(nextNodes);
         setEdges(nextEdges);
         snapshot(nextNodes, nextEdges);
         interop.raiseGraphUpdated();
     }, [interop, snapshot]);
+
+    // Stable callback passed to ActivityNode via node data. Ref-backed so
+    // captured closures stay current across renders.
+    const onDeleteNodeRef = useRef<(nodeId: string) => void>(() => {});
+    onDeleteNodeRef.current = useCallback((nodeId: string) => {
+        removeNodesWithBridge([nodeId]);
+    }, [removeNodesWithBridge]);
     const onDeleteNode = useCallback((nodeId: string) => {
         onDeleteNodeRef.current(nodeId);
     }, []);
@@ -433,14 +512,29 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     const onNodesChange = useCallback((changes: NodeChange[]) => {
         if (readOnly) return;
         const positionDone = changes.some(c => c.type === 'position' && (c as any).dragging === false);
-        const removed = changes.some(c => c.type === 'remove');
+        const removeIds = changes
+            .filter(c => c.type === 'remove')
+            .map((c: any) => c.id as string);
+
+        if (removeIds.length > 0) {
+            // Route removals (Delete/Backspace key) through the bridge helper
+            // so neighbors are auto-stitched. Apply any non-remove changes in
+            // the same batch (e.g. selection updates) afterwards.
+            removeNodesWithBridge(removeIds);
+            const otherChanges = changes.filter(c => c.type !== 'remove');
+            if (otherChanges.length > 0) {
+                setNodes(prev => applyNodeChanges(otherChanges, prev) as Node<ActivityNodeData>[]);
+            }
+            return;
+        }
+
         setNodes(prev => {
             const next = applyNodeChanges(changes, prev) as Node<ActivityNodeData>[];
-            if (positionDone || removed) snapshot(next, edgesRef.current);
+            if (positionDone) snapshot(next, edgesRef.current);
             return next;
         });
-        if (positionDone || removed) interop.raiseGraphUpdated();
-    }, [readOnly, interop, snapshot]);
+        if (positionDone) interop.raiseGraphUpdated();
+    }, [readOnly, interop, snapshot, removeNodesWithBridge]);
 
     const onEdgesChange = useCallback((changes: EdgeChange[]) => {
         if (readOnly) return;
