@@ -131,7 +131,7 @@
 
 **Purpose**: Add contextual navigation, packaging, docs, and final validation.
 
-- [ ] T049 Add workflow instance viewer action/link to `/server-logs?workflowInstanceId=...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor`.
+- [X] T049 Add workflow instance viewer action/link to `/server-logs?workflowInstanceId=...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor.cs`.
 - [X] T050 Add workflow instance query handling to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 - [X] T051 Add module reference to bundled Studio in `src/bundles/Elsa.Studio/Elsa.Studio.csproj`.
 - [ ] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
