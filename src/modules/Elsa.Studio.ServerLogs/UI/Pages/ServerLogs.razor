@@ -69,6 +69,50 @@
         </MudStack>
     </MudPaper>
 
+    <MudPaper Elevation="0" Outlined="true" Class="server-logs-filters mt-2">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="server-logs-toolbar-row">
+            <MudSelect T="string"
+                       Label="@Localizer["Source"]"
+                       Value="@ViewState.Filter.SourceId"
+                       ValueChanged="SetSourceAsync"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Dense="true"
+                       Class="server-logs-source-select">
+                <MudSelectItem T="string" Value="@(null!)">@Localizer["All sources"]</MudSelectItem>
+                @foreach (var source in Sources)
+                {
+                    <MudSelectItem T="string" Value="@source.Id">@SourceDisplayName(source)</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="@(ServerLogLevel?)"
+                       Label="@Localizer["Minimum level"]"
+                       Value="@ViewState.Filter.MinimumLevel"
+                       ValueChanged="SetMinimumLevelAsync"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Dense="true"
+                       Class="server-logs-level-select">
+                <MudSelectItem T="@(ServerLogLevel?)" Value="@(null)">@Localizer["All levels"]</MudSelectItem>
+                @foreach (var level in LogLevels)
+                {
+                    <MudSelectItem T="@(ServerLogLevel?)" Value="@level">@level</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudTextField T="string"
+                          Label="@Localizer["Text"]"
+                          Value="@ViewState.Filter.Text"
+                          ValueChanged="SetTextFilterAsync"
+                          Immediate="true"
+                          DebounceInterval="300"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="server-logs-text-filter" />
+        </MudStack>
+    </MudPaper>
+
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">@ErrorMessage</MudAlert>
@@ -91,7 +135,7 @@
                 <article class="@RowCssClass(logEvent)">
                     <time class="server-log-time" title="@logEvent.Timestamp.ToString("O")">@FormatTimestamp(logEvent.Timestamp)</time>
                     <span class="@LevelCssClass(logEvent.Level)">@logEvent.Level</span>
-                    <span class="server-log-source" title="@logEvent.SourceId">@Shorten(logEvent.SourceId, 28)</span>
+                    <span class="server-log-source" title="@logEvent.SourceId">@Shorten(SourceDisplayName(logEvent.SourceId), 28)</span>
                     <span class="server-log-category" title="@logEvent.Category">@Shorten(logEvent.Category, 64)</span>
                     <span class="server-log-message">@logEvent.Message</span>
 

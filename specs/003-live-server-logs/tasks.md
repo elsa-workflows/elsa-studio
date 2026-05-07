@@ -90,10 +90,10 @@
 ### Implementation for User Story 2
 
 - [ ] T032 [US2] Implement filter-to-REST query mapping in `src/modules/Elsa.Studio.ServerLogs/Services/ServerLogFilterMapper.cs`.
-- [ ] T033 [US2] Apply level, text, category, tenant, workflow instance, trace/correlation, and time filters in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
-- [ ] T034 [US2] Implement SignalR filter update in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
-- [ ] T035 [US2] Add filter controls to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T036 [US2] Add debounced filter refresh and live subscription update in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T033 [US2] Apply level, text, category, tenant, workflow instance, trace/correlation, and time filters in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
+- [X] T034 [US2] Implement SignalR filter update in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
+- [X] T035 [US2] Add filter controls to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T036 [US2] Add debounced filter refresh and live subscription update in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 - [ ] T037 [US2] Preserve primary filters in URL query string in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 - [ ] T038 [US2] Add unauthorized, unavailable, disconnected, reconnecting, empty, and no-match states in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
 - [ ] T039 [US2] Add copy selected and copy visible behavior in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
@@ -116,12 +116,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Implement source loading in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
-- [ ] T044 [US3] Add source selector with `All sources` option in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T045 [US3] Apply selected source filter to recent and live subscriptions in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T046 [US3] Render source badges and long pod names safely in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T047 [US3] Render source health indicators for connected, stale, disconnected, and unknown sources in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T048 [US3] Handle source change notifications from the observer in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
+- [X] T043 [US3] Implement source loading in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
+- [X] T044 [US3] Add source selector with `All sources` option in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T045 [US3] Apply selected source filter to recent and live subscriptions in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T046 [US3] Render source badges and long pod names safely in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T047 [US3] Render source health indicators for connected, stale, disconnected, and unknown sources in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T048 [US3] Handle source change notifications from the observer in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
 
 **Checkpoint**: All stories are independently functional with merged and source-specific log views.
 

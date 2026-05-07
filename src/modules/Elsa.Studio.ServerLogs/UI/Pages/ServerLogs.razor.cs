@@ -14,7 +14,18 @@ namespace Elsa.Studio.ServerLogs.UI.Pages;
 public partial class ServerLogs : IAsyncDisposable
 {
     private const string LogSurfaceId = "server-logs-surface";
+    private static readonly IReadOnlyCollection<ServerLogLevel> LogLevels =
+    [
+        ServerLogLevel.Trace,
+        ServerLogLevel.Debug,
+        ServerLogLevel.Information,
+        ServerLogLevel.Warning,
+        ServerLogLevel.Error,
+        ServerLogLevel.Critical
+    ];
+
     private readonly List<ServerLogEvent> _rows = new();
+    private readonly List<ServerLogSource> _sources = new();
     private CancellationTokenSource _cancellationTokenSource = new();
 
     /// <summary>
@@ -46,6 +57,11 @@ public partial class ServerLogs : IAsyncDisposable
     /// Gets the rendered rows.
     /// </summary>
     protected IReadOnlyList<ServerLogEvent> Rows => _rows;
+
+    /// <summary>
+    /// Gets the available backend log sources.
+    /// </summary>
+    protected IReadOnlyList<ServerLogSource> Sources => _sources;
 
     /// <summary>
     /// Gets a value indicating whether the page is loading.
@@ -83,6 +99,7 @@ public partial class ServerLogs : IAsyncDisposable
         Observer.LogReceived += OnLogReceivedAsync;
         Observer.DroppedEventsReceived += OnDroppedEventsReceivedAsync;
         Observer.ConnectionStatusChanged += OnConnectionStatusChangedAsync;
+        Observer.SourceChanged += OnSourceChangedAsync;
         await ActivateAsync(_cancellationTokenSource.Token);
     }
 
@@ -114,6 +131,24 @@ public partial class ServerLogs : IAsyncDisposable
     {
         ErrorMessage = null;
         await Observer.ReconnectAsync(ViewState.Filter, _cancellationTokenSource.Token);
+    }
+
+    protected async Task SetSourceAsync(string? sourceId)
+    {
+        ViewState.Filter.SourceId = string.IsNullOrWhiteSpace(sourceId) ? null : sourceId;
+        await RefreshFilterAsync();
+    }
+
+    protected async Task SetMinimumLevelAsync(ServerLogLevel? level)
+    {
+        ViewState.Filter.MinimumLevel = level;
+        await RefreshFilterAsync();
+    }
+
+    protected async Task SetTextFilterAsync(string? text)
+    {
+        ViewState.Filter.Text = string.IsNullOrWhiteSpace(text) ? null : text;
+        await RefreshFilterAsync();
     }
 
     protected async Task SetAutoScrollAsync(bool value)
@@ -150,6 +185,21 @@ public partial class ServerLogs : IAsyncDisposable
 
     protected string RowCssClass(ServerLogEvent logEvent) => $"server-log-row server-log-row-{logEvent.Level.ToString().ToLowerInvariant()}";
 
+    protected string SourceDisplayName(string? sourceId)
+    {
+        if (string.IsNullOrWhiteSpace(sourceId))
+            return "";
+
+        var source = _sources.FirstOrDefault(x => string.Equals(x.Id, sourceId, StringComparison.OrdinalIgnoreCase));
+        return source == null ? sourceId : SourceDisplayName(source);
+    }
+
+    protected static string SourceDisplayName(ServerLogSource source)
+    {
+        var name = !string.IsNullOrWhiteSpace(source.DisplayName) ? source.DisplayName : source.Id;
+        return source.Status == ServerLogSourceStatus.Connected ? name : $"{name} ({source.Status})";
+    }
+
     private async Task ActivateAsync(CancellationToken cancellationToken)
     {
         IsLoading = true;
@@ -157,6 +207,7 @@ public partial class ServerLogs : IAsyncDisposable
 
         try
         {
+            await LoadSourcesAsync(cancellationToken);
             var recent = await ServerLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, cancellationToken);
             BackendDroppedCount = recent.DroppedEventCount;
 
@@ -175,6 +226,45 @@ public partial class ServerLogs : IAsyncDisposable
         {
             IsLoading = false;
         }
+    }
+
+    private async Task RefreshFilterAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            _rows.Clear();
+            ViewState.LocalDroppedRows = 0;
+            BackendDroppedCount = 0;
+
+            var recent = await ServerLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
+            BackendDroppedCount = recent.DroppedEventCount;
+
+            foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
+                AddRow(logEvent);
+
+            await Observer.UpdateFilterAsync(ViewState.Filter, _cancellationTokenSource.Token);
+            await ScrollToBottomAsync();
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            ErrorMessage = e.Message;
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadSourcesAsync(CancellationToken cancellationToken)
+    {
+        var sources = await ServerLogService.ListSourcesAsync(cancellationToken);
+        _sources.Clear();
+        _sources.AddRange(sources.OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase));
     }
 
     private async Task OnLogReceivedAsync(ServerLogEvent logEvent)
@@ -201,6 +291,19 @@ public partial class ServerLogs : IAsyncDisposable
     private Task OnConnectionStatusChangedAsync(ServerLogConnectionStatus status)
     {
         ViewState.ConnectionStatus = status;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnSourceChangedAsync(ServerLogSource source)
+    {
+        var index = _sources.FindIndex(x => string.Equals(x.Id, source.Id, StringComparison.OrdinalIgnoreCase));
+
+        if (index >= 0)
+            _sources[index] = source;
+        else
+            _sources.Add(source);
+
+        _sources.Sort((left, right) => string.Compare(left.DisplayName, right.DisplayName, StringComparison.OrdinalIgnoreCase));
         return InvokeAsync(StateHasChanged);
     }
 

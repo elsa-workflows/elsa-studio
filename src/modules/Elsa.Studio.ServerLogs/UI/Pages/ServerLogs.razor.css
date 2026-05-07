@@ -2,7 +2,8 @@
     height: 100%;
 }
 
-.server-logs-toolbar {
+.server-logs-toolbar,
+.server-logs-filters {
     border-radius: 6px;
     padding: 6px 10px;
 }
@@ -48,6 +49,19 @@
     color: #a05f00;
 }
 
+.server-logs-source-select {
+    min-width: 260px;
+}
+
+.server-logs-level-select {
+    min-width: 190px;
+}
+
+.server-logs-text-filter {
+    min-width: 260px;
+    flex: 1 1 280px;
+}
+
 .server-logs-surface {
     background: #15171a;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -57,7 +71,7 @@
     font-size: 0.8125rem;
     line-height: 1.45;
     margin-top: 12px;
-    max-height: calc(100vh - 210px);
+    max-height: calc(100vh - 286px);
     min-height: 420px;
     overflow: auto;
 }
