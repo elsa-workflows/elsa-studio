@@ -137,7 +137,7 @@
 - [ ] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
 - [ ] T053 [P] Add package metadata and tags in `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj`.
 - [ ] T054 Validate the quickstart against a backend with log streaming enabled and update `specs/003-live-server-logs/quickstart.md`.
-- [ ] T055 Run targeted Studio build with `dotnet build Elsa.Studio.sln`.
+- [X] T055 Run targeted Studio build with `dotnet build Elsa.Studio.sln`.
 
 ---
 
