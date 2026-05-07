@@ -16,6 +16,9 @@ export interface ElsaPort {
     group?: string;
     type?: string;
     position?: string;
+    // X6 carries the port's display name in attrs.text.text (see ActivityMapper).
+    // We surface it as the visible label next to the handle.
+    attrs?: { text?: { text?: string } } & Record<string, any>;
 }
 
 export interface ElsaPorts {

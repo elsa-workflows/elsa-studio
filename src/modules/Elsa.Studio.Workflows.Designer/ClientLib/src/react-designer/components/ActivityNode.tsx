@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, Fragment } from 'react';
 import { Handle, Position, useNodeId, type NodeProps } from '@xyflow/react';
 import type { ElsaActivity, ElsaActivityStats, ElsaPort } from '../types';
 
@@ -81,13 +81,6 @@ function ActivityNodeImpl({ id, data }: NodeProps) {
             const portName = portEl.getAttribute('data-port-name');
             if (!portName) return;
             event.stopPropagation();
-            // eslint-disable-next-line no-console
-            console.log('[react-designer] embedded-port click', {
-                clickedActivityId: activity?.id,
-                clickedActivityType: activity?.type,
-                portName,
-                hasOccupied: portEl.classList.contains('embedded-port-occupied'),
-            });
             onEmbeddedPortClick?.(activity, portName);
         };
         host.addEventListener('click', handler);
@@ -97,29 +90,44 @@ function ActivityNodeImpl({ id, data }: NodeProps) {
     const inPorts = ports.filter(p => p.group === 'in');
     const outPorts = ports.filter(p => p.group === 'out');
 
+    // The display label X6 paints next to the port circle. Falls back to the
+    // port id (which is also the technical name) so something is always shown.
+    const portLabel = (p: ElsaPort) => p.attrs?.text?.text?.trim() || p.id;
+
+    const renderInPorts = inPorts.length > 0 ? inPorts : [{ id: 'in', group: 'in' } as ElsaPort];
+    const renderOutPorts = outPorts.length > 0 ? outPorts : [{ id: 'out', group: 'out' } as ElsaPort];
+
     return (
         // Don't pin width/height — the React Flow node wrapper auto-sizes to
         // this container, which auto-sizes to the activity body's natural
         // size. That keeps the click target flush with the visible card.
         <div ref={hostRef} className="elsa-react-activity-host" data-node-id={nodeId}>
-            {(inPorts.length > 0 ? inPorts : [{ id: 'in', group: 'in' } as ElsaPort]).map((p, i, arr) => (
-                <Handle
-                    key={`in-${p.id}`}
-                    id={p.id}
-                    type="target"
-                    position={Position.Left}
-                    style={{ top: `${((i + 1) / (arr.length + 1)) * 100}%` }}
-                />
-            ))}
-            {(outPorts.length > 0 ? outPorts : [{ id: 'out', group: 'out' } as ElsaPort]).map((p, i, arr) => (
-                <Handle
-                    key={`out-${p.id}`}
-                    id={p.id}
-                    type="source"
-                    position={Position.Right}
-                    style={{ top: `${((i + 1) / (arr.length + 1)) * 100}%` }}
-                />
-            ))}
+            {renderInPorts.map((p, i, arr) => {
+                const top = `${((i + 1) / (arr.length + 1)) * 100}%`;
+                return (
+                    <Fragment key={`in-${p.id}`}>
+                        <Handle id={p.id} type="target" position={Position.Left} style={{ top }} />
+                        {/* Show the label only when the port carries a meaningful name beyond the default "in" placeholder. */}
+                        {(inPorts.length > 0) && (
+                            <span className="elsa-react-flow-port-label elsa-react-flow-port-label-in" style={{ top }}>
+                                {portLabel(p)}
+                            </span>
+                        )}
+                    </Fragment>
+                );
+            })}
+            {renderOutPorts.map((p, i, arr) => {
+                const top = `${((i + 1) / (arr.length + 1)) * 100}%`;
+                return (
+                    <Fragment key={`out-${p.id}`}>
+                        <Handle id={p.id} type="source" position={Position.Right} style={{ top }} />
+                        {/* Always show output labels — they identify branches like Pass/Fail/Done. */}
+                        <span className="elsa-react-flow-port-label elsa-react-flow-port-label-out" style={{ top }}>
+                            {portLabel(p)}
+                        </span>
+                    </Fragment>
+                );
+            })}
         </div>
     );
 }

@@ -243,13 +243,6 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         setGraph: (graph: ElsaGraph) => {
             const newNodes = (graph.nodes ?? []).map(n => toReactFlowNode(n, onEmbeddedPortClick));
             const newEdges = (graph.edges ?? []).map(toReactFlowEdge);
-            // eslint-disable-next-line no-console
-            console.log('[react-designer] setGraph', {
-                nodeCount: newNodes.length,
-                edgeCount: newEdges.length,
-                nodeIds: newNodes.map(n => n.id),
-                previousNodeCount: nodesRef.current.length,
-            });
             setNodes(newNodes);
             setEdges(newEdges);
             // Reset history on a fresh load.
@@ -291,13 +284,6 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             interop.raiseGraphUpdated();
         },
         updateNode: (node) => {
-            // eslint-disable-next-line no-console
-            console.log('[react-designer] updateNode', {
-                id: node.id,
-                type: node.data?.type,
-                hasBody: !!(node.data as any)?.body,
-                bodyId: (node.data as any)?.body?.id,
-            });
             setNodes(prev => {
                 const next = prev.map(n => {
                     if (n.id !== node.id) return n;

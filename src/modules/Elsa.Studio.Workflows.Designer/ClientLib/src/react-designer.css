@@ -89,6 +89,33 @@
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
 }
 
+/* Port labels rendered next to handles. Outputs sit just outside the right
+   edge, inputs just outside the left edge. Pointer events disabled so they
+   never block clicks on the underlying handle. */
+.elsa-react-flow-port-label {
+    position: absolute;
+    font-size: 11px;
+    line-height: 1;
+    color: #64748b;
+    background: var(--mud-palette-surface, #ffffff);
+    padding: 1px 4px;
+    border-radius: 3px;
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.elsa-react-flow-port-label-out {
+    right: 0;
+    transform: translate(calc(100% + 10px), -50%);
+}
+
+.elsa-react-flow-port-label-in {
+    left: 0;
+    transform: translate(calc(-100% - 10px), -50%);
+}
+
 /* ----- Edges ----- */
 
 .elsa-react-flowchart-designer .react-flow__edge-path {
@@ -107,20 +134,20 @@
     stroke-width: 2.5;
 }
 
-/* Animated "flowing" edges. React Flow ships a default keyframe; we tune the
-   dash size + speed so the flow reads as continuous motion rather than busy. */
+/* Animated "flowing" edges. Small, sparse dashes drifting along the path —
+   slow enough to feel like a gentle pulse rather than a busy marquee. */
 .elsa-react-flowchart-designer .react-flow__edge.animated .react-flow__edge-path {
-    stroke-dasharray: 8 6;
-    animation: elsa-rf-flow 0.9s linear infinite;
+    stroke-dasharray: 4 10;
+    animation: elsa-rf-flow 2.6s linear infinite;
 }
 
 .elsa-react-flowchart-designer .react-flow__edge.animated:hover .react-flow__edge-path,
 .elsa-react-flowchart-designer .react-flow__edge.animated.selected .react-flow__edge-path {
-    animation-duration: 0.6s;
+    animation-duration: 1.8s;
 }
 
 @keyframes elsa-rf-flow {
-    to { stroke-dashoffset: -28; }
+    to { stroke-dashoffset: -14; }
 }
 
 /* Animated dashed line shown while dragging a new connection. */
