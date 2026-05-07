@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo, Fragment } from 'react';
+import { useEffect, useRef, memo, Fragment, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
 import { Handle, Position, useNodeId, type NodeProps } from '@xyflow/react';
 import type { ElsaActivity, ElsaActivityStats, ElsaPort } from '../types';
 
@@ -7,7 +7,9 @@ export interface ActivityNodeData {
     ports: ElsaPort[];
     activityStats?: ElsaActivityStats;
     selectedPort?: string | null;
+    readOnly?: boolean;
     onEmbeddedPortClick?: (activity: ElsaActivity, portName: string) => void;
+    onDeleteRequest?: (nodeId: string) => void;
     [key: string]: unknown;
 }
 
@@ -17,12 +19,19 @@ const activityTagName = 'elsa-activity-wrapper';
 // RegisterForJavaScript("elsa-activity-wrapper"). We just create the tag
 // and set the same attributes the X6 path sets in create-activity-element.ts;
 // Blazor hydrates it on insertion.
-function ActivityNodeImpl({ id, data }: NodeProps) {
+function ActivityNodeImpl({ id, data, selected }: NodeProps) {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const elementRef = useRef<HTMLElement | null>(null);
     const nodeId = useNodeId();
-    const { activity, ports, activityStats, selectedPort, onEmbeddedPortClick } = data as unknown as ActivityNodeData;
+    const { activity, ports, activityStats, selectedPort, readOnly, onEmbeddedPortClick, onDeleteRequest } =
+        data as unknown as ActivityNodeData;
     const elementId = `activity-${id}`;
+
+    const onDeleteClick = useCallback((e: ReactMouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onDeleteRequest?.(id);
+    }, [id, onDeleteRequest]);
 
     useEffect(() => {
         const host = hostRef.current;
@@ -102,6 +111,18 @@ function ActivityNodeImpl({ id, data }: NodeProps) {
         // this container, which auto-sizes to the activity body's natural
         // size. That keeps the click target flush with the visible card.
         <div ref={hostRef} className="elsa-react-activity-host" data-node-id={nodeId}>
+            {selected && !readOnly && onDeleteRequest && (
+                <button
+                    type="button"
+                    className="elsa-react-flow-node-delete nodrag nopan"
+                    onClick={onDeleteClick}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    title="Delete activity"
+                    aria-label="Delete activity"
+                >
+                    ×
+                </button>
+            )}
             {renderInPorts.map((p, i, arr) => {
                 const top = `${((i + 1) / (arr.length + 1)) * 100}%`;
                 return (

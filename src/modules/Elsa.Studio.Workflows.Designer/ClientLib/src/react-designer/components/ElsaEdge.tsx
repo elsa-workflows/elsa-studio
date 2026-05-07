@@ -148,6 +148,11 @@ export function ElsaEdge(props: EdgeProps) {
         ops.deleteEdge(id);
     }, [id, ops]);
 
+    const onInsertClick = useCallback((e: ReactMouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        ops.requestInsertActivity(id, e.clientX, e.clientY);
+    }, [id, ops]);
+
     return (
         <g
             className={`react-flow__edge-elsa${selected ? ' selected' : ''}${animated ? ' animated' : ''}`}
@@ -185,12 +190,32 @@ export function ElsaEdge(props: EdgeProps) {
 
             {hovered && (
                 <EdgeLabelRenderer>
+                    {/* Insert-activity (+) button — opens the activity picker
+                        and splices the picked activity into this edge. Positioned
+                        slightly to the LEFT of the midpoint so the delete (×)
+                        button can sit at the centre without overlap. */}
+                    {!ops.readOnly && (
+                        <button
+                            type="button"
+                            className="elsa-react-flow-edge-insert nodrag nopan"
+                            style={{
+                                position: 'absolute',
+                                transform: `translate(-50%, -50%) translate(${labelX - 16}px, ${labelY}px)`,
+                            }}
+                            onClick={onInsertClick}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            title="Insert activity"
+                            aria-label="Insert activity"
+                        >
+                            +
+                        </button>
+                    )}
                     <button
                         type="button"
                         className="elsa-react-flow-edge-remove nodrag nopan"
                         style={{
                             position: 'absolute',
-                            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                            transform: `translate(-50%, -50%) translate(${labelX + (ops.readOnly ? 0 : 16)}px, ${labelY}px)`,
                         }}
                         onClick={onDeleteClick}
                         onMouseDown={(e) => e.stopPropagation()}

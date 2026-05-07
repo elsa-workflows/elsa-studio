@@ -85,6 +85,8 @@ function miniMapNodeColor(node: Node): string {
 function toReactFlowNode(
     node: ElsaActivityNode,
     onEmbeddedPortClick: (activity: ElsaActivity, portName: string) => void,
+    onDeleteRequest: (nodeId: string) => void,
+    readOnly: boolean,
 ): Node<ActivityNodeData> {
     return {
         id: node.id,
@@ -95,7 +97,9 @@ function toReactFlowNode(
             ports: node.ports?.items ?? [],
             activityStats: node.activityStats,
             selectedPort: null,
+            readOnly,
             onEmbeddedPortClick,
+            onDeleteRequest,
         },
         // Intentionally no style.width/height: the React Flow wrapper
         // auto-sizes to the rendered activity body so there's no padding
@@ -167,14 +171,28 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // would jiggle the view on every interaction.
     const lastFitSignatureRef = useRef<string | null>(null);
 
-    // Inline activity picker state. Set when the user drags from an output
-    // handle and releases on empty canvas; cleared on pick/cancel.
-    const [connectMenu, setConnectMenu] = useState<{
-        sourceNodeId: string;
-        sourceHandleId: string | null;
-        clientX: number;
-        clientY: number;
-    } | null>(null);
+    // Inline activity picker state. Two open modes:
+    //  - 'fromPort'  : user dragged from an output handle and released on empty
+    //                  canvas — picking adds the new activity AND wires an edge
+    //                  from the source port to its In handle.
+    //  - 'spliceEdge': user clicked the + button on an edge — picking inserts
+    //                  the new activity into that edge (the existing addNode
+    //                  splice logic via pendingSplitEdgeIdRef).
+    type ConnectMenuState =
+        | { kind: 'fromPort'; clientX: number; clientY: number; sourceNodeId: string; sourceHandleId: string | null }
+        | { kind: 'spliceEdge'; clientX: number; clientY: number; edgeId: string };
+    const [connectMenu, setConnectMenu] = useState<ConnectMenuState | null>(null);
+    // Edge-drop / "splice activity onto an edge" state. While the user is
+    // dragging an activity from the toolbox over the canvas, we hit-test the
+    // edge under the cursor so addNode can split it (source → new → target)
+    // when the drop lands. Highlight is rendered via a CSS class.
+    const pendingSplitEdgeIdRef = useRef<string | null>(null);
+    const [highlightedSplitEdgeId, setHighlightedSplitEdgeId] = useState<string | null>(null);
+    // Tracks whether a drag is in progress over the canvas. Toggles a CSS
+    // class on the container so each edge's wide hit zone becomes visible —
+    // the user gets an obvious ribbon to drop onto rather than the thin path.
+    const isDraggingActivityRef = useRef(false);
+    const [isDraggingActivity, setIsDraggingActivity] = useState(false);
     const [activityCatalog, setActivityCatalog] = useState<ActivityDescriptorDto[]>([]);
     const [catalogLoading, setCatalogLoading] = useState(false);
     const catalogLoadedRef = useRef(false);
@@ -255,10 +273,28 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         onEmbeddedPortClickRef.current(activity, portName);
     }, []);
 
+    // ----- Delete-from-button on activity ----------------------------------
+    // Activity nodes render a small × button when selected; clicking it routes
+    // through this stable callback. We use a ref so the closure that nodes
+    // capture stays valid as readOnly/snapshot/interop change.
+    const onDeleteNodeRef = useRef<(nodeId: string) => void>(() => {});
+    onDeleteNodeRef.current = useCallback((nodeId: string) => {
+        if (readOnlyRef.current) return;
+        const nextNodes = nodesRef.current.filter(n => n.id !== nodeId);
+        const nextEdges = edgesRef.current.filter(e => e.source !== nodeId && e.target !== nodeId);
+        setNodes(nextNodes);
+        setEdges(nextEdges);
+        snapshot(nextNodes, nextEdges);
+        interop.raiseGraphUpdated();
+    }, [interop, snapshot]);
+    const onDeleteNode = useCallback((nodeId: string) => {
+        onDeleteNodeRef.current(nodeId);
+    }, []);
+
     // ----- Imperative handle exposed to .NET via createReactGraph -----------
     useImperativeHandle(ref, () => ({
         setGraph: (graph: ElsaGraph) => {
-            const newNodes = (graph.nodes ?? []).map(n => toReactFlowNode(n, onEmbeddedPortClick));
+            const newNodes = (graph.nodes ?? []).map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
             const newEdges = (graph.edges ?? []).map(toReactFlowEdge);
             setNodes(newNodes);
             setEdges(newEdges);
@@ -284,20 +320,54 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             edges: edges.map(fromReactFlowEdge),
         }),
         addNode: (node, dropPagePosition) => {
-            const reactNode = toReactFlowNode(node, onEmbeddedPortClick);
+            const reactNode = toReactFlowNode(node, onEmbeddedPortClick, onDeleteNode, readOnly);
             if (dropPagePosition) {
                 const clientX = dropPagePosition.x - window.scrollX;
                 const clientY = dropPagePosition.y - window.scrollY;
                 reactNode.position = flow.screenToFlowPosition({ x: clientX, y: clientY });
             }
-            setNodes(prev => {
-                const next = [
-                    ...prev.map(n => ({ ...n, selected: false })),
-                    { ...reactNode, selected: true },
-                ];
-                snapshot(next, edgesRef.current);
-                return next;
-            });
+
+            // Read & clear the pending split target captured during drag-over.
+            const splitEdgeId = pendingSplitEdgeIdRef.current;
+            pendingSplitEdgeIdRef.current = null;
+            setHighlightedSplitEdgeId(null);
+
+            const nextNodes = [
+                ...nodesRef.current.map(n => ({ ...n, selected: false })),
+                { ...reactNode, selected: true },
+            ];
+
+            let nextEdges = edgesRef.current;
+            if (splitEdgeId) {
+                const original = edgesRef.current.find(e => e.id === splitEdgeId);
+                if (original) {
+                    const outPort = pickDefaultOutPort(reactNode.data.ports ?? []);
+                    const stamp = Date.now();
+                    const inEdge: Edge = {
+                        id: `${original.source}:${original.sourceHandle ?? ''}->${reactNode.id}:In#split-${stamp}-1`,
+                        source: original.source,
+                        target: reactNode.id,
+                        sourceHandle: original.sourceHandle,
+                        targetHandle: 'In',
+                    };
+                    const outEdge: Edge = {
+                        id: `${reactNode.id}:${outPort}->${original.target}:${original.targetHandle ?? ''}#split-${stamp}-2`,
+                        source: reactNode.id,
+                        target: original.target,
+                        sourceHandle: outPort,
+                        targetHandle: original.targetHandle,
+                    };
+                    nextEdges = [
+                        ...edgesRef.current.filter(e => e.id !== splitEdgeId),
+                        inEdge,
+                        outEdge,
+                    ];
+                }
+            }
+
+            setNodes(nextNodes);
+            if (nextEdges !== edgesRef.current) setEdges(nextEdges);
+            snapshot(nextNodes, nextEdges);
             interop.raiseGraphUpdated();
         },
         updateNode: (node) => {
@@ -341,7 +411,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             interop.raiseGraphUpdated();
         },
         pasteCells: (activityNodes, edgeCells) => {
-            const newNodes = activityNodes.map(n => toReactFlowNode(n, onEmbeddedPortClick));
+            const newNodes = activityNodes.map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
             const newEdges: Edge[] = edgeCells.map((e: any, i: number) => ({
                 id: `${e.source?.cell}:${e.source?.port ?? ''}->${e.target?.cell}:${e.target?.port ?? ''}#paste-${Date.now()}-${i}`,
                 source: e.source?.cell,
@@ -443,6 +513,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         }
 
         setConnectMenu({
+            kind: 'fromPort',
             sourceNodeId: drag.nodeId,
             sourceHandleId: drag.handleId,
             clientX,
@@ -450,7 +521,77 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         });
     }, [readOnly, interop]);
 
-    const closeConnectMenu = useCallback(() => setConnectMenu(null), []);
+    const closeConnectMenu = useCallback(() => {
+        // Drop any pending splice intent so a subsequent unrelated drag-drop
+        // doesn't accidentally splice a previously-clicked edge.
+        pendingSplitEdgeIdRef.current = null;
+        setHighlightedSplitEdgeId(null);
+        setConnectMenu(null);
+    }, []);
+
+    // Track the edge the cursor is over while a drag is in progress so the
+    // drop can splice the new activity into it. We use elementFromPoint over
+    // ElsaEdge's wide invisible hit-path (.elsa-react-flow-edge-hit) so the
+    // detection threshold matches what the user can already click on.
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateHover = (clientX: number, clientY: number) => {
+            if (readOnlyRef.current) return;
+            const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+            const edgeEl = el?.closest('.react-flow__edge') as HTMLElement | null;
+            const edgeId = edgeEl?.getAttribute('data-id') ?? null;
+            if (pendingSplitEdgeIdRef.current !== edgeId) {
+                pendingSplitEdgeIdRef.current = edgeId;
+                setHighlightedSplitEdgeId(edgeId);
+            }
+        };
+
+        const setDragging = (value: boolean) => {
+            if (isDraggingActivityRef.current === value) return;
+            isDraggingActivityRef.current = value;
+            setIsDraggingActivity(value);
+        };
+
+        const onDragOver = (e: DragEvent) => {
+            setDragging(true);
+            updateHover(e.clientX, e.clientY);
+        };
+        const onDragLeave = (e: DragEvent) => {
+            // Only clear when actually leaving the container, not when crossing
+            // a child boundary inside it. globalThis.Node disambiguates from
+            // React Flow's `Node` type which is in scope from imports above.
+            const related = e.relatedTarget as globalThis.Node | null;
+            if (related && container.contains(related)) return;
+            setDragging(false);
+            pendingSplitEdgeIdRef.current = null;
+            setHighlightedSplitEdgeId(null);
+        };
+        // After a drop the wrapper invokes addNode → it reads the split-edge
+        // ref, then clears it. We do clear the dragging flag on drop so the
+        // ribbon overlay disappears immediately.
+        const onDrop = () => setDragging(false);
+
+        container.addEventListener('dragover', onDragOver);
+        container.addEventListener('dragleave', onDragLeave);
+        container.addEventListener('drop', onDrop);
+        return () => {
+            container.removeEventListener('dragover', onDragOver);
+            container.removeEventListener('dragleave', onDragLeave);
+            container.removeEventListener('drop', onDrop);
+        };
+    }, []);
+
+    // Choose which output port a freshly-spliced node should connect FROM:
+    // prefer a port literally named "Done", otherwise the first 'out' port,
+    // otherwise the synthetic 'Done' that ActivityNode renders by default.
+    const pickDefaultOutPort = useCallback((ports: ElsaPort[]): string => {
+        const outs = ports.filter(p => p.group === 'out');
+        if (outs.length === 0) return 'Done';
+        const done = outs.find(p => (p.id ?? '').toLowerCase() === 'done');
+        return done?.id ?? outs[0].id;
+    }, []);
 
     const onConnectMenuPick = useCallback(async (descriptor: ActivityDescriptorDto) => {
         const menu = connectMenu;
@@ -460,11 +601,24 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         const pageX = menu.clientX + window.scrollX;
         const pageY = menu.clientY + window.scrollY;
         setConnectMenu(null);
+
+        if (menu.kind === 'spliceEdge') {
+            // Hand the splice off to addNode via pendingSplitEdgeIdRef. addNode
+            // reads & clears the ref, removes the original edge, and inserts
+            // two replacement edges (source → new → target).
+            pendingSplitEdgeIdRef.current = menu.edgeId;
+            await (interop as DotNetReactDesigner)
+                .addActivityAtPosition(descriptor.typeName, descriptor.version, pageX, pageY);
+            setHighlightedSplitEdgeId(null);
+            return;
+        }
+
+        // 'fromPort' mode: add the activity and wire an edge from the original
+        // source port to the new node's "In" handle.
         const created = await (interop as DotNetReactDesigner)
             .addActivityAtPosition(descriptor.typeName, descriptor.version, pageX, pageY);
         const newId = created?.id;
         if (!newId) return;
-        // Auto-connect from the original source port to the new node's "In".
         const edge: Edge = {
             id: `${menu.sourceNodeId}:${menu.sourceHandleId ?? ''}->${newId}:In#${Date.now()}`,
             source: menu.sourceNodeId,
@@ -479,6 +633,22 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         });
         interop.raiseGraphUpdated();
     }, [connectMenu, interop, snapshot]);
+
+    // Triggered by ElsaEdge's + button. Loads the catalog lazily (same as the
+    // port-drag path) and opens the picker positioned at the click point.
+    const requestInsertActivityOnEdge = useCallback((edgeId: string, clientX: number, clientY: number) => {
+        if (readOnlyRef.current) return;
+        if (!catalogLoadedRef.current) {
+            catalogLoadedRef.current = true;
+            setCatalogLoading(true);
+            (interop as DotNetReactDesigner).getAvailableActivities()
+                .then(list => setActivityCatalog(list))
+                .catch(() => setActivityCatalog([]))
+                .finally(() => setCatalogLoading(false));
+        }
+        setHighlightedSplitEdgeId(edgeId);
+        setConnectMenu({ kind: 'spliceEdge', clientX, clientY, edgeId });
+    }, [interop]);
 
     const isValidConnection: IsValidConnection = useCallback((connection) => {
         const { source, target, sourceHandle, targetHandle } = connection as Connection;
@@ -510,6 +680,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
 
     // Edge-level operations exposed via context to the custom ElsaEdge.
     const edgeOps = useMemo<EdgeOps>(() => ({
+        readOnly,
+        requestInsertActivity: requestInsertActivityOnEdge,
         deleteEdge: (edgeId) => {
             setEdges(prev => {
                 const next = prev.filter(e => e.id !== edgeId);
@@ -561,7 +733,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             snapshot(nodesRef.current, next);
             interop.raiseGraphUpdated();
         },
-    }), [snapshot, interop]);
+    }), [snapshot, interop, readOnly, requestInsertActivityOnEdge]);
 
     // Snap-to-other-node alignment guides while dragging. We compute against
     // the live state (after React Flow applied its own delta) and snap by
@@ -677,13 +849,27 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
 
     const proOptions = useMemo(() => ({ hideAttribution: true }), []);
 
+    // Decorate the edge currently highlighted as a drop target with a CSS
+    // class so it visually pops while the user is dragging an activity over it.
+    const renderedEdges = useMemo<Edge[]>(() => {
+        if (!highlightedSplitEdgeId) return edges;
+        return edges.map(e => e.id === highlightedSplitEdgeId
+            ? { ...e, className: `${e.className ?? ''} elsa-react-flow-edge-split-target`.trim() }
+            : e);
+    }, [edges, highlightedSplitEdgeId]);
+
     return (
         // tabIndex makes the container focusable so its keydown listener fires.
-        <div ref={containerRef} tabIndex={-1} style={{ width: '100%', height: '100%', outline: 'none' }}>
+        <div
+            ref={containerRef}
+            tabIndex={-1}
+            className={isDraggingActivity ? 'elsa-is-dragging-activity' : undefined}
+            style={{ width: '100%', height: '100%', outline: 'none' }}
+        >
             <EdgeOpsContext.Provider value={edgeOps}>
             <ReactFlow
                 nodes={nodes}
-                edges={edges}
+                edges={renderedEdges}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 defaultEdgeOptions={defaultEdgeOptions}

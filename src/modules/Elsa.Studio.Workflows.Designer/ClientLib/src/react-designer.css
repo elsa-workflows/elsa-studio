@@ -35,9 +35,15 @@
 
 .elsa-react-flowchart-designer .react-flow__node.selected {
     outline: 2px solid #0ea5e9;
-    outline-offset: 1px;
-    border-radius: 6px;
-    filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.18));
+    outline-offset: 3px;
+    border-radius: 8px;
+    /* Two stacked drop-shadows: a tight halo right at the edge, plus a softer
+       lift below. Together they make the selected node clearly "rise" above
+       the canvas without obscuring its colours. */
+    filter:
+        drop-shadow(0 0 10px rgba(14, 165, 233, 0.55))
+        drop-shadow(0 8px 20px rgba(14, 165, 233, 0.30));
+    z-index: 2;
 }
 
 /* React Flow's default selection halo can cover the activity body — hide it,
@@ -252,6 +258,88 @@
     stroke-width: 1;
     stroke-dasharray: 4 3;
     shape-rendering: crispEdges;
+}
+
+/* ----- Delete button on selected activity ----- */
+
+.elsa-react-flow-node-delete {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+    z-index: 3;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.elsa-react-flow-node-delete:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+/* ----- Insert-activity (+) button on edges ----- */
+
+.elsa-react-flow-edge-insert {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0ea5e9;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    padding: 0;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.elsa-react-flow-edge-insert:hover {
+    background: #0ea5e9;
+    color: #ffffff;
+    border-color: #0ea5e9;
+    transform: scale(1.1);
+}
+
+/* ----- Edge-drop target (drag activity over an edge to splice it) ----- */
+
+/* While a drag is in progress, every edge's wide invisible hit zone becomes
+   visible as a soft ribbon — much easier to land on than the 2px line. */
+.elsa-is-dragging-activity .elsa-react-flow-edge-hit {
+    stroke: rgba(14, 165, 233, 0.16);
+    transition: stroke 0.1s ease;
+}
+
+/* The currently-hovered edge gets a stronger fill on its ribbon plus the
+   crisp orange highlight on the visible path. */
+.elsa-is-dragging-activity .react-flow__edge.elsa-react-flow-edge-split-target .elsa-react-flow-edge-hit {
+    stroke: rgba(249, 115, 22, 0.28);
+}
+
+.elsa-react-flowchart-designer .react-flow__edge.elsa-react-flow-edge-split-target .react-flow__edge-path {
+    stroke: #f97316;
+    stroke-width: 3;
+    /* Override the gentle pulse so the highlight reads as decisive. */
+    animation: none;
+    stroke-dasharray: none;
 }
 
 /* ----- Inline activity picker (drag from port → drop on empty canvas) ----- */
