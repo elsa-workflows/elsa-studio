@@ -40,6 +40,14 @@
                 <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" OnClick="ReconnectAsync" />
             </MudTooltip>
 
+            <MudTooltip Text="@Localizer["Copy selected"]" Delay="500">
+                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Disabled="@(!HasSelection)" OnClick="CopySelectedAsync" />
+            </MudTooltip>
+
+            <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
+                <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
+            </MudTooltip>
+
             <MudTooltip Text="@Localizer["Auto scroll"]" Delay="500">
                 <MudSwitch T="bool"
                            Value="@ViewState.AutoScroll"
@@ -118,6 +126,11 @@
         <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">@ErrorMessage</MudAlert>
     }
 
+    @if (!string.IsNullOrWhiteSpace(StateMessage))
+    {
+        <MudAlert Severity="@StateSeverity" Dense="true" Class="mt-3">@Localizer[StateMessage]</MudAlert>
+    }
+
     @if (IsLoading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-3" />
@@ -126,13 +139,17 @@
     <section class="@LogSurfaceCssClass" id="@LogSurfaceId">
         @if (Rows.Count == 0 && !IsLoading)
         {
-            <div class="server-logs-empty">@Localizer["No server logs received yet."]</div>
+            <div class="server-logs-empty">@Localizer[EmptyText]</div>
         }
         else
         {
             @foreach (var logEvent in Rows)
             {
                 <article class="@RowCssClass(logEvent)">
+                    <input type="checkbox"
+                           class="server-log-select"
+                           checked="@IsSelected(logEvent)"
+                           @onchange="e => SetSelectedAsync(logEvent, e.Value as bool? == true)" />
                     <time class="server-log-time" title="@logEvent.Timestamp.ToString("O")">@FormatTimestamp(logEvent.Timestamp)</time>
                     <span class="@LevelCssClass(logEvent.Level)">@logEvent.Level</span>
                     <span class="server-log-source" title="@logEvent.SourceId">@Shorten(SourceDisplayName(logEvent.SourceId), 28)</span>

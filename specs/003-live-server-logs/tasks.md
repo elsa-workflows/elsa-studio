@@ -94,9 +94,9 @@
 - [X] T034 [US2] Implement SignalR filter update in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
 - [X] T035 [US2] Add filter controls to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
 - [X] T036 [US2] Add debounced filter refresh and live subscription update in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T037 [US2] Preserve primary filters in URL query string in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
-- [ ] T038 [US2] Add unauthorized, unavailable, disconnected, reconnecting, empty, and no-match states in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
-- [ ] T039 [US2] Add copy selected and copy visible behavior in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T037 [US2] Preserve primary filters in URL query string in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T038 [US2] Add unauthorized, unavailable, disconnected, reconnecting, empty, and no-match states in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.
+- [X] T039 [US2] Add copy selected and copy visible behavior in `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 
 **Checkpoint**: User Stories 1 and 2 work together with filterable, shareable operational log views.
 
@@ -132,7 +132,7 @@
 **Purpose**: Add contextual navigation, packaging, docs, and final validation.
 
 - [ ] T049 Add workflow instance viewer action/link to `/server-logs?workflowInstanceId=...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor`.
-- [ ] T050 Add workflow instance query handling to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
+- [X] T050 Add workflow instance query handling to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 - [X] T051 Add module reference to bundled Studio in `src/bundles/Elsa.Studio/Elsa.Studio.csproj`.
 - [ ] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
 - [ ] T053 [P] Add package metadata and tags in `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj`.

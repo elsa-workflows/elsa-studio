@@ -2,6 +2,7 @@ using Elsa.Studio.ServerLogs.Contracts;
 using Elsa.Studio.ServerLogs.Models;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -26,7 +27,9 @@ public partial class ServerLogs : IAsyncDisposable
 
     private readonly List<ServerLogEvent> _rows = new();
     private readonly List<ServerLogSource> _sources = new();
+    private readonly HashSet<string> _selectedLogIds = new(StringComparer.Ordinal);
     private CancellationTokenSource _cancellationTokenSource = new();
+    private bool _queryInitialized;
 
     /// <summary>
     /// Gets or sets the server log service.
@@ -47,6 +50,11 @@ public partial class ServerLogs : IAsyncDisposable
     /// Gets or sets the JS runtime.
     /// </summary>
     [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    /// <summary>
+    /// Gets or sets the navigation manager.
+    /// </summary>
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     /// <summary>
     /// Gets the current view state.
@@ -92,10 +100,30 @@ public partial class ServerLogs : IAsyncDisposable
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
     protected string PauseTooltip => ViewState.IsPaused ? "Resume" : "Pause";
     protected string LogSurfaceCssClass => $"server-logs-surface{(ViewState.WrapMessages ? " server-logs-wrap" : "")}{(ViewState.Compact ? " server-logs-compact" : "")}";
+    protected bool HasSelection => _selectedLogIds.Count > 0;
+    protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) || ViewState.Filter.MinimumLevel != null || !string.IsNullOrWhiteSpace(ViewState.Filter.Text) || !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId);
+    protected string EmptyText => HasActiveFilter ? "No server logs match the current filters." : "No server logs received yet.";
+    protected string? StateMessage => ViewState.ConnectionStatus switch
+    {
+        ServerLogConnectionStatus.Unauthorized => "You do not have permission to view server logs.",
+        ServerLogConnectionStatus.Unavailable => "Server log streaming is not available on this backend.",
+        ServerLogConnectionStatus.Disconnected when Rows.Count == 0 => "The live log stream is disconnected.",
+        ServerLogConnectionStatus.Reconnecting => "Reconnecting to the live log stream.",
+        _ => null
+    };
+
+    protected Severity StateSeverity => ViewState.ConnectionStatus switch
+    {
+        ServerLogConnectionStatus.Unauthorized => Severity.Error,
+        ServerLogConnectionStatus.Unavailable => Severity.Warning,
+        ServerLogConnectionStatus.Disconnected => Severity.Warning,
+        _ => Severity.Info
+    };
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        ApplyQueryFromUrl();
         Observer.LogReceived += OnLogReceivedAsync;
         Observer.DroppedEventsReceived += OnDroppedEventsReceivedAsync;
         Observer.ConnectionStatusChanged += OnConnectionStatusChangedAsync;
@@ -122,6 +150,7 @@ public partial class ServerLogs : IAsyncDisposable
     protected Task ClearAsync()
     {
         _rows.Clear();
+        _selectedLogIds.Clear();
         ViewState.LocalDroppedRows = 0;
         BackendDroppedCount = 0;
         return InvokeAsync(StateHasChanged);
@@ -183,7 +212,30 @@ public partial class ServerLogs : IAsyncDisposable
 
     protected static string LevelCssClass(ServerLogLevel level) => $"server-log-level server-log-level-{level.ToString().ToLowerInvariant()}";
 
-    protected string RowCssClass(ServerLogEvent logEvent) => $"server-log-row server-log-row-{logEvent.Level.ToString().ToLowerInvariant()}";
+    protected string RowCssClass(ServerLogEvent logEvent) => $"server-log-row server-log-row-{logEvent.Level.ToString().ToLowerInvariant()}{(IsSelected(logEvent) ? " server-log-row-selected" : "")}";
+
+    protected bool IsSelected(ServerLogEvent logEvent) => _selectedLogIds.Contains(logEvent.Id);
+
+    protected Task SetSelectedAsync(ServerLogEvent logEvent, bool selected)
+    {
+        if (selected)
+            _selectedLogIds.Add(logEvent.Id);
+        else
+            _selectedLogIds.Remove(logEvent.Id);
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task CopySelectedAsync()
+    {
+        var selectedRows = _rows.Where(x => _selectedLogIds.Contains(x.Id)).ToList();
+        await CopyRowsAsync(selectedRows);
+    }
+
+    protected Task CopyVisibleAsync()
+    {
+        return CopyRowsAsync(_rows);
+    }
 
     protected string SourceDisplayName(string? sourceId)
     {
@@ -232,10 +284,12 @@ public partial class ServerLogs : IAsyncDisposable
     {
         IsLoading = true;
         ErrorMessage = null;
+        UpdateUrlFromFilter();
 
         try
         {
             _rows.Clear();
+            _selectedLogIds.Clear();
             ViewState.LocalDroppedRows = 0;
             BackendDroppedCount = 0;
 
@@ -313,6 +367,7 @@ public partial class ServerLogs : IAsyncDisposable
 
         while (_rows.Count > ViewState.VisibleRowCap)
         {
+            _selectedLogIds.Remove(_rows[0].Id);
             _rows.RemoveAt(0);
             ViewState.LocalDroppedRows++;
         }
@@ -328,5 +383,60 @@ public partial class ServerLogs : IAsyncDisposable
         {
             // Scrolling is best-effort and should not interrupt log streaming.
         }
+    }
+
+    private void ApplyQueryFromUrl()
+    {
+        if (_queryInitialized)
+            return;
+
+        var query = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+
+        if (query.TryGetValue("sourceId", out var sourceId))
+            ViewState.Filter.SourceId = string.IsNullOrWhiteSpace(sourceId) ? null : sourceId.ToString();
+
+        if (query.TryGetValue("level", out var level) && Enum.TryParse<ServerLogLevel>(level, true, out var parsedLevel))
+            ViewState.Filter.MinimumLevel = parsedLevel;
+
+        if (query.TryGetValue("text", out var text))
+            ViewState.Filter.Text = string.IsNullOrWhiteSpace(text) ? null : text.ToString();
+
+        if (query.TryGetValue("workflowInstanceId", out var workflowInstanceId))
+            ViewState.Filter.WorkflowInstanceId = string.IsNullOrWhiteSpace(workflowInstanceId) ? null : workflowInstanceId.ToString();
+
+        _queryInitialized = true;
+    }
+
+    private void UpdateUrlFromFilter()
+    {
+        if (!_queryInitialized)
+            return;
+
+        var parameters = new Dictionary<string, object?>
+        {
+            ["sourceId"] = ViewState.Filter.SourceId,
+            ["level"] = ViewState.Filter.MinimumLevel?.ToString(),
+            ["text"] = ViewState.Filter.Text,
+            ["workflowInstanceId"] = ViewState.Filter.WorkflowInstanceId
+        };
+        var uri = NavigationManager.GetUriWithQueryParameters(parameters);
+
+        if (!string.Equals(uri, NavigationManager.Uri, StringComparison.Ordinal))
+            NavigationManager.NavigateTo(uri, replace: true);
+    }
+
+    private async Task CopyRowsAsync(IReadOnlyCollection<ServerLogEvent> rows)
+    {
+        if (rows.Count == 0)
+            return;
+
+        var text = string.Join(Environment.NewLine, rows.Select(FormatCopyLine));
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        Snackbar.Add($"{rows.Count} log row(s) copied.", Severity.Success);
+    }
+
+    private string FormatCopyLine(ServerLogEvent logEvent)
+    {
+        return $"{logEvent.Timestamp:O}\t{logEvent.Level}\t{SourceDisplayName(logEvent.SourceId)}\t{logEvent.Category}\t{logEvent.Message}";
     }
 }

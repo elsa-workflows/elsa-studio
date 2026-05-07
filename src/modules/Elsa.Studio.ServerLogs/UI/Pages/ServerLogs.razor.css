@@ -85,8 +85,19 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     display: grid;
     gap: 10px;
-    grid-template-columns: 96px 92px minmax(90px, 150px) minmax(180px, 320px) minmax(260px, 1fr);
+    grid-template-columns: 22px 96px 92px minmax(90px, 150px) minmax(180px, 320px) minmax(260px, 1fr);
     padding: 6px 10px;
+}
+
+.server-log-row-selected {
+    background: rgba(139, 184, 255, 0.1);
+}
+
+.server-log-select {
+    align-self: start;
+    height: 16px;
+    margin: 2px 0 0;
+    width: 16px;
 }
 
 .server-logs-compact .server-log-row {
@@ -137,7 +148,7 @@
 
 .server-log-exception {
     color: #ffb4b4;
-    grid-column: 5;
+    grid-column: 6;
     margin: 0;
     overflow-x: auto;
     white-space: pre-wrap;
@@ -145,7 +156,7 @@
 
 @media (max-width: 960px) {
     .server-log-row {
-        grid-template-columns: 90px 82px minmax(160px, 1fr);
+        grid-template-columns: 22px 90px 82px minmax(160px, 1fr);
     }
 
     .server-log-source,
@@ -154,6 +165,6 @@
     }
 
     .server-log-exception {
-        grid-column: 3;
+        grid-column: 4;
     }
 }
