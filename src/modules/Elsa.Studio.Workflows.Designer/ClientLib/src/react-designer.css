@@ -254,6 +254,93 @@
     shape-rendering: crispEdges;
 }
 
+/* ----- Inline activity picker (drag from port → drop on empty canvas) ----- */
+
+.elsa-react-flow-connect-menu {
+    width: 280px;
+    max-height: 360px;
+    background: var(--mud-palette-surface, #ffffff);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: inherit;
+}
+
+.elsa-react-flow-connect-menu-search {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    padding: 8px 12px;
+    font-size: 13px;
+    outline: none;
+    background: transparent;
+    color: inherit;
+}
+
+.elsa-react-flow-connect-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.elsa-react-flow-connect-menu-empty {
+    padding: 10px 12px;
+    color: #94a3b8;
+    font-size: 12px;
+    text-align: center;
+}
+
+.elsa-react-flow-connect-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s ease;
+}
+
+.elsa-react-flow-connect-menu-item.is-active,
+.elsa-react-flow-connect-menu-item:hover {
+    background: rgba(14, 165, 233, 0.10);
+}
+
+.elsa-react-flow-connect-menu-swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+.elsa-react-flow-connect-menu-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.elsa-react-flow-connect-menu-name {
+    font-size: 13px;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.elsa-react-flow-connect-menu-cat {
+    font-size: 11px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* ----- Badge ----- */
 
 .elsa-react-flow-badge {

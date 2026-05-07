@@ -84,3 +84,18 @@ export interface ReactDesignerSettings {
         size?: number;
     };
 }
+
+// Mirrors Elsa.Studio.Workflows.Designer.Models.ActivityDescriptorDto.
+// PascalCase keys because Blazor JSInterop serializes records with the
+// default camelCase policy of the runtime — but our serializer is the
+// JSInterop default which produces camelCase. Keep keys lowerCamel.
+export interface ActivityDescriptorDto {
+    typeName: string;
+    version: number;
+    name: string;
+    displayName: string;
+    category?: string | null;
+    description?: string | null;
+    color: string;
+    icon?: string | null;
+}

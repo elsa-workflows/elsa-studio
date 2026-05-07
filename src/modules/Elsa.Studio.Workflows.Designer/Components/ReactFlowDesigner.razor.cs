@@ -9,9 +9,11 @@ using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Args;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -54,6 +56,7 @@ public partial class ReactFlowDesigner : IAsyncDisposable
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
+    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
 
     [JSInvokable]
     public async Task HandleActivitySelected(JsonObject activity)
@@ -243,6 +246,80 @@ public partial class ReactFlowDesigner : IAsyncDisposable
         var mapper = await MapperFactory.CreateActivityMapperAsync();
         var node = mapper.MapActivity(activity);
         await _graphApi.AddActivityNodeAsync(node);
+    }
+
+    /// <summary>
+    /// Returns the activity descriptors that should appear in the inline
+    /// "drag-out → pick activity" picker. Mirrors the data the toolbox uses,
+    /// trimmed for JSInterop payload size.
+    /// </summary>
+    [JSInvokable]
+    public async Task<IList<ActivityDescriptorDto>> GetAvailableActivities()
+    {
+        await ActivityRegistry.EnsureLoadedAsync();
+        return ActivityRegistry.ListBrowsable().Select(d =>
+        {
+            var settings = ActivityDisplaySettingsRegistry.GetSettings(d.TypeName);
+            return new ActivityDescriptorDto(
+                d.TypeName,
+                d.Version,
+                d.Name,
+                d.DisplayName ?? d.Name,
+                d.Category,
+                d.Description,
+                settings.Color,
+                settings.Icon);
+        })
+        .OrderBy(d => d.Category)
+        .ThenBy(d => d.DisplayName)
+        .ToList();
+    }
+
+    /// <summary>
+    /// Creates a new activity at the given page position (matches the drag-drop
+    /// flow's coordinate space) and pushes it to the React Flow side. Returns
+    /// the new activity so the JS caller can wire up an edge from the source
+    /// port to the new node's "In" handle.
+    /// </summary>
+    [JSInvokable]
+    public async Task<JsonObject?> AddActivityAtPosition(string typeName, int version, double x, double y)
+    {
+        if (_graphApi is null) return null;
+
+        await ActivityRegistry.EnsureLoadedAsync();
+        var descriptor = ActivityRegistry.Find(typeName, version);
+        if (descriptor == null) return null;
+
+        var allActivities = Flowchart?.GetActivities().ToList() ?? new List<JsonObject>();
+        var newActivityId = IdentityGenerator.GenerateId();
+        var newName = ActivityNameGenerator.GenerateNextName(allActivities, descriptor);
+
+        var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
+        {
+            ["id"] = newActivityId,
+            ["nodeId"] = $"{Flowchart?.GetNodeId() ?? string.Empty}:{newActivityId}",
+            ["name"] = newName,
+            ["type"] = descriptor.TypeName,
+            ["version"] = descriptor.Version,
+        });
+
+        newActivity.SetDesignerMetadata(new()
+        {
+            Position = new(x, y),
+        });
+
+        foreach (var property in descriptor.ConstructionProperties)
+        {
+            var valueNode = JsonSerializer.SerializeToNode(property.Value);
+            var propertyName = property.Key.Camelize();
+            newActivity.SetProperty(valueNode, propertyName);
+        }
+
+        if (descriptor.Kind == ActivityKind.Trigger && allActivities.All(activity => activity.GetCanStartWorkflow() != true))
+            newActivity.SetCanStartWorkflow(true);
+
+        await AddActivityAsync(newActivity);
+        return newActivity;
     }
 
     protected override void OnInitialized() => _flowchart = Flowchart;

@@ -23,7 +23,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, ElsaActivity, ElsaPort } from '../types';
+import type { ActivityDescriptorDto, ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, ElsaActivity, ElsaPort } from '../types';
 import { ActivityNode, type ActivityNodeData } from './ActivityNode';
 import { DotNetReactDesigner } from '../dotnet-bridge';
 import { dagreLayout } from '../internal/dagre-layout';
@@ -31,6 +31,7 @@ import { computeSnap, type SnapGuide } from '../internal/snap-lines';
 import { SnapLines } from './SnapLines';
 import { ElsaEdge as ElsaEdgeComponent, type ElsaEdgeData } from './ElsaEdge';
 import { EdgeOpsContext, type EdgeOps } from './EdgeOpsContext';
+import { ConnectMenu } from './ConnectMenu';
 
 export interface DesignerHandle {
     setGraph: (graph: ElsaGraph) => void;
@@ -165,6 +166,22 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // — otherwise canvas clicks (which sometimes trigger a same-content reload)
     // would jiggle the view on every interaction.
     const lastFitSignatureRef = useRef<string | null>(null);
+
+    // Inline activity picker state. Set when the user drags from an output
+    // handle and releases on empty canvas; cleared on pick/cancel.
+    const [connectMenu, setConnectMenu] = useState<{
+        sourceNodeId: string;
+        sourceHandleId: string | null;
+        clientX: number;
+        clientY: number;
+    } | null>(null);
+    const [activityCatalog, setActivityCatalog] = useState<ActivityDescriptorDto[]>([]);
+    const [catalogLoading, setCatalogLoading] = useState(false);
+    const catalogLoadedRef = useRef(false);
+    // Tracks the source of an in-progress connect drag (set by onConnectStart,
+    // cleared on connect-end or cancel) so we know what to wire when the user
+    // drops on empty canvas.
+    const connectDragRef = useRef<{ nodeId: string; handleId: string | null } | null>(null);
 
     // Live refs for keyboard handlers (which see stale state otherwise).
     const nodesRef = useRef(nodes);
@@ -384,6 +401,85 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         interop.raiseGraphUpdated();
     }, [readOnly, interop, snapshot]);
 
+    // Inline activity picker: when the user releases a connect-drag on empty
+    // canvas (not on a target handle), open the picker at the release point.
+    const onConnectStart = useCallback((_e: any, params: { nodeId: string | null; handleId: string | null; handleType: string | null }) => {
+        if (readOnly) {
+            connectDragRef.current = null;
+            return;
+        }
+        if (params.nodeId && params.handleType === 'source') {
+            connectDragRef.current = { nodeId: params.nodeId, handleId: params.handleId };
+        } else {
+            connectDragRef.current = null;
+        }
+    }, [readOnly]);
+
+    const onConnectEnd = useCallback((event: MouseEvent | TouchEvent) => {
+        const drag = connectDragRef.current;
+        connectDragRef.current = null;
+        if (readOnly || !drag) return;
+
+        // If the release happened on a handle/node, React Flow's onConnect
+        // already handled it — bail out.
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('.react-flow__handle, .react-flow__node')) return;
+
+        const clientX = (event as MouseEvent).clientX
+            ?? (event as TouchEvent).changedTouches?.[0]?.clientX
+            ?? 0;
+        const clientY = (event as MouseEvent).clientY
+            ?? (event as TouchEvent).changedTouches?.[0]?.clientY
+            ?? 0;
+
+        // Lazy-load the activity catalog the first time the user opens the menu.
+        if (!catalogLoadedRef.current) {
+            catalogLoadedRef.current = true;
+            setCatalogLoading(true);
+            (interop as DotNetReactDesigner).getAvailableActivities()
+                .then(list => setActivityCatalog(list))
+                .catch(() => setActivityCatalog([]))
+                .finally(() => setCatalogLoading(false));
+        }
+
+        setConnectMenu({
+            sourceNodeId: drag.nodeId,
+            sourceHandleId: drag.handleId,
+            clientX,
+            clientY,
+        });
+    }, [readOnly, interop]);
+
+    const closeConnectMenu = useCallback(() => setConnectMenu(null), []);
+
+    const onConnectMenuPick = useCallback(async (descriptor: ActivityDescriptorDto) => {
+        const menu = connectMenu;
+        if (!menu) return;
+        // Match the drag-drop pipeline: pass page-relative coords; binding.addNode
+        // converts them to flow coords via screenToFlowPosition.
+        const pageX = menu.clientX + window.scrollX;
+        const pageY = menu.clientY + window.scrollY;
+        setConnectMenu(null);
+        const created = await (interop as DotNetReactDesigner)
+            .addActivityAtPosition(descriptor.typeName, descriptor.version, pageX, pageY);
+        const newId = created?.id;
+        if (!newId) return;
+        // Auto-connect from the original source port to the new node's "In".
+        const edge: Edge = {
+            id: `${menu.sourceNodeId}:${menu.sourceHandleId ?? ''}->${newId}:In#${Date.now()}`,
+            source: menu.sourceNodeId,
+            target: newId,
+            sourceHandle: menu.sourceHandleId ?? undefined,
+            targetHandle: 'In',
+        };
+        setEdges(prev => {
+            const next = [...prev, edge];
+            snapshot(nodesRef.current, next);
+            return next;
+        });
+        interop.raiseGraphUpdated();
+    }, [connectMenu, interop, snapshot]);
+
     const isValidConnection: IsValidConnection = useCallback((connection) => {
         const { source, target, sourceHandle, targetHandle } = connection as Connection;
         if (!source || !target || source === target) return false;
@@ -597,6 +693,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onConnectStart={onConnectStart}
+                onConnectEnd={onConnectEnd}
                 onNodeClick={onNodeClick}
                 onNodeDoubleClick={onNodeDoubleClick}
                 onNodeDragStart={onNodeDragStart}
@@ -620,6 +718,16 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 </Panel>
             </ReactFlow>
             </EdgeOpsContext.Provider>
+            {connectMenu && (
+                <ConnectMenu
+                    clientX={connectMenu.clientX}
+                    clientY={connectMenu.clientY}
+                    activities={activityCatalog}
+                    loading={catalogLoading}
+                    onPick={onConnectMenuPick}
+                    onClose={closeConnectMenu}
+                />
+            )}
         </div>
     );
 });
