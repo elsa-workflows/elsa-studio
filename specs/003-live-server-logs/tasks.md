@@ -89,7 +89,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement filter-to-REST query mapping in `src/modules/Elsa.Studio.ServerLogs/Services/ServerLogFilterMapper.cs`.
+- [X] T032 [US2] Implement filter-to-REST query mapping in `src/modules/Elsa.Studio.ServerLogs/Services/ServerLogFilterMapper.cs`.
 - [X] T033 [US2] Apply level, text, category, tenant, workflow instance, trace/correlation, and time filters in `src/modules/Elsa.Studio.ServerLogs/Services/RemoteServerLogService.cs`.
 - [X] T034 [US2] Implement SignalR filter update in `src/modules/Elsa.Studio.ServerLogs/Services/SignalRServerLogObserver.cs`.
 - [X] T035 [US2] Add filter controls to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor`.

@@ -16,8 +16,7 @@ public class RemoteServerLogService(IBackendApiClientProvider backendApiClientPr
     public async Task<RecentServerLogsResult> GetRecentAsync(ServerLogFilter filter, int rowCap, CancellationToken cancellationToken = default)
     {
         var api = await backendApiClientProvider.GetApiAsync<IServerLogsApi>(cancellationToken);
-        var request = CopyFilter(filter);
-        request.Take = Math.Clamp(request.Take ?? rowCap, 1, rowCap);
+        var request = ServerLogFilterMapper.ToRecentRequest(filter, rowCap);
 
         try
         {
@@ -43,22 +42,4 @@ public class RemoteServerLogService(IBackendApiClientProvider backendApiClientPr
             return Array.Empty<ServerLogSource>();
         }
     }
-
-    private static ServerLogFilter CopyFilter(ServerLogFilter filter) =>
-        new()
-        {
-            MinimumLevel = filter.MinimumLevel,
-            Levels = filter.Levels?.ToList(),
-            CategoryPrefix = filter.CategoryPrefix,
-            Text = filter.Text,
-            TenantId = filter.TenantId,
-            WorkflowDefinitionId = filter.WorkflowDefinitionId,
-            WorkflowInstanceId = filter.WorkflowInstanceId,
-            TraceId = filter.TraceId,
-            CorrelationId = filter.CorrelationId,
-            SourceId = filter.SourceId,
-            From = filter.From,
-            To = filter.To,
-            Take = filter.Take
-        };
 }

@@ -35,7 +35,7 @@ public class SignalRServerLogObserver(
     /// <inheritdoc />
     public async Task StartAsync(ServerLogFilter filter, CancellationToken cancellationToken = default)
     {
-        _filter = CopyFilter(filter);
+        _filter = ServerLogFilterMapper.ToLiveSubscription(filter);
         await PublishStatusAsync(ServerLogConnectionStatus.Connecting);
 
         _connection = await CreateConnectionAsync(cancellationToken);
@@ -61,7 +61,7 @@ public class SignalRServerLogObserver(
     /// <inheritdoc />
     public async Task UpdateFilterAsync(ServerLogFilter filter, CancellationToken cancellationToken = default)
     {
-        _filter = CopyFilter(filter);
+        _filter = ServerLogFilterMapper.ToLiveSubscription(filter);
 
         if (_connection?.State != HubConnectionState.Connected)
             return;
@@ -154,22 +154,4 @@ public class SignalRServerLogObserver(
         if (ConnectionStatusChanged != null)
             await ConnectionStatusChanged(status);
     }
-
-    private static ServerLogFilter CopyFilter(ServerLogFilter filter) =>
-        new()
-        {
-            MinimumLevel = filter.MinimumLevel,
-            Levels = filter.Levels?.ToList(),
-            CategoryPrefix = filter.CategoryPrefix,
-            Text = filter.Text,
-            TenantId = filter.TenantId,
-            WorkflowDefinitionId = filter.WorkflowDefinitionId,
-            WorkflowInstanceId = filter.WorkflowInstanceId,
-            TraceId = filter.TraceId,
-            CorrelationId = filter.CorrelationId,
-            SourceId = filter.SourceId,
-            From = filter.From,
-            To = filter.To,
-            Take = filter.Take
-        };
 }
