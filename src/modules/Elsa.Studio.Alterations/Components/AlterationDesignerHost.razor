@@ -1,0 +1,75 @@
+@using System.Text.Json.Nodes
+@using Elsa.Api.Client.Resources.WorkflowDefinitions.Models
+@using Elsa.Api.Client.Resources.WorkflowInstances.Models
+@using Elsa.Studio.Workflows.Shared.Components
+
+<div class="elsa-alterations-host @(_panelCollapsed ? "is-panel-collapsed" : "")">
+    <div class="elsa-alterations-toolbar">
+        <MudIconButton Icon="@Icons.Material.Outlined.ArrowBack"
+                       Href="alterations/instances"
+                       Size="Size.Small"
+                       title="@Localizer["Back to instances"]" />
+
+        <div class="elsa-alterations-toolbar-title">
+            <span class="label">@Localizer["Altering instance"]</span>
+            <span class="name">
+                @(string.IsNullOrEmpty(WorkflowInstance?.Name) ? WorkflowInstance?.Id : WorkflowInstance.Name)
+            </span>
+        </div>
+
+        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@MapStatusColor()">
+            @WorkflowInstance?.Status
+        </MudChip>
+
+        <div class="elsa-alterations-toolbar-spacer"></div>
+
+        <MudButton StartIcon="@Icons.Material.Outlined.Search"
+                   Variant="Variant.Text"
+                   OnClick="OnDryRunAsync"
+                   Disabled="@(Staging.Items.Count == 0 || _busy)">
+            @Localizer["Dry-run"]
+        </MudButton>
+        <MudButton StartIcon="@Icons.Material.Outlined.DeleteSweep"
+                   Variant="Variant.Text"
+                   OnClick="OnDiscardAllAsync"
+                   Disabled="@(Staging.Items.Count == 0 || _busy)">
+            @Localizer["Discard all"]
+        </MudButton>
+        <MudButton StartIcon="@Icons.Material.Outlined.Send"
+                   Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="OnSubmitAsync"
+                   Disabled="@(Staging.Items.Count == 0 || _busy)">
+            @Localizer["Submit"]@(Staging.Items.Count > 0 ? $" ({Staging.Items.Count})" : "")
+        </MudButton>
+    </div>
+
+    <div class="elsa-alterations-canvas">
+        @if (WorkflowDefinition != null && WorkflowInstance != null && FlowchartActivity != null)
+        {
+            <DiagramDesignerWrapper
+                WorkflowDefinitionVersionId="@WorkflowDefinition.Id"
+                Activity="@FlowchartActivity"
+                IsReadOnly="true"
+                WorkflowInstanceId="@WorkflowInstance.Id"
+                ActivitySelected="OnDiagramActivitySelected" />
+        }
+        else
+        {
+            <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+                <MudProgressCircular Indeterminate="true" />
+            </div>
+        }
+    </div>
+
+    <AlterationBottomPanel
+        SelectedActivityId="@_selectedActivityId"
+        SelectedActivityName="@_selectedActivityName"
+        SelectedActivityType="@_selectedActivityType"
+        Variables="@_variables"
+        VariablesLoading="@_variablesLoading"
+        Collapsed="@_panelCollapsed"
+        OnCollapseToggle="OnPanelCollapseToggle"
+        QuickActionRequested="OnQuickActionAsync"
+        ModifyVariableRequested="OnModifyVariableShortcutAsync"
+        EditStagedRequested="OnEditStagedAsync" />
+</div>
