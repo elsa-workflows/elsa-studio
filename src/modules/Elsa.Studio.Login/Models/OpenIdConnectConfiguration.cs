@@ -21,6 +21,11 @@ public class OpenIdConnectConfiguration
     public required string EndSessionEndpoint { get; set; }
 
     /// <summary>
+    /// A Prefix that can be set  before the redirect_uri when sending the authorization request. This is useful in cases where the IdP requires a specific prefix or format for the redirect_uri, such as "https://myapp.com<b>{/workflow}</b>/signin-oidc" instead of just "/signin-oidc". If not set, the redirect_uri will default to the base address of the application plus "/signin-oidc".
+    /// </summary>
+    public string? RedirectUriPrefix { get; set; }
+
+    /// <summary>
     /// The client_id as which this application is registered with the authorization server
     /// </summary>
     public required string ClientId { get; set; }

@@ -21,7 +21,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
     public async Task RedirectToAuthorizationServer()
     {
         var config = configuration.Value;
-        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + "/signin-oidc";
+        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + (config.RedirectUriPrefix ?? "") + "/signin-oidc";
         string url = config.AuthEndpoint + $"?client_id={WebUtility.UrlEncode(config.ClientId)}&redirect_uri={WebUtility.UrlEncode(redirectUri)}&response_type=code&scope={WebUtility.UrlEncode(String.Join(' ', config.Scopes))}";
         if (config.UsePkce)
         {
