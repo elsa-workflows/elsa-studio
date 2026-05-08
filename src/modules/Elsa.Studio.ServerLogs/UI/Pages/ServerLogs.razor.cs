@@ -29,6 +29,7 @@ public partial class ServerLogs : IAsyncDisposable
     private readonly List<ServerLogSource> _sources = new();
     private readonly HashSet<string> _selectedLogIds = new(StringComparer.Ordinal);
     private CancellationTokenSource _cancellationTokenSource = new();
+    private IJSObjectReference? _scriptModule;
     private bool _queryInitialized;
 
     /// <summary>
@@ -101,7 +102,10 @@ public partial class ServerLogs : IAsyncDisposable
     protected string PauseTooltip => ViewState.IsPaused ? "Resume" : "Pause";
     protected string LogSurfaceCssClass => $"server-logs-surface{(ViewState.WrapMessages ? " server-logs-wrap" : "")}{(ViewState.Compact ? " server-logs-compact" : "")}";
     protected bool HasSelection => _selectedLogIds.Count > 0;
-    protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) || ViewState.Filter.MinimumLevel != null || !string.IsNullOrWhiteSpace(ViewState.Filter.Text) || !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId);
+    protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
+                                      ViewState.Filter.MinimumLevel is { } level && level != ServerLogLevel.Information ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.Text) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId);
     protected string EmptyText => HasActiveFilter ? "No server logs match the current filters." : "No server logs received yet.";
     protected string? StateMessage => ViewState.ConnectionStatus switch
     {
@@ -134,9 +138,17 @@ public partial class ServerLogs : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        Observer.LogReceived -= OnLogReceivedAsync;
+        Observer.DroppedEventsReceived -= OnDroppedEventsReceivedAsync;
+        Observer.ConnectionStatusChanged -= OnConnectionStatusChangedAsync;
+        Observer.SourceChanged -= OnSourceChangedAsync;
+
         await _cancellationTokenSource.CancelAsync();
         _cancellationTokenSource.Dispose();
         await Observer.DisposeAsync();
+
+        if (_scriptModule != null)
+            await _scriptModule.DisposeAsync();
     }
 
     protected async Task TogglePausedAsync()
@@ -213,6 +225,8 @@ public partial class ServerLogs : IAsyncDisposable
     protected static string LevelCssClass(ServerLogLevel level) => $"server-log-level server-log-level-{level.ToString().ToLowerInvariant()}";
 
     protected string RowCssClass(ServerLogEvent logEvent) => $"server-log-row server-log-row-{logEvent.Level.ToString().ToLowerInvariant()}{(IsSelected(logEvent) ? " server-log-row-selected" : "")}";
+
+    protected string RowSelectionLabel(ServerLogEvent logEvent) => $"Select log row {FormatTimestamp(logEvent.Timestamp)} {logEvent.Level} {Shorten(logEvent.Category, 64)}";
 
     protected bool IsSelected(ServerLogEvent logEvent) => _selectedLogIds.Contains(logEvent.Id);
 
@@ -377,7 +391,8 @@ public partial class ServerLogs : IAsyncDisposable
     {
         try
         {
-            await JS.InvokeVoidAsync("eval", $"document.getElementById('{LogSurfaceId}')?.scrollTo({{ top: document.getElementById('{LogSurfaceId}').scrollHeight }})");
+            var module = await GetScriptModuleAsync();
+            await module.InvokeVoidAsync("scrollToBottomById", LogSurfaceId);
         }
         catch (JSException)
         {
@@ -431,12 +446,26 @@ public partial class ServerLogs : IAsyncDisposable
             return;
 
         var text = string.Join(Environment.NewLine, rows.Select(FormatCopyLine));
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        Snackbar.Add($"{rows.Count} log row(s) copied.", Severity.Success);
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add($"{rows.Count} log row(s) copied.", Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add("Unable to copy log rows. Check browser clipboard permissions.", Severity.Warning);
+        }
     }
 
     private string FormatCopyLine(ServerLogEvent logEvent)
     {
         return $"{logEvent.Timestamp:O}\t{logEvent.Level}\t{SourceDisplayName(logEvent.SourceId)}\t{logEvent.Category}\t{logEvent.Message}";
+    }
+
+    private async Task<IJSObjectReference> GetScriptModuleAsync()
+    {
+        _scriptModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.ServerLogs/serverLogs.js");
+        return _scriptModule;
     }
 }

@@ -50,10 +50,12 @@ public class SignalRServerLogObserver(
         catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound)
         {
             logger.LogWarning("The server logs hub was not found. Make sure the backend maps the server logs hub.");
+            await DisposeConnectionAsync(false);
             await PublishStatusAsync(ServerLogConnectionStatus.Unavailable);
         }
-        catch (UnauthorizedAccessException)
+        catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized)
         {
+            await DisposeConnectionAsync(false);
             await PublishStatusAsync(ServerLogConnectionStatus.Unauthorized);
         }
     }
@@ -98,10 +100,18 @@ public class SignalRServerLogObserver(
         connection.Reconnecting += async _ => await PublishStatusAsync(ServerLogConnectionStatus.Reconnecting);
         connection.Reconnected += async _ =>
         {
-            if (_filter != null)
-                await connection.SendAsync("SubscribeAsync", _filter, cancellationToken);
+            try
+            {
+                if (_filter != null)
+                    await connection.SendAsync("SubscribeAsync", _filter, CancellationToken.None);
 
-            await PublishStatusAsync(ServerLogConnectionStatus.Connected);
+                await PublishStatusAsync(ServerLogConnectionStatus.Connected);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Failed to resubscribe to the server logs hub after reconnecting.");
+                await PublishStatusAsync(ServerLogConnectionStatus.Disconnected);
+            }
         };
         connection.Closed += async _ => await PublishStatusAsync(ServerLogConnectionStatus.Disconnected);
 
@@ -129,7 +139,7 @@ public class SignalRServerLogObserver(
         });
     }
 
-    private async Task DisposeConnectionAsync()
+    private async Task DisposeConnectionAsync(bool publishDisconnected = true)
     {
         if (_connection == null)
             return;
@@ -145,7 +155,9 @@ public class SignalRServerLogObserver(
         {
             await _connection.DisposeAsync();
             _connection = null;
-            await PublishStatusAsync(ServerLogConnectionStatus.Disconnected);
+
+            if (publishDisconnected)
+                await PublishStatusAsync(ServerLogConnectionStatus.Disconnected);
         }
     }
 

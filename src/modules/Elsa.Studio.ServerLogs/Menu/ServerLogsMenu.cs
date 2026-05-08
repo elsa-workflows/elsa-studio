@@ -7,11 +7,14 @@ namespace Elsa.Studio.ServerLogs.Menu;
 /// <summary>
 /// Exposes menu entries for server logs.
 /// </summary>
-public class ServerLogsMenu : IMenuProvider
+public class ServerLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
+        if (!await IsServerLogStreamingEnabledAsync(cancellationToken))
+            return [];
+
         var menuItems = new List<MenuItem>
         {
             new()
@@ -23,6 +26,18 @@ public class ServerLogsMenu : IMenuProvider
             }
         };
 
-        return ValueTask.FromResult<IEnumerable<MenuItem>>(menuItems);
+        return menuItems;
+    }
+
+    private async Task<bool> IsServerLogStreamingEnabledAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await remoteFeatureProvider.IsEnabledAsync(Feature.RemoteFeatureName, cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            return false;
+        }
     }
 }

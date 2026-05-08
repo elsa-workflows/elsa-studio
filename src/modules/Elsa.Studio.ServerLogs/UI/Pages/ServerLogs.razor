@@ -79,7 +79,7 @@
 
     <MudPaper Elevation="0" Outlined="true" Class="server-logs-filters mt-2">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="server-logs-toolbar-row">
-            <MudSelect T="string"
+            <MudSelect T="string?"
                        Label="@Localizer["Source"]"
                        Value="@ViewState.Filter.SourceId"
                        ValueChanged="SetSourceAsync"
@@ -87,10 +87,10 @@
                        Margin="Margin.Dense"
                        Dense="true"
                        Class="server-logs-source-select">
-                <MudSelectItem T="string" Value="@(null!)">@Localizer["All sources"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@(null)">@Localizer["All sources"]</MudSelectItem>
                 @foreach (var source in Sources)
                 {
-                    <MudSelectItem T="string" Value="@source.Id">@SourceDisplayName(source)</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@source.Id">@SourceDisplayName(source)</MudSelectItem>
                 }
             </MudSelect>
 
@@ -148,6 +148,7 @@
                 <article class="@RowCssClass(logEvent)">
                     <input type="checkbox"
                            class="server-log-select"
+                           aria-label="@RowSelectionLabel(logEvent)"
                            checked="@IsSelected(logEvent)"
                            @onchange="e => SetSelectedAsync(logEvent, e.Value as bool? == true)" />
                     <time class="server-log-time" title="@logEvent.Timestamp.ToString("O")">@FormatTimestamp(logEvent.Timestamp)</time>

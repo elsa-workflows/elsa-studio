@@ -9,4 +9,5 @@ namespace Elsa.Studio.ServerLogs;
 [RemoteFeature("Elsa.ServerLogStreaming")]
 public class Feature : FeatureBase
 {
+    public const string RemoteFeatureName = "Elsa.ServerLogStreaming";
 }
