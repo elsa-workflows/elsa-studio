@@ -1,4 +1,5 @@
-﻿using Elsa.Studio.Login.Contracts;
+using Elsa.Studio.Login.Contracts;
+using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
@@ -21,7 +22,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
     public async Task RedirectToAuthorizationServer()
     {
         var config = configuration.Value;
-        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + (config.RedirectUriPrefix ?? "") + "/signin-oidc";
+        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + config.RedirectUriPrefix.EnsureStartsWith("/") + "/signin-oidc";
         string url = config.AuthEndpoint + $"?client_id={WebUtility.UrlEncode(config.ClientId)}&redirect_uri={WebUtility.UrlEncode(redirectUri)}&response_type=code&scope={WebUtility.UrlEncode(String.Join(' ', config.Scopes))}";
         if (config.UsePkce)
         {
@@ -40,7 +41,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
     public async Task ReceiveAuthorizationCode(string code, string? state, CancellationToken cancellationToken)
     {
         var config = configuration.Value;
-        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + (config.RedirectUriPrefix ?? "") + "/signin-oidc";
+        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + config.RedirectUriPrefix.EnsureStartsWith("/") + "/signin-oidc";
 
         var formValues = new List<KeyValuePair<string, string>>
         {
@@ -50,7 +51,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
             new("redirect_uri", redirectUri)
         };
 
-        if(!string.IsNullOrWhiteSpace(config.ClientSecret))
+        if (!string.IsNullOrWhiteSpace(config.ClientSecret))
         {
             formValues.Add(new KeyValuePair<string, string>("client_secret", config.ClientSecret));
         }
@@ -132,7 +133,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
         if (summary.Length > MaxLoggedErrorLength)
             summary = summary[..MaxLoggedErrorLength];
 
-        return truncated ? $"{summary}…" : summary;
+        return truncated ? $"{summary}�" : summary;
     }
 
     private static async Task<(string Content, bool Truncated)> ReadContentSnippetAsync(HttpContent content, CancellationToken cancellationToken)
@@ -178,4 +179,5 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
 
         return null;
     }
+
 }
