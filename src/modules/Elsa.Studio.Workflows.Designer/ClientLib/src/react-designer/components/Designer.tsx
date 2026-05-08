@@ -6,6 +6,7 @@ import {
     BackgroundVariant,
     Controls,
     MiniMap,
+    Panel,
     MarkerType,
     ConnectionLineType,
     applyNodeChanges,
@@ -29,6 +30,7 @@ import { ActivityNode, type ActivityNodeData } from './ActivityNode';
 import { DotNetReactDesigner } from '../dotnet-bridge';
 import { dagreLayout } from '../internal/dagre-layout';
 import { computeSnap, type SnapGuide } from '../internal/snap-lines';
+import { arrangeHappyPath } from '../internal/happy-path-layout';
 import { useCatalogLoader } from '../internal/use-catalog-loader';
 import { SnapLines } from './SnapLines';
 import { ElsaEdge as ElsaEdgeComponent, type ElsaEdgeData } from './ElsaEdge';
@@ -240,9 +242,13 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     //  - 'spliceEdge': user clicked the + button on an edge — picking inserts
     //                  the new activity into that edge (the existing addNode
     //                  splice logic via pendingSplitEdgeIdRef).
+    //  - 'fromEmpty' : the canvas is empty and the user clicked the "Add your
+    //                  first activity" call-to-action — picking adds the
+    //                  activity with no auto-connection (no source/target).
     type ConnectMenuState =
         | { kind: 'fromPort'; clientX: number; clientY: number; sourceNodeId: string; sourceHandleId: string | null }
-        | { kind: 'spliceEdge'; clientX: number; clientY: number; edgeId: string };
+        | { kind: 'spliceEdge'; clientX: number; clientY: number; edgeId: string }
+        | { kind: 'fromEmpty'; clientX: number; clientY: number };
     const [connectMenu, setConnectMenu] = useState<ConnectMenuState | null>(null);
     // Edge-drop / "splice activity onto an edge" state. While the user is
     // dragging an activity from the toolbox over the canvas, we hit-test the
@@ -416,14 +422,16 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             pendingSplitEdgeIdRef.current = null;
             setHighlightedSplitEdgeId(null);
 
-            const nextNodes = [
+            const baseNodes = [
                 ...nodesRef.current.map(n => ({ ...n, selected: false })),
                 { ...reactNode, selected: true },
             ];
 
             let nextEdges = edgesRef.current;
+            let didSplice = false;
             if (splitEdgeId) {
-                const original = edgesRef.current.find(e => e.id === splitEdgeId);
+                const originalIdx = edgesRef.current.findIndex(e => e.id === splitEdgeId);
+                const original = originalIdx >= 0 ? edgesRef.current[originalIdx] : undefined;
                 if (original) {
                     const outPort = pickDefaultOutPort(reactNode.data.ports ?? []);
                     const stamp = Date.now();
@@ -441,18 +449,44 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                         sourceHandle: outPort,
                         targetHandle: original.targetHandle,
                     };
+                    // Drop the original at its slot and insert the new "in" edge
+                    // in its place — this keeps the source's first-outcome order
+                    // intact so arrangeHappyPath still treats this branch as
+                    // the happy path. The new "out" edge from the inserted node
+                    // goes at the end (it's the only edge from a fresh node).
                     nextEdges = [
-                        ...edgesRef.current.filter(e => e.id !== splitEdgeId),
+                        ...edgesRef.current.slice(0, originalIdx),
                         inEdge,
+                        ...edgesRef.current.slice(originalIdx + 1),
                         outEdge,
                     ];
+                    didSplice = true;
                 }
             }
 
-            setNodes(nextNodes);
+            // Apply the new node + spliced edges synchronously so the user
+            // sees the connection update immediately.
+            setNodes(baseNodes);
             if (nextEdges !== edgesRef.current) setEdges(nextEdges);
-            snapshot(nextNodes, nextEdges);
             interop.raiseGraphUpdated();
+
+            if (didSplice) {
+                // Defer the auto-arrange by two animation frames so React Flow's
+                // resize observer has populated `node.measured` for the new
+                // activity. Arranging synchronously here would force the layout
+                // to fall back to default width/height for the brand-new node
+                // and produce a looser layout than necessary — clicking Arrange
+                // a second time would tighten it. Double-rAF avoids that.
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    if (readOnlyRef.current) return;
+                    const arranged = arrangeHappyPath(nodesRef.current, edgesRef.current);
+                    setNodes(arranged);
+                    snapshot(arranged, edgesRef.current);
+                    requestAnimationFrame(fitToContent);
+                }));
+            } else {
+                snapshot(baseNodes, nextEdges);
+            }
         },
         updateNode: (node) => {
             setNodes(prev => {
@@ -613,6 +647,20 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         });
     }, [readOnly, ensureCatalogLoaded]);
 
+    // ----- "Arrange" button -------------------------------------------------
+    // Re-flows the workflow so the happy path runs left-to-right on the top
+    // row and side branches stack underneath. Equal gaps between cells
+    // regardless of node sizes; goes through history so Cmd/Ctrl+Z reverts it.
+    const arrangeNodes = useCallback(() => {
+        if (readOnlyRef.current) return;
+        if (nodesRef.current.length === 0) return;
+        const next = arrangeHappyPath(nodesRef.current, edgesRef.current);
+        setNodes(next);
+        snapshot(next, edgesRef.current);
+        requestAnimationFrame(fitToContent);
+        interop.raiseGraphUpdated();
+    }, [snapshot, interop, fitToContent]);
+
     const closeConnectMenu = useCallback(() => {
         // Drop any pending splice intent so a subsequent unrelated drag-drop
         // doesn't accidentally splice a previously-clicked edge.
@@ -705,6 +753,14 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return;
         }
 
+        if (menu.kind === 'fromEmpty') {
+            // First-activity flow: just add it. addNode will select it; no
+            // edges to wire because there's nothing to connect to.
+            await (interop as DotNetReactDesigner)
+                .addActivityAtPosition(descriptor.typeName, descriptor.version, pageX, pageY);
+            return;
+        }
+
         // 'fromPort' mode: add the activity and wire an edge from the original
         // source port to the new node's "In" handle.
         const created = await (interop as DotNetReactDesigner)
@@ -733,6 +789,14 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         ensureCatalogLoaded();
         setHighlightedSplitEdgeId(edgeId);
         setConnectMenu({ kind: 'spliceEdge', clientX, clientY, edgeId });
+    }, [ensureCatalogLoaded]);
+
+    // Empty-state CTA: opens the same activity picker so the user can add
+    // their first activity. No source/target wiring — addNode just inserts.
+    const onAddFirstActivity = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        if (readOnlyRef.current) return;
+        ensureCatalogLoaded();
+        setConnectMenu({ kind: 'fromEmpty', clientX: event.clientX, clientY: event.clientY });
     }, [ensureCatalogLoaded]);
 
     const isValidConnection: IsValidConnection = useCallback((connection) => {
@@ -958,6 +1022,20 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             className={isDraggingActivity ? 'elsa-is-dragging-activity' : undefined}
             style={{ width: '100%', height: '100%', outline: 'none' }}
         >
+            {!readOnly && nodes.length === 0 && (
+                // Empty-state CTA. Wrapper has pointer-events:none so it
+                // doesn't intercept canvas pan; only the button is clickable.
+                <div className="elsa-react-flow-empty-state">
+                    <button
+                        type="button"
+                        className="elsa-react-flow-empty-btn"
+                        onClick={onAddFirstActivity}
+                        title="Add your first activity"
+                    >
+                        + Add your first activity
+                    </button>
+                </div>
+            )}
             <EdgeOpsContext.Provider value={edgeOps}>
             <ReactFlow
                 nodes={nodes}
@@ -991,6 +1069,19 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 <Controls showInteractive={!readOnly} />
                 <MiniMap pannable zoomable nodeColor={miniMapNodeColor} maskColor="rgba(15, 23, 42, 0.06)" />
                 <SnapLines guides={snapGuides} />
+                {!readOnly && (
+                    <Panel position="top-right" className="elsa-react-flow-toolbar">
+                        <button
+                            type="button"
+                            className="elsa-react-flow-toolbar-btn"
+                            onClick={arrangeNodes}
+                            title="Arrange the workflow with the happy path on top"
+                            aria-label="Arrange workflow"
+                        >
+                            Arrange
+                        </button>
+                    </Panel>
+                )}
             </ReactFlow>
             </EdgeOpsContext.Provider>
             {connectMenu && (

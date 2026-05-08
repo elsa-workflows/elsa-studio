@@ -263,6 +263,74 @@
     transform: scale(1.1);
 }
 
+/* ----- Empty-state CTA (no activities yet) ----- */
+
+.elsa-react-flow-empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.elsa-react-flow-empty-btn {
+    pointer-events: all;
+    background: var(--mud-palette-surface, #ffffff);
+    border: 1px dashed rgba(14, 165, 233, 0.6);
+    color: #0ea5e9;
+    border-radius: 12px;
+    padding: 18px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.10);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.elsa-react-flow-empty-btn:hover {
+    background: #0ea5e9;
+    color: #ffffff;
+    border-color: #0ea5e9;
+    border-style: solid;
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 10px 24px rgba(14, 165, 233, 0.30);
+}
+
+/* ----- Top-right canvas toolbar (Arrange button etc.) ----- */
+
+.elsa-react-flow-toolbar {
+    display: flex;
+    gap: 6px;
+}
+
+.elsa-react-flow-toolbar-btn {
+    background: var(--mud-palette-surface, #ffffff);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    color: #0ea5e9;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.elsa-react-flow-toolbar-btn:hover {
+    background: #0ea5e9;
+    color: #ffffff;
+    border-color: #0ea5e9;
+    transform: translateY(-1px);
+}
+
+.elsa-react-flow-toolbar-btn:active {
+    transform: translateY(0);
+}
+
 /* ----- Snap / alignment guides ----- */
 
 .elsa-react-flow-snap-lines line {
