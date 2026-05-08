@@ -134,8 +134,8 @@
 - [X] T049 Add workflow instance viewer action/link to `/server-logs?workflowInstanceId=...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor.cs`.
 - [X] T050 Add workflow instance query handling to `src/modules/Elsa.Studio.ServerLogs/UI/Pages/ServerLogs.razor.cs`.
 - [X] T051 Add module reference to bundled Studio in `src/bundles/Elsa.Studio/Elsa.Studio.csproj`.
-- [ ] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
-- [ ] T053 [P] Add package metadata and tags in `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj`.
+- [X] T052 [P] Add setup documentation from quickstart to `src/modules/Elsa.Studio.ServerLogs/README.md`.
+- [X] T053 [P] Add package metadata and tags in `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj`.
 - [ ] T054 Validate the quickstart against a backend with log streaming enabled and update `specs/003-live-server-logs/quickstart.md`.
 - [X] T055 Run targeted Studio build with `dotnet build Elsa.Studio.sln`.
 

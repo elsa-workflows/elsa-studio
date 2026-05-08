@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <Description>Adds live server log streaming to the studio.</Description>
-        <PackageTags>elsa studio module diagnostics logs signalr</PackageTags>
+        <Description>Adds live backend server log streaming to Elsa Studio.</Description>
+        <PackageTags>elsa studio module diagnostics logs signalr server-logs operations</PackageTags>
         <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
