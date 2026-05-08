@@ -20,6 +20,8 @@ import {
     type DefaultEdgeOptions,
     type IsValidConnection,
     type NodeMouseHandler,
+    type OnConnectStart,
+    type OnConnectEnd,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -28,6 +30,7 @@ import { ActivityNode, type ActivityNodeData } from './ActivityNode';
 import { DotNetReactDesigner } from '../dotnet-bridge';
 import { dagreLayout } from '../internal/dagre-layout';
 import { computeSnap, type SnapGuide } from '../internal/snap-lines';
+import { useCatalogLoader } from '../internal/use-catalog-loader';
 import { SnapLines } from './SnapLines';
 import { ElsaEdge as ElsaEdgeComponent, type ElsaEdgeData } from './ElsaEdge';
 import { EdgeOpsContext, type EdgeOps } from './EdgeOpsContext';
@@ -44,7 +47,7 @@ export interface DesignerHandle {
     updateNode: (node: ElsaActivityNode) => void;
     updateNodeStats: (activityId: string, stats: ElsaActivityStats) => void;
     autoLayout: () => void;
-    pasteCells: (activityNodes: ElsaActivityNode[], edges: any[]) => void;
+    pasteCells: (activityNodes: ElsaActivityNode[], edges: ElsaEdge[]) => void;
 }
 
 interface DesignerProps {
@@ -77,7 +80,7 @@ const connectionLineStyle = {
 };
 
 function miniMapNodeColor(node: Node): string {
-    const activity = (node.data as any)?.activity;
+    const activity = (node.data as ActivityNodeData | undefined)?.activity;
     if (activity?.canStartWorkflow === true) return '#0ea5e9';
     return '#cbd5e1';
 }
@@ -220,6 +223,10 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
     const flow = useReactFlow();
     const containerRef = useRef<HTMLDivElement | null>(null);
+    // Shared fit-to-content settings — exposed via the imperative handle and
+    // also used internally after setGraph and auto-layout. One source of truth
+    // so the camera behaves consistently across all entry points.
+    const fitToContent = useCallback(() => flow.fitView({ padding: 0.2 }), [flow]);
     // Tracks the structural fingerprint of the last graph we loaded; used to
     // decide whether to fitView. We always re-apply nodes/edges to keep state
     // canonical with C#, but only re-fit the camera when content shape changes
@@ -249,9 +256,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // the user gets an obvious ribbon to drop onto rather than the thin path.
     const isDraggingActivityRef = useRef(false);
     const [isDraggingActivity, setIsDraggingActivity] = useState(false);
-    const [activityCatalog, setActivityCatalog] = useState<ActivityDescriptorDto[]>([]);
-    const [catalogLoading, setCatalogLoading] = useState(false);
-    const catalogLoadedRef = useRef(false);
+    const { catalog: activityCatalog, loading: catalogLoading, ensureLoaded: ensureCatalogLoaded } =
+        useCatalogLoader(interop as DotNetReactDesigner);
     // Tracks the source of an in-progress connect drag (set by onConnectStart,
     // cleared on connect-end or cancel) so we know what to wire when the user
     // drops on empty canvas.
@@ -385,15 +391,15 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 .sort().join(',')}`;
             if (signature !== lastFitSignatureRef.current) {
                 lastFitSignatureRef.current = signature;
-                requestAnimationFrame(() => flow.fitView({ padding: 0.2 }));
+                requestAnimationFrame(fitToContent);
             }
         },
         setReadOnly: (value: boolean) => setReadOnly(value),
         selectNode: (id: string) => {
             setNodes(prev => prev.map(n => ({ ...n, selected: n.id === id })));
         },
-        fitView: () => flow.fitView({ padding: 0.2 }),
-        centerContent: () => flow.fitView({ padding: 0.2 }),
+        fitView: fitToContent,
+        centerContent: fitToContent,
         readGraph: () => ({
             nodes: nodes.map(fromReactFlowNode),
             edges: edges.map(fromReactFlowEdge),
@@ -463,8 +469,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                         },
                         style: {
                             ...(n.style ?? {}),
-                            width: node.size?.width ?? (n.style as any)?.width,
-                            height: node.size?.height ?? (n.style as any)?.height,
+                            width: node.size?.width ?? n.style?.width,
+                            height: node.size?.height ?? n.style?.height,
                         },
                     };
                 });
@@ -484,19 +490,20 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             setNodes(prev => {
                 const next = dagreLayout(prev, edgesRef.current);
                 snapshot(next, edgesRef.current);
-                requestAnimationFrame(() => flow.fitView({ padding: 0.2 }));
+                requestAnimationFrame(fitToContent);
                 return next;
             });
             interop.raiseGraphUpdated();
         },
         pasteCells: (activityNodes, edgeCells) => {
             const newNodes = activityNodes.map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
-            const newEdges: Edge[] = edgeCells.map((e: any, i: number) => ({
-                id: `${e.source?.cell}:${e.source?.port ?? ''}->${e.target?.cell}:${e.target?.port ?? ''}#paste-${Date.now()}-${i}`,
-                source: e.source?.cell,
-                target: e.target?.cell,
-                sourceHandle: e.source?.port,
-                targetHandle: e.target?.port,
+            const stamp = Date.now();
+            const newEdges: Edge[] = edgeCells.map((e, i) => ({
+                id: `${e.source?.cell}:${e.source?.port ?? ''}->${e.target?.cell}:${e.target?.port ?? ''}#paste-${stamp}-${i}`,
+                source: e.source.cell,
+                target: e.target.cell,
+                sourceHandle: e.source.port,
+                targetHandle: e.target.port,
             }));
             setNodes(prev => {
                 const next = [...prev.map(n => ({ ...n, selected: false })), ...newNodes.map(n => ({ ...n, selected: true }))];
@@ -511,10 +518,11 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // ----- Change handlers --------------------------------------------------
     const onNodesChange = useCallback((changes: NodeChange[]) => {
         if (readOnly) return;
-        const positionDone = changes.some(c => c.type === 'position' && (c as any).dragging === false);
+        // c.type discriminates the union; after narrowing, dragging/id are typed.
+        const positionDone = changes.some(c => c.type === 'position' && c.dragging === false);
         const removeIds = changes
-            .filter(c => c.type === 'remove')
-            .map((c: any) => c.id as string);
+            .filter((c): c is Extract<NodeChange, { type: 'remove' }> => c.type === 'remove')
+            .map(c => c.id);
 
         if (removeIds.length > 0) {
             // Route removals (Delete/Backspace key) through the bridge helper
@@ -567,7 +575,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
 
     // Inline activity picker: when the user releases a connect-drag on empty
     // canvas (not on a target handle), open the picker at the release point.
-    const onConnectStart = useCallback((_e: any, params: { nodeId: string | null; handleId: string | null; handleType: string | null }) => {
+    const onConnectStart: OnConnectStart = useCallback((_event, params) => {
         if (readOnly) {
             connectDragRef.current = null;
             return;
@@ -579,7 +587,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         }
     }, [readOnly]);
 
-    const onConnectEnd = useCallback((event: MouseEvent | TouchEvent) => {
+    const onConnectEnd: OnConnectEnd = useCallback((event) => {
         const drag = connectDragRef.current;
         connectDragRef.current = null;
         if (readOnly || !drag) return;
@@ -596,16 +604,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             ?? (event as TouchEvent).changedTouches?.[0]?.clientY
             ?? 0;
 
-        // Lazy-load the activity catalog the first time the user opens the menu.
-        if (!catalogLoadedRef.current) {
-            catalogLoadedRef.current = true;
-            setCatalogLoading(true);
-            (interop as DotNetReactDesigner).getAvailableActivities()
-                .then(list => setActivityCatalog(list))
-                .catch(() => setActivityCatalog([]))
-                .finally(() => setCatalogLoading(false));
-        }
-
+        ensureCatalogLoaded();
         setConnectMenu({
             kind: 'fromPort',
             sourceNodeId: drag.nodeId,
@@ -613,7 +612,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             clientX,
             clientY,
         });
-    }, [readOnly, interop]);
+    }, [readOnly, ensureCatalogLoaded]);
 
     const closeConnectMenu = useCallback(() => {
         // Drop any pending splice intent so a subsequent unrelated drag-drop
@@ -728,29 +727,22 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         interop.raiseGraphUpdated();
     }, [connectMenu, interop, snapshot]);
 
-    // Triggered by ElsaEdge's + button. Loads the catalog lazily (same as the
-    // port-drag path) and opens the picker positioned at the click point.
+    // Triggered by ElsaEdge's + button. Lazily loads the catalog (same hook
+    // the port-drag path uses) and opens the picker at the click point.
     const requestInsertActivityOnEdge = useCallback((edgeId: string, clientX: number, clientY: number) => {
         if (readOnlyRef.current) return;
-        if (!catalogLoadedRef.current) {
-            catalogLoadedRef.current = true;
-            setCatalogLoading(true);
-            (interop as DotNetReactDesigner).getAvailableActivities()
-                .then(list => setActivityCatalog(list))
-                .catch(() => setActivityCatalog([]))
-                .finally(() => setCatalogLoading(false));
-        }
+        ensureCatalogLoaded();
         setHighlightedSplitEdgeId(edgeId);
         setConnectMenu({ kind: 'spliceEdge', clientX, clientY, edgeId });
-    }, [interop]);
+    }, [ensureCatalogLoaded]);
 
     const isValidConnection: IsValidConnection = useCallback((connection) => {
         const { source, target, sourceHandle, targetHandle } = connection as Connection;
         if (!source || !target || source === target) return false;
         const sourceNode = nodesRef.current.find(n => n.id === source);
         const targetNode = nodesRef.current.find(n => n.id === target);
-        const sourcePorts: ElsaPort[] = (sourceNode?.data as any)?.ports ?? [];
-        const targetPorts: ElsaPort[] = (targetNode?.data as any)?.ports ?? [];
+        const sourcePorts: ElsaPort[] = (sourceNode?.data as ActivityNodeData | undefined)?.ports ?? [];
+        const targetPorts: ElsaPort[] = (targetNode?.data as ActivityNodeData | undefined)?.ports ?? [];
         const isSourceOut = sourcePorts.some(p => p.id === sourceHandle && p.group === 'out')
             || sourcePorts.length === 0;
         const isTargetIn = targetPorts.some(p => p.id === targetHandle && p.group === 'in')
@@ -832,7 +824,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // Snap-to-other-node alignment guides while dragging. We compute against
     // the live state (after React Flow applied its own delta) and snap by
     // patching the node position. Guides are visible only mid-drag.
-    const onNodeDrag = useCallback((_e: any, draggedNode: Node) => {
+    const onNodeDrag: NodeMouseHandler = useCallback((_event, draggedNode) => {
         if (readOnly) return;
         const { position, guides } = computeSnap(draggedNode, nodesRef.current);
         if (position.x !== draggedNode.position.x || position.y !== draggedNode.position.y) {

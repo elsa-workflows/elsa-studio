@@ -15,13 +15,20 @@ export interface ActivityNodeData {
 
 const activityTagName = 'elsa-activity-wrapper';
 
+// The Blazor custom element receives stats as a property (cannot serialize
+// through an HTML attribute). Treat it as a plain HTMLElement with one extra
+// field so the rest of the code stays type-safe.
+interface ActivityWrapperElement extends HTMLElement {
+    stats: ElsaActivityStats | null | undefined;
+}
+
 // The activity body itself is a Blazor custom element registered via
 // RegisterForJavaScript("elsa-activity-wrapper"). We just create the tag
 // and set the same attributes the X6 path sets in create-activity-element.ts;
 // Blazor hydrates it on insertion.
 function ActivityNodeImpl({ id, data, selected }: NodeProps) {
     const hostRef = useRef<HTMLDivElement | null>(null);
-    const elementRef = useRef<HTMLElement | null>(null);
+    const elementRef = useRef<ActivityWrapperElement | null>(null);
     const nodeId = useNodeId();
     const { activity, ports, activityStats, selectedPort, readOnly, onEmbeddedPortClick, onDeleteRequest } =
         data as unknown as ActivityNodeData;
@@ -36,7 +43,7 @@ function ActivityNodeImpl({ id, data, selected }: NodeProps) {
     useEffect(() => {
         const host = hostRef.current;
         if (!host) return;
-        const el = document.createElement(activityTagName) as any;
+        const el = document.createElement(activityTagName) as ActivityWrapperElement;
         el.id = elementId;
         el.setAttribute('element-id', elementId);
         el.setAttribute('activity-id', id);
@@ -55,7 +62,7 @@ function ActivityNodeImpl({ id, data, selected }: NodeProps) {
     }, [id]);
 
     useEffect(() => {
-        const el = elementRef.current as any;
+        const el = elementRef.current as ActivityWrapperElement | null;
         if (!el) return;
         // Avoid retriggering a Blazor custom-element re-hydration when the
         // activity reference changed but the JSON content didn't — otherwise
