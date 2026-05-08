@@ -851,11 +851,18 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         const container = containerRef.current;
         if (!container) return;
 
+        // Listen on window so the shortcuts work even when focus is in the
+        // toolbox/side-panel, not just on the canvas. Bail out if the user is
+        // typing in a real text field — let the browser handle its own undo.
+        const isEditableTarget = (target: EventTarget | null): boolean => {
+            if (!(target instanceof HTMLElement)) return false;
+            const tag = target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+            return target.isContentEditable;
+        };
+
         const onKeyDown = (e: KeyboardEvent) => {
-            if (readOnlyRef.current) {
-                // In read-only mode we still allow undo/redo only if there's history;
-                // skip clipboard ops entirely.
-            }
+            if (isEditableTarget(e.target)) return;
             const mod = e.metaKey || e.ctrlKey;
             if (!mod) return;
 
@@ -928,8 +935,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             }
         };
 
-        container.addEventListener('keydown', onKeyDown);
-        return () => container.removeEventListener('keydown', onKeyDown);
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
     }, [undo, redo, snapshot, interop]);
 
     const proOptions = useMemo(() => ({ hideAttribution: true }), []);
