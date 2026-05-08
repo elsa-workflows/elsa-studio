@@ -40,7 +40,7 @@ public class OpenIdConnectAuthorizationService(IJwtAccessor jwtAccessor, IOption
     public async Task ReceiveAuthorizationCode(string code, string? state, CancellationToken cancellationToken)
     {
         var config = configuration.Value;
-        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + "/signin-oidc";
+        var redirectUri = new Uri(navigationManager.Uri).GetLeftPart(UriPartial.Authority) + (config.RedirectUriPrefix ?? "")   + "/signin-oidc";
 
         var formValues = new List<KeyValuePair<string, string>>
         {
