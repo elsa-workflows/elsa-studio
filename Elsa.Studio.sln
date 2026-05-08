@@ -122,6 +122,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{60B07BD6-80A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.ServerLogs", "src\modules\Elsa.Studio.ServerLogs\Elsa.Studio.ServerLogs.csproj", "{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.ServerLogs.Tests", "src\modules\Elsa.Studio.ServerLogs.Tests\Elsa.Studio.ServerLogs.Tests.csproj", "{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -577,6 +579,18 @@ Global
 		{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}.Release|x64.Build.0 = Release|Any CPU
 		{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}.Release|x86.ActiveCfg = Release|Any CPU
 		{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}.Release|x86.Build.0 = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|x64.Build.0 = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -629,6 +643,7 @@ Global
 		{AEFE5B4E-5306-4EA3-9579-9F9A4BF75BBE} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{9953E8DA-2ADD-42CA-957F-1DFDB284BEFD} = {8A157018-5A25-434A-9990-7FA5C3B057B6}
 		{068A1A66-D30C-4A9A-BFBC-CAB04989FB55} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8719CC-CF87-45E1-BE1A-13842F951B28}

@@ -83,7 +83,7 @@
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Add filter-to-query mapping tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogFilterMapperTests.cs`.
+- [X] T029 [P] [US2] Add filter-to-query mapping tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogFilterMapperTests.cs`.
 - [ ] T030 [P] [US2] Add observer filter-update tests in `src/modules/Elsa.Studio.ServerLogs.Tests/SignalRServerLogObserverFilterTests.cs`.
 - [ ] T031 [P] [US2] Add URL filter state tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogUrlStateTests.cs`.
 
@@ -111,7 +111,7 @@
 ### Tests for User Story 3
 
 - [ ] T040 [P] [US3] Add source loading tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogSourceServiceTests.cs`.
-- [ ] T041 [P] [US3] Add source filter mapping tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogSourceFilterTests.cs`.
+- [X] T041 [P] [US3] Add source filter mapping tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogFilterMapperTests.cs`.
 - [ ] T042 [P] [US3] Add page source selector tests in `src/modules/Elsa.Studio.ServerLogs.Tests/ServerLogsSourceSelectorTests.cs`.
 
 ### Implementation for User Story 3
