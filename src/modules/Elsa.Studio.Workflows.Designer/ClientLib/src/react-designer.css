@@ -140,20 +140,32 @@
     stroke-width: 2.5;
 }
 
-/* Animated "flowing" edges. Small, sparse dashes drifting along the path —
-   slow enough to feel like a gentle pulse rather than a busy marquee. */
+/* Edges render as solid lines (no marching dashes — they competed with the
+   click target for visual focus). The "alive" cue moved to a small pulse
+   circle anchored at the target end (see .elsa-react-flow-edge-pulse). */
 .elsa-react-flowchart-designer .react-flow__edge.animated .react-flow__edge-path {
-    stroke-dasharray: 4 10;
-    animation: elsa-rf-flow 2.6s linear infinite;
+    stroke-dasharray: none;
+    animation: none;
 }
 
-.elsa-react-flowchart-designer .react-flow__edge.animated:hover .react-flow__edge-path,
-.elsa-react-flowchart-designer .react-flow__edge.animated.selected .react-flow__edge-path {
+/* Breathing dot at the target endpoint of every edge. Renders behind the
+   path so the arrowhead sits cleanly on top of it; the pulse halos the tip
+   without obscuring it. */
+.elsa-react-flow-edge-pulse {
+    fill: #94a3b8;
+    pointer-events: none;
+    animation: elsa-rf-edge-pulse 2.6s ease-in-out infinite;
+}
+
+.elsa-react-flowchart-designer .react-flow__edge:hover .elsa-react-flow-edge-pulse,
+.elsa-react-flowchart-designer .react-flow__edge.selected .elsa-react-flow-edge-pulse {
+    fill: #0ea5e9;
     animation-duration: 1.8s;
 }
 
-@keyframes elsa-rf-flow {
-    to { stroke-dashoffset: -14; }
+@keyframes elsa-rf-edge-pulse {
+    0%, 100% { r: 3.5; opacity: 0.30; }
+    50%      { r: 6;   opacity: 0.75; }
 }
 
 /* Animated dashed line shown while dragging a new connection. */
@@ -322,16 +334,28 @@
 /* ----- Edge-drop target (drag activity over an edge to splice it) ----- */
 
 /* While a drag is in progress, every edge's wide invisible hit zone becomes
-   visible as a soft ribbon — much easier to land on than the 2px line. */
+   a clearly-visible drop track. We bump both the width and opacity so the
+   user gets an obvious "land here" affordance instead of having to aim at
+   the 2px line. */
 .elsa-is-dragging-activity .elsa-react-flow-edge-hit {
-    stroke: rgba(14, 165, 233, 0.16);
-    transition: stroke 0.1s ease;
+    stroke: rgba(14, 165, 233, 0.22);
+    stroke-width: 28;
+    stroke-linecap: round;
+    transition: stroke 0.1s ease, stroke-width 0.15s ease;
 }
 
-/* The currently-hovered edge gets a stronger fill on its ribbon plus the
-   crisp orange highlight on the visible path. */
+/* Hide the breathing target-end pulse during drag — anything moving on the
+   canvas competes with the user's targeting and made the drop "feel" flimsy
+   even though the hit zone is wide enough. */
+.elsa-is-dragging-activity .elsa-react-flow-edge-pulse {
+    display: none;
+}
+
+/* The edge currently under the cursor gets a stronger amber wash plus the
+   crisp orange highlight on the visible path beneath. */
 .elsa-is-dragging-activity .react-flow__edge.elsa-react-flow-edge-split-target .elsa-react-flow-edge-hit {
-    stroke: rgba(249, 115, 22, 0.28);
+    stroke: rgba(249, 115, 22, 0.45);
+    stroke-width: 32;
 }
 
 .elsa-react-flowchart-designer .react-flow__edge.elsa-react-flow-edge-split-target .react-flow__edge-path {
@@ -429,17 +453,3 @@
     text-overflow: ellipsis;
 }
 
-/* ----- Badge ----- */
-
-.elsa-react-flow-badge {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 999px;
-    box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
-    pointer-events: none;
-}

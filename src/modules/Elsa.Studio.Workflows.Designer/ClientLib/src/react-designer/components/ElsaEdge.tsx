@@ -159,6 +159,15 @@ export function ElsaEdge(props: EdgeProps) {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
+            {/* Render the breathing pulse FIRST so the path + arrowhead end up
+                on top of it — the dot becomes a soft halo around the arrow tip. */}
+            {animated && (
+                <circle
+                    className="elsa-react-flow-edge-pulse"
+                    cx={targetX}
+                    cy={targetY}
+                />
+            )}
             <path
                 d={pathD}
                 className="react-flow__edge-path"

@@ -6,7 +6,6 @@ import {
     BackgroundVariant,
     Controls,
     MiniMap,
-    Panel,
     MarkerType,
     ConnectionLineType,
     applyNodeChanges,
@@ -985,9 +984,6 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 <Controls showInteractive={!readOnly} />
                 <MiniMap pannable zoomable nodeColor={miniMapNodeColor} maskColor="rgba(15, 23, 42, 0.06)" />
                 <SnapLines guides={snapGuides} />
-                <Panel position="top-left" className="elsa-react-flow-badge">
-                    React Flow
-                </Panel>
             </ReactFlow>
             </EdgeOpsContext.Provider>
             {connectMenu && (
