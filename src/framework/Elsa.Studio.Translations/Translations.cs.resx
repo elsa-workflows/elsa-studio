@@ -61,4 +61,52 @@
   <data name="Looping" xml:space="preserve">
     <value>Procházení</value>
   </data>
+  <data name="14 days" xml:space="preserve">
+    <value>14 dní</value>
+  </data>
+  <data name="180 days" xml:space="preserve">
+    <value>180 dní</value>
+  </data>
+  <data name="30 days" xml:space="preserve">
+    <value>30 dní</value>
+  </data>
+  <data name="7 days" xml:space="preserve">
+    <value>7 dní</value>
+  </data>
+  <data name="90 days" xml:space="preserve">
+    <value>90 dní</value>
+  </data>
+  <data name="A brief description of the agent." xml:space="preserve">
+    <value>Krátký popisek agenta.</value>
+  </data>
+  <data name="A brief description of the secret." xml:space="preserve">
+    <value>Krátký popisek tajemství.</value>
+  </data>
+  <data name="A brief description of the workflow." xml:space="preserve">
+    <value>Krátký popisek průběhu.</value>
+  </data>
+  <data name="A brief description of this input." xml:space="preserve">
+    <value>Krátký popisek vstupu.</value>
+  </data>
+  <data name="A brief description of this output." xml:space="preserve">
+    <value>Krátký popisek výstupu.</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>Aktivity</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Aktivita</value>
+  </data>
+  <data name="Activity Instance ID" xml:space="preserve">
+    <value>Id instance aktivity</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Přidat</value>
+  </data>
+  <data name="Add input" xml:space="preserve">
+    <value>Přidat vstup</value>
+  </data>
+  <data name="Add output" xml:space="preserve">
+    <value>Přidat výstup</value>
+  </data>
 </root>
