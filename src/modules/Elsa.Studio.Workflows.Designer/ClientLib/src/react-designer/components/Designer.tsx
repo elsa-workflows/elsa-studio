@@ -1003,7 +1003,9 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [undo, redo, snapshot, interop]);
 
-    const proOptions = useMemo(() => ({ hideAttribution: true }), []);
+    // hideAttribution=true requires a React Flow Pro licence; we don't have one, so leave it
+    // false to keep the default attribution visible per @xyflow/react's open-source terms.
+    const proOptions = useMemo(() => ({ hideAttribution: false }), []);
 
     // Decorate the edge currently highlighted as a drop target with a CSS
     // class so it visually pops while the user is dragging an activity over it.

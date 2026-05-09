@@ -176,8 +176,8 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     public async Task AutoLayoutAsync()
     {
-        if (Designer is not null) await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
-        // ReactFlowDesigner auto-layout is not yet implemented.
+        if (ReactDesigner is not null) await ReactDesigner.AutoLayoutAsync(Flowchart, ActivityStats);
+        else if (Designer is not null) await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
     }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)

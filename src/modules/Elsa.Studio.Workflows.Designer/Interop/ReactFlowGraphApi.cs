@@ -12,14 +12,12 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 public class ReactFlowGraphApi
 {
     private readonly IJSObjectReference _module;
-    private readonly IServiceProvider _serviceProvider;
     private readonly string _containerId;
 
     /// <summary>Initializes the API for a given container.</summary>
-    public ReactFlowGraphApi(IJSObjectReference module, IServiceProvider serviceProvider, string containerId)
+    public ReactFlowGraphApi(IJSObjectReference module, string containerId)
     {
         _module = module;
-        _serviceProvider = serviceProvider;
         _containerId = containerId;
     }
 

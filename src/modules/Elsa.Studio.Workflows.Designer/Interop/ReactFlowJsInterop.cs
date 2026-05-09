@@ -6,7 +6,7 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Loads the React Flow designer JS bundle and exposes its createReactGraph entry point.
 /// </summary>
-public class ReactFlowJsInterop(IJSRuntime jsRuntime, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
+public class ReactFlowJsInterop(IJSRuntime jsRuntime) : JsInteropBase(jsRuntime)
 {
     /// <inheritdoc />
     protected override string ModuleName => "react-designer";
@@ -19,7 +19,7 @@ public class ReactFlowJsInterop(IJSRuntime jsRuntime, IServiceProvider servicePr
         return await TryInvokeAsync(async module =>
         {
             await module.InvokeAsync<string>("createReactGraph", containerId, componentRef, isReadOnly, null);
-            return new ReactFlowGraphApi(module, serviceProvider, containerId);
+            return new ReactFlowGraphApi(module, containerId);
         });
     }
 }
