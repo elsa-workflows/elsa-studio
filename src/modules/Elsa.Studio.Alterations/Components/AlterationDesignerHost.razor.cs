@@ -56,6 +56,7 @@ public partial class AlterationDesignerHost : IDisposable
 
     private bool _panelCollapsed;
     private bool _busy;
+    private AlterationSidePanel? _sidePanel;
 
     protected override void OnInitialized()
     {
@@ -112,6 +113,8 @@ public partial class AlterationDesignerHost : IDisposable
             _selectedActivityId = activity.GetId();
             _selectedActivityName = ResolveDisplayName(activity);
             _selectedActivityType = typeName;
+            // Auto-focus the Selection tab so the user immediately sees the activity's actions.
+            _sidePanel?.SwitchTo(AlterationSidePanel.Tab.Selection);
         }
         StateHasChanged();
     }
@@ -125,7 +128,6 @@ public partial class AlterationDesignerHost : IDisposable
         return activity.GetId();
     }
 
-    private void OnPanelCollapseToggle(bool collapsed) => _panelCollapsed = collapsed;
 
     /// <summary>
     /// Stages an alteration triggered by an Inspect-tab button. Activity-scoped descriptors

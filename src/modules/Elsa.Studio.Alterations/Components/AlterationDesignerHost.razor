@@ -23,24 +23,18 @@
 
         <div class="elsa-alterations-toolbar-spacer"></div>
 
-        <MudButton StartIcon="@Icons.Material.Outlined.Search"
-                   Variant="Variant.Text"
-                   OnClick="OnDryRunAsync"
-                   Disabled="@(Staging.Items.Count == 0 || _busy)">
-            @Localizer["Dry-run"]
-        </MudButton>
-        <MudButton StartIcon="@Icons.Material.Outlined.DeleteSweep"
-                   Variant="Variant.Text"
-                   OnClick="OnDiscardAllAsync"
-                   Disabled="@(Staging.Items.Count == 0 || _busy)">
-            @Localizer["Discard all"]
-        </MudButton>
-        <MudButton StartIcon="@Icons.Material.Outlined.Send"
-                   Variant="Variant.Filled" Color="Color.Primary"
-                   OnClick="OnSubmitAsync"
-                   Disabled="@(Staging.Items.Count == 0 || _busy)">
-            @Localizer["Submit"]@(Staging.Items.Count > 0 ? $" ({Staging.Items.Count})" : "")
-        </MudButton>
+        @if (Staging.Items.Count > 0)
+        {
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                     Icon="@Icons.Material.Outlined.Layers">
+                @string.Format(Localizer["{0} staged"], Staging.Items.Count)
+            </MudChip>
+        }
+
+        <MudIconButton Icon="@(_panelCollapsed ? Icons.Material.Outlined.ChevronLeft : Icons.Material.Outlined.ChevronRight)"
+                       Size="Size.Small"
+                       OnClick="@(() => _panelCollapsed = !_panelCollapsed)"
+                       title="@(_panelCollapsed ? Localizer["Show panel"] : Localizer["Hide panel"])" />
     </div>
 
     <div class="elsa-alterations-canvas">
@@ -61,15 +55,21 @@
         }
     </div>
 
-    <AlterationBottomPanel
-        SelectedActivityId="@_selectedActivityId"
-        SelectedActivityName="@_selectedActivityName"
-        SelectedActivityType="@_selectedActivityType"
-        Variables="@_variables"
-        VariablesLoading="@_variablesLoading"
-        Collapsed="@_panelCollapsed"
-        OnCollapseToggle="OnPanelCollapseToggle"
-        QuickActionRequested="OnQuickActionAsync"
-        ModifyVariableRequested="OnModifyVariableShortcutAsync"
-        EditStagedRequested="OnEditStagedAsync" />
+    <AlterationSidePanel @ref="_sidePanel"
+                         SelectedActivityId="@_selectedActivityId"
+                         SelectedActivityName="@_selectedActivityName"
+                         SelectedActivityType="@_selectedActivityType"
+                         InstanceId="@WorkflowInstance?.Id"
+                         InstanceName="@WorkflowInstance?.Name"
+                         InstanceStatus="@WorkflowInstance?.Status.ToString()"
+                         Variables="@_variables"
+                         VariablesLoading="@_variablesLoading"
+                         Collapsed="@_panelCollapsed"
+                         Busy="@_busy"
+                         QuickActionRequested="OnQuickActionAsync"
+                         ModifyVariableRequested="OnModifyVariableShortcutAsync"
+                         EditStagedRequested="OnEditStagedAsync"
+                         DryRunRequested="OnDryRunAsync"
+                         DiscardAllRequested="OnDiscardAllAsync"
+                         SubmitRequested="OnSubmitAsync" />
 </div>

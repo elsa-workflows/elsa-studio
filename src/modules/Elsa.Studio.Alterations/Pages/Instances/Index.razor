@@ -3,135 +3,109 @@
 @using Elsa.Api.Client.Resources.WorkflowInstances.Models
 @using Elsa.Api.Client.Resources.WorkflowInstances.Requests
 @using Elsa.Studio.Workflows.Domain.Contracts
+@inherits StudioComponentBase
 @implements IDisposable
 @inject IWorkflowInstanceService WorkflowInstanceService
 @inject ILocalizer Localizer
 @inject NavigationManager Nav
 
-<HeadContent>
-    <link rel="stylesheet" href="_content/Elsa.Studio.Alterations/elsa-alterations.css" />
-</HeadContent>
-
 <PageTitle>@Localizer["Altereable instances"]</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4 elsa-alterations-page">
-    <MudBreadcrumbs Items="@_breadcrumbs" Class="elsa-alterations-breadcrumbs" />
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="@Localizer["Altereable instances"]" />
 
-    <div class="elsa-alterations-page-header">
-        <div>
-            <MudText Typo="Typo.h4" Class="mb-1">@Localizer["Altereable instances"]</MudText>
-            <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                @Localizer["Pick a running workflow instance to design an alteration plan against it."]
-            </MudText>
-        </div>
-        <div class="elsa-alterations-page-header-actions">
-            <MudTooltip Text="@(_polling ? Localizer["Auto-refresh on (every 5s)"] : Localizer["Auto-refresh off"])">
-                <MudToggleIconButton Toggled="_polling"
-                                     ToggledChanged="@OnPollingChanged"
-                                     Icon="@Icons.Material.Outlined.PauseCircle"
-                                     ToggledIcon="@Icons.Material.Outlined.Autorenew"
-                                     Color="Color.Default"
-                                     ToggledColor="Color.Primary" />
-            </MudTooltip>
-            <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
-                           OnClick="@(() => _table?.ReloadServerData())" />
-        </div>
-    </div>
+    <MudTable T="WorkflowInstanceSummary"
+              ServerData="LoadAsync"
+              Dense="true" Hover="true" Elevation="0"
+              @ref="_table"
+              RowStyle="cursor: pointer;"
+              OnRowClick="OnRowClick">
+        <ToolBarContent>
+            <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Label="@Localizer["Actions"]"
+                     Color="Color.Primary"
+                     Variant="Variant.Filled"
+                     Dense="true">
+                <MudMenuItem Icon="@Icons.Material.Outlined.Refresh"
+                             OnClick="@(() => _table?.ReloadServerData())">
+                    @Localizer["Refresh"]
+                </MudMenuItem>
+                <MudMenuItem Icon="@(_polling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)"
+                             OnClick="@(() => OnPollingChanged(!_polling))">
+                    @(_polling ? Localizer["Pause polling"] : Localizer["Enable polling"])
+                </MudMenuItem>
+            </MudMenu>
 
-    <MudPaper Class="elsa-alterations-card mt-4" Elevation="0">
-        <MudTable T="WorkflowInstanceSummary"
-                  ServerData="LoadAsync"
-                  Hover="true" Dense="true" @ref="_table"
-                  Class="elsa-alterations-table"
-                  RowClass="elsa-alterations-row"
-                  OnRowClick="OnRowClick">
-            <ToolBarContent>
-                <MudTextField T="string" @bind-Value="_searchTerm"
-                              Placeholder="@Localizer["Search by name or id…"]"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Outlined.Search"
-                              Immediate="true" Margin="Margin.Dense"
-                              DebounceInterval="300"
-                              Variant="Variant.Outlined"
-                              Class="elsa-alterations-search"
-                              OnDebounceIntervalElapsed="@(_ => _table?.ReloadServerData())" />
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh>@Localizer["Name"]</MudTh>
-                <MudTh>@Localizer["Definition"]</MudTh>
-                <MudTh>@Localizer["Version"]</MudTh>
-                <MudTh>@Localizer["Sub-status"]</MudTh>
-                <MudTh>@Localizer["Created"]</MudTh>
-                <MudTh Style="text-align:right">@Localizer["Action"]</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>
-                    <div class="d-flex align-center" style="gap:8px;">
-                        <MudIcon Icon="@Icons.Material.Outlined.PlayCircleOutline"
-                                 Color="Color.Info" Size="Size.Small" />
-                        <span class="elsa-alterations-row-title">
-                            @(string.IsNullOrEmpty(context.Name) ? context.Id : context.Name)
-                        </span>
-                    </div>
-                </MudTd>
-                <MudTd>
-                    <span class="mud-text-secondary" style="font-family:var(--mud-typography-input-font-family,monospace); font-size:0.78rem;">
-                        @context.DefinitionId
-                    </span>
-                </MudTd>
-                <MudTd>v@(context.Version)</MudTd>
-                <MudTd>
-                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                             Color="@MapSubStatusColor(context.SubStatus)">
-                        @context.SubStatus
-                    </MudChip>
-                </MudTd>
-                <MudTd>
-                    <span class="mud-text-secondary">@context.CreatedAt.ToLocalTime().ToString("g")</span>
-                </MudTd>
-                <MudTd Style="text-align:right">
-                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
-                               StartIcon="@Icons.Material.Outlined.Tune"
-                               Href="@($"alterations/instances/{context.Id}")">
-                        @Localizer["Alter"]
-                    </MudButton>
-                </MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
-                <div class="elsa-alterations-empty">
-                    <MudIcon Icon="@Icons.Material.Outlined.Inbox" Size="Size.Large" Class="mb-2" />
-                    <MudText Typo="Typo.subtitle1">@Localizer["No running instances"]</MudText>
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                        @Localizer["Start a workflow that suspends or runs long enough to alter."]
-                    </MudText>
-                </div>
-            </NoRecordsContent>
-            <LoadingContent>
-                <MudText>@Localizer["Loading…"]</MudText>
-            </LoadingContent>
-            <PagerContent>
-                <MudTablePager />
-            </PagerContent>
-        </MudTable>
-    </MudPaper>
+            <MudSpacer />
+
+            <MudTextField T="string"
+                          Text="@_searchTerm"
+                          Placeholder="@Localizer["Search by name or id"]"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          AdornmentIcon="@Icons.Material.Outlined.Search"
+                          Adornment="Adornment.End"
+                          Clearable="true"
+                          DebounceInterval="500"
+                          Immediate="true"
+                          Class="me-3"
+                          Style="height: 36.5px; width: 360px"
+                          ValueChanged="OnSearchChanged" />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>@Localizer["Name"]</MudTh>
+            <MudTh>@Localizer["Definition"]</MudTh>
+            <MudTh>@Localizer["Version"]</MudTh>
+            <MudTh>@Localizer["Sub-status"]</MudTh>
+            <MudTh>@Localizer["Created"]</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@Localizer["Name"]">
+                @(string.IsNullOrEmpty(context.Name) ? context.Id : context.Name)
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Definition"]">
+                <MudText Typo="Typo.body2" Style="font-family:var(--mud-typography-input-font-family,monospace);">
+                    @context.DefinitionId
+                </MudText>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Version"]">v@(context.Version)</MudTd>
+            <MudTd DataLabel="@Localizer["Sub-status"]">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
+                         Color="@MapSubStatusColor(context.SubStatus)">
+                    @context.SubStatus
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Created"]">
+                <MudText Typo="Typo.body2">@context.CreatedAt.ToLocalTime().ToString("g")</MudText>
+            </MudTd>
+            <MudTd Style="text-align:right">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Outlined.Tune"
+                           Href="@($"alterations/instances/{context.Id}")">
+                    @Localizer["Alter"]
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="pa-4">@Localizer["No running instances. Start a workflow that suspends or runs long enough to alter."]</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>@Localizer["Loading…"]</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
 </MudContainer>
 
 @code {
     private MudTable<WorkflowInstanceSummary>? _table;
     private string _searchTerm = "";
-    private List<BreadcrumbItem> _breadcrumbs = new();
     private bool _polling = true;
     private Timer? _pollingTimer;
 
-    protected override void OnInitialized()
-    {
-        _breadcrumbs = new()
-        {
-            new BreadcrumbItem(Localizer["Alterations"], "alterations"),
-            new BreadcrumbItem(Localizer["Instances"], null, disabled: true),
-        };
-        StartPolling();
-    }
+    protected override void OnInitialized() => StartPolling();
 
     private void StartPolling()
     {
@@ -139,7 +113,6 @@
         if (!_polling) return;
         _pollingTimer = new Timer(_ =>
         {
-            // ReloadServerData is safe to call from any thread; MudBlazor marshals to UI.
             _ = InvokeAsync(() => _table?.ReloadServerData());
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
@@ -156,6 +129,12 @@
         if (_polling) StartPolling(); else StopPolling();
     }
 
+    private void OnSearchChanged(string value)
+    {
+        _searchTerm = value;
+        _table?.ReloadServerData();
+    }
+
     public void Dispose() => StopPolling();
 
     private async Task<TableData<WorkflowInstanceSummary>> LoadAsync(TableState state, CancellationToken ct)
@@ -165,12 +144,9 @@
             Page = state.Page,
             PageSize = state.PageSize,
             SearchTerm = string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm,
-            // Only running instances can usefully be altered. Once a Cancel/Migrate runs, the
-            // instance flips to Finished and naturally drops out of this list.
+            // Only running instances can usefully be altered.
             Status = WorkflowStatus.Running,
-            // Hide system workflows like Elsa.Alterations.ExecuteAlterationPlan — those are
-            // started by the alterations engine itself when a plan runs and aren't user
-            // workflows you'd want to alter.
+            // Hide system workflows (e.g. Elsa.Alterations.ExecuteAlterationPlan).
             IsSystem = false,
         };
 

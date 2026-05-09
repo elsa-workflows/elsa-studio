@@ -3,6 +3,7 @@
 @using Elsa.Api.Client.Resources.Alterations.Enums
 @using Elsa.Api.Client.Resources.Alterations.Models
 @using Elsa.Studio.Contracts
+@inherits StudioComponentBase
 @implements IDisposable
 @inject IBackendApiClientProvider BackendApiClientProvider
 @inject ILocalizer Localizer
@@ -14,8 +15,52 @@
 
 <PageTitle>@Localizer["Alteration plan"] @Id</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="pa-4 elsa-alterations-page">
-    <MudBreadcrumbs Items="@_breadcrumbs" Class="elsa-alterations-breadcrumbs" />
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="@Localizer["Alteration plan"]" />
+
+    @* Header strip below the title — id, status, timestamps, refresh — uses MudPaper Outlined
+       (the same idiom Workflows' CodeView etc. use) so the visual weight matches.
+       Renders unconditionally with placeholders during load to keep the layout stable. *@
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+        <div class="d-flex align-center flex-wrap gap-3">
+            <MudIcon Icon="@Icons.Material.Outlined.Tag" Size="Size.Small" Color="Color.Default" />
+            <MudText Typo="Typo.body2" Style="font-family:var(--mud-typography-input-font-family,monospace);">
+                @(_plan?.Id ?? Id)
+            </MudText>
+
+            <MudDivider Vertical="true" FlexItem="true" />
+
+            @if (_plan != null)
+            {
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
+                         Color="@MapPlanStatusColor(_plan.Status)">
+                    @_plan.Status
+                </MudChip>
+
+                <MudText Typo="Typo.body2" Color="Color.Default">
+                    <MudIcon Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small" Class="mr-1" />
+                    @Localizer["Created"] @_plan.CreatedAt.ToLocalTime().ToString("g")
+                </MudText>
+
+                @if (_plan.CompletedAt is { } c)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Default">
+                        <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Small" Class="mr-1" />
+                        @Localizer["Completed"] @c.ToLocalTime().ToString("g")
+                    </MudText>
+                }
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Default">@Localizer["Loading…"]</MudText>
+            }
+
+            <MudSpacer />
+
+            <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
+                           OnClick="LoadAsync" Disabled="_loading" Size="Size.Small" />
+        </div>
+    </MudPaper>
 
     @if (_loading && _plan == null)
     {
@@ -23,11 +68,11 @@
     }
     else if (_plan == null)
     {
-        <MudPaper Class="elsa-alterations-card pa-6" Elevation="0">
-            <div class="elsa-alterations-empty">
+        <MudPaper Class="pa-6" Elevation="0" Outlined="true">
+            <div class="d-flex flex-column align-center pa-4">
                 <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Large" Class="mb-2" />
                 <MudText Typo="Typo.subtitle1">@Localizer["Plan not found"]</MudText>
-                <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">
+                <MudText Typo="Typo.body2" Color="Color.Default" Class="mb-3">
                     @Localizer["The plan id may be wrong, or it may have been deleted."]
                 </MudText>
                 <MudButton Variant="Variant.Outlined" Href="alterations">@Localizer["Back to alterations"]</MudButton>
@@ -36,47 +81,9 @@
     }
     else
     {
-        <div class="elsa-alterations-page-header">
-            <div>
-                <MudText Typo="Typo.h4" Class="mb-1">@Localizer["Plan"]</MudText>
-                <div class="elsa-alterations-plan-meta">
-                    <span class="item">
-                        <MudIcon Icon="@Icons.Material.Outlined.Tag" Size="Size.Small" />
-                        <code>@_plan.Id</code>
-                    </span>
-                    <span class="item">
-                        <MudIcon Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small" />
-                        @Localizer["Created"] @_plan.CreatedAt.ToLocalTime().ToString("g")
-                    </span>
-                    @if (_plan.StartedAt is { } s)
-                    {
-                        <span class="item">
-                            <MudIcon Icon="@Icons.Material.Outlined.PlayArrow" Size="Size.Small" />
-                            @Localizer["Started"] @s.ToLocalTime().ToString("g")
-                        </span>
-                    }
-                    @if (_plan.CompletedAt is { } c)
-                    {
-                        <span class="item">
-                            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Small" />
-                            @Localizer["Completed"] @c.ToLocalTime().ToString("g")
-                        </span>
-                    }
-                </div>
-            </div>
-            <div class="elsa-alterations-page-header-actions">
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
-                         Color="@MapPlanStatusColor(_plan.Status)">
-                    @_plan.Status
-                </MudChip>
-                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" OnClick="LoadAsync"
-                               Disabled="_loading" />
-            </div>
-        </div>
-
-        <MudPaper Class="elsa-alterations-card mt-4" Elevation="0">
-            <div class="pa-4" style="border-bottom: var(--elsa-alt-border);">
-                <MudText Typo="Typo.subtitle1">
+        <MudPaper Class="mb-4" Elevation="0" Outlined="true">
+            <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-lines-default);">
+                <MudText Typo="Typo.h6">
                     @Localizer["Alterations"]
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="ml-2">
                         @_plan.Alterations.Count
@@ -85,31 +92,31 @@
             </div>
             @foreach (var a in _plan.Alterations)
             {
-                <div class="elsa-alterations-alteration-row">
+                <div class="pa-3 d-flex align-start gap-3" style="border-bottom: 1px solid var(--mud-palette-lines-default);">
                     <MudIcon Icon="@Icons.Material.Outlined.Build" Color="Color.Primary"
                              Size="Size.Small" Class="mt-1" />
-                    <pre>@a.ToJsonString(_jsonOpts)</pre>
+                    <pre style="margin:0; flex:1; font-size:0.8rem; white-space:pre-wrap; background:var(--mud-palette-background-grey); padding:8px 10px; border-radius:4px;">@a.ToJsonString(_jsonOpts)</pre>
                 </div>
             }
         </MudPaper>
 
-        <MudPaper Class="elsa-alterations-card mt-4" Elevation="0">
-            <div class="pa-4" style="border-bottom: var(--elsa-alt-border);">
-                <MudText Typo="Typo.subtitle1">
+        <MudPaper Elevation="0" Outlined="true">
+            <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-lines-default);">
+                <MudText Typo="Typo.h6">
                     @Localizer["Jobs"]
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="ml-2">
                         @(_jobs?.Count ?? 0)
                     </MudChip>
                 </MudText>
             </div>
+
             @if (_jobs != null && _jobs.Count > 0)
             {
                 @foreach (var job in _jobs)
                 {
                     var expanded = _expandedJobs.Contains(job.Id);
-                    // Client-side AlterationJob.Log is ICollection<AlterationLogEntry>? (flat),
-                    // not the server-side AlterationLog wrapper. Default to empty when null.
                     var entries = (IReadOnlyCollection<AlterationLogEntry>)(job.Log?.ToArray() ?? Array.Empty<AlterationLogEntry>());
+
                     <div class="elsa-alt-job">
                         <button type="button" class="elsa-alt-job-row" @onclick="@(() => ToggleJob(job.Id))">
                             <MudIcon Icon="@(expanded ? Icons.Material.Outlined.ExpandLess : Icons.Material.Outlined.ExpandMore)"
@@ -165,10 +172,7 @@
             }
             else
             {
-                <div class="elsa-alterations-empty">
-                    <MudIcon Icon="@Icons.Material.Outlined.HourglassEmpty" Size="Size.Large" Class="mb-2" />
-                    <MudText Typo="Typo.body2">@Localizer["Waiting for jobs to be scheduled…"]</MudText>
-                </div>
+                <MudText Class="pa-4" Color="Color.Default">@Localizer["Waiting for jobs to be scheduled…"]</MudText>
             }
         </MudPaper>
     }
@@ -185,9 +189,7 @@
     private AlterationPlan? _plan;
     private IList<AlterationJob>? _jobs;
     private bool _loading = true;
-    private List<BreadcrumbItem> _breadcrumbs = new();
     private Timer? _pollingTimer;
-    // Tracks which job rows are expanded so polling doesn't collapse them on each refresh.
     private readonly HashSet<string> _expandedJobs = new();
 
     private void ToggleJob(string jobId)
@@ -206,26 +208,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _breadcrumbs = new()
-        {
-            new BreadcrumbItem(Localizer["Alterations"], "alterations"),
-            new BreadcrumbItem(Localizer["Plan"], null, disabled: true),
-        };
         await LoadAsync();
         StartPolling();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        // Re-load when navigating between plan ids without a full page swap.
         if (_plan != null && _plan.Id != Id)
             await LoadAsync();
     }
 
     private void StartPolling()
     {
-        // Refresh while the plan still has work outstanding so the user sees jobs flip to
-        // Completed without manually clicking refresh.
         _pollingTimer = new Timer(_ =>
         {
             if (IsTerminal(_plan?.Status)) { StopPolling(); return; }
