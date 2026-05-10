@@ -120,9 +120,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{60B07BD6-80A
 		doc\AUTHENTICATION_ARCHITECTURE.md = doc\AUTHENTICATION_ARCHITECTURE.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.ServerLogs", "src\modules\Elsa.Studio.ServerLogs\Elsa.Studio.ServerLogs.csproj", "{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Diagnostics.StructuredLogs", "src\modules\Elsa.Studio.Diagnostics.StructuredLogs\Elsa.Studio.Diagnostics.StructuredLogs.csproj", "{068A1A66-D30C-4A9A-BFBC-CAB04989FB55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.ServerLogs.Tests", "src\modules\Elsa.Studio.ServerLogs.Tests\Elsa.Studio.ServerLogs.Tests.csproj", "{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Diagnostics.StructuredLogs.Tests", "src\modules\Elsa.Studio.Diagnostics.StructuredLogs.Tests\Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj", "{4611CDFF-01B3-46F7-BD8A-E193DF1E4C2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

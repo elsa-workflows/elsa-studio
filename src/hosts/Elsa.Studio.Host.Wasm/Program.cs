@@ -19,7 +19,7 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
-using Elsa.Studio.ServerLogs.Extensions;
+using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -89,7 +89,7 @@ services.AddRemoteBackend(backendApiConfig);
 
 services.AddDashboardModule();
 services.AddWorkflowsModule();
-services.AddServerLogsModule(backendApiConfig);
+services.AddStructuredLogsModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
