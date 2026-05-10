@@ -109,4 +109,31 @@
   <data name="Add output" xml:space="preserve">
     <value>Přidat výstup</value>
   </data>
+  <data name="A custom activity category to assign this workflow-as-an-activity to." xml:space="preserve">
+    <value>Vlastní kategorie aktivit, do které bude tento workflow jako aktivita zařazen.</value>
+  </data>
+  <data name="A custom category by which to group this input." xml:space="preserve">
+    <value>Vlastní kategorie, podle které bude tento vstup seskupen.</value>
+  </data>
+  <data name="A default value." xml:space="preserve">
+    <value>Defualtní hodnota.</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="Agents" xml:space="preserve">
+    <value>Agenti</value>
+  </data>
+  <data name="Aggregation" xml:space="preserve">
+    <value>Agregace</value>
+  </data>
+  <data name="A JSON editor" xml:space="preserve">
+    <value>JSON Editor</value>
+  </data>
+  <data name="A list of radio buttons" xml:space="preserve">
+    <value>Seznam přepínacích tlačítek</value>
+  </data>
+  <data name="Branches" xml:space="preserve">
+    <value>Větve</value>
+  </data>
 </root>
