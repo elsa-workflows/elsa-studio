@@ -21,6 +21,6 @@ public class StructuredLogEvent
     public string? WorkflowDefinitionId { get; set; }
     public string? WorkflowInstanceId { get; set; }
     public string SourceId { get; set; } = default!;
-    public IDictionary<string, object?> Properties { get; set; } = new Dictionary<string, object?>();
-    public ICollection<object?> Scopes { get; set; } = new List<object?>();
+    public IDictionary<string, string?> Properties { get; set; } = new Dictionary<string, string?>();
+    public IDictionary<string, string?> Scopes { get; set; } = new Dictionary<string, string?>();
 }

@@ -6,5 +6,5 @@ namespace Elsa.Studio.Diagnostics.StructuredLogs.Models;
 public class RecentStructuredLogsResult
 {
     public ICollection<StructuredLogEvent> Items { get; set; } = new List<StructuredLogEvent>();
-    public int DroppedEventCount { get; set; }
+    public long DroppedEvents { get; set; }
 }

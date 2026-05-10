@@ -112,7 +112,7 @@
     align-items: center;
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(6, minmax(160px, 1fr));
+    grid-template-columns: repeat(6, minmax(200px, 1fr));
 }
 
 .structured-logs-filter-grid .mud-input-control {
@@ -128,6 +128,10 @@
     grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
     margin-top: 10px;
     min-height: 440px;
+}
+
+.structured-logs-main-no-details {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .structured-logs-surface {
@@ -358,8 +362,7 @@
     min-width: 0;
 }
 
-.structured-log-detail-list code,
-.structured-log-scopes code {
+.structured-log-detail-list code {
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
@@ -372,11 +375,6 @@
     flex: 0 0 auto;
     font-size: 0.72rem;
     padding: 0;
-}
-
-.structured-log-scopes {
-    margin: 8px 0 0;
-    padding-left: 20px;
 }
 
 .structured-log-code {
