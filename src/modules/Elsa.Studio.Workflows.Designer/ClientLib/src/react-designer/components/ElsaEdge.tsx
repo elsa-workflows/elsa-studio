@@ -219,19 +219,21 @@ export function ElsaEdge(props: EdgeProps) {
                             +
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className="elsa-react-flow-edge-remove nodrag nopan"
-                        style={{
-                            position: 'absolute',
-                            transform: `translate(-50%, -50%) translate(${labelX + (ops.readOnly ? 0 : 16)}px, ${labelY}px)`,
-                        }}
-                        onClick={onDeleteClick}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        title="Remove edge"
-                    >
-                        ×
-                    </button>
+                    {!ops.readOnly && (
+                        <button
+                            type="button"
+                            className="elsa-react-flow-edge-remove nodrag nopan"
+                            style={{
+                                position: 'absolute',
+                                transform: `translate(-50%, -50%) translate(${labelX + 16}px, ${labelY}px)`,
+                            }}
+                            onClick={onDeleteClick}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            title="Remove edge"
+                        >
+                            ×
+                        </button>
+                    )}
                 </EdgeLabelRenderer>
             )}
         </g>

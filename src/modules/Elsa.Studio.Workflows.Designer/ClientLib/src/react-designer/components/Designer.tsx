@@ -546,7 +546,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             setEdges(prev => [...prev, ...newEdges]);
             interop.raiseGraphUpdated();
         },
-    }), [flow, nodes, edges, interop, onEmbeddedPortClick, snapshot]);
+    }), [flow, nodes, edges, interop, onEmbeddedPortClick, onDeleteNode, readOnly, snapshot]);
 
     // ----- Change handlers --------------------------------------------------
     const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -832,6 +832,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         readOnly,
         requestInsertActivity: requestInsertActivityOnEdge,
         deleteEdge: (edgeId) => {
+            if (readOnly) return;
             setEdges(prev => {
                 const next = prev.filter(e => e.id !== edgeId);
                 snapshot(nodesRef.current, next);
