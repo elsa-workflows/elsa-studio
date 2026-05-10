@@ -7,10 +7,10 @@ Elsa.Studio.ServerLogs adds an operational log viewer to Elsa Studio. It loads r
 Add the module to the Studio host:
 
 ```csharp
-builder.Services.AddServerLogsModule();
+builder.Services.AddServerLogsModule(backendApiConfig);
 ```
 
-Bundled Studio hosts should reference `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` and call `AddServerLogsModule`.
+Bundled Studio hosts should reference `src/modules/Elsa.Studio.ServerLogs/Elsa.Studio.ServerLogs.csproj` and call `AddServerLogsModule(backendApiConfig)`.
 
 ## Backend Requirement
 

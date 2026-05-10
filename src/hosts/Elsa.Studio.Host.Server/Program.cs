@@ -114,7 +114,7 @@ builder.Services.AddRemoteBackend(backendApiConfig);
 
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
-builder.Services.AddServerLogsModule();
+builder.Services.AddServerLogsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 

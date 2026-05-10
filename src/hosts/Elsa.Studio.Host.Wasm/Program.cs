@@ -89,7 +89,7 @@ services.AddRemoteBackend(backendApiConfig);
 
 services.AddDashboardModule();
 services.AddWorkflowsModule();
-services.AddServerLogsModule();
+services.AddServerLogsModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
