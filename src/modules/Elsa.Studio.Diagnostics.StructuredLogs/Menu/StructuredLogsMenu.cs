@@ -7,14 +7,11 @@ namespace Elsa.Studio.Diagnostics.StructuredLogs.Menu;
 /// <summary>
 /// Exposes menu entries for structured logs.
 /// </summary>
-public class StructuredLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
+public class StructuredLogsMenu : IMenuProvider
 {
     /// <inheritdoc />
     public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
-        if (!await IsStructuredLogsEnabledAsync(cancellationToken))
-            return [];
-
         var menuItems = new List<MenuItem>
         {
             new()
@@ -27,17 +24,5 @@ public class StructuredLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : 
         };
 
         return menuItems;
-    }
-
-    private async Task<bool> IsStructuredLogsEnabledAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await remoteFeatureProvider.IsEnabledAsync(Feature.RemoteFeatureName, cancellationToken);
-        }
-        catch (Exception e) when (e is not OperationCanceledException)
-        {
-            return false;
-        }
     }
 }

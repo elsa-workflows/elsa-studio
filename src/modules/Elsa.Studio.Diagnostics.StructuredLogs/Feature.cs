@@ -9,5 +9,5 @@ namespace Elsa.Studio.Diagnostics.StructuredLogs;
 [RemoteFeature(RemoteFeatureName)]
 public class Feature : FeatureBase
 {
-    public const string RemoteFeatureName = "Elsa.Diagnostics.StructuredLogs";
+    public const string RemoteFeatureName = "Elsa.Diagnostics.StructuredLogs.ShellFeatures.StructuredLogs";
 }
