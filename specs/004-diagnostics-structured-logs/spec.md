@@ -2,7 +2,7 @@
 
 **Feature Branch**: `004-diagnostics-structured-logs`  
 **Created**: 2026-05-10  
-**Status**: Draft  
+**Status**: Clarified  
 **Input**: User description: "Refactor the current Server Logs Studio module into a diagnostics structured logs module, keep it separate from future console streaming and OpenTelemetry explorer modules, and improve the structured logging direction."
 
 ## Clarifications
@@ -13,6 +13,7 @@
 - Q: What should the Studio module be called? -> A: Use Studio conventions with `Elsa.Studio.Diagnostics.StructuredLogs`, paired with Core's `Elsa.Diagnostics.StructuredLogs`.
 - Q: Should the UI look like a terminal? -> A: Only where dense scanning helps. The product concept is now an Aspire-style structured/semantic logs viewer, not stdout/stderr console tailing.
 - Q: Should trace waterfalls and metric charts be part of this module? -> A: No. This module may link by trace/span ID, while a future `Elsa.Diagnostics.OpenTelemetry`/Studio counterpart owns traces and metrics.
+- Clarify pass result: No remaining product or engineering ambiguities block planning. Use consistent breaking renames for this unpublished feature branch, prefer `/diagnostics/structured-logs` as the canonical route, and treat the old `/server-logs` route only as a development bookmark redirect/unavailable compatibility path if the current router makes that practical.
 
 ## User Scenarios & Testing *(mandatory)*
 
