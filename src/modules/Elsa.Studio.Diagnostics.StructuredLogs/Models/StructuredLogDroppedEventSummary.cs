@@ -5,7 +5,7 @@ namespace Elsa.Studio.Diagnostics.StructuredLogs.Models;
 /// </summary>
 public class StructuredLogDroppedEventSummary
 {
-    public int Count { get; set; }
+    public long DroppedCount { get; set; }
     public string? Reason { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
+    public string? SourceId { get; set; }
 }

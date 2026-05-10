@@ -97,7 +97,7 @@ public partial class StructuredLogs : IAsyncDisposable
     /// <summary>
     /// Gets the upstream dropped event count.
     /// </summary>
-    protected int BackendDroppedCount { get; private set; }
+    protected long BackendDroppedCount { get; private set; }
 
     protected string StatusText => ViewState.ConnectionStatus switch
     {
@@ -112,6 +112,7 @@ public partial class StructuredLogs : IAsyncDisposable
     protected string StatusCssClass => $"structured-logs-status-{ViewState.ConnectionStatus.ToString().ToLowerInvariant()}";
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
     protected string PauseTooltip => ViewState.IsPaused ? "Resume" : "Pause";
+    protected string MainCssClass => $"structured-logs-main{(SelectedLogEvent == null ? " structured-logs-main-no-details" : "")}";
     protected string LogSurfaceCssClass => $"structured-logs-surface{(ViewState.WrapMessages ? " structured-logs-wrap" : "")}{(ViewState.Compact ? " structured-logs-compact" : "")}";
     protected bool HasSelection => _selectedLogIds.Count > 0;
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
@@ -440,7 +441,7 @@ public partial class StructuredLogs : IAsyncDisposable
         {
             await LoadSourcesAsync(cancellationToken);
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, cancellationToken);
-            BackendDroppedCount = recent.DroppedEventCount;
+            BackendDroppedCount = recent.DroppedEvents;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);
@@ -474,7 +475,7 @@ public partial class StructuredLogs : IAsyncDisposable
             BackendDroppedCount = 0;
 
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
-            BackendDroppedCount = recent.DroppedEventCount;
+            BackendDroppedCount = recent.DroppedEvents;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);
@@ -518,7 +519,7 @@ public partial class StructuredLogs : IAsyncDisposable
 
     private Task OnDroppedEventsReceivedAsync(StructuredLogDroppedEventSummary summary)
     {
-        BackendDroppedCount += summary.Count;
+        BackendDroppedCount += summary.DroppedCount;
         return InvokeAsync(StateHasChanged);
     }
 

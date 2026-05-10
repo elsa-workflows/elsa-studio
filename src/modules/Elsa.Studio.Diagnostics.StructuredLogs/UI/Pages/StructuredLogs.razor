@@ -119,8 +119,8 @@
             <MudTextField T="string" Label="@Localizer["Workflow instance"]" Value="@ViewState.Filter.WorkflowInstanceId" ValueChanged="SetWorkflowInstanceIdAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" />
             <MudTextField T="string" Label="@Localizer["Workflow definition"]" Value="@ViewState.Filter.WorkflowDefinitionId" ValueChanged="SetWorkflowDefinitionIdAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" />
             <MudTextField T="string" Label="@Localizer["Tenant"]" Value="@ViewState.Filter.TenantId" ValueChanged="SetTenantIdAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" />
-            <MudTextField T="string" Label="@Localizer["From"]" Value="@FromFilterText" ValueChanged="SetFromAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-10T09:00:00Z" />
-            <MudTextField T="string" Label="@Localizer["To"]" Value="@ToFilterText" ValueChanged="SetToAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-10T10:00:00Z" />
+            <MudTextField T="string" Label="@Localizer["From"]" Value="@FromFilterText" ValueChanged="SetFromAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-10 09:00Z" />
+            <MudTextField T="string" Label="@Localizer["To"]" Value="@ToFilterText" ValueChanged="SetToAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-10 10:00Z" />
         </div>
     </MudPaper>
 
@@ -139,7 +139,7 @@
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-3" />
     }
 
-    <div class="structured-logs-main">
+    <div class="@MainCssClass">
         <section class="@LogSurfaceCssClass" id="@LogSurfaceId">
             @if (Rows.Count == 0 && !IsLoading)
             {
@@ -238,12 +238,12 @@
                 {
                     <section class="structured-log-detail-section">
                         <h3>@Localizer["Scopes"]</h3>
-                        <ol class="structured-log-scopes">
-                            @foreach (var scope in SelectedLogEvent.Scopes)
+                        <dl class="structured-log-detail-list">
+                            @foreach (var scope in SelectedLogEvent.Scopes.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
                             {
-                                <li><code>@FormatValue(scope)</code></li>
+                                @DetailRow(scope.Key, scope.Value)
                             }
-                        </ol>
+                        </dl>
                     </section>
                 }
 
