@@ -133,7 +133,7 @@
 - [X] T048 Search `src` and `Elsa.Studio.sln` for active `Elsa.Studio.ServerLogs`, `ServerLog`, `ServerLogs`, `server-logs`, and `serverLogs` references and update remaining module-owned references.
 - [X] T049 Search module UI/docs for console/stdout/stderr wording and keep only explicit future-module separation where appropriate in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/README.md`.
 - [X] T050 Run `dotnet test src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
-- [ ] T051 Run `dotnet build Elsa.Studio.sln`.
+- [X] T051 Run `dotnet build Elsa.Studio.sln`.
 - [X] T052 Update this task list checkboxes as implementation completes in `specs/004-diagnostics-structured-logs/tasks.md`.
 
 ---
