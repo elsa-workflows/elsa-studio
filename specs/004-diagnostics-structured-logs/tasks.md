@@ -17,14 +17,14 @@
 
 **Purpose**: Move active module identity from Server Logs to Diagnostics Structured Logs.
 
-- [ ] T001 Rename `src/modules/Elsa.Studio.ServerLogs/` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/`.
-- [ ] T002 Rename `src/modules/Elsa.Studio.ServerLogs.Tests/` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/`.
-- [ ] T003 Rename `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Elsa.Studio.ServerLogs.csproj` to `Elsa.Studio.Diagnostics.StructuredLogs.csproj` and update description/package tags.
-- [ ] T004 Rename `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.ServerLogs.Tests.csproj` to `Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
-- [ ] T005 Update `Elsa.Studio.sln` project names and paths for the renamed module and test project.
-- [ ] T006 Update `src/bundles/Elsa.Studio/Elsa.Studio.csproj` to reference `Elsa.Studio.Diagnostics.StructuredLogs.csproj`.
-- [ ] T007 Update host imports and registrations in `src/hosts/Elsa.Studio.Host.Server/Program.cs` and `src/hosts/Elsa.Studio.Host.Wasm/Program.cs`.
-- [ ] T008 Rename static assets in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/wwwroot/` from `serverLogs.*` to `structuredLogs.*` and update host asset links.
+- [X] T001 Rename `src/modules/Elsa.Studio.ServerLogs/` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/`.
+- [X] T002 Rename `src/modules/Elsa.Studio.ServerLogs.Tests/` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/`.
+- [X] T003 Rename `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Elsa.Studio.ServerLogs.csproj` to `Elsa.Studio.Diagnostics.StructuredLogs.csproj` and update description/package tags.
+- [X] T004 Rename `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.ServerLogs.Tests.csproj` to `Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
+- [X] T005 Update `Elsa.Studio.sln` project names and paths for the renamed module and test project.
+- [X] T006 Update `src/bundles/Elsa.Studio/Elsa.Studio.csproj` to reference `Elsa.Studio.Diagnostics.StructuredLogs.csproj`.
+- [X] T007 Update host imports and registrations in `src/hosts/Elsa.Studio.Host.Server/Program.cs` and `src/hosts/Elsa.Studio.Host.Wasm/Program.cs`.
+- [X] T008 Rename static assets in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/wwwroot/` from `serverLogs.*` to `structuredLogs.*` and update host asset links.
 
 ---
 
@@ -34,18 +34,18 @@
 
 **Critical**: No user story work should begin until this phase is complete.
 
-- [ ] T009 Rename root namespace and all imports from `Elsa.Studio.ServerLogs` to `Elsa.Studio.Diagnostics.StructuredLogs` across `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/`.
-- [ ] T010 Rename test namespace/imports to `Elsa.Studio.Diagnostics.StructuredLogs.Tests` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
-- [ ] T011 Rename public `ServerLog*` model types to `StructuredLog*` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/`.
-- [ ] T012 Rename `RecentServerLogsResult` to `RecentStructuredLogsResult` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/`.
-- [ ] T013 Rename `IServerLogsApi` to `IStructuredLogsApi` and update REST paths to `/diagnostics/structured-logs/*` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Client/IStructuredLogsApi.cs`.
-- [ ] T014 Rename service contracts to `IStructuredLogService` and `IStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Contracts/`.
-- [ ] T015 Rename services to `RemoteStructuredLogService`, `StructuredLogFilterMapper`, and `SignalRStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/`.
-- [ ] T016 Update SignalR hub URL to `hubs/diagnostics/structured-logs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/SignalRStructuredLogObserver.cs`.
-- [ ] T017 Update `Feature.RemoteFeatureName` to `Elsa.Diagnostics.StructuredLogs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Feature.cs`.
-- [ ] T018 Rename `AddServerLogsModule` to `AddStructuredLogsModule` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Extensions/ServiceCollectionExtensions.cs`.
-- [ ] T019 Add `MenuItemGroups.Diagnostics` in `src/framework/Elsa.Studio.Core/MenuItemGroups.cs`.
-- [ ] T020 Rename `ServerLogsMenu` to `StructuredLogsMenu`, set label `Structured Logs`, route `diagnostics/structured-logs`, and group `Diagnostics` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Menu/StructuredLogsMenu.cs`.
+- [X] T009 Rename root namespace and all imports from `Elsa.Studio.ServerLogs` to `Elsa.Studio.Diagnostics.StructuredLogs` across `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/`.
+- [X] T010 Rename test namespace/imports to `Elsa.Studio.Diagnostics.StructuredLogs.Tests` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
+- [X] T011 Rename public `ServerLog*` model types to `StructuredLog*` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/`.
+- [X] T012 Rename `RecentServerLogsResult` to `RecentStructuredLogsResult` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/`.
+- [X] T013 Rename `IServerLogsApi` to `IStructuredLogsApi` and update REST paths to `/diagnostics/structured-logs/*` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Client/IStructuredLogsApi.cs`.
+- [X] T014 Rename service contracts to `IStructuredLogService` and `IStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Contracts/`.
+- [X] T015 Rename services to `RemoteStructuredLogService`, `StructuredLogFilterMapper`, and `SignalRStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/`.
+- [X] T016 Update SignalR hub URL to `hubs/diagnostics/structured-logs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/SignalRStructuredLogObserver.cs`.
+- [X] T017 Update `Feature.RemoteFeatureName` to `Elsa.Diagnostics.StructuredLogs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Feature.cs`.
+- [X] T018 Rename `AddServerLogsModule` to `AddStructuredLogsModule` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Extensions/ServiceCollectionExtensions.cs`.
+- [X] T019 Add `MenuItemGroups.Diagnostics` in `src/framework/Elsa.Studio.Core/MenuItemGroups.cs`.
+- [X] T020 Rename `ServerLogsMenu` to `StructuredLogsMenu`, set label `Structured Logs`, route `diagnostics/structured-logs`, and group `Diagnostics` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Menu/StructuredLogsMenu.cs`.
 
 **Checkpoint**: Renamed module identity, feature gate, REST client, SignalR observer, registrations, and menu compile.
 
@@ -59,17 +59,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Rename and update mapper test project references in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
-- [ ] T022 [P] [US1] Rename `ServerLogFilterMapperTests` to `StructuredLogFilterMapperTests` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
+- [X] T021 [P] [US1] Rename and update mapper test project references in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
+- [X] T022 [P] [US1] Rename `ServerLogFilterMapperTests` to `StructuredLogFilterMapperTests` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] Rename `UI/Pages/ServerLogs.razor` to `UI/Pages/StructuredLogs.razor` and change route/page title/heading to Structured Logs.
-- [ ] T024 [US1] Rename `UI/Pages/ServerLogs.razor.cs` to `UI/Pages/StructuredLogs.razor.cs` and update class/fields/constants away from server-log identity where active.
-- [ ] T025 [US1] Import renamed JS module path `_content/Elsa.Studio.Diagnostics.StructuredLogs/structuredLogs.js` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
-- [ ] T026 [US1] Replace host static CSS links with `_content/Elsa.Studio.Diagnostics.StructuredLogs/structuredLogs.css` in `src/hosts/Elsa.Studio.Host.Server/Pages/_Host.cshtml` and `src/hosts/Elsa.Studio.Host.Wasm/wwwroot/index.html`.
-- [ ] T027 [US1] Update workflow instance link from `/server-logs?...` to `/diagnostics/structured-logs?...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor.cs`.
-- [ ] T028 [US1] Update module README to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/README.md` with structured logs wording and future Console Logs/OpenTelemetry separation.
+- [X] T023 [US1] Rename `UI/Pages/ServerLogs.razor` to `UI/Pages/StructuredLogs.razor` and change route/page title/heading to Structured Logs.
+- [X] T024 [US1] Rename `UI/Pages/ServerLogs.razor.cs` to `UI/Pages/StructuredLogs.razor.cs` and update class/fields/constants away from server-log identity where active.
+- [X] T025 [US1] Import renamed JS module path `_content/Elsa.Studio.Diagnostics.StructuredLogs/structuredLogs.js` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
+- [X] T026 [US1] Replace host static CSS links with `_content/Elsa.Studio.Diagnostics.StructuredLogs/structuredLogs.css` in `src/hosts/Elsa.Studio.Host.Server/Pages/_Host.cshtml` and `src/hosts/Elsa.Studio.Host.Wasm/wwwroot/index.html`.
+- [X] T027 [US1] Update workflow instance link from `/server-logs?...` to `/diagnostics/structured-logs?...` in `src/modules/Elsa.Studio.Workflows/Components/WorkflowInstanceViewer/Components/WorkflowInstanceDetails.razor.cs`.
+- [X] T028 [US1] Update module README to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/README.md` with structured logs wording and future Console Logs/OpenTelemetry separation.
 
 **Checkpoint**: User Story 1 is functional and testable as a renamed diagnostics navigation/page slice.
 
@@ -83,20 +83,20 @@
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Add event ID/name, message template, and span ID mapper coverage in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
+- [X] T029 [P] [US2] Add event ID/name, message template, and span ID mapper coverage in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
 - [ ] T030 [P] [US2] Add copy/raw JSON formatting tests if page helpers are extractable in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFormattingTests.cs`.
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Add `EventId`, `EventName`, `MessageTemplate`, and `SpanId` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogEvent.cs`.
-- [ ] T032 [US2] Change scopes model to support structured scope values distinctly from properties in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogEvent.cs`.
-- [ ] T033 [US2] Add span ID to `StructuredLogFilter` and filter mapper in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogFilter.cs` and `Services/StructuredLogFilterMapper.cs`.
-- [ ] T034 [US2] Add row trace/correlation hint and event ID/name rendering in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
-- [ ] T035 [US2] Add a selected-row details panel/drawer to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
-- [ ] T036 [US2] Implement selected details state, detail copy helpers, and raw JSON serialization in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
-- [ ] T037 [US2] Render message template, properties, scopes, exception details, source metadata, trace/span IDs, workflow IDs, tenant, and correlation in the details panel.
-- [ ] T038 [US2] Update CSS classes in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/wwwroot/structuredLogs.css` so long messages, properties, scope values, source names, and stack traces wrap/scroll without layout overflow.
-- [ ] T039 [US2] Replace remaining active UI wording that says server logs, live log stream, or console-like language with structured logs wording.
+- [X] T031 [US2] Add `EventId`, `EventName`, `MessageTemplate`, and `SpanId` to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogEvent.cs`.
+- [X] T032 [US2] Change scopes model to support structured scope values distinctly from properties in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogEvent.cs`.
+- [X] T033 [US2] Add span ID to `StructuredLogFilter` and filter mapper in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Models/StructuredLogFilter.cs` and `Services/StructuredLogFilterMapper.cs`.
+- [X] T034 [US2] Add row trace/correlation hint and event ID/name rendering in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
+- [X] T035 [US2] Add a selected-row details panel/drawer to `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
+- [X] T036 [US2] Implement selected details state, detail copy helpers, and raw JSON serialization in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
+- [X] T037 [US2] Render message template, properties, scopes, exception details, source metadata, trace/span IDs, workflow IDs, tenant, and correlation in the details panel.
+- [X] T038 [US2] Update CSS classes in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/wwwroot/structuredLogs.css` so long messages, properties, scope values, source names, and stack traces wrap/scroll without layout overflow.
+- [X] T039 [US2] Replace remaining active UI wording that says server logs, live log stream, or console-like language with structured logs wording.
 
 **Checkpoint**: User Stories 1 and 2 work together as a named Structured Logs page with semantic detail inspection.
 
@@ -110,17 +110,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Add span ID and exact levels copy tests in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
+- [X] T040 [P] [US3] Add span ID and exact levels copy tests in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogFilterMapperTests.cs`.
 - [ ] T041 [P] [US3] Add URL filter state tests if page state is extractable in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/StructuredLogUrlStateTests.cs`.
 
 ### Implementation for User Story 3
 
-- [ ] T042 [US3] Add URL query parsing and writing for `categoryPrefix`, `tenantId`, `workflowDefinitionId`, `traceId`, `spanId`, `correlationId`, `from`, and `to` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
-- [ ] T043 [US3] Add filter controls for category, tenant, workflow definition/instance, trace, span, correlation, and time range in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
-- [ ] T044 [US3] Ensure `RefreshFilterAsync` updates recent REST requests and live SignalR subscriptions with all filter fields in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
-- [ ] T045 [US3] Keep merged source view as `null SourceId` and individual source filtering in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
-- [ ] T046 [US3] Preserve source health indicators for connected, stale, disconnected, and unknown sources in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
-- [ ] T047 [US3] Make trace/span IDs copyable and represent future OpenTelemetry deep-link placeholders without requiring an OpenTelemetry module in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
+- [X] T042 [US3] Add URL query parsing and writing for `categoryPrefix`, `tenantId`, `workflowDefinitionId`, `traceId`, `spanId`, `correlationId`, `from`, and `to` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
+- [X] T043 [US3] Add filter controls for category, tenant, workflow definition/instance, trace, span, correlation, and time range in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
+- [X] T044 [US3] Ensure `RefreshFilterAsync` updates recent REST requests and live SignalR subscriptions with all filter fields in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
+- [X] T045 [US3] Keep merged source view as `null SourceId` and individual source filtering in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor.cs`.
+- [X] T046 [US3] Preserve source health indicators for connected, stale, disconnected, and unknown sources in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
+- [X] T047 [US3] Make trace/span IDs copyable and represent future OpenTelemetry deep-link placeholders without requiring an OpenTelemetry module in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`.
 
 **Checkpoint**: All stories are independently functional with diagnostics route, structured detail inspection, and correlation filters.
 
@@ -130,11 +130,11 @@
 
 **Purpose**: Remove stale identity, document the module, and validate targeted builds/tests.
 
-- [ ] T048 Search `src` and `Elsa.Studio.sln` for active `Elsa.Studio.ServerLogs`, `ServerLog`, `ServerLogs`, `server-logs`, and `serverLogs` references and update remaining module-owned references.
-- [ ] T049 Search module UI/docs for console/stdout/stderr wording and keep only explicit future-module separation where appropriate in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/README.md`.
-- [ ] T050 Run `dotnet test src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
+- [X] T048 Search `src` and `Elsa.Studio.sln` for active `Elsa.Studio.ServerLogs`, `ServerLog`, `ServerLogs`, `server-logs`, and `serverLogs` references and update remaining module-owned references.
+- [X] T049 Search module UI/docs for console/stdout/stderr wording and keep only explicit future-module separation where appropriate in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/README.md`.
+- [X] T050 Run `dotnet test src/modules/Elsa.Studio.Diagnostics.StructuredLogs.Tests/Elsa.Studio.Diagnostics.StructuredLogs.Tests.csproj`.
 - [ ] T051 Run `dotnet build Elsa.Studio.sln`.
-- [ ] T052 Update this task list checkboxes as implementation completes in `specs/004-diagnostics-structured-logs/tasks.md`.
+- [X] T052 Update this task list checkboxes as implementation completes in `specs/004-diagnostics-structured-logs/tasks.md`.
 
 ---
 
