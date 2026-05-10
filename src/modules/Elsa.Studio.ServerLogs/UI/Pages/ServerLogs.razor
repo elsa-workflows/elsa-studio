@@ -8,77 +8,81 @@
     <PageHeading Text="@Localizer["Server Logs"]" />
 
     <MudPaper Elevation="0" Outlined="true" Class="server-logs-toolbar">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="server-logs-toolbar-row">
-            <span class="server-logs-status @StatusCssClass">
-                <span class="server-logs-status-dot"></span>
-                @StatusText
-            </span>
+        <div class="server-logs-toolbar-row">
+            <div class="server-logs-summary">
+                <span class="server-logs-status @StatusCssClass">
+                    <span class="server-logs-status-dot"></span>
+                    @StatusText
+                </span>
 
-            <span class="server-logs-count">@Rows.Count @Localizer["rows"]</span>
+                <span class="server-logs-count">@Rows.Count @Localizer["rows"]</span>
 
-            @if (ViewState.LocalDroppedRows > 0)
-            {
-                <span class="server-logs-dropped">@ViewState.LocalDroppedRows @Localizer["discarded locally"]</span>
-            }
+                @if (ViewState.LocalDroppedRows > 0)
+                {
+                    <span class="server-logs-dropped">@ViewState.LocalDroppedRows @Localizer["discarded locally"]</span>
+                }
 
-            @if (BackendDroppedCount > 0)
-            {
-                <span class="server-logs-dropped">@BackendDroppedCount @Localizer["dropped upstream"]</span>
-            }
+                @if (BackendDroppedCount > 0)
+                {
+                    <span class="server-logs-dropped">@BackendDroppedCount @Localizer["dropped upstream"]</span>
+                }
+            </div>
 
-            <MudSpacer />
+            <div class="server-logs-actions">
+                <MudTooltip Text="@PauseTooltip" Delay="500">
+                    <MudIconButton Icon="@PauseIcon" Size="Size.Small" OnClick="TogglePausedAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@PauseTooltip" Delay="500">
-                <MudIconButton Icon="@PauseIcon" Size="Size.Small" OnClick="TogglePausedAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Clear"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Size="Size.Small" OnClick="ClearAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Clear"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Size="Size.Small" OnClick="ClearAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Reconnect"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" OnClick="ReconnectAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Reconnect"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" OnClick="ReconnectAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Copy selected"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Disabled="@(!HasSelection)" OnClick="CopySelectedAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Copy selected"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" Disabled="@(!HasSelection)" OnClick="CopySelectedAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
-            </MudTooltip>
+                <span class="server-logs-action-divider"></span>
 
-            <MudTooltip Text="@Localizer["Auto scroll"]" Delay="500">
-                <MudSwitch T="bool"
-                           Value="@ViewState.AutoScroll"
-                           Color="Color.Primary"
-                           Label="@Localizer["Auto"]"
-                           LabelPlacement="Placement.Start"
-                           ValueChanged="SetAutoScrollAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Auto scroll"]" Delay="500">
+                    <MudSwitch T="bool"
+                               Value="@ViewState.AutoScroll"
+                               Color="Color.Primary"
+                               Label="@Localizer["Auto"]"
+                               LabelPlacement="Placement.Start"
+                               ValueChanged="SetAutoScrollAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Wrap messages"]" Delay="500">
-                <MudSwitch T="bool"
-                           Value="@ViewState.WrapMessages"
-                           Color="Color.Primary"
-                           Label="@Localizer["Wrap"]"
-                           LabelPlacement="Placement.Start"
-                           ValueChanged="SetWrapMessagesAsync" />
-            </MudTooltip>
+                <MudTooltip Text="@Localizer["Wrap messages"]" Delay="500">
+                    <MudSwitch T="bool"
+                               Value="@ViewState.WrapMessages"
+                               Color="Color.Primary"
+                               Label="@Localizer["Wrap"]"
+                               LabelPlacement="Placement.Start"
+                               ValueChanged="SetWrapMessagesAsync" />
+                </MudTooltip>
 
-            <MudTooltip Text="@Localizer["Compact rows"]" Delay="500">
-                <MudSwitch T="bool"
-                           Value="@ViewState.Compact"
-                           Color="Color.Primary"
-                           Label="@Localizer["Compact"]"
-                           LabelPlacement="Placement.Start"
-                           ValueChanged="SetCompactAsync" />
-            </MudTooltip>
-        </MudStack>
+                <MudTooltip Text="@Localizer["Compact rows"]" Delay="500">
+                    <MudSwitch T="bool"
+                               Value="@ViewState.Compact"
+                               Color="Color.Primary"
+                               Label="@Localizer["Compact"]"
+                               LabelPlacement="Placement.Start"
+                               ValueChanged="SetCompactAsync" />
+                </MudTooltip>
+            </div>
+        </div>
     </MudPaper>
 
-    <MudPaper Elevation="0" Outlined="true" Class="server-logs-filters mt-2">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="server-logs-toolbar-row">
+    <MudPaper Elevation="0" Outlined="true" Class="server-logs-filters">
+        <div class="server-logs-filter-grid">
             <MudSelect T="string?"
                        Label="@Localizer["Source"]"
                        Value="@ViewState.Filter.SourceId"
@@ -118,7 +122,7 @@
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
                           Class="server-logs-text-filter" />
-        </MudStack>
+        </div>
     </MudPaper>
 
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
@@ -152,9 +156,9 @@
                            checked="@IsSelected(logEvent)"
                            @onchange="e => SetSelectedAsync(logEvent, e.Value as bool? == true)" />
                     <time class="server-log-time" title="@logEvent.Timestamp.ToString("O")">@FormatTimestamp(logEvent.Timestamp)</time>
-                    <span class="@LevelCssClass(logEvent.Level)">@logEvent.Level</span>
-                    <span class="server-log-source" title="@logEvent.SourceId">@Shorten(SourceDisplayName(logEvent.SourceId), 28)</span>
-                    <span class="server-log-category" title="@logEvent.Category">@Shorten(logEvent.Category, 64)</span>
+                    <span class="@LevelCssClass(logEvent.Level)" title="@logEvent.Level.ToString()">@LevelLabel(logEvent.Level)</span>
+                    <span class="server-log-source" title="@logEvent.SourceId">@Shorten(SourceDisplayName(logEvent.SourceId), 32)</span>
+                    <span class="server-log-category" title="@logEvent.Category">@Shorten(logEvent.Category, 72)</span>
                     <span class="server-log-message">@logEvent.Message</span>
 
                     @if (logEvent.Exception != null)

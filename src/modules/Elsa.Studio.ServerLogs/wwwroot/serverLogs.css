@@ -1,0 +1,297 @@
+.server-logs-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: calc(100vh - 96px);
+    padding-bottom: 16px;
+}
+
+.server-logs-toolbar,
+.server-logs-filters {
+    border-radius: 6px;
+    flex: 0 0 auto;
+}
+
+.server-logs-toolbar {
+    padding: 8px 12px;
+}
+
+.server-logs-filters {
+    margin-top: 8px;
+    padding: 10px 12px 8px;
+}
+
+.server-logs-toolbar-row,
+.server-logs-summary,
+.server-logs-actions {
+    align-items: center;
+    display: flex;
+}
+
+.server-logs-toolbar-row {
+    gap: 12px;
+    justify-content: space-between;
+    min-height: 36px;
+}
+
+.server-logs-summary {
+    flex: 1 1 320px;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    min-width: 0;
+}
+
+.server-logs-actions {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    justify-content: flex-end;
+}
+
+.server-logs-actions .mud-button-root.mud-icon-button {
+    height: 32px;
+    padding: 4px;
+    width: 32px;
+}
+
+.server-logs-actions .mud-switch {
+    margin: 0;
+}
+
+.server-logs-actions .mud-switch .mud-typography {
+    font-size: 0.8125rem;
+}
+
+.server-logs-action-divider {
+    align-self: stretch;
+    background: rgba(0, 0, 0, 0.14);
+    display: inline-block;
+    margin: 3px 4px;
+    width: 1px;
+}
+
+.server-logs-status,
+.server-logs-count,
+.server-logs-dropped {
+    align-items: center;
+    display: inline-flex;
+    font-size: 0.8125rem;
+    gap: 6px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.server-logs-status-dot {
+    background: #7a8699;
+    border-radius: 999px;
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+}
+
+.server-logs-status-connected .server-logs-status-dot {
+    background: #1b8f55;
+}
+
+.server-logs-status-connecting .server-logs-status-dot,
+.server-logs-status-reconnecting .server-logs-status-dot {
+    background: #c77700;
+}
+
+.server-logs-status-unavailable .server-logs-status-dot,
+.server-logs-status-unauthorized .server-logs-status-dot {
+    background: #c93838;
+}
+
+.server-logs-dropped {
+    color: #a05f00;
+}
+
+.server-logs-filter-grid {
+    align-items: center;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(170px, 0.65fr) minmax(260px, 1.8fr);
+}
+
+.server-logs-filter-grid .mud-input-control {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.server-logs-source-select,
+.server-logs-level-select,
+.server-logs-text-filter {
+    min-width: 0;
+}
+
+.server-logs-surface {
+    background: #05070a;
+    border: 1px solid #242a31;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -24px 80px rgba(25, 74, 118, 0.14);
+    color: #eef4fb;
+    flex: 1 1 auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.78rem;
+    line-height: 1.42;
+    margin-top: 10px;
+    min-height: 440px;
+    overflow: auto;
+    padding: 6px 0 8px;
+}
+
+.server-logs-empty {
+    color: #9aa7b4;
+    padding: 18px;
+}
+
+.server-log-row {
+    border-left: 3px solid transparent;
+    display: grid;
+    gap: 9px;
+    grid-template-columns: 18px 96px 42px max-content max-content max-content;
+    min-width: 100%;
+    padding: 2px 12px 2px 8px;
+    width: max-content;
+}
+
+.server-log-row:hover {
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.server-log-row-selected {
+    background: rgba(90, 164, 255, 0.16);
+}
+
+.server-log-row-warning {
+    border-left-color: #d7a930;
+}
+
+.server-log-row-error,
+.server-log-row-critical {
+    border-left-color: #ef5b5b;
+}
+
+.server-log-select {
+    accent-color: #4aa3ff;
+    align-self: start;
+    height: 13px;
+    margin: 3px 0 0;
+    opacity: 0.72;
+    width: 13px;
+}
+
+.server-logs-compact .server-log-row {
+    padding-bottom: 1px;
+    padding-top: 1px;
+}
+
+.server-log-time,
+.server-log-source,
+.server-log-category {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.server-log-time {
+    color: #8b949e;
+}
+
+.server-log-source {
+    color: #7dd3fc;
+    max-width: 220px;
+}
+
+.server-log-category {
+    color: #a5b4c3;
+    max-width: 360px;
+}
+
+.server-log-message {
+    color: #f2f4f8;
+    min-width: 0;
+    white-space: pre;
+}
+
+.server-logs-wrap .server-log-row {
+    grid-template-columns: 18px 96px 42px minmax(120px, 190px) minmax(190px, 330px) minmax(0, 1fr);
+    width: auto;
+}
+
+.server-logs-wrap .server-log-message {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.server-log-level {
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.server-log-level-trace {
+    color: #8b949e;
+}
+
+.server-log-level-debug {
+    color: #79c0ff;
+}
+
+.server-log-level-information {
+    color: #7ee787;
+}
+
+.server-log-level-warning {
+    color: #f2cc60;
+}
+
+.server-log-level-error {
+    color: #ff7b72;
+}
+
+.server-log-level-critical {
+    background: #ff7b72;
+    border-radius: 3px;
+    color: #05070a;
+    padding: 0 3px;
+}
+
+.server-log-exception {
+    color: #ffb4ab;
+    grid-column: 6;
+    margin: 2px 0 5px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 960px) {
+    .server-logs-toolbar-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .server-logs-actions {
+        justify-content: flex-start;
+    }
+
+    .server-logs-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .server-log-row,
+    .server-logs-wrap .server-log-row {
+        grid-template-columns: 18px 92px 40px minmax(160px, 1fr);
+        width: auto;
+    }
+
+    .server-log-source,
+    .server-log-category {
+        display: none;
+    }
+
+    .server-log-exception {
+        grid-column: 4;
+    }
+}

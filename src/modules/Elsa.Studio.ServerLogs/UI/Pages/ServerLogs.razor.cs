@@ -214,6 +214,17 @@ public partial class ServerLogs : IAsyncDisposable
 
     protected static string FormatTimestamp(DateTimeOffset timestamp) => timestamp.ToLocalTime().ToString("HH:mm:ss.fff");
 
+    protected static string LevelLabel(ServerLogLevel level) => level switch
+    {
+        ServerLogLevel.Trace => "TRC",
+        ServerLogLevel.Debug => "DBG",
+        ServerLogLevel.Information => "INF",
+        ServerLogLevel.Warning => "WRN",
+        ServerLogLevel.Error => "ERR",
+        ServerLogLevel.Critical => "CRT",
+        _ => level.ToString()
+    };
+
     protected static string Shorten(string? value, int maxLength)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length <= maxLength)
