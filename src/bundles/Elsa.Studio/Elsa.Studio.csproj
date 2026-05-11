@@ -8,6 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.StructuredLogs\Elsa.Studio.Diagnostics.StructuredLogs.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj"/>
     </ItemGroup>
 

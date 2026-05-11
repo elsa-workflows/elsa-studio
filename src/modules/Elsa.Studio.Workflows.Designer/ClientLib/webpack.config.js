@@ -3,7 +3,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: {
-        designer: './src/designer.ts'
+        designer: './src/designer.ts',
+        'react-designer': './src/react-designer.ts'
     },
     output: {
         filename: '[name].entry.js',

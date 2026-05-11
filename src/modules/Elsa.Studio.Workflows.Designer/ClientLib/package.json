@@ -14,10 +14,16 @@
     "@antv/x6-plugin-selection": "^2.2.2",
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-plugin-transform": "^2.1.8",
+    "@dagrejs/dagre": "^1.1.4",
+    "@xyflow/react": "^12.3.5",
     "lodash.camelcase": "^4.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
     "style-loader": "^4.0.0",

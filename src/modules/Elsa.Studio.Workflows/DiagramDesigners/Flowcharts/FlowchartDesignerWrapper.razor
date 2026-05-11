@@ -2,9 +2,18 @@
 
 {
     <div style="height:100%">
-        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
-            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
-            ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        @if (UseReactFlow)
+        {
+            <ReactFlowDesigner @ref="@ReactDesigner" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+                ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
+                ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        }
+        else
+        {
+            <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+                ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
+                ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        }
     </div>
 }
 
@@ -12,8 +21,17 @@ else
 
 {
     <div class="flowchart-diagram-designer-wrapper" style="height: 100%" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
-        <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected" ActivityPropsChanged="@ActivityUpdated"
-            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
-            GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        @if (UseReactFlow)
+        {
+            <ReactFlowDesigner @ref="@ReactDesigner" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected"
+                ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
+                GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        }
+        else
+        {
+            <FlowchartDesigner @ref="@Designer" Flowchart="@Flowchart" ActivitySelected="@ActivitySelected" ActivityPropsChanged="@ActivityUpdated"
+                ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
+                GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
+        }
     </div>
 }

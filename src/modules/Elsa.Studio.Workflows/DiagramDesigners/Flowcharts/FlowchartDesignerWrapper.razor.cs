@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -14,6 +15,7 @@ using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 
@@ -62,7 +64,10 @@ public partial class FlowchartDesignerWrapper
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
-    private FlowchartDesigner Designer { get; set; } = null!;
+    [Inject] private IOptions<DesignerOptions> DesignerOptions { get; set; } = null!;
+    private FlowchartDesigner? Designer { get; set; }
+    private ReactFlowDesigner? ReactDesigner { get; set; }
+    private bool UseReactFlow => DesignerOptions.Value.UseReactFlow;
 
     private string? _lastFlowchartId;
 
@@ -91,7 +96,10 @@ public partial class FlowchartDesignerWrapper
         Flowchart = flowchart;
         ActivityStats = activityStats;
 
-        await Designer.LoadFlowchartAsync(flowchart, activityStats);
+        if (ReactDesigner is not null)
+            await ReactDesigner.LoadFlowchartAsync(flowchart, activityStats);
+        else if (Designer is not null)
+            await Designer.LoadFlowchartAsync(flowchart, activityStats);
     }
 
     /// <summary>
@@ -105,7 +113,11 @@ public partial class FlowchartDesignerWrapper
         if (IsReadOnly)
             throw new InvalidOperationException("Cannot update activity because the designer is read-only.");
 
-        if (activity != Flowchart)
+        if (activity == Flowchart) return;
+
+        if (ReactDesigner is not null)
+            await ReactDesigner.UpdateActivityAsync(id, activity);
+        else if (Designer is not null)
             await Designer.UpdateActivityAsync(id, activity);
     }
 
@@ -114,34 +126,59 @@ public partial class FlowchartDesignerWrapper
     /// </summary>
     /// <param name="id">The ID of the activity to update.</param>
     /// <param name="stats">The stats to update.</param>
-    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats) => await Designer.UpdateActivityStatsAsync(id, stats);
+    public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
+    {
+        if (ReactDesigner is not null) await ReactDesigner.UpdateActivityStatsAsync(id, stats);
+        else if (Designer is not null) await Designer.UpdateActivityStatsAsync(id, stats);
+    }
 
     /// <summary>
     /// Selects the specified activity in the flowchart.
     /// </summary>
     /// <param name="id">The ID of the activity to select.</param>
-    public async Task SelectActivityAsync(string id) => await Designer.SelectActivityAsync(id);
+    public async Task SelectActivityAsync(string id)
+    {
+        if (ReactDesigner is not null) await ReactDesigner.SelectActivityAsync(id);
+        else if (Designer is not null) await Designer.SelectActivityAsync(id);
+    }
 
     /// <summary>
     /// Reads the root activity from the flowchart.
     /// </summary>
     /// <returns>The root activity.</returns>
-    public async Task<JsonObject> ReadRootActivityAsync() => await Designer.ReadFlowchartAsync();
+    public async Task<JsonObject> ReadRootActivityAsync()
+    {
+        if (ReactDesigner is not null) return await ReactDesigner.ReadFlowchartAsync();
+        if (Designer is not null) return await Designer.ReadFlowchartAsync();
+        return Flowchart;
+    }
 
     /// <summary>
     /// Zooms the designer to fit the content.
     /// </summary>
-    public async Task ZoomToFitAsync() => await Designer.ZoomToFitAsync();
+    public async Task ZoomToFitAsync()
+    {
+        if (ReactDesigner is not null) await ReactDesigner.ZoomToFitAsync();
+        else if (Designer is not null) await Designer.ZoomToFitAsync();
+    }
 
     /// <summary>
     /// Centers the content of the designer.
     /// </summary>
-    public async Task CenterContentAsync() => await Designer.CenterContentAsync();
+    public async Task CenterContentAsync()
+    {
+        if (ReactDesigner is not null) await ReactDesigner.CenterContentAsync();
+        else if (Designer is not null) await Designer.CenterContentAsync();
+    }
 
     /// <summary>
     /// Auto layouts the flowchart.
     /// </summary>
-    public async Task AutoLayoutAsync() => await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
+    public async Task AutoLayoutAsync()
+    {
+        if (ReactDesigner is not null) await ReactDesigner.AutoLayoutAsync(Flowchart, ActivityStats);
+        else if (Designer is not null) await Designer.AutoLayoutAsync(Flowchart, ActivityStats);
+    }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {
@@ -174,7 +211,10 @@ public partial class FlowchartDesignerWrapper
         if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
             newActivity.SetCanStartWorkflow(true);
 
-        await Designer.AddActivityAsync(newActivity);
+        if (ReactDesigner is not null)
+            await ReactDesigner.AddActivityAsync(newActivity);
+        else if (Designer is not null)
+            await Designer.AddActivityAsync(newActivity);
 
         if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(newActivity);
@@ -208,6 +248,6 @@ public partial class FlowchartDesignerWrapper
             await ActivitySelected.InvokeAsync(Flowchart);
     }
 
-    private async Task OnZoomToFitClick() => await Designer.ZoomToFitAsync();
-    private async Task OnCenterContentClick() => await Designer.CenterContentAsync();
+    private Task OnZoomToFitClick() => ZoomToFitAsync();
+    private Task OnCenterContentClick() => CenterContentAsync();
 }

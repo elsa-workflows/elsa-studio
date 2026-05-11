@@ -16,6 +16,7 @@ public class DefaultMenuGroupProvider : IMenuGroupProvider
         var groups = new List<MenuItemGroup>
         {
             MenuItemGroups.General,
+            MenuItemGroups.Diagnostics,
             MenuItemGroups.Settings
         };
 

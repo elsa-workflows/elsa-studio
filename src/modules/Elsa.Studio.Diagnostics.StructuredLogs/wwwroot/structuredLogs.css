@@ -1,0 +1,436 @@
+.structured-logs-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: calc(100vh - 96px);
+    padding-bottom: 16px;
+}
+
+.structured-logs-toolbar,
+.structured-logs-filters {
+    border-radius: 6px;
+    flex: 0 0 auto;
+}
+
+.structured-logs-toolbar {
+    padding: 8px 12px;
+}
+
+.structured-logs-filters {
+    margin-top: 8px;
+    padding: 10px 12px 8px;
+}
+
+.structured-logs-toolbar-row,
+.structured-logs-summary,
+.structured-logs-actions {
+    align-items: center;
+    display: flex;
+}
+
+.structured-logs-toolbar-row {
+    gap: 12px;
+    justify-content: space-between;
+    min-height: 36px;
+}
+
+.structured-logs-summary {
+    flex: 1 1 320px;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    min-width: 0;
+}
+
+.structured-logs-actions {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    justify-content: flex-end;
+}
+
+.structured-logs-actions .mud-button-root.mud-icon-button,
+.structured-log-details-actions .mud-button-root.mud-icon-button {
+    height: 32px;
+    padding: 4px;
+    width: 32px;
+}
+
+.structured-logs-actions .mud-switch {
+    margin: 0;
+}
+
+.structured-logs-actions .mud-switch .mud-typography {
+    font-size: 0.8125rem;
+}
+
+.structured-logs-action-divider {
+    align-self: stretch;
+    background: rgba(0, 0, 0, 0.14);
+    display: inline-block;
+    margin: 3px 4px;
+    width: 1px;
+}
+
+.structured-logs-status,
+.structured-logs-count,
+.structured-logs-dropped {
+    align-items: center;
+    display: inline-flex;
+    font-size: 0.8125rem;
+    gap: 6px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.structured-logs-status-dot {
+    background: #7a8699;
+    border-radius: 999px;
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+}
+
+.structured-logs-status-connected .structured-logs-status-dot {
+    background: #1b8f55;
+}
+
+.structured-logs-status-connecting .structured-logs-status-dot,
+.structured-logs-status-reconnecting .structured-logs-status-dot {
+    background: #c77700;
+}
+
+.structured-logs-status-unavailable .structured-logs-status-dot,
+.structured-logs-status-unauthorized .structured-logs-status-dot {
+    background: #c93838;
+}
+
+.structured-logs-dropped {
+    color: #a05f00;
+}
+
+.structured-logs-filter-grid {
+    align-items: center;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(6, minmax(200px, 1fr));
+}
+
+.structured-logs-filter-grid .mud-input-control {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.structured-logs-main {
+    align-items: stretch;
+    display: grid;
+    flex: 1 1 auto;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    margin-top: 10px;
+    min-height: 440px;
+}
+
+.structured-logs-main-no-details {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.structured-logs-surface {
+    background: #f8fafc;
+    border: 1px solid #d7dde5;
+    border-radius: 6px;
+    color: #1f2937;
+    flex: 1 1 auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.78rem;
+    line-height: 1.42;
+    min-height: 440px;
+    overflow: auto;
+    padding: 6px 0 8px;
+}
+
+.structured-logs-empty {
+    color: #64748b;
+    padding: 18px;
+}
+
+.structured-log-row {
+    border-left: 3px solid transparent;
+    display: grid;
+    gap: 9px;
+    grid-template-columns: 24px 18px 96px 42px max-content max-content max-content max-content;
+    min-width: 100%;
+    padding: 2px 12px 2px 8px;
+    width: max-content;
+}
+
+.structured-log-row:hover {
+    background: #edf3f8;
+}
+
+.structured-log-row-selected {
+    background: #e2eefc;
+}
+
+.structured-log-row-warning {
+    border-left-color: #d7a930;
+}
+
+.structured-log-row-error,
+.structured-log-row-critical {
+    border-left-color: #d95d5d;
+}
+
+.structured-log-details-button.mud-button-root.mud-icon-button {
+    color: #526173;
+    height: 22px;
+    padding: 1px;
+    width: 22px;
+}
+
+.structured-log-details-button.mud-button-root.mud-icon-button:hover {
+    color: #135f9f;
+}
+
+.structured-log-select {
+    accent-color: #276da8;
+    align-self: start;
+    height: 13px;
+    margin: 3px 0 0;
+    opacity: 0.78;
+    width: 13px;
+}
+
+.structured-logs-compact .structured-log-row {
+    padding-bottom: 1px;
+    padding-top: 1px;
+}
+
+.structured-log-time,
+.structured-log-source,
+.structured-log-category,
+.structured-log-correlation {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.structured-log-time {
+    color: #687386;
+}
+
+.structured-log-source {
+    color: #087da1;
+    max-width: 220px;
+}
+
+.structured-log-category {
+    color: #506071;
+    max-width: 360px;
+}
+
+.structured-log-correlation {
+    color: #6b5f8f;
+    max-width: 220px;
+}
+
+.structured-log-message {
+    color: #111827;
+    min-width: 0;
+    white-space: pre;
+}
+
+.structured-logs-wrap .structured-log-row {
+    grid-template-columns: 24px 18px 96px 42px minmax(120px, 190px) minmax(190px, 330px) minmax(120px, 220px) minmax(0, 1fr);
+    width: auto;
+}
+
+.structured-logs-wrap .structured-log-message {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.structured-log-level {
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.structured-log-level-trace {
+    color: #687386;
+}
+
+.structured-log-level-debug {
+    color: #2563a7;
+}
+
+.structured-log-level-information {
+    color: #21734a;
+}
+
+.structured-log-level-warning {
+    color: #9a6500;
+}
+
+.structured-log-level-error {
+    color: #bb3434;
+}
+
+.structured-log-level-critical {
+    background: #bb3434;
+    border-radius: 3px;
+    color: #fff;
+    padding: 0 3px;
+}
+
+.structured-log-exception {
+    color: #9f1f1f;
+    grid-column: 8;
+    margin: 2px 0 5px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+.structured-log-details {
+    background: #fff;
+    border: 1px solid #d7dde5;
+    border-radius: 6px;
+    min-height: 440px;
+    min-width: 0;
+    overflow: auto;
+    padding: 12px;
+}
+
+.structured-log-details-header {
+    align-items: flex-start;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+.structured-log-details-header h2,
+.structured-log-detail-section h3 {
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.structured-log-details-header span {
+    color: #64748b;
+    display: block;
+    font-size: 0.78rem;
+    margin-top: 3px;
+}
+
+.structured-log-details-actions {
+    align-items: center;
+    display: flex;
+    gap: 2px;
+}
+
+.structured-log-detail-section {
+    margin-top: 12px;
+    min-width: 0;
+}
+
+.structured-log-detail-message {
+    margin: 6px 0 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.structured-log-detail-list {
+    display: grid;
+    gap: 6px 10px;
+    grid-template-columns: minmax(110px, max-content) minmax(0, 1fr);
+    margin: 8px 0 0;
+}
+
+.structured-log-detail-list dt {
+    color: #64748b;
+    font-size: 0.76rem;
+}
+
+.structured-log-detail-list dd {
+    align-items: flex-start;
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    min-width: 0;
+}
+
+.structured-log-detail-list code {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.structured-log-copy-value {
+    background: transparent;
+    border: 0;
+    color: #276da8;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    padding: 0;
+}
+
+.structured-log-code {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #1f2937;
+    margin: 8px 0 0;
+    max-height: 280px;
+    overflow: auto;
+    overflow-wrap: anywhere;
+    padding: 8px;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 1280px) {
+    .structured-logs-filter-grid {
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+    }
+
+    .structured-logs-main {
+        grid-template-columns: 1fr;
+    }
+
+    .structured-log-details {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 960px) {
+    .structured-logs-toolbar-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .structured-logs-actions {
+        justify-content: flex-start;
+    }
+
+    .structured-logs-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .structured-log-row,
+    .structured-logs-wrap .structured-log-row {
+        grid-template-columns: 24px 18px 92px 40px minmax(160px, 1fr);
+        width: auto;
+    }
+
+    .structured-log-source,
+    .structured-log-category,
+    .structured-log-correlation {
+        display: none;
+    }
+
+    .structured-log-exception {
+        grid-column: 5;
+    }
+}

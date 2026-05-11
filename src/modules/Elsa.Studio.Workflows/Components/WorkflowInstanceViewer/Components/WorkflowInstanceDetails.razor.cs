@@ -76,6 +76,7 @@ public partial class WorkflowInstanceDetails
                 new DataPanelItem(Localizer["Definition version"], _workflowInstance.Version.ToString()),
                 new DataPanelItem(Localizer["Definition version ID"], _workflowInstance.DefinitionVersionId),
                 new DataPanelItem(Localizer["Correlation ID"], _workflowInstance.CorrelationId),
+                new DataPanelItem(Localizer["Structured Logs"], Localizer["Open filtered logs"], $"/diagnostics/structured-logs?workflowInstanceId={Uri.EscapeDataString(_workflowInstance.Id)}"),
                 new DataPanelItem(Localizer["Incident Strategy"], GetIncidentStrategyDisplayName(WorkflowDefinition?.Options.IncidentStrategyType)),
                 new DataPanelItem(Localizer["Status"], _workflowInstance.Status.ToString()),
                 new DataPanelItem(Localizer["Sub status"], _workflowInstance.SubStatus.ToString()),
