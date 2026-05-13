@@ -59,12 +59,14 @@ public class StructuredLogSerializationTests
     {
         const string json = """
         {
-          "droppedWriteCount": 5
+          "droppedWriteCount": 5,
+          "hasStorageDiagnosticsProvider": true
         }
         """;
 
         var result = JsonSerializer.Deserialize<StructuredLogStorageDiagnostics>(json, Options)!;
 
         Assert.Equal(5, result.DroppedWriteCount);
+        Assert.True(result.HasStorageDiagnosticsProvider);
     }
 }

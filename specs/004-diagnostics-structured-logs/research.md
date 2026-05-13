@@ -13,7 +13,7 @@
 
 ## Decision: Use diagnostics structured paths and feature gate
 
-**Decision**: Gate on `Elsa.Diagnostics.StructuredLogs`, call `/diagnostics/structured-logs/recent` and `/diagnostics/structured-logs/sources`, and connect to `/hubs/diagnostics/structured-logs`.
+**Decision**: Gate on `Elsa.Diagnostics.StructuredLogs`, call `/diagnostics/structured-logs/recent` and `/diagnostics/structured-logs/sources`, and connect to `/elsa/hubs/diagnostics/structured-logs`.
 
 **Rationale**: The namespace umbrella should match the backend feature. A canonical diagnostics path also leaves `/diagnostics/console-logs` and OpenTelemetry paths available for future modules.
 
