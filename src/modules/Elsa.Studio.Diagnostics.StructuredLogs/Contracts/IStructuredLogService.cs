@@ -16,4 +16,9 @@ public interface IStructuredLogService
     /// Lists structured log sources.
     /// </summary>
     Task<ICollection<StructuredLogSource>> ListSourcesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets storage-level diagnostics.
+    /// </summary>
+    Task<StructuredLogStorageDiagnostics> GetStorageDiagnosticsAsync(CancellationToken cancellationToken = default);
 }

@@ -42,4 +42,19 @@ public class RemoteStructuredLogService(IBackendApiClientProvider backendApiClie
             return Array.Empty<StructuredLogSource>();
         }
     }
+
+    /// <inheritdoc />
+    public async Task<StructuredLogStorageDiagnostics> GetStorageDiagnosticsAsync(CancellationToken cancellationToken = default)
+    {
+        var api = await backendApiClientProvider.GetApiAsync<IStructuredLogsApi>(cancellationToken);
+
+        try
+        {
+            return await api.GetStorageDiagnosticsAsync(cancellationToken);
+        }
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return new();
+        }
+    }
 }

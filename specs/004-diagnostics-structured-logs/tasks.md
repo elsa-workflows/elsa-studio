@@ -41,7 +41,7 @@
 - [X] T013 Rename `IServerLogsApi` to `IStructuredLogsApi` and update REST paths to `/diagnostics/structured-logs/*` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Client/IStructuredLogsApi.cs`.
 - [X] T014 Rename service contracts to `IStructuredLogService` and `IStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Contracts/`.
 - [X] T015 Rename services to `RemoteStructuredLogService`, `StructuredLogFilterMapper`, and `SignalRStructuredLogObserver` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/`.
-- [X] T016 Update SignalR hub URL to `hubs/diagnostics/structured-logs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/SignalRStructuredLogObserver.cs`.
+- [X] T016 Update SignalR hub URL to derive `/elsa/hubs/diagnostics/structured-logs` from the configured backend API URL in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Services/SignalRStructuredLogObserver.cs`.
 - [X] T017 Update `Feature.RemoteFeatureName` to `Elsa.Diagnostics.StructuredLogs` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Feature.cs`.
 - [X] T018 Rename `AddServerLogsModule` to `AddStructuredLogsModule` in `src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Extensions/ServiceCollectionExtensions.cs`.
 - [X] T019 Add `MenuItemGroups.Diagnostics` in `src/framework/Elsa.Studio.Core/MenuItemGroups.cs`.

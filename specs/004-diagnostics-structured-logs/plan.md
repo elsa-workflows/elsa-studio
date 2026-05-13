@@ -111,7 +111,7 @@ Resolved decisions:
 - Canonical remote feature name is `Elsa.Diagnostics.StructuredLogs`.
 - Canonical Studio route is `/diagnostics/structured-logs`.
 - Canonical REST base path is `/diagnostics/structured-logs`.
-- Canonical SignalR hub path is `/hubs/diagnostics/structured-logs`.
+- Canonical SignalR hub path is `/elsa/hubs/diagnostics/structured-logs`.
 - Studio should add a Diagnostics menu group because the current menu model only defines General and Settings.
 - `/server-logs` can be retained only as a development bookmark redirect route if the Razor route model allows it without preserving old active identity.
 
