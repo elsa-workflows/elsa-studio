@@ -53,4 +53,18 @@ public class StructuredLogSerializationTests
         Assert.Equal("tenant-a", logEvent.Scopes["TenantId"]);
         Assert.Equal("correlation-a", logEvent.Scopes["CorrelationId"]);
     }
+
+    [Fact]
+    public void StructuredLogStorageDiagnostics_DeserializesCoreResponseShape()
+    {
+        const string json = """
+        {
+          "droppedWriteCount": 5
+        }
+        """;
+
+        var result = JsonSerializer.Deserialize<StructuredLogStorageDiagnostics>(json, Options)!;
+
+        Assert.Equal(5, result.DroppedWriteCount);
+    }
 }

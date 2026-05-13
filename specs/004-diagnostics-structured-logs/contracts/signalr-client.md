@@ -5,7 +5,7 @@
 Studio connects to the active backend URL plus:
 
 ```text
-/hubs/diagnostics/structured-logs
+/elsa/hubs/diagnostics/structured-logs
 ```
 
 The connection must be configured with `IHttpConnectionOptionsConfigurator` before starting.

@@ -99,6 +99,11 @@ public partial class StructuredLogs : IAsyncDisposable
     /// </summary>
     protected long BackendDroppedCount { get; private set; }
 
+    /// <summary>
+    /// Gets the storage-level dropped write count.
+    /// </summary>
+    protected long StorageDroppedWriteCount { get; private set; }
+
     protected string StatusText => ViewState.ConnectionStatus switch
     {
         StructuredLogConnectionStatus.Connecting => "Connecting",
@@ -441,7 +446,9 @@ public partial class StructuredLogs : IAsyncDisposable
         {
             await LoadSourcesAsync(cancellationToken);
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, cancellationToken);
+            var storageDiagnostics = await StructuredLogService.GetStorageDiagnosticsAsync(cancellationToken);
             BackendDroppedCount = recent.DroppedEvents;
+            StorageDroppedWriteCount = storageDiagnostics.DroppedWriteCount;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);
@@ -475,7 +482,9 @@ public partial class StructuredLogs : IAsyncDisposable
             BackendDroppedCount = 0;
 
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
+            var storageDiagnostics = await StructuredLogService.GetStorageDiagnosticsAsync(_cancellationTokenSource.Token);
             BackendDroppedCount = recent.DroppedEvents;
+            StorageDroppedWriteCount = storageDiagnostics.DroppedWriteCount;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);

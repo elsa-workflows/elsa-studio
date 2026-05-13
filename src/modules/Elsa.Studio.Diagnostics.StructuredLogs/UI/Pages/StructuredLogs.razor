@@ -26,6 +26,11 @@
                 {
                     <span class="structured-logs-dropped">@BackendDroppedCount @Localizer["dropped upstream"]</span>
                 }
+
+                @if (StorageDroppedWriteCount > 0)
+                {
+                    <span class="structured-logs-dropped">@StorageDroppedWriteCount @Localizer["storage writes dropped"]</span>
+                }
             </div>
 
             <div class="structured-logs-actions">

@@ -27,7 +27,8 @@ And expose:
 ```text
 POST /diagnostics/structured-logs/recent
 GET  /diagnostics/structured-logs/sources
-HUB  /hubs/diagnostics/structured-logs
+GET  /diagnostics/structured-logs/storage
+HUB  /elsa/hubs/diagnostics/structured-logs
 ```
 
 ## Route
@@ -59,6 +60,7 @@ Trace/span focused links can use:
 - Clear removes local rows without clearing backend history.
 - Copy selected, copy visible, and details copy actions provide fast handoff for support/debugging.
 - Source selection defaults to all sources and can focus on one backend process, pod, or container.
+- Storage write drops are shown when the backend reports pressure in a durable storage queue.
 
 ## Validation
 

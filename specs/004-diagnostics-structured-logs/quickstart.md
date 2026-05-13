@@ -27,7 +27,8 @@ And expose:
 ```text
 POST /diagnostics/structured-logs/recent
 GET  /diagnostics/structured-logs/sources
-HUB  /hubs/diagnostics/structured-logs
+GET  /diagnostics/structured-logs/storage
+HUB  /elsa/hubs/diagnostics/structured-logs
 ```
 
 Core implementation is handled in the paired `elsa-core` worker branch; do not modify it from Studio.
