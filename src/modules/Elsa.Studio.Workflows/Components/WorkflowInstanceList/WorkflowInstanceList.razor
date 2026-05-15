@@ -30,8 +30,8 @@
                 RowStyle="cursor: pointer;"
                 MultiSelection="true"
                 SelectOnRowClick="false"
-                CurrentPage="InitialPage"
-                RowsPerPage="InitialPageSize"
+                @bind-CurrentPage="InitialPage"
+                @bind-RowsPerPage="InitialPageSize"
                 Class="instances-table"
                 @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
