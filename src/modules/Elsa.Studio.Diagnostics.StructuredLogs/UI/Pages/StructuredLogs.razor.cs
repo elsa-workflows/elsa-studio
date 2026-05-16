@@ -99,6 +99,16 @@ public partial class StructuredLogs : IAsyncDisposable
     /// </summary>
     protected long BackendDroppedCount { get; private set; }
 
+    /// <summary>
+    /// Gets the storage-level dropped write count.
+    /// </summary>
+    protected long StorageDroppedWriteCount { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the backend has a storage diagnostics provider.
+    /// </summary>
+    protected bool HasStorageDiagnosticsProvider { get; private set; }
+
     protected string StatusText => ViewState.ConnectionStatus switch
     {
         StructuredLogConnectionStatus.Connecting => "Connecting",
@@ -187,6 +197,8 @@ public partial class StructuredLogs : IAsyncDisposable
         ViewState.SelectedEventId = null;
         ViewState.LocalDroppedRows = 0;
         BackendDroppedCount = 0;
+        StorageDroppedWriteCount = 0;
+        HasStorageDiagnosticsProvider = false;
         return InvokeAsync(StateHasChanged);
     }
 
@@ -441,7 +453,10 @@ public partial class StructuredLogs : IAsyncDisposable
         {
             await LoadSourcesAsync(cancellationToken);
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, cancellationToken);
+            var storageDiagnostics = await StructuredLogService.GetStorageDiagnosticsAsync(cancellationToken);
             BackendDroppedCount = recent.DroppedEvents;
+            StorageDroppedWriteCount = storageDiagnostics.DroppedWriteCount;
+            HasStorageDiagnosticsProvider = storageDiagnostics.HasStorageDiagnosticsProvider;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);
@@ -473,9 +488,14 @@ public partial class StructuredLogs : IAsyncDisposable
             ViewState.SelectedEventId = null;
             ViewState.LocalDroppedRows = 0;
             BackendDroppedCount = 0;
+            StorageDroppedWriteCount = 0;
+            HasStorageDiagnosticsProvider = false;
 
             var recent = await StructuredLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
+            var storageDiagnostics = await StructuredLogService.GetStorageDiagnosticsAsync(_cancellationTokenSource.Token);
             BackendDroppedCount = recent.DroppedEvents;
+            StorageDroppedWriteCount = storageDiagnostics.DroppedWriteCount;
+            HasStorageDiagnosticsProvider = storageDiagnostics.HasStorageDiagnosticsProvider;
 
             foreach (var logEvent in recent.Items.OrderBy(x => x.Timestamp))
                 AddRow(logEvent);

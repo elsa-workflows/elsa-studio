@@ -19,4 +19,10 @@ public interface IStructuredLogsApi
     /// </summary>
     [Get("/diagnostics/structured-logs/sources")]
     Task<ICollection<StructuredLogSource>> ListSourcesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets storage-level diagnostics.
+    /// </summary>
+    [Get("/diagnostics/structured-logs/storage")]
+    Task<StructuredLogStorageDiagnostics> GetStorageDiagnosticsAsync(CancellationToken cancellationToken = default);
 }
