@@ -28,6 +28,8 @@ public partial class StateMachineDesignerWrapper
     private string? _newTransitionTo;
     private bool _zoomToFit = true;
     private bool _centerContent;
+    private JsonObject? _loadedParameterStateMachine;
+    private IDictionary<string, ActivityStats>? _loadedParameterActivityStats;
 
     /// <summary>
     /// Gets or sets the StateMachine activity to display.
@@ -56,11 +58,16 @@ public partial class StateMachineDesignerWrapper
 
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
+    [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
     [Inject] private IStateMachineMapper StateMachineMapper { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (ReferenceEquals(StateMachine, _loadedParameterStateMachine) && ReferenceEquals(ActivityStats, _loadedParameterActivityStats))
+            return;
+
+        TrackParameterState(StateMachine, ActivityStats);
         LoadGraph(StateMachine, ActivityStats);
     }
 
@@ -69,6 +76,7 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task LoadStateMachineAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = null)
     {
+        TrackParameterState(activity, activityStats);
         LoadGraph(activity, activityStats);
         return InvokeAsync(StateHasChanged);
     }
@@ -82,7 +90,10 @@ public partial class StateMachineDesignerWrapper
             throw new InvalidOperationException("Cannot update activity because the designer is read-only.");
 
         if (string.Equals(StateMachine.GetId(), id, StringComparison.Ordinal))
+        {
+            TrackParameterState(activity, _activityStats);
             LoadGraph(activity, _activityStats);
+        }
 
         return InvokeAsync(StateHasChanged);
     }
@@ -121,7 +132,7 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
-        if (_graph?.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error) == true)
+        if (HasValidationErrors())
             throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
 
         return Task.FromResult(_graph != null ? StateMachineMapper.Map(_graph) : StateMachine);
@@ -479,7 +490,7 @@ public partial class StateMachineDesignerWrapper
             ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
             : null;
 
-        if (GraphUpdated.HasDelegate)
+        if (!HasValidationErrors() && GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
 
         await InvokeAsync(StateHasChanged);
@@ -577,11 +588,12 @@ public partial class StateMachineDesignerWrapper
     private JsonObject CreateSlotActivity(ActivityDescriptor descriptor)
     {
         var activityId = IdentityGenerator.GenerateId();
+        var activities = GetIndexedSlotActivities().ToList();
         var activity = new JsonObject
         {
             ["id"] = activityId,
             ["nodeId"] = $"{StateMachine.GetNodeId()}:{activityId}",
-            ["name"] = descriptor.Name,
+            ["name"] = ActivityNameGenerator.GenerateNextName(activities, descriptor),
             ["type"] = descriptor.TypeName,
             ["version"] = descriptor.Version
         };
@@ -593,6 +605,30 @@ public partial class StateMachineDesignerWrapper
         }
 
         return activity;
+    }
+
+    private void TrackParameterState(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    {
+        _loadedParameterStateMachine = activity;
+        _loadedParameterActivityStats = activityStats;
+    }
+
+    private bool HasValidationErrors() =>
+        _graph?.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error) == true;
+
+    private IEnumerable<JsonObject> GetIndexedSlotActivities()
+    {
+        if (_graph == null)
+            yield break;
+
+        var slots = _graph.States.SelectMany(x => new[] { x.Entry, x.Exit })
+            .Concat(_graph.Transitions.SelectMany(x => new[] { x.Trigger, x.Action }));
+
+        foreach (var slot in slots)
+        {
+            if (slot is JsonObject activity && activity.IsActivity())
+                yield return activity;
+        }
     }
 
     private static string? NormalizeOptionalStateName(object? value)
