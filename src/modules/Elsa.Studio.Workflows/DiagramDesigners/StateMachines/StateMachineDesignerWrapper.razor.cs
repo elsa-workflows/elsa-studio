@@ -166,7 +166,11 @@ public partial class StateMachineDesignerWrapper
         if (HasValidationErrors())
             throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
 
-        return Task.FromResult(_graph != null ? StateMachineMapper.Map(_graph) : StateMachine);
+        if (_graph == null)
+            return Task.FromResult(StateMachine);
+
+        _graph.Activity = (JsonObject)StateMachine.DeepClone();
+        return Task.FromResult(StateMachineMapper.Map(_graph));
     }
 
     /// <summary>
