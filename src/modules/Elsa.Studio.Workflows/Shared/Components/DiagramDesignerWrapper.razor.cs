@@ -200,10 +200,12 @@ public partial class DiagramDesignerWrapper
     }
 
     /// Gets the root activity.
-    public Task<JsonObject> GetActivityAsync()
+    public async Task<JsonObject> GetActivityAsync()
     {
-        var rootActivity = _activityGraph.Activity;
-        return Task.FromResult(rootActivity);
+        if (_diagramDesigner != null)
+            await ReadCurrentDesignerActivityIntoGraphAsync();
+
+        return _activityGraph.Activity;
     }
 
     /// Loads the specified activity into the designer.
@@ -526,8 +528,8 @@ public partial class DiagramDesignerWrapper
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
             if (
                 embeddedActivityTypeName != "Elsa.Flowchart"
-                && embeddedActivityTypeName != "Elsa.Workflow"
                 && embeddedActivityTypeName != "Elsa.StateMachine"
+                && embeddedActivityTypeName != "Elsa.Workflow"
             )
             {
                 if (ActivitySelected.HasDelegate)
@@ -577,6 +579,23 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnGraphUpdated()
     {
+        try
+        {
+            await ReadCurrentDesignerActivityIntoGraphAsync();
+        }
+        catch (InvalidOperationException)
+        {
+            if (GraphUpdated.HasDelegate)
+                await GraphUpdated.InvokeAsync();
+            return;
+        }
+
+        if (GraphUpdated.HasDelegate)
+            await GraphUpdated.InvokeAsync();
+    }
+
+    private async Task ReadCurrentDesignerActivityIntoGraphAsync()
+    {
         var embeddedActivity = await _diagramDesigner!.ReadRootActivityAsync();
         var currentSegment = CurrentPathSegment;
 
@@ -602,9 +621,6 @@ public partial class DiagramDesignerWrapper
             await _activityGraph.IndexAsync();
             await IndexActivityNodes(_activityGraph.Activity);
         }
-
-        if (GraphUpdated.HasDelegate)
-            await GraphUpdated.InvokeAsync();
     }
 
     private async Task OnBreadcrumbItemClicked(BreadcrumbItem item)
