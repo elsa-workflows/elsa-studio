@@ -1,5 +1,5 @@
 import type { Root } from 'react-dom/client';
-import type { ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, DotNetComponentRef } from './types';
+import type { ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, DotNetComponentRef, SequenceLayoutOrientation } from './types';
 
 export interface ReactDesignerBinding {
     graphId: string;
@@ -12,6 +12,7 @@ export interface ReactDesignerBinding {
     fitView: () => void;
     centerContent: () => void;
     readGraph: () => ElsaGraph;
+    setSequenceOrientation: (orientation: SequenceLayoutOrientation) => void;
     addNode: (node: ElsaActivityNode, dropPagePosition?: { x: number; y: number }) => void;
     updateNode: (node: ElsaActivityNode) => void;
     updateNodeStats: (activityId: string, stats: ElsaActivityStats) => void;

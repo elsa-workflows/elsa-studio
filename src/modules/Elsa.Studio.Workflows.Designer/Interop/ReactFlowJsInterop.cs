@@ -1,4 +1,3 @@
-using Elsa.Studio.Workflows.Designer.Components;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -14,11 +13,12 @@ public class ReactFlowJsInterop(IJSRuntime jsRuntime) : JsInteropBase(jsRuntime)
     /// <summary>
     /// Creates a new React Flow graph and returns an API wrapper for it.
     /// </summary>
-    public async ValueTask<ReactFlowGraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<ReactFlowDesigner> componentRef, bool isReadOnly = false)
+    public async ValueTask<ReactFlowGraphApi> CreateGraphAsync<TComponent>(string containerId, DotNetObjectReference<TComponent> componentRef, bool isReadOnly = false, string mode = "flowchart")
+        where TComponent : class
     {
         return await TryInvokeAsync(async module =>
         {
-            await module.InvokeAsync<string>("createReactGraph", containerId, componentRef, isReadOnly, null);
+            await module.InvokeAsync<string>("createReactGraph", containerId, componentRef, isReadOnly, new { mode });
             return new ReactFlowGraphApi(module, containerId);
         });
     }

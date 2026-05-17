@@ -10,6 +10,7 @@ import { useEdgeOps } from './EdgeOpsContext';
 
 export interface ElsaEdgeData {
     vertices?: Array<{ x: number; y: number }>;
+    structural?: boolean;
     [key: string]: unknown;
 }
 
@@ -90,6 +91,7 @@ export function ElsaEdge(props: EdgeProps) {
     const ops = useEdgeOps();
     const flow = useReactFlow();
     const vertices = (data as ElsaEdgeData | undefined)?.vertices ?? [];
+    const structural = (data as ElsaEdgeData | undefined)?.structural === true;
     const [hovered, setHovered] = useState(false);
 
     // Path + label position. With no vertices, fall back to the smoothstep
@@ -185,7 +187,7 @@ export function ElsaEdge(props: EdgeProps) {
                 onDoubleClick={onPathDoubleClick}
             />
 
-            {vertices.map((v, i) => (
+            {!structural && vertices.map((v, i) => (
                 <circle
                     key={i}
                     cx={v.x}
@@ -203,7 +205,7 @@ export function ElsaEdge(props: EdgeProps) {
                         and splices the picked activity into this edge. Positioned
                         slightly to the LEFT of the midpoint so the delete (×)
                         button can sit at the centre without overlap. */}
-                    {!ops.readOnly && (
+                    {!ops.readOnly && !structural && (
                         <button
                             type="button"
                             className="elsa-react-flow-edge-insert nodrag nopan"
