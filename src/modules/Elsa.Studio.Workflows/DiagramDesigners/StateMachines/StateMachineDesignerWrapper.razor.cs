@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
@@ -163,14 +164,17 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
-        if (HasValidationErrors())
-            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
-
         if (_graph == null)
             return Task.FromResult(StateMachine);
 
-        _graph.Activity = (JsonObject)StateMachine.DeepClone();
-        return Task.FromResult(StateMachineMapper.Map(_graph));
+        var activity = MapCurrentGraph();
+        var validationGraph = StateMachineMapper.Map(activity);
+        _graph.ValidationIssues = validationGraph.ValidationIssues;
+
+        if (HasValidationErrors(validationGraph))
+            throw new DiagramDesignerValidationException("Cannot read the StateMachine activity because the graph has validation errors.");
+
+        return Task.FromResult(activity);
     }
 
     /// <summary>
@@ -539,13 +543,16 @@ public partial class StateMachineDesignerWrapper
         if (_graph == null)
             return;
 
-        if (HasStructuralValidationErrors())
+        var activity = MapCurrentGraph();
+        var validationGraph = StateMachineMapper.Map(activity);
+        _graph.ValidationIssues = validationGraph.ValidationIssues;
+
+        if (HasStructuralValidationErrors(validationGraph))
         {
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        var activity = StateMachineMapper.Map(_graph);
         LoadGraph(activity, _activityStats);
 
         if (GraphUpdated.HasDelegate)
@@ -743,11 +750,17 @@ public partial class StateMachineDesignerWrapper
         _loadedParameterActivityStats = activityStats;
     }
 
-    private bool HasValidationErrors() =>
-        _graph?.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error) == true;
+    private JsonObject MapCurrentGraph()
+    {
+        _graph!.Activity = (JsonObject)StateMachine.DeepClone();
+        return StateMachineMapper.Map(_graph);
+    }
 
-    private bool HasStructuralValidationErrors() =>
-        _graph?.ValidationIssues.Any(x =>
+    private static bool HasValidationErrors(StateMachineGraph graph) =>
+        graph.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error);
+
+    private static bool HasStructuralValidationErrors(StateMachineGraph graph) =>
+        graph.ValidationIssues.Any(x =>
             x.Severity == StateMachineValidationSeverity.Error &&
             x.Code is InvalidStateCollectionCode or InvalidTransitionCollectionCode or InvalidStateItemCode or InvalidTransitionItemCode) == true;
 

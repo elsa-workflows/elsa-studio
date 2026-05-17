@@ -4,6 +4,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
+using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
@@ -603,7 +604,7 @@ public partial class DiagramDesignerWrapper
         {
             return await _diagramDesigner!.ReadRootActivityAsync();
         }
-        catch (InvalidOperationException)
+        catch (DiagramDesignerValidationException)
         {
             return null;
         }
