@@ -1,4 +1,3 @@
-using System.Reflection;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 using Xunit;
@@ -20,7 +19,7 @@ public class StateMachineDesignerWrapperTests
             }
         };
 
-        var result = InvokeGetUniqueStateName(graph, "NewOrder", selectedState);
+        var result = StateMachineDesignerNames.GetUniqueStateName(graph, "NewOrder", selectedState);
 
         Assert.Equal("NewOrder2", result);
     }
@@ -37,22 +36,8 @@ public class StateMachineDesignerWrapperTests
             }
         };
 
-        var result = InvokeGetUniqueTransitionName(graph, "Approve");
+        var result = StateMachineDesignerNames.GetUniqueTransitionName(graph, "Approve");
 
         Assert.Equal("Approve2", result);
-    }
-
-    private static string InvokeGetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode excludedState)
-    {
-        var method = typeof(StateMachineDesignerWrapper).GetMethod("GetUniqueStateName", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(method);
-        return Assert.IsType<string>(method.Invoke(null, [graph, requestedName, excludedState]));
-    }
-
-    private static string? InvokeGetUniqueTransitionName(StateMachineGraph graph, string requestedName)
-    {
-        var method = typeof(StateMachineDesignerWrapper).GetMethod("GetUniqueTransitionName", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(method);
-        return Assert.IsType<string>(method.Invoke(null, [graph, requestedName, null, false]));
     }
 }

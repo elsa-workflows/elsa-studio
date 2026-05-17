@@ -152,8 +152,8 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
-        if (HasValidationErrors())
-            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
+        if (HasStructuralValidationErrors())
+            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has structural validation errors.");
 
         return Task.FromResult(_graph != null ? StateMachineMapper.Map(_graph) : StateMachine);
     }
@@ -523,7 +523,7 @@ public partial class StateMachineDesignerWrapper
         var activity = StateMachineMapper.Map(_graph);
         LoadGraph(activity, _activityStats);
 
-        if (!HasValidationErrors() && GraphUpdated.HasDelegate)
+        if (GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
 
         await InvokeAsync(StateHasChanged);
@@ -622,54 +622,11 @@ public partial class StateMachineDesignerWrapper
             _ => null
         };
 
-    private static string GetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode? excludedState = null)
-    {
-        var baseName = string.IsNullOrWhiteSpace(requestedName) ? "State" : requestedName.Trim();
-        var stateName = baseName;
-        var index = 2;
-        var names = graph.States
-            .Where(x => !ReferenceEquals(x, excludedState))
-            .Select(x => x.Name)
-            .ToHashSet(StringComparer.Ordinal);
+    private static string GetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode? excludedState = null) =>
+        StateMachineDesignerNames.GetUniqueStateName(graph, requestedName, excludedState);
 
-        while (names.Contains(stateName))
-            stateName = $"{baseName}{index++}";
-
-        return stateName;
-    }
-
-    private static string? GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null, bool allowNull = false)
-    {
-        var names = graph.Transitions
-            .Where(x => !ReferenceEquals(x, excludedTransition))
-            .Select(x => x.Name)
-            .Where(x => x != null)
-            .Select(x => x!)
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (!string.IsNullOrWhiteSpace(requestedName))
-        {
-            var baseName = requestedName.Trim();
-            var name = baseName;
-            var suffix = 2;
-
-            while (names.Contains(name))
-                name = $"{baseName}{suffix++}";
-
-            return name;
-        }
-
-        if (allowNull)
-            return null;
-
-        var index = graph.Transitions.Count + 1;
-        var defaultName = $"Transition{index}";
-
-        while (names.Contains(defaultName))
-            defaultName = $"Transition{++index}";
-
-        return defaultName;
-    }
+    private static string? GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null, bool allowNull = false) =>
+        StateMachineDesignerNames.GetUniqueTransitionName(graph, requestedName, excludedTransition, allowNull);
 
     private static bool IsSameTransition(StateMachineTransitionEdge left, StateMachineTransitionEdge right) =>
         string.Equals(left.Name, right.Name, StringComparison.Ordinal) &&

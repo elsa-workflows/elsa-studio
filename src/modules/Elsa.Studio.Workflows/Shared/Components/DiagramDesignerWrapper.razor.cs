@@ -432,9 +432,7 @@ public partial class DiagramDesignerWrapper
     {
         var currentContainerActivity = await GetCurrentContainerActivityOrRootAsync();
 
-        if (_diagramDesigner == null)
-            return;
-
+        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(currentContainerActivity);
         await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity, _activityStats);
         await UpdateBreadcrumbItemsAsync();
     }
@@ -529,6 +527,7 @@ public partial class DiagramDesignerWrapper
             if (
                 embeddedActivityTypeName != "Elsa.Flowchart"
                 && embeddedActivityTypeName != "Elsa.Workflow"
+                && embeddedActivityTypeName != "Elsa.StateMachine"
             )
             {
                 if (ActivitySelected.HasDelegate)

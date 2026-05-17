@@ -18,12 +18,12 @@ This contract describes how Studio maps the backend StateMachine activity JSON i
   "states": [
     {
       "name": "NewOrder",
-      "entry": { "type": "Elsa.WriteLine", "text": "New order" },
-      "exit": { "type": "Elsa.WriteLine", "text": "Leaving new order" }
+      "entry": { "id": "NewOrderEntry", "nodeId": "StateMachine1:NewOrderEntry", "type": "Elsa.WriteLine", "text": "New order" },
+      "exit": { "id": "NewOrderExit", "nodeId": "StateMachine1:NewOrderExit", "type": "Elsa.WriteLine", "text": "Leaving new order" }
     },
     {
       "name": "Paid",
-      "entry": { "type": "Elsa.WriteLine", "text": "Paid" }
+      "entry": { "id": "PaidEntry", "nodeId": "StateMachine1:PaidEntry", "type": "Elsa.WriteLine", "text": "Paid" }
     }
   ],
   "transitions": [
@@ -32,9 +32,9 @@ This contract describes how Studio maps the backend StateMachine activity JSON i
       "displayName": "Mark paid",
       "from": "NewOrder",
       "to": "Paid",
-      "trigger": { "type": "Elsa.Event" },
+      "trigger": { "id": "MarkPaidTrigger", "nodeId": "StateMachine1:MarkPaidTrigger", "type": "Elsa.Event" },
       "condition": true,
-      "action": { "type": "Elsa.WriteLine", "text": "Payment accepted" }
+      "action": { "id": "MarkPaidAction", "nodeId": "StateMachine1:MarkPaidAction", "type": "Elsa.WriteLine", "text": "Payment accepted" }
     }
   ]
 }
