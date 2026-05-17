@@ -83,7 +83,7 @@
                                 @foreach (var transition in GetOutgoingTransitions(state))
                                 {
                                     <span class="state-machine-designer__state-edge">
-                                        <span>@DisplayValue(transition.DisplayName ?? transition.Name)</span>
+                                        <span>@GetTransitionDisplayText(transition)</span>
                                         <span aria-hidden="true">-></span>
                                         <span>@DisplayValue(transition.To)</span>
                                     </span>
@@ -145,7 +145,7 @@
                             <span aria-hidden="true">-></span>
                             <span>@DisplayValue(transition.To)</span>
                         </div>
-                        <div class="state-machine-designer__transition-name">@DisplayValue(transition.DisplayName ?? transition.Name)</div>
+                        <div class="state-machine-designer__transition-name">@GetTransitionDisplayText(transition)</div>
                         <div class="state-machine-designer__badges">
                             @if (transition.Trigger != null)
                             {

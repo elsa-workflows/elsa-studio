@@ -16,7 +16,7 @@ using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 
 /// <summary>
-/// Displays a StateMachine activity as a read-only graph.
+/// Displays and edits a StateMachine activity graph.
 /// </summary>
 public partial class StateMachineDesignerWrapper
 {
@@ -509,6 +509,12 @@ public partial class StateMachineDesignerWrapper
         if (_graph == null)
             return;
 
+        if (HasStructuralValidationErrors())
+        {
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
         var selectedStateName = _selectedStateName;
         var activity = StateMachineMapper.Map(_graph);
         LoadGraph(activity, _activityStats);
@@ -556,6 +562,9 @@ public partial class StateMachineDesignerWrapper
 
     private static string DisplayValue(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 
+    private static string GetTransitionDisplayText(StateMachineTransitionEdge transition) =>
+        DisplayValue(NormalizeOptionalString(transition.DisplayName) ?? transition.Name);
+
     private IEnumerable<StateMachineTransitionEdge> GetOutgoingTransitions(StateMachineStateNode state) =>
         _graph?.Transitions.Where(x => string.Equals(x.From, state.Name, StringComparison.Ordinal)) ?? [];
 
@@ -583,6 +592,8 @@ public partial class StateMachineDesignerWrapper
         var names = graph.Transitions
             .Where(x => !ReferenceEquals(x, excludedTransition))
             .Select(x => x.Name)
+            .Where(x => x != null)
+            .Select(x => x!)
             .ToHashSet(StringComparer.Ordinal);
 
         if (!string.IsNullOrWhiteSpace(requestedName))
@@ -700,6 +711,11 @@ public partial class StateMachineDesignerWrapper
 
     private bool HasValidationErrors() =>
         _graph?.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error) == true;
+
+    private bool HasStructuralValidationErrors() =>
+        _graph?.ValidationIssues.Any(x =>
+            x.Severity == StateMachineValidationSeverity.Error &&
+            x.Code is "InvalidStateCollection" or "InvalidTransitionCollection" or "InvalidStateItem" or "InvalidTransitionItem") == true;
 
     private IEnumerable<JsonObject> GetIndexedSlotActivities()
     {

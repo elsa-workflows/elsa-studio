@@ -102,6 +102,19 @@ public class StateMachineMapperTests
     }
 
     [Fact]
+    public void Map_ReportsNonArrayStateMachineCollectionsAsBlockingErrors()
+    {
+        var source = CreateActivity();
+        source["states"] = "not-an-array";
+        source["transitions"] = new JsonObject();
+
+        var graph = _mapper.Map(source);
+
+        Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidStateCollection" && x.Target == "states");
+        Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidTransitionCollection" && x.Target == "transitions");
+    }
+
+    [Fact]
     public void Map_MarksStateTerminalWhenOnlyOutboundTransitionsTargetUnknownStates()
     {
         var source = CreateActivity();

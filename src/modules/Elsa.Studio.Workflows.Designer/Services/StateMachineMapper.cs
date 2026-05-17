@@ -45,8 +45,8 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             });
         }
 
-        AddArrayItemIssues(graph, activity, "states", "InvalidStateItem", "StateMachine states must be JSON objects.");
-        AddArrayItemIssues(graph, activity, "transitions", "InvalidTransitionItem", "StateMachine transitions must be JSON objects.");
+        AddArrayIssues(graph, activity, "states", "InvalidStateCollection", "StateMachine states must be a JSON array.", "InvalidStateItem", "StateMachine states must be JSON objects.");
+        AddArrayIssues(graph, activity, "transitions", "InvalidTransitionCollection", "StateMachine transitions must be a JSON array.", "InvalidTransitionItem", "StateMachine transitions must be JSON objects.");
         UpdateTerminalStateMarkers(graph);
         AddValidationIssues(graph);
         return graph;
@@ -93,10 +93,29 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             graph.ValidationIssues.Add(issue);
     }
 
-    private static void AddArrayItemIssues(StateMachineGraph graph, JsonObject activity, string propertyName, string code, string message)
+    private static void AddArrayIssues(
+        StateMachineGraph graph,
+        JsonObject activity,
+        string propertyName,
+        string collectionCode,
+        string collectionMessage,
+        string itemCode,
+        string itemMessage)
     {
-        if (activity[propertyName] is not JsonArray array)
+        if (!activity.TryGetPropertyValue(propertyName, out var node) || node == null)
             return;
+
+        if (node is not JsonArray array)
+        {
+            graph.ValidationIssues.Add(new()
+            {
+                Severity = StateMachineValidationSeverity.Error,
+                Code = collectionCode,
+                Message = collectionMessage,
+                Target = propertyName
+            });
+            return;
+        }
 
         for (var index = 0; index < array.Count; index++)
         {
@@ -106,8 +125,8 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             graph.ValidationIssues.Add(new()
             {
                 Severity = StateMachineValidationSeverity.Error,
-                Code = code,
-                Message = message,
+                Code = itemCode,
+                Message = itemMessage,
                 Target = $"{propertyName}[{index}]"
             });
         }
