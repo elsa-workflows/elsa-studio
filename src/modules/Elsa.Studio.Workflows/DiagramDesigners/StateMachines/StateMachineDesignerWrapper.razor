@@ -75,12 +75,13 @@
 
                 @foreach (var state in _graph.States)
                 {
+                    var outgoingTransitions = GetOutgoingTransitions(state).ToList();
                     <button class="@GetStateClass(state)" type="button" @onclick="() => SelectStateAsync(state)">
                         <span class="state-machine-designer__state-title">@DisplayValue(state.Name)</span>
-                        @if (GetOutgoingTransitions(state).Any())
+                        @if (outgoingTransitions.Count > 0)
                         {
                             <span class="state-machine-designer__state-edges" aria-label="@Localizer["Outgoing transitions"]">
-                                @foreach (var transition in GetOutgoingTransitions(state))
+                                @foreach (var transition in outgoingTransitions)
                                 {
                                     <span class="state-machine-designer__state-edge">
                                         <span>@GetTransitionDisplayText(transition)</span>
