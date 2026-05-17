@@ -592,12 +592,6 @@ public partial class DiagramDesignerWrapper
             await GraphUpdated.InvokeAsync();
     }
 
-    private async Task ReadCurrentDesignerActivityIntoGraphAsync()
-    {
-        var embeddedActivity = await _diagramDesigner!.ReadRootActivityAsync();
-        await ApplyCurrentDesignerActivityToGraphAsync(embeddedActivity);
-    }
-
     private async Task<JsonObject?> TryReadCurrentDesignerActivityAsync()
     {
         try
