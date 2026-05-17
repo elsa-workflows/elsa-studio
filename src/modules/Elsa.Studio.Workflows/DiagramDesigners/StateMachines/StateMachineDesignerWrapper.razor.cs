@@ -516,10 +516,8 @@ public partial class StateMachineDesignerWrapper
             return;
         }
 
-        var selectedStateName = _selectedStateName;
         var activity = StateMachineMapper.Map(_graph);
         LoadGraph(activity, _activityStats);
-        _selectedStateName = selectedStateName;
 
         if (!HasValidationErrors() && GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
@@ -761,7 +759,7 @@ public partial class StateMachineDesignerWrapper
     private bool HasStructuralValidationErrors() =>
         _graph?.ValidationIssues.Any(x =>
             x.Severity == StateMachineValidationSeverity.Error &&
-            x.Code is "InvalidStateCollection" or "InvalidTransitionCollection" or "InvalidStateItem" or "InvalidTransitionItem") == true;
+            x.Code is InvalidStateCollectionCode or InvalidTransitionCollectionCode or InvalidStateItemCode or InvalidTransitionItemCode) == true;
 
     private IEnumerable<JsonObject> GetIndexedSlotActivities()
     {

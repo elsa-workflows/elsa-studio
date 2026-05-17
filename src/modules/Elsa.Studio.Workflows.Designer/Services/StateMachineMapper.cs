@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
+using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
@@ -45,8 +46,8 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             });
         }
 
-        AddArrayIssues(graph, activity, "states", "InvalidStateCollection", "StateMachine states must be a JSON array.", "InvalidStateItem", "StateMachine states must be JSON objects.");
-        AddArrayIssues(graph, activity, "transitions", "InvalidTransitionCollection", "StateMachine transitions must be a JSON array.", "InvalidTransitionItem", "StateMachine transitions must be JSON objects.");
+        AddArrayIssues(graph, activity, "states", InvalidStateCollectionCode, "StateMachine states must be a JSON array.", InvalidStateItemCode, "StateMachine states must be JSON objects.");
+        AddArrayIssues(graph, activity, "transitions", InvalidTransitionCollectionCode, "StateMachine transitions must be a JSON array.", InvalidTransitionItemCode, "StateMachine transitions must be JSON objects.");
         UpdateTerminalStateMarkers(graph);
         AddValidationIssues(graph);
         return graph;
