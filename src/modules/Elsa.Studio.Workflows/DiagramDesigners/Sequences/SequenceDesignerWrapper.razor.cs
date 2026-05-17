@@ -43,7 +43,7 @@ public partial class SequenceDesignerWrapper
             return;
 
         var id = sequence.GetId();
-        if (id == _lastSequenceId)
+        if (id == _lastSequenceId && ReferenceEquals(sequence, Sequence))
             return;
 
         _lastSequenceId = id;

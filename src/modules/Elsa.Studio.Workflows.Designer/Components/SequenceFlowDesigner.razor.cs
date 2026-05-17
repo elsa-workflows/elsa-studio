@@ -275,7 +275,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!Equals(_sequence, Sequence) && _sequence?.GetNodeId() != Sequence.GetNodeId())
+        if (!Equals(_sequence, Sequence))
         {
             _sequence = Sequence;
             await _rateLimitedLoadSequenceAction.InvokeAsync();
@@ -294,7 +294,6 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     private void GenerateNewActivityIds(JsonObject container)
     {
         var activities = container.GetActivities().ToList();
-        var activityLookup = new Dictionary<string, JsonObject>();
         var newContainerId = IdentityGenerator.GenerateId();
 
         container.SetId(newContainerId);
@@ -305,7 +304,6 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
             var descriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
             var newActivityId = IdentityGenerator.GenerateId();
 
-            activityLookup[activity.GetId()] = activity;
             activity.SetId(newActivityId);
             activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
             ProcessEmbeddedPorts(activity, descriptor);
