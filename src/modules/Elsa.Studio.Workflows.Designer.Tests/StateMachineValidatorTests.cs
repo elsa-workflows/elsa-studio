@@ -96,6 +96,33 @@ public class StateMachineValidatorTests
     }
 
     [Fact]
+    public void Validate_UsesTransitionNameWhenDisplayNameIsBlank()
+    {
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode { Name = "Pending" }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge
+                {
+                    Name = "Approve",
+                    DisplayName = " ",
+                    From = "Missing",
+                    To = "Pending"
+                }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.Contains(issues, x => x.Code == "MissingTransitionSourceState" && x.Target == "Approve");
+        Assert.DoesNotContain(issues, x => x.Target == "");
+    }
+
+    [Fact]
     public void Validate_ReportsInvalidJsonSlotsAsBlockingErrors()
     {
         var invalidSlot = new JsonObject { ["$invalidJson"] = true, ["source"] = "{ nope" };

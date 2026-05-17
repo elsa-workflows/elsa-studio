@@ -69,10 +69,13 @@ public class StateMachineValidator
     }
 
     private static string GetTransitionTarget(StateMachineTransitionEdge transition) =>
-        transition.DisplayName ?? transition.Name ?? $"{transition.From}->{transition.To}";
+        NormalizeOptionalString(transition.DisplayName) ?? NormalizeOptionalString(transition.Name) ?? $"{transition.From}->{transition.To}";
 
     private static (string? Name, string From, string To) GetTransitionIdentity(StateMachineTransitionEdge transition) =>
         (transition.Name, transition.From, transition.To);
+
+    private static string? NormalizeOptionalString(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 
     private static void AddInvalidJsonSlotIssue(ICollection<StateMachineValidationIssue> issues, JsonNode? slot, string target)
     {

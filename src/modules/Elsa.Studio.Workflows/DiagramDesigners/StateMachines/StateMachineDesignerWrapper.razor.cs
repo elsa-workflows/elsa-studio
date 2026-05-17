@@ -24,6 +24,7 @@ public partial class StateMachineDesignerWrapper
     private IDictionary<string, ActivityStats>? _activityStats;
     private string? _selectedStateName;
     private StateMachineTransitionEdge? _selectedTransition;
+    private string? _selectedActivityId;
     private string _newStateName = "";
     private string _newTransitionName = "";
     private string? _newTransitionFrom;
@@ -124,8 +125,7 @@ public partial class StateMachineDesignerWrapper
         {
             _selectedStateName = null;
             _selectedTransition = null;
-            if (ActivitySelected.HasDelegate)
-                await ActivitySelected.InvokeAsync(StateMachine);
+            await SelectRootActivityForPropertiesAsync();
             await InvokeAsync(StateHasChanged);
             return;
         }
@@ -134,9 +134,7 @@ public partial class StateMachineDesignerWrapper
         {
             _selectedStateName = state?.Name;
             _selectedTransition = transition;
-
-            if (ActivitySelected.HasDelegate)
-                await ActivitySelected.InvokeAsync(slotActivity);
+            await SelectSlotActivityForPropertiesAsync(slotActivity);
 
             await InvokeAsync(StateHasChanged);
             return;
@@ -144,6 +142,8 @@ public partial class StateMachineDesignerWrapper
 
         _selectedStateName = _graph?.States.FirstOrDefault(x => string.Equals(x.Name, id, StringComparison.Ordinal))?.Name;
         _selectedTransition = null;
+        if (_selectedStateName != null)
+            await SelectRootActivityForPropertiesAsync();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -201,16 +201,15 @@ public partial class StateMachineDesignerWrapper
     {
         _selectedStateName = state.Name;
         _selectedTransition = null;
-
-        if (ActivitySelected.HasDelegate)
-            await ActivitySelected.InvokeAsync(StateMachine);
+        await SelectRootActivityForPropertiesAsync();
     }
 
-    private Task SelectTransitionAsync(StateMachineTransitionEdge transition)
+    private async Task SelectTransitionAsync(StateMachineTransitionEdge transition)
     {
         _selectedTransition = transition;
         _selectedStateName = null;
-        return InvokeAsync(StateHasChanged);
+        await SelectRootActivityForPropertiesAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddStateAsync()
@@ -331,12 +330,6 @@ public partial class StateMachineDesignerWrapper
         await ApplyGraphChangesAsync();
     }
 
-    private async Task UpdateGraphSelectionAsync()
-    {
-        if (!IsReadOnly)
-            await ApplyGraphChangesAsync();
-    }
-
     private async Task SetInitialStateAsync(ChangeEventArgs e)
     {
         if (_graph == null || IsReadOnly)
@@ -396,13 +389,11 @@ public partial class StateMachineDesignerWrapper
         if (SelectedState == null || IsReadOnly)
             return;
 
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
         var node = ParseJsonSlot(e.Value?.ToString(), slotName);
-        if (slotName == "entry")
-            SelectedState.Entry = node;
-        else
-            SelectedState.Exit = node;
+        SetStateSlot(SelectedState, slotName, node);
 
-        await ApplyGraphChangesAsync();
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
     }
 
     private async Task SetTransitionSlotAsync(string slotName, ChangeEventArgs e)
@@ -411,6 +402,7 @@ public partial class StateMachineDesignerWrapper
             return;
 
         var value = e.Value?.ToString();
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
 
         switch (slotName)
         {
@@ -425,7 +417,7 @@ public partial class StateMachineDesignerWrapper
                 break;
         }
 
-        await ApplyGraphChangesAsync();
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
     }
 
     private async Task ClearStateSlotAsync(string slotName)
@@ -433,12 +425,10 @@ public partial class StateMachineDesignerWrapper
         if (SelectedState == null || IsReadOnly)
             return;
 
-        if (slotName == "entry")
-            SelectedState.Entry = null;
-        else
-            SelectedState.Exit = null;
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
+        SetStateSlot(SelectedState, slotName, null);
 
-        await ApplyGraphChangesAsync();
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => null);
     }
 
     private async Task ClearTransitionSlotAsync(string slotName)
@@ -446,6 +436,7 @@ public partial class StateMachineDesignerWrapper
         if (_selectedTransition == null || IsReadOnly)
             return;
 
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
         switch (slotName)
         {
             case "trigger":
@@ -459,7 +450,7 @@ public partial class StateMachineDesignerWrapper
                 break;
         }
 
-        await ApplyGraphChangesAsync();
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => null);
     }
 
     private void OnSlotDragOver(DragEventArgs e)
@@ -472,15 +463,13 @@ public partial class StateMachineDesignerWrapper
         if (IsReadOnly || SelectedState == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
         var activity = CreateSlotActivity(descriptor);
 
-        if (slotName == "entry")
-            SelectedState.Entry = activity;
-        else
-            SelectedState.Exit = activity;
+        SetStateSlot(SelectedState, slotName, activity);
 
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAsync();
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
     }
 
     private async Task OnTransitionSlotDropAsync(string slotName)
@@ -488,6 +477,7 @@ public partial class StateMachineDesignerWrapper
         if (IsReadOnly || _selectedTransition == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
+        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
         var activity = CreateSlotActivity(descriptor);
 
         switch (slotName)
@@ -501,7 +491,20 @@ public partial class StateMachineDesignerWrapper
         }
 
         DragDropManager.Payload = null;
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
+    }
+
+    private async Task ApplyGraphChangesAndRefreshSelectionAsync(bool refreshSelectedActivity, Func<JsonNode?> getReplacementSlot)
+    {
         await ApplyGraphChangesAsync();
+
+        if (!refreshSelectedActivity)
+            return;
+
+        if (getReplacementSlot() is JsonObject replacementActivity && replacementActivity.IsActivity())
+            await SelectSlotActivityForPropertiesAsync(replacementActivity);
+        else
+            await SelectRootActivityForPropertiesAsync();
     }
 
     private async Task ApplyGraphChangesAsync()
@@ -570,6 +573,51 @@ public partial class StateMachineDesignerWrapper
 
     private StateMachineStateNode? SelectedState =>
         _graph?.States.FirstOrDefault(x => string.Equals(x.Name, _selectedStateName, StringComparison.Ordinal));
+
+    private async Task SelectRootActivityForPropertiesAsync()
+    {
+        _selectedActivityId = GetActivitySelectionId(StateMachine);
+
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(StateMachine);
+    }
+
+    private async Task SelectSlotActivityForPropertiesAsync(JsonObject activity)
+    {
+        _selectedActivityId = GetActivitySelectionId(activity);
+
+        if (ActivitySelected.HasDelegate)
+            await ActivitySelected.InvokeAsync(activity);
+    }
+
+    private bool IsSelectedSlotActivity(JsonNode? slot) =>
+        slot is JsonObject activity &&
+        _selectedActivityId != null &&
+        (string.Equals(activity.GetId(), _selectedActivityId, StringComparison.Ordinal) ||
+         string.Equals(activity.GetNodeId(), _selectedActivityId, StringComparison.Ordinal));
+
+    private static string? GetActivitySelectionId(JsonObject activity) =>
+        NormalizeOptionalString(activity.GetId()) ?? NormalizeOptionalString(activity.GetNodeId());
+
+    private static JsonNode? GetStateSlot(StateMachineStateNode state, string slotName) =>
+        slotName == "entry" ? state.Entry : state.Exit;
+
+    private static void SetStateSlot(StateMachineStateNode state, string slotName, JsonNode? slot)
+    {
+        if (slotName == "entry")
+            state.Entry = slot;
+        else
+            state.Exit = slot;
+    }
+
+    private static JsonNode? GetTransitionSlot(StateMachineTransitionEdge transition, string slotName) =>
+        slotName switch
+        {
+            "trigger" => transition.Trigger,
+            "condition" => transition.Condition,
+            "action" => transition.Action,
+            _ => null
+        };
 
     private static string GetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode? excludedState = null)
     {
