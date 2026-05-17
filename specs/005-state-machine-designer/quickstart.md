@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Use the Studio worktree branch `006-state-machine-designer`.
+- Use the Studio worktree branch `005-state-machine-designer`.
 - Use a backend build that includes elsa-core issue #5085 / PR #7457 StateMachine activity support.
 - Confirm Studio's activity registry receives a descriptor for `Elsa.StateMachine`.
 

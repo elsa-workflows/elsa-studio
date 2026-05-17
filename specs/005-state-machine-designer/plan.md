@@ -1,6 +1,6 @@
 # Implementation Plan: State Machine Designer
 
-**Branch**: `006-state-machine-designer` | **Date**: 2026-05-16 | **Spec**: [spec.md](./spec.md)  
+**Branch**: `005-state-machine-designer` | **Date**: 2026-05-16 | **Spec**: [spec.md](./spec.md)  
 **Input**: Feature specification from `/specs/005-state-machine-designer/spec.md`
 
 ## Summary

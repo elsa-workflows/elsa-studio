@@ -79,7 +79,7 @@ public class StateMachineValidator
 
     private static void AddInvalidJsonSlotIssue(ICollection<StateMachineValidationIssue> issues, JsonNode? slot, string target)
     {
-        if (slot is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty))
+        if (slot is JsonObject obj && IsInvalidJsonSlotMarker(obj))
             issues.Add(Error("InvalidSlotJson", $"Slot '{target}' contains invalid JSON.", target));
     }
 
@@ -87,7 +87,7 @@ public class StateMachineValidator
     {
         AddInvalidJsonSlotIssue(issues, slot, target);
 
-        if (slot == null || slot is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty))
+        if (slot == null || slot is JsonObject obj && IsInvalidJsonSlotMarker(obj))
             return;
 
         if (slot is not JsonObject activity)

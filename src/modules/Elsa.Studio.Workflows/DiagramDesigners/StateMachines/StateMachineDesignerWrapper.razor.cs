@@ -50,7 +50,7 @@ public partial class StateMachineDesignerWrapper
     [Parameter] public bool IsReadOnly { get; set; }
 
     /// <summary>
-    /// Gets or sets the callback invoked when the root activity is selected.
+    /// Gets or sets the callback invoked when the root activity or an embedded slot activity is selected.
     /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
 
@@ -85,7 +85,7 @@ public partial class StateMachineDesignerWrapper
     }
 
     /// <summary>
-    /// Updates the root StateMachine activity.
+    /// Updates the root StateMachine activity or an embedded slot activity.
     /// </summary>
     public Task UpdateActivityAsync(string id, JsonObject activity)
     {
@@ -117,7 +117,7 @@ public partial class StateMachineDesignerWrapper
     }
 
     /// <summary>
-    /// Selects the root activity or a state by name.
+    /// Selects the root activity, an embedded slot activity by id or nodeId, or a state by name.
     /// </summary>
     public async Task SelectActivityAsync(string id)
     {
@@ -393,7 +393,7 @@ public partial class StateMachineDesignerWrapper
         var node = ParseJsonSlot(e.Value?.ToString(), slotName);
         SetStateSlot(SelectedState, slotName, node);
 
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
     }
 
     private async Task SetTransitionSlotAsync(string slotName, ChangeEventArgs e)
@@ -403,21 +403,25 @@ public partial class StateMachineDesignerWrapper
 
         var value = e.Value?.ToString();
         var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
+        JsonNode? node = null;
 
         switch (slotName)
         {
             case "trigger":
-                _selectedTransition.Trigger = ParseJsonSlot(value, slotName);
+                node = ParseJsonSlot(value, slotName);
+                _selectedTransition.Trigger = node;
                 break;
             case "condition":
-                _selectedTransition.Condition = ParseJsonSlot(value, slotName);
+                node = ParseJsonSlot(value, slotName);
+                _selectedTransition.Condition = node;
                 break;
             case "action":
-                _selectedTransition.Action = ParseJsonSlot(value, slotName);
+                node = ParseJsonSlot(value, slotName);
+                _selectedTransition.Action = node;
                 break;
         }
 
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
     }
 
     private async Task ClearStateSlotAsync(string slotName)
@@ -592,6 +596,9 @@ public partial class StateMachineDesignerWrapper
         (string.Equals(activity.GetId(), _selectedActivityId, StringComparison.Ordinal) ||
          string.Equals(activity.GetNodeId(), _selectedActivityId, StringComparison.Ordinal));
 
+    private static bool IsSelectableSlotActivity(JsonNode? slot) =>
+        slot is JsonObject activity && activity.IsActivity();
+
     private static string? GetActivitySelectionId(JsonObject activity) =>
         NormalizeOptionalString(activity.GetId()) ?? NormalizeOptionalString(activity.GetNodeId());
 
@@ -713,7 +720,7 @@ public partial class StateMachineDesignerWrapper
         {
             return new JsonObject
             {
-                [InvalidJsonSlotProperty] = true,
+                [InvalidJsonSlotProperty] = InvalidJsonSlotMarkerValue,
                 ["slot"] = slotName,
                 [InvalidJsonSlotSourceProperty] = value
             };
@@ -721,7 +728,7 @@ public partial class StateMachineDesignerWrapper
     }
 
     private static string FormatJsonSlot(JsonNode? node) =>
-        node is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty)
+        node is JsonObject obj && StateMachineDesignerConstants.IsInvalidJsonSlotMarker(obj)
             ? obj[InvalidJsonSlotSourceProperty]?.GetValue<string>() ?? ""
             : node?.ToJsonString(new() { WriteIndented = true }) ?? "";
 

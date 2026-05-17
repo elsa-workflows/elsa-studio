@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
+using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 using Xunit;
 
 namespace Elsa.Studio.Workflows.Designer.Tests;
@@ -125,7 +126,7 @@ public class StateMachineValidatorTests
     [Fact]
     public void Validate_ReportsInvalidJsonSlotsAsBlockingErrors()
     {
-        var invalidSlot = new JsonObject { ["$invalidJson"] = true, ["source"] = "{ nope" };
+        var invalidSlot = new JsonObject { [InvalidJsonSlotProperty] = InvalidJsonSlotMarkerValue, [InvalidJsonSlotSourceProperty] = "{ nope" };
         var graph = new StateMachineGraph
         {
             States =
@@ -148,6 +149,46 @@ public class StateMachineValidatorTests
 
         Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Pending.entry" && x.Severity == StateMachineValidationSeverity.Error);
         Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Approve.condition" && x.Severity == StateMachineValidationSeverity.Error);
+    }
+
+    [Fact]
+    public void Validate_DoesNotTreatUserInvalidJsonPropertyAsMarker()
+    {
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode
+                {
+                    Name = "Pending",
+                    Entry = new JsonObject
+                    {
+                        ["id"] = "Entry1",
+                        ["nodeId"] = "StateMachine1:Entry1",
+                        ["type"] = "Elsa.WriteLine",
+                        [InvalidJsonSlotProperty] = true
+                    }
+                }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge
+                {
+                    Name = "Approve",
+                    From = "Pending",
+                    To = "Pending",
+                    Condition = new JsonObject
+                    {
+                        [InvalidJsonSlotProperty] = true,
+                        [InvalidJsonSlotSourceProperty] = 42
+                    }
+                }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.DoesNotContain(issues, x => x.Code == "InvalidSlotJson");
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # Feature Specification: State Machine Designer
 
-**Feature Branch**: `006-state-machine-designer`  
+**Feature Branch**: `005-state-machine-designer`  
 **Created**: 2026-05-16  
 **Status**: Draft  
 **Input**: Studio UI support for elsa-core issue #5085 / PR #7457 State Machine Activity; keep Studio/X6 work separate from backend changes.
