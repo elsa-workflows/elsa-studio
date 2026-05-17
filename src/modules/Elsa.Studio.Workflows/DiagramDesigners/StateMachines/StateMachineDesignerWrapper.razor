@@ -1,0 +1,258 @@
+@using Elsa.Studio.Workflows.Designer.Models
+
+<div class="state-machine-designer" data-centered="@_centerContent">
+    @if (_graph != null)
+    {
+        <div class="state-machine-designer__summary">
+            <div>
+                <span class="state-machine-designer__label">Initial</span>
+                @if (IsReadOnly)
+                {
+                    <span class="state-machine-designer__value">@DisplayValue(_graph.InitialState)</span>
+                }
+                else
+                {
+                    <select class="state-machine-designer__input" value="@_graph.InitialState" @onchange="SetInitialStateAsync">
+                        <option value="">-</option>
+                        @foreach (var state in _graph.States)
+                        {
+                            <option value="@state.Name">@DisplayValue(state.Name)</option>
+                        }
+                    </select>
+                }
+            </div>
+            <div>
+                <span class="state-machine-designer__label">Current</span>
+                @if (IsReadOnly)
+                {
+                    <span class="state-machine-designer__value">@DisplayValue(_graph.CurrentState)</span>
+                }
+                else
+                {
+                    <select class="state-machine-designer__input" value="@_graph.CurrentState" @onchange="SetCurrentStateAsync">
+                        <option value="">-</option>
+                        @foreach (var state in _graph.States)
+                        {
+                            <option value="@state.Name">@DisplayValue(state.Name)</option>
+                        }
+                    </select>
+                }
+            </div>
+            <div>
+                <span class="state-machine-designer__label">States</span>
+                <span class="state-machine-designer__value">@_graph.States.Count</span>
+            </div>
+            <div>
+                <span class="state-machine-designer__label">Transitions</span>
+                <span class="state-machine-designer__value">@_graph.Transitions.Count</span>
+            </div>
+        </div>
+
+        @if (_graph.ValidationIssues.Count > 0)
+        {
+            <div class="state-machine-designer__issues">
+                @foreach (var issue in _graph.ValidationIssues)
+                {
+                    <div class="@GetIssueClass(issue)">
+                        <strong>@issue.Severity</strong>
+                        <span>@issue.Message</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="@GetCanvasClass()">
+            <section class="state-machine-designer__states" aria-label="States">
+                @if (!IsReadOnly)
+                {
+                    <div class="state-machine-designer__editor-row">
+                        <input class="state-machine-designer__input" placeholder="State name" @bind="_newStateName" />
+                        <button class="state-machine-designer__command" type="button" @onclick="AddStateAsync">Add</button>
+                    </div>
+                }
+
+                @foreach (var state in _graph.States)
+                {
+                    <button class="@GetStateClass(state)" type="button" @onclick="() => SelectStateAsync(state)">
+                        <span class="state-machine-designer__state-title">@DisplayValue(state.Name)</span>
+                        <span class="state-machine-designer__badges">
+                            @if (string.Equals(state.Name, _graph.InitialState, StringComparison.Ordinal))
+                            {
+                                <span class="state-machine-designer__badge">Initial</span>
+                            }
+                            @if (string.Equals(state.Name, _graph.CurrentState, StringComparison.Ordinal))
+                            {
+                                <span class="state-machine-designer__badge state-machine-designer__badge--current">Current</span>
+                            }
+                            @if (state.IsTerminal)
+                            {
+                                <span class="state-machine-designer__badge state-machine-designer__badge--terminal">Terminal</span>
+                            }
+                            @if (state.Entry != null)
+                            {
+                                <span class="state-machine-designer__badge">Entry</span>
+                            }
+                            @if (state.Exit != null)
+                            {
+                                <span class="state-machine-designer__badge">Exit</span>
+                            }
+                        </span>
+                    </button>
+                }
+            </section>
+
+            <section class="state-machine-designer__transitions" aria-label="Transitions">
+                @if (!IsReadOnly && _graph.States.Count > 0)
+                {
+                    <div class="state-machine-designer__transition-editor">
+                        <input class="state-machine-designer__input" placeholder="Transition name" @bind="_newTransitionName" />
+                        <select class="state-machine-designer__input" @bind="_newTransitionFrom">
+                            @foreach (var state in _graph.States)
+                            {
+                                <option value="@state.Name">@DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                        <select class="state-machine-designer__input" @bind="_newTransitionTo">
+                            @foreach (var state in _graph.States)
+                            {
+                                <option value="@state.Name">@DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                        <button class="state-machine-designer__command" type="button" @onclick="AddTransitionAsync">Add</button>
+                    </div>
+                }
+
+                @foreach (var transition in _graph.Transitions)
+                {
+                    <article class="@GetTransitionClass(transition)" @onclick="() => SelectTransitionAsync(transition)">
+                        <div class="state-machine-designer__transition-route">
+                            <span>@DisplayValue(transition.From)</span>
+                            <span aria-hidden="true">-></span>
+                            <span>@DisplayValue(transition.To)</span>
+                        </div>
+                        <div class="state-machine-designer__transition-name">@DisplayValue(transition.DisplayName ?? transition.Name)</div>
+                        <div class="state-machine-designer__badges">
+                            @if (transition.Trigger != null)
+                            {
+                                <span class="state-machine-designer__badge">Trigger</span>
+                            }
+                            @if (transition.Condition != null)
+                            {
+                                <span class="state-machine-designer__badge">Condition</span>
+                            }
+                            @if (transition.Action != null)
+                            {
+                                <span class="state-machine-designer__badge">Action</span>
+                            }
+                        </div>
+                    </article>
+                }
+            </section>
+        </div>
+
+        @if (SelectedState != null)
+        {
+            <section class="state-machine-designer__details" aria-label="State details">
+                <div class="state-machine-designer__details-header">
+                    <h3>State</h3>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__danger" type="button" @onclick="DeleteSelectedStateAsync">Delete</button>
+                    }
+                </div>
+
+                <label class="state-machine-designer__field">
+                    <span>Name</span>
+                    <input class="state-machine-designer__input" value="@SelectedState.Name" disabled="@IsReadOnly" @onchange="RenameSelectedStateAsync" />
+                </label>
+
+                <label class="state-machine-designer__field">
+                    <span>Entry</span>
+                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(SelectedState.Entry)" @onchange='e => SetStateSlotAsync("entry", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnStateSlotDropAsync("entry")'></textarea>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearStateSlotAsync("entry")'>Clear entry</button>
+                    }
+                </label>
+
+                <label class="state-machine-designer__field">
+                    <span>Exit</span>
+                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(SelectedState.Exit)" @onchange='e => SetStateSlotAsync("exit", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnStateSlotDropAsync("exit")'></textarea>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearStateSlotAsync("exit")'>Clear exit</button>
+                    }
+                </label>
+            </section>
+        }
+
+        @if (_selectedTransition != null)
+        {
+            <section class="state-machine-designer__details" aria-label="Transition details">
+                <div class="state-machine-designer__details-header">
+                    <h3>Transition</h3>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__danger" type="button" @onclick="DeleteSelectedTransitionAsync">Delete</button>
+                    }
+                </div>
+
+                <div class="state-machine-designer__details-grid">
+                    <label class="state-machine-designer__field">
+                        <span>Name</span>
+                        <input class="state-machine-designer__input" value="@_selectedTransition.Name" disabled="@IsReadOnly" @onchange="SetTransitionNameAsync" />
+                    </label>
+                    <label class="state-machine-designer__field">
+                        <span>Display name</span>
+                        <input class="state-machine-designer__input" value="@_selectedTransition.DisplayName" disabled="@IsReadOnly" @onchange="SetTransitionDisplayNameAsync" />
+                    </label>
+                    <label class="state-machine-designer__field">
+                        <span>From</span>
+                        <select class="state-machine-designer__input" value="@_selectedTransition.From" disabled="@IsReadOnly" @onchange="SetTransitionFromAsync">
+                            @foreach (var state in _graph.States)
+                            {
+                                <option value="@state.Name">@DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="state-machine-designer__field">
+                        <span>To</span>
+                        <select class="state-machine-designer__input" value="@_selectedTransition.To" disabled="@IsReadOnly" @onchange="SetTransitionToAsync">
+                            @foreach (var state in _graph.States)
+                            {
+                                <option value="@state.Name">@DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+
+                <label class="state-machine-designer__field">
+                    <span>Trigger</span>
+                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Trigger)" @onchange='e => SetTransitionSlotAsync("trigger", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnTransitionSlotDropAsync("trigger")'></textarea>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("trigger")'>Clear trigger</button>
+                    }
+                </label>
+
+                <label class="state-machine-designer__field">
+                    <span>Condition</span>
+                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Condition)" @onchange='e => SetTransitionSlotAsync("condition", e)'></textarea>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("condition")'>Clear condition</button>
+                    }
+                </label>
+
+                <label class="state-machine-designer__field">
+                    <span>Action</span>
+                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Action)" @onchange='e => SetTransitionSlotAsync("action", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnTransitionSlotDropAsync("action")'></textarea>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("action")'>Clear action</button>
+                    }
+                </label>
+            </section>
+        }
+    }
+</div>

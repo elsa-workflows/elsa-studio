@@ -21,6 +21,8 @@ public static class ServiceCollectionExtensions
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMapperFactory, MapperFactory>()
+            .AddScoped<StateMachineValidator>()
+            .AddScoped<IStateMachineMapper, StateMachineMapper>()
             .AddScoped<DesignerJsInterop>()
             .AddScoped<ReactFlowJsInterop>();
     }
