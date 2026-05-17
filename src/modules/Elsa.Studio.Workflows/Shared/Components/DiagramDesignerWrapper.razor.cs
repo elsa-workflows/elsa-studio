@@ -537,7 +537,7 @@ public partial class DiagramDesignerWrapper
                 return;
             }
 
-            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
+            // If the embedded activity type is a flowchart, StateMachine, or workflow, we can display it in the designer.
         }
         else
         {
@@ -579,16 +579,10 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnGraphUpdated()
     {
-        try
-        {
-            await ReadCurrentDesignerActivityIntoGraphAsync();
-        }
-        catch (InvalidOperationException)
-        {
-            if (GraphUpdated.HasDelegate)
-                await GraphUpdated.InvokeAsync();
-            return;
-        }
+        var readActivity = await TryReadCurrentDesignerActivityAsync();
+
+        if (readActivity != null)
+            await ApplyCurrentDesignerActivityToGraphAsync(readActivity);
 
         if (GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
@@ -597,6 +591,23 @@ public partial class DiagramDesignerWrapper
     private async Task ReadCurrentDesignerActivityIntoGraphAsync()
     {
         var embeddedActivity = await _diagramDesigner!.ReadRootActivityAsync();
+        await ApplyCurrentDesignerActivityToGraphAsync(embeddedActivity);
+    }
+
+    private async Task<JsonObject?> TryReadCurrentDesignerActivityAsync()
+    {
+        try
+        {
+            return await _diagramDesigner!.ReadRootActivityAsync();
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private async Task ApplyCurrentDesignerActivityToGraphAsync(JsonObject embeddedActivity)
+    {
         var currentSegment = CurrentPathSegment;
 
         if (currentSegment == null) // Root activity was updated.

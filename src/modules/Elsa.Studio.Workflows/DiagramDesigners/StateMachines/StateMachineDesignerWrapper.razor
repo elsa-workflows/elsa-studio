@@ -141,13 +141,13 @@
                 @foreach (var transition in _graph.Transitions)
                 {
                     <button class="@GetTransitionClass(transition)" type="button" @onclick="() => SelectTransitionAsync(transition)">
-                        <div class="state-machine-designer__transition-route">
+                        <span class="state-machine-designer__transition-route">
                             <span>@DisplayValue(transition.From)</span>
                             <span aria-hidden="true">-></span>
                             <span>@DisplayValue(transition.To)</span>
-                        </div>
-                        <div class="state-machine-designer__transition-name">@GetTransitionDisplayText(transition)</div>
-                        <div class="state-machine-designer__badges">
+                        </span>
+                        <span class="state-machine-designer__transition-name">@GetTransitionDisplayText(transition)</span>
+                        <span class="state-machine-designer__badges">
                             @if (transition.Trigger != null)
                             {
                                 <span class="state-machine-designer__badge">@Localizer["Trigger"]</span>
@@ -160,7 +160,7 @@
                             {
                                 <span class="state-machine-designer__badge">@Localizer["Action"]</span>
                             }
-                        </div>
+                        </span>
                     </button>
                 }
             </section>

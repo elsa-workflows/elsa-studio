@@ -87,7 +87,7 @@ public partial class StateMachineDesignerWrapper
     /// <summary>
     /// Updates the root StateMachine activity or an embedded slot activity.
     /// </summary>
-    public Task UpdateActivityAsync(string id, JsonObject activity)
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         if (IsReadOnly)
             throw new InvalidOperationException("Cannot update activity because the designer is read-only.");
@@ -96,13 +96,20 @@ public partial class StateMachineDesignerWrapper
         {
             TrackParameterState(activity, _activityStats);
             LoadGraph(activity, _activityStats);
-            return InvokeAsync(StateHasChanged);
+            if (GraphUpdated.HasDelegate)
+                await GraphUpdated.InvokeAsync();
+
+            await InvokeAsync(StateHasChanged);
+            return;
         }
 
         if (TryUpdateSlotActivity(id, activity))
-            return ApplyGraphChangesAsync();
+        {
+            await ApplyGraphChangesAsync();
+            return;
+        }
 
-        return InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     /// <summary>
@@ -152,8 +159,8 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
-        if (HasStructuralValidationErrors())
-            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has structural validation errors.");
+        if (HasValidationErrors())
+            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
 
         return Task.FromResult(_graph != null ? StateMachineMapper.Map(_graph) : StateMachine);
     }
@@ -790,13 +797,13 @@ public partial class StateMachineDesignerWrapper
 
         foreach (var state in _graph.States)
         {
-            if (TryMatchSlotActivity(state.Entry, id, out _))
+            if (IsSlotActivityMatch(state.Entry, id, activity))
             {
                 state.Entry = activity.DeepClone();
                 return true;
             }
 
-            if (TryMatchSlotActivity(state.Exit, id, out _))
+            if (IsSlotActivityMatch(state.Exit, id, activity))
             {
                 state.Exit = activity.DeepClone();
                 return true;
@@ -805,13 +812,13 @@ public partial class StateMachineDesignerWrapper
 
         foreach (var transition in _graph.Transitions)
         {
-            if (TryMatchSlotActivity(transition.Trigger, id, out _))
+            if (IsSlotActivityMatch(transition.Trigger, id, activity))
             {
                 transition.Trigger = activity.DeepClone();
                 return true;
             }
 
-            if (TryMatchSlotActivity(transition.Action, id, out _))
+            if (IsSlotActivityMatch(transition.Action, id, activity))
             {
                 transition.Action = activity.DeepClone();
                 return true;
@@ -820,6 +827,12 @@ public partial class StateMachineDesignerWrapper
 
         return false;
     }
+
+    private static bool IsSlotActivityMatch(JsonNode? slot, string id, JsonObject replacement) =>
+        slot is JsonObject obj && obj.IsActivity() &&
+        (ReferenceEquals(obj, replacement) ||
+         string.Equals(obj.GetId(), id, StringComparison.Ordinal) ||
+         string.Equals(obj.GetNodeId(), id, StringComparison.Ordinal));
 
     private static bool TryMatchSlotActivity(JsonNode? slot, string id, out JsonObject activity)
     {

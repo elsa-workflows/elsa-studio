@@ -275,6 +275,14 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 return Task.CompletedTask;
             });
         }
+        catch (InvalidOperationException e)
+        {
+            UserMessageService.ShowSnackbarTextMessage(
+                e.Message,
+                Severity.Error,
+                options => options.VisibleStateDuration = 5000
+            );
+        }
         finally
         {
             if (showLoader)
