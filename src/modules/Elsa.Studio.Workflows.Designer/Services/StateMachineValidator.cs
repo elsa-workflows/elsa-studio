@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Workflows.Designer.Models;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
@@ -26,8 +27,8 @@ public class StateMachineValidator
             else if (nameCounts[state.Name] > 1)
                 issues.Add(Error("DuplicateStateName", $"State name '{state.Name}' is used more than once.", state.Name));
 
-            AddInvalidJsonSlotIssue(issues, state.Entry, $"{state.Name}.entry");
-            AddInvalidJsonSlotIssue(issues, state.Exit, $"{state.Name}.exit");
+            AddActivitySlotIssue(issues, state.Entry, $"{state.Name}.entry");
+            AddActivitySlotIssue(issues, state.Exit, $"{state.Name}.exit");
         }
 
         foreach (var transition in graph.Transitions)
@@ -48,9 +49,9 @@ public class StateMachineValidator
             else if (targetCount > 1)
                 issues.Add(Error("AmbiguousTransitionTargetState", $"Transition target state '{transition.To}' matches multiple states.", transitionTarget));
 
-            AddInvalidJsonSlotIssue(issues, transition.Trigger, $"{transitionTarget}.trigger");
+            AddActivitySlotIssue(issues, transition.Trigger, $"{transitionTarget}.trigger");
             AddInvalidJsonSlotIssue(issues, transition.Condition, $"{transitionTarget}.condition");
-            AddInvalidJsonSlotIssue(issues, transition.Action, $"{transitionTarget}.action");
+            AddActivitySlotIssue(issues, transition.Action, $"{transitionTarget}.action");
         }
 
         if (!string.IsNullOrWhiteSpace(graph.InitialState) && !nameCounts.ContainsKey(graph.InitialState))
@@ -69,6 +70,17 @@ public class StateMachineValidator
     {
         if (slot is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty))
             issues.Add(Error("InvalidSlotJson", $"Slot '{target}' contains invalid JSON.", target));
+    }
+
+    private static void AddActivitySlotIssue(ICollection<StateMachineValidationIssue> issues, JsonNode? slot, string target)
+    {
+        AddInvalidJsonSlotIssue(issues, slot, target);
+
+        if (slot == null || slot is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty))
+            return;
+
+        if (slot is not JsonObject activity || !activity.IsActivity())
+            issues.Add(Error("InvalidActivitySlot", $"Slot '{target}' must contain an activity object.", target));
     }
 
     private static StateMachineValidationIssue Error(string code, string message, string? target) =>

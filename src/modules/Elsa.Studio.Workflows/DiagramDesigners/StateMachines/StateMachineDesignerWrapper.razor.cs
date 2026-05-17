@@ -179,12 +179,16 @@ public partial class StateMachineDesignerWrapper
     private void LoadGraph(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
         var selectedTransition = _selectedTransition;
+        var newTransitionFrom = _newTransitionFrom;
+        var newTransitionTo = _newTransitionTo;
         StateMachine = activity;
         ActivityStats = activityStats;
         _activityStats = activityStats;
         _graph = StateMachineMapper.Map(activity);
-        _newTransitionFrom = _graph.States.FirstOrDefault()?.Name;
-        _newTransitionTo = _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
+
+        var stateNames = _graph.States.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
+        _newTransitionFrom = stateNames.Contains(newTransitionFrom) ? newTransitionFrom : _graph.States.FirstOrDefault()?.Name;
+        _newTransitionTo = stateNames.Contains(newTransitionTo) ? newTransitionTo : _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
         _selectedTransition = selectedTransition != null
             ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
             : null;
@@ -371,7 +375,7 @@ public partial class StateMachineDesignerWrapper
         if (_selectedTransition == null || IsReadOnly || _graph == null)
             return;
 
-        _selectedTransition.Name = GetUniqueTransitionName(_graph, e.Value?.ToString(), _selectedTransition);
+        _selectedTransition.Name = GetUniqueTransitionName(_graph, e.Value?.ToString(), _selectedTransition, true);
         await ApplyGraphChangesAsync();
     }
 
@@ -380,7 +384,7 @@ public partial class StateMachineDesignerWrapper
         if (_selectedTransition == null || IsReadOnly)
             return;
 
-        _selectedTransition.DisplayName = e.Value?.ToString();
+        _selectedTransition.DisplayName = NormalizeOptionalString(e.Value);
         await ApplyGraphChangesAsync();
     }
 
@@ -457,7 +461,7 @@ public partial class StateMachineDesignerWrapper
 
     private void OnSlotDragOver(DragEventArgs e)
     {
-        e.DataTransfer.DropEffect = DragDropManager.Payload is ActivityDescriptor ? "move" : "none";
+        e.DataTransfer.DropEffect = !IsReadOnly && DragDropManager.Payload is ActivityDescriptor ? "move" : "none";
     }
 
     private async Task OnStateSlotDropAsync(string slotName)
@@ -572,7 +576,7 @@ public partial class StateMachineDesignerWrapper
         return stateName;
     }
 
-    private static string GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null)
+    private static string? GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null, bool allowNull = false)
     {
         var names = graph.Transitions
             .Where(x => !ReferenceEquals(x, excludedTransition))
@@ -590,6 +594,9 @@ public partial class StateMachineDesignerWrapper
 
             return name;
         }
+
+        if (allowNull)
+            return null;
 
         var index = graph.Transitions.Count + 1;
         var defaultName = $"Transition{index}";
@@ -775,5 +782,11 @@ public partial class StateMachineDesignerWrapper
     {
         var stateName = value?.ToString();
         return string.IsNullOrWhiteSpace(stateName) ? null : stateName;
+    }
+
+    private static string? NormalizeOptionalString(object? value)
+    {
+        var text = value?.ToString();
+        return string.IsNullOrWhiteSpace(text) ? null : text;
     }
 }

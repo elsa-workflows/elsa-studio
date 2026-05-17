@@ -100,7 +100,7 @@
 
 - [X] T027 [US3] Add transition details panel to `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
 - [X] T028 [US3] Integrate activity picker for transition trigger/action slots in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor.cs`
-- [X] T029 [US3] Integrate existing boolean expression input for transition condition in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
+- [ ] T029 [US3] Integrate existing boolean expression input for transition condition in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
 - [X] T030 [US3] Preserve unknown or unavailable transition slot activities as placeholders in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
 
 **Checkpoint**: Transition behavior-critical slots are editable.
@@ -121,8 +121,8 @@
 
 - [X] T032 [US4] Add state details panel to `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
 - [X] T033 [US4] Integrate activity picker for state entry/exit slots in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor.cs`
-- [X] T034 [US4] Add embedded or drill-in nested activity designer handling for state slot activities in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
-- [X] T035 [US4] Preserve root Flowchart full-screen behavior when nested state slot designers are opened in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/Flowcharts/FlowchartDesignerWrapper.razor.cs`
+- [ ] T034 [US4] Add embedded or drill-in nested activity designer handling for state slot activities in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/StateMachines/StateMachineDesignerWrapper.razor`
+- [ ] T035 [US4] Preserve root Flowchart full-screen behavior when nested state slot designers are opened in `src/modules/Elsa.Studio.Workflows/DiagramDesigners/Flowcharts/FlowchartDesignerWrapper.razor.cs`
 
 **Checkpoint**: State lifecycle slots are editable.
 

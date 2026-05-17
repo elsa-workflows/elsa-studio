@@ -100,4 +100,33 @@ public class StateMachineValidatorTests
         Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Pending.entry" && x.Severity == StateMachineValidationSeverity.Error);
         Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Approve.condition" && x.Severity == StateMachineValidationSeverity.Error);
     }
+
+    [Fact]
+    public void Validate_ReportsNonActivityJsonInActivitySlotsAsBlockingErrors()
+    {
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode { Name = "Pending", Entry = new JsonObject() }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge
+                {
+                    Name = "Approve",
+                    From = "Pending",
+                    To = "Pending",
+                    Trigger = JsonValue.Create(true),
+                    Condition = JsonValue.Create(true)
+                }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.Contains(issues, x => x.Code == "InvalidActivitySlot" && x.Target == "Pending.entry" && x.Severity == StateMachineValidationSeverity.Error);
+        Assert.Contains(issues, x => x.Code == "InvalidActivitySlot" && x.Target == "Approve.trigger" && x.Severity == StateMachineValidationSeverity.Error);
+        Assert.DoesNotContain(issues, x => x.Target == "Approve.condition");
+    }
 }

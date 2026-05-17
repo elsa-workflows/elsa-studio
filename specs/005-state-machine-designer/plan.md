@@ -16,7 +16,7 @@ Add Studio-side designer support for the backend `StateMachine` activity from el
 **Target Platform**: Blazor Server and Blazor WebAssembly Studio hosts.  
 **Project Type**: Elsa Studio Workflows designer feature inside existing module boundaries.  
 **Performance Goals**: Keep graph interactions responsive for at least 50 states and 100 transitions; avoid re-rendering the root Flowchart when editing nested state-machine details; preserve save/read operations without JSON loss.  
-**Constraints**: Do not modify `/Users/sipke/Projects/Elsa/elsa-core`; keep backend PR #7457 separate; preserve existing Flowchart designer behavior; support read-only views; handle missing backend activity descriptor gracefully.  
+**Constraints**: Do not modify the separate elsa-core backend repository; keep backend PR #7457 separate; preserve existing Flowchart designer behavior; support read-only views; handle missing backend activity descriptor gracefully.  
 **Scale/Scope**: One dedicated diagram designer provider, state-machine graph mapper, state/transition selection UI, slot editing integration, validation feedback, tests where practical, and docs.
 
 ## Constitution Check
