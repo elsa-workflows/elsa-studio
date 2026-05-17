@@ -74,6 +74,28 @@ public class StateMachineValidatorTests
     }
 
     [Fact]
+    public void Validate_ReportsDuplicateTransitionIdentitiesAsBlockingErrors()
+    {
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode { Name = "Pending" },
+                new StateMachineStateNode { Name = "Approved" }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge { From = "Pending", To = "Approved" },
+                new StateMachineTransitionEdge { From = "Pending", To = "Approved" }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.Equal(2, issues.Count(x => x.Code == "DuplicateTransitionIdentity" && x.Target == "Pending->Approved" && x.Severity == StateMachineValidationSeverity.Error));
+    }
+
+    [Fact]
     public void Validate_ReportsInvalidJsonSlotsAsBlockingErrors()
     {
         var invalidSlot = new JsonObject { ["$invalidJson"] = true, ["source"] = "{ nope" };

@@ -18,6 +18,9 @@ public class StateMachineValidator
         var issues = new List<StateMachineValidationIssue>();
         var names = graph.States.Select(x => x.Name).ToList();
         var nameCounts = names.GroupBy(x => x, StringComparer.Ordinal).ToDictionary(x => x.Key, x => x.Count(), StringComparer.Ordinal);
+        var transitionIdentityCounts = graph.Transitions
+            .GroupBy(GetTransitionIdentity)
+            .ToDictionary(x => x.Key, x => x.Count());
 
         foreach (var state in graph.States)
         {
@@ -48,6 +51,9 @@ public class StateMachineValidator
             else if (targetCount > 1)
                 issues.Add(Error("AmbiguousTransitionTargetState", $"Transition target state '{transition.To}' matches multiple states.", transitionTarget));
 
+            if (transitionIdentityCounts[GetTransitionIdentity(transition)] > 1)
+                issues.Add(Error("DuplicateTransitionIdentity", $"Transition '{transitionTarget}' has the same name, source, and target as another transition.", transitionTarget));
+
             AddActivitySlotIssue(issues, transition.Trigger, $"{transitionTarget}.trigger");
             AddInvalidJsonSlotIssue(issues, transition.Condition, $"{transitionTarget}.condition");
             AddActivitySlotIssue(issues, transition.Action, $"{transitionTarget}.action");
@@ -64,6 +70,9 @@ public class StateMachineValidator
 
     private static string GetTransitionTarget(StateMachineTransitionEdge transition) =>
         transition.DisplayName ?? transition.Name ?? $"{transition.From}->{transition.To}";
+
+    private static (string? Name, string From, string To) GetTransitionIdentity(StateMachineTransitionEdge transition) =>
+        (transition.Name, transition.From, transition.To);
 
     private static void AddInvalidJsonSlotIssue(ICollection<StateMachineValidationIssue> issues, JsonNode? slot, string target)
     {

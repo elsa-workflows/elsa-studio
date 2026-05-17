@@ -123,8 +123,10 @@ public partial class StateMachineDesignerWrapper
         if (string.Equals(StateMachine.GetId(), id, StringComparison.Ordinal))
         {
             _selectedStateName = null;
+            _selectedTransition = null;
             if (ActivitySelected.HasDelegate)
                 await ActivitySelected.InvokeAsync(StateMachine);
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
@@ -179,6 +181,7 @@ public partial class StateMachineDesignerWrapper
     private void LoadGraph(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
         var selectedTransition = _selectedTransition;
+        var selectedTransitionIdentityIndex = GetTransitionIdentityIndex(_graph, selectedTransition);
         var newTransitionFrom = _newTransitionFrom;
         var newTransitionTo = _newTransitionTo;
         StateMachine = activity;
@@ -190,7 +193,7 @@ public partial class StateMachineDesignerWrapper
         _newTransitionFrom = !string.IsNullOrWhiteSpace(newTransitionFrom) && stateNames.Contains(newTransitionFrom) ? newTransitionFrom : _graph.States.FirstOrDefault()?.Name;
         _newTransitionTo = !string.IsNullOrWhiteSpace(newTransitionTo) && stateNames.Contains(newTransitionTo) ? newTransitionTo : _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
         _selectedTransition = selectedTransition != null
-            ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
+            ? FindSameTransition(_graph, selectedTransition, selectedTransitionIdentityIndex)
             : null;
     }
 
@@ -507,13 +510,9 @@ public partial class StateMachineDesignerWrapper
             return;
 
         var selectedStateName = _selectedStateName;
-        var selectedTransition = _selectedTransition;
         var activity = StateMachineMapper.Map(_graph);
         LoadGraph(activity, _activityStats);
         _selectedStateName = selectedStateName;
-        _selectedTransition = selectedTransition != null
-            ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
-            : null;
 
         if (!HasValidationErrors() && GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
@@ -614,6 +613,37 @@ public partial class StateMachineDesignerWrapper
         string.Equals(left.Name, right.Name, StringComparison.Ordinal) &&
         string.Equals(left.From, right.From, StringComparison.Ordinal) &&
         string.Equals(left.To, right.To, StringComparison.Ordinal);
+
+    private static int? GetTransitionIdentityIndex(StateMachineGraph? graph, StateMachineTransitionEdge? transition)
+    {
+        if (graph == null || transition == null)
+            return null;
+
+        int? firstMatchIndex = null;
+        var identityIndex = 0;
+
+        foreach (var candidate in graph.Transitions.Where(x => IsSameTransition(x, transition)))
+        {
+            firstMatchIndex ??= identityIndex;
+
+            if (ReferenceEquals(candidate, transition))
+                return identityIndex;
+
+            identityIndex++;
+        }
+
+        return firstMatchIndex;
+    }
+
+    private static StateMachineTransitionEdge? FindSameTransition(StateMachineGraph graph, StateMachineTransitionEdge transition, int? identityIndex)
+    {
+        var matches = graph.Transitions.Where(x => IsSameTransition(x, transition)).ToList();
+
+        if (identityIndex is { } index && index >= 0 && index < matches.Count)
+            return matches[index];
+
+        return matches.FirstOrDefault();
+    }
 
     private static JsonNode? ParseJsonSlot(string? value, string slotName)
     {
