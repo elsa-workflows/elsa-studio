@@ -203,7 +203,10 @@ public partial class DiagramDesignerWrapper
     public async Task<JsonObject> GetActivityAsync()
     {
         if (_diagramDesigner != null)
-            await ReadCurrentDesignerActivityIntoGraphAsync();
+        {
+            var embeddedActivity = await _diagramDesigner.ReadRootActivityAsync();
+            await ApplyCurrentDesignerActivityToGraphAsync(embeddedActivity);
+        }
 
         return _activityGraph.Activity;
     }
@@ -537,7 +540,7 @@ public partial class DiagramDesignerWrapper
                 return;
             }
 
-            // If the embedded activity type is a flowchart, StateMachine, or workflow, we can display it in the designer.
+            // If the embedded activity type is a flowchart, state machine, or workflow, we can display it in the designer.
         }
         else
         {

@@ -25,6 +25,7 @@ public partial class StateMachineDesignerWrapper
     private string? _selectedStateName;
     private StateMachineTransitionEdge? _selectedTransition;
     private string? _selectedActivityId;
+    private string? _selectedSlotName;
     private string _newStateName = "";
     private string _newTransitionName = "";
     private string? _newTransitionFrom;
@@ -132,15 +133,17 @@ public partial class StateMachineDesignerWrapper
         {
             _selectedStateName = null;
             _selectedTransition = null;
+            _selectedSlotName = null;
             await SelectRootActivityForPropertiesAsync();
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        if (TryFindSlotActivity(id, out var slotActivity, out var state, out var transition))
+        if (TryFindSlotActivity(id, out var slotActivity, out var state, out var transition, out var slotName))
         {
             _selectedStateName = state?.Name;
             _selectedTransition = transition;
+            _selectedSlotName = slotName;
             await SelectSlotActivityForPropertiesAsync(slotActivity);
 
             await InvokeAsync(StateHasChanged);
@@ -149,6 +152,7 @@ public partial class StateMachineDesignerWrapper
 
         _selectedStateName = _graph?.States.FirstOrDefault(x => string.Equals(x.Name, id, StringComparison.Ordinal))?.Name;
         _selectedTransition = null;
+        _selectedSlotName = null;
         if (_selectedStateName != null)
             await SelectRootActivityForPropertiesAsync();
         await InvokeAsync(StateHasChanged);
@@ -208,6 +212,7 @@ public partial class StateMachineDesignerWrapper
     {
         _selectedStateName = state.Name;
         _selectedTransition = null;
+        _selectedSlotName = null;
         await SelectRootActivityForPropertiesAsync();
     }
 
@@ -215,6 +220,7 @@ public partial class StateMachineDesignerWrapper
     {
         _selectedTransition = transition;
         _selectedStateName = null;
+        _selectedSlotName = null;
         await SelectRootActivityForPropertiesAsync();
         await InvokeAsync(StateHasChanged);
     }
@@ -237,6 +243,7 @@ public partial class StateMachineDesignerWrapper
         _newStateName = "";
         _selectedStateName = stateName;
         _selectedTransition = null;
+        _selectedSlotName = null;
         await ApplyGraphChangesAsync();
     }
 
@@ -323,6 +330,7 @@ public partial class StateMachineDesignerWrapper
         _graph.Transitions.Add(transition);
         _selectedTransition = transition;
         _selectedStateName = null;
+        _selectedSlotName = null;
         _newTransitionName = "";
         await ApplyGraphChangesAsync();
     }
@@ -400,7 +408,7 @@ public partial class StateMachineDesignerWrapper
         var node = ParseJsonSlot(e.Value?.ToString(), slotName);
         SetStateSlot(SelectedState, slotName, node);
 
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null, slotName);
     }
 
     private async Task SetTransitionSlotAsync(string slotName, ChangeEventArgs e)
@@ -428,7 +436,7 @@ public partial class StateMachineDesignerWrapper
                 break;
         }
 
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null, slotName);
     }
 
     private async Task ClearStateSlotAsync(string slotName)
@@ -479,7 +487,7 @@ public partial class StateMachineDesignerWrapper
         SetStateSlot(SelectedState, slotName, activity);
 
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null, slotName);
     }
 
     private async Task OnTransitionSlotDropAsync(string slotName)
@@ -500,10 +508,10 @@ public partial class StateMachineDesignerWrapper
         }
 
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null, slotName);
     }
 
-    private async Task ApplyGraphChangesAndRefreshSelectionAsync(bool refreshSelectedActivity, Func<JsonNode?> getReplacementSlot)
+    private async Task ApplyGraphChangesAndRefreshSelectionAsync(bool refreshSelectedActivity, Func<JsonNode?> getReplacementSlot, string? slotName = null)
     {
         await ApplyGraphChangesAsync();
 
@@ -511,9 +519,15 @@ public partial class StateMachineDesignerWrapper
             return;
 
         if (getReplacementSlot() is JsonObject replacementActivity && replacementActivity.IsActivity())
+        {
+            _selectedSlotName = slotName;
             await SelectSlotActivityForPropertiesAsync(replacementActivity);
+        }
         else
+        {
+            _selectedSlotName = null;
             await SelectRootActivityForPropertiesAsync();
+        }
     }
 
     private async Task ApplyGraphChangesAsync()
@@ -584,6 +598,7 @@ public partial class StateMachineDesignerWrapper
     private async Task SelectRootActivityForPropertiesAsync()
     {
         _selectedActivityId = GetActivitySelectionId(StateMachine);
+        _selectedSlotName = null;
 
         if (ActivitySelected.HasDelegate)
             await ActivitySelected.InvokeAsync(StateMachine);
@@ -751,7 +766,8 @@ public partial class StateMachineDesignerWrapper
         string id,
         out JsonObject activity,
         out StateMachineStateNode? state,
-        out StateMachineTransitionEdge? transition)
+        out StateMachineTransitionEdge? transition,
+        out string? slotName)
     {
         if (_graph != null)
         {
@@ -761,6 +777,7 @@ public partial class StateMachineDesignerWrapper
                 {
                     state = candidateState;
                     transition = null;
+                    slotName = "entry";
                     return true;
                 }
 
@@ -768,17 +785,26 @@ public partial class StateMachineDesignerWrapper
                 {
                     state = candidateState;
                     transition = null;
+                    slotName = "exit";
                     return true;
                 }
             }
 
             foreach (var candidateTransition in _graph.Transitions)
             {
-                if (TryMatchSlotActivity(candidateTransition.Trigger, id, out activity) ||
-                    TryMatchSlotActivity(candidateTransition.Action, id, out activity))
+                if (TryMatchSlotActivity(candidateTransition.Trigger, id, out activity))
                 {
                     state = null;
                     transition = candidateTransition;
+                    slotName = "trigger";
+                    return true;
+                }
+
+                if (TryMatchSlotActivity(candidateTransition.Action, id, out activity))
+                {
+                    state = null;
+                    transition = candidateTransition;
+                    slotName = "action";
                     return true;
                 }
             }
@@ -787,6 +813,7 @@ public partial class StateMachineDesignerWrapper
         activity = [];
         state = null;
         transition = null;
+        slotName = null;
         return false;
     }
 
@@ -794,6 +821,9 @@ public partial class StateMachineDesignerWrapper
     {
         if (_graph == null)
             return false;
+
+        if (string.Equals(id, _selectedActivityId, StringComparison.Ordinal) && TryUpdateSelectedSlotActivity(activity))
+            return true;
 
         foreach (var state in _graph.States)
         {
@@ -833,6 +863,35 @@ public partial class StateMachineDesignerWrapper
         (ReferenceEquals(obj, replacement) ||
          string.Equals(obj.GetId(), id, StringComparison.Ordinal) ||
          string.Equals(obj.GetNodeId(), id, StringComparison.Ordinal));
+
+    private bool TryUpdateSelectedSlotActivity(JsonObject activity)
+    {
+        if (_selectedSlotName == null)
+            return false;
+
+        var clone = activity.DeepClone();
+
+        if (SelectedState != null)
+        {
+            SetStateSlot(SelectedState, _selectedSlotName, clone);
+            return true;
+        }
+
+        if (_selectedTransition != null)
+        {
+            switch (_selectedSlotName)
+            {
+                case "trigger":
+                    _selectedTransition.Trigger = clone;
+                    return true;
+                case "action":
+                    _selectedTransition.Action = clone;
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
     private static bool TryMatchSlotActivity(JsonNode? slot, string id, out JsonObject activity)
     {

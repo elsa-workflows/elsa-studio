@@ -93,7 +93,7 @@ public class StateMachineValidatorTests
 
         var issues = _validator.Validate(graph);
 
-        Assert.Equal(2, issues.Count(x => x.Code == "DuplicateTransitionIdentity" && x.Target == "Pending->Approved" && x.Severity == StateMachineValidationSeverity.Error));
+        Assert.Equal(1, issues.Count(x => x.Code == "DuplicateTransitionIdentity" && x.Target == "Pending->Approved" && x.Severity == StateMachineValidationSeverity.Error));
     }
 
     [Fact]

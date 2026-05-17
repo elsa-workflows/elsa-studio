@@ -21,6 +21,7 @@ public class StateMachineValidator
         var transitionIdentityCounts = graph.Transitions
             .GroupBy(GetTransitionIdentity)
             .ToDictionary(x => x.Key, x => x.Count());
+        var reportedDuplicateTransitionIdentities = new HashSet<(string? Name, string From, string To)>();
 
         foreach (var state in graph.States)
         {
@@ -51,7 +52,8 @@ public class StateMachineValidator
             else if (targetCount > 1)
                 issues.Add(Error("AmbiguousTransitionTargetState", $"Transition target state '{transition.To}' matches multiple states.", transitionTarget));
 
-            if (transitionIdentityCounts[GetTransitionIdentity(transition)] > 1)
+            var transitionIdentity = GetTransitionIdentity(transition);
+            if (transitionIdentityCounts[transitionIdentity] > 1 && reportedDuplicateTransitionIdentities.Add(transitionIdentity))
                 issues.Add(Error("DuplicateTransitionIdentity", $"Transition '{transitionTarget}' has the same name, source, and target as another transition.", transitionTarget));
 
             AddActivitySlotIssue(issues, transition.Trigger, $"{transitionTarget}.trigger");
