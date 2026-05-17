@@ -1,0 +1,289 @@
+.state-machine-designer {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+    padding: 16px;
+    background: var(--mud-palette-background);
+}
+
+.state-machine-designer[data-centered="True"] {
+    justify-content: center;
+}
+
+.state-machine-designer__summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.state-machine-designer__summary > div {
+    min-width: 0;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__editor-row,
+.state-machine-designer__transition-editor {
+    display: grid;
+    gap: 6px;
+}
+
+.state-machine-designer__transition-editor {
+    grid-template-columns: minmax(120px, 1fr) minmax(96px, .7fr) minmax(96px, .7fr) auto;
+}
+
+.state-machine-designer__input,
+.state-machine-designer__textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    padding: 7px 8px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__textarea {
+    min-height: 112px;
+    resize: vertical;
+    font-family: var(--mud-typography-default-family);
+}
+
+.state-machine-designer__input:disabled,
+.state-machine-designer__textarea:disabled {
+    color: var(--mud-palette-text-disabled);
+    background: var(--mud-palette-background);
+}
+
+.state-machine-designer__command,
+.state-machine-designer__secondary,
+.state-machine-designer__danger {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__command {
+    color: var(--mud-palette-primary);
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__danger {
+    color: var(--mud-palette-error);
+    border-color: var(--mud-palette-error);
+}
+
+.state-machine-designer__label {
+    display: block;
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+    line-height: 1.2;
+}
+
+.state-machine-designer__value {
+    display: block;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.state-machine-designer__issues {
+    display: grid;
+    gap: 6px;
+}
+
+.state-machine-designer__issue {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    border-left: 3px solid var(--mud-palette-warning);
+    padding: 8px 10px;
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__issue--error {
+    border-left-color: var(--mud-palette-error);
+}
+
+.state-machine-designer__canvas {
+    min-height: 360px;
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.2fr);
+    gap: 16px;
+    align-content: start;
+}
+
+.state-machine-designer__canvas--fit {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.state-machine-designer__states,
+.state-machine-designer__transitions {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+}
+
+.state-machine-designer__state {
+    width: 100%;
+    min-height: 72px;
+    display: grid;
+    gap: 8px;
+    text-align: left;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__state:hover,
+.state-machine-designer__state--selected {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__state--terminal {
+    border-style: dashed;
+}
+
+.state-machine-designer__state-title,
+.state-machine-designer__transition-route,
+.state-machine-designer__transition-name {
+    overflow-wrap: anywhere;
+}
+
+.state-machine-designer__state-edges {
+    display: grid;
+    gap: 4px;
+}
+
+.state-machine-designer__state-edge {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border-left: 2px solid var(--mud-palette-primary);
+    padding-left: 8px;
+    color: var(--mud-palette-text-secondary);
+    font-size: .8rem;
+    line-height: 1.35;
+}
+
+.state-machine-designer__state-title,
+.state-machine-designer__transition-route {
+    font-weight: 600;
+}
+
+.state-machine-designer__transition {
+    width: 100%;
+    min-height: 80px;
+    display: grid;
+    gap: 6px;
+    text-align: left;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__transition:hover,
+.state-machine-designer__transition--selected {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__transition--invalid {
+    border-left: 3px solid var(--mud-palette-error);
+}
+
+.state-machine-designer__transition-route {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.state-machine-designer__transition-name {
+    color: var(--mud-palette-text-secondary);
+}
+
+.state-machine-designer__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.state-machine-designer__badge {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 999px;
+    padding: 2px 7px;
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+    line-height: 1.3;
+    background: var(--mud-palette-background);
+}
+
+.state-machine-designer__badge--current {
+    color: var(--mud-palette-primary);
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__badge--terminal {
+    color: var(--mud-palette-error);
+    border-color: var(--mud-palette-error);
+}
+
+.state-machine-designer__details {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 12px;
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__details-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.state-machine-designer__details-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.state-machine-designer__details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.state-machine-designer__field {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.state-machine-designer__field > span {
+    color: var(--mud-palette-text-secondary);
+    font-size: .8rem;
+}
+
+@media (max-width: 960px) {
+    .state-machine-designer__summary,
+    .state-machine-designer__canvas,
+    .state-machine-designer__transition-editor,
+    .state-machine-designer__details-grid {
+        grid-template-columns: 1fr;
+    }
+}

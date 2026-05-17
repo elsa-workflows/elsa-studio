@@ -11,6 +11,7 @@ using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.DiagramDesigners.Sequences;
+using Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 using Elsa.Studio.Workflows.Handlers;
 using Elsa.Studio.Workflows.Menu;
 using Elsa.Studio.Workflows.Services;
@@ -47,6 +48,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddDiagramDesignerProvider<FallbackDesignerProvider>()
+            .AddDiagramDesignerProvider<StateMachineDiagramDesignerProvider>()
             .AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>()
             .AddDiagramDesignerProvider<SequenceDiagramDesignerProvider>();
 

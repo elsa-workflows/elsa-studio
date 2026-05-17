@@ -4,6 +4,7 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
+using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
@@ -21,6 +22,7 @@ namespace Elsa.Studio.Workflows.Shared.Components;
 /// A wrapper around the diagram designer that provides a breadcrumb and a toolbar.
 public partial class DiagramDesignerWrapper
 {
+    private const string SelfDesignerPortName = "__self";
     private IDiagramDesigner? _diagramDesigner;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private JsonObject? _currentContainerActivity;
@@ -200,10 +202,15 @@ public partial class DiagramDesignerWrapper
     }
 
     /// Gets the root activity.
-    public Task<JsonObject> GetActivityAsync()
+    public async Task<JsonObject> GetActivityAsync()
     {
-        var rootActivity = _activityGraph.Activity;
-        return Task.FromResult(rootActivity);
+        if (_diagramDesigner != null)
+        {
+            var embeddedActivity = await _diagramDesigner.ReadRootActivityAsync();
+            await ApplyCurrentDesignerActivityToGraphAsync(embeddedActivity);
+        }
+
+        return _activityGraph.Activity;
     }
 
     /// Loads the specified activity into the designer.
@@ -297,6 +304,9 @@ public partial class DiagramDesignerWrapper
 
         var activity = node.Activity;
         var port = lastSegment.PortName;
+        if (IsSelfDesignerSegment(lastSegment))
+            return activity;
+
         var embeddedActivity = GetEmbeddedActivity(activity, port);
 
         if (embeddedActivity?.GetTypeName() == "Elsa.Workflow")
@@ -407,14 +417,19 @@ public partial class DiagramDesignerWrapper
             var activityTypeName = activity.GetTypeName();
             var activityVersion = activity.GetVersion();
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
-            var portProviderContext = new PortProviderContext(activityDescriptor, activity);
-            var portProvider = ActivityPortService.GetProvider(portProviderContext);
-            var ports = portProvider.GetPorts(portProviderContext);
-            var embeddedPort = ports.First(x => x.Name == segment.PortName);
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
             var disabled = segment == firstSegment;
             var activityDisplayText = activity.GetName() ?? activityDescriptor.DisplayName;
-            var breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
+            var breadcrumbDisplayText = activityDisplayText;
+            if (!IsSelfDesignerSegment(segment))
+            {
+                var portProviderContext = new PortProviderContext(activityDescriptor, activity);
+                var portProvider = ActivityPortService.GetProvider(portProviderContext);
+                var ports = portProvider.GetPorts(portProviderContext);
+                var embeddedPort = ports.First(x => x.Name == segment.PortName);
+                breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
+            }
+
             var activityBreadcrumbItem = new BreadcrumbItem(
                 breadcrumbDisplayText,
                 $"#{activity.GetId()}",
@@ -432,9 +447,7 @@ public partial class DiagramDesignerWrapper
     {
         var currentContainerActivity = await GetCurrentContainerActivityOrRootAsync();
 
-        if (_diagramDesigner == null)
-            return;
-
+        _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(currentContainerActivity);
         await _diagramDesigner.LoadRootActivityAsync(currentContainerActivity, _activityStats);
         await UpdateBreadcrumbItemsAsync();
     }
@@ -464,14 +477,27 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnActivityDoubleClick(JsonObject activity)
     {
-        if (!IsReadOnly)
-            return;
-
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {
-            await OnActivityEmbeddedPortSelected(new(activity, "Root"));
+            if (IsReadOnly)
+                await OnActivityEmbeddedPortSelected(new(activity, "Root"));
+
+            return;
         }
+
+        if (!IsDesignerActivity(activity))
+            return;
+
+        var segment = new ActivityPathSegment(
+            activity.GetNodeId(),
+            activity.GetId(),
+            activity.GetTypeName(),
+            SelfDesignerPortName
+        );
+
+        await UpdatePathSegmentsAsync(segments => segments.Push(segment));
+        await DisplayCurrentSegmentAsync();
     }
     
     private async Task OnActivityUpdated(JsonObject activity)
@@ -528,6 +554,7 @@ public partial class DiagramDesignerWrapper
             // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
             if (
                 embeddedActivityTypeName != "Elsa.Flowchart"
+                && embeddedActivityTypeName != "Elsa.StateMachine"
                 && embeddedActivityTypeName != "Elsa.Workflow"
             )
             {
@@ -536,7 +563,7 @@ public partial class DiagramDesignerWrapper
                 return;
             }
 
-            // If the embedded activity type is a flowchart or workflow, we can display it in the designer.
+            // If the embedded activity type is a flowchart, state machine, or workflow, we can display it in the designer.
         }
         else
         {
@@ -578,7 +605,31 @@ public partial class DiagramDesignerWrapper
 
     private async Task OnGraphUpdated()
     {
-        var embeddedActivity = await _diagramDesigner!.ReadRootActivityAsync();
+        var readActivity = await TryReadCurrentDesignerActivityAsync();
+
+        if (readActivity == null)
+            return;
+
+        await ApplyCurrentDesignerActivityToGraphAsync(readActivity);
+
+        if (GraphUpdated.HasDelegate)
+            await GraphUpdated.InvokeAsync();
+    }
+
+    private async Task<JsonObject?> TryReadCurrentDesignerActivityAsync()
+    {
+        try
+        {
+            return await _diagramDesigner!.ReadRootActivityAsync();
+        }
+        catch (DiagramDesignerValidationException)
+        {
+            return null;
+        }
+    }
+
+    private async Task ApplyCurrentDesignerActivityToGraphAsync(JsonObject embeddedActivity)
+    {
         var currentSegment = CurrentPathSegment;
 
         if (currentSegment == null) // Root activity was updated.
@@ -593,6 +644,14 @@ public partial class DiagramDesignerWrapper
             ];
             var currentActivity = currentActivityNode.Activity;
             var portName = currentSegment.PortName;
+            if (IsSelfDesignerSegment(currentSegment))
+            {
+                ReplaceJsonObjectContents(currentActivity, embeddedActivity);
+                await _activityGraph.IndexAsync();
+                await IndexActivityNodes(_activityGraph.Activity);
+                return;
+            }
+
             var activityTypeName = currentActivity.GetTypeName();
             var activityVersion = currentActivity.GetVersion();
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
@@ -603,9 +662,24 @@ public partial class DiagramDesignerWrapper
             await _activityGraph.IndexAsync();
             await IndexActivityNodes(_activityGraph.Activity);
         }
+    }
 
-        if (GraphUpdated.HasDelegate)
-            await GraphUpdated.InvokeAsync();
+    private static bool IsSelfDesignerSegment(ActivityPathSegment segment) => segment.PortName == SelfDesignerPortName;
+
+    private static bool IsDesignerActivity(JsonObject activity) =>
+        activity.GetTypeName() is "Elsa.Flowchart" or "Elsa.StateMachine";
+
+    private static void ReplaceJsonObjectContents(JsonObject target, JsonObject source)
+    {
+        if (ReferenceEquals(target, source))
+            return;
+
+        target.Clear();
+        foreach (var property in source.ToList())
+        {
+            source.Remove(property.Key);
+            target[property.Key] = property.Value;
+        }
     }
 
     private async Task OnBreadcrumbItemClicked(BreadcrumbItem item)
