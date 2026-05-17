@@ -29,16 +29,16 @@ Validation rules:
 - Duplicate names are invalid for Studio editing because backend transition references cannot distinguish them.
 - Entry and exit slot payloads must be preserved even if their activity descriptor is unknown.
 
-## Transition Edge
+## Transition Route
 
 - `name`: Optional machine-readable name.
-- `displayName`: Optional label shown on the edge.
+- `displayName`: Optional label shown on the transition route.
 - `from`: Source state name.
 - `to`: Target state name.
 - `trigger`: Optional child activity slot.
 - `condition`: Optional Elsa boolean input.
 - `action`: Optional child activity slot.
-- `vertices`: Optional Studio designer metadata for edge routing.
+- `vertices`: Optional Studio designer metadata for future route drawing.
 - `validationIssues`: Problems such as missing source, missing target, empty endpoint, or duplicate ambiguous endpoint.
 
 Validation rules:

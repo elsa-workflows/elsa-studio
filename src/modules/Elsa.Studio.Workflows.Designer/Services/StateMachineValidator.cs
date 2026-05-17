@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Workflows.Designer.Models;
+using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.Designer.Services;
 
@@ -9,8 +10,6 @@ namespace Elsa.Studio.Workflows.Designer.Services;
 /// </summary>
 public class StateMachineValidator
 {
-    private const string InvalidJsonSlotProperty = "$invalidJson";
-
     /// <summary>
     /// Validates the specified graph.
     /// </summary>
@@ -37,14 +36,14 @@ public class StateMachineValidator
 
             if (string.IsNullOrWhiteSpace(transition.From))
                 issues.Add(Error("MissingTransitionSource", "Transition source state is required.", transitionTarget));
-            else if (!nameCounts.TryGetValue(transition.From, out var sourceCount) || sourceCount == 0)
+            else if (!nameCounts.TryGetValue(transition.From, out var sourceCount))
                 issues.Add(Error("MissingTransitionSourceState", $"Transition source state '{transition.From}' does not exist.", transitionTarget));
             else if (sourceCount > 1)
                 issues.Add(Error("AmbiguousTransitionSourceState", $"Transition source state '{transition.From}' matches multiple states.", transitionTarget));
 
             if (string.IsNullOrWhiteSpace(transition.To))
                 issues.Add(Error("MissingTransitionTarget", "Transition target state is required.", transitionTarget));
-            else if (!nameCounts.TryGetValue(transition.To, out var targetCount) || targetCount == 0)
+            else if (!nameCounts.TryGetValue(transition.To, out var targetCount))
                 issues.Add(Error("MissingTransitionTargetState", $"Transition target state '{transition.To}' does not exist.", transitionTarget));
             else if (targetCount > 1)
                 issues.Add(Error("AmbiguousTransitionTargetState", $"Transition target state '{transition.To}' matches multiple states.", transitionTarget));

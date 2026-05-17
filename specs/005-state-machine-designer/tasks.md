@@ -43,7 +43,7 @@
 
 **Goal**: Dedicated read-only StateMachine designer renders states and transitions without changing root Flowchart behavior.
 
-**Independent Test**: Open a workflow containing a StateMachine and verify the dedicated designer renders state nodes, transition edges, terminal markers, and navigation controls while root Flowchart still works.
+**Independent Test**: Open a workflow containing a StateMachine and verify the dedicated designer renders state nodes, transition route cards, terminal markers, and navigation controls while root Flowchart still works.
 
 ### Tests for User Story 1
 

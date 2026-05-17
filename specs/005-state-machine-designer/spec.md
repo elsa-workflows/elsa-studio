@@ -9,16 +9,16 @@
 
 ### User Story 1 - View and Navigate State Machines (Priority: P1)
 
-A workflow designer can select a `StateMachine` activity and see a dedicated state-machine canvas where states appear as nodes and directed transitions appear as edges, without falling back to the generic property editor or reusing the full-screen Flowchart canvas.
+A workflow designer can select a `StateMachine` activity and see a dedicated state-machine canvas where states appear as nodes and directed transitions appear as route cards, without falling back to the generic property editor or reusing the full-screen Flowchart canvas.
 
 **Why this priority**: A visual read-only graph is the minimum useful Studio support for understanding backend state-machine definitions and validating the activity contract.
 
-**Independent Test**: Open a workflow containing a `StateMachine` with multiple states and transitions, select the activity, and verify the designer renders state nodes, transition edges, terminal states, and graph navigation controls without changing the root Flowchart designer behavior.
+**Independent Test**: Open a workflow containing a `StateMachine` with multiple states and transitions, select the activity, and verify the designer renders state nodes, transition route cards, terminal states, and graph navigation controls without changing the root Flowchart designer behavior.
 
 **Acceptance Scenarios**:
 
 1. **Given** a workflow root Flowchart contains a `StateMachine`, **When** the user selects or opens the `StateMachine`, **Then** Studio displays the State Machine designer instead of the generic fallback designer.
-2. **Given** a `StateMachine` has states `New`, `Paid`, and `Closed`, **When** the designer loads, **Then** each state is represented once and transitions are drawn from each source state to target state.
+2. **Given** a `StateMachine` has states `New`, `Paid`, and `Closed`, **When** the designer loads, **Then** each state is represented once and each transition route identifies its source and target state.
 3. **Given** a state has no valid outbound transitions, **When** the graph renders, **Then** the state is visually identifiable as terminal.
 4. **Given** the user is editing the root Flowchart full-screen, **When** they interact with a nested State Machine designer, **Then** root Flowchart drag/drop, selection, zoom, and save behavior remains unchanged.
 
@@ -87,7 +87,7 @@ A workflow designer can select a state and edit entry and exit child activity sl
 ### Functional Requirements
 
 - **FR-001**: Studio MUST provide a dedicated diagram designer for backend activity type `Elsa.StateMachine`.
-- **FR-002**: The designer MUST map `states` to state nodes and `transitions` to directed edges using `from` and `to` state names.
+- **FR-002**: The designer MUST map `states` to state nodes and `transitions` to directed route cards using `from` and `to` state names.
 - **FR-003**: The designer MUST preserve `initialState`, `currentState`, state order, transition order, and nested activity slot payloads when graph layout changes.
 - **FR-004**: Users MUST be able to inspect state names, terminal status, and transition labels directly from the graph.
 - **FR-005**: Users MUST be able to add, rename, and remove states with validation that prevents unresolved transition references at save time.
@@ -106,7 +106,7 @@ A workflow designer can select a state and edit entry and exit child activity sl
 
 - **StateMachine Activity**: Studio JSON object for the backend activity, including `states`, `transitions`, `initialState`, and `currentState`.
 - **State Node**: Visual representation of one state declaration with name, terminal marker, entry slot, and exit slot.
-- **Transition Edge**: Visual representation of one transition declaration with name, display name, source, target, trigger slot, condition input, and action slot.
+- **Transition Route**: Visual representation of one transition declaration with name, display name, source, target, trigger slot, condition input, and action slot.
 - **Slot Activity**: Child Elsa activity embedded in a state entry/exit slot or transition trigger/action slot.
 - **Validation Issue**: User-facing problem detected in the graph or serialized activity contract.
 

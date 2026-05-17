@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -10,6 +11,7 @@ using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 
@@ -18,8 +20,6 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 /// </summary>
 public partial class StateMachineDesignerWrapper
 {
-    private const string InvalidJsonSlotProperty = "$invalidJson";
-    private const string InvalidJsonSlotSourceProperty = "source";
     private StateMachineGraph? _graph;
     private IDictionary<string, ActivityStats>? _activityStats;
     private string? _selectedStateName;

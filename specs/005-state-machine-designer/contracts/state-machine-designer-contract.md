@@ -43,11 +43,11 @@ This contract describes how Studio maps the backend StateMachine activity JSON i
 ## Graph Mapping
 
 - Each `states[]` item maps to one state node.
-- Each `transitions[]` item maps to one directed edge.
-- Edge source is `transition.from`; edge target is `transition.to`.
+- Each `transitions[]` item maps to one directed transition route.
+- Route source is `transition.from`; route target is `transition.to`.
 - Edge label uses `displayName`, then `name`, then a generated fallback label.
 - Terminal state marker is derived from no valid outbound transition targeting an existing state.
-- Designer metadata for node position and edge vertices may be stored in the activity JSON using existing Studio metadata conventions once implementation identifies the current metadata location.
+- Designer metadata for node position and route vertices may be stored in the activity JSON using existing Studio metadata conventions once implementation identifies the current metadata location.
 
 ## Read/Write Guarantees
 

@@ -13,7 +13,7 @@
 3. Open a workflow definition containing a StateMachine with at least three states and two transitions.
 4. Select or drill into the StateMachine activity from the workflow editor.
 5. Verify a dedicated State Machine designer opens.
-6. Verify each state appears once and each transition is drawn from source to target.
+6. Verify each state appears once and each transition route card identifies its source and target.
 7. Verify terminal states are visually identifiable.
 8. Use zoom-to-fit and center controls.
 9. Return to the root Flowchart and verify normal Flowchart selection, drag/drop, and zoom behavior still works.
@@ -29,7 +29,7 @@
 
 ## Scenario 3: Edit Transition Slots
 
-1. Select a transition edge.
+1. Select a transition route card.
 2. Set the transition display name.
 3. Drag an activity from the existing activity picker onto the trigger slot, or paste a valid trigger activity JSON payload.
 4. Edit the condition JSON payload.

@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add Studio-side designer support for the backend `StateMachine` activity from elsa-core issue #5085 / PR #7457. The implementation should register a dedicated diagram designer for `Elsa.StateMachine`, map state-machine JSON into a graph of state nodes and transition edges, expose transition trigger/condition/action slots and state entry/exit slots through existing Studio editing patterns, and keep this designer isolated from the full-screen root Flowchart designer.
+Add Studio-side designer support for the backend `StateMachine` activity from elsa-core issue #5085 / PR #7457. The implementation should register a dedicated diagram designer for `Elsa.StateMachine`, map state-machine JSON into a graph of state nodes and transition route cards, expose transition trigger/condition/action slots and state entry/exit slots through existing Studio editing patterns, and keep this designer isolated from the full-screen root Flowchart designer.
 
 ## Technical Context
 
@@ -117,7 +117,7 @@ Resolved decisions:
 Use [tasks.md](./tasks.md) as the implementation backlog. Suggested implementation order:
 
 1. Add mapper/validator tests and plain graph models for StateMachine JSON.
-2. Register a read-only StateMachine designer provider and wrapper that renders state nodes/transition edges.
+2. Register a read-only StateMachine designer provider and wrapper that renders state nodes and transition route cards.
 3. Add save/read mapping for state and transition graph edits.
 4. Add transition details editing for trigger, condition, and action slots.
 5. Add state details editing for entry and exit slots.
