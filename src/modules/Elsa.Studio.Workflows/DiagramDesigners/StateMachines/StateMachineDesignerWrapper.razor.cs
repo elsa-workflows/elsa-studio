@@ -254,16 +254,17 @@ public partial class StateMachineDesignerWrapper
 
     private async Task RenameSelectedStateAsync(ChangeEventArgs e)
     {
-        if (IsReadOnly || _graph == null || SelectedState == null)
+        var selectedState = SelectedState;
+        if (IsReadOnly || _graph == null || selectedState == null)
             return;
 
-        var oldName = SelectedState.Name;
-        var newName = e.Value?.ToString()?.Trim() ?? "";
+        var oldName = selectedState.Name;
+        var newName = GetUniqueStateName(_graph, e.Value?.ToString() ?? "", selectedState);
 
         if (string.Equals(oldName, newName, StringComparison.Ordinal))
             return;
 
-        SelectedState.Name = newName;
+        selectedState.Name = newName;
         _selectedStateName = newName;
 
         foreach (var transition in _graph.Transitions)
@@ -555,12 +556,15 @@ public partial class StateMachineDesignerWrapper
     private StateMachineStateNode? SelectedState =>
         _graph?.States.FirstOrDefault(x => string.Equals(x.Name, _selectedStateName, StringComparison.Ordinal));
 
-    private static string GetUniqueStateName(StateMachineGraph graph, string requestedName)
+    private static string GetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode? excludedState = null)
     {
         var baseName = string.IsNullOrWhiteSpace(requestedName) ? "State" : requestedName.Trim();
         var stateName = baseName;
         var index = 2;
-        var names = graph.States.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
+        var names = graph.States
+            .Where(x => !ReferenceEquals(x, excludedState))
+            .Select(x => x.Name)
+            .ToHashSet(StringComparer.Ordinal);
 
         while (names.Contains(stateName))
             stateName = $"{baseName}{index++}";
