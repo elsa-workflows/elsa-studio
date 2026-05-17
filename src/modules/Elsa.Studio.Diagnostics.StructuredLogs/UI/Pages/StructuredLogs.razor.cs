@@ -424,16 +424,6 @@ public partial class StructuredLogs : IAsyncDisposable
         return "";
     }
 
-    protected static string CorrelationHintTitle(StructuredLogEvent logEvent)
-    {
-        return string.Join("  ", new[]
-        {
-            string.IsNullOrWhiteSpace(logEvent.TraceId) ? null : $"Trace: {logEvent.TraceId}",
-            string.IsNullOrWhiteSpace(logEvent.SpanId) ? null : $"Span: {logEvent.SpanId}",
-            string.IsNullOrWhiteSpace(logEvent.CorrelationId) ? null : $"Correlation: {logEvent.CorrelationId}"
-        }.Where(x => !string.IsNullOrWhiteSpace(x)));
-    }
-
     protected Task ApplyCorrelationFilterAsync(StructuredLogEvent logEvent)
     {
         if (!string.IsNullOrWhiteSpace(logEvent.TraceId))
