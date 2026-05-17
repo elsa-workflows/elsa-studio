@@ -47,6 +47,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivityUpdated { get; set; }
     [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
     [Parameter] public EventCallback<ActivityEmbeddedPortSelectedArgs> ActivityEmbeddedPortSelected { get; set; }
     [Parameter] public EventCallback CanvasSelected { get; set; }
@@ -179,6 +180,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         var mapper = await MapperFactory.CreateActivityMapperAsync();
         var node = mapper.MapActivity(activity);
         await _graphApi.UpdateActivityAsync(node);
+        await NotifyActivityUpdatedAsync(activity);
     }
 
     public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats)
@@ -228,6 +230,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
 
         var newActivity = SequenceActivityFactory.CreateActivity(Sequence, descriptor, IdentityGenerator, ActivityNameGenerator, x, y);
         await AddActivityAsync(newActivity);
+        await NotifyActivityUpdatedAsync(newActivity);
         return newActivity;
     }
 
@@ -264,6 +267,12 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
 
     private async Task<ISequenceMapper> GetSequenceMapperAsync() =>
         _sequenceMapper ??= await MapperFactory.CreateSequenceMapperAsync();
+
+    private async Task NotifyActivityUpdatedAsync(JsonObject activity)
+    {
+        if (ActivityUpdated.HasDelegate)
+            await ActivityUpdated.InvokeAsync(activity);
+    }
 
     private void GenerateNewActivityIds(JsonObject container)
     {

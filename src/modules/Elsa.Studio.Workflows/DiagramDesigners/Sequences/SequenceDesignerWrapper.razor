@@ -2,7 +2,7 @@
 {
     <div style="height:100%">
         <SequenceFlowDesigner @ref="@Designer" Sequence="@Sequence" ActivitySelected="@ActivitySelected"
-            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
+            ActivityUpdated="@ActivityUpdated" ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected" IsReadOnly="true"
             ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
     </div>
 }
@@ -10,7 +10,7 @@ else
 {
     <div class="sequence-diagram-designer-wrapper" style="height: 100%" @ondragover="@OnDragOver" @ondragover:preventDefault @ondrop="@OnDrop">
         <SequenceFlowDesigner @ref="@Designer" Sequence="@Sequence" ActivitySelected="@ActivitySelected"
-            ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
+            ActivityUpdated="@ActivityUpdated" ActivityEmbeddedPortSelected="ActivityEmbeddedPortSelected" CanvasSelected="@OnCanvasSelected"
             GraphUpdated="@GraphUpdated" ActivityStats="ActivityStats" ActivityDoubleClick="@ActivityDoubleClick" />
     </div>
 }
