@@ -607,8 +607,10 @@ public partial class DiagramDesignerWrapper
     {
         var readActivity = await TryReadCurrentDesignerActivityAsync();
 
-        if (readActivity != null)
-            await ApplyCurrentDesignerActivityToGraphAsync(readActivity);
+        if (readActivity == null)
+            return;
+
+        await ApplyCurrentDesignerActivityToGraphAsync(readActivity);
 
         if (GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();

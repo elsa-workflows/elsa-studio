@@ -563,7 +563,7 @@ public partial class StateMachineDesignerWrapper
         var validationGraph = StateMachineMapper.Map(activity);
         _graph.ValidationIssues = validationGraph.ValidationIssues;
 
-        if (HasStructuralValidationErrors(validationGraph))
+        if (HasValidationErrors(validationGraph))
         {
             await InvokeAsync(StateHasChanged);
             return;
