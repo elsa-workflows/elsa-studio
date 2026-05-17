@@ -463,13 +463,12 @@ public partial class StateMachineDesignerWrapper
         if (IsReadOnly || SelectedState == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
         var activity = CreateSlotActivity(descriptor);
 
         SetStateSlot(SelectedState, slotName, activity);
 
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null);
     }
 
     private async Task OnTransitionSlotDropAsync(string slotName)
@@ -477,7 +476,6 @@ public partial class StateMachineDesignerWrapper
         if (IsReadOnly || _selectedTransition == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
         var activity = CreateSlotActivity(descriptor);
 
         switch (slotName)
@@ -491,7 +489,7 @@ public partial class StateMachineDesignerWrapper
         }
 
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
+        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null);
     }
 
     private async Task ApplyGraphChangesAndRefreshSelectionAsync(bool refreshSelectedActivity, Func<JsonNode?> getReplacementSlot)
