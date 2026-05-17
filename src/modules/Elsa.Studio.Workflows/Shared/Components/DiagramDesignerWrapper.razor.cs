@@ -665,10 +665,13 @@ public partial class DiagramDesignerWrapper
     private static bool IsSelfDesignerSegment(ActivityPathSegment segment) => segment.PortName == SelfDesignerPortName;
 
     private static bool IsDesignerActivity(JsonObject activity) =>
-        activity.GetTypeName() is "Elsa.Flowchart" or "Elsa.StateMachine" or "Elsa.Workflow";
+        activity.GetTypeName() is "Elsa.Flowchart" or "Elsa.StateMachine";
 
     private static void ReplaceJsonObjectContents(JsonObject target, JsonObject source)
     {
+        if (ReferenceEquals(target, source))
+            return;
+
         target.Clear();
         foreach (var property in source.ToList())
         {
