@@ -178,7 +178,8 @@
     background: var(--mud-palette-surface);
 }
 
-.state-machine-designer__transition:hover {
+.state-machine-designer__transition:hover,
+.state-machine-designer__transition--selected {
     border-color: var(--mud-palette-primary);
 }
 

@@ -528,9 +528,12 @@ public partial class StateMachineDesignerWrapper
         return className;
     }
 
-    private static string GetTransitionClass(StateMachineTransitionEdge transition)
+    private string GetTransitionClass(StateMachineTransitionEdge transition)
     {
         var className = "state-machine-designer__transition";
+
+        if (_selectedTransition != null && IsSameTransition(transition, _selectedTransition))
+            className += " state-machine-designer__transition--selected";
 
         if (string.IsNullOrWhiteSpace(transition.From) || string.IsNullOrWhiteSpace(transition.To))
             className += " state-machine-designer__transition--invalid";
