@@ -54,8 +54,8 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
     public JsonObject Map(StateMachineGraph graph)
     {
         var activity = CloneObject(graph.Activity);
-        SetOrRemove(activity, "initialState", graph.InitialState);
-        SetOrRemove(activity, "currentState", graph.CurrentState);
+        SetOptionalStringOrRemove(activity, "initialState", graph.InitialState);
+        SetOptionalStringOrRemove(activity, "currentState", graph.CurrentState);
 
         activity["states"] = new JsonArray(graph.States.Select(MapState).ToArray<JsonNode?>());
         activity["transitions"] = new JsonArray(graph.Transitions.Select(MapTransition).ToArray<JsonNode?>());
@@ -124,6 +124,17 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
     private static void SetOrRemove(JsonObject target, string propertyName, string? value)
     {
         if (value == null)
+        {
+            target.Remove(propertyName);
+            return;
+        }
+
+        target[propertyName] = value;
+    }
+
+    private static void SetOptionalStringOrRemove(JsonObject target, string propertyName, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
         {
             target.Remove(propertyName);
             return;

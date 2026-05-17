@@ -166,12 +166,15 @@
 }
 
 .state-machine-designer__transition {
+    width: 100%;
     min-height: 80px;
     display: grid;
     gap: 6px;
+    text-align: left;
     border: 1px solid var(--mud-palette-lines-default);
     border-radius: 6px;
     padding: 10px;
+    color: var(--mud-palette-text-primary);
     background: var(--mud-palette-surface);
 }
 

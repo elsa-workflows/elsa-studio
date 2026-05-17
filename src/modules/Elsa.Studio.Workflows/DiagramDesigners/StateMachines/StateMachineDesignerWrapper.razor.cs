@@ -121,6 +121,9 @@ public partial class StateMachineDesignerWrapper
     /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
+        if (_graph?.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error) == true)
+            throw new InvalidOperationException("Cannot read the StateMachine activity because the graph has validation errors.");
+
         return Task.FromResult(_graph != null ? StateMachineMapper.Map(_graph) : StateMachine);
     }
 
@@ -300,7 +303,7 @@ public partial class StateMachineDesignerWrapper
         if (_graph == null || IsReadOnly)
             return;
 
-        _graph.InitialState = e.Value?.ToString();
+        _graph.InitialState = NormalizeOptionalStateName(e.Value);
         await ApplyGraphChangesAsync();
     }
 
@@ -309,7 +312,7 @@ public partial class StateMachineDesignerWrapper
         if (_graph == null || IsReadOnly)
             return;
 
-        _graph.CurrentState = e.Value?.ToString();
+        _graph.CurrentState = NormalizeOptionalStateName(e.Value);
         await ApplyGraphChangesAsync();
     }
 
@@ -577,6 +580,7 @@ public partial class StateMachineDesignerWrapper
         var activity = new JsonObject
         {
             ["id"] = activityId,
+            ["nodeId"] = $"{StateMachine.GetNodeId()}:{activityId}",
             ["name"] = descriptor.Name,
             ["type"] = descriptor.TypeName,
             ["version"] = descriptor.Version
@@ -589,5 +593,11 @@ public partial class StateMachineDesignerWrapper
         }
 
         return activity;
+    }
+
+    private static string? NormalizeOptionalStateName(object? value)
+    {
+        var stateName = value?.ToString();
+        return string.IsNullOrWhiteSpace(stateName) ? null : stateName;
     }
 }

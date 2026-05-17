@@ -63,6 +63,19 @@ public class StateMachineMapperTests
     }
 
     [Fact]
+    public void Map_RemovesBlankOptionalStateProperties()
+    {
+        var graph = _mapper.Map(CreateActivity());
+        graph.InitialState = "";
+        graph.CurrentState = " ";
+
+        var activity = _mapper.Map(graph);
+
+        Assert.Null(activity["initialState"]);
+        Assert.Null(activity["currentState"]);
+    }
+
+    [Fact]
     public void Map_MarksStateTerminalWhenOnlyOutboundTransitionsTargetUnknownStates()
     {
         var source = CreateActivity();

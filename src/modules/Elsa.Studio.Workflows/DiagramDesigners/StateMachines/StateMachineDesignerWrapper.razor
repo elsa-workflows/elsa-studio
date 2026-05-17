@@ -124,7 +124,7 @@
 
                 @foreach (var transition in _graph.Transitions)
                 {
-                    <article class="@GetTransitionClass(transition)" @onclick="() => SelectTransitionAsync(transition)">
+                    <button class="@GetTransitionClass(transition)" type="button" @onclick="() => SelectTransitionAsync(transition)">
                         <div class="state-machine-designer__transition-route">
                             <span>@DisplayValue(transition.From)</span>
                             <span aria-hidden="true">-></span>
@@ -145,7 +145,7 @@
                                 <span class="state-machine-designer__badge">Action</span>
                             }
                         </div>
-                    </article>
+                    </button>
                 }
             </section>
         </div>
