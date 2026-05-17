@@ -1,15 +1,13 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
-using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
-using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -105,31 +103,7 @@ public partial class SequenceDesignerWrapper
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {
-        var activities = Sequence.GetActivities().ToList();
-        var newActivityId = IdentityGenerator.GenerateId();
-        var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
-        {
-            ["id"] = newActivityId,
-            ["nodeId"] = $"{Sequence.GetNodeId()}:{newActivityId}",
-            ["name"] = ActivityNameGenerator.GenerateNextName(activities, activityDescriptor),
-            ["type"] = activityDescriptor.TypeName,
-            ["version"] = activityDescriptor.Version,
-        });
-
-        newActivity.SetDesignerMetadata(new()
-        {
-            Position = new(x, y)
-        });
-
-        foreach (var property in activityDescriptor.ConstructionProperties)
-        {
-            var valueNode = JsonSerializer.SerializeToNode(property.Value);
-            var propertyName = property.Key.Camelize();
-            newActivity.SetProperty(valueNode, propertyName);
-        }
-
-        if (activityDescriptor.Kind == ActivityKind.Trigger && activities.All(activity => activity.GetCanStartWorkflow() != true))
-            newActivity.SetCanStartWorkflow(true);
+        var newActivity = SequenceActivityFactory.CreateActivity(Sequence, activityDescriptor, IdentityGenerator, ActivityNameGenerator, x, y);
 
         if (Designer is not null)
             await Designer.AddActivityAsync(newActivity);

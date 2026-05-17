@@ -232,8 +232,12 @@ function sortSequenceNodes(nodes: Node<ActivityNodeData>[], orientation: Sequenc
 }
 
 function arrangeSequenceNodes(nodes: Node<ActivityNodeData>[], orientation: SequenceLayoutOrientation): Node<ActivityNodeData>[] {
+    return arrangeSequenceNodesInOrder(sortSequenceNodes(nodes, orientation), orientation);
+}
+
+function arrangeSequenceNodesInOrder(nodes: Node<ActivityNodeData>[], orientation: SequenceLayoutOrientation): Node<ActivityNodeData>[] {
     const gap = 160;
-    return sortSequenceNodes(nodes, orientation).map((node, index) => ({
+    return nodes.map((node, index) => ({
         ...node,
         position: isHorizontal(orientation)
             ? { x: index * gap, y: 0 }
@@ -268,7 +272,7 @@ function moveSequenceSelection(
     if (target < 0 || target >= ordered.length) return nodes;
     const next = [...ordered];
     [next[index], next[target]] = [next[target], next[index]];
-    return arrangeSequenceNodes(next, orientation);
+    return arrangeSequenceNodesInOrder(next, orientation);
 }
 
 interface HistorySnapshot {

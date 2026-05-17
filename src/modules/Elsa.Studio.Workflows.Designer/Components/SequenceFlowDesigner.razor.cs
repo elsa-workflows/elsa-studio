@@ -8,6 +8,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -137,7 +138,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         var serializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         var data = await _graphApi.ReadGraphAsync();
         var cells = data.GetProperty("cells").EnumerateArray();
-        var nodes = cells.Where(x => x.GetProperty("shape").GetString() == "elsa-activity")
+        var nodes = cells.Where(x => x.TryGetProperty("shape", out var shape) && shape.GetString() == "elsa-activity")
             .Select(x => x.Deserialize<X6ActivityNode>(serializerOptions)!)
             .ToList();
         var graph = new X6Graph(nodes, [])
@@ -225,32 +226,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         var descriptor = ActivityRegistry.Find(typeName, version);
         if (descriptor == null) return null;
 
-        var allActivities = Sequence.GetActivities().ToList();
-        var newActivityId = IdentityGenerator.GenerateId();
-        var newActivity = new JsonObject(new Dictionary<string, JsonNode?>
-        {
-            ["id"] = newActivityId,
-            ["nodeId"] = $"{Sequence.GetNodeId()}:{newActivityId}",
-            ["name"] = ActivityNameGenerator.GenerateNextName(allActivities, descriptor),
-            ["type"] = descriptor.TypeName,
-            ["version"] = descriptor.Version,
-        });
-
-        newActivity.SetDesignerMetadata(new()
-        {
-            Position = new(x, y)
-        });
-
-        foreach (var property in descriptor.ConstructionProperties)
-        {
-            var valueNode = JsonSerializer.SerializeToNode(property.Value);
-            var propertyName = property.Key.Camelize();
-            newActivity.SetProperty(valueNode, propertyName);
-        }
-
-        if (descriptor.Kind == ActivityKind.Trigger && allActivities.All(activity => activity.GetCanStartWorkflow() != true))
-            newActivity.SetCanStartWorkflow(true);
-
+        var newActivity = SequenceActivityFactory.CreateActivity(Sequence, descriptor, IdentityGenerator, ActivityNameGenerator, x, y);
         await AddActivityAsync(newActivity);
         return newActivity;
     }
