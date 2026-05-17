@@ -60,11 +60,19 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
         SetOptionalStringOrRemove(activity, "initialState", graph.InitialState);
         SetOptionalStringOrRemove(activity, "currentState", graph.CurrentState);
 
-        activity["states"] = new JsonArray(graph.States.Select(MapState).ToArray<JsonNode?>());
-        activity["transitions"] = new JsonArray(graph.Transitions.Select(MapTransition).ToArray<JsonNode?>());
+        if (!HasStructuralIssue(graph, InvalidStateCollectionCode, InvalidStateItemCode))
+            activity["states"] = new JsonArray(graph.States.Select(MapState).ToArray<JsonNode?>());
+
+        if (!HasStructuralIssue(graph, InvalidTransitionCollectionCode, InvalidTransitionItemCode))
+            activity["transitions"] = new JsonArray(graph.Transitions.Select(MapTransition).ToArray<JsonNode?>());
 
         return activity;
     }
+
+    private static bool HasStructuralIssue(StateMachineGraph graph, string collectionCode, string itemCode) =>
+        graph.ValidationIssues.Any(x =>
+            x.Severity == StateMachineValidationSeverity.Error &&
+            (string.Equals(x.Code, collectionCode, StringComparison.Ordinal) || string.Equals(x.Code, itemCode, StringComparison.Ordinal)));
 
     private static JsonObject MapState(StateMachineStateNode state)
     {

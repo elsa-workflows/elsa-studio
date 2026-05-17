@@ -283,8 +283,8 @@ public partial class StateMachineDesignerWrapper
         _selectedTransition = null;
         _selectedSlotName = null;
         _selectedActivityId = null;
-        await SelectRootActivityForPropertiesAsync();
         await ApplyGraphChangesAsync();
+        await SelectRootActivityForPropertiesAsync();
     }
 
     private async Task RenameSelectedStateAsync(ChangeEventArgs e)
@@ -359,8 +359,8 @@ public partial class StateMachineDesignerWrapper
         _selectedTransition = _graph.Transitions.FirstOrDefault();
         _selectedSlotName = null;
         _selectedActivityId = null;
-        await SelectRootActivityForPropertiesAsync();
         await ApplyGraphChangesAsync();
+        await SelectRootActivityForPropertiesAsync();
     }
 
     private async Task SetInitialStateAsync(ChangeEventArgs e)
@@ -578,7 +578,7 @@ public partial class StateMachineDesignerWrapper
     {
         var className = "state-machine-designer__state";
 
-        if (string.Equals(state.Name, _selectedStateName, StringComparison.Ordinal))
+        if (IsStateSelected(state))
             className += " state-machine-designer__state--selected";
 
         if (state.IsTerminal)
@@ -587,11 +587,13 @@ public partial class StateMachineDesignerWrapper
         return className;
     }
 
+    private string GetStateAriaPressed(StateMachineStateNode state) => ToAriaPressed(IsStateSelected(state));
+
     private string GetTransitionClass(StateMachineTransitionEdge transition)
     {
         var className = "state-machine-designer__transition";
 
-        if (_selectedTransition != null && IsSameTransition(transition, _selectedTransition))
+        if (IsTransitionSelected(transition))
             className += " state-machine-designer__transition--selected";
 
         if (string.IsNullOrWhiteSpace(transition.From) || string.IsNullOrWhiteSpace(transition.To))
@@ -599,6 +601,16 @@ public partial class StateMachineDesignerWrapper
 
         return className;
     }
+
+    private string GetTransitionAriaPressed(StateMachineTransitionEdge transition) => ToAriaPressed(IsTransitionSelected(transition));
+
+    private bool IsStateSelected(StateMachineStateNode state) =>
+        string.Equals(state.Name, _selectedStateName, StringComparison.Ordinal);
+
+    private bool IsTransitionSelected(StateMachineTransitionEdge transition) =>
+        _selectedTransition != null && IsSameTransition(transition, _selectedTransition);
+
+    private static string ToAriaPressed(bool value) => value ? "true" : "false";
 
     private static string GetIssueClass(StateMachineValidationIssue issue) =>
         issue.Severity == StateMachineValidationSeverity.Error

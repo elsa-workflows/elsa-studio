@@ -102,6 +102,20 @@ public class StateMachineMapperTests
     }
 
     [Fact]
+    public void Map_PreservesStructurallyInvalidArrayEntriesWhenMappingBack()
+    {
+        var source = CreateActivity();
+        source["states"]!.AsArray().Add("unexpected-state");
+        source["transitions"]!.AsArray().Add(true);
+
+        var graph = _mapper.Map(source);
+        var activity = _mapper.Map(graph);
+
+        Assert.True(JsonNode.DeepEquals(source["states"], activity["states"]));
+        Assert.True(JsonNode.DeepEquals(source["transitions"], activity["transitions"]));
+    }
+
+    [Fact]
     public void Map_ReportsNonArrayStateMachineCollectionsAsBlockingErrors()
     {
         var source = CreateActivity();
@@ -112,6 +126,20 @@ public class StateMachineMapperTests
 
         Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidStateCollection" && x.Target == "states");
         Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidTransitionCollection" && x.Target == "transitions");
+    }
+
+    [Fact]
+    public void Map_PreservesStructurallyInvalidCollectionsWhenMappingBack()
+    {
+        var source = CreateActivity();
+        source["states"] = "not-an-array";
+        source["transitions"] = new JsonObject { ["unexpected"] = true };
+
+        var graph = _mapper.Map(source);
+        var activity = _mapper.Map(graph);
+
+        Assert.True(JsonNode.DeepEquals(source["states"], activity["states"]));
+        Assert.True(JsonNode.DeepEquals(source["transitions"], activity["transitions"]));
     }
 
     [Fact]

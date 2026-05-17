@@ -76,7 +76,7 @@
                 @foreach (var state in _graph.States)
                 {
                     var outgoingTransitions = GetOutgoingTransitions(state).ToList();
-                    <button class="@GetStateClass(state)" type="button" aria-pressed="@(string.Equals(state.Name, _selectedStateName, StringComparison.Ordinal))" @onclick="() => SelectStateAsync(state)">
+                    <button class="@GetStateClass(state)" type="button" aria-pressed="@GetStateAriaPressed(state)" @onclick="() => SelectStateAsync(state)">
                         <span class="state-machine-designer__state-title">@DisplayValue(state.Name)</span>
                         @if (outgoingTransitions.Count > 0)
                         {
@@ -140,7 +140,7 @@
 
                 @foreach (var transition in _graph.Transitions)
                 {
-                    <button class="@GetTransitionClass(transition)" type="button" aria-pressed="@(ReferenceEquals(transition, _selectedTransition))" @onclick="() => SelectTransitionAsync(transition)">
+                    <button class="@GetTransitionClass(transition)" type="button" aria-pressed="@GetTransitionAriaPressed(transition)" @onclick="() => SelectTransitionAsync(transition)">
                         <span class="state-machine-designer__transition-route">
                             <span>@DisplayValue(transition.From)</span>
                             <span aria-hidden="true">-></span>
