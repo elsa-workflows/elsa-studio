@@ -167,6 +167,9 @@ public partial class StateMachineDesignerWrapper
         if (_graph == null)
             return Task.FromResult(StateMachine);
 
+        if (HasStructuralValidationErrors(_graph))
+            throw new DiagramDesignerValidationException("Cannot read the StateMachine activity because the graph has structural validation errors.");
+
         var activity = MapCurrentGraph();
         var validationGraph = StateMachineMapper.Map(activity);
         _graph.ValidationIssues = validationGraph.ValidationIssues;
@@ -277,6 +280,10 @@ public partial class StateMachineDesignerWrapper
             _graph.CurrentState = _graph.States.FirstOrDefault()?.Name;
 
         _selectedStateName = _graph.States.FirstOrDefault()?.Name;
+        _selectedTransition = null;
+        _selectedSlotName = null;
+        _selectedActivityId = null;
+        await SelectRootActivityForPropertiesAsync();
         await ApplyGraphChangesAsync();
     }
 
@@ -350,6 +357,9 @@ public partial class StateMachineDesignerWrapper
 
         _graph.Transitions.Remove(_selectedTransition);
         _selectedTransition = _graph.Transitions.FirstOrDefault();
+        _selectedSlotName = null;
+        _selectedActivityId = null;
+        await SelectRootActivityForPropertiesAsync();
         await ApplyGraphChangesAsync();
     }
 
