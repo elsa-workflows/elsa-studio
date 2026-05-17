@@ -82,9 +82,6 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
-        if (ActivitySelected.HasDelegate)
-            await ActivitySelected.InvokeAsync(Sequence);
-
         if (CanvasSelected.HasDelegate)
             await CanvasSelected.InvokeAsync();
     }
