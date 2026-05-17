@@ -187,8 +187,8 @@ public partial class StateMachineDesignerWrapper
         _graph = StateMachineMapper.Map(activity);
 
         var stateNames = _graph.States.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        _newTransitionFrom = stateNames.Contains(newTransitionFrom) ? newTransitionFrom : _graph.States.FirstOrDefault()?.Name;
-        _newTransitionTo = stateNames.Contains(newTransitionTo) ? newTransitionTo : _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
+        _newTransitionFrom = !string.IsNullOrWhiteSpace(newTransitionFrom) && stateNames.Contains(newTransitionFrom) ? newTransitionFrom : _graph.States.FirstOrDefault()?.Name;
+        _newTransitionTo = !string.IsNullOrWhiteSpace(newTransitionTo) && stateNames.Contains(newTransitionTo) ? newTransitionTo : _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
         _selectedTransition = selectedTransition != null
             ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
             : null;
@@ -556,6 +556,9 @@ public partial class StateMachineDesignerWrapper
             : "state-machine-designer__issue state-machine-designer__issue--warning";
 
     private static string DisplayValue(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private IEnumerable<StateMachineTransitionEdge> GetOutgoingTransitions(StateMachineStateNode state) =>
+        _graph?.Transitions.Where(x => string.Equals(x.From, state.Name, StringComparison.Ordinal)) ?? [];
 
     private StateMachineStateNode? SelectedState =>
         _graph?.States.FirstOrDefault(x => string.Equals(x.Name, _selectedStateName, StringComparison.Ordinal));

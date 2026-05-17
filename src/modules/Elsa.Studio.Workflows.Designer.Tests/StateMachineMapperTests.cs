@@ -89,6 +89,19 @@ public class StateMachineMapperTests
     }
 
     [Fact]
+    public void Map_ReportsNonObjectStateAndTransitionItemsAsValidationErrors()
+    {
+        var source = CreateActivity();
+        source["states"]!.AsArray().Add("unexpected-state");
+        source["transitions"]!.AsArray().Add(true);
+
+        var graph = _mapper.Map(source);
+
+        Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidStateItem" && x.Target == "states[3]");
+        Assert.Contains(graph.ValidationIssues, x => x.Code == "InvalidTransitionItem" && x.Target == "transitions[1]");
+    }
+
+    [Fact]
     public void Map_MarksStateTerminalWhenOnlyOutboundTransitionsTargetUnknownStates()
     {
         var source = CreateActivity();

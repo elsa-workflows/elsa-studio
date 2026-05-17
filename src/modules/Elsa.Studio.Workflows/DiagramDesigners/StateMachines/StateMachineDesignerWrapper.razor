@@ -77,6 +77,19 @@
                 {
                     <button class="@GetStateClass(state)" type="button" @onclick="() => SelectStateAsync(state)">
                         <span class="state-machine-designer__state-title">@DisplayValue(state.Name)</span>
+                        @if (GetOutgoingTransitions(state).Any())
+                        {
+                            <span class="state-machine-designer__state-edges" aria-label="@Localizer["Outgoing transitions"]">
+                                @foreach (var transition in GetOutgoingTransitions(state))
+                                {
+                                    <span class="state-machine-designer__state-edge">
+                                        <span>@DisplayValue(transition.DisplayName ?? transition.Name)</span>
+                                        <span aria-hidden="true">-></span>
+                                        <span>@DisplayValue(transition.To)</span>
+                                    </span>
+                                }
+                            </span>
+                        }
                         <span class="state-machine-designer__badges">
                             @if (string.Equals(state.Name, _graph.InitialState, StringComparison.Ordinal))
                             {

@@ -79,7 +79,27 @@ public class StateMachineValidator
         if (slot == null || slot is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty))
             return;
 
-        if (slot is not JsonObject activity || !activity.IsActivity())
+        if (slot is not JsonObject activity)
+        {
+            issues.Add(Error("InvalidActivitySlot", $"Slot '{target}' must contain an activity object.", target));
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(activity.GetTypeName()))
+        {
+            issues.Add(Error("InvalidActivitySlot", $"Slot '{target}' must contain an activity object.", target));
+            return;
+        }
+
+        var issueCount = issues.Count;
+
+        if (string.IsNullOrWhiteSpace(activity.GetId()))
+            issues.Add(Error("MissingActivitySlotId", $"Slot '{target}' activity must include an id.", target));
+
+        if (string.IsNullOrWhiteSpace(activity.GetNodeId()))
+            issues.Add(Error("MissingActivitySlotNodeId", $"Slot '{target}' activity must include a nodeId.", target));
+
+        if (issues.Count == issueCount && !activity.IsActivity())
             issues.Add(Error("InvalidActivitySlot", $"Slot '{target}' must contain an activity object.", target));
     }
 

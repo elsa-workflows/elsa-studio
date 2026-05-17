@@ -160,6 +160,23 @@
     overflow-wrap: anywhere;
 }
 
+.state-machine-designer__state-edges {
+    display: grid;
+    gap: 4px;
+}
+
+.state-machine-designer__state-edge {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border-left: 2px solid var(--mud-palette-primary);
+    padding-left: 8px;
+    color: var(--mud-palette-text-secondary);
+    font-size: .8rem;
+    line-height: 1.35;
+}
+
 .state-machine-designer__state-title,
 .state-machine-designer__transition-route {
     font-weight: 600;

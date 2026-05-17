@@ -129,4 +129,31 @@ public class StateMachineValidatorTests
         Assert.Contains(issues, x => x.Code == "InvalidActivitySlot" && x.Target == "Approve.trigger" && x.Severity == StateMachineValidationSeverity.Error);
         Assert.DoesNotContain(issues, x => x.Target == "Approve.condition");
     }
+
+    [Fact]
+    public void Validate_ReportsActivitySlotsMissingIdsAsBlockingErrors()
+    {
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode { Name = "Pending", Entry = new JsonObject { ["id"] = "Entry1", ["type"] = "Elsa.WriteLine" } }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge
+                {
+                    Name = "Approve",
+                    From = "Pending",
+                    To = "Pending",
+                    Trigger = new JsonObject { ["nodeId"] = "StateMachine1:Trigger1", ["type"] = "Elsa.Event" }
+                }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.Contains(issues, x => x.Code == "MissingActivitySlotNodeId" && x.Target == "Pending.entry" && x.Severity == StateMachineValidationSeverity.Error);
+        Assert.Contains(issues, x => x.Code == "MissingActivitySlotId" && x.Target == "Approve.trigger" && x.Severity == StateMachineValidationSeverity.Error);
+    }
 }

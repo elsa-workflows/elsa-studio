@@ -45,6 +45,8 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             });
         }
 
+        AddArrayItemIssues(graph, activity, "states", "InvalidStateItem", "StateMachine states must be JSON objects.");
+        AddArrayItemIssues(graph, activity, "transitions", "InvalidTransitionItem", "StateMachine transitions must be JSON objects.");
         UpdateTerminalStateMarkers(graph);
         AddValidationIssues(graph);
         return graph;
@@ -89,6 +91,26 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
     {
         foreach (var issue in validator.Validate(graph))
             graph.ValidationIssues.Add(issue);
+    }
+
+    private static void AddArrayItemIssues(StateMachineGraph graph, JsonObject activity, string propertyName, string code, string message)
+    {
+        if (activity[propertyName] is not JsonArray array)
+            return;
+
+        for (var index = 0; index < array.Count; index++)
+        {
+            if (array[index] is JsonObject)
+                continue;
+
+            graph.ValidationIssues.Add(new()
+            {
+                Severity = StateMachineValidationSeverity.Error,
+                Code = code,
+                Message = message,
+                Target = $"{propertyName}[{index}]"
+            });
+        }
     }
 
     private static void UpdateTerminalStateMarkers(StateMachineGraph graph)
