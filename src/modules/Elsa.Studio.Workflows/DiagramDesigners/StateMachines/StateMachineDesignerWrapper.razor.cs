@@ -178,12 +178,16 @@ public partial class StateMachineDesignerWrapper
 
     private void LoadGraph(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
+        var selectedTransition = _selectedTransition;
         StateMachine = activity;
         ActivityStats = activityStats;
         _activityStats = activityStats;
         _graph = StateMachineMapper.Map(activity);
         _newTransitionFrom = _graph.States.FirstOrDefault()?.Name;
         _newTransitionTo = _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
+        _selectedTransition = selectedTransition != null
+            ? _graph.Transitions.FirstOrDefault(x => IsSameTransition(x, selectedTransition))
+            : null;
     }
 
     private async Task SelectStateAsync(StateMachineStateNode state)
