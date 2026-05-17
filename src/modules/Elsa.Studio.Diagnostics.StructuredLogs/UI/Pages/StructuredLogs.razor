@@ -170,7 +170,20 @@
                         <span class="@LevelCssClass(logEvent.Level)" title="@logEvent.Level.ToString()">@LevelLabel(logEvent.Level)</span>
                         <span class="structured-log-source" title="@logEvent.SourceId">@Shorten(SourceDisplayName(logEvent.SourceId), 32)</span>
                         <span class="structured-log-category" title="@logEvent.Category">@Shorten(logEvent.Category, 72)</span>
-                        <span class="structured-log-correlation" title="@CorrelationHintTitle(logEvent)">@CorrelationHint(logEvent)</span>
+                        @if (HasCorrelationHint(logEvent))
+                        {
+                            <button type="button"
+                                    class="structured-log-correlation structured-log-filter-chip"
+                                    title="@CorrelationFilterTooltip(logEvent)"
+                                    aria-label="@CorrelationFilterTooltip(logEvent)"
+                                    @onclick="() => ApplyCorrelationFilterAsync(logEvent)">
+                                @CorrelationHint(logEvent)
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="structured-log-correlation"></span>
+                        }
                         <span class="structured-log-message">@logEvent.Message</span>
 
                         @if (logEvent.Exception != null)
@@ -220,9 +233,9 @@
                         @DetailRow("Tenant", SelectedLogEvent.TenantId)
                         @DetailRow("Workflow definition", SelectedLogEvent.WorkflowDefinitionId)
                         @DetailRow("Workflow instance", SelectedLogEvent.WorkflowInstanceId)
-                        @DetailRow("Correlation ID", SelectedLogEvent.CorrelationId)
-                        @DetailRow("Trace ID", SelectedLogEvent.TraceId)
-                        @DetailRow("Span ID", SelectedLogEvent.SpanId)
+                        @DetailRow("Correlation ID", SelectedLogEvent.CorrelationId, SetCorrelationIdAsync)
+                        @DetailRow("Trace ID", SelectedLogEvent.TraceId, SetTraceIdAsync)
+                        @DetailRow("Span ID", SelectedLogEvent.SpanId, SetSpanIdAsync)
                     </dl>
                 </section>
 
