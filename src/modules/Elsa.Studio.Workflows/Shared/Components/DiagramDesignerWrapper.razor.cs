@@ -480,7 +480,9 @@ public partial class DiagramDesignerWrapper
         // If the activity is a workflow definition activity, then open the workflow definition editor.
         if (activity.GetWorkflowDefinitionId() != null)
         {
-            await OnActivityEmbeddedPortSelected(new(activity, "Root"));
+            if (IsReadOnly)
+                await OnActivityEmbeddedPortSelected(new(activity, "Root"));
+
             return;
         }
 

@@ -14,7 +14,7 @@
                 }
                 else
                 {
-                    <select class="state-machine-designer__input" value="@_graph.InitialState" @onchange="SetInitialStateAsync">
+                    <select class="state-machine-designer__input" aria-label="@Localizer["Initial state"]" value="@_graph.InitialState" @onchange="SetInitialStateAsync">
                         <option value="">-</option>
                         @foreach (var state in _graph.States)
                         {
@@ -31,7 +31,7 @@
                 }
                 else
                 {
-                    <select class="state-machine-designer__input" value="@_graph.CurrentState" @onchange="SetCurrentStateAsync">
+                    <select class="state-machine-designer__input" aria-label="@Localizer["Current state"]" value="@_graph.CurrentState" @onchange="SetCurrentStateAsync">
                         <option value="">-</option>
                         @foreach (var state in _graph.States)
                         {
@@ -68,7 +68,7 @@
                 @if (!IsReadOnly)
                 {
                     <div class="state-machine-designer__editor-row">
-                        <input class="state-machine-designer__input" placeholder="@Localizer["State name"]" @bind="_newStateName" />
+                        <input class="state-machine-designer__input" aria-label="@Localizer["State name"]" placeholder="@Localizer["State name"]" @bind="_newStateName" />
                         <button class="state-machine-designer__command" type="button" @onclick="AddStateAsync">@Localizer["Add"]</button>
                     </div>
                 }
@@ -121,14 +121,14 @@
                 @if (!IsReadOnly && _graph.States.Count > 0)
                 {
                     <div class="state-machine-designer__transition-editor">
-                        <input class="state-machine-designer__input" placeholder="@Localizer["Transition name"]" @bind="_newTransitionName" />
-                        <select class="state-machine-designer__input" @bind="_newTransitionFrom">
+                        <input class="state-machine-designer__input" aria-label="@Localizer["Transition name"]" placeholder="@Localizer["Transition name"]" @bind="_newTransitionName" />
+                        <select class="state-machine-designer__input" aria-label="@Localizer["Source state"]" @bind="_newTransitionFrom">
                             @foreach (var state in _graph.States)
                             {
                                 <option value="@state.Name">@DisplayValue(state.Name)</option>
                             }
                         </select>
-                        <select class="state-machine-designer__input" @bind="_newTransitionTo">
+                        <select class="state-machine-designer__input" aria-label="@Localizer["Target state"]" @bind="_newTransitionTo">
                             @foreach (var state in _graph.States)
                             {
                                 <option value="@state.Name">@DisplayValue(state.Name)</option>
