@@ -76,6 +76,19 @@ public class StateMachineMapperTests
     }
 
     [Fact]
+    public void Map_CoercesNonStringScalarNamesToStrings()
+    {
+        var source = CreateActivity();
+        source["initialState"] = 123;
+        source["states"]![0]!["name"] = 456;
+
+        var graph = _mapper.Map(source);
+
+        Assert.Equal("123", graph.InitialState);
+        Assert.Equal("456", graph.States.First().Name);
+    }
+
+    [Fact]
     public void Map_MarksStateTerminalWhenOnlyOutboundTransitionsTargetUnknownStates()
     {
         var source = CreateActivity();

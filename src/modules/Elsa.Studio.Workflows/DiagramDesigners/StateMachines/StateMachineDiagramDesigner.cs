@@ -17,10 +17,12 @@ public class StateMachineDiagramDesigner(ILocalizer localizer) : IDiagramDesigne
 {
     private readonly Guid _id = Guid.NewGuid();
     private StateMachineDesignerWrapper? _designerWrapper;
+    private JsonObject _rootActivity = [];
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
     {
+        _rootActivity = activity;
         await InvokeDesignerActionAsync(x => x.LoadStateMachineAsync(activity, activityStatsMap));
     }
 
@@ -45,13 +47,14 @@ public class StateMachineDiagramDesigner(ILocalizer localizer) : IDiagramDesigne
     /// <inheritdoc />
     public async Task<JsonObject> ReadRootActivityAsync()
     {
-        return await _designerWrapper!.ReadRootActivityAsync();
+        return _designerWrapper != null ? await _designerWrapper.ReadRootActivityAsync() : _rootActivity;
     }
 
     /// <inheritdoc />
     public RenderFragment DisplayDesigner(DisplayContext context)
     {
         var stateMachine = context.Activity;
+        _rootActivity = stateMachine;
         var sequence = 0;
 
         return builder =>

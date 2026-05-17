@@ -40,6 +40,18 @@ public class StateMachineDiagramDesignerProviderTests
         Assert.IsType<StateMachineDiagramDesigner>(editor);
     }
 
+    [Fact]
+    public async Task ReadRootActivityAsync_ReturnsLoadedActivityBeforeWrapperRenders()
+    {
+        var designer = new StateMachineDiagramDesigner(new TestLocalizer());
+        var activity = CreateActivity("Elsa.StateMachine");
+
+        await designer.LoadRootActivityAsync(activity, null);
+        var result = await designer.ReadRootActivityAsync();
+
+        Assert.Same(activity, result);
+    }
+
     private static JsonObject CreateActivity(string type) => new()
     {
         ["type"] = type

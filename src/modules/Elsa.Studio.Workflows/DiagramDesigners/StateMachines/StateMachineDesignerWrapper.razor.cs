@@ -95,6 +95,7 @@ public partial class StateMachineDesignerWrapper
         {
             TrackParameterState(activity, _activityStats);
             LoadGraph(activity, _activityStats);
+            return InvokeAsync(StateHasChanged);
         }
 
         if (TryUpdateSlotActivity(id, activity))
@@ -284,9 +285,7 @@ public partial class StateMachineDesignerWrapper
         if (IsReadOnly || _graph == null || string.IsNullOrWhiteSpace(_newTransitionFrom) || string.IsNullOrWhiteSpace(_newTransitionTo))
             return;
 
-        var transitionName = string.IsNullOrWhiteSpace(_newTransitionName)
-            ? GetUniqueTransitionName(_graph)
-            : _newTransitionName.Trim();
+        var transitionName = GetUniqueTransitionName(_graph, _newTransitionName);
 
         var transition = new StateMachineTransitionEdge
         {
@@ -364,10 +363,10 @@ public partial class StateMachineDesignerWrapper
 
     private async Task SetTransitionNameAsync(ChangeEventArgs e)
     {
-        if (_selectedTransition == null || IsReadOnly)
+        if (_selectedTransition == null || IsReadOnly || _graph == null)
             return;
 
-        _selectedTransition.Name = e.Value?.ToString();
+        _selectedTransition.Name = GetUniqueTransitionName(_graph, e.Value?.ToString(), _selectedTransition);
         await ApplyGraphChangesAsync();
     }
 
@@ -562,16 +561,32 @@ public partial class StateMachineDesignerWrapper
         return stateName;
     }
 
-    private static string GetUniqueTransitionName(StateMachineGraph graph)
+    private static string GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null)
     {
+        var names = graph.Transitions
+            .Where(x => !ReferenceEquals(x, excludedTransition))
+            .Select(x => x.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (!string.IsNullOrWhiteSpace(requestedName))
+        {
+            var baseName = requestedName.Trim();
+            var name = baseName;
+            var suffix = 2;
+
+            while (names.Contains(name))
+                name = $"{baseName}{suffix++}";
+
+            return name;
+        }
+
         var index = graph.Transitions.Count + 1;
-        var names = graph.Transitions.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        var name = $"Transition{index}";
+        var defaultName = $"Transition{index}";
 
-        while (names.Contains(name))
-            name = $"Transition{++index}";
+        while (names.Contains(defaultName))
+            defaultName = $"Transition{++index}";
 
-        return name;
+        return defaultName;
     }
 
     private static bool IsSameTransition(StateMachineTransitionEdge left, StateMachineTransitionEdge right) =>

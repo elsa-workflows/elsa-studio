@@ -112,8 +112,15 @@ public class StateMachineMapper(StateMachineValidator validator) : IStateMachine
             yield return CloneObject(item);
     }
 
-    private static string? GetString(JsonObject source, string propertyName) =>
-        source[propertyName]?.GetValue<string>();
+    private static string? GetString(JsonObject source, string propertyName)
+    {
+        var node = source[propertyName];
+
+        if (node == null)
+            return null;
+
+        return node is JsonValue value && value.TryGetValue<string>(out var text) ? text : node.ToString();
+    }
 
     private static JsonObject CloneObject(JsonObject source) =>
         (JsonObject)source.DeepClone();
