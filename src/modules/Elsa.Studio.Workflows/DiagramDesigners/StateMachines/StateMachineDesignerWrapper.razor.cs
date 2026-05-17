@@ -614,7 +614,10 @@ public partial class StateMachineDesignerWrapper
         string.Equals(state.Name, _selectedStateName, StringComparison.Ordinal);
 
     private bool IsTransitionSelected(StateMachineTransitionEdge transition) =>
-        _selectedTransition != null && IsSameTransition(transition, _selectedTransition);
+        _selectedTransition != null &&
+        (ReferenceEquals(transition, _selectedTransition) ||
+         (IsSameTransition(transition, _selectedTransition) &&
+          GetTransitionIdentityIndex(_graph, transition) == GetTransitionIdentityIndex(_graph, _selectedTransition)));
 
     private static string ToAriaPressed(bool value) => value ? "true" : "false";
 
@@ -790,7 +793,7 @@ public partial class StateMachineDesignerWrapper
     private static bool HasStructuralValidationErrors(StateMachineGraph graph) =>
         graph.ValidationIssues.Any(x =>
             x.Severity == StateMachineValidationSeverity.Error &&
-            x.Code is InvalidStateCollectionCode or InvalidTransitionCollectionCode or InvalidStateItemCode or InvalidTransitionItemCode) == true;
+            x.Code is InvalidStateCollectionCode or InvalidTransitionCollectionCode or InvalidStateItemCode or InvalidTransitionItemCode);
 
     private IEnumerable<JsonObject> GetIndexedSlotActivities()
     {
