@@ -105,16 +105,12 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         {
             var activity = activityNode.Data;
             var descriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
-            var newActivityId = IdentityGenerator.GenerateId();
             var newName = ActivityNameGenerator.GenerateNextName(allActivities, descriptor);
 
-            activity.SetId(newActivityId);
-            activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
-            activity.SetName(newName);
-            activityNode.Id = newActivityId;
+            RegenerateActivityIdentity(activity, container.GetNodeId(), descriptor, newName);
+            activityNode.Id = activity.GetId();
 
             allActivities.Add(activity);
-            ProcessEmbeddedPorts(activity, descriptor);
         }
 
         await _graphApi.PasteCellsAsync(activityNodes, []);
@@ -272,17 +268,22 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
 
     protected override async Task OnParametersSetAsync()
     {
+        var shouldReload = false;
+
         if (!Equals(_sequence, Sequence))
         {
             _sequence = Sequence;
-            await _rateLimitedLoadSequenceAction.InvokeAsync();
+            shouldReload = true;
         }
 
         if (!Equals(_activityStats, ActivityStats))
         {
             _activityStats = ActivityStats;
-            await _rateLimitedLoadSequenceAction.InvokeAsync();
+            shouldReload = true;
         }
+
+        if (shouldReload)
+            await _rateLimitedLoadSequenceAction.InvokeAsync();
     }
 
     private async Task<ISequenceMapper> GetSequenceMapperAsync() =>
@@ -299,12 +300,21 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         foreach (var activity in activities)
         {
             var descriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
-            var newActivityId = IdentityGenerator.GenerateId();
-
-            activity.SetId(newActivityId);
-            activity.SetNodeId($"{container.GetNodeId()}:{newActivityId}");
-            ProcessEmbeddedPorts(activity, descriptor);
+            RegenerateActivityIdentity(activity, container.GetNodeId(), descriptor);
         }
+    }
+
+    private void RegenerateActivityIdentity(JsonObject activity, string parentNodeId, ActivityDescriptor descriptor, string? name = null)
+    {
+        var newActivityId = IdentityGenerator.GenerateId();
+
+        activity.SetId(newActivityId);
+        activity.SetNodeId($"{parentNodeId}:{newActivityId}");
+
+        if (name is not null)
+            activity.SetName(name);
+
+        ProcessEmbeddedPorts(activity, descriptor);
     }
 
     private void ProcessEmbeddedPorts(JsonObject activity, ActivityDescriptor descriptor)

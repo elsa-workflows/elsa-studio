@@ -88,6 +88,38 @@ public class SequenceMapperTests
     }
 
     [Fact]
+    public void Map_ShouldNotWriteDefaultOrientationMetadata()
+    {
+        var sequence = CreateSequence("one");
+        var graph = new X6Graph([CreateNode("one", 0, 0)], [])
+        {
+            LayoutOrientation = "vertical"
+        };
+
+        var mapped = _mapper.Map(sequence, graph);
+
+        Assert.False(mapped.ContainsKey("metadata"));
+    }
+
+    [Fact]
+    public void Map_ShouldClearOrientationMetadataWhenReturningToDefault()
+    {
+        var sequence = CreateSequence("one");
+        sequence["metadata"] = new JsonObject
+        {
+            ["sequenceLayoutOrientation"] = "horizontal"
+        };
+        var graph = new X6Graph([CreateNode("one", 0, 0)], [])
+        {
+            LayoutOrientation = "vertical"
+        };
+
+        var mapped = _mapper.Map(sequence, graph);
+
+        Assert.False(mapped.ContainsKey("metadata"));
+    }
+
+    [Fact]
     public void Map_ShouldPreserveActivityConfigurationAndEmbeddedRegions()
     {
         var sequence = CreateSequence("one", "two");

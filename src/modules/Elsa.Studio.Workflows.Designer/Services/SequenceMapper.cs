@@ -94,9 +94,16 @@ internal class SequenceMapper(IActivityMapper activityMapper) : ISequenceMapper
     public static void SetLayoutOrientation(JsonObject sequence, string? orientation)
     {
         var normalized = IsHorizontal(orientation) ? HorizontalOrientation : VerticalOrientation;
-        var metadata = sequence.TryGetPropertyValue("metadata", out var metadataNode) && metadataNode is JsonObject existingMetadata
-            ? existingMetadata
-            : new JsonObject();
+        var hasMetadata = sequence.TryGetPropertyValue("metadata", out var metadataNode) && metadataNode is JsonObject;
+        var metadata = hasMetadata ? (JsonObject)metadataNode! : new JsonObject();
+
+        if (normalized == VerticalOrientation)
+        {
+            if (hasMetadata && metadata.Remove(LayoutOrientationMetadataKey) && metadata.Count == 0)
+                sequence.Remove("metadata");
+
+            return;
+        }
 
         metadata[LayoutOrientationMetadataKey] = normalized;
         sequence["metadata"] = metadata;
