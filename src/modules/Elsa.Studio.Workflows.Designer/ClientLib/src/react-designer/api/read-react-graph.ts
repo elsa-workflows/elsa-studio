@@ -2,6 +2,7 @@ import { reactBindings } from '../bindings';
 
 interface ReadGraphCells {
     cells: Array<Record<string, any>>;
+    layoutOrientation?: string;
 }
 
 // Returns a payload shaped like X6's read-graph result so the C# side can
@@ -37,5 +38,5 @@ export function readReactGraph(graphId: string): ReadGraphCells {
         });
     }
 
-    return { cells };
+    return { cells, layoutOrientation: graph.layoutOrientation };
 }

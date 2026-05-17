@@ -9,7 +9,7 @@
 // keep inline rather than spread across one-line files.
 
 import { reactBindings } from '../bindings';
-import type { ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph } from '../types';
+import type { ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, SequenceLayoutOrientation } from '../types';
 
 export { createReactGraph } from './create-react-graph';
 export { readReactGraph } from './read-react-graph';
@@ -66,6 +66,10 @@ export function updateReactActivityStats(graphId: string, activityId: string, st
 
 export function autoLayoutReactGraph(graphId: string): void {
     reactBindings[graphId]?.autoLayout();
+}
+
+export function setSequenceOrientation(graphId: string, orientation: SequenceLayoutOrientation): void {
+    reactBindings[graphId]?.setSequenceOrientation(orientation);
 }
 
 // Called by .NET after it regenerates IDs server-side
