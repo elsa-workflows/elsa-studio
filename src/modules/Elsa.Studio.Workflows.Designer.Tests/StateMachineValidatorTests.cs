@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Xunit;
@@ -70,5 +71,33 @@ public class StateMachineValidatorTests
         var issues = _validator.Validate(graph);
 
         Assert.Contains(issues, x => x.Code == "MissingTransitionSourceState" && x.Target == "Close");
+    }
+
+    [Fact]
+    public void Validate_ReportsInvalidJsonSlotsAsBlockingErrors()
+    {
+        var invalidSlot = new JsonObject { ["$invalidJson"] = true, ["source"] = "{ nope" };
+        var graph = new StateMachineGraph
+        {
+            States =
+            {
+                new StateMachineStateNode { Name = "Pending", Entry = invalidSlot.DeepClone() }
+            },
+            Transitions =
+            {
+                new StateMachineTransitionEdge
+                {
+                    Name = "Approve",
+                    From = "Pending",
+                    To = "Pending",
+                    Condition = invalidSlot.DeepClone()
+                }
+            }
+        };
+
+        var issues = _validator.Validate(graph);
+
+        Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Pending.entry" && x.Severity == StateMachineValidationSeverity.Error);
+        Assert.Contains(issues, x => x.Code == "InvalidSlotJson" && x.Target == "Approve.condition" && x.Severity == StateMachineValidationSeverity.Error);
     }
 }

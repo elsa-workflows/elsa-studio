@@ -18,6 +18,8 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 /// </summary>
 public partial class StateMachineDesignerWrapper
 {
+    private const string InvalidJsonSlotProperty = "$invalidJson";
+    private const string InvalidJsonSlotSourceProperty = "source";
     private StateMachineGraph? _graph;
     private IDictionary<string, ActivityStats>? _activityStats;
     private string? _selectedStateName;
@@ -95,6 +97,9 @@ public partial class StateMachineDesignerWrapper
             LoadGraph(activity, _activityStats);
         }
 
+        if (TryUpdateSlotActivity(id, activity))
+            return ApplyGraphChangesAsync();
+
         return InvokeAsync(StateHasChanged);
     }
 
@@ -119,6 +124,18 @@ public partial class StateMachineDesignerWrapper
             _selectedStateName = null;
             if (ActivitySelected.HasDelegate)
                 await ActivitySelected.InvokeAsync(StateMachine);
+            return;
+        }
+
+        if (TryFindSlotActivity(id, out var slotActivity, out var state, out var transition))
+        {
+            _selectedStateName = state?.Name;
+            _selectedTransition = transition;
+
+            if (ActivitySelected.HasDelegate)
+                await ActivitySelected.InvokeAsync(slotActivity);
+
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
@@ -575,15 +592,17 @@ public partial class StateMachineDesignerWrapper
         {
             return new JsonObject
             {
-                ["type"] = "Elsa.InvalidSlot",
+                [InvalidJsonSlotProperty] = true,
                 ["slot"] = slotName,
-                ["source"] = value
+                [InvalidJsonSlotSourceProperty] = value
             };
         }
     }
 
     private static string FormatJsonSlot(JsonNode? node) =>
-        node?.ToJsonString(new() { WriteIndented = true }) ?? "";
+        node is JsonObject obj && obj.ContainsKey(InvalidJsonSlotProperty)
+            ? obj[InvalidJsonSlotSourceProperty]?.GetValue<string>() ?? ""
+            : node?.ToJsonString(new() { WriteIndented = true }) ?? "";
 
     private JsonObject CreateSlotActivity(ActivityDescriptor descriptor)
     {
@@ -629,6 +648,101 @@ public partial class StateMachineDesignerWrapper
             if (slot is JsonObject activity && activity.IsActivity())
                 yield return activity;
         }
+    }
+
+    private bool TryFindSlotActivity(
+        string id,
+        out JsonObject activity,
+        out StateMachineStateNode? state,
+        out StateMachineTransitionEdge? transition)
+    {
+        if (_graph != null)
+        {
+            foreach (var candidateState in _graph.States)
+            {
+                if (TryMatchSlotActivity(candidateState.Entry, id, out activity))
+                {
+                    state = candidateState;
+                    transition = null;
+                    return true;
+                }
+
+                if (TryMatchSlotActivity(candidateState.Exit, id, out activity))
+                {
+                    state = candidateState;
+                    transition = null;
+                    return true;
+                }
+            }
+
+            foreach (var candidateTransition in _graph.Transitions)
+            {
+                if (TryMatchSlotActivity(candidateTransition.Trigger, id, out activity) ||
+                    TryMatchSlotActivity(candidateTransition.Action, id, out activity))
+                {
+                    state = null;
+                    transition = candidateTransition;
+                    return true;
+                }
+            }
+        }
+
+        activity = [];
+        state = null;
+        transition = null;
+        return false;
+    }
+
+    private bool TryUpdateSlotActivity(string id, JsonObject activity)
+    {
+        if (_graph == null)
+            return false;
+
+        foreach (var state in _graph.States)
+        {
+            if (TryMatchSlotActivity(state.Entry, id, out _))
+            {
+                state.Entry = activity.DeepClone();
+                return true;
+            }
+
+            if (TryMatchSlotActivity(state.Exit, id, out _))
+            {
+                state.Exit = activity.DeepClone();
+                return true;
+            }
+        }
+
+        foreach (var transition in _graph.Transitions)
+        {
+            if (TryMatchSlotActivity(transition.Trigger, id, out _))
+            {
+                transition.Trigger = activity.DeepClone();
+                return true;
+            }
+
+            if (TryMatchSlotActivity(transition.Action, id, out _))
+            {
+                transition.Action = activity.DeepClone();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryMatchSlotActivity(JsonNode? slot, string id, out JsonObject activity)
+    {
+        if (slot is JsonObject obj && obj.IsActivity() &&
+            (string.Equals(obj.GetId(), id, StringComparison.Ordinal) ||
+             string.Equals(obj.GetNodeId(), id, StringComparison.Ordinal)))
+        {
+            activity = obj;
+            return true;
+        }
+
+        activity = [];
+        return false;
     }
 
     private static string? NormalizeOptionalStateName(object? value)
