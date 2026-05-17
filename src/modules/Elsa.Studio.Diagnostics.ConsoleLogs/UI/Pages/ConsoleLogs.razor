@@ -30,6 +30,11 @@
                 {
                     <span class="console-logs-warning">@ViewState.PendingLineCount @Localizer["waiting"]</span>
                 }
+
+                @if (ViewState.DiscardedPendingRows > 0)
+                {
+                    <span class="console-logs-warning">@ViewState.DiscardedPendingRows @Localizer["discarded while paused"]</span>
+                }
             </div>
 
             <div class="console-logs-actions">

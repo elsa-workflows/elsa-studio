@@ -6,6 +6,7 @@ namespace Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 public class ConsoleLogViewState
 {
     private readonly List<ConsoleLogLine> _visibleRows = new();
+    private readonly List<ConsoleLogLine> _pendingRows = new();
 
     /// <summary>
     /// Gets the current filter.
@@ -16,6 +17,11 @@ public class ConsoleLogViewState
     /// Gets the bounded local visible rows.
     /// </summary>
     public IReadOnlyList<ConsoleLogLine> VisibleRows => _visibleRows;
+
+    /// <summary>
+    /// Gets the bounded rows waiting while live rendering is paused.
+    /// </summary>
+    public IReadOnlyList<ConsoleLogLine> PendingRows => _pendingRows;
 
     /// <summary>
     /// Gets or sets the maximum number of local visible rows.
@@ -43,6 +49,11 @@ public class ConsoleLogViewState
     public long PendingLineCount { get; set; }
 
     /// <summary>
+    /// Gets or sets the count of paused rows discarded because of the local pending cap.
+    /// </summary>
+    public long DiscardedPendingRows { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the viewer follows the latest line.
     /// </summary>
     public bool FollowTail { get; set; } = true;
@@ -67,12 +78,6 @@ public class ConsoleLogViewState
     /// </summary>
     public void AddVisibleLine(ConsoleLogLine line)
     {
-        if (IsPaused)
-        {
-            PendingLineCount++;
-            return;
-        }
-
         _visibleRows.Add(line);
 
         while (_visibleRows.Count > VisibleRowCap)
@@ -83,12 +88,53 @@ public class ConsoleLogViewState
     }
 
     /// <summary>
+    /// Adds an incoming live line to the visible buffer or the paused pending buffer.
+    /// </summary>
+    public void AddIncomingLine(ConsoleLogLine line)
+    {
+        if (IsPaused)
+        {
+            AddPendingLine(line);
+            return;
+        }
+
+        AddVisibleLine(line);
+    }
+
+    /// <summary>
+    /// Moves pending rows into the visible buffer and clears the pending buffer.
+    /// </summary>
+    public void FlushPendingRows()
+    {
+        foreach (var line in _pendingRows)
+            AddVisibleLine(line);
+
+        _pendingRows.Clear();
+        PendingLineCount = 0;
+    }
+
+    /// <summary>
     /// Clears local visible rows without changing backend capture.
     /// </summary>
     public void ClearVisibleRows()
     {
         _visibleRows.Clear();
+        _pendingRows.Clear();
         PendingLineCount = 0;
         DiscardedLocalRows = 0;
+        DiscardedPendingRows = 0;
+    }
+
+    private void AddPendingLine(ConsoleLogLine line)
+    {
+        _pendingRows.Add(line);
+
+        while (_pendingRows.Count > VisibleRowCap)
+        {
+            _pendingRows.RemoveAt(0);
+            DiscardedPendingRows++;
+        }
+
+        PendingLineCount = _pendingRows.Count;
     }
 }

@@ -17,14 +17,13 @@ namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages;
 public partial class ConsoleLogs : IAsyncDisposable
 {
     private const string LogSurfaceId = "console-logs-surface";
-    private readonly List<ConsoleLogLine> _rows = new();
-    private readonly List<ConsoleLogLine> _pendingRows = new();
     private readonly List<ConsoleLogSource> _sources = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
     private string? _fromFilterText;
     private string? _toFilterText;
     private bool _queryInitialized;
+    private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
     [Inject] private IConsoleLogObserver Observer { get; set; } = default!;
@@ -36,7 +35,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     [Inject] private ConsoleLogTextHighlighter TextHighlighter { get; set; } = default!;
 
     protected ConsoleLogViewState ViewState { get; } = new();
-    protected IReadOnlyList<ConsoleLogLine> Rows => _rows;
+    protected IReadOnlyList<ConsoleLogLine> Rows => ViewState.VisibleRows;
     protected IReadOnlyList<ConsoleLogSource> Sources => _sources;
     protected bool IsLoading { get; private set; }
     protected string? ErrorMessage { get; private set; }
@@ -115,11 +114,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 
         if (!ViewState.IsPaused)
         {
-            foreach (var line in _pendingRows)
-                AddRow(line);
-
-            _pendingRows.Clear();
-            ViewState.PendingLineCount = 0;
+            ViewState.FlushPendingRows();
 
             if (ViewState.FollowTail)
                 await ScrollToBottomAsync();
@@ -130,10 +125,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected Task ClearAsync()
     {
-        _rows.Clear();
-        _pendingRows.Clear();
-        ViewState.PendingLineCount = 0;
-        ViewState.DiscardedLocalRows = 0;
+        ViewState.ClearVisibleRows();
         BackendDroppedCount = 0;
         return InvokeAsync(StateHasChanged);
     }
@@ -146,12 +138,12 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected async Task CopyVisibleAsync()
     {
-        await CopyTextAsync(ExportFormatter.FormatVisibleRows(_rows), $"{_rows.Count} console row(s) copied.");
+        await CopyTextAsync(ExportFormatter.FormatVisibleRows(Rows), $"{Rows.Count} console row(s) copied.");
     }
 
     protected async Task ExportVisibleAsync()
     {
-        await CopyTextAsync(ExportFormatter.FormatVisibleRows(_rows), $"{_rows.Count} console row(s) exported to clipboard.");
+        await CopyTextAsync(ExportFormatter.FormatVisibleRows(Rows), $"{Rows.Count} console row(s) exported to clipboard.");
     }
 
     protected async Task SetSourceAsync(string? sourceId)
@@ -254,7 +246,7 @@ public partial class ConsoleLogs : IAsyncDisposable
                 MergeSources(recent.Sources);
 
             foreach (var line in recent.Items.OrderBy(x => x.Timestamp))
-                AddRow(line);
+                ViewState.AddVisibleLine(line);
 
             await Observer.StartAsync(ViewState.Filter, cancellationToken);
             await ScrollToBottomAsync();
@@ -273,40 +265,52 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     private async Task RefreshFilterAsync()
     {
+        var refreshVersion = Interlocked.Increment(ref _refreshVersion);
+        var filter = CopyFilter(ViewState.Filter);
         IsLoading = true;
         ErrorMessage = null;
         UpdateUrlFromState();
 
         try
         {
-            _rows.Clear();
-            _pendingRows.Clear();
-            ViewState.PendingLineCount = 0;
-            ViewState.DiscardedLocalRows = 0;
-            BackendDroppedCount = 0;
+            var recent = await ConsoleLogService.GetRecentAsync(filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
 
-            var recent = await ConsoleLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, _cancellationTokenSource.Token);
+            if (!IsCurrentRefresh(refreshVersion))
+                return;
+
+            ViewState.ClearVisibleRows();
+            BackendDroppedCount = 0;
             BackendDroppedCount = recent.DroppedLineCount ?? 0;
 
             if (recent.Sources is { Count: > 0 })
                 MergeSources(recent.Sources);
 
             foreach (var line in recent.Items.OrderBy(x => x.Timestamp))
-                AddRow(line);
+                ViewState.AddVisibleLine(line);
 
-            await Observer.UpdateFilterAsync(ViewState.Filter, _cancellationTokenSource.Token);
+            await Observer.UpdateFilterAsync(filter, _cancellationTokenSource.Token);
+
+            if (!IsCurrentRefresh(refreshVersion))
+                return;
+
             await ScrollToBottomAsync();
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
+            if (!IsCurrentRefresh(refreshVersion))
+                return;
+
             ErrorMessage = e.Message;
             ViewState.ConnectionStatus = ConsoleLogConnectionStatus.Error;
             Snackbar.Add(e.Message, Severity.Error);
         }
         finally
         {
-            IsLoading = false;
-            await InvokeAsync(StateHasChanged);
+            if (IsCurrentRefresh(refreshVersion))
+            {
+                IsLoading = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -321,14 +325,13 @@ public partial class ConsoleLogs : IAsyncDisposable
     {
         if (ViewState.IsPaused)
         {
-            _pendingRows.Add(line);
-            ViewState.PendingLineCount = _pendingRows.Count;
+            ViewState.AddIncomingLine(line);
             return InvokeAsync(StateHasChanged);
         }
 
         return InvokeAsync(async () =>
         {
-            AddRow(line);
+            ViewState.AddIncomingLine(line);
             StateHasChanged();
 
             if (ViewState.FollowTail)
@@ -352,17 +355,6 @@ public partial class ConsoleLogs : IAsyncDisposable
     {
         MergeSources([source]);
         return InvokeAsync(StateHasChanged);
-    }
-
-    private void AddRow(ConsoleLogLine line)
-    {
-        _rows.Add(line);
-
-        while (_rows.Count > ViewState.VisibleRowCap)
-        {
-            _rows.RemoveAt(0);
-            ViewState.DiscardedLocalRows++;
-        }
     }
 
     private void MergeSources(IEnumerable<ConsoleLogSource> sources)
@@ -438,6 +430,18 @@ public partial class ConsoleLogs : IAsyncDisposable
     }
 
     private static string? NormalizeFilterText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private bool IsCurrentRefresh(long refreshVersion) => Interlocked.Read(ref _refreshVersion) == refreshVersion;
+
+    private static ConsoleLogFilter CopyFilter(ConsoleLogFilter filter) => new()
+    {
+        SourceId = filter.SourceId,
+        Streams = [.. filter.Streams ?? []],
+        Text = filter.Text,
+        From = filter.From,
+        To = filter.To,
+        Take = filter.Take
+    };
 
     private static bool TryParseDateTimeOffset(string? value, out DateTimeOffset parsed)
     {

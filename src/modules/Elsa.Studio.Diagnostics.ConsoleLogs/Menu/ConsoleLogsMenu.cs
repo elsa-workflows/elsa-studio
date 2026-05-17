@@ -7,11 +7,14 @@ namespace Elsa.Studio.Diagnostics.ConsoleLogs.Menu;
 /// <summary>
 /// Exposes menu entries for diagnostics console logs.
 /// </summary>
-public class ConsoleLogsMenu : IMenuProvider
+public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
+        if (!await remoteFeatureProvider.IsEnabledAsync(Feature.RemoteFeatureName, cancellationToken))
+            return [];
+
         var menuItems = new List<MenuItem>
         {
             new()
@@ -23,6 +26,6 @@ public class ConsoleLogsMenu : IMenuProvider
             }
         };
 
-        return ValueTask.FromResult<IEnumerable<MenuItem>>(menuItems);
+        return menuItems;
     }
 }
