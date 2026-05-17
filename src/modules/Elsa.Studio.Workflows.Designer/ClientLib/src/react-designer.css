@@ -327,6 +327,12 @@
     transform: translateY(-1px);
 }
 
+.elsa-react-flow-toolbar-btn.active {
+    background: #0ea5e9;
+    color: #ffffff;
+    border-color: #0ea5e9;
+}
+
 .elsa-react-flow-toolbar-btn:active {
     transform: translateY(0);
 }
@@ -520,4 +526,3 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-

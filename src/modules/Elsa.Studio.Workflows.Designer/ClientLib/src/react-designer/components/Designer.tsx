@@ -25,7 +25,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { ActivityDescriptorDto, ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, ElsaActivity, ElsaPort } from '../types';
+import type { ActivityDescriptorDto, DesignerMode, ElsaActivityNode, ElsaActivityStats, ElsaEdge, ElsaGraph, ElsaActivity, ElsaPort, SequenceLayoutOrientation } from '../types';
 import { ActivityNode, type ActivityNodeData } from './ActivityNode';
 import { DotNetReactDesigner } from '../dotnet-bridge';
 import { dagreLayout } from '../internal/dagre-layout';
@@ -44,6 +44,7 @@ export interface DesignerHandle {
     fitView: () => void;
     centerContent: () => void;
     readGraph: () => ElsaGraph;
+    setSequenceOrientation: (orientation: SequenceLayoutOrientation) => void;
     addNode: (node: ElsaActivityNode, dropPagePosition?: { x: number; y: number }) => void;
     updateNode: (node: ElsaActivityNode) => void;
     updateNodeStats: (activityId: string, stats: ElsaActivityStats) => void;
@@ -54,6 +55,7 @@ export interface DesignerHandle {
 interface DesignerProps {
     initialReadOnly: boolean;
     interop: DotNetReactDesigner;
+    mode?: DesignerMode;
 }
 
 const nodeTypes = { 'elsa-activity': ActivityNode };
@@ -119,7 +121,7 @@ function toReactFlowEdge(edge: ElsaEdge, index: number): Edge {
         target: edge.target.cell,
         sourceHandle: edge.source.port,
         targetHandle: edge.target.port,
-        data: { vertices: edge.vertices ?? [] } satisfies ElsaEdgeData,
+        data: { vertices: edge.vertices ?? [], structural: edge.shape === 'elsa-sequence-edge' } satisfies ElsaEdgeData,
     };
 }
 
@@ -209,6 +211,66 @@ function fromReactFlowNode(node: Node<ActivityNodeData>): ElsaActivityNode {
     };
 }
 
+function normalizeOrientation(value?: string | null): SequenceLayoutOrientation {
+    return value === 'horizontal' ? 'horizontal' : 'vertical';
+}
+
+function isHorizontal(orientation: SequenceLayoutOrientation): boolean {
+    return orientation === 'horizontal';
+}
+
+function sortSequenceNodes(nodes: Node<ActivityNodeData>[], orientation: SequenceLayoutOrientation): Node<ActivityNodeData>[] {
+    return [...nodes].sort((a, b) => {
+        const primary = isHorizontal(orientation)
+            ? a.position.x - b.position.x
+            : a.position.y - b.position.y;
+        if (primary !== 0) return primary;
+        return isHorizontal(orientation)
+            ? a.position.y - b.position.y
+            : a.position.x - b.position.x;
+    });
+}
+
+function arrangeSequenceNodes(nodes: Node<ActivityNodeData>[], orientation: SequenceLayoutOrientation): Node<ActivityNodeData>[] {
+    const gap = 160;
+    return sortSequenceNodes(nodes, orientation).map((node, index) => ({
+        ...node,
+        position: isHorizontal(orientation)
+            ? { x: index * gap, y: 0 }
+            : { x: 0, y: index * gap },
+    }));
+}
+
+function buildSequenceEdges(nodes: Node<ActivityNodeData>[]): Edge[] {
+    return nodes.slice(0, -1).map((node, index) => {
+        const next = nodes[index + 1];
+        return {
+            id: `${node.id}:Done->${next.id}:In#sequence-${index}`,
+            source: node.id,
+            target: next.id,
+            sourceHandle: 'Done',
+            targetHandle: 'In',
+            type: 'elsa-edge',
+            data: { structural: true, vertices: [] } satisfies ElsaEdgeData,
+        } satisfies Edge;
+    });
+}
+
+function moveSequenceSelection(
+    nodes: Node<ActivityNodeData>[],
+    orientation: SequenceLayoutOrientation,
+    direction: -1 | 1,
+): Node<ActivityNodeData>[] {
+    const ordered = sortSequenceNodes(nodes, orientation);
+    const index = ordered.findIndex(n => n.selected);
+    if (index < 0) return nodes;
+    const target = index + direction;
+    if (target < 0 || target >= ordered.length) return nodes;
+    const next = [...ordered];
+    [next[index], next[target]] = [next[target], next[index]];
+    return arrangeSequenceNodes(next, orientation);
+}
+
 interface HistorySnapshot {
     nodes: Node<ActivityNodeData>[];
     edges: Edge[];
@@ -217,10 +279,12 @@ interface HistorySnapshot {
 const HISTORY_LIMIT = 100;
 
 const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDesigner(props, ref) {
-    const { initialReadOnly, interop } = props;
+    const { initialReadOnly, interop, mode = 'flowchart' } = props;
+    const isSequenceMode = mode === 'sequence';
     const [nodes, setNodes] = useState<Node<ActivityNodeData>[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
     const [readOnly, setReadOnly] = useState<boolean>(initialReadOnly);
+    const [sequenceOrientation, setSequenceOrientationState] = useState<SequenceLayoutOrientation>('vertical');
     const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
     const flow = useReactFlow();
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -384,8 +448,11 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // ----- Imperative handle exposed to .NET via createReactGraph -----------
     useImperativeHandle(ref, () => ({
         setGraph: (graph: ElsaGraph) => {
-            const newNodes = (graph.nodes ?? []).map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
-            const newEdges = (graph.edges ?? []).map(toReactFlowEdge);
+            const orientation = normalizeOrientation(graph.layoutOrientation);
+            setSequenceOrientationState(orientation);
+            const mappedNodes = (graph.nodes ?? []).map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
+            const newNodes = isSequenceMode ? arrangeSequenceNodes(mappedNodes, orientation) : mappedNodes;
+            const newEdges = isSequenceMode ? buildSequenceEdges(newNodes) : (graph.edges ?? []).map(toReactFlowEdge);
             setNodes(newNodes);
             setEdges(newEdges);
             // Reset history on a fresh load.
@@ -408,7 +475,19 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         readGraph: () => ({
             nodes: nodes.map(fromReactFlowNode),
             edges: edges.map(fromReactFlowEdge),
+            layoutOrientation: sequenceOrientation,
         }),
+        setSequenceOrientation: (orientation) => {
+            const normalized = normalizeOrientation(orientation);
+            setSequenceOrientationState(normalized);
+            const arranged = arrangeSequenceNodes(nodesRef.current, normalized);
+            const sequenceEdges = buildSequenceEdges(arranged);
+            setNodes(arranged);
+            if (isSequenceMode) setEdges(sequenceEdges);
+            snapshot(arranged, isSequenceMode ? sequenceEdges : edgesRef.current);
+            requestAnimationFrame(fitToContent);
+            interop.raiseGraphUpdated();
+        },
         addNode: (node, dropPagePosition) => {
             const reactNode = toReactFlowNode(node, onEmbeddedPortClick, onDeleteNode, readOnly);
             if (dropPagePosition) {
@@ -426,6 +505,17 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 ...nodesRef.current.map(n => ({ ...n, selected: false })),
                 { ...reactNode, selected: true },
             ];
+
+            if (isSequenceMode) {
+                const arranged = arrangeSequenceNodes(baseNodes, sequenceOrientation);
+                const sequenceEdges = buildSequenceEdges(arranged);
+                setNodes(arranged);
+                setEdges(sequenceEdges);
+                snapshot(arranged, sequenceEdges);
+                interop.raiseGraphUpdated();
+                requestAnimationFrame(fitToContent);
+                return;
+            }
 
             let nextEdges = edgesRef.current;
             let didSplice = false;
@@ -521,8 +611,10 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         },
         autoLayout: () => {
             setNodes(prev => {
-                const next = dagreLayout(prev, edgesRef.current);
-                snapshot(next, edgesRef.current);
+                const next = isSequenceMode ? arrangeSequenceNodes(prev, sequenceOrientation) : dagreLayout(prev, edgesRef.current);
+                const nextEdges = isSequenceMode ? buildSequenceEdges(next) : edgesRef.current;
+                if (isSequenceMode) setEdges(nextEdges);
+                snapshot(next, nextEdges);
                 requestAnimationFrame(fitToContent);
                 return next;
             });
@@ -531,7 +623,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         pasteCells: (activityNodes, edgeCells) => {
             const newNodes = activityNodes.map(n => toReactFlowNode(n, onEmbeddedPortClick, onDeleteNode, readOnly));
             const stamp = Date.now();
-            const newEdges: Edge[] = edgeCells.map((e, i) => ({
+            const newEdges: Edge[] = isSequenceMode ? [] : edgeCells.map((e, i) => ({
                 id: `${e.source?.cell}:${e.source?.port ?? ''}->${e.target?.cell}:${e.target?.port ?? ''}#paste-${stamp}-${i}`,
                 source: e.source.cell,
                 target: e.target.cell,
@@ -540,17 +632,43 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             }));
             setNodes(prev => {
                 const next = [...prev.map(n => ({ ...n, selected: false })), ...newNodes.map(n => ({ ...n, selected: true }))];
-                snapshot(next, [...edgesRef.current, ...newEdges]);
-                return next;
+                const arranged = isSequenceMode ? arrangeSequenceNodes(next, sequenceOrientation) : next;
+                const nextEdges = isSequenceMode ? buildSequenceEdges(arranged) : [...edgesRef.current, ...newEdges];
+                snapshot(arranged, nextEdges);
+                if (isSequenceMode) setEdges(nextEdges);
+                return arranged;
             });
-            setEdges(prev => [...prev, ...newEdges]);
+            if (!isSequenceMode) setEdges(prev => [...prev, ...newEdges]);
             interop.raiseGraphUpdated();
         },
-    }), [flow, nodes, edges, interop, onEmbeddedPortClick, onDeleteNode, readOnly, snapshot]);
+    }), [flow, nodes, edges, interop, onEmbeddedPortClick, onDeleteNode, readOnly, snapshot, isSequenceMode, sequenceOrientation, fitToContent]);
 
     // ----- Change handlers --------------------------------------------------
     const onNodesChange = useCallback((changes: NodeChange[]) => {
         if (readOnly) return;
+        if (isSequenceMode) {
+            const positionDone = changes.some(c => c.type === 'position' && c.dragging === false);
+            const removeIds = changes
+                .filter((c): c is Extract<NodeChange, { type: 'remove' }> => c.type === 'remove')
+                .map(c => c.id);
+
+            setNodes(prev => {
+                const nonRemoveChanges = changes.filter(c => c.type !== 'remove');
+                const changed = applyNodeChanges(nonRemoveChanges, prev) as Node<ActivityNodeData>[];
+                const remaining = removeIds.length > 0 ? changed.filter(n => !removeIds.includes(n.id)) : changed;
+                const next = positionDone || removeIds.length > 0
+                    ? arrangeSequenceNodes(remaining, sequenceOrientation)
+                    : remaining;
+                const nextEdges = buildSequenceEdges(next);
+                setEdges(nextEdges);
+                if (positionDone || removeIds.length > 0) snapshot(next, nextEdges);
+                return next;
+            });
+
+            if (positionDone || removeIds.length > 0) interop.raiseGraphUpdated();
+            return;
+        }
+
         // c.type discriminates the union; after narrowing, dragging/id are typed.
         const positionDone = changes.some(c => c.type === 'position' && c.dragging === false);
         const removeIds = changes
@@ -575,10 +693,10 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return next;
         });
         if (positionDone) interop.raiseGraphUpdated();
-    }, [readOnly, interop, snapshot, removeNodesWithBridge]);
+    }, [readOnly, interop, snapshot, removeNodesWithBridge, isSequenceMode, sequenceOrientation]);
 
     const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-        if (readOnly) return;
+        if (readOnly || isSequenceMode) return;
         const removed = changes.some(c => c.type === 'remove');
         setEdges(prev => {
             const next = applyEdgeChanges(changes, prev);
@@ -586,10 +704,10 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return next;
         });
         if (removed) interop.raiseGraphUpdated();
-    }, [readOnly, interop, snapshot]);
+    }, [readOnly, interop, snapshot, isSequenceMode]);
 
     const onConnect = useCallback((connection: Connection) => {
-        if (readOnly) return;
+        if (readOnly || isSequenceMode) return;
         if (!connection.source || !connection.target) return;
         const edge: Edge = {
             id: `${connection.source}:${connection.sourceHandle ?? ''}->${connection.target}:${connection.targetHandle ?? ''}#${Date.now()}`,
@@ -604,12 +722,12 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return next;
         });
         interop.raiseGraphUpdated();
-    }, [readOnly, interop, snapshot]);
+    }, [readOnly, interop, snapshot, isSequenceMode]);
 
     // Inline activity picker: when the user releases a connect-drag on empty
     // canvas (not on a target handle), open the picker at the release point.
     const onConnectStart: OnConnectStart = useCallback((_event, params) => {
-        if (readOnly) {
+        if (readOnly || isSequenceMode) {
             connectDragRef.current = null;
             return;
         }
@@ -618,12 +736,12 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         } else {
             connectDragRef.current = null;
         }
-    }, [readOnly]);
+    }, [readOnly, isSequenceMode]);
 
     const onConnectEnd: OnConnectEnd = useCallback((event) => {
         const drag = connectDragRef.current;
         connectDragRef.current = null;
-        if (readOnly || !drag) return;
+        if (readOnly || isSequenceMode || !drag) return;
 
         // If the release happened on a handle/node, React Flow's onConnect
         // already handled it — bail out.
@@ -645,7 +763,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             clientX,
             clientY,
         });
-    }, [readOnly, ensureCatalogLoaded]);
+    }, [readOnly, ensureCatalogLoaded, isSequenceMode]);
 
     // ----- "Arrange" button -------------------------------------------------
     // Re-flows the workflow so the happy path runs left-to-right on the top
@@ -654,12 +772,22 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     const arrangeNodes = useCallback(() => {
         if (readOnlyRef.current) return;
         if (nodesRef.current.length === 0) return;
+        if (isSequenceMode) {
+            const next = arrangeSequenceNodes(nodesRef.current, sequenceOrientation);
+            const nextEdges = buildSequenceEdges(next);
+            setNodes(next);
+            setEdges(nextEdges);
+            snapshot(next, nextEdges);
+            requestAnimationFrame(fitToContent);
+            interop.raiseGraphUpdated();
+            return;
+        }
         const next = arrangeHappyPath(nodesRef.current, edgesRef.current);
         setNodes(next);
         snapshot(next, edgesRef.current);
         requestAnimationFrame(fitToContent);
         interop.raiseGraphUpdated();
-    }, [snapshot, interop, fitToContent]);
+    }, [snapshot, interop, fitToContent, isSequenceMode, sequenceOrientation]);
 
     const closeConnectMenu = useCallback(() => {
         // Drop any pending splice intent so a subsequent unrelated drag-drop
@@ -678,7 +806,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         if (!container) return;
 
         const updateHover = (clientX: number, clientY: number) => {
-            if (readOnlyRef.current) return;
+            if (readOnlyRef.current || isSequenceMode) return;
             const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
             const edgeEl = el?.closest('.react-flow__edge') as HTMLElement | null;
             const edgeId = edgeEl?.getAttribute('data-id') ?? null;
@@ -721,7 +849,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             container.removeEventListener('dragleave', onDragLeave);
             container.removeEventListener('drop', onDrop);
         };
-    }, []);
+    }, [isSequenceMode]);
 
     // Choose which output port a freshly-spliced node should connect FROM:
     // prefer a port literally named "Done", otherwise the first 'out' port,
@@ -742,7 +870,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         const pageY = menu.clientY + window.scrollY;
         setConnectMenu(null);
 
-        if (menu.kind === 'spliceEdge') {
+        if (menu.kind === 'spliceEdge' && !isSequenceMode) {
             // Hand the splice off to addNode via pendingSplitEdgeIdRef. addNode
             // reads & clears the ref, removes the original edge, and inserts
             // two replacement edges (source → new → target).
@@ -753,13 +881,15 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return;
         }
 
-        if (menu.kind === 'fromEmpty') {
+        if (menu.kind === 'fromEmpty' || isSequenceMode) {
             // First-activity flow: just add it. addNode will select it; no
             // edges to wire because there's nothing to connect to.
             await (interop as DotNetReactDesigner)
                 .addActivityAtPosition(descriptor.typeName, descriptor.version, pageX, pageY);
             return;
         }
+
+        if (menu.kind !== 'fromPort') return;
 
         // 'fromPort' mode: add the activity and wire an edge from the original
         // source port to the new node's "In" handle.
@@ -780,7 +910,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             return next;
         });
         interop.raiseGraphUpdated();
-    }, [connectMenu, interop, snapshot]);
+    }, [connectMenu, interop, snapshot, isSequenceMode]);
 
     // Triggered by ElsaEdge's + button. Lazily loads the catalog (same hook
     // the port-drag path uses) and opens the picker at the click point.
@@ -799,7 +929,31 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         setConnectMenu({ kind: 'fromEmpty', clientX: event.clientX, clientY: event.clientY });
     }, [ensureCatalogLoaded]);
 
+    const changeSequenceOrientation = useCallback((orientation: SequenceLayoutOrientation) => {
+        const normalized = normalizeOrientation(orientation);
+        setSequenceOrientationState(normalized);
+        const arranged = arrangeSequenceNodes(nodesRef.current, normalized);
+        const nextEdges = buildSequenceEdges(arranged);
+        setNodes(arranged);
+        setEdges(nextEdges);
+        snapshot(arranged, nextEdges);
+        requestAnimationFrame(fitToContent);
+        interop.raiseGraphUpdated();
+    }, [snapshot, fitToContent, interop]);
+
+    const moveSelectedSequenceNode = useCallback((direction: -1 | 1) => {
+        if (readOnlyRef.current) return;
+        const moved = moveSequenceSelection(nodesRef.current, sequenceOrientation, direction);
+        if (moved === nodesRef.current) return;
+        const nextEdges = buildSequenceEdges(moved);
+        setNodes(moved);
+        setEdges(nextEdges);
+        snapshot(moved, nextEdges);
+        interop.raiseGraphUpdated();
+    }, [sequenceOrientation, snapshot, interop]);
+
     const isValidConnection: IsValidConnection = useCallback((connection) => {
+        if (isSequenceMode) return false;
         const { source, target, sourceHandle, targetHandle } = connection as Connection;
         if (!source || !target || source === target) return false;
         const sourceNode = nodesRef.current.find(n => n.id === source);
@@ -811,7 +965,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         const isTargetIn = targetPorts.some(p => p.id === targetHandle && p.group === 'in')
             || targetPorts.every(p => p.group !== 'in');
         return isSourceOut && isTargetIn;
-    }, []);
+    }, [isSequenceMode]);
 
     const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
         const activity = (node.data as unknown as ActivityNodeData).activity;
@@ -889,13 +1043,13 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // the live state (after React Flow applied its own delta) and snap by
     // patching the node position. Guides are visible only mid-drag.
     const onNodeDrag: NodeMouseHandler = useCallback((_event, draggedNode) => {
-        if (readOnly) return;
+        if (readOnly || isSequenceMode) return;
         const { position, guides } = computeSnap(draggedNode, nodesRef.current);
         if (position.x !== draggedNode.position.x || position.y !== draggedNode.position.y) {
             setNodes(prev => prev.map(n => (n.id === draggedNode.id ? { ...n, position } : n)));
         }
         setSnapGuides(guides);
-    }, [readOnly]);
+    }, [readOnly, isSequenceMode]);
 
     const onNodeDragStart = useCallback(() => {
         if (readOnly) return;
@@ -904,7 +1058,15 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
 
     const onNodeDragStop = useCallback(() => {
         setSnapGuides([]);
-    }, []);
+        if (isSequenceMode && !readOnlyRef.current) {
+            const arranged = arrangeSequenceNodes(nodesRef.current, sequenceOrientation);
+            const nextEdges = buildSequenceEdges(arranged);
+            setNodes(arranged);
+            setEdges(nextEdges);
+            snapshot(arranged, nextEdges);
+            interop.raiseGraphUpdated();
+        }
+    }, [isSequenceMode, sequenceOrientation, snapshot, interop]);
 
     // ----- Keyboard: copy / paste / undo / redo -----------------------------
     // React Flow already handles Delete/Backspace via deleteKeyCode; we layer
@@ -970,10 +1132,14 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 };
                 setNodes(prev => {
                     const next = prev.filter(n => !selectedIds.has(n.id));
-                    snapshot(next, edgesRef.current.filter(eg => !selectedIds.has(eg.source) && !selectedIds.has(eg.target)));
+                    const nextEdges = isSequenceMode
+                        ? buildSequenceEdges(next)
+                        : edgesRef.current.filter(eg => !selectedIds.has(eg.source) && !selectedIds.has(eg.target));
+                    snapshot(next, nextEdges);
+                    if (isSequenceMode) setEdges(nextEdges);
                     return next;
                 });
-                setEdges(prev => prev.filter(eg => !selectedIds.has(eg.source) && !selectedIds.has(eg.target)));
+                if (!isSequenceMode) setEdges(prev => prev.filter(eg => !selectedIds.has(eg.source) && !selectedIds.has(eg.target)));
                 interop.raiseGraphUpdated();
                 e.preventDefault();
                 return;
@@ -984,7 +1150,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 // Send to .NET so it generates fresh IDs and processes embedded ports;
                 // .NET will then call back into pasteReactCells.
                 const activityCells = clip.nodes.map(n => fromReactFlowNode(n));
-                const edgeCells = clip.edges.map(eg => ({
+                const edgeCells = isSequenceMode ? [] : clip.edges.map(eg => ({
                     shape: 'elsa-edge',
                     source: { cell: eg.source, port: eg.sourceHandle ?? '' },
                     target: { cell: eg.target, port: eg.targetHandle ?? '' },
@@ -1002,7 +1168,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
 
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [undo, redo, snapshot, interop]);
+    }, [undo, redo, snapshot, interop, isSequenceMode]);
 
     // hideAttribution=true requires a React Flow Pro licence; we don't have one, so leave it
     // false to keep the default attribution visible per @xyflow/react's open-source terms.
@@ -1061,7 +1227,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 onNodeDragStop={onNodeDragStop}
                 onPaneClick={onPaneClick}
                 nodesDraggable={!readOnly}
-                nodesConnectable={!readOnly}
+                nodesConnectable={!readOnly && !isSequenceMode}
                 elementsSelectable={true}
                 deleteKeyCode={readOnly ? null : ['Delete', 'Backspace']}
                 multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
@@ -1074,6 +1240,46 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 <SnapLines guides={snapGuides} />
                 {!readOnly && (
                     <Panel position="top-right" className="elsa-react-flow-toolbar">
+                        {isSequenceMode && (
+                            <>
+                                <button
+                                    type="button"
+                                    className={`elsa-react-flow-toolbar-btn${sequenceOrientation === 'vertical' ? ' active' : ''}`}
+                                    onClick={() => changeSequenceOrientation('vertical')}
+                                    title="Use vertical Sequence layout"
+                                    aria-label="Use vertical Sequence layout"
+                                >
+                                    Vertical
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`elsa-react-flow-toolbar-btn${sequenceOrientation === 'horizontal' ? ' active' : ''}`}
+                                    onClick={() => changeSequenceOrientation('horizontal')}
+                                    title="Use horizontal Sequence layout"
+                                    aria-label="Use horizontal Sequence layout"
+                                >
+                                    Horizontal
+                                </button>
+                                <button
+                                    type="button"
+                                    className="elsa-react-flow-toolbar-btn"
+                                    onClick={() => moveSelectedSequenceNode(-1)}
+                                    title="Move selected activity earlier"
+                                    aria-label="Move selected activity earlier"
+                                >
+                                    Earlier
+                                </button>
+                                <button
+                                    type="button"
+                                    className="elsa-react-flow-toolbar-btn"
+                                    onClick={() => moveSelectedSequenceNode(1)}
+                                    title="Move selected activity later"
+                                    aria-label="Move selected activity later"
+                                >
+                                    Later
+                                </button>
+                            </>
+                        )}
                         <button
                             type="button"
                             className="elsa-react-flow-toolbar-btn"

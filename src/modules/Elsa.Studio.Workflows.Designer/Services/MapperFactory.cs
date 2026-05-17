@@ -18,6 +18,15 @@ internal class MapperFactory(IActivityRegistry activityRegistry, IActivityPortSe
     /// <summary>
     /// Provides the task.
     /// </summary>
+    public async Task<ISequenceMapper> CreateSequenceMapperAsync(CancellationToken cancellationToken = default)
+    {
+        var activityMapper = await CreateActivityMapperAsync(cancellationToken);
+        return new SequenceMapper(activityMapper);
+    }
+
+    /// <summary>
+    /// Provides the task.
+    /// </summary>
     public async Task<IActivityMapper> CreateActivityMapperAsync(CancellationToken cancellationToken = default)
     {
         await activityRegistry.EnsureLoadedAsync(cancellationToken);

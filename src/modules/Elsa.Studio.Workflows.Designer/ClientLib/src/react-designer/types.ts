@@ -66,9 +66,13 @@ export interface ElsaEdge {
     vertices?: ElsaPosition[];
 }
 
+export type DesignerMode = 'flowchart' | 'sequence';
+export type SequenceLayoutOrientation = 'vertical' | 'horizontal';
+
 export interface ElsaGraph {
     nodes: ElsaActivityNode[];
     edges: ElsaEdge[];
+    layoutOrientation?: SequenceLayoutOrientation;
 }
 
 export interface DotNetComponentRef {
@@ -78,6 +82,7 @@ export interface DotNetComponentRef {
 
 export interface ReactDesignerSettings {
     readOnly?: boolean;
+    mode?: DesignerMode;
     grid?: {
         visible?: boolean;
         color?: string;
