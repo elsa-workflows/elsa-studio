@@ -132,20 +132,20 @@ public class SignalRConsoleLogObserver(
     {
         connection.On<ConsoleLogLine>("ReceiveConsoleLineAsync", async line =>
         {
-            if (LineReceived != null)
-                await LineReceived(line);
+            if (LineReceived is { } handler)
+                await handler(line);
         });
 
         connection.On<ConsoleLogDroppedLineSummary>("ReceiveDroppedLinesAsync", async summary =>
         {
-            if (DroppedLinesReceived != null)
-                await DroppedLinesReceived(summary);
+            if (DroppedLinesReceived is { } handler)
+                await handler(summary);
         });
 
         connection.On<ConsoleLogSource>("ReceiveSourceChangedAsync", async source =>
         {
-            if (SourceChanged != null)
-                await SourceChanged(source);
+            if (SourceChanged is { } handler)
+                await handler(source);
         });
     }
 
@@ -173,7 +173,7 @@ public class SignalRConsoleLogObserver(
 
     private async Task PublishStatusAsync(ConsoleLogConnectionStatus status)
     {
-        if (ConnectionStatusChanged != null)
-            await ConnectionStatusChanged(status);
+        if (ConnectionStatusChanged is { } handler)
+            await handler(status);
     }
 }

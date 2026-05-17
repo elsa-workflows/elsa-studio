@@ -143,7 +143,21 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected async Task ExportVisibleAsync()
     {
-        await CopyTextAsync(ExportFormatter.FormatVisibleRows(Rows), $"{Rows.Count} console row(s) exported to clipboard.");
+        var text = ExportFormatter.FormatVisibleRows(Rows);
+
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+
+        try
+        {
+            var module = await GetScriptModuleAsync();
+            await module.InvokeVoidAsync("downloadTextFile", CreateExportFileName(DateTimeOffset.Now), text, "text/tab-separated-values;charset=utf-8");
+            Snackbar.Add($"{Rows.Count} console row(s) exported.", Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add("Unable to export. Check browser download permissions.", Severity.Warning);
+        }
     }
 
     protected async Task SetSourceAsync(string? sourceId)
@@ -209,6 +223,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     }
 
     protected static string FormatTimestamp(DateTimeOffset timestamp) => timestamp.ToLocalTime().ToString("HH:mm:ss.fff");
+    protected static string CreateExportFileName(DateTimeOffset timestamp) => $"diagnostics-console-logs-{timestamp:yyyyMMdd-HHmmss}.tsv";
     protected static string StreamCssClass(ConsoleLogStream stream) => $"console-log-stream console-log-stream-{ConsoleLogExportFormatter.StreamLabel(stream)}";
     protected string RowCssClass(ConsoleLogLine line) => $"console-log-row console-log-row-{ConsoleLogExportFormatter.StreamLabel(line.Stream)}";
     protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : StripAnsi(line.Text);
@@ -448,28 +463,70 @@ public partial class ConsoleLogs : IAsyncDisposable
         return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsed);
     }
 
-    private static string StripAnsi(string text)
+    protected static string StripAnsi(string text)
     {
         var builder = new StringBuilder(text.Length);
-        var inEscape = false;
 
-        foreach (var character in text)
+        for (var i = 0; i < text.Length; i++)
         {
-            if (character == '\u001b')
+            var character = text[i];
+
+            if (character != '\u001b')
             {
-                inEscape = true;
+                builder.Append(character);
                 continue;
             }
 
-            if (inEscape)
+            if (i + 1 >= text.Length)
+                break;
+
+            var introducer = text[++i];
+
+            if (introducer == '[')
             {
-                if (char.IsLetter(character))
-                    inEscape = false;
+                while (i + 1 < text.Length)
+                {
+                    var next = text[++i];
+
+                    if (next is >= '@' and <= '~')
+                        break;
+                }
 
                 continue;
             }
 
-            builder.Append(character);
+            if (introducer == ']')
+            {
+                while (i + 1 < text.Length)
+                {
+                    var next = text[++i];
+
+                    if (next == '\a')
+                        break;
+
+                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
+                    {
+                        i++;
+                        break;
+                    }
+                }
+
+                continue;
+            }
+
+            if (introducer is 'P' or '^' or '_' or 'X')
+            {
+                while (i + 1 < text.Length)
+                {
+                    var next = text[++i];
+
+                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
+                    {
+                        i++;
+                        break;
+                    }
+                }
+            }
         }
 
         return builder.ToString();
