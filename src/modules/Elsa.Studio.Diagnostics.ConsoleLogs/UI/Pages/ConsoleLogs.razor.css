@@ -102,6 +102,17 @@
     color: #a9b7c6;
 }
 
+.console-log-source-health {
+    border: 1px solid var(--mud-palette-warning);
+    border-radius: 3px;
+    color: var(--mud-palette-warning);
+    font-size: .68rem;
+    font-weight: 700;
+    margin-left: 4px;
+    padding: 0 3px;
+    text-transform: uppercase;
+}
+
 .console-log-stream {
     border-radius: 3px;
     font-size: .72rem;

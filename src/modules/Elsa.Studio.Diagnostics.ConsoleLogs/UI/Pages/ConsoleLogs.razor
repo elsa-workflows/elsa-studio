@@ -82,7 +82,13 @@
                 <MudSelectItem T="string?" Value="@(null)">@Localizer["All sources"]</MudSelectItem>
                 @foreach (var source in Sources)
                 {
-                    <MudSelectItem T="string?" Value="@source.Id">@SourceDisplayName(source)</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@source.Id">
+                        <span>@SourceDisplayName(source)</span>
+                        @if (HasSourceHealthBadge(source))
+                        {
+                            <span class="console-log-source-health">@source.Health</span>
+                        }
+                    </MudSelectItem>
                 }
             </MudSelect>
 
@@ -132,7 +138,13 @@
                 <article class="@RowCssClass(line)">
                     <time class="console-log-time" title="@line.Timestamp.ToString("O")">@FormatTimestamp(line.Timestamp)</time>
                     <span class="@StreamCssClass(line.Stream)">@ConsoleLogExportFormatter.StreamLabel(line.Stream)</span>
-                    <span class="console-log-source" title="@SourceTitle(line.Source)">@Shorten(SourceDisplayName(line.Source), 32)</span>
+                    <span class="console-log-source" title="@SourceTitle(line.Source)">
+                        @Shorten(SourceDisplayName(line.Source), 32)
+                        @if (HasSourceHealthBadge(line.Source))
+                        {
+                            <span class="console-log-source-health">@line.Source.Health</span>
+                        }
+                    </span>
                     <span class="console-log-text">@TextHighlighter.Highlight(DisplayText(line), ViewState.Filter.Text)</span>
 
                     @if (line.IsTruncated)

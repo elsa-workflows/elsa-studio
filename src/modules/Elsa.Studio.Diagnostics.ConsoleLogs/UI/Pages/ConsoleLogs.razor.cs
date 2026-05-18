@@ -254,6 +254,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
+    protected static bool HasSourceHealthBadge(ConsoleLogSource source) => source.Health is not ConsoleLogSourceHealth.Connected and not ConsoleLogSourceHealth.Unknown;
 
     protected static string SourceTitle(ConsoleLogSource source)
     {
