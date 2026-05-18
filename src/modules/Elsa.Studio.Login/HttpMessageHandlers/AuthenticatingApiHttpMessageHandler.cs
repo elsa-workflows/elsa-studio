@@ -17,7 +17,9 @@ public class AuthenticatingApiHttpMessageHandler(IRefreshTokenService refreshTok
         var sp = blazorServiceAccessor.Services;
         var jwtAccessor = sp.GetRequiredService<IJwtAccessor>();
         var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
-        request.Headers.Authorization = new("Bearer", accessToken);
+
+        if (!string.IsNullOrWhiteSpace(accessToken))
+            request.Headers.Authorization = new("Bearer", accessToken);
 
         var response = await base.SendAsync(request, cancellationToken);
 
@@ -25,6 +27,10 @@ public class AuthenticatingApiHttpMessageHandler(IRefreshTokenService refreshTok
         {
             // Refresh token and retry once.
             var tokens = await refreshTokenService.RefreshTokenAsync(cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(tokens.AccessToken))
+                return response;
+
             request.Headers.Authorization = new("Bearer", tokens.AccessToken);
 
             // Retry.

@@ -57,5 +57,12 @@ public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMe
         {
             return false;
         }
+        catch (InvalidOperationException e) when (IsJavaScriptInteropUnavailable(e))
+        {
+            return false;
+        }
     }
+
+    private static bool IsJavaScriptInteropUnavailable(InvalidOperationException e) =>
+        e.Message.Contains("JavaScript interop calls cannot be issued at this time", StringComparison.Ordinal);
 }
