@@ -6,6 +6,7 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
+using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Host.Server;
@@ -116,6 +117,7 @@ builder.Services.AddRemoteBackend(backendApiConfig);
 
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
+builder.Services.AddAlterationsModule();
 builder.Services.AddConsoleLogsModule(backendApiConfig);
 builder.Services.AddStructuredLogsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);

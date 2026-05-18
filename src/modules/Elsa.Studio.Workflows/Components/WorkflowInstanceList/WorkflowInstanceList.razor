@@ -271,6 +271,7 @@
             <MudTd DataLabel="" Style="text-align:right">
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
                     <MudMenuItem Icon="@Icons.Material.Outlined.ZoomIn" OnClick="@(() => OnViewClicked(context.WorkflowInstanceId))">@Localizer["View"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Tune" Disabled="@(context.Status != WorkflowStatus.Running)" OnClick="@(() => OnAlterClicked(context))">@Localizer["Alter"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(context.FinishedAt != null)" OnClick="@(() => OnCancelClicked(context))">@Localizer["Cancel"]</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))">@Localizer["Delete"]</MudMenuItem>
                     @* Disabled until we fix an issue with Workflow Instance Exports. *@
