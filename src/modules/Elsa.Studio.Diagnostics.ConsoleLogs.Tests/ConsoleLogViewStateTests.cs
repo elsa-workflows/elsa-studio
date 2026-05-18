@@ -19,7 +19,7 @@ public class ConsoleLogViewStateTests
     }
 
     [Fact]
-    public void AddVisibleLine_WhenPaused_IncrementsPendingCount()
+    public void AddIncomingLine_WhenPaused_IncrementsPendingCount()
     {
         var state = new ConsoleLogViewState { IsPaused = true };
 

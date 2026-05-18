@@ -57,7 +57,7 @@ public class SignalRConsoleLogObserver(
             await DisposeConnectionAsync(false);
             await PublishStatusAsync(ConsoleLogConnectionStatus.Unavailable);
         }
-        catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized)
+        catch (HttpRequestException e) when (IsAuthorizationFailure(e))
         {
             await DisposeConnectionAsync(false);
             await PublishStatusAsync(ConsoleLogConnectionStatus.Unauthorized);
@@ -116,6 +116,10 @@ public class SignalRConsoleLogObserver(
                     await connection.SendAsync("SubscribeAsync", CurrentFilter, CancellationToken.None);
 
                 await PublishStatusAsync(ConsoleLogConnectionStatus.Connected);
+            }
+            catch (HttpRequestException e) when (IsAuthorizationFailure(e))
+            {
+                await PublishStatusAsync(ConsoleLogConnectionStatus.Unauthorized);
             }
             catch (Exception e)
             {
@@ -176,4 +180,6 @@ public class SignalRConsoleLogObserver(
         if (ConnectionStatusChanged is { } handler)
             await handler(status);
     }
+
+    private static bool IsAuthorizationFailure(HttpRequestException e) => e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
 }
