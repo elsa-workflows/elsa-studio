@@ -112,7 +112,7 @@ Resolved decisions:
 - Use a dedicated `Elsa.Studio.Diagnostics.ConsoleLogs` module rather than extending StructuredLogs.
 - Use `/diagnostics/console` as the Studio route and `Console` as the Diagnostics navigation label.
 - Hide the navigation item when the remote feature or permission is unavailable; direct navigation renders a page state.
-- Use `/diagnostics/console-logs` REST endpoints and `/hubs/diagnostics/console-logs` SignalR hub path for the Studio-facing client contracts.
+- Use `/diagnostics/console-logs` REST endpoints and a relative `hubs/diagnostics/console-logs` SignalR hub URL; with the default `/elsa/api` backend base this resolves to `/elsa/hubs/diagnostics/console-logs`.
 - Use server-side text filtering for recent backfill and live subscriptions.
 - Use stable backend `source.id` for source filters, live subscriptions, URL state, and stale-source selection.
 - Preserve URL state through `source`, `stream`, `text`, `from`, `to`, `wrap`, `compact`, `ansi`, and `follow`.

@@ -5,8 +5,10 @@
 Build from `IBackendApiClientProvider.Url`:
 
 ```text
-{backendUrl}/hubs/diagnostics/console-logs
+new Uri(backendUrl, "hubs/diagnostics/console-logs")
 ```
+
+With the default Studio backend API base ending in `/elsa/api`, this resolves to `/elsa/hubs/diagnostics/console-logs`.
 
 The hub connection must be authenticated by passing the captured `HttpConnectionOptions` through `IHttpConnectionOptionsConfigurator.ConfigureAsync`.
 

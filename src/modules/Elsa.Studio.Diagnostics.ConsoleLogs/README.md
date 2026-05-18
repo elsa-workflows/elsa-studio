@@ -28,9 +28,9 @@ When the feature or permission is unavailable, Studio hides the Diagnostics `Con
 
 - Recent lines: `POST /diagnostics/console-logs/recent`
 - Sources: `GET /diagnostics/console-logs/sources`
-- Live hub: `/hubs/diagnostics/console-logs`
+- Live hub: `hubs/diagnostics/console-logs` resolved from `IBackendApiClientProvider.Url`
 
-The live hub is authenticated through `IHttpConnectionOptionsConfigurator`, and REST calls use `IBackendApiClientProvider`.
+With the default backend API base ending in `/elsa/api`, the relative hub URL resolves to `/elsa/hubs/diagnostics/console-logs`, matching the existing Structured Logs hub pattern. The live hub is authenticated through `IHttpConnectionOptionsConfigurator`, and REST calls use `IBackendApiClientProvider`.
 
 ## Structured Logs Distinction
 

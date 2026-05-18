@@ -8,7 +8,7 @@
 - Backend contract expected by Studio:
   - `POST /diagnostics/console-logs/recent`
   - `GET /diagnostics/console-logs/sources`
-  - SignalR hub at `/hubs/diagnostics/console-logs`
+  - SignalR hub resolved from `hubs/diagnostics/console-logs`; with the default `/elsa/api` backend base this is `/elsa/hubs/diagnostics/console-logs`
 
 ## Build
 

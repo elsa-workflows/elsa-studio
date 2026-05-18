@@ -24,9 +24,9 @@
 
 ## Decision: Use diagnostics console logs REST and SignalR paths
 
-**Decision**: Use `/diagnostics/console-logs/recent` and `/diagnostics/console-logs/sources` for REST client contracts, and `/hubs/diagnostics/console-logs` for the live SignalR hub.
+**Decision**: Use `/diagnostics/console-logs/recent` and `/diagnostics/console-logs/sources` for REST client contracts, and build the live SignalR hub as `new Uri(backendUrl, "hubs/diagnostics/console-logs")`.
 
-**Rationale**: These paths align with the existing `/diagnostics/structured-logs` convention while preserving `/diagnostics/console` as the user-facing Studio route. The `console-logs` segment stays explicit for backend endpoints and avoids ambiguity with generic console UI.
+**Rationale**: These paths align with the existing `/diagnostics/structured-logs` convention while preserving `/diagnostics/console` as the user-facing Studio route. With the default backend API base ending in `/elsa/api`, the relative hub URL resolves to `/elsa/hubs/diagnostics/console-logs`, matching the Structured Logs hub pattern. The `console-logs` segment stays explicit for backend endpoints and avoids ambiguity with generic console UI.
 
 **Alternatives considered**:
 
