@@ -191,6 +191,7 @@
     private bool _loading = true;
     private Timer? _pollingTimer;
     private readonly HashSet<string> _expandedJobs = new();
+    private string? _loadedPlanId;
 
     private void ToggleJob(string jobId)
     {
@@ -215,7 +216,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_plan != null && _plan.Id != Id)
+        if (_loadedPlanId != Id)
         {
             StopPolling();
             await LoadAsync();
@@ -248,6 +249,7 @@
     private async Task LoadAsync()
     {
         _loading = true;
+        _loadedPlanId = Id;
         StateHasChanged();
         try
         {

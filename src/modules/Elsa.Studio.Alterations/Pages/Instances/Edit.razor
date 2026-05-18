@@ -50,6 +50,7 @@ else
     private WorkflowDefinition? _definition;
     private JsonObject? _flowchart;
     private bool _loading = true;
+    private string? _loadedInstanceId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,15 +59,18 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_instance != null && _instance.Id != InstanceId)
-        {
-            _loading = true;
+        if (_loadedInstanceId != InstanceId)
             await LoadAsync();
-        }
     }
 
     private async Task LoadAsync()
     {
+        _loading = true;
+        _loadedInstanceId = InstanceId;
+        _instance = null;
+        _definition = null;
+        _flowchart = null;
+
         try
         {
             _instance = await WorkflowInstanceService.GetAsync(InstanceId);
@@ -82,6 +86,12 @@ else
                              ?? _definition?.Root?.FindActivitiesContainer()
                              ?? _definition?.Root;
             }
+        }
+        catch
+        {
+            _instance = null;
+            _definition = null;
+            _flowchart = null;
         }
         finally
         {
