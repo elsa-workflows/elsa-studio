@@ -5,7 +5,9 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Refit;
 using System.Globalization;
+using System.Net;
 using System.Text;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages;
@@ -266,6 +268,12 @@ public partial class ConsoleLogs : IAsyncDisposable
             await Observer.StartAsync(ViewState.Filter, cancellationToken);
             await ScrollToBottomAsync();
         }
+        catch (Exception e) when (IsAuthorizationFailure(e))
+        {
+            ErrorMessage = null;
+            ViewState.ConnectionStatus = ConsoleLogConnectionStatus.Unauthorized;
+            Snackbar.Add(StateMessage ?? "You do not have permission to view diagnostics console logs.", Severity.Error);
+        }
         catch (Exception e) when (e is not OperationCanceledException)
         {
             ErrorMessage = e.Message;
@@ -308,6 +316,15 @@ public partial class ConsoleLogs : IAsyncDisposable
                 return;
 
             await ScrollToBottomAsync();
+        }
+        catch (Exception e) when (IsAuthorizationFailure(e))
+        {
+            if (!IsCurrentRefresh(refreshVersion))
+                return;
+
+            ErrorMessage = null;
+            ViewState.ConnectionStatus = ConsoleLogConnectionStatus.Unauthorized;
+            Snackbar.Add(StateMessage ?? "You do not have permission to view diagnostics console logs.", Severity.Error);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
@@ -358,20 +375,29 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     private Task OnDroppedLinesReceivedAsync(ConsoleLogDroppedLineSummary summary)
     {
-        BackendDroppedCount += summary.DroppedLineCount;
-        return InvokeAsync(StateHasChanged);
+        return InvokeAsync(() =>
+        {
+            BackendDroppedCount += summary.DroppedLineCount;
+            StateHasChanged();
+        });
     }
 
     private Task OnConnectionStatusChangedAsync(ConsoleLogConnectionStatus status)
     {
-        ViewState.ConnectionStatus = status;
-        return InvokeAsync(StateHasChanged);
+        return InvokeAsync(() =>
+        {
+            ViewState.ConnectionStatus = status;
+            StateHasChanged();
+        });
     }
 
     private Task OnSourceChangedAsync(ConsoleLogSource source)
     {
-        MergeSources([source]);
-        return InvokeAsync(StateHasChanged);
+        return InvokeAsync(() =>
+        {
+            MergeSources([source]);
+            StateHasChanged();
+        });
     }
 
     private void MergeSources(IEnumerable<ConsoleLogSource> sources)
@@ -449,6 +475,16 @@ public partial class ConsoleLogs : IAsyncDisposable
     private static string? NormalizeFilterText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private bool IsCurrentRefresh(long refreshVersion) => Interlocked.Read(ref _refreshVersion) == refreshVersion;
+
+    private static bool IsAuthorizationFailure(Exception e)
+    {
+        return e switch
+        {
+            ApiException { StatusCode: HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden } => true,
+            HttpRequestException { StatusCode: HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden } => true,
+            _ => false
+        };
+    }
 
     private static ConsoleLogFilter CopyFilter(ConsoleLogFilter filter) => new()
     {
