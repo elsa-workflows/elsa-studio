@@ -86,6 +86,7 @@ public partial class AlterationDesignerHost : IDisposable
     {
         Staging.Clear();
         _variables = null;
+        _variablesLoading = false;
         _selectedActivityId = null;
         _selectedActivityName = null;
         _selectedActivityType = null;

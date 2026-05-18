@@ -151,6 +151,7 @@
     private bool _polling = true;
     private Timer? _pollingTimer;
     private Dictionary<string, PlanRowSummary> _planSummaries = new();
+    private int _summaryLoadVersion;
 
     protected override void OnInitialized() => StartPolling();
 
@@ -200,7 +201,8 @@
         // Fan out per-plan detail fetches in parallel after the table renders. Real plan/job
         // status comes from IAlterationsApi.GetAsync — the system workflow's Status/SubStatus is
         // unreliable (commonly stuck at Suspended even after all jobs complete).
-        _ = LoadPlanSummariesAsync(response.Items.ToList(), ct);
+        var summaryLoadVersion = Interlocked.Increment(ref _summaryLoadVersion);
+        _ = LoadPlanSummariesAsync(response.Items.ToList(), summaryLoadVersion, ct);
 
         return new TableData<WorkflowInstanceSummary>
         {
@@ -209,7 +211,7 @@
         };
     }
 
-    private async Task LoadPlanSummariesAsync(IList<WorkflowInstanceSummary> instances, CancellationToken ct)
+    private async Task LoadPlanSummariesAsync(IList<WorkflowInstanceSummary> instances, int loadVersion, CancellationToken ct)
     {
         try
         {
@@ -232,6 +234,9 @@
                     return (Id: id, Summary: BuildErrorSummary());
                 }
             }));
+
+            if (loadVersion != Volatile.Read(ref _summaryLoadVersion))
+                return;
 
             _planSummaries = fetched.ToDictionary(x => x.Id, x => x.Summary);
             await InvokeAsync(StateHasChanged);
