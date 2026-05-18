@@ -67,7 +67,7 @@
         {
             <MudButton OnClick="OnCancel" Disabled="_busy">@Localizer["Cancel"]</MudButton>
 
-            @if (_step > 0 && !_busy)
+            @if (_step > 0 && !_busy && !_submitted)
             {
                 <MudButton Variant="Variant.Outlined"
                            StartIcon="@Icons.Material.Outlined.NavigateBefore"
@@ -110,6 +110,10 @@
     private int _step;
     private string _previewJson = "";
     private bool _busy;
+    // Latched true on the first SubmitAsync call. Prevents a second submit after a transient
+    // failure (e.g. client-side timeout where the server may have already created the plan).
+    // Once set, Back is hidden; the user must Cancel and reopen the dialog to retry.
+    private bool _submitted;
     private string? _error;
     private string? _resultPlanId;
 
@@ -221,6 +225,7 @@
     private async Task SubmitAsync()
     {
         _busy = true;
+        _submitted = true;
         _error = null;
         _step = 2;
         StateHasChanged();

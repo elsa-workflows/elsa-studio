@@ -187,8 +187,9 @@
         _loadingVersions = true;
         try
         {
-            // Pull every version (published + drafts) so the user can pick exactly the one they
-            // want to migrate to. Versions=All; the server filters via VersionOptions.
+            // Only published versions are valid migration targets — the server's alteration
+            // handler rejects drafts, so listing them would just set up a guaranteed-failure
+            // submit.
             var request = new ListWorkflowDefinitionsRequest
             {
                 DefinitionIds = new[] { DefinitionId },
@@ -197,7 +198,7 @@
             };
             var response = await WorkflowDefinitionService.ListAsync(
                 request,
-                Elsa.Api.Client.Shared.Models.VersionOptions.All);
+                Elsa.Api.Client.Shared.Models.VersionOptions.Published);
             _versions = response.Items.OrderByDescending(v => v.Version).ToList();
         }
         catch
