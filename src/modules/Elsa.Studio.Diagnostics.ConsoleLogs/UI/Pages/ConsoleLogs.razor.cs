@@ -8,6 +8,7 @@ using MudBlazor;
 using Refit;
 using System.Globalization;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages;
@@ -20,11 +21,14 @@ public partial class ConsoleLogs : IAsyncDisposable
 {
     private const string LogSurfaceId = "console-logs-surface";
     private readonly List<ConsoleLogSource> _sources = new();
+    private readonly List<ConsoleLogLine> _refreshBufferedLines = new();
+    private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
     private string? _fromFilterText;
     private string? _toFilterText;
     private bool _queryInitialized;
+    private bool _isRefreshing;
     private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
@@ -243,7 +247,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected static string CreateExportFileName(DateTimeOffset timestamp) => $"diagnostics-console-logs-{timestamp:yyyyMMdd-HHmmss}.tsv";
     protected static string StreamCssClass(ConsoleLogStream stream) => $"console-log-stream console-log-stream-{ConsoleLogExportFormatter.StreamLabel(stream)}";
     protected string RowCssClass(ConsoleLogLine line) => $"console-log-row console-log-row-{ConsoleLogExportFormatter.StreamLabel(line.Stream)}";
-    protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : StripAnsi(line.Text);
+    protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
 
@@ -306,6 +310,8 @@ public partial class ConsoleLogs : IAsyncDisposable
         var refreshVersion = Interlocked.Increment(ref _refreshVersion);
         var filter = CopyFilter(ViewState.Filter);
         IsLoading = true;
+        _isRefreshing = true;
+        _refreshBufferedLines.Clear();
         ErrorMessage = null;
         UpdateUrlFromState();
 
@@ -333,6 +339,8 @@ public partial class ConsoleLogs : IAsyncDisposable
             if (!IsCurrentRefresh(refreshVersion))
                 return;
 
+            FlushRefreshBufferedLines();
+            _isRefreshing = false;
             await ScrollToBottomAsync();
         }
         catch (Exception e) when (IsAuthorizationFailure(e))
@@ -357,6 +365,8 @@ public partial class ConsoleLogs : IAsyncDisposable
         {
             if (IsCurrentRefresh(refreshVersion))
             {
+                _isRefreshing = false;
+                _refreshBufferedLines.Clear();
                 IsLoading = false;
                 await InvokeAsync(StateHasChanged);
             }
@@ -372,21 +382,16 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     private Task OnLineReceivedAsync(ConsoleLogLine line)
     {
-        if (ViewState.IsPaused)
-        {
-            return InvokeAsync(() =>
-            {
-                ViewState.AddIncomingLine(line);
-                StateHasChanged();
-            });
-        }
-
         return InvokeAsync(async () =>
         {
-            ViewState.AddIncomingLine(line);
+            if (_isRefreshing)
+                _refreshBufferedLines.Add(line);
+            else
+                ViewState.AddIncomingLine(line);
+
             StateHasChanged();
 
-            if (ViewState.FollowTail)
+            if (!_isRefreshing && !ViewState.IsPaused && ViewState.FollowTail)
                 await ScrollToBottomAsync();
         });
     }
@@ -490,6 +495,38 @@ public partial class ConsoleLogs : IAsyncDisposable
         return _scriptModule;
     }
 
+    private string GetStrippedText(ConsoleLogLine line)
+    {
+        if (!_strippedTextCache.TryGetValue(line, out var cachedText))
+        {
+            cachedText = new StrippedConsoleLogText(StripAnsi(line.Text));
+            _strippedTextCache.Add(line, cachedText);
+        }
+
+        return cachedText.Text;
+    }
+
+    private void FlushRefreshBufferedLines()
+    {
+        if (_refreshBufferedLines.Count == 0)
+            return;
+
+        var visibleIds = Rows
+            .Where(x => !string.IsNullOrWhiteSpace(x.Id))
+            .Select(x => x.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var line in _refreshBufferedLines)
+        {
+            if (!string.IsNullOrWhiteSpace(line.Id) && !visibleIds.Add(line.Id))
+                continue;
+
+            ViewState.AddIncomingLine(line);
+        }
+
+        _refreshBufferedLines.Clear();
+    }
+
     private static string? NormalizeFilterText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private bool IsCurrentRefresh(long refreshVersion) => Interlocked.Read(ref _refreshVersion) == refreshVersion;
@@ -517,6 +554,11 @@ public partial class ConsoleLogs : IAsyncDisposable
     private static bool TryParseDateTimeOffset(string? value, out DateTimeOffset parsed)
     {
         return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsed);
+    }
+
+    private sealed class StrippedConsoleLogText(string text)
+    {
+        public string Text { get; } = text;
     }
 
     protected static string StripAnsi(string text)
