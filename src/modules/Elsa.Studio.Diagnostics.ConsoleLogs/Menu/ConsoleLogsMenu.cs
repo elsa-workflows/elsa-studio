@@ -41,11 +41,19 @@ public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMe
         {
             return false;
         }
+        catch (ApiException)
+        {
+            return false;
+        }
         catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
             return false;
         }
         catch (HttpRequestException)
+        {
+            return false;
+        }
+        catch (TaskCanceledException)
         {
             return false;
         }

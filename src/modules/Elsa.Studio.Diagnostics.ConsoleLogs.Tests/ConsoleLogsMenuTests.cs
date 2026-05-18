@@ -33,7 +33,17 @@ public class ConsoleLogsMenuTests
     [Fact]
     public async Task GetMenuItemsAsync_WhenRemoteFeatureCheckFails_ReturnsNoItems()
     {
-        var menu = new ConsoleLogsMenu(new ThrowingRemoteFeatureProvider());
+        var menu = new ConsoleLogsMenu(new ThrowingRemoteFeatureProvider(new HttpRequestException("Forbidden", null, HttpStatusCode.Forbidden)));
+
+        var items = await menu.GetMenuItemsAsync();
+
+        Assert.Empty(items);
+    }
+
+    [Fact]
+    public async Task GetMenuItemsAsync_WhenRemoteFeatureCheckTimesOut_ReturnsNoItems()
+    {
+        var menu = new ConsoleLogsMenu(new ThrowingRemoteFeatureProvider(new TaskCanceledException()));
 
         var items = await menu.GetMenuItemsAsync();
 
@@ -53,11 +63,11 @@ public class ConsoleLogsMenuTests
         }
     }
 
-    private class ThrowingRemoteFeatureProvider : IRemoteFeatureProvider
+    private class ThrowingRemoteFeatureProvider(Exception exception) : IRemoteFeatureProvider
     {
         public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default)
         {
-            throw new HttpRequestException("Forbidden", null, HttpStatusCode.Forbidden);
+            throw exception;
         }
 
         public Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default)

@@ -133,7 +133,7 @@ public partial class ConsoleLogs : IAsyncDisposable
         {
             ViewState.FlushPendingRows();
 
-            if (ViewState.FollowTail)
+            if (ViewState.FollowTail && !ViewState.IsPaused)
                 RequestScrollToBottomAfterRender();
         }
 
@@ -304,7 +304,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 
             await Observer.StartAsync(ViewState.Filter, cancellationToken);
 
-            if (ViewState.FollowTail)
+            if (ViewState.FollowTail && !ViewState.IsPaused)
                 RequestScrollToBottomAfterRender();
         }
         catch (Exception e) when (IsAuthorizationFailure(e))
@@ -363,7 +363,7 @@ public partial class ConsoleLogs : IAsyncDisposable
             FlushRefreshBufferedLines();
             _isRefreshing = false;
 
-            if (ViewState.FollowTail)
+            if (ViewState.FollowTail && !ViewState.IsPaused)
                 RequestScrollToBottomAfterRender();
         }
         catch (Exception e) when (IsAuthorizationFailure(e))
