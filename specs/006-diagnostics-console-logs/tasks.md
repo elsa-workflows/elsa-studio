@@ -81,9 +81,9 @@
 
 ## Phase 4: User Story 2 - Control and preserve the viewing session (Priority: P2)
 
-**Goal**: An operator can pause, resume, follow tail, clear the local view, reconnect, copy/export visible lines, toggle wrap/compact/ANSI display, and retain active filters.
+**Goal**: An operator can pause, resume, follow tail, clear the local view, reconnect, copy/export visible lines, toggle wrap/compact/raw ANSI display, and retain active filters.
 
-**Independent Test**: Use mocked recent and live console lines, then exercise pause/resume, follow-tail, clear local view, reconnect, copy, export, wrap, compact mode, ANSI mode, and local row cap behavior.
+**Independent Test**: Use mocked recent and live console lines, then exercise pause/resume, follow-tail, clear local view, reconnect, copy, export, wrap, compact mode, raw ANSI mode, and local row cap behavior.
 
 ### Tests for User Story 2
 
@@ -95,10 +95,10 @@
 
 - [X] T036 [US2] Implement visible-row copy/export formatter in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/Services/ConsoleLogExportFormatter.cs`
 - [X] T037 [US2] Add pause/resume, pending-line count, clear local view, row cap pruning, and discarded-row tracking to `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.cs`
-- [X] T038 [US2] Add viewer toolbar controls for pause/resume, follow-tail, clear, reconnect, copy, export, wrap, compact, and ANSI display in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
+- [X] T038 [US2] Add viewer toolbar controls for pause/resume, follow-tail, clear, reconnect, copy, export, wrap, compact, and raw ANSI display in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
 - [X] T039 [US2] Add reconnect command handling that preserves active filter and URL state in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.cs`
 - [X] T040 [US2] Add copy/export UI feedback and partial-data indicators for truncated or dropped lines in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
-- [X] T041 [US2] Add wrap, compact, paused, pending, and ANSI display styles in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css`
+- [X] T041 [US2] Add wrap, compact, paused, pending, and raw ANSI display styles in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css`
 - [X] T042 [US2] Implement scroll/follow-tail interop used by the viewer toolbar in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.js`
 
 **Checkpoint**: User Stories 1 and 2 work independently against mocked or live console data.
@@ -223,4 +223,4 @@ After Phase 2, one developer can finish US1 viewer/live behavior while another b
 - Keep all work scoped to `elsa-studio`; do not modify `elsa-core`.
 - Do not parse console lines into structured log records or add semantic log fields such as level, category, template, properties, scopes, trace, or span.
 - Use `source.id` for filters and subscriptions; use `displayName` and metadata only for labels.
-- Preserve raw text for copy/export even when ANSI display or highlighting is enabled.
+- Preserve raw text for copy/export even when raw ANSI display or highlighting is enabled.

@@ -64,7 +64,7 @@
                 <MudSwitch T="bool" Value="@ViewState.FollowTail" ValueChanged="SetFollowTailAsync" Color="Color.Primary" Label="@Localizer["Follow"]" LabelPlacement="Placement.Start" />
                 <MudSwitch T="bool" Value="@ViewState.Wrap" ValueChanged="SetWrapAsync" Color="Color.Primary" Label="@Localizer["Wrap"]" LabelPlacement="Placement.Start" />
                 <MudSwitch T="bool" Value="@ViewState.Compact" ValueChanged="SetCompactAsync" Color="Color.Primary" Label="@Localizer["Compact"]" LabelPlacement="Placement.Start" />
-                <MudSwitch T="bool" Value="@ViewState.Ansi" ValueChanged="SetAnsiAsync" Color="Color.Primary" Label="@Localizer["ANSI"]" LabelPlacement="Placement.Start" />
+                <MudSwitch T="bool" Value="@ViewState.Ansi" ValueChanged="SetAnsiAsync" Color="Color.Primary" Label="@Localizer["Raw ANSI"]" LabelPlacement="Placement.Start" />
             </div>
         </div>
     </MudPaper>
@@ -145,7 +145,7 @@
                             <span class="console-log-source-health">@line.Source.Health</span>
                         }
                     </span>
-                    <span class="console-log-text">@TextHighlighter.Highlight(DisplayText(line), ViewState.Filter.Text)</span>
+                    <span class="console-log-text">@RenderDisplayText(line)</span>
 
                     @if (line.IsTruncated)
                     {

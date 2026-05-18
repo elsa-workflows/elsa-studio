@@ -18,7 +18,7 @@ Represents one raw stdout or stderr line received from recent backfill or Signal
 
 ### Validation Rules
 
-- `Text` is preserved exactly for copy/export except for display-only ANSI rendering choices.
+- `Text` is preserved exactly for copy/export except for display-only raw ANSI stripping choices.
 - `Stream` must be either `stdout` or `stderr`; invalid stream values fall back to safe defaults in URL/filter mapping.
 - Long lines and multiline-looking text remain a single rendered console row unless backend line splitting has already occurred.
 
@@ -80,7 +80,7 @@ Local UI and viewer state for one Console page session.
 | `FollowTail` | `bool` | Scrolls to newest rows when the user is following the tail. |
 | `Wrap` | `bool` | Controls line wrapping. |
 | `Compact` | `bool` | Controls density. |
-| `Ansi` | `bool` | Controls rendered ANSI styling versus plain text display. |
+| `Ansi` | `bool` | Controls raw ANSI sequence display versus stripped plain text display. |
 
 ## ConsoleLogStreamSession
 

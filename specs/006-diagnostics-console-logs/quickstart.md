@@ -42,7 +42,7 @@ Suggested first test coverage:
 2. Open `/diagnostics/console`.
 3. Verify recent stdout/stderr lines appear before live updates begin.
 4. Verify stderr is visually distinct and every row shows timestamp, stream, source identity, and raw text.
-5. Toggle pause/resume, follow-tail, clear local view, reconnect, wrap, compact, and ANSI display.
+5. Toggle pause/resume, follow-tail, clear local view, reconnect, wrap, compact, and raw ANSI display.
 6. Apply source, stream, text, `from`, and `to` filters and confirm recent and live data use the same filter.
 7. Refresh or share a URL containing `source`, `stream`, `text`, `from`, `to`, `wrap`, `compact`, `ansi`, and `follow`; confirm state is restored.
 8. Simulate missing backend feature and missing permission; confirm navigation is hidden and direct route shows unavailable or unauthorized state.

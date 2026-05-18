@@ -69,7 +69,7 @@ public class ConsoleLogViewState
     public bool Compact { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether ANSI styling is displayed.
+    /// Gets or sets a value indicating whether raw ANSI sequences are preserved in the viewer.
     /// </summary>
     public bool Ansi { get; set; } = true;
 

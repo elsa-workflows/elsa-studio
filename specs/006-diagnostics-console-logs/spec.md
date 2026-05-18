@@ -103,7 +103,7 @@ An operator starts in an `All sources` merged view, narrows to one source when i
 
 - **FR-014**: The viewer MUST show console lines in a dense, scan-friendly layout with timestamp, stream, source identity, and raw text.
 - **FR-015**: The viewer MUST distinguish stdout from stderr through visible labels and styling.
-- **FR-016**: The viewer MUST provide pause/resume, follow-tail, clear local view, reconnect, copy visible lines, export visible lines, wrap toggle, compact toggle, and ANSI display toggle controls.
+- **FR-016**: The viewer MUST provide pause/resume, follow-tail, clear local view, reconnect, copy visible lines, export visible lines, wrap toggle, compact toggle, and raw ANSI sequence toggle controls.
 - **FR-017**: The viewer MUST preserve raw console text and MUST NOT parse lines into semantic log fields such as level, category, template, properties, scopes, trace, or span.
 - **FR-018**: Text search MUST be sent to both recent backfill and live stream subscriptions as the server-side `text` filter, and Studio MUST highlight matching text in returned visible lines without modifying the underlying raw line text.
 - **FR-019**: Very long lines, multiline-looking content, stack traces, ANSI sequences, and truncated lines MUST remain readable without breaking the page layout.
@@ -141,7 +141,7 @@ An operator starts in an `All sources` merged view, narrows to one source when i
 - **SC-002**: A mocked three-source backend defaults to `All sources` and correctly filters recent and live lines to each individual source.
 - **SC-003**: Stream filtering can show stdout only, stderr only, or both, and the visible rows match the selected streams in 100% of mocked filter cases.
 - **SC-004**: Text filtering highlights matches and shows a no-match state when zero visible lines match, without a full page reload.
-- **SC-005**: Refreshing or sharing a URL with source, stream, text, time, wrap, compact, ANSI display, and follow-tail state restores those settings.
+- **SC-005**: Refreshing or sharing a URL with source, stream, text, time, wrap, compact, raw ANSI, and follow-tail state restores those settings.
 - **SC-006**: The viewer remains responsive with 10,000 local console lines by enforcing the configured visible-row cap and reporting discarded local rows.
 - **SC-007**: Direct navigation without the backend feature or required permission shows the correct unavailable or unauthorized state without unhandled exceptions.
 - **SC-008**: Copy and export actions include timestamp, stream, source, and text for every visible row included in the action.
@@ -151,6 +151,6 @@ An operator starts in an `All sources` merged view, narrows to one source when i
 - The paired backend feature is owned outside this Studio spec and will provide the diagnostics console logs remote feature, permission, recent-line contract, source-list contract, and live stream contract.
 - The backend feature name and permission are diagnostics-specific and distinct from Structured Logs; the expected permission is `read:diagnostics:console-logs`.
 - Studio exports only the current local visible buffer in the first slice; backend-generated download endpoints are outside this Studio spec.
-- ANSI escape sequences are preserved in raw line text, and Studio offers a display toggle so users can choose rendered ANSI styling or plain text display.
+- ANSI escape sequences are preserved in raw line text, and Studio offers a display toggle so users can choose raw ANSI sequences or stripped plain text display.
 - `All sources` is the default source filter, and both stdout and stderr are shown by default.
 - The Console module does not include direct Kubernetes, Docker, orchestrator log API integration, trace waterfalls, metrics, or OpenTelemetry exploration.

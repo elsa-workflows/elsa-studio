@@ -17,7 +17,7 @@
 | `to` | ISO-8601 UTC timestamp | omitted | Inclusive end time. |
 | `wrap` | `true` or `false` | implementation default | Controls viewer wrapping. |
 | `compact` | `true` or `false` | implementation default | Controls row density. |
-| `ansi` | `true` or `false` | implementation default | Controls ANSI styling display versus plain text. |
+| `ansi` | `true` or `false` | implementation default | Controls raw ANSI sequence display versus stripped plain text. |
 | `follow` | `true` or `false` | implementation default | Controls follow-tail behavior. |
 
 ## Validation
@@ -31,4 +31,4 @@
 
 ## Shareability
 
-Refreshing or sharing a URL with source, stream, text, time, wrap, compact, ANSI display, and follow-tail state restores those settings without a full page reload beyond normal route activation.
+Refreshing or sharing a URL with source, stream, text, time, wrap, compact, raw ANSI, and follow-tail state restores those settings without a full page reload beyond normal route activation.

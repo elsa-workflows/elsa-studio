@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add a new Studio diagnostics module, `Elsa.Studio.Diagnostics.ConsoleLogs`, that exposes a raw stdout/stderr Console page at `/diagnostics/console`. Studio will gate the menu and page on the paired backend console logs remote feature and read permission, load recent line backfill through a typed backend API client, connect to an authenticated SignalR stream for live updates, and render a dense terminal-like viewer with source/stream/text/time filters, URL state, bounded local buffering, copy/export, pause/resume, follow-tail, reconnect, wrapping, compact mode, and ANSI display controls.
+Add a new Studio diagnostics module, `Elsa.Studio.Diagnostics.ConsoleLogs`, that exposes a raw stdout/stderr Console page at `/diagnostics/console`. Studio will gate the menu and page on the paired backend console logs remote feature and read permission, load recent line backfill through a typed backend API client, connect to an authenticated SignalR stream for live updates, and render a dense terminal-like viewer with source/stream/text/time filters, URL state, bounded local buffering, copy/export, pause/resume, follow-tail, reconnect, wrapping, compact mode, and raw ANSI display controls.
 
 ## Technical Context
 
@@ -145,7 +145,7 @@ Use `/speckit-tasks` to create the implementation backlog. Suggested implementat
 2. Add models, API client contract, remote service, filter mapper, URL-state mapper, and unit tests.
 3. Add SignalR observer with authenticated connection setup, filter updates, reconnect, dropped/source notifications, and disposal tests where practical.
 4. Build the Console page with recent loading, live streaming, source/stream/text/time filters, URL state, and explicit page states.
-5. Add viewer controls, local row cap, copy/export formatting, ANSI/wrap/compact/follow-tail behavior, and representative verification.
+5. Add viewer controls, local row cap, copy/export formatting, raw ANSI/wrap/compact/follow-tail behavior, and representative verification.
 
 ## Complexity Tracking
 

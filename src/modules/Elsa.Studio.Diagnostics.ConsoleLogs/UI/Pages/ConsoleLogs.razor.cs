@@ -70,6 +70,7 @@ public partial class ConsoleLogs : IAsyncDisposable
                                       ViewState.Filter.From != null ||
                                       ViewState.Filter.To != null;
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
+    protected bool HasTextFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.Text);
     protected string? StateMessage => ViewState.ConnectionStatus switch
     {
         ConsoleLogConnectionStatus.Unauthorized => "You do not have permission to view diagnostics console logs.",
@@ -265,6 +266,13 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected static string StreamCssClass(ConsoleLogStream stream) => $"console-log-stream console-log-stream-{ConsoleLogExportFormatter.StreamLabel(stream)}";
     protected string RowCssClass(ConsoleLogLine line) => $"console-log-row console-log-row-{ConsoleLogExportFormatter.StreamLabel(line.Stream)}";
     protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
+    protected RenderFragment RenderDisplayText(ConsoleLogLine line) => builder =>
+    {
+        if (HasTextFilter)
+            builder.AddContent(0, TextHighlighter.Highlight(DisplayText(line), ViewState.Filter.Text));
+        else
+            builder.AddContent(0, DisplayText(line));
+    };
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
     protected static bool HasSourceHealthBadge(ConsoleLogSource source) => source.Health is not ConsoleLogSourceHealth.Connected and not ConsoleLogSourceHealth.Unknown;
