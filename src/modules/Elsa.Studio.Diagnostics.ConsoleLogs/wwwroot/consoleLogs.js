@@ -18,5 +18,5 @@ export function downloadTextFile(fileName, content, contentType) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

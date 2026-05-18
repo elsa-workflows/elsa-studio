@@ -21,7 +21,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 {
     private const string LogSurfaceId = "console-logs-surface";
     private readonly List<ConsoleLogSource> _sources = new();
-    private readonly List<ConsoleLogLine> _refreshBufferedLines = new();
+    private readonly Queue<ConsoleLogLine> _refreshBufferedLines = new();
     private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
@@ -46,6 +46,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected bool IsLoading { get; private set; }
     protected string? ErrorMessage { get; private set; }
     protected long BackendDroppedCount { get; private set; }
+    protected long DiscardedRefreshBufferRows { get; private set; }
     protected string? FromFilterText => _fromFilterText;
     protected string? ToFilterText => _toFilterText;
     protected string StreamSelection => ConsoleLogUrlStateMapper.FormatStreams(ViewState.Filter.Streams);
@@ -61,7 +62,6 @@ public partial class ConsoleLogs : IAsyncDisposable
     };
     protected string StatusCssClass => $"console-logs-status-{ViewState.ConnectionStatus.ToString().ToLowerInvariant()}{(ViewState.IsPaused ? " console-logs-status-paused" : "")}";
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
-    protected string PauseTooltip => ViewState.IsPaused ? "Resume" : "Pause";
     protected string LogSurfaceCssClass => $"console-logs-surface{(ViewState.Wrap ? " console-logs-wrap" : "")}{(ViewState.Compact ? " console-logs-compact" : "")}";
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
                                       !string.Equals(StreamSelection, "both", StringComparison.Ordinal) ||
@@ -133,6 +133,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     {
         ViewState.ClearVisibleRows();
         BackendDroppedCount = 0;
+        DiscardedRefreshBufferRows = 0;
         return InvokeAsync(StateHasChanged);
     }
 
@@ -315,6 +316,7 @@ public partial class ConsoleLogs : IAsyncDisposable
         IsLoading = true;
         _isRefreshing = true;
         _refreshBufferedLines.Clear();
+        DiscardedRefreshBufferRows = 0;
         ErrorMessage = null;
         UpdateUrlFromState();
 
@@ -388,7 +390,7 @@ public partial class ConsoleLogs : IAsyncDisposable
         return InvokeAsync(async () =>
         {
             if (_isRefreshing)
-                _refreshBufferedLines.Add(line);
+                AddRefreshBufferedLine(line);
             else
                 ViewState.AddIncomingLine(line);
 
@@ -509,6 +511,17 @@ public partial class ConsoleLogs : IAsyncDisposable
         return cachedText.Text;
     }
 
+    private void AddRefreshBufferedLine(ConsoleLogLine line)
+    {
+        _refreshBufferedLines.Enqueue(line);
+
+        while (_refreshBufferedLines.Count > ViewState.VisibleRowCap)
+        {
+            _refreshBufferedLines.Dequeue();
+            DiscardedRefreshBufferRows++;
+        }
+    }
+
     private void FlushRefreshBufferedLines()
     {
         if (_refreshBufferedLines.Count == 0)
@@ -519,15 +532,13 @@ public partial class ConsoleLogs : IAsyncDisposable
             .Select(x => x.Id)
             .ToHashSet(StringComparer.Ordinal);
 
-        foreach (var line in _refreshBufferedLines)
+        while (_refreshBufferedLines.TryDequeue(out var line))
         {
             if (!string.IsNullOrWhiteSpace(line.Id) && !visibleIds.Add(line.Id))
                 continue;
 
             ViewState.AddIncomingLine(line);
         }
-
-        _refreshBufferedLines.Clear();
     }
 
     private static string? NormalizeFilterText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

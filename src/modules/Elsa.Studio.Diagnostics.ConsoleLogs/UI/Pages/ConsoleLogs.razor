@@ -35,10 +35,15 @@
                 {
                     <span class="console-logs-warning">@ViewState.DiscardedPendingRows @Localizer["discarded while paused"]</span>
                 }
+
+                @if (DiscardedRefreshBufferRows > 0)
+                {
+                    <span class="console-logs-warning">@DiscardedRefreshBufferRows @Localizer["discarded during refresh"]</span>
+                }
             </div>
 
             <div class="console-logs-actions">
-                <MudTooltip Text="@PauseTooltip" Delay="500">
+                <MudTooltip Text="@(ViewState.IsPaused ? Localizer["Resume"] : Localizer["Pause"])" Delay="500">
                     <MudIconButton Icon="@PauseIcon" Size="Size.Small" OnClick="TogglePausedAsync" />
                 </MudTooltip>
                 <MudTooltip Text="@Localizer["Clear"]" Delay="500">
