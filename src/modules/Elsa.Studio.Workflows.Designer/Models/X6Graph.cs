@@ -26,4 +26,9 @@ public class X6Graph
     /// Gets or sets the edges.
     /// </summary>
     public ICollection<X6Edge> Edges { get; set; } = new List<X6Edge>();
+
+    /// <summary>
+    /// Gets or sets the layout orientation for constrained graph designers.
+    /// </summary>
+    public string? LayoutOrientation { get; set; }
 }

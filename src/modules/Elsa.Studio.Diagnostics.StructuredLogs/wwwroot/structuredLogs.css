@@ -233,6 +233,21 @@
     max-width: 220px;
 }
 
+.structured-log-filter-chip {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-align: left;
+}
+
+.structured-log-filter-chip:hover,
+.structured-log-filter-chip:focus-visible {
+    color: #135f9f;
+    text-decoration: underline;
+}
+
 .structured-log-message {
     color: #111827;
     min-width: 0;
@@ -367,7 +382,7 @@
     white-space: pre-wrap;
 }
 
-.structured-log-copy-value {
+.structured-log-detail-action {
     background: transparent;
     border: 0;
     color: #276da8;

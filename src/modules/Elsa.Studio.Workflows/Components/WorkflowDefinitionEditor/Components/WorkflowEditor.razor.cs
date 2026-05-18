@@ -9,6 +9,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
 using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
@@ -274,6 +275,14 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 );
                 return Task.CompletedTask;
             });
+        }
+        catch (DiagramDesignerValidationException e)
+        {
+            UserMessageService.ShowSnackbarTextMessage(
+                e.Message,
+                Severity.Error,
+                options => options.VisibleStateDuration = 5000
+            );
         }
         finally
         {

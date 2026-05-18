@@ -7,7 +7,7 @@ namespace Elsa.Studio.Workflows.Designer.Services;
 internal class MapperFactory(IActivityRegistry activityRegistry, IActivityPortService activityPortService, IActivityDisplaySettingsRegistry activityDisplaySettingsRegistry) : IMapperFactory
 {
     /// <summary>
-    /// Provides the task.
+    /// Creates a flowchart mapper after ensuring activity metadata is available.
     /// </summary>
     public async Task<IFlowchartMapper> CreateFlowchartMapperAsync(CancellationToken cancellationToken = default)
     {
@@ -16,7 +16,16 @@ internal class MapperFactory(IActivityRegistry activityRegistry, IActivityPortSe
     }
 
     /// <summary>
-    /// Provides the task.
+    /// Creates a Sequence mapper after ensuring activity metadata is available.
+    /// </summary>
+    public async Task<ISequenceMapper> CreateSequenceMapperAsync(CancellationToken cancellationToken = default)
+    {
+        var activityMapper = await CreateActivityMapperAsync(cancellationToken);
+        return new SequenceMapper(activityMapper);
+    }
+
+    /// <summary>
+    /// Creates an activity mapper after ensuring activity metadata is available.
     /// </summary>
     public async Task<IActivityMapper> CreateActivityMapperAsync(CancellationToken cancellationToken = default)
     {
