@@ -304,8 +304,8 @@ public partial class AlterationDesignerHost : IDisposable
             {
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true,
-                CloseButton = true,
-                CloseOnEscapeKey = true,
+                CloseButton = false,
+                CloseOnEscapeKey = false,
             };
 
             var reference = await DialogService.ShowAsync<AlterationSubmitDialog>(

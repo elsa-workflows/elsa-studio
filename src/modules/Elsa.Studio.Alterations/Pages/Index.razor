@@ -187,28 +187,39 @@
 
     private async Task<TableData<WorkflowInstanceSummary>> LoadAsync(TableState state, CancellationToken ct)
     {
-        var request = new ListWorkflowInstancesRequest
+        try
         {
-            Page = state.Page,
-            PageSize = state.PageSize,
-            DefinitionIds = new[] { ExecuteAlterationPlanDefinitionId },
-            IsSystem = true,
-            CorrelationId = string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm.Trim(),
-        };
+            var request = new ListWorkflowInstancesRequest
+            {
+                Page = state.Page,
+                PageSize = state.PageSize,
+                DefinitionIds = new[] { ExecuteAlterationPlanDefinitionId },
+                IsSystem = true,
+                CorrelationId = string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm.Trim(),
+            };
 
-        var response = await WorkflowInstanceService.ListAsync(request, ct);
+            var response = await WorkflowInstanceService.ListAsync(request, ct);
 
-        // Fan out per-plan detail fetches in parallel after the table renders. Real plan/job
-        // status comes from IAlterationsApi.GetAsync — the system workflow's Status/SubStatus is
-        // unreliable (commonly stuck at Suspended even after all jobs complete).
-        var summaryLoadVersion = Interlocked.Increment(ref _summaryLoadVersion);
-        _ = LoadPlanSummariesAsync(response.Items.ToList(), summaryLoadVersion, ct);
+            // Fan out per-plan detail fetches in parallel after the table renders. Real plan/job
+            // status comes from IAlterationsApi.GetAsync — the system workflow's Status/SubStatus is
+            // unreliable (commonly stuck at Suspended even after all jobs complete).
+            var summaryLoadVersion = Interlocked.Increment(ref _summaryLoadVersion);
+            _ = LoadPlanSummariesAsync(response.Items.ToList(), summaryLoadVersion, ct);
 
-        return new TableData<WorkflowInstanceSummary>
+            return new TableData<WorkflowInstanceSummary>
+            {
+                Items = response.Items,
+                TotalItems = (int)response.TotalCount,
+            };
+        }
+        catch (OperationCanceledException)
         {
-            Items = response.Items,
-            TotalItems = (int)response.TotalCount,
-        };
+            throw;
+        }
+        catch
+        {
+            return new TableData<WorkflowInstanceSummary> { Items = [], TotalItems = 0 };
+        }
     }
 
     private async Task LoadPlanSummariesAsync(IList<WorkflowInstanceSummary> instances, int loadVersion, CancellationToken ct)

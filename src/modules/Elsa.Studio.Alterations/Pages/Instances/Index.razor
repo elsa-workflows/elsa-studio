@@ -139,23 +139,34 @@
 
     private async Task<TableData<WorkflowInstanceSummary>> LoadAsync(TableState state, CancellationToken ct)
     {
-        var request = new ListWorkflowInstancesRequest
+        try
         {
-            Page = state.Page,
-            PageSize = state.PageSize,
-            SearchTerm = string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm,
-            // Only running instances can usefully be altered.
-            Status = WorkflowStatus.Running,
-            // Hide system workflows (e.g. Elsa.Alterations.ExecuteAlterationPlan).
-            IsSystem = false,
-        };
+            var request = new ListWorkflowInstancesRequest
+            {
+                Page = state.Page,
+                PageSize = state.PageSize,
+                SearchTerm = string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm,
+                // Only running instances can usefully be altered.
+                Status = WorkflowStatus.Running,
+                // Hide system workflows (e.g. Elsa.Alterations.ExecuteAlterationPlan).
+                IsSystem = false,
+            };
 
-        var response = await WorkflowInstanceService.ListAsync(request, ct);
-        return new TableData<WorkflowInstanceSummary>
+            var response = await WorkflowInstanceService.ListAsync(request, ct);
+            return new TableData<WorkflowInstanceSummary>
+            {
+                Items = response.Items,
+                TotalItems = (int)response.TotalCount,
+            };
+        }
+        catch (OperationCanceledException)
         {
-            Items = response.Items,
-            TotalItems = (int)response.TotalCount,
-        };
+            throw;
+        }
+        catch
+        {
+            return new TableData<WorkflowInstanceSummary> { Items = [], TotalItems = 0 };
+        }
     }
 
     private void OnRowClick(TableRowClickEventArgs<WorkflowInstanceSummary> args)

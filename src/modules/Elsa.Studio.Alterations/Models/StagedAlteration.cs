@@ -56,6 +56,8 @@ public class StagedAlteration
         {
             case AlterationFieldKind.Integer:
                 return long.TryParse(raw, out var n) ? JsonValue.Create(n) : JsonValue.Create(raw);
+            case AlterationFieldKind.VersionPicker:
+                return int.TryParse(raw, out var version) ? JsonValue.Create(version) : JsonValue.Create(raw);
             case AlterationFieldKind.Json:
                 try { return JsonNode.Parse(raw); }
                 catch { return JsonValue.Create(raw); }
