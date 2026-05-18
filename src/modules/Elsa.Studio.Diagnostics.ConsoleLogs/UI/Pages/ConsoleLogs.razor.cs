@@ -138,6 +138,9 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected async Task ReconnectAsync()
     {
+        if (IsLoading)
+            return;
+
         ErrorMessage = null;
         await Observer.ReconnectAsync(ViewState.Filter, _cancellationTokenSource.Token);
     }

@@ -45,7 +45,7 @@
                     <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Size="Size.Small" OnClick="ClearAsync" />
                 </MudTooltip>
                 <MudTooltip Text="@Localizer["Reconnect"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" OnClick="ReconnectAsync" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" Disabled="@IsLoading" OnClick="ReconnectAsync" />
                 </MudTooltip>
                 <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
                     <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
