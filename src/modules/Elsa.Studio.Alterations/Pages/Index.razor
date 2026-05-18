@@ -241,6 +241,10 @@
             _planSummaries = fetched.ToDictionary(x => x.Id, x => x.Summary);
             await InvokeAsync(StateHasChanged);
         }
+        catch (OperationCanceledException)
+        {
+            // A newer table load is already in progress; leave current summaries untouched.
+        }
         catch
         {
             // Network blip or auth — leave summaries empty; rows stay "Loading…" until the next
