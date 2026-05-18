@@ -35,7 +35,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     [Inject] private ConsoleLogTextHighlighter TextHighlighter { get; set; } = default!;
 
     protected ConsoleLogViewState ViewState { get; } = new();
-    protected IReadOnlyList<ConsoleLogLine> Rows => ViewState.VisibleRows;
+    protected IReadOnlyCollection<ConsoleLogLine> Rows => ViewState.VisibleRows;
     protected IReadOnlyList<ConsoleLogSource> Sources => _sources;
     protected bool IsLoading { get; private set; }
     protected string? ErrorMessage { get; private set; }
@@ -294,7 +294,6 @@ public partial class ConsoleLogs : IAsyncDisposable
                 return;
 
             ViewState.ClearVisibleRows();
-            BackendDroppedCount = 0;
             BackendDroppedCount = recent.DroppedLineCount ?? 0;
 
             if (recent.Sources is { Count: > 0 })
@@ -340,8 +339,11 @@ public partial class ConsoleLogs : IAsyncDisposable
     {
         if (ViewState.IsPaused)
         {
-            ViewState.AddIncomingLine(line);
-            return InvokeAsync(StateHasChanged);
+            return InvokeAsync(() =>
+            {
+                ViewState.AddIncomingLine(line);
+                StateHasChanged();
+            });
         }
 
         return InvokeAsync(async () =>

@@ -5,8 +5,8 @@ namespace Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 /// </summary>
 public class ConsoleLogViewState
 {
-    private readonly List<ConsoleLogLine> _visibleRows = new();
-    private readonly List<ConsoleLogLine> _pendingRows = new();
+    private readonly Queue<ConsoleLogLine> _visibleRows = new();
+    private readonly Queue<ConsoleLogLine> _pendingRows = new();
 
     /// <summary>
     /// Gets the current filter.
@@ -16,12 +16,12 @@ public class ConsoleLogViewState
     /// <summary>
     /// Gets the bounded local visible rows.
     /// </summary>
-    public IReadOnlyList<ConsoleLogLine> VisibleRows => _visibleRows;
+    public IReadOnlyCollection<ConsoleLogLine> VisibleRows => _visibleRows;
 
     /// <summary>
     /// Gets the bounded rows waiting while live rendering is paused.
     /// </summary>
-    public IReadOnlyList<ConsoleLogLine> PendingRows => _pendingRows;
+    public IReadOnlyCollection<ConsoleLogLine> PendingRows => _pendingRows;
 
     /// <summary>
     /// Gets or sets the maximum number of local visible rows.
@@ -78,11 +78,11 @@ public class ConsoleLogViewState
     /// </summary>
     public void AddVisibleLine(ConsoleLogLine line)
     {
-        _visibleRows.Add(line);
+        _visibleRows.Enqueue(line);
 
         while (_visibleRows.Count > VisibleRowCap)
         {
-            _visibleRows.RemoveAt(0);
+            _visibleRows.Dequeue();
             DiscardedLocalRows++;
         }
     }
@@ -106,10 +106,9 @@ public class ConsoleLogViewState
     /// </summary>
     public void FlushPendingRows()
     {
-        foreach (var line in _pendingRows)
+        while (_pendingRows.TryDequeue(out var line))
             AddVisibleLine(line);
 
-        _pendingRows.Clear();
         PendingLineCount = 0;
     }
 
@@ -127,11 +126,11 @@ public class ConsoleLogViewState
 
     private void AddPendingLine(ConsoleLogLine line)
     {
-        _pendingRows.Add(line);
+        _pendingRows.Enqueue(line);
 
         while (_pendingRows.Count > VisibleRowCap)
         {
-            _pendingRows.RemoveAt(0);
+            _pendingRows.Dequeue();
             DiscardedPendingRows++;
         }
 
