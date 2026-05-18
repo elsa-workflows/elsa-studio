@@ -22,7 +22,7 @@
 - [X] T003 Add ConsoleLogs module and test project entries to `Elsa.Studio.sln`
 - [X] T004 Add ConsoleLogs module reference to `src/bundles/Elsa.Studio/Elsa.Studio.csproj`
 - [X] T005 [P] Create module imports file `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/_Imports.razor`
-- [X] T006 [P] Create static asset placeholders `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.css` and `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.js`
+- [X] T006 [P] Create scoped style placeholder `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css` and static script placeholder `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.js`
 
 ---
 
@@ -72,7 +72,7 @@
 - [X] T028 [US1] Implement authenticated SignalR observer with subscribe, source change, dropped-line, status, and dispose handlers in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/Services/SignalRConsoleLogObserver.cs`
 - [X] T029 [US1] Create Console page markup with route `/diagnostics/console`, unavailable/unauthorized/loading/connecting states, and dense row list in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
 - [X] T030 [US1] Implement Console page code-behind for feature gate, recent load before live start, row append, stderr/stdout distinction, generic API/stream error state, backend-change capability reload, and disposal in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.cs`
-- [X] T031 [US1] Add terminal-like dense row styling, stderr styling, long-line safeguards, and truncation/dropped indicators in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.css`
+- [X] T031 [US1] Add terminal-like dense row styling, stderr styling, long-line safeguards, and truncation/dropped indicators in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css`
 - [X] T032 [US1] Ensure ConsoleLogs JavaScript interop initializes safely for follow-tail hooks without behavior dependencies in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.js`
 
 **Checkpoint**: User Story 1 is functional and testable as an MVP.
@@ -98,7 +98,7 @@
 - [X] T038 [US2] Add viewer toolbar controls for pause/resume, follow-tail, clear, reconnect, copy, export, wrap, compact, and ANSI display in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
 - [X] T039 [US2] Add reconnect command handling that preserves active filter and URL state in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.cs`
 - [X] T040 [US2] Add copy/export UI feedback and partial-data indicators for truncated or dropped lines in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
-- [X] T041 [US2] Add wrap, compact, paused, pending, and ANSI display styles in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.css`
+- [X] T041 [US2] Add wrap, compact, paused, pending, and ANSI display styles in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css`
 - [X] T042 [US2] Implement scroll/follow-tail interop used by the viewer toolbar in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.js`
 
 **Checkpoint**: User Stories 1 and 2 work independently against mocked or live console data.
@@ -125,7 +125,7 @@
 - [X] T049 [US3] Add source selector, stream selector, text input, and UTC time filter controls to `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
 - [X] T050 [US3] Wire filter changes to recent reload, live subscription update, URL state updates, empty/no-match states, and validation feedback in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.cs`
 - [X] T051 [US3] Render source labels with `displayName` plus service/process/machine/pod/container/namespace/node metadata in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor`
-- [X] T052 [US3] Style source health, stale/disconnected source states, selected source, and highlighted text matches in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/consoleLogs.css`
+- [X] T052 [US3] Style source health, stale/disconnected source states, selected source, and highlighted text matches in `src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/UI/Pages/ConsoleLogs.razor.css`
 
 **Checkpoint**: All user stories are independently functional and preserve shareable Console URL state.
 

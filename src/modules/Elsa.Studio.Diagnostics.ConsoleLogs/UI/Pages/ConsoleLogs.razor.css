@@ -43,6 +43,10 @@
     background: var(--mud-palette-success);
 }
 
+.console-logs-status-paused .console-logs-status-dot {
+    background: var(--mud-palette-info);
+}
+
 .console-logs-status-error .console-logs-status-dot,
 .console-logs-status-unauthorized .console-logs-status-dot {
     background: var(--mud-palette-error);

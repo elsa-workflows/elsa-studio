@@ -86,9 +86,9 @@ src/modules/
 │   │   └── SignalRConsoleLogObserver.cs
 │   ├── UI/Pages/
 │   │   ├── ConsoleLogs.razor
-│   │   └── ConsoleLogs.razor.cs
+│   │   ├── ConsoleLogs.razor.cs
+│   │   └── ConsoleLogs.razor.css
 │   └── wwwroot/
-│       ├── consoleLogs.css
 │       └── consoleLogs.js
 ├── Elsa.Studio.Diagnostics.ConsoleLogs.Tests/
 │   ├── ConsoleLogExportFormatterTests.cs
