@@ -19,6 +19,7 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
+using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 
 // Build the host.
@@ -89,6 +90,7 @@ services.AddRemoteBackend(backendApiConfig);
 
 services.AddDashboardModule();
 services.AddWorkflowsModule();
+services.AddConsoleLogsModule(backendApiConfig);
 services.AddStructuredLogsModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 

@@ -16,6 +16,7 @@ using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
+using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
@@ -115,6 +116,7 @@ builder.Services.AddRemoteBackend(backendApiConfig);
 
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
+builder.Services.AddConsoleLogsModule(backendApiConfig);
 builder.Services.AddStructuredLogsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
