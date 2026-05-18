@@ -325,6 +325,9 @@ public partial class ConsoleLogs : IAsyncDisposable
             foreach (var line in recent.Items.OrderBy(x => x.Timestamp))
                 ViewState.AddVisibleLine(line);
 
+            if (!IsCurrentRefresh(refreshVersion))
+                return;
+
             await Observer.UpdateFilterAsync(filter, _cancellationTokenSource.Token);
 
             if (!IsCurrentRefresh(refreshVersion))
