@@ -313,17 +313,24 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private async Task RefreshSelectedItemAsync(string activityExecutionRecordId)
     {
-        if (LastActivityExecution != null)
+        try
         {
-            _activityExecutionRecordsLookup.Remove(LastActivityExecution.ActivityNodeId);
-            SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(LastActivityExecution.ActivityNodeId);
-        }
+            if (LastActivityExecution != null)
+            {
+                _activityExecutionRecordsLookup.Remove(LastActivityExecution.ActivityNodeId);
+                SelectedActivityExecutions = await GetActivityExecutionRecordsAsync(LastActivityExecution.ActivityNodeId);
+            }
 
-        await InvokeAsync(() =>
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+                _activityDetailsTab?.Refresh();
+            });
+        }
+        catch (ObjectDisposedException)
         {
-            StateHasChanged();
-            _activityDetailsTab?.Refresh();
-        });
+            await StopRefreshActivityStatePeriodically();
+        }
     }
 
     private void RefreshActivityStatePeriodically(string activityExecutionRecordId)
