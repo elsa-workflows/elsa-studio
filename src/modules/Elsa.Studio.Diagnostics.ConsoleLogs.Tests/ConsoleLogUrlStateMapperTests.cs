@@ -50,9 +50,9 @@ public class ConsoleLogUrlStateMapperTests
         Assert.Equal("source-a", parameters["source"]);
         Assert.Equal("stdout", parameters["stream"]);
         Assert.Equal("needle", parameters["text"]);
-        Assert.True((bool)parameters["wrap"]!);
-        Assert.False((bool)parameters["compact"]!);
-        Assert.False((bool)parameters["ansi"]!);
-        Assert.True((bool)parameters["follow"]!);
+        Assert.Equal("true", parameters["wrap"]);
+        Assert.Equal("false", parameters["compact"]);
+        Assert.Equal("false", parameters["ansi"]);
+        Assert.Equal("true", parameters["follow"]);
     }
 }

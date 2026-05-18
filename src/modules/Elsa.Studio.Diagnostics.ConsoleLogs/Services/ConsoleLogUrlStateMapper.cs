@@ -55,10 +55,10 @@ public class ConsoleLogUrlStateMapper
             ["text"] = state.Filter.Text,
             ["from"] = state.Filter.From?.ToUniversalTime().ToString("O"),
             ["to"] = state.Filter.To?.ToUniversalTime().ToString("O"),
-            ["wrap"] = state.Wrap,
-            ["compact"] = state.Compact,
-            ["ansi"] = state.Ansi,
-            ["follow"] = state.FollowTail
+            ["wrap"] = FormatBool(state.Wrap),
+            ["compact"] = FormatBool(state.Compact),
+            ["ansi"] = FormatBool(state.Ansi),
+            ["follow"] = FormatBool(state.FollowTail)
         };
 
     /// <summary>
@@ -95,4 +95,6 @@ public class ConsoleLogUrlStateMapper
     }
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string FormatBool(bool value) => value ? "true" : "false";
 }
