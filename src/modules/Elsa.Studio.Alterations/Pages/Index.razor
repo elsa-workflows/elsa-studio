@@ -223,6 +223,10 @@
                     var resp = await api.GetAsync(id, ct);
                     return (Id: id, Summary: BuildSummary(resp));
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch
                 {
                     return (Id: id, Summary: BuildErrorSummary());

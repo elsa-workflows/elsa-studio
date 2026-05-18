@@ -57,6 +57,7 @@ public partial class AlterationDesignerHost : IDisposable
     private bool _panelCollapsed;
     private bool _busy;
     private AlterationSidePanel? _sidePanel;
+    private string? _loadedInstanceId;
 
     protected override void OnInitialized()
     {
@@ -68,11 +69,27 @@ public partial class AlterationDesignerHost : IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        if (WorkflowInstance != null && _variables == null && !_variablesLoading)
+        if (WorkflowInstance == null) return;
+
+        if (_loadedInstanceId != null && _loadedInstanceId != WorkflowInstance.Id)
+            ResetInstanceState();
+
+        _loadedInstanceId = WorkflowInstance.Id;
+
+        if (_variables == null && !_variablesLoading)
             await LoadVariablesAsync();
     }
 
     private void HandleStagingChanged() => InvokeAsync(StateHasChanged);
+
+    private void ResetInstanceState()
+    {
+        Staging.Clear();
+        _variables = null;
+        _selectedActivityId = null;
+        _selectedActivityName = null;
+        _selectedActivityType = null;
+    }
 
     private async Task LoadVariablesAsync()
     {

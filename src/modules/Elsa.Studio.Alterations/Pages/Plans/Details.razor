@@ -209,17 +209,24 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
-        StartPolling();
+        if (!IsTerminal(_plan?.Status))
+            StartPolling();
     }
 
     protected override async Task OnParametersSetAsync()
     {
         if (_plan != null && _plan.Id != Id)
+        {
+            StopPolling();
             await LoadAsync();
+            if (!IsTerminal(_plan?.Status))
+                StartPolling();
+        }
     }
 
     private void StartPolling()
     {
+        StopPolling();
         _pollingTimer = new Timer(_ =>
         {
             if (IsTerminal(_plan?.Status)) { StopPolling(); return; }
