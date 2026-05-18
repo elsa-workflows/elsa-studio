@@ -72,6 +72,7 @@
                        ValueChanged="SetSourceAsync"
                        Variant="Variant.Outlined"
                        Margin="Margin.Dense"
+                       Disabled="@IsLoading"
                        Dense="true">
                 <MudSelectItem T="string?" Value="@(null)">@Localizer["All sources"]</MudSelectItem>
                 @foreach (var source in Sources)
@@ -86,15 +87,16 @@
                        ValueChanged="SetStreamAsync"
                        Variant="Variant.Outlined"
                        Margin="Margin.Dense"
+                       Disabled="@IsLoading"
                        Dense="true">
                 <MudSelectItem T="string" Value="@("both")">@Localizer["stdout + stderr"]</MudSelectItem>
                 <MudSelectItem T="string" Value="@("stdout")">@Localizer["stdout"]</MudSelectItem>
                 <MudSelectItem T="string" Value="@("stderr")">@Localizer["stderr"]</MudSelectItem>
             </MudSelect>
 
-            <MudTextField T="string" Label="@Localizer["Text"]" Value="@ViewState.Filter.Text" ValueChanged="SetTextFilterAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" />
-            <MudTextField T="string" Label="@Localizer["From"]" Value="@FromFilterText" ValueChanged="SetFromAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-18T09:00:00Z" />
-            <MudTextField T="string" Label="@Localizer["To"]" Value="@ToFilterText" ValueChanged="SetToAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="2026-05-18T10:00:00Z" />
+            <MudTextField T="string" Label="@Localizer["Text"]" Value="@ViewState.Filter.Text" ValueChanged="SetTextFilterAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" />
+            <MudTextField T="string" Label="@Localizer["From"]" Value="@FromFilterText" ValueChanged="SetFromAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" Placeholder="2026-05-18T09:00:00Z" />
+            <MudTextField T="string" Label="@Localizer["To"]" Value="@ToFilterText" ValueChanged="SetToAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" Placeholder="2026-05-18T10:00:00Z" />
         </div>
     </MudPaper>
 

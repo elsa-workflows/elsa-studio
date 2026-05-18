@@ -164,24 +164,36 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected async Task SetSourceAsync(string? sourceId)
     {
+        if (IsLoading)
+            return;
+
         ViewState.Filter.SourceId = string.IsNullOrWhiteSpace(sourceId) ? null : sourceId;
         await RefreshFilterAsync();
     }
 
     protected async Task SetStreamAsync(string stream)
     {
+        if (IsLoading)
+            return;
+
         ViewState.Filter.Streams = ConsoleLogUrlStateMapper.ParseStreams(stream);
         await RefreshFilterAsync();
     }
 
     protected async Task SetTextFilterAsync(string? text)
     {
+        if (IsLoading)
+            return;
+
         ViewState.Filter.Text = NormalizeFilterText(text);
         await RefreshFilterAsync();
     }
 
     protected async Task SetFromAsync(string? value)
     {
+        if (IsLoading)
+            return;
+
         _fromFilterText = NormalizeFilterText(value);
         ViewState.Filter.From = TryParseDateTimeOffset(_fromFilterText, out var parsed) ? parsed : null;
         await RefreshFilterAsync();
@@ -189,6 +201,9 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     protected async Task SetToAsync(string? value)
     {
+        if (IsLoading)
+            return;
+
         _toFilterText = NormalizeFilterText(value);
         ViewState.Filter.To = TryParseDateTimeOffset(_toFilterText, out var parsed) ? parsed : null;
         await RefreshFilterAsync();
