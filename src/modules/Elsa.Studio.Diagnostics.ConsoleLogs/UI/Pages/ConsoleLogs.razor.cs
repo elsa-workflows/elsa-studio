@@ -390,10 +390,17 @@ public partial class ConsoleLogs : IAsyncDisposable
         return InvokeAsync(async () =>
         {
             if (_isRefreshing)
+            {
+                var discardedRows = DiscardedRefreshBufferRows;
                 AddRefreshBufferedLine(line);
-            else
-                ViewState.AddIncomingLine(line);
 
+                if (DiscardedRefreshBufferRows != discardedRows)
+                    StateHasChanged();
+
+                return;
+            }
+
+            ViewState.AddIncomingLine(line);
             StateHasChanged();
 
             if (!_isRefreshing && !ViewState.IsPaused && ViewState.FollowTail)
