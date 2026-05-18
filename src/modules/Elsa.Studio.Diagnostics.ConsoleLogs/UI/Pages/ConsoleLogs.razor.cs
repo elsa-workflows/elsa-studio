@@ -29,6 +29,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     private string? _toFilterText;
     private bool _queryInitialized;
     private bool _isRefreshing;
+    private bool _scrollAfterRender;
     private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
@@ -99,6 +100,16 @@ public partial class ConsoleLogs : IAsyncDisposable
     }
 
     /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_scrollAfterRender)
+            return;
+
+        _scrollAfterRender = false;
+        await ScrollToBottomAsync();
+    }
+
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         Observer.LineReceived -= OnLineReceivedAsync;
@@ -123,7 +134,7 @@ public partial class ConsoleLogs : IAsyncDisposable
             ViewState.FlushPendingRows();
 
             if (ViewState.FollowTail)
-                await ScrollToBottomAsync();
+                RequestScrollToBottomAfterRender();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -223,7 +234,9 @@ public partial class ConsoleLogs : IAsyncDisposable
         UpdateUrlFromState();
 
         if (value)
-            await ScrollToBottomAsync();
+            RequestScrollToBottomAfterRender();
+
+        await InvokeAsync(StateHasChanged);
     }
 
     protected Task SetWrapAsync(bool value)
@@ -290,7 +303,9 @@ public partial class ConsoleLogs : IAsyncDisposable
                 ViewState.AddVisibleLine(line);
 
             await Observer.StartAsync(ViewState.Filter, cancellationToken);
-            await ScrollToBottomAsync();
+
+            if (ViewState.FollowTail)
+                RequestScrollToBottomAfterRender();
         }
         catch (Exception e) when (IsAuthorizationFailure(e))
         {
@@ -347,7 +362,9 @@ public partial class ConsoleLogs : IAsyncDisposable
 
             FlushRefreshBufferedLines();
             _isRefreshing = false;
-            await ScrollToBottomAsync();
+
+            if (ViewState.FollowTail)
+                RequestScrollToBottomAfterRender();
         }
         catch (Exception e) when (IsAuthorizationFailure(e))
         {
@@ -402,10 +419,11 @@ public partial class ConsoleLogs : IAsyncDisposable
             }
 
             ViewState.AddIncomingLine(line);
-            StateHasChanged();
 
             if (!_isRefreshing && !ViewState.IsPaused && ViewState.FollowTail)
-                await ScrollToBottomAsync();
+                RequestScrollToBottomAfterRender();
+
+            StateHasChanged();
         });
     }
 
@@ -500,6 +518,11 @@ public partial class ConsoleLogs : IAsyncDisposable
         {
             // Scrolling is best-effort and should not interrupt console streaming.
         }
+    }
+
+    private void RequestScrollToBottomAfterRender()
+    {
+        _scrollAfterRender = true;
     }
 
     private async Task<IJSObjectReference> GetScriptModuleAsync()
