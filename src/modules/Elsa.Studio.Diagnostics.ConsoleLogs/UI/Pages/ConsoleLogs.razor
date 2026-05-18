@@ -88,8 +88,8 @@
                        Margin="Margin.Dense"
                        Dense="true">
                 <MudSelectItem T="string" Value="@("both")">@Localizer["stdout + stderr"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("stdout")">stdout</MudSelectItem>
-                <MudSelectItem T="string" Value="@("stderr")">stderr</MudSelectItem>
+                <MudSelectItem T="string" Value="@("stdout")">@Localizer["stdout"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("stderr")">@Localizer["stderr"]</MudSelectItem>
             </MudSelect>
 
             <MudTextField T="string" Label="@Localizer["Text"]" Value="@ViewState.Filter.Text" ValueChanged="SetTextFilterAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" />
