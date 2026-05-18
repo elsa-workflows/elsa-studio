@@ -18,4 +18,15 @@ public static class ComponentConfigurationExtensions
 
         return configuration;
     }
+    
+    /// <summary>
+    /// Registers custom elements with Shadow DOM support.
+    /// </summary>
+    public static IJSComponentConfiguration RegisterCustomElsaStudioElementsWithShadowDOM(this IJSComponentConfiguration configuration, Type? activityComponentType = null)
+    {
+        activityComponentType ??= typeof(ActivityWrapper);
+        configuration.RegisterForJavaScript(activityComponentType, "elsa-activity-wrapper", "registerBlazorCustomElementWithShadowDOM");
+
+        return configuration;
+    }
 }
