@@ -50,6 +50,16 @@ public class ConsoleLogsMenuTests
         Assert.Empty(items);
     }
 
+    [Fact]
+    public async Task GetMenuItemsAsync_WhenRemoteFeatureCheckRunsDuringPrerender_ReturnsNoItems()
+    {
+        var menu = new ConsoleLogsMenu(new ThrowingRemoteFeatureProvider(new InvalidOperationException("JavaScript interop calls cannot be issued at this time.")));
+
+        var items = await menu.GetMenuItemsAsync();
+
+        Assert.Empty(items);
+    }
+
     private class TestRemoteFeatureProvider(bool enabled) : IRemoteFeatureProvider
     {
         public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default)

@@ -31,6 +31,7 @@
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
     </ItemGroup>
 
 </Project>

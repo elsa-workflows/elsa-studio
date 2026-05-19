@@ -12,6 +12,7 @@ using Elsa.Studio.Localization.Time.Providers;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
 using Elsa.Studio.Models;
+using Elsa.Studio.Secrets.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -54,6 +55,7 @@ builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
 builder.Services.AddScoped<IHttpConnectionOptionsConfigurator, BackendServiceHttpConnectionOptionsConfigurator>();
 builder.Services.AddWorkflowsModule();
+builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 
@@ -68,4 +70,3 @@ foreach (var task in startupTask) await task.ExecuteAsync();
 
 // Run the application.
 await app.RunAsync();
-

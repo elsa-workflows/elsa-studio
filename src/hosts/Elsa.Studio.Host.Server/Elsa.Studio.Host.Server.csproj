@@ -23,6 +23,7 @@
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Labels\Elsa.Studio.Labels.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorServer\Elsa.Studio.Localization.BlazorServer.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
     </ItemGroup>
 

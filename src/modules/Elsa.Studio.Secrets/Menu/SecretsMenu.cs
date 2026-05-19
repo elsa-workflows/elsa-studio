@@ -4,34 +4,28 @@ using MudBlazor;
 using Refit;
 using System.Net;
 
-namespace Elsa.Studio.Diagnostics.ConsoleLogs.Menu;
+namespace Elsa.Studio.Secrets.Menu;
 
-/// <summary>
-/// Exposes menu entries for diagnostics console logs.
-/// </summary>
-public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
+public class SecretsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
-    /// <inheritdoc />
     public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
-        if (!await IsConsoleLogsEnabledAsync(cancellationToken))
+        if (!await IsSecretsEnabledAsync(cancellationToken))
             return [];
 
-        var menuItems = new List<MenuItem>
-        {
+        return
+        [
             new()
             {
-                Icon = Icons.Material.Filled.Terminal,
-                Href = "diagnostics/console",
-                Text = "Console",
-                GroupName = MenuItemGroups.Diagnostics.Name
+                Icon = Icons.Material.Filled.Key,
+                Href = "security/secrets",
+                Text = "Secrets",
+                GroupName = MenuItemGroups.Settings.Name
             }
-        };
-
-        return menuItems;
+        ];
     }
 
-    private async Task<bool> IsConsoleLogsEnabledAsync(CancellationToken cancellationToken)
+    private async Task<bool> IsSecretsEnabledAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -57,12 +51,9 @@ public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMe
         {
             return false;
         }
-        catch (InvalidOperationException e) when (IsJavaScriptInteropUnavailable(e))
+        catch (InvalidOperationException e) when (e.Message.Contains("JavaScript interop calls cannot be issued at this time", StringComparison.Ordinal))
         {
             return false;
         }
     }
-
-    private static bool IsJavaScriptInteropUnavailable(InvalidOperationException e) =>
-        e.Message.Contains("JavaScript interop calls cannot be issued at this time", StringComparison.Ordinal);
 }

@@ -21,6 +21,7 @@ using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
+using Elsa.Studio.Secrets.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -92,6 +93,7 @@ services.AddDashboardModule();
 services.AddWorkflowsModule();
 services.AddConsoleLogsModule(backendApiConfig);
 services.AddStructuredLogsModule(backendApiConfig);
+services.AddSecretsModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
