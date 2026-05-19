@@ -16,6 +16,15 @@
                 WorkflowInstanceId="@WorkflowInstance.Id"
                 PathChanged="PathChanged">
                 <CustomToolbarItems>
+                    @if (WorkflowInstance.Status == WorkflowStatus.Running)
+                    {
+                        <MudTooltip Text="@Localizer["Alter this instance"]" Delay="500">
+                            <MudIconButton
+                                Icon="@Icons.Material.Outlined.Tune"
+                                Href="@($"alterations/instances/{WorkflowInstance.Id}")">
+                            </MudIconButton>
+                        </MudTooltip>
+                    }
                     <MudTooltip Text="@Localizer["Edit Workflow Definition"]" Delay="500">
                         <MudIconButton
                             Icon="@Icons.Material.Outlined.EditNote"
