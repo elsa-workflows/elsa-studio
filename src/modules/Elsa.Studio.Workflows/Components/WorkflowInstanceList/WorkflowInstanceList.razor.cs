@@ -50,6 +50,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
     [Inject] private IOptions<WorkflowInstanceListPollingOptions> PollingOptions { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     /// <summary>
     /// Invoked when the "Ctrl+R" hotkeys are pressed, triggering the refresh operation.
@@ -340,6 +341,11 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         var instanceId = row.WorkflowInstanceId;
         await WorkflowInstanceService.DeleteAsync(instanceId);
         Reload();
+    }
+
+    private void OnAlterClicked(WorkflowInstanceRow row)
+    {
+        NavigationManager.NavigateTo($"alterations/instances/{row.WorkflowInstanceId}");
     }
 
     private async Task OnCancelClicked(WorkflowInstanceRow row)

@@ -15,6 +15,9 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
         // Get refresh token.
         var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
 
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return new(false, null, null);
+
         // Setup request to get new tokens.
         var url = remoteBackendAccessor.RemoteBackend.Url + "/identity/refresh-token";
         var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
@@ -31,8 +34,11 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
 
         // Store tokens.
-        await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken!);
-        await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken!);
+        if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
+            await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken);
+
+        if (!string.IsNullOrWhiteSpace(tokens.AccessToken))
+            await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken);
 
         // Return tokens.
         return tokens;

@@ -26,15 +26,34 @@ public class BlazorServerJwtAccessor : IJwtAccessor
     {
         if (IsPrerendering())
             return null;
-        
-        return await _localStorageService.GetItemAsync<string>(name);
+
+        try
+        {
+            return await _localStorageService.GetItemAsync<string>(name);
+        }
+        catch (InvalidOperationException e) when (IsJavaScriptInteropUnavailable(e))
+        {
+            return null;
+        }
     }
 
     /// <inheritdoc />
     public async ValueTask WriteTokenAsync(string name, string token)
     {
-        await _localStorageService.SetItemAsStringAsync(name, token);
+        if (IsPrerendering())
+            return;
+
+        try
+        {
+            await _localStorageService.SetItemAsStringAsync(name, token);
+        }
+        catch (InvalidOperationException e) when (IsJavaScriptInteropUnavailable(e))
+        {
+        }
     }
 
     private bool IsPrerendering() => _httpContextAccessor.HttpContext?.Response.HasStarted == false;
+
+    private static bool IsJavaScriptInteropUnavailable(InvalidOperationException e) =>
+        e.Message.Contains("JavaScript interop calls cannot be issued at this time", StringComparison.Ordinal);
 }

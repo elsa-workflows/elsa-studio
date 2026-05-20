@@ -411,17 +411,28 @@ public partial class StructuredLogs : IAsyncDisposable
         return "";
     }
 
-    protected static string CorrelationHintTitle(StructuredLogEvent logEvent)
+    protected static bool HasCorrelationHint(StructuredLogEvent logEvent) => !string.IsNullOrWhiteSpace(logEvent.TraceId) || !string.IsNullOrWhiteSpace(logEvent.CorrelationId);
+
+    protected static string CorrelationFilterTooltip(StructuredLogEvent logEvent)
     {
-        return string.Join("  ", new[]
-        {
-            string.IsNullOrWhiteSpace(logEvent.TraceId) ? null : $"Trace: {logEvent.TraceId}",
-            string.IsNullOrWhiteSpace(logEvent.SpanId) ? null : $"Span: {logEvent.SpanId}",
-            string.IsNullOrWhiteSpace(logEvent.CorrelationId) ? null : $"Correlation: {logEvent.CorrelationId}"
-        }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        if (!string.IsNullOrWhiteSpace(logEvent.TraceId))
+            return $"Filter by trace ID {logEvent.TraceId}";
+
+        if (!string.IsNullOrWhiteSpace(logEvent.CorrelationId))
+            return $"Filter by correlation ID {logEvent.CorrelationId}";
+
+        return "";
     }
 
-    protected RenderFragment DetailRow(string label, string? value) => builder =>
+    protected Task ApplyCorrelationFilterAsync(StructuredLogEvent logEvent)
+    {
+        if (!string.IsNullOrWhiteSpace(logEvent.TraceId))
+            return SetTraceIdAsync(logEvent.TraceId);
+
+        return SetCorrelationIdAsync(logEvent.CorrelationId);
+    }
+
+    protected RenderFragment DetailRow(string label, string? value, Func<string?, Task>? applyFilterAsync = null) => builder =>
     {
         if (string.IsNullOrWhiteSpace(value))
             return;
@@ -436,11 +447,23 @@ public partial class StructuredLogs : IAsyncDisposable
         builder.CloseElement();
         builder.OpenElement(5, "button");
         builder.AddAttribute(6, "type", "button");
-        builder.AddAttribute(7, "class", "structured-log-copy-value");
+        builder.AddAttribute(7, "class", "structured-log-detail-action");
         builder.AddAttribute(8, "title", Localizer["Copy"]);
         builder.AddAttribute(9, "onclick", EventCallback.Factory.Create(this, () => CopyValueAsync(value)));
         builder.AddContent(10, "Copy");
         builder.CloseElement();
+
+        if (applyFilterAsync != null)
+        {
+            builder.OpenElement(11, "button");
+            builder.AddAttribute(12, "type", "button");
+            builder.AddAttribute(13, "class", "structured-log-detail-action");
+            builder.AddAttribute(14, "title", Localizer["Filter"]);
+            builder.AddAttribute(15, "onclick", EventCallback.Factory.Create(this, () => applyFilterAsync(value)));
+            builder.AddContent(16, "Filter");
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
     };
 

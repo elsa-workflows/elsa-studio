@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <Description>Adds workflow designer Blazor components powered by JS interop with X6.</Description>
-        <PackageTags>elsa studio module x6</PackageTags>
+        <Description>Adds workflow designer Blazor components powered by JS interop with X6 and React Flow.</Description>
+        <PackageTags>elsa studio module x6 react-flow</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
