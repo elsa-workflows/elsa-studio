@@ -19,6 +19,7 @@ using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
+using Elsa.Studio.Secrets.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
@@ -120,6 +121,7 @@ builder.Services.AddWorkflowsModule();
 builder.Services.AddAlterationsModule();
 builder.Services.AddConsoleLogsModule(backendApiConfig);
 builder.Services.AddStructuredLogsModule(backendApiConfig);
+builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
