@@ -30,7 +30,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@storybook/addon-essentials": "^8.6.11",
+    "@storybook/addon-essentials": "^7.0.6",
     "@storybook/addon-interactions": "^8.6.11",
     "@storybook/addon-links": "^8.6.11",
     "@storybook/addon-onboarding": "^8.6.11",
