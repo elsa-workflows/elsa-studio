@@ -128,7 +128,7 @@ public record DashboardWidgetDescriptor
     public required string Id { get; init; }
     public required string Title { get; init; }
     public required Type ComponentType { get; init; }
-    public DashboardWidgetPlacement Placement { get; init; }
+    public DashboardWidgetPlacement Placement { get; init; } = DashboardWidgetPlacement.Main;
     public DashboardWidgetSize Size { get; init; }
     public int Order { get; init; }
     public DashboardWidgetAvailability Availability { get; init; }
@@ -145,6 +145,8 @@ public record DashboardWidgetDescriptor
 - Additional entries from `DashboardWidgetDescriptor.Parameters`, merged by the host into the `DynamicComponent` parameter dictionary.
 
 The host should validate that `ComponentType` implements both Blazor `IComponent` and `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
+
+Widget `Id` values must be globally unique across all providers and should use a module-qualified prefix, such as `workflows.metric.running` or `diagnostics.structured-logs.health`. If two providers return the same `Id`, the host should keep the first descriptor in provider registration order, skip later duplicates, and log the duplicate provider and widget id.
 
 `Parameters` is immutable snapshot data in the descriptor contract. Providers should create a fresh immutable dictionary per descriptor, and the host should clone entries into a separate merged parameter dictionary when adding `Context` and `Descriptor`.
 
@@ -192,7 +194,7 @@ services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>()
 - Route `/` and existing dashboard menu item.
 - Page header, range selector, refresh button, last refreshed timestamp, and backend status shell.
 - Widget discovery from all registered `IDashboardWidgetProvider` services.
-- Widget sorting, placement, layout, spacing, and responsive behavior.
+- Widget sorting, placement, layout, spacing, and responsive behavior. Sorting should be deterministic by `DashboardWidgetPlacement`, then `Order`, then widget `Id` using ordinal string comparison.
 - Page-level loading, no-provider, provider-discovery error, unavailable, and unauthorized chrome; widget components own their internal loading, empty, and recoverable error states after `Availability=Available`.
 - Rendering widgets through Blazor `DynamicComponent`.
 - `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows widget-level error chrome and does not collapse the whole dashboard.
