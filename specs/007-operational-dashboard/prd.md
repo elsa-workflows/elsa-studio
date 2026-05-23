@@ -148,6 +148,8 @@ public record DashboardWidgetContext
 }
 ```
 
+The contract uses `ImmutableDictionary` from `System.Collections.Immutable`; add the corresponding namespace and package reference to `Elsa.Studio.Dashboard.Abstractions` if it is not already available transitively.
+
 `IDashboardWidgetComponent` is a marker contract for Razor components rendered by the host through `DynamicComponent`. Widget components should implement it and accept the following conventional `[Parameter]` properties:
 
 - `DashboardWidgetContext Context`: current dashboard range, capability state, and refresh generation.
@@ -621,7 +623,7 @@ Unit tests:
 - Widget placement and size mapping to host layout regions.
 - Range mapping to backend duration values.
 - Capability state mapping.
-- Navigation target mapping.
+- Module-owned navigation target mapping for contributed widgets.
 - Metric formatting for zero, large values, durations, and unavailable values.
 - Needs-attention severity/icon mapping.
 
