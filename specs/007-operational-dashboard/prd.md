@@ -119,6 +119,10 @@ public interface IDashboardWidgetProvider
         CancellationToken cancellationToken = default);
 }
 
+public interface IDashboardWidgetComponent
+{
+}
+
 public record DashboardWidgetDescriptor
 {
     public required string Id { get; init; }
@@ -129,9 +133,23 @@ public record DashboardWidgetDescriptor
     public int Order { get; init; }
     public DashboardWidgetAvailability Availability { get; init; }
     public DashboardWidgetRefreshMode RefreshMode { get; init; }
-    public IDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
 }
 ```
+
+`IDashboardWidgetComponent` is a marker contract for Razor components rendered by the host through `DynamicComponent`. Widget components should implement it and accept the following conventional `[Parameter]` properties:
+
+- `DashboardWidgetContext Context`: current dashboard range, capability state, and refresh generation.
+- `DashboardWidgetDescriptor Descriptor`: widget metadata supplied by the provider.
+- Additional entries from `DashboardWidgetDescriptor.Parameters`, merged by the host into the `DynamicComponent` parameter dictionary.
+
+The host should validate that `ComponentType` implements `IDashboardWidgetComponent` before rendering. `Parameters` is intentionally read-only in the descriptor contract; providers should create a new dictionary per descriptor, and the host should create a separate merged parameter dictionary when adding `Context` and `Descriptor`.
+
+`DashboardWidgetRefreshMode` should define host behavior:
+
+- `Dashboard`: refresh on page load, user refresh, and range/filter changes.
+- `Live`: refresh on page load, user refresh, range/filter changes, and any dashboard auto-refresh cadence when enabled.
+- `Static`: do not refresh due to dashboard data changes; rediscover only when the module set, permissions, or navigation context changes.
 
 `DashboardWidgetContext` should include:
 
@@ -140,7 +158,8 @@ public record DashboardWidgetDescriptor
 - Current backend/environment metadata when available.
 - Backend dashboard capability state.
 - Current refresh generation or timestamp.
-- Cancellation token passed through the provider call.
+
+The method-level `CancellationToken` on `GetWidgetsAsync` is the single cancellation source for provider discovery. The context should not carry a second token.
 
 The provider should return only widgets owned by its module. For example:
 
@@ -218,7 +237,7 @@ The host should expose layout regions rather than fixed panels:
 - `FullWidth`: wide widgets such as dense recent activity tables.
 - `Footer`: lower-priority widgets.
 
-The dashboard host maps `DashboardWidgetPlacement` and `DashboardWidgetSize` to MudBlazor grid spans. Widgets should not create nested page-level cards; the host supplies the outer widget surface.
+These region names are the required `DashboardWidgetPlacement` enum values. The dashboard host maps `DashboardWidgetPlacement` and `DashboardWidgetSize` to MudBlazor grid spans. Widgets should not create nested page-level cards; the host supplies the outer widget surface.
 
 ### Workflow Summary Widgets
 
