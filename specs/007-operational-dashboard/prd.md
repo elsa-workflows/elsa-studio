@@ -272,9 +272,15 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardRuntimeStatus.cs
 │   ├── DashboardDiagnosticsSummary.cs
 │   ├── DashboardFinding.cs
+│   ├── DashboardNeedsAttentionResponse.cs
+│   ├── DashboardTrendRequest.cs
+│   ├── DashboardTrendResponse.cs
 │   ├── DashboardTrendBucket.cs
 │   ├── DashboardRecentActivityItem.cs
-│   └── DashboardHotspot.cs
+│   ├── DashboardRecentActivityResponse.cs
+│   ├── DashboardHotspot.cs
+│   ├── DashboardWorkflowHotspotsRequest.cs
+│   └── DashboardWorkflowHotspotsResponse.cs
 ├── Services/
 │   ├── DashboardService.cs
 │   ├── DashboardNavigationTargetMapper.cs
@@ -292,6 +298,15 @@ src/modules/Elsa.Studio.Dashboard/
     ├── Index.razor.cs
     └── Index.razor.css
 ```
+
+Response and request model boundaries:
+
+- `DashboardTrendRequest`: selected range, bucket granularity, and `includeSystem`.
+- `DashboardTrendResponse`: ordered trend buckets plus the applied range and granularity.
+- `DashboardNeedsAttentionResponse`: ordered findings plus source capability metadata.
+- `DashboardRecentActivityResponse`: ordered recent workflow activity items plus the applied range.
+- `DashboardWorkflowHotspotsRequest`: selected range, metric, take count, and `includeSystem`.
+- `DashboardWorkflowHotspotsResponse`: ordered hotspot rows plus the applied range and metric.
 
 ## Client API Contract
 
@@ -320,6 +335,7 @@ public interface IDashboardApi
 
     [Get("/dashboard/recent-activity")]
     Task<DashboardRecentActivityResponse> GetRecentActivityAsync(
+        string? range = null,
         int take = 20,
         bool includeSystem = false,
         CancellationToken cancellationToken = default);
