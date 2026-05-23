@@ -9,7 +9,7 @@ public class ConsoleLogSourceSelectorTests
     [Fact]
     public void Filter_UsesStableSourceId()
     {
-        var filter = new ConsoleLogFilter { SourceId = "source-id", Text = "needle" };
+        var filter = new ConsoleLogFilter { SourceId = "source-id", Query = "needle" };
 
         var request = ConsoleLogFilterMapper.ToLiveSubscription(filter);
 

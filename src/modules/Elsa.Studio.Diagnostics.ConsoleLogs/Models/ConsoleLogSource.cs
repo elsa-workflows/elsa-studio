@@ -53,7 +53,7 @@ public class ConsoleLogSource
     /// <summary>
     /// Gets or sets the last seen timestamp.
     /// </summary>
-    public DateTimeOffset? LastSeenAt { get; set; }
+    public DateTimeOffset? LastSeen { get; set; }
 
     /// <summary>
     /// Gets or sets the source health.
