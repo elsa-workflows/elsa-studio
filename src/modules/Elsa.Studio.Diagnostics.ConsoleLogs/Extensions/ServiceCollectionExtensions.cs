@@ -25,7 +25,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IConsoleLogService, RemoteConsoleLogService>()
             .AddScoped<IConsoleLogObserver, SignalRConsoleLogObserver>()
             .AddScoped<ConsoleLogExportFormatter>()
-            .AddScoped<ConsoleLogTextHighlighter>()
             .AddScoped<ConsoleLogUrlStateMapper>()
             .AddRemoteApi<IConsoleLogsApi>(backendApiConfig);
     }

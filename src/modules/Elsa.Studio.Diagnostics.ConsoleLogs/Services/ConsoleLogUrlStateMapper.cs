@@ -1,6 +1,5 @@
 using Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 using Microsoft.AspNetCore.WebUtilities;
-using System.Globalization;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.Services;
 
@@ -20,16 +19,7 @@ public class ConsoleLogUrlStateMapper
             state.Filter.SourceId = Normalize(source);
 
         if (query.TryGetValue("stream", out var stream))
-            state.Filter.Streams = ParseStreams(stream);
-
-        if (query.TryGetValue("text", out var text))
-            state.Filter.Text = Normalize(text);
-
-        if (query.TryGetValue("from", out var from) && TryParseUtc(from, out var parsedFrom))
-            state.Filter.From = parsedFrom;
-
-        if (query.TryGetValue("to", out var to) && TryParseUtc(to, out var parsedTo))
-            state.Filter.To = parsedTo;
+            state.Filter.Stream = ParseStream(stream);
 
         if (query.TryGetValue("wrap", out var wrap) && bool.TryParse(wrap, out var parsedWrap))
             state.Wrap = parsedWrap;
@@ -51,10 +41,10 @@ public class ConsoleLogUrlStateMapper
         new()
         {
             ["source"] = state.Filter.SourceId,
-            ["stream"] = FormatStreams(state.Filter.Streams),
-            ["text"] = state.Filter.Text,
-            ["from"] = state.Filter.From?.ToUniversalTime().ToString("O"),
-            ["to"] = state.Filter.To?.ToUniversalTime().ToString("O"),
+            ["stream"] = FormatStream(state.Filter.Stream),
+            ["text"] = null,
+            ["from"] = null,
+            ["to"] = null,
             ["wrap"] = FormatBool(state.Wrap),
             ["compact"] = FormatBool(state.Compact),
             ["ansi"] = FormatBool(state.Ansi),
@@ -64,35 +54,25 @@ public class ConsoleLogUrlStateMapper
     /// <summary>
     /// Parses stream selection values.
     /// </summary>
-    public static ICollection<ConsoleLogStream> ParseStreams(string? value)
+    public static ConsoleLogStream? ParseStream(string? value)
     {
         return value?.Trim().ToLowerInvariant() switch
         {
-            "stdout" => [ConsoleLogStream.Stdout],
-            "stderr" => [ConsoleLogStream.Stderr],
-            _ => [ConsoleLogStream.Stdout, ConsoleLogStream.Stderr]
+            "stdout" => ConsoleLogStream.Stdout,
+            "stderr" => ConsoleLogStream.Stderr,
+            _ => null
         };
     }
 
     /// <summary>
-    /// Formats selected streams.
+    /// Formats the selected stream.
     /// </summary>
-    public static string FormatStreams(ICollection<ConsoleLogStream>? streams)
+    public static string FormatStream(ConsoleLogStream? stream) => stream switch
     {
-        if (streams == null || streams.Count != 1)
-            return "both";
-
-        return streams.Contains(ConsoleLogStream.Stderr) ? "stderr" : "stdout";
-    }
-
-    private static bool TryParseUtc(string? value, out DateTimeOffset result)
-    {
-        return DateTimeOffset.TryParse(
-            value,
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-            out result);
-    }
+        ConsoleLogStream.Stdout => "stdout",
+        ConsoleLogStream.Stderr => "stderr",
+        _ => "both"
+    };
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

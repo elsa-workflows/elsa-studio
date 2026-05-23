@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 
 /// <summary>
@@ -43,10 +45,12 @@ public class ConsoleLogLine
     /// <summary>
     /// Gets or sets a value indicating whether the backend truncated this line.
     /// </summary>
+    [JsonPropertyName("truncated")]
     public bool IsTruncated { get; set; }
 
     /// <summary>
-    /// Gets or sets the number of backend-dropped lines before this line.
+    /// Gets or sets the optional backend-dropped-line summary attached to this line.
     /// </summary>
-    public long? DroppedBeforeCount { get; set; }
+    [JsonPropertyName("dropped")]
+    public ConsoleLogDroppedLineSummary? Dropped { get; set; }
 }

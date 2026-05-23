@@ -15,11 +15,11 @@ public class ConsoleLogFilterMapperTests
         _filter = new()
         {
             SourceId = "source-a",
-            Streams = [ConsoleLogStream.Stdout],
-            Text = "incident",
+            Stream = ConsoleLogStream.Stdout,
+            Query = "incident",
             From = _from,
             To = _to,
-            Take = 50
+            Limit = 50
         };
     }
 
@@ -29,43 +29,42 @@ public class ConsoleLogFilterMapperTests
         var request = ConsoleLogFilterMapper.ToRecentRequest(_filter, 100);
 
         Assert.Equal(_filter.SourceId, request.SourceId);
-        Assert.Equal(_filter.Streams, request.Streams);
-        Assert.Equal(_filter.Text, request.Text);
+        Assert.Equal(_filter.Stream, request.Stream);
+        Assert.Equal(_filter.Query, request.Query);
         Assert.Equal(_from, request.From);
         Assert.Equal(_to, request.To);
-        Assert.Equal(50, request.Take);
+        Assert.Equal(50, request.Limit);
     }
 
     [Fact]
-    public void ToRecentRequest_ClampsTakeToRowCap()
+    public void ToRecentRequest_ClampsLimitToRowCap()
     {
-        var request = ConsoleLogFilterMapper.ToRecentRequest(new() { Take = 500 }, 100);
+        var request = ConsoleLogFilterMapper.ToRecentRequest(new() { Limit = 500 }, 100);
 
-        Assert.Equal(100, request.Take);
+        Assert.Equal(100, request.Limit);
     }
 
     [Fact]
-    public void ToRecentRequest_DefaultsTakeToRowCap()
+    public void ToRecentRequest_DefaultsLimitToRowCap()
     {
         var request = ConsoleLogFilterMapper.ToRecentRequest(new(), 100);
 
-        Assert.Equal(100, request.Take);
+        Assert.Equal(100, request.Limit);
     }
 
     [Fact]
-    public void ToLiveSubscription_CopiesStreams()
+    public void ToLiveSubscription_PreservesStream()
     {
         var request = ConsoleLogFilterMapper.ToLiveSubscription(_filter);
 
-        Assert.NotSame(_filter.Streams, request.Streams);
-        Assert.Equal(_filter.Streams, request.Streams);
+        Assert.Equal(_filter.Stream, request.Stream);
     }
 
     [Fact]
-    public void ToLiveSubscription_PreservesRawTextFilter()
+    public void ToLiveSubscription_PreservesQueryFilter()
     {
-        var request = ConsoleLogFilterMapper.ToLiveSubscription(new() { Text = " raw value " });
+        var request = ConsoleLogFilterMapper.ToLiveSubscription(new() { Query = " raw value " });
 
-        Assert.Equal(" raw value ", request.Text);
+        Assert.Equal(" raw value ", request.Query);
     }
 }

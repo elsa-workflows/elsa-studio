@@ -8,8 +8,8 @@
     <PageHeading Text="@Localizer["Console"]" />
 
     <MudPaper Elevation="0" Outlined="true" Class="console-logs-toolbar">
-        <div class="console-logs-toolbar-row">
-            <div class="console-logs-summary">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2" Class="console-logs-toolbar-row">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="console-logs-summary">
                 <span class="console-logs-status @StatusCssClass">
                     <span class="console-logs-status-dot"></span>
                     @Localizer[StatusText]
@@ -40,75 +40,77 @@
                 {
                     <span class="console-logs-warning">@DiscardedRefreshBufferRows @Localizer["discarded during refresh"]</span>
                 }
-            </div>
+            </MudStack>
 
-            <div class="console-logs-actions">
-                <MudTooltip Text="@(ViewState.IsPaused ? Localizer["Resume"] : Localizer["Pause"])" Delay="500">
-                    <MudIconButton Icon="@PauseIcon" Size="Size.Small" OnClick="TogglePausedAsync" />
-                </MudTooltip>
-                <MudTooltip Text="@Localizer["Clear"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Size="Size.Small" OnClick="ClearAsync" />
-                </MudTooltip>
-                <MudTooltip Text="@Localizer["Reconnect"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" Disabled="@IsLoading" OnClick="ReconnectAsync" />
-                </MudTooltip>
-                <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
-                </MudTooltip>
-                <MudTooltip Text="@Localizer["Export visible"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Download" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="ExportVisibleAsync" />
-                </MudTooltip>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="console-logs-actions">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="console-logs-icon-actions">
+                    <MudTooltip Text="@(ViewState.IsPaused ? Localizer["Resume"] : Localizer["Pause"])" Delay="500">
+                        <MudIconButton Icon="@PauseIcon" Size="Size.Small" OnClick="TogglePausedAsync" />
+                    </MudTooltip>
+                    <MudTooltip Text="@Localizer["Clear"]" Delay="500">
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Size="Size.Small" OnClick="ClearAsync" />
+                    </MudTooltip>
+                    <MudTooltip Text="@Localizer["Reconnect"]" Delay="500">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Size="Size.Small" Disabled="@IsLoading" OnClick="ReconnectAsync" />
+                    </MudTooltip>
+                    <MudTooltip Text="@Localizer["Copy visible"]" Delay="500">
+                        <MudIconButton Icon="@Icons.Material.Outlined.CopyAll" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="CopyVisibleAsync" />
+                    </MudTooltip>
+                    <MudTooltip Text="@Localizer["Export visible"]" Delay="500">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Download" Size="Size.Small" Disabled="@(Rows.Count == 0)" OnClick="ExportVisibleAsync" />
+                    </MudTooltip>
+                </MudStack>
 
-                <span class="console-logs-action-divider"></span>
-
-                <MudSwitch T="bool" Value="@ViewState.FollowTail" ValueChanged="SetFollowTailAsync" Color="Color.Primary" Label="@Localizer["Follow"]" LabelPlacement="Placement.Start" />
-                <MudSwitch T="bool" Value="@ViewState.Wrap" ValueChanged="SetWrapAsync" Color="Color.Primary" Label="@Localizer["Wrap"]" LabelPlacement="Placement.Start" />
-                <MudSwitch T="bool" Value="@ViewState.Compact" ValueChanged="SetCompactAsync" Color="Color.Primary" Label="@Localizer["Compact"]" LabelPlacement="Placement.Start" />
-                <MudSwitch T="bool" Value="@ViewState.Ansi" ValueChanged="SetAnsiAsync" Color="Color.Primary" Label="@Localizer["Raw ANSI"]" LabelPlacement="Placement.Start" />
-            </div>
-        </div>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="console-logs-switch-actions">
+                    <MudSwitch T="bool" Value="@ViewState.FollowTail" ValueChanged="SetFollowTailAsync" Color="Color.Primary" Label="@Localizer["Follow"]" LabelPlacement="Placement.Start" Class="console-logs-switch" />
+                    <MudSwitch T="bool" Value="@ViewState.Wrap" ValueChanged="SetWrapAsync" Color="Color.Primary" Label="@Localizer["Wrap"]" LabelPlacement="Placement.Start" Class="console-logs-switch" />
+                    <MudSwitch T="bool" Value="@ViewState.Compact" ValueChanged="SetCompactAsync" Color="Color.Primary" Label="@Localizer["Compact"]" LabelPlacement="Placement.Start" Class="console-logs-switch" />
+                    <MudSwitch T="bool" Value="@ViewState.Ansi" ValueChanged="SetAnsiAsync" Color="Color.Primary" Label="@Localizer["Raw ANSI"]" LabelPlacement="Placement.Start" Class="console-logs-switch" />
+                </MudStack>
+            </MudStack>
+        </MudStack>
     </MudPaper>
 
     <MudPaper Elevation="0" Outlined="true" Class="console-logs-filters">
-        <div class="console-logs-filter-grid">
-            <MudSelect T="string?"
-                       Label="@Localizer["Source"]"
-                       Value="@ViewState.Filter.SourceId"
-                       ValueChanged="SetSourceAsync"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Dense"
-                       Disabled="@IsLoading"
-                       Dense="true">
-                <MudSelectItem T="string?" Value="@(null)">@Localizer["All sources"]</MudSelectItem>
-                @foreach (var source in Sources)
-                {
-                    <MudSelectItem T="string?" Value="@source.Id">
-                        <span>@SourceDisplayName(source)</span>
-                        @if (HasSourceHealthBadge(source))
-                        {
-                            <span class="console-log-source-health">@source.Health</span>
-                        }
-                    </MudSelectItem>
-                }
-            </MudSelect>
+        <MudGrid Spacing="2" Class="console-logs-filter-grid">
+            <MudItem xs="12" md="8">
+                <MudSelect T="string?"
+                           Label="@Localizer["Source"]"
+                           Value="@ViewState.Filter.SourceId"
+                           ValueChanged="SetSourceAsync"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Disabled="@IsLoading"
+                           Dense="true">
+                    <MudSelectItem T="string?" Value="@(null)">@Localizer["All sources"]</MudSelectItem>
+                    @foreach (var source in Sources)
+                    {
+                        <MudSelectItem T="string?" Value="@source.Id">
+                            <span>@SourceDisplayName(source)</span>
+                            @if (HasSourceHealthBadge(source))
+                            {
+                                <span class="console-log-source-health">@source.Health</span>
+                            }
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
 
-            <MudSelect T="string"
-                       Label="@Localizer["Stream"]"
-                       Value="@StreamSelection"
-                       ValueChanged="SetStreamAsync"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Dense"
-                       Disabled="@IsLoading"
-                       Dense="true">
-                <MudSelectItem T="string" Value="@("both")">@Localizer["stdout + stderr"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("stdout")">@Localizer["stdout"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("stderr")">@Localizer["stderr"]</MudSelectItem>
-            </MudSelect>
-
-            <MudTextField T="string" Label="@Localizer["Text"]" Value="@ViewState.Filter.Text" ValueChanged="SetTextFilterAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" />
-            <MudTextField T="string" Label="@Localizer["From"]" Value="@FromFilterText" ValueChanged="SetFromAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" Placeholder="2026-05-18T09:00:00Z" />
-            <MudTextField T="string" Label="@Localizer["To"]" Value="@ToFilterText" ValueChanged="SetToAsync" Immediate="true" DebounceInterval="300" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@IsLoading" Placeholder="2026-05-18T10:00:00Z" />
-        </div>
+            <MudItem xs="12" md="4">
+                <MudSelect T="string"
+                           Label="@Localizer["Stream"]"
+                           Value="@StreamSelection"
+                           ValueChanged="SetStreamAsync"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Disabled="@IsLoading"
+                           Dense="true">
+                    <MudSelectItem T="string" Value="@("both")">@Localizer["stdout + stderr"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("stdout")">@Localizer["stdout"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("stderr")">@Localizer["stderr"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
     </MudPaper>
 
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
@@ -152,9 +154,9 @@
                         <span class="console-log-flag">@Localizer["truncated"]</span>
                     }
 
-                    @if (line.DroppedBeforeCount is > 0)
+                    @if (line.Dropped?.Count is > 0)
                     {
-                        <span class="console-log-flag">@line.DroppedBeforeCount @Localizer["dropped before"]</span>
+                        <span class="console-log-flag">@line.Dropped.Count @Localizer["dropped before"]</span>
                     }
                 </article>
             }

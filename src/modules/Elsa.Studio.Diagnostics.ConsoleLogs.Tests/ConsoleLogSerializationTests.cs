@@ -31,14 +31,26 @@ public class ConsoleLogSerializationTests
                 "containerName": "container-a",
                 "namespace": "default",
                 "nodeName": "node-a",
-                "lastSeenAt": "2026-05-18T09:00:00.0000000Z",
+                "lastSeen": "2026-05-18T09:00:00.0000000Z",
                 "health": 1
               },
-              "isTruncated": true,
-              "droppedBeforeCount": 3
+              "truncated": true,
+              "dropped": {
+                "sourceId": "source-a",
+                "stream": 1,
+                "reason": "SubscriberChannelFull",
+                "count": 3
+              }
             }
           ],
-          "droppedLineCount": 5
+          "dropped": [
+            {
+              "sourceId": "source-a",
+              "stream": 0,
+              "reason": "RecentBufferFull",
+              "count": 5
+            }
+          ]
         }
         """;
 
@@ -53,6 +65,6 @@ public class ConsoleLogSerializationTests
         Assert.Equal("Worker A", line.Source.DisplayName);
         Assert.Equal(ConsoleLogSourceHealth.Connected, line.Source.Health);
         Assert.True(line.IsTruncated);
-        Assert.Equal(3, line.DroppedBeforeCount);
+        Assert.Equal(3, line.Dropped?.Count);
     }
 }

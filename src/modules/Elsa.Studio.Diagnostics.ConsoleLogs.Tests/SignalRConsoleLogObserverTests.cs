@@ -38,12 +38,12 @@ public class SignalRConsoleLogObserverTests
             new TestBackendApiClientProvider(new("http://127.0.0.1:1/")),
             new NoopConnectionOptionsConfigurator(),
             NullLogger<SignalRConsoleLogObserver>.Instance);
-        var filter = new ConsoleLogFilter { SourceId = "source-a", Text = "needle" };
+        var filter = new ConsoleLogFilter { SourceId = "source-a", Query = "needle" };
 
         await observer.ReconnectAsync(filter);
 
         Assert.Equal("source-a", observer.CurrentFilter?.SourceId);
-        Assert.Equal("needle", observer.CurrentFilter?.Text);
+        Assert.Equal("needle", observer.CurrentFilter?.Query);
         await observer.DisposeAsync();
     }
 
@@ -55,10 +55,10 @@ public class SignalRConsoleLogObserverTests
             new NoopConnectionOptionsConfigurator(),
             NullLogger<SignalRConsoleLogObserver>.Instance);
 
-        await observer.UpdateFilterAsync(new() { SourceId = "source-b", Text = "updated" });
+        await observer.UpdateFilterAsync(new() { SourceId = "source-b", Query = "updated" });
 
         Assert.Equal("source-b", observer.CurrentFilter?.SourceId);
-        Assert.Equal("updated", observer.CurrentFilter?.Text);
+        Assert.Equal("updated", observer.CurrentFilter?.Query);
         await observer.DisposeAsync();
     }
 
