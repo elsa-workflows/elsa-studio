@@ -131,9 +131,9 @@ public record DashboardWidgetDescriptor
     public DashboardWidgetPlacement Placement { get; init; } = DashboardWidgetPlacement.Main;
     public DashboardWidgetSize Size { get; init; } = DashboardWidgetSize.Medium;
     public int Order { get; init; }
-    public DashboardWidgetAvailability Availability { get; init; }
+    public DashboardWidgetAvailability Availability { get; init; } = DashboardWidgetAvailability.Available;
     public string? UnavailableReason { get; init; }
-    public DashboardWidgetRefreshMode RefreshMode { get; init; }
+    public DashboardWidgetRefreshMode RefreshMode { get; init; } = DashboardWidgetRefreshMode.Dashboard;
     public IReadOnlyDictionary<string, object?> Parameters { get; init; } = ImmutableDictionary<string, object?>.Empty;
 }
 ```
@@ -156,6 +156,8 @@ Widget `Id` values must be globally unique across all providers and should use a
 - `Medium`: standard panel in `Main` or `Side`.
 - `Large`: prominent chart, table, or findings panel.
 - `Wide`: full-row content, normally paired with `FullWidth` placement.
+
+`DashboardWidgetPlacement` should sort using explicit host precedence: `Summary`, `Main`, `Side`, `FullWidth`, then `Footer`. The host should not rely on enum numeric values for layout ordering.
 
 `DashboardWidgetAvailability` should define host chrome behavior:
 
@@ -194,7 +196,7 @@ services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>()
 - Route `/` and existing dashboard menu item.
 - Page header, range selector, refresh button, last refreshed timestamp, and backend status shell.
 - Widget discovery from all registered `IDashboardWidgetProvider` services.
-- Widget sorting, placement, layout, spacing, and responsive behavior. Sorting should be deterministic by `DashboardWidgetPlacement`, then `Order`, then widget `Id` using ordinal string comparison.
+- Widget sorting, placement, layout, spacing, and responsive behavior. Sorting should be deterministic by explicit `DashboardWidgetPlacement` precedence, then `Order`, then widget `Id` using ordinal string comparison.
 - Page-level loading, no-provider, provider-discovery error, unavailable, and unauthorized chrome; widget components own their internal loading, empty, and recoverable error states after `Availability=Available`.
 - Rendering widgets through Blazor `DynamicComponent`.
 - `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows widget-level error chrome and does not collapse the whole dashboard.
