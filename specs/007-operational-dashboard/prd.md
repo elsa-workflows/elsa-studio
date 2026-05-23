@@ -132,6 +132,7 @@ public record DashboardWidgetDescriptor
     public DashboardWidgetSize Size { get; init; }
     public int Order { get; init; }
     public DashboardWidgetAvailability Availability { get; init; }
+    public string? UnavailableReason { get; init; }
     public DashboardWidgetRefreshMode RefreshMode { get; init; }
     public IReadOnlyDictionary<string, object?> Parameters { get; init; } = ImmutableDictionary<string, object?>.Empty;
 }
@@ -143,7 +144,7 @@ public record DashboardWidgetDescriptor
 - `DashboardWidgetDescriptor Descriptor`: widget metadata supplied by the provider.
 - Additional entries from `DashboardWidgetDescriptor.Parameters`, merged by the host into the `DynamicComponent` parameter dictionary.
 
-The host should validate that `ComponentType` implements `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
+The host should validate that `ComponentType` implements both Blazor `IComponent` and `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
 
 `Parameters` is immutable snapshot data in the descriptor contract. Providers should create a fresh immutable dictionary per descriptor, and the host should clone entries into a separate merged parameter dictionary when adding `Context` and `Descriptor`.
 
@@ -194,6 +195,7 @@ services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>()
 - Widget sorting, placement, layout, spacing, and responsive behavior.
 - Common loading, error, empty, unavailable, and unauthorized chrome around widgets.
 - Rendering widgets through Blazor `DynamicComponent`.
+- `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows widget-level error chrome and does not collapse the whole dashboard.
 - Passing descriptor parameters and dashboard context to widgets.
 - Stable layout regions and MudBlazor visual conventions.
 
