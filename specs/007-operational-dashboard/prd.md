@@ -369,7 +369,7 @@ Metric and finding click targets:
 - Running workflows -> Workflow Instances filtered by `Status=Running`.
 - Faulted workflows -> Workflow Instances filtered by `SubStatus=Faulted` or `HasIncidents=true`.
 - Suspended workflows -> Workflow Instances filtered by `SubStatus=Suspended`.
-- Interrupted workflows -> Workflow Instances filtered by `SubStatus=Interrupted`.
+- Interrupted workflow findings -> Workflow Instances filtered by `SubStatus=Interrupted`.
 - Recent activity row -> Workflow Instance viewer.
 - Structured log errors -> Structured Logs page with level/time filters.
 - Console stderr -> Console page with stream/time filters.
@@ -452,7 +452,7 @@ Phase 3:
 
 - The Studio home page is an operational dashboard, not a welcome/documentation page.
 - The dashboard uses MudBlazor and existing Studio conventions.
-- A dashboard-capable backend renders metrics, trend chart, needs-attention list, recent activity, runtime state, and diagnostics snapshot.
+- A dashboard-capable backend renders metrics, trend chart, needs-attention list, recent activity, runtime state, diagnostics snapshot, and workflow hotspots when supported.
 - A backend without dashboard API renders a clear limited/unavailable state.
 - Unauthorized dashboard data is handled without a broken page.
 - Clicking metric cards or findings navigates to relevant Studio pages.
