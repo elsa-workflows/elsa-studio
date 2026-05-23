@@ -193,7 +193,7 @@ services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>()
 - Page header, range selector, refresh button, last refreshed timestamp, and backend status shell.
 - Widget discovery from all registered `IDashboardWidgetProvider` services.
 - Widget sorting, placement, layout, spacing, and responsive behavior.
-- Common loading, error, empty, unavailable, and unauthorized chrome around widgets.
+- Page-level loading, no-provider, provider-discovery error, unavailable, and unauthorized chrome; widget components own their internal loading, empty, and recoverable error states after `Availability=Available`.
 - Rendering widgets through Blazor `DynamicComponent`.
 - `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows widget-level error chrome and does not collapse the whole dashboard.
 - Passing descriptor parameters and dashboard context to widgets.
@@ -641,7 +641,8 @@ Phase 3:
 - The dashboard uses MudBlazor and existing Studio conventions.
 - `Elsa.Studio.Dashboard.Abstractions` exists and can be referenced by widget-contributing modules without referencing the concrete dashboard module.
 - `Elsa.Studio.Dashboard` discovers and renders registered widget providers.
-- A dashboard-capable backend plus installed workflow module renders metrics, trend chart, needs-attention list, recent activity, runtime state, and workflow hotspots when supported.
+- A dashboard-capable backend renders host-owned runtime state independently of workflow widgets.
+- A dashboard-capable backend plus installed workflow module renders metrics, trend chart, needs-attention list, recent activity, and workflow hotspots when supported.
 - Installed diagnostics modules contribute their own widgets; absent diagnostics modules do not produce empty hard-coded panels.
 - A backend without dashboard API renders a clear limited/unavailable state.
 - Unauthorized dashboard data is handled without a broken page.
