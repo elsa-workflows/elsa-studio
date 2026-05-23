@@ -133,7 +133,7 @@ public record DashboardWidgetDescriptor
     public int Order { get; init; }
     public DashboardWidgetAvailability Availability { get; init; }
     public DashboardWidgetRefreshMode RefreshMode { get; init; }
-    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = ImmutableDictionary<string, object?>.Empty;
 }
 ```
 
@@ -143,7 +143,22 @@ public record DashboardWidgetDescriptor
 - `DashboardWidgetDescriptor Descriptor`: widget metadata supplied by the provider.
 - Additional entries from `DashboardWidgetDescriptor.Parameters`, merged by the host into the `DynamicComponent` parameter dictionary.
 
-The host should validate that `ComponentType` implements `IDashboardWidgetComponent` before rendering. `Parameters` is intentionally read-only in the descriptor contract; providers should create a new dictionary per descriptor, and the host should create a separate merged parameter dictionary when adding `Context` and `Descriptor`.
+The host should validate that `ComponentType` implements `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
+
+`Parameters` is immutable snapshot data in the descriptor contract. Providers should create a fresh immutable dictionary per descriptor, and the host should clone entries into a separate merged parameter dictionary when adding `Context` and `Descriptor`.
+
+`DashboardWidgetSize` should define grid-span intent:
+
+- `Small`: compact metric card or status chip.
+- `Medium`: standard panel in `Main` or `Side`.
+- `Large`: prominent chart, table, or findings panel.
+- `Wide`: full-row content, normally paired with `FullWidth` placement.
+
+`DashboardWidgetAvailability` should define host chrome behavior:
+
+- `Available`: render the widget component.
+- `Unavailable`: render consistent host unavailable chrome with the descriptor title and optional provider-supplied reason.
+- `Unauthorized`: render consistent host unauthorized chrome without leaking unavailable data details.
 
 `DashboardWidgetRefreshMode` should define host behavior:
 
@@ -394,23 +409,9 @@ The dashboard should feel like an operational admin tool:
 
 ## Component Plan
 
-Suggested Studio additions:
+Suggested Studio additions. The abstractions package follows the package split defined in the Architecture section; the concrete host and contributing modules add:
 
 ```text
-src/modules/Elsa.Studio.Dashboard.Abstractions/
-├── Contracts/
-│   ├── IDashboardWidgetProvider.cs
-│   └── IDashboardWidgetComponent.cs
-├── Models/
-│   ├── DashboardWidgetDescriptor.cs
-│   ├── DashboardWidgetContext.cs
-│   ├── DashboardWidgetPlacement.cs
-│   ├── DashboardWidgetSize.cs
-│   ├── DashboardWidgetAvailability.cs
-│   └── DashboardWidgetRefreshMode.cs
-└── Extensions/
-    └── ServiceCollectionExtensions.cs
-
 src/modules/Elsa.Studio.Dashboard/
 ├── Client/
 │   └── IDashboardApi.cs
@@ -420,7 +421,6 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardCapabilityStatus.cs
 │   ├── DashboardWorkflowInstanceMetrics.cs
 │   ├── DashboardRuntimeStatus.cs
-│   ├── DashboardDiagnosticsSummary.cs
 │   ├── DashboardFinding.cs
 │   ├── DashboardNeedsAttentionResponse.cs
 │   ├── DashboardTrendRequest.cs
@@ -565,7 +565,7 @@ If URL filter support is missing in the destination page, linking should still n
 - Metric cards render zero values explicitly.
 - Needs-attention findings are ordered by backend priority.
 - Recent activity table uses dense layout and links to instance details.
-- Contributed widgets clearly distinguish available, unavailable, and unauthorized capabilities when they elect to render those states.
+- The dashboard host renders consistent available, unavailable, and unauthorized surfaces from `DashboardWidgetAvailability`; widget components own only their internal empty and error states after `Availability=Available`.
 - The page remains usable on laptop and mobile widths.
 
 ## Non-Functional Requirements
@@ -653,4 +653,4 @@ Phase 3:
 - Should dashboard data auto-refresh by default, or stay manual for predictable backend load?
 - Should the dashboard expose an `include system workflows` toggle in the first version?
 - Should runtime status be visible to every dashboard reader or only users with workflow instance read permission?
-- Should unavailable widgets be omitted by default, or rendered as compact unavailable surfaces when their module is installed but backend support is missing?
+- Should a future version add user preferences for hiding unavailable widgets that providers elect to return?
