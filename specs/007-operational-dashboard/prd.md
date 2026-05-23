@@ -2,7 +2,7 @@
 
 ## Summary
 
-Replace the current simple Elsa Studio dashboard with an operational MudBlazor dashboard that helps users understand backend health, recent workflow activity, active issues, and diagnostics status at a glance. The dashboard should be dense, practical, and linked to existing Studio workflow and diagnostics pages.
+Replace the current simple Elsa Studio dashboard with an operational MudBlazor dashboard host that helps users understand backend health, recent workflow activity, active issues, and diagnostics status at a glance. The dashboard should be dense, practical, linked to existing Studio pages, and extensible: installed Studio modules should be able to contribute their own dashboard widgets without the dashboard module hard-coding module-specific panels.
 
 The first screen should answer:
 
@@ -11,7 +11,7 @@ The first screen should answer:
 - What changed over the selected time range?
 - What needs attention right now?
 - Which recent workflow instances should I inspect?
-- Are structured logs and console logs healthy?
+- Are structured logs and console logs healthy when those modules are installed?
 
 ## Problem
 
@@ -22,10 +22,12 @@ Without a dashboard-shaped backend API, Studio would need to issue many small AP
 ## Goals
 
 - Build a useful operational dashboard as the Studio home page.
+- Provide dashboard widget infrastructure that other Studio modules can reference.
+- Add a small `Elsa.Studio.Dashboard.Abstractions` package for widget contribution contracts.
 - Use MudBlazor components and existing Studio layout/menu conventions.
 - Consume dashboard-shaped backend endpoints when available.
 - Show clear unavailable/unauthorized states when the backend does not expose dashboard data.
-- Link metric cards, findings, and tables to existing Workflow Instances, Structured Logs, and Console pages.
+- Let contributed widgets link metric cards, findings, and tables to existing Workflow Instances, Structured Logs, Console, or future module pages.
 - Keep the interface compact and work-focused rather than marketing-oriented.
 - Support selected time ranges such as `1h`, `24h`, and `7d`.
 - Refresh data manually and optionally at a conservative interval.
@@ -35,6 +37,7 @@ Without a dashboard-shaped backend API, Studio would need to issue many small AP
 - Do not add workflow write actions directly to the dashboard in the first slice.
 - Do not duplicate full workflow instance filtering or log viewing on the dashboard.
 - Do not require the diagnostics modules to be installed.
+- Do not hard-code diagnostics, console, workflow, or future module widgets inside the dashboard host.
 - Do not build a custom charting library.
 - Do not make the dashboard a landing page or documentation page.
 - Do not display raw workflow variables, inputs, outputs, or raw console lines.
@@ -58,7 +61,7 @@ Preferred endpoints:
 - `GET /dashboard/recent-activity`
 - `POST /dashboard/workflow-hotspots`
 
-The Studio module should detect the backend capability through installed features or a guarded API call. If the dashboard API is unavailable, Studio may show a limited fallback using existing workflow APIs, but this fallback should be explicitly marked limited.
+The dashboard host should detect the backend dashboard capability through installed features or a guarded API call and expose that state through the widget context. Individual widget providers remain responsible for their own module-specific capability and permission checks. If the dashboard API is unavailable, the host may show a limited fallback state, while module widgets may omit themselves or render an unavailable state.
 
 ## Existing Studio Context
 
@@ -79,6 +82,154 @@ The current page contains only:
 - Documentation alert
 
 The replacement should keep the route `/` and the existing dashboard menu item.
+
+## Architecture
+
+### Package Split
+
+Add a small abstractions package:
+
+```text
+src/modules/Elsa.Studio.Dashboard.Abstractions/
+├── Contracts/
+│   ├── IDashboardWidgetProvider.cs
+│   └── IDashboardWidgetComponent.cs
+├── Models/
+│   ├── DashboardWidgetDescriptor.cs
+│   ├── DashboardWidgetContext.cs
+│   ├── DashboardWidgetPlacement.cs
+│   ├── DashboardWidgetSize.cs
+│   ├── DashboardWidgetAvailability.cs
+│   └── DashboardWidgetRefreshMode.cs
+└── Extensions/
+    └── ServiceCollectionExtensions.cs
+```
+
+`Elsa.Studio.Dashboard.Abstractions` should be stable and small. It should not depend on `Elsa.Studio.Dashboard`, and it should not contain concrete widget UI. Other Studio modules reference this package to contribute widgets. The dashboard module references this package and acts as the host.
+
+### Widget Contribution Contract
+
+Suggested contract:
+
+```csharp
+public interface IDashboardWidgetProvider
+{
+    ValueTask<IEnumerable<DashboardWidgetDescriptor>> GetWidgetsAsync(
+        DashboardWidgetContext context,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IDashboardWidgetComponent
+{
+}
+
+public record DashboardWidgetDescriptor
+{
+    public required string Id { get; init; }
+    public required string Title { get; init; }
+    public required Type ComponentType { get; init; }
+    public DashboardWidgetPlacement Placement { get; init; } = DashboardWidgetPlacement.Main;
+    public DashboardWidgetSize Size { get; init; } = DashboardWidgetSize.Medium;
+    public int Order { get; init; }
+    public DashboardWidgetAvailability Availability { get; init; } = DashboardWidgetAvailability.Available;
+    public string? UnavailableReason { get; init; }
+    public DashboardWidgetRefreshMode RefreshMode { get; init; } = DashboardWidgetRefreshMode.Dashboard;
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = ImmutableDictionary<string, object?>.Empty;
+}
+
+public record DashboardWidgetContext
+{
+    public required string Range { get; init; }
+    public bool IncludeSystemWorkflows { get; init; }
+    public string? BackendEnvironmentName { get; init; }
+    public IReadOnlyDictionary<string, object?> BackendMetadata { get; init; } = ImmutableDictionary<string, object?>.Empty;
+    public IReadOnlyDictionary<string, bool> BackendCapabilities { get; init; } = ImmutableDictionary<string, bool>.Empty;
+    public DateTimeOffset RefreshGeneratedAt { get; init; }
+}
+```
+
+The contract uses `ImmutableDictionary` from `System.Collections.Immutable`; add the corresponding namespace and package reference to `Elsa.Studio.Dashboard.Abstractions` if it is not already available transitively.
+
+`IDashboardWidgetComponent` is a marker contract for Razor components rendered by the host through `DynamicComponent`. Widget components should implement it and accept the following conventional `[Parameter]` properties:
+
+- `DashboardWidgetContext Context`: current dashboard range, capability state, and refresh generation.
+- `DashboardWidgetDescriptor Descriptor`: widget metadata supplied by the provider.
+- Additional entries from `DashboardWidgetDescriptor.Parameters`, merged by the host into the `DynamicComponent` parameter dictionary.
+
+The host should validate that `ComponentType` implements both Blazor `IComponent` and `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
+
+Widget `Id` values must be globally unique across all providers and should use a module-qualified prefix, such as `workflows.metric.running` or `diagnostics.structured-logs.health`. If duplicate IDs appear across providers or within a single provider response, the host should keep the first descriptor in provider registration order and descriptor order, skip later duplicates, and log the duplicate provider and widget Id.
+
+`Parameters` is immutable snapshot data in the descriptor contract. Providers should create a fresh immutable dictionary per descriptor, and the host should clone entries into a separate merged parameter dictionary when adding `Context` and `Descriptor`.
+
+`DashboardWidgetSize` should define grid-span intent:
+
+- `Small`: compact metric card or status chip.
+- `Medium`: standard panel in `Main` or `Side`.
+- `Large`: prominent chart, table, or findings panel.
+- `Wide`: full-row content, normally paired with `FullWidth` placement.
+
+`DashboardWidgetPlacement` should sort using explicit host precedence: `Summary`, `Main`, `Side`, `FullWidth`, then `Footer`. The host should not rely on enum numeric values for layout ordering.
+
+`DashboardWidgetAvailability` should define host chrome behavior:
+
+- `Available`: render the widget component.
+- `Unavailable`: render consistent host unavailable chrome with the descriptor title and optional provider-supplied reason.
+- `Unauthorized`: render consistent host unauthorized chrome without leaking unavailable data details. The host must ignore `UnavailableReason` for unauthorized widgets even if a provider supplies one.
+
+`DashboardWidgetRefreshMode` should define host behavior:
+
+- `Dashboard`: refresh on page load, user refresh, and range/filter changes.
+- `Live`: refresh on page load, user refresh, range/filter changes, and any dashboard auto-refresh cadence when enabled.
+- `Static`: do not refresh due to dashboard data changes; rediscover only when the module set, permissions, or navigation context changes.
+
+`DashboardWidgetContext` should include:
+
+- `Range`: selected dashboard range, such as `1h`, `24h`, or `7d`.
+- `IncludeSystemWorkflows`: include-system-workflows flag, if the host exposes it.
+- `BackendEnvironmentName`: current backend/environment name when available.
+- `BackendMetadata`: additional backend metadata needed by contributed widgets without expanding the core contract.
+- `BackendCapabilities`: backend dashboard capability state keyed by stable capability name.
+- `RefreshGeneratedAt`: current refresh timestamp.
+
+The method-level `CancellationToken` on `GetWidgetsAsync` is the single cancellation source for provider discovery. The context should not carry a second token.
+
+The provider should return only widgets owned by its module. For example:
+
+```csharp
+services.AddScoped<IDashboardWidgetProvider, StructuredLogsDashboardWidgetProvider>();
+services.AddScoped<IDashboardWidgetProvider, ConsoleLogsDashboardWidgetProvider>();
+services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>();
+```
+
+### Dashboard Host Responsibilities
+
+`Elsa.Studio.Dashboard` owns:
+
+- Route `/` and existing dashboard menu item.
+- Page header, range selector, refresh button, last refreshed timestamp, and backend status shell.
+- Widget discovery from all registered `IDashboardWidgetProvider` services.
+- Widget sorting, placement, layout, spacing, and responsive behavior. Sorting should be deterministic by explicit `DashboardWidgetPlacement` precedence, then `Order`, then widget `Id` using ordinal string comparison.
+- Page-level loading, no-provider, provider-discovery error, unavailable, and unauthorized chrome; widget components own their internal loading, empty, and recoverable error states after `Availability=Available`.
+- Rendering widgets through Blazor `DynamicComponent`.
+- `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows `DashboardWidgetError.razor` widget-level error chrome and does not collapse the whole dashboard.
+- Passing descriptor parameters and dashboard context to widgets.
+- Stable layout regions and MudBlazor visual conventions.
+
+The host must not know about Structured Logs, Console Logs, Workflows, Secrets, or future feature-specific widget internals.
+
+### Contributing Module Responsibilities
+
+Each contributing module owns:
+
+- Its widget provider registration.
+- Its widget component implementation.
+- Its own backend client calls or use of shared dashboard API data.
+- Feature installation, backend capability, and permission checks.
+- Widget-specific empty/error states.
+- Widget-specific navigation targets.
+
+For example, `Elsa.Studio.Diagnostics.ConsoleLogs` contributes the Console Logs widget only when the Console Logs Studio module is installed and the paired backend feature/permission is available. `Elsa.Studio.Diagnostics.StructuredLogs` does the same for Structured Logs. A future module should be able to add a dashboard widget by referencing only `Elsa.Studio.Dashboard.Abstractions`.
 
 ## Information Architecture
 
@@ -110,7 +261,21 @@ MudBlazor components:
 - `MudIconButton`
 - `MudTooltip`
 
-### Metric Row
+### Widget Regions
+
+The host should expose layout regions rather than fixed panels:
+
+- `Summary`: compact metric cards across the top.
+- `Main`: large primary widgets such as charts and tables.
+- `Side`: narrower widgets such as findings, diagnostics snapshots, or status summaries.
+- `FullWidth`: wide widgets such as dense recent activity tables.
+- `Footer`: lower-priority widgets.
+
+These region names are the required `DashboardWidgetPlacement` enum values. The dashboard host maps `DashboardWidgetPlacement` and `DashboardWidgetSize` to MudBlazor grid spans. Widgets should not create nested page-level cards; the host supplies the outer widget surface.
+
+### Workflow Summary Widgets
+
+The workflow module should contribute metric widgets such as:
 
 Cards:
 
@@ -138,17 +303,29 @@ MudBlazor components:
 - `MudIcon`
 - `MudText`
 
-### Needs Attention
+### Module-Scoped Needs Attention Widgets
 
-Prioritized list of findings returned by the backend.
+Prioritized list of findings returned by the backend for the contributing module's scope. The dashboard host should not own a cross-module needs-attention widget, and the workflow module should not render diagnostics findings. Each contributing module should either call a feature-owned endpoint or pass a stable `scope` value to `GET /dashboard/needs-attention` so it receives only findings it owns.
 
-Examples:
+First-party needs-attention scopes should be stable kebab-case values:
+
+- `workflows`
+- `structured-logs`
+- `console-logs`
+
+Workflow examples:
 
 - `12 workflows faulted in the last 24 hours`
 - `Runtime is paused`
 - `1 ingress source failed to pause`
-- `3 console log sources are stale`
+
+Structured Logs examples:
+
 - `Structured log storage dropped writes`
+
+Console Logs examples:
+
+- `3 console log sources are stale`
 - `stderr volume increased`
 
 Behavior:
@@ -166,7 +343,7 @@ MudBlazor components:
 - `MudChip`
 - `MudButton`
 
-### Execution Trend
+### Execution Trend Widget
 
 Line or stacked chart showing activity over the selected time range.
 
@@ -183,7 +360,7 @@ MudBlazor components:
 - `MudPaper`
 - `MudSkeleton` while loading
 
-### Recent Workflow Activity
+### Recent Workflow Activity Widget
 
 Compact table of recent workflow instances.
 
@@ -211,27 +388,32 @@ MudBlazor components:
 - `MudIconButton`
 - `MudTooltip`
 
-### Diagnostics Snapshot
+### Diagnostics Widgets
 
-Small panel for logs and sources.
+Diagnostics widgets are contributed by diagnostics modules, not hard-coded by the dashboard host.
 
-Content:
+Structured Logs widget content:
 
 - Structured log source count and stale count.
 - Recent error/critical count.
 - Structured log dropped event/write count.
+- Link to Structured Logs page when available.
+
+Console Logs widget content:
+
 - Console log source count and stale count.
 - Recent stderr count.
 - Console dropped-line count.
-- Links to Structured Logs and Console pages when available.
+- Link to Console page when available.
 
 Behavior:
 
-- If diagnostics modules are absent, show `Not installed`.
-- If unauthorized, show `No access`.
+- If a diagnostics module is absent, its provider is not registered and the widget is not contributed.
+- If the module is installed but its backend feature is unavailable, the provider may omit the widget or return it with `DashboardWidgetAvailability.Unavailable`.
+- If unauthorized, the provider may omit the widget or return it with `DashboardWidgetAvailability.Unauthorized` so the host can show `No access`.
 - Do not display raw log lines.
 
-### Workflow Hotspots
+### Workflow Hotspots Widget
 
 Optional lower-priority panel showing top workflows by selected metric:
 
@@ -240,7 +422,7 @@ Optional lower-priority panel showing top workflows by selected metric:
 - Incidents
 - Duration
 
-This panel is part of the dashboard contract, but should render only when the backend exposes the hotspot endpoint. If a backend does not support hotspots yet, the dashboard should omit this panel rather than showing an error.
+This panel is contributed by the workflow module and is part of the workflow dashboard widget contract, but should render only when the backend exposes the hotspot endpoint. If a backend does not support hotspots yet, the provider should omit this widget or mark it unavailable.
 
 ## Visual Design Direction
 
@@ -258,7 +440,7 @@ The dashboard should feel like an operational admin tool:
 
 ## Component Plan
 
-Suggested Studio additions:
+Suggested Studio additions. The abstractions package follows the package split defined in the Architecture section; the concrete host and contributing modules add:
 
 ```text
 src/modules/Elsa.Studio.Dashboard/
@@ -270,7 +452,6 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardCapabilityStatus.cs
 │   ├── DashboardWorkflowInstanceMetrics.cs
 │   ├── DashboardRuntimeStatus.cs
-│   ├── DashboardDiagnosticsSummary.cs
 │   ├── DashboardFinding.cs
 │   ├── DashboardNeedsAttentionResponse.cs
 │   ├── DashboardTrendRequest.cs
@@ -283,21 +464,45 @@ src/modules/Elsa.Studio.Dashboard/
 │   └── DashboardWorkflowHotspotsResponse.cs
 ├── Services/
 │   ├── DashboardService.cs
-│   ├── DashboardNavigationTargetMapper.cs
+│   ├── DashboardWidgetRegistry.cs
+│   ├── DashboardWidgetLayoutService.cs
 │   └── DashboardRangeMapper.cs
 ├── Components/
-│   ├── DashboardMetricCard.razor
-│   ├── DashboardNeedsAttention.razor
-│   ├── DashboardTrendChart.razor
-│   ├── DashboardRecentActivityTable.razor
-│   ├── DashboardDiagnosticsSnapshot.razor
-│   ├── DashboardWorkflowHotspotsPanel.razor
+│   ├── DashboardWidgetHost.razor
+│   ├── DashboardWidgetSurface.razor
+│   ├── DashboardWidgetError.razor
+│   ├── DashboardWidgetUnavailable.razor
+│   ├── DashboardWidgetUnauthorized.razor
 │   └── DashboardRuntimeChip.razor
 └── Pages/
     ├── Index.razor
     ├── Index.razor.cs
     └── Index.razor.css
+
+src/modules/Elsa.Studio.Workflows/
+└── Dashboard/
+    ├── WorkflowsDashboardWidgetProvider.cs
+    └── Components/
+        ├── WorkflowMetricWidget.razor
+        ├── WorkflowNeedsAttention.razor
+        ├── WorkflowTrendChart.razor
+        ├── WorkflowRecentActivityTable.razor
+        └── WorkflowHotspotsWidget.razor
+
+src/modules/Elsa.Studio.Diagnostics.StructuredLogs/
+└── Dashboard/
+    ├── StructuredLogsDashboardWidgetProvider.cs
+    └── Components/
+        └── StructuredLogsDashboardWidget.razor
+
+src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/
+└── Dashboard/
+    ├── ConsoleLogsDashboardWidgetProvider.cs
+    └── Components/
+        └── ConsoleLogsDashboardWidget.razor
 ```
+
+Contributed widget components in this plan are content-only and render inside `DashboardWidgetSurface.razor`. Feature-specific navigation target mapping belongs to the contributing module that owns the widget descriptor, not the dashboard host.
 
 Response and request model boundaries:
 
@@ -329,6 +534,7 @@ public interface IDashboardApi
     [Get("/dashboard/needs-attention")]
     Task<DashboardNeedsAttentionResponse> GetNeedsAttentionAsync(
         string? range = null,
+        string? scope = null,
         int take = 8,
         bool includeSystem = false,
         CancellationToken cancellationToken = default);
@@ -359,6 +565,9 @@ The dashboard must handle:
 - Backend disconnected.
 - Empty workflow data.
 - Refresh failure after previous successful data.
+- No registered widget providers.
+- A widget provider throwing during discovery.
+- A widget component failing while other widgets remain renderable.
 
 Do not replace the whole page with an error if stale data exists; show a compact error alert and keep the last successful snapshot.
 
@@ -369,7 +578,7 @@ Metric and finding click targets:
 - Running workflows -> Workflow Instances filtered by `Status=Running`.
 - Faulted workflows -> Workflow Instances filtered by `SubStatus=Faulted` or `HasIncidents=true`.
 - Suspended workflows -> Workflow Instances filtered by `SubStatus=Suspended`.
-- Interrupted workflows -> Workflow Instances filtered by `SubStatus=Interrupted`.
+- Interrupted workflow findings -> Workflow Instances filtered by `SubStatus=Interrupted`.
 - Recent activity row -> Workflow Instance viewer.
 - Structured log errors -> Structured Logs page with level/time filters.
 - Console stderr -> Console page with stream/time filters.
@@ -380,15 +589,18 @@ If URL filter support is missing in the destination page, linking should still n
 
 - The dashboard route remains `/`.
 - The dashboard menu label remains `Dashboard`.
-- The page loads overview, needs-attention, trend, and recent activity data for the selected range.
-- The page loads workflow hotspots for the selected range when the backend exposes the hotspot endpoint.
+- The dashboard host discovers widgets from all registered `IDashboardWidgetProvider` services.
+- The dashboard host renders contributed widgets by placement, size, and order.
+- The workflow module contributes overview, workflow-scoped needs-attention, trend, recent activity, and workflow hotspot widgets for the selected range.
+- The Structured Logs module contributes structured log widgets, including structured-log-scoped needs-attention when supported, only when that Studio module is installed.
+- The Console Logs module contributes console log widgets, including console-log-scoped needs-attention when supported, only when that Studio module is installed.
 - The user can switch range between `1h`, `24h`, and `7d`.
 - The user can refresh manually.
 - The page shows last refreshed time.
 - Metric cards render zero values explicitly.
-- Needs-attention findings are ordered by backend priority.
+- Needs-attention findings are scoped to the contributing module and ordered by backend priority.
 - Recent activity table uses dense layout and links to instance details.
-- Diagnostics snapshot clearly distinguishes available, unavailable, and unauthorized capabilities.
+- The dashboard host renders consistent available, unavailable, and unauthorized surfaces from `DashboardWidgetAvailability`; widget components own only their internal empty and error states after `Availability=Available`.
 - The page remains usable on laptop and mobile widths.
 
 ## Non-Functional Requirements
@@ -413,9 +625,11 @@ If URL filter support is missing in the destination page, linking should still n
 
 Unit tests:
 
+- Widget provider discovery and deterministic ordering.
+- Widget placement and size mapping to host layout regions.
 - Range mapping to backend duration values.
 - Capability state mapping.
-- Navigation target mapping.
+- Module-owned navigation target mapping for contributed widgets.
 - Metric formatting for zero, large values, durations, and unavailable values.
 - Needs-attention severity/icon mapping.
 
@@ -425,7 +639,10 @@ Component/manual verification:
 - Empty data.
 - Dashboard API unavailable.
 - Unauthorized.
-- Partial diagnostics availability.
+- Partial widget availability.
+- No diagnostics modules installed.
+- Only one diagnostics module installed.
+- A widget provider/component failure does not break the whole dashboard.
 - Faulted/interrupted/suspended findings.
 - Mobile and desktop layout.
 
@@ -433,9 +650,12 @@ Component/manual verification:
 
 Phase 1:
 
-- Add dashboard client/service/models.
-- Replace static dashboard page with operational layout.
-- Render overview, needs-attention, trends, recent activity, diagnostics snapshot, and workflow hotspots when supported.
+- Add `Elsa.Studio.Dashboard.Abstractions`.
+- Add dashboard widget host infrastructure to `Elsa.Studio.Dashboard`.
+- Add dashboard client/service/models shared by widgets that consume `Elsa.Dashboard.Api`.
+- Replace static dashboard page with operational widget layout.
+- Move workflow dashboard panels into workflow-contributed widgets.
+- Add Structured Logs and Console Logs widget providers in their respective modules.
 - Gracefully handle unavailable backend dashboard API.
 
 Phase 2:
@@ -452,7 +672,11 @@ Phase 3:
 
 - The Studio home page is an operational dashboard, not a welcome/documentation page.
 - The dashboard uses MudBlazor and existing Studio conventions.
-- A dashboard-capable backend renders metrics, trend chart, needs-attention list, recent activity, runtime state, and diagnostics snapshot.
+- `Elsa.Studio.Dashboard.Abstractions` exists and can be referenced by widget-contributing modules without referencing the concrete dashboard module.
+- `Elsa.Studio.Dashboard` discovers and renders registered widget providers.
+- A dashboard-capable backend renders host-owned runtime state independently of workflow widgets.
+- A dashboard-capable backend plus installed workflow module renders metrics, workflow-scoped needs-attention list, trend chart, recent activity, and workflow hotspots when supported.
+- Installed diagnostics modules contribute their own widgets; absent diagnostics modules do not produce empty hard-coded panels.
 - A backend without dashboard API renders a clear limited/unavailable state.
 - Unauthorized dashboard data is handled without a broken page.
 - Clicking metric cards or findings navigates to relevant Studio pages.
@@ -465,3 +689,4 @@ Phase 3:
 - Should dashboard data auto-refresh by default, or stay manual for predictable backend load?
 - Should the dashboard expose an `include system workflows` toggle in the first version?
 - Should runtime status be visible to every dashboard reader or only users with workflow instance read permission?
+- Should a future version add user preferences for hiding unavailable widgets that providers elect to return?
