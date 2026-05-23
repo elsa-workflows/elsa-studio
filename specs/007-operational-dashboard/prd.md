@@ -129,7 +129,7 @@ public record DashboardWidgetDescriptor
     public required string Title { get; init; }
     public required Type ComponentType { get; init; }
     public DashboardWidgetPlacement Placement { get; init; } = DashboardWidgetPlacement.Main;
-    public DashboardWidgetSize Size { get; init; }
+    public DashboardWidgetSize Size { get; init; } = DashboardWidgetSize.Medium;
     public int Order { get; init; }
     public DashboardWidgetAvailability Availability { get; init; }
     public string? UnavailableReason { get; init; }
@@ -146,7 +146,7 @@ public record DashboardWidgetDescriptor
 
 The host should validate that `ComponentType` implements both Blazor `IComponent` and `IDashboardWidgetComponent` before rendering. `Context` and `Descriptor` are reserved parameter names; providers must not supply entries with those names. The host should reject duplicate reserved parameters, log the provider error, and render the widget error chrome instead of overriding silently.
 
-Widget `Id` values must be globally unique across all providers and should use a module-qualified prefix, such as `workflows.metric.running` or `diagnostics.structured-logs.health`. If two providers return the same `Id`, the host should keep the first descriptor in provider registration order, skip later duplicates, and log the duplicate provider and widget id.
+Widget `Id` values must be globally unique across all providers and should use a module-qualified prefix, such as `workflows.metric.running` or `diagnostics.structured-logs.health`. If duplicate IDs appear across providers or within a single provider response, the host should keep the first descriptor in provider registration order and descriptor order, skip later duplicates, and log the duplicate provider and widget id.
 
 `Parameters` is immutable snapshot data in the descriptor contract. Providers should create a fresh immutable dictionary per descriptor, and the host should clone entries into a separate merged parameter dictionary when adding `Context` and `Descriptor`.
 
@@ -444,6 +444,7 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardWidgetHost.razor
 │   ├── DashboardWidgetSurface.razor
 │   ├── DashboardWidgetUnavailable.razor
+│   ├── DashboardWidgetUnauthorized.razor
 │   └── DashboardRuntimeChip.razor
 └── Pages/
     ├── Index.razor
