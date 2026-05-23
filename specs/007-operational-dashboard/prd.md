@@ -136,6 +136,16 @@ public record DashboardWidgetDescriptor
     public DashboardWidgetRefreshMode RefreshMode { get; init; } = DashboardWidgetRefreshMode.Dashboard;
     public IReadOnlyDictionary<string, object?> Parameters { get; init; } = ImmutableDictionary<string, object?>.Empty;
 }
+
+public record DashboardWidgetContext
+{
+    public required string Range { get; init; }
+    public bool IncludeSystemWorkflows { get; init; }
+    public string? BackendEnvironmentName { get; init; }
+    public IReadOnlyDictionary<string, object?> BackendMetadata { get; init; } = ImmutableDictionary<string, object?>.Empty;
+    public IReadOnlyDictionary<string, bool> BackendCapabilities { get; init; } = ImmutableDictionary<string, bool>.Empty;
+    public DateTimeOffset RefreshGeneratedAt { get; init; }
+}
 ```
 
 `IDashboardWidgetComponent` is a marker contract for Razor components rendered by the host through `DynamicComponent`. Widget components should implement it and accept the following conventional `[Parameter]` properties:
@@ -173,11 +183,12 @@ Widget `Id` values must be globally unique across all providers and should use a
 
 `DashboardWidgetContext` should include:
 
-- Selected dashboard range.
-- Include-system-workflows flag, if the host exposes it.
-- Current backend/environment metadata when available.
-- Backend dashboard capability state.
-- Current refresh generation or timestamp.
+- `Range`: selected dashboard range, such as `1h`, `24h`, or `7d`.
+- `IncludeSystemWorkflows`: include-system-workflows flag, if the host exposes it.
+- `BackendEnvironmentName`: current backend/environment name when available.
+- `BackendMetadata`: additional backend metadata needed by contributed widgets without expanding the core contract.
+- `BackendCapabilities`: backend dashboard capability state keyed by stable capability name.
+- `RefreshGeneratedAt`: current refresh timestamp.
 
 The method-level `CancellationToken` on `GetWidgetsAsync` is the single cancellation source for provider discovery. The context should not carry a second token.
 
