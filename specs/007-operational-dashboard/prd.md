@@ -175,7 +175,7 @@ Widget `Id` values must be globally unique across all providers and should use a
 
 - `Available`: render the widget component.
 - `Unavailable`: render consistent host unavailable chrome with the descriptor title and optional provider-supplied reason.
-- `Unauthorized`: render consistent host unauthorized chrome without leaking unavailable data details.
+- `Unauthorized`: render consistent host unauthorized chrome without leaking unavailable data details. The host must ignore `UnavailableReason` for unauthorized widgets even if a provider supplies one.
 
 `DashboardWidgetRefreshMode` should define host behavior:
 
