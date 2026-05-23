@@ -240,7 +240,7 @@ Optional lower-priority panel showing top workflows by selected metric:
 - Incidents
 - Duration
 
-This can be part of the first implementation if backend support exists, otherwise it can be a follow-up.
+This panel is part of the dashboard contract, but should render only when the backend exposes the hotspot endpoint. If a backend does not support hotspots yet, the dashboard should omit this panel rather than showing an error.
 
 ## Visual Design Direction
 
@@ -285,6 +285,7 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardTrendChart.razor
 │   ├── DashboardRecentActivityTable.razor
 │   ├── DashboardDiagnosticsSnapshot.razor
+│   ├── DashboardWorkflowHotspotsPanel.razor
 │   └── DashboardRuntimeChip.razor
 └── Pages/
     ├── Index.razor
@@ -321,6 +322,11 @@ public interface IDashboardApi
     Task<DashboardRecentActivityResponse> GetRecentActivityAsync(
         int take = 20,
         bool includeSystem = false,
+        CancellationToken cancellationToken = default);
+
+    [Post("/dashboard/workflow-hotspots")]
+    Task<DashboardWorkflowHotspotsResponse> GetWorkflowHotspotsAsync(
+        [Body] DashboardWorkflowHotspotsRequest request,
         CancellationToken cancellationToken = default);
 }
 ```
@@ -359,6 +365,7 @@ If URL filter support is missing in the destination page, linking should still n
 - The dashboard route remains `/`.
 - The dashboard menu label remains `Dashboard`.
 - The page loads overview, needs-attention, trend, and recent activity data for the selected range.
+- The page loads workflow hotspots for the selected range when the backend exposes the hotspot endpoint.
 - The user can switch range between `1h`, `24h`, and `7d`.
 - The user can refresh manually.
 - The page shows last refreshed time.
@@ -412,12 +419,11 @@ Phase 1:
 
 - Add dashboard client/service/models.
 - Replace static dashboard page with operational layout.
-- Render overview, needs-attention, trends, recent activity, diagnostics snapshot.
+- Render overview, needs-attention, trends, recent activity, diagnostics snapshot, and workflow hotspots when supported.
 - Gracefully handle unavailable backend dashboard API.
 
 Phase 2:
 
-- Add hotspot panel.
 - Add deep link filters to destination pages where missing.
 - Add optional auto-refresh setting.
 
@@ -443,4 +449,3 @@ Phase 3:
 - Should dashboard data auto-refresh by default, or stay manual for predictable backend load?
 - Should the dashboard expose an `include system workflows` toggle in the first version?
 - Should runtime status be visible to every dashboard reader or only users with workflow instance read permission?
-
