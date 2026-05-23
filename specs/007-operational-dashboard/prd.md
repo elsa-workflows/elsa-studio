@@ -439,7 +439,6 @@ src/modules/Elsa.Studio.Dashboard/
 │   ├── DashboardService.cs
 │   ├── DashboardWidgetRegistry.cs
 │   ├── DashboardWidgetLayoutService.cs
-│   ├── DashboardNavigationTargetMapper.cs
 │   └── DashboardRangeMapper.cs
 ├── Components/
 │   ├── DashboardWidgetHost.razor
@@ -455,11 +454,11 @@ src/modules/Elsa.Studio.Workflows/
 └── Dashboard/
     ├── WorkflowsDashboardWidgetProvider.cs
     └── Components/
-        ├── WorkflowMetricCard.razor
+        ├── WorkflowMetricWidget.razor
         ├── WorkflowNeedsAttention.razor
         ├── WorkflowTrendChart.razor
         ├── WorkflowRecentActivityTable.razor
-        └── WorkflowHotspotsPanel.razor
+        └── WorkflowHotspotsWidget.razor
 
 src/modules/Elsa.Studio.Diagnostics.StructuredLogs/
 └── Dashboard/
@@ -473,6 +472,8 @@ src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/
     └── Components/
         └── ConsoleLogsDashboardWidget.razor
 ```
+
+Contributed widget components in this plan are content-only and render inside `DashboardWidgetSurface.razor`. Feature-specific navigation target mapping belongs to the contributing module that owns the widget descriptor, not the dashboard host.
 
 Response and request model boundaries:
 
