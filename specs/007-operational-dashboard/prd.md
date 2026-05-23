@@ -57,7 +57,7 @@ Preferred endpoints:
 
 - `GET /dashboard/overview`
 - `POST /dashboard/workflow-trends`
-- `GET /dashboard/needs-attention`
+- `GET /dashboard/needs-attention?scope={scope}`
 - `GET /dashboard/recent-activity`
 - `POST /dashboard/workflow-hotspots`
 
@@ -210,7 +210,7 @@ services.AddScoped<IDashboardWidgetProvider, WorkflowsDashboardWidgetProvider>()
 - Widget sorting, placement, layout, spacing, and responsive behavior. Sorting should be deterministic by explicit `DashboardWidgetPlacement` precedence, then `Order`, then widget `Id` using ordinal string comparison.
 - Page-level loading, no-provider, provider-discovery error, unavailable, and unauthorized chrome; widget components own their internal loading, empty, and recoverable error states after `Availability=Available`.
 - Rendering widgets through Blazor `DynamicComponent`.
-- `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows widget-level error chrome and does not collapse the whole dashboard.
+- `DashboardWidgetSurface.razor` wraps each widget in a Blazor `ErrorBoundary` so a render exception in one contributed component shows `DashboardWidgetError.razor` widget-level error chrome and does not collapse the whole dashboard.
 - Passing descriptor parameters and dashboard context to widgets.
 - Stable layout regions and MudBlazor visual conventions.
 
@@ -301,17 +301,23 @@ MudBlazor components:
 - `MudIcon`
 - `MudText`
 
-### Needs Attention Widget
+### Module-Scoped Needs Attention Widgets
 
-Prioritized list of findings returned by the backend.
+Prioritized list of findings returned by the backend for the contributing module's scope. The dashboard host should not own a cross-module needs-attention widget, and the workflow module should not render diagnostics findings. Each contributing module should either call a feature-owned endpoint or pass a stable `scope` value to `GET /dashboard/needs-attention` so it receives only findings it owns.
 
-Examples:
+Workflow examples:
 
 - `12 workflows faulted in the last 24 hours`
 - `Runtime is paused`
 - `1 ingress source failed to pause`
-- `3 console log sources are stale`
+
+Structured Logs examples:
+
 - `Structured log storage dropped writes`
+
+Console Logs examples:
+
+- `3 console log sources are stale`
 - `stderr volume increased`
 
 Behavior:
@@ -456,6 +462,7 @@ src/modules/Elsa.Studio.Dashboard/
 ├── Components/
 │   ├── DashboardWidgetHost.razor
 │   ├── DashboardWidgetSurface.razor
+│   ├── DashboardWidgetError.razor
 │   ├── DashboardWidgetUnavailable.razor
 │   ├── DashboardWidgetUnauthorized.razor
 │   └── DashboardRuntimeChip.razor
@@ -519,6 +526,7 @@ public interface IDashboardApi
     [Get("/dashboard/needs-attention")]
     Task<DashboardNeedsAttentionResponse> GetNeedsAttentionAsync(
         string? range = null,
+        string? scope = null,
         int take = 8,
         bool includeSystem = false,
         CancellationToken cancellationToken = default);
@@ -575,14 +583,14 @@ If URL filter support is missing in the destination page, linking should still n
 - The dashboard menu label remains `Dashboard`.
 - The dashboard host discovers widgets from all registered `IDashboardWidgetProvider` services.
 - The dashboard host renders contributed widgets by placement, size, and order.
-- The workflow module contributes overview, needs-attention, trend, recent activity, and workflow hotspot widgets for the selected range.
-- The Structured Logs module contributes structured log widgets only when that Studio module is installed.
-- The Console Logs module contributes console log widgets only when that Studio module is installed.
+- The workflow module contributes overview, workflow-scoped needs-attention, trend, recent activity, and workflow hotspot widgets for the selected range.
+- The Structured Logs module contributes structured log widgets, including structured-log-scoped needs-attention when supported, only when that Studio module is installed.
+- The Console Logs module contributes console log widgets, including console-log-scoped needs-attention when supported, only when that Studio module is installed.
 - The user can switch range between `1h`, `24h`, and `7d`.
 - The user can refresh manually.
 - The page shows last refreshed time.
 - Metric cards render zero values explicitly.
-- Needs-attention findings are ordered by backend priority.
+- Needs-attention findings are scoped to the contributing module and ordered by backend priority.
 - Recent activity table uses dense layout and links to instance details.
 - The dashboard host renders consistent available, unavailable, and unauthorized surfaces from `DashboardWidgetAvailability`; widget components own only their internal empty and error states after `Availability=Available`.
 - The page remains usable on laptop and mobile widths.
@@ -659,7 +667,7 @@ Phase 3:
 - `Elsa.Studio.Dashboard.Abstractions` exists and can be referenced by widget-contributing modules without referencing the concrete dashboard module.
 - `Elsa.Studio.Dashboard` discovers and renders registered widget providers.
 - A dashboard-capable backend renders host-owned runtime state independently of workflow widgets.
-- A dashboard-capable backend plus installed workflow module renders metrics, trend chart, needs-attention list, recent activity, and workflow hotspots when supported.
+- A dashboard-capable backend plus installed workflow module renders metrics, workflow-scoped needs-attention list, trend chart, recent activity, and workflow hotspots when supported.
 - Installed diagnostics modules contribute their own widgets; absent diagnostics modules do not produce empty hard-coded panels.
 - A backend without dashboard API renders a clear limited/unavailable state.
 - Unauthorized dashboard data is handled without a broken page.
