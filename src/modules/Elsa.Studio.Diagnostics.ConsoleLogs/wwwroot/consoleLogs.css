@@ -148,13 +148,6 @@
     white-space: pre-wrap;
 }
 
-.console-log-text mark {
-    background: #ffe066;
-    border-radius: 2px;
-    color: #111;
-    padding: 0 2px;
-}
-
 .console-logs-empty {
     color: #a9b7c6;
     padding: 32px;
@@ -170,9 +163,5 @@
     .console-logs-actions,
     .console-logs-switch-actions {
         flex-wrap: wrap;
-    }
-
-    .console-logs-filter-grid {
-        grid-template-columns: 1fr;
     }
 }
