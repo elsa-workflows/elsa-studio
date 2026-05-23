@@ -12,15 +12,12 @@ public class ConsoleLogUrlStateMapperTests
     public void ApplyQuery_ParsesCanonicalParameters()
     {
         var state = new ConsoleLogViewState();
-        var uri = new Uri("https://studio/diagnostics/console?source=source-a&stream=stderr&text=needle&from=2026-05-18T09:00:00Z&to=2026-05-18T10:00:00Z&wrap=true&compact=false&ansi=false&follow=false");
+        var uri = new Uri("https://studio/diagnostics/console?source=source-a&stream=stderr&wrap=true&compact=false&ansi=false&follow=false");
 
         _mapper.ApplyQuery(state, uri);
 
         Assert.Equal("source-a", state.Filter.SourceId);
-        Assert.Equal([ConsoleLogStream.Stderr], state.Filter.Streams);
-        Assert.Equal("needle", state.Filter.Text);
-        Assert.Equal(DateTimeOffset.Parse("2026-05-18T09:00:00Z"), state.Filter.From);
-        Assert.Equal(DateTimeOffset.Parse("2026-05-18T10:00:00Z"), state.Filter.To);
+        Assert.Equal(ConsoleLogStream.Stderr, state.Filter.Stream);
         Assert.True(state.Wrap);
         Assert.False(state.Compact);
         Assert.False(state.Ansi);
@@ -34,7 +31,7 @@ public class ConsoleLogUrlStateMapperTests
 
         _mapper.ApplyQuery(state, new("https://studio/diagnostics/console?stream=nope"));
 
-        Assert.Equal([ConsoleLogStream.Stdout, ConsoleLogStream.Stderr], state.Filter.Streams);
+        Assert.Null(state.Filter.Stream);
     }
 
     [Fact]
@@ -42,14 +39,15 @@ public class ConsoleLogUrlStateMapperTests
     {
         var state = new ConsoleLogViewState { Wrap = true, Compact = false, Ansi = false, FollowTail = true };
         state.Filter.SourceId = "source-a";
-        state.Filter.Streams = [ConsoleLogStream.Stdout];
-        state.Filter.Text = "needle";
+        state.Filter.Stream = ConsoleLogStream.Stdout;
 
         var parameters = _mapper.ToQueryParameters(state);
 
         Assert.Equal("source-a", parameters["source"]);
         Assert.Equal("stdout", parameters["stream"]);
-        Assert.Equal("needle", parameters["text"]);
+        Assert.Null(parameters["text"]);
+        Assert.Null(parameters["from"]);
+        Assert.Null(parameters["to"]);
         Assert.Equal("true", parameters["wrap"]);
         Assert.Equal("false", parameters["compact"]);
         Assert.Equal("false", parameters["ansi"]);

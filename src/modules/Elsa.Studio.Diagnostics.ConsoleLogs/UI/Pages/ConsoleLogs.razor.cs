@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Refit;
-using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -25,8 +24,6 @@ public partial class ConsoleLogs : IAsyncDisposable
     private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
-    private string? _fromFilterText;
-    private string? _toFilterText;
     private bool _queryInitialized;
     private bool _isRefreshing;
     private bool _scrollAfterRender;
@@ -39,7 +36,6 @@ public partial class ConsoleLogs : IAsyncDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ConsoleLogExportFormatter ExportFormatter { get; set; } = default!;
     [Inject] private ConsoleLogUrlStateMapper UrlStateMapper { get; set; } = default!;
-    [Inject] private ConsoleLogTextHighlighter TextHighlighter { get; set; } = default!;
 
     protected ConsoleLogViewState ViewState { get; } = new();
     protected IReadOnlyCollection<ConsoleLogLine> Rows => ViewState.VisibleRows;
@@ -48,9 +44,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string? ErrorMessage { get; private set; }
     protected long BackendDroppedCount { get; private set; }
     protected long DiscardedRefreshBufferRows { get; private set; }
-    protected string? FromFilterText => _fromFilterText;
-    protected string? ToFilterText => _toFilterText;
-    protected string StreamSelection => ConsoleLogUrlStateMapper.FormatStreams(ViewState.Filter.Streams);
+    protected string StreamSelection => ConsoleLogUrlStateMapper.FormatStream(ViewState.Filter.Stream);
     protected string StatusText => ViewState.ConnectionStatus switch
     {
         ConsoleLogConnectionStatus.Connecting => "Connecting",
@@ -65,12 +59,8 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
     protected string LogSurfaceCssClass => $"console-logs-surface{(ViewState.Wrap ? " console-logs-wrap" : "")}{(ViewState.Compact ? " console-logs-compact" : "")}";
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
-                                      !string.Equals(StreamSelection, "both", StringComparison.Ordinal) ||
-                                      !string.IsNullOrWhiteSpace(ViewState.Filter.Text) ||
-                                      ViewState.Filter.From != null ||
-                                      ViewState.Filter.To != null;
+                                      !string.Equals(StreamSelection, "both", StringComparison.Ordinal);
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
-    protected bool HasTextFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.Text);
     protected string? StateMessage => ViewState.ConnectionStatus switch
     {
         ConsoleLogConnectionStatus.Unauthorized => "You do not have permission to view diagnostics console logs.",
@@ -196,36 +186,7 @@ public partial class ConsoleLogs : IAsyncDisposable
         if (IsLoading)
             return;
 
-        ViewState.Filter.Streams = ConsoleLogUrlStateMapper.ParseStreams(stream);
-        await RefreshFilterAsync();
-    }
-
-    protected async Task SetTextFilterAsync(string? text)
-    {
-        if (IsLoading)
-            return;
-
-        ViewState.Filter.Text = NormalizeFilterText(text);
-        await RefreshFilterAsync();
-    }
-
-    protected async Task SetFromAsync(string? value)
-    {
-        if (IsLoading)
-            return;
-
-        _fromFilterText = NormalizeFilterText(value);
-        ViewState.Filter.From = TryParseDateTimeOffset(_fromFilterText, out var parsed) ? parsed : null;
-        await RefreshFilterAsync();
-    }
-
-    protected async Task SetToAsync(string? value)
-    {
-        if (IsLoading)
-            return;
-
-        _toFilterText = NormalizeFilterText(value);
-        ViewState.Filter.To = TryParseDateTimeOffset(_toFilterText, out var parsed) ? parsed : null;
+        ViewState.Filter.Stream = ConsoleLogUrlStateMapper.ParseStream(stream);
         await RefreshFilterAsync();
     }
 
@@ -268,10 +229,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
     protected RenderFragment RenderDisplayText(ConsoleLogLine line) => builder =>
     {
-        if (HasTextFilter)
-            builder.AddContent(0, TextHighlighter.Highlight(DisplayText(line), ViewState.Filter.Text));
-        else
-            builder.AddContent(0, DisplayText(line));
+        builder.AddContent(0, DisplayText(line));
     };
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
@@ -302,7 +260,7 @@ public partial class ConsoleLogs : IAsyncDisposable
         {
             await LoadSourcesAsync(cancellationToken);
             var recent = await ConsoleLogService.GetRecentAsync(ViewState.Filter, ViewState.VisibleRowCap, cancellationToken);
-            BackendDroppedCount = recent.DroppedLineCount ?? 0;
+            BackendDroppedCount = recent.DroppedLineCount;
 
             if (recent.Sources is { Count: > 0 })
                 MergeSources(recent.Sources);
@@ -352,7 +310,7 @@ public partial class ConsoleLogs : IAsyncDisposable
                 return;
 
             ViewState.ClearVisibleRows();
-            BackendDroppedCount = recent.DroppedLineCount ?? 0;
+            BackendDroppedCount = recent.DroppedLineCount;
 
             if (recent.Sources is { Count: > 0 })
                 MergeSources(recent.Sources);
@@ -439,7 +397,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     {
         return InvokeAsync(() =>
         {
-            BackendDroppedCount += summary.DroppedLineCount;
+            BackendDroppedCount += summary.Count;
             StateHasChanged();
         });
     }
@@ -483,8 +441,6 @@ public partial class ConsoleLogs : IAsyncDisposable
             return;
 
         UrlStateMapper.ApplyQuery(ViewState, NavigationManager.ToAbsoluteUri(NavigationManager.Uri));
-        _fromFilterText = ViewState.Filter.From?.ToString("O");
-        _toFilterText = ViewState.Filter.To?.ToString("O");
         _queryInitialized = true;
     }
 
@@ -580,8 +536,6 @@ public partial class ConsoleLogs : IAsyncDisposable
         }
     }
 
-    private static string? NormalizeFilterText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
     private bool IsCurrentRefresh(long refreshVersion) => Interlocked.Read(ref _refreshVersion) == refreshVersion;
 
     private static bool IsAuthorizationFailure(Exception e)
@@ -597,17 +551,12 @@ public partial class ConsoleLogs : IAsyncDisposable
     private static ConsoleLogFilter CopyFilter(ConsoleLogFilter filter) => new()
     {
         SourceId = filter.SourceId,
-        Streams = [.. filter.Streams ?? []],
-        Text = filter.Text,
+        Stream = filter.Stream,
+        Query = filter.Query,
         From = filter.From,
         To = filter.To,
-        Take = filter.Take
+        Limit = filter.Limit
     };
-
-    private static bool TryParseDateTimeOffset(string? value, out DateTimeOffset parsed)
-    {
-        return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsed);
-    }
 
     private sealed class StrippedConsoleLogText(string text)
     {

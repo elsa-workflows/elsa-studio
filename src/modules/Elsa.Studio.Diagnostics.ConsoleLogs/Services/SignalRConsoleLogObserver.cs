@@ -134,7 +134,7 @@ public class SignalRConsoleLogObserver(
 
     private void RegisterHandlers(HubConnection connection)
     {
-        connection.On<ConsoleLogLine>("ReceiveConsoleLineAsync", async line =>
+        connection.On<ConsoleLogLine>("ReceiveConsoleLogLineAsync", async line =>
         {
             if (LineReceived is { } handler)
                 await handler(line);

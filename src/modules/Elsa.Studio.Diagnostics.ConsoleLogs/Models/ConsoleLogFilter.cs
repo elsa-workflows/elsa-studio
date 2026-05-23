@@ -11,14 +11,14 @@ public class ConsoleLogFilter
     public string? SourceId { get; set; }
 
     /// <summary>
-    /// Gets or sets the selected streams.
+    /// Gets or sets the selected stream. A null value means both stdout and stderr.
     /// </summary>
-    public ICollection<ConsoleLogStream>? Streams { get; set; } = [ConsoleLogStream.Stdout, ConsoleLogStream.Stderr];
+    public ConsoleLogStream? Stream { get; set; }
 
     /// <summary>
-    /// Gets or sets the server-side text filter.
+    /// Gets or sets the server-side query filter.
     /// </summary>
-    public string? Text { get; set; }
+    public string? Query { get; set; }
 
     /// <summary>
     /// Gets or sets the inclusive UTC start time.
@@ -33,5 +33,5 @@ public class ConsoleLogFilter
     /// <summary>
     /// Gets or sets the requested line count.
     /// </summary>
-    public int? Take { get; set; }
+    public int? Limit { get; set; }
 }

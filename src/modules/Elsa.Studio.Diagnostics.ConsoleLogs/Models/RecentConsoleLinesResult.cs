@@ -11,9 +11,14 @@ public class RecentConsoleLinesResult
     public ICollection<ConsoleLogLine> Items { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the backend dropped-line count.
+    /// Gets or sets backend dropped-line summaries.
     /// </summary>
-    public long? DroppedLineCount { get; set; }
+    public ICollection<ConsoleLogDroppedLineSummary>? Dropped { get; set; }
+
+    /// <summary>
+    /// Gets the total backend dropped-line count.
+    /// </summary>
+    public long DroppedLineCount => Dropped?.Sum(x => x.Count) ?? 0;
 
     /// <summary>
     /// Gets or sets optional source metadata.

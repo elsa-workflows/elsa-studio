@@ -2,26 +2,42 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding: 16px 24px 24px;
 }
 
 .console-logs-toolbar,
 .console-logs-filters {
-    padding: 12px;
+    padding: 14px 16px;
 }
 
-.console-logs-toolbar-row {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-}
-
-.console-logs-summary,
-.console-logs-actions {
-    align-items: center;
-    display: flex;
+.console-logs-summary {
+    flex: 1 1 auto;
     flex-wrap: wrap;
-    gap: 8px;
+    min-width: 0;
+}
+
+.console-logs-actions {
+    flex: 0 0 auto;
+}
+
+.console-logs-icon-actions,
+.console-logs-switch-actions {
+    flex: 0 0 auto;
+}
+
+.console-logs-icon-actions {
+    gap: 2px;
+}
+
+.console-logs-switch-actions {
+    gap: 10px;
+}
+
+.console-logs-switch {
+    margin: 0;
+    max-width: max-content;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .console-logs-status {
@@ -52,22 +68,10 @@
     background: var(--mud-palette-error);
 }
 
-.console-logs-action-divider {
-    background: var(--mud-palette-divider);
-    height: 24px;
-    width: 1px;
-}
-
 .console-logs-warning,
 .console-log-flag {
     color: var(--mud-palette-warning-darken);
     font-size: .75rem;
-}
-
-.console-logs-filter-grid {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: minmax(180px, 1.2fr) minmax(140px, .8fr) minmax(220px, 2fr) minmax(180px, 1fr) minmax(180px, 1fr);
 }
 
 .console-logs-surface {
@@ -79,7 +83,7 @@
     font-size: .82rem;
     min-height: 420px;
     overflow: auto;
-    padding: 8px;
+    padding: 12px;
 }
 
 .console-log-row {
@@ -161,6 +165,11 @@
     .console-logs-toolbar-row {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .console-logs-actions,
+    .console-logs-switch-actions {
+        flex-wrap: wrap;
     }
 
     .console-logs-filter-grid {

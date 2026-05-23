@@ -13,7 +13,7 @@ public static class ConsoleLogFilterMapper
     public static ConsoleLogFilter ToRecentRequest(ConsoleLogFilter filter, int rowCap)
     {
         var request = Copy(filter);
-        request.Take = Math.Clamp(request.Take ?? rowCap, 1, rowCap);
+        request.Limit = Math.Clamp(request.Limit ?? rowCap, 1, rowCap);
         return request;
     }
 
@@ -26,10 +26,10 @@ public static class ConsoleLogFilterMapper
         new()
         {
             SourceId = filter.SourceId,
-            Streams = filter.Streams?.ToList(),
-            Text = filter.Text,
+            Stream = filter.Stream,
+            Query = filter.Query,
             From = filter.From,
             To = filter.To,
-            Take = filter.Take
+            Limit = filter.Limit
         };
 }
