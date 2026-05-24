@@ -1,6 +1,7 @@
 using Elsa.Studio.Diagnostics.ConsoleLogs.Contracts;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Services;
+using Elsa.Studio.Diagnostics.Rendering;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -268,10 +269,17 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     protected static string CreateExportFileName(DateTimeOffset timestamp) => $"diagnostics-console-logs-{timestamp:yyyyMMdd-HHmmss}.tsv";
     protected static string StreamCssClass(ConsoleLogStream stream) => $"console-log-stream console-log-stream-{ConsoleLogExportFormatter.StreamLabel(stream)}";
     protected string RowCssClass(ConsoleLogLine line) => $"console-log-row console-log-row-{ConsoleLogExportFormatter.StreamLabel(line.Stream)}";
-    protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
     protected RenderFragment RenderDisplayText(ConsoleLogLine line) => builder =>
     {
-        builder.AddContent(0, DisplayText(line));
+        if (ViewState.Ansi)
+        {
+            builder.OpenComponent<AnsiLine>(0);
+            builder.AddAttribute(1, nameof(AnsiLine.Text), line.Text);
+            builder.CloseComponent();
+            return;
+        }
+
+        builder.AddContent(0, GetStrippedText(line));
     };
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
@@ -537,7 +545,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         return _scriptModule;
     }
 
-    private string GetStrippedText(ConsoleLogLine line)
+    protected string GetStrippedText(ConsoleLogLine line)
     {
         if (!_strippedTextCache.TryGetValue(line, out var cachedText))
         {
@@ -605,72 +613,5 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         public string Text { get; } = text;
     }
 
-    protected static string StripAnsi(string text)
-    {
-        var builder = new StringBuilder(text.Length);
-
-        for (var i = 0; i < text.Length; i++)
-        {
-            var character = text[i];
-
-            if (character != '\u001b')
-            {
-                builder.Append(character);
-                continue;
-            }
-
-            if (i + 1 >= text.Length)
-                break;
-
-            var introducer = text[++i];
-
-            if (introducer == '[')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next is >= '@' and <= '~')
-                        break;
-                }
-
-                continue;
-            }
-
-            if (introducer == ']')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next == '\a')
-                        break;
-
-                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
-                    {
-                        i++;
-                        break;
-                    }
-                }
-
-                continue;
-            }
-
-            if (introducer is 'P' or '^' or '_' or 'X')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
-                    {
-                        i++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return builder.ToString();
-    }
+    protected static string StripAnsi(string text) => string.Concat(AnsiSgrParser.Parse(text).Select(segment => segment.Text));
 }

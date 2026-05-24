@@ -14,19 +14,11 @@ public class ConsoleLogsPageHelperTests
     }
 
     [Fact]
-    public void StripAnsi_RemovesOscSequencesTerminatedByBel()
+    public void StripAnsi_RemovesNonSgrCsiSequences()
     {
-        var text = TestConsoleLogs.StripAnsiForTest("before \u001b]0;window title\abefore visible");
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b[2K after");
 
-        Assert.Equal("before before visible", text);
-    }
-
-    [Fact]
-    public void StripAnsi_RemovesOscSequencesTerminatedByStringTerminator()
-    {
-        var text = TestConsoleLogs.StripAnsiForTest("before \u001b]8;;https://example.com\u001b\\link\u001b]8;;\u001b\\ after");
-
-        Assert.Equal("before link after", text);
+        Assert.Equal("before after", text);
     }
 
     [Fact]

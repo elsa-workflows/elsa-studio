@@ -31,7 +31,6 @@ public class WorkflowInstanceConsoleLogsTabWidget : IWidget
     /// <inheritdoc />
     public Func<IDictionary<string, object?>, RenderFragment> Render => attributes => builder =>
     {
-        var workflowInstanceId = attributes.TryGetValue("WorkflowInstanceId", out var id) ? id as string : null;
         var visiblePaneHeight = attributes.TryGetValue("VisiblePaneHeight", out var height) && height is int value ? value : (int?)null;
         var style = visiblePaneHeight is > 0 ? $"height: {Math.Max(visiblePaneHeight.Value - 48, 120)}px;" : null;
 
@@ -41,10 +40,9 @@ public class WorkflowInstanceConsoleLogsTabWidget : IWidget
         {
             contentBuilder.OpenComponent<ConsoleLogViewer>(0);
             contentBuilder.AddAttribute(1, nameof(ConsoleLogViewer.ShowFilters), false);
-            contentBuilder.AddAttribute(2, nameof(ConsoleLogViewer.InitialQuery), workflowInstanceId);
-            contentBuilder.AddAttribute(3, nameof(ConsoleLogViewer.VisibleRowCap), 2_000);
-            contentBuilder.AddAttribute(4, nameof(ConsoleLogViewer.Class), "console-log-viewer-embedded");
-            contentBuilder.AddAttribute(5, nameof(ConsoleLogViewer.Style), style);
+            contentBuilder.AddAttribute(2, nameof(ConsoleLogViewer.VisibleRowCap), 2_000);
+            contentBuilder.AddAttribute(3, nameof(ConsoleLogViewer.Class), "console-log-viewer-embedded");
+            contentBuilder.AddAttribute(4, nameof(ConsoleLogViewer.Style), style);
             contentBuilder.CloseComponent();
         }));
         builder.CloseComponent();
