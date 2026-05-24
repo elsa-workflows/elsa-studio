@@ -1,8 +1,34 @@
 .console-logs-page {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    height: calc(100vh - var(--mud-appbar-height));
+    min-height: 0;
+    overflow: hidden;
     padding: 16px 24px 24px;
+}
+
+.console-log-viewer {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.console-log-viewer-embedded {
+    gap: 8px;
+    padding: 8px 12px 12px;
+}
+
+.console-log-viewer-embedded .console-logs-toolbar {
+    padding: 8px 10px;
+}
+
+.console-log-viewer-embedded .console-logs-switch-actions {
+    display: none;
 }
 
 .console-logs-toolbar,
@@ -79,9 +105,10 @@
     border: 1px solid var(--mud-palette-divider);
     border-radius: 4px;
     color: #f4f4f4;
+    flex: 1 1 auto;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     font-size: .82rem;
-    min-height: 420px;
+    min-height: 0;
     overflow: auto;
     padding: 12px;
 }
@@ -104,6 +131,14 @@
 .console-log-time,
 .console-log-source {
     color: #a9b7c6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.console-log-stream,
+.console-log-flag {
+    white-space: nowrap;
 }
 
 .console-log-source-health {

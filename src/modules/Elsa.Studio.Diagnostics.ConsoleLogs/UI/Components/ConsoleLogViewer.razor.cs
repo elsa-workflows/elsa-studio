@@ -10,15 +10,15 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages;
+namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components;
 
 /// <summary>
-/// Diagnostics console logs page.
+/// Displays diagnostics console logs.
 /// </summary>
 [UsedImplicitly]
-public partial class ConsoleLogs : IAsyncDisposable
+public partial class ConsoleLogViewer : IAsyncDisposable
 {
-    private const string LogSurfaceId = "console-logs-surface";
+    private readonly string _logSurfaceId = $"console-logs-surface-{Guid.NewGuid():N}";
     private readonly List<ConsoleLogSource> _sources = new();
     private readonly Queue<ConsoleLogLine> _refreshBufferedLines = new();
     private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
@@ -37,9 +37,42 @@ public partial class ConsoleLogs : IAsyncDisposable
     [Inject] private ConsoleLogExportFormatter ExportFormatter { get; set; } = default!;
     [Inject] private ConsoleLogUrlStateMapper UrlStateMapper { get; set; } = default!;
 
+    /// <summary>
+    /// Gets or sets whether filter controls are shown.
+    /// </summary>
+    [Parameter] public bool ShowFilters { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether viewer state is read from and written to the current URL.
+    /// </summary>
+    [Parameter] public bool UseUrlState { get; set; }
+
+    /// <summary>
+    /// Gets or sets the initial server-side text query.
+    /// </summary>
+    [Parameter] public string? InitialQuery { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of visible rows to keep locally.
+    /// </summary>
+    [Parameter] public int? VisibleRowCap { get; set; }
+
+    /// <summary>
+    /// Gets or sets additional CSS classes for the viewer root.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Gets or sets inline styles for the viewer root.
+    /// </summary>
+    [Parameter] public string? Style { get; set; }
+
     protected ConsoleLogViewState ViewState { get; } = new();
     protected IReadOnlyCollection<ConsoleLogLine> Rows => ViewState.VisibleRows;
     protected IReadOnlyList<ConsoleLogSource> Sources => _sources;
+    protected string LogSurfaceId => _logSurfaceId;
+    protected string RootCssClass => string.Join(" ", new[] { "console-log-viewer", Class }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    protected string? RootStyle => Style;
     protected bool IsLoading { get; private set; }
     protected string? ErrorMessage { get; private set; }
     protected long BackendDroppedCount { get; private set; }
@@ -59,6 +92,7 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
     protected string LogSurfaceCssClass => $"console-logs-surface{(ViewState.Wrap ? " console-logs-wrap" : "")}{(ViewState.Compact ? " console-logs-compact" : "")}";
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.Query) ||
                                       !string.Equals(StreamSelection, "both", StringComparison.Ordinal);
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
     protected string? StateMessage => ViewState.ConnectionStatus switch
@@ -82,7 +116,15 @@ public partial class ConsoleLogs : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        ApplyQueryFromUrl();
+        if (VisibleRowCap.HasValue)
+            ViewState.VisibleRowCap = VisibleRowCap.Value;
+
+        if (!string.IsNullOrWhiteSpace(InitialQuery))
+            ViewState.Filter.Query = InitialQuery.Trim();
+
+        if (UseUrlState)
+            ApplyQueryFromUrl();
+
         Observer.LineReceived += OnLineReceivedAsync;
         Observer.DroppedLinesReceived += OnDroppedLinesReceivedAsync;
         Observer.ConnectionStatusChanged += OnConnectionStatusChangedAsync;
@@ -446,7 +488,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     private void UpdateUrlFromState()
     {
-        if (!_queryInitialized)
+        if (!UseUrlState || !_queryInitialized)
             return;
 
         var uri = NavigationManager.GetUriWithQueryParameters(UrlStateMapper.ToQueryParameters(ViewState));

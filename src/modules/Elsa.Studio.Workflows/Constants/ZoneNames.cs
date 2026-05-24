@@ -9,4 +9,9 @@ public static class ZoneNames
     /// The zone for the workflow definition properties.
     /// </summary>
     public const string WorkflowDefinitionProperties = "workflow-definition-properties";
+
+    /// <summary>
+    /// The zone for workflow instance viewer bottom panel tabs.
+    /// </summary>
+    public const string WorkflowInstanceViewerBottomTabs = "workflow-instance-viewer-bottom-tabs";
 }

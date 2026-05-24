@@ -1,5 +1,5 @@
 using Xunit;
-using ConsoleLogsPage = Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages.ConsoleLogs;
+using ConsoleLogViewerComponent = Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components.ConsoleLogViewer;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.Tests;
 
@@ -37,7 +37,7 @@ public class ConsoleLogsPageHelperTests
         Assert.Equal("diagnostics-console-logs-20260518-091011.tsv", fileName);
     }
 
-    private class TestConsoleLogs : ConsoleLogsPage
+    private class TestConsoleLogs : ConsoleLogViewerComponent
     {
         public static string StripAnsiForTest(string text) => StripAnsi(text);
 
