@@ -21,6 +21,11 @@ public class ConsoleLogFilter
     public string? Query { get; set; }
 
     /// <summary>
+    /// Gets or sets the workflow instance ID scope filter.
+    /// </summary>
+    public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
     /// Gets or sets the inclusive UTC start time.
     /// </summary>
     public DateTimeOffset? From { get; set; }

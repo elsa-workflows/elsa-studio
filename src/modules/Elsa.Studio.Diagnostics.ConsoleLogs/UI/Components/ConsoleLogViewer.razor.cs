@@ -49,9 +49,9 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     [Parameter] public bool UseUrlState { get; set; }
 
     /// <summary>
-    /// Gets or sets the initial server-side text query.
+    /// Gets or sets the workflow instance ID to scope console lines to.
     /// </summary>
-    [Parameter] public string? InitialQuery { get; set; }
+    [Parameter] public string? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of visible rows to keep locally.
@@ -120,8 +120,8 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         if (VisibleRowCap.HasValue)
             ViewState.VisibleRowCap = VisibleRowCap.Value;
 
-        if (!string.IsNullOrWhiteSpace(InitialQuery))
-            ViewState.Filter.Query = InitialQuery.Trim();
+        if (!string.IsNullOrWhiteSpace(WorkflowInstanceId))
+            ViewState.Filter.WorkflowInstanceId = WorkflowInstanceId.Trim();
 
         if (UseUrlState)
             ApplyQueryFromUrl();
@@ -603,6 +603,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         SourceId = filter.SourceId,
         Stream = filter.Stream,
         Query = filter.Query,
+        WorkflowInstanceId = filter.WorkflowInstanceId,
         From = filter.From,
         To = filter.To,
         Limit = filter.Limit

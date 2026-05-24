@@ -17,6 +17,7 @@ public class ConsoleLogFilterMapperTests
             SourceId = "source-a",
             Stream = ConsoleLogStream.Stdout,
             Query = "incident",
+            WorkflowInstanceId = "workflow-instance-a",
             From = _from,
             To = _to,
             Limit = 50
@@ -31,6 +32,7 @@ public class ConsoleLogFilterMapperTests
         Assert.Equal(_filter.SourceId, request.SourceId);
         Assert.Equal(_filter.Stream, request.Stream);
         Assert.Equal(_filter.Query, request.Query);
+        Assert.Equal(_filter.WorkflowInstanceId, request.WorkflowInstanceId);
         Assert.Equal(_from, request.From);
         Assert.Equal(_to, request.To);
         Assert.Equal(50, request.Limit);
@@ -66,5 +68,13 @@ public class ConsoleLogFilterMapperTests
         var request = ConsoleLogFilterMapper.ToLiveSubscription(new() { Query = " raw value " });
 
         Assert.Equal(" raw value ", request.Query);
+    }
+
+    [Fact]
+    public void ToLiveSubscription_PreservesWorkflowInstanceScope()
+    {
+        var request = ConsoleLogFilterMapper.ToLiveSubscription(new() { WorkflowInstanceId = "workflow-instance-a" });
+
+        Assert.Equal("workflow-instance-a", request.WorkflowInstanceId);
     }
 }
