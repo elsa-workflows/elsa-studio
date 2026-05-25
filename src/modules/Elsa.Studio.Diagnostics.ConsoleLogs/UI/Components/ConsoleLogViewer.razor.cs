@@ -28,6 +28,8 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     private bool _queryInitialized;
     private bool _isRefreshing;
     private bool _scrollAfterRender;
+    private bool _activated;
+    private string? _appliedWorkflowInstanceId;
     private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
@@ -94,6 +96,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     protected string LogSurfaceCssClass => $"console-logs-surface{(ViewState.Wrap ? " console-logs-wrap" : "")}{(ViewState.Compact ? " console-logs-compact" : "")}";
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
                                       !string.IsNullOrWhiteSpace(ViewState.Filter.Query) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId) ||
                                       !string.Equals(StreamSelection, "both", StringComparison.Ordinal);
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
     protected string? StateMessage => ViewState.ConnectionStatus switch
@@ -120,8 +123,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         if (VisibleRowCap.HasValue)
             ViewState.VisibleRowCap = VisibleRowCap.Value;
 
-        if (!string.IsNullOrWhiteSpace(WorkflowInstanceId))
-            ViewState.Filter.WorkflowInstanceId = WorkflowInstanceId.Trim();
+        ApplyWorkflowInstanceIdParameter();
 
         if (UseUrlState)
             ApplyQueryFromUrl();
@@ -131,6 +133,20 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         Observer.ConnectionStatusChanged += OnConnectionStatusChangedAsync;
         Observer.SourceChanged += OnSourceChangedAsync;
         await ActivateAsync(_cancellationTokenSource.Token);
+        _activated = true;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        var workflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+
+        if (!_activated || string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal))
+            return;
+
+        _appliedWorkflowInstanceId = workflowInstanceId;
+        ViewState.Filter.WorkflowInstanceId = workflowInstanceId;
+        await RefreshFilterAsync();
     }
 
     /// <inheritdoc />
@@ -613,6 +629,14 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     {
         public string Text { get; } = text;
     }
+
+    private void ApplyWorkflowInstanceIdParameter()
+    {
+        _appliedWorkflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+        ViewState.Filter.WorkflowInstanceId = _appliedWorkflowInstanceId;
+    }
+
+    private static string? NormalizeWorkflowInstanceId(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     protected static string StripAnsi(string text) => string.Concat(AnsiSgrParser.Parse(text).Select(segment => segment.Text));
 }

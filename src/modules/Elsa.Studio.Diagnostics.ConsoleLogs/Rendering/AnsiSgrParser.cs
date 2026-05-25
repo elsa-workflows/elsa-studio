@@ -6,7 +6,7 @@ namespace Elsa.Studio.Diagnostics.Rendering;
 /// Parses ANSI SGR (Select Graphic Rendition) escape sequences out of a text run and produces a
 /// sequence of <see cref="AnsiSegment"/> records suitable for Blazor component rendering.
 ///
-/// Non-SGR CSI sequences (cursor moves, screen clears, OSC titles) are stripped silently because
+/// Non-SGR CSI and string-control sequences (cursor moves, screen clears, OSC titles) are stripped silently because
 /// they are meaningless in a scrollback log. 256-colour and truecolour sequences are consumed
 /// without error but map to <see cref="AnsiColor.Default"/>.
 /// </summary>
@@ -28,10 +28,20 @@ public static class AnsiSgrParser
         {
             var ch = text[index];
 
-            if (ch != Escape || index + 1 >= text.Length || text[index + 1] != '[')
+            if (ch != Escape)
             {
                 buffer.Append(ch);
                 index++;
+                continue;
+            }
+
+            if (index + 1 >= text.Length)
+                break;
+
+            var introducer = text[index + 1];
+            if (introducer != '[')
+            {
+                index = ConsumeEscapeSequence(text, index, introducer);
                 continue;
             }
 
@@ -148,4 +158,46 @@ public static class AnsiSgrParser
     }
 
     private static bool IsCsiFinalByte(char ch) => ch is >= '@' and <= '~';
+
+    private static int ConsumeEscapeSequence(string text, int escapeIndex, char introducer)
+    {
+        if (introducer == ']')
+            return ConsumeOscSequence(text, escapeIndex + 2);
+
+        if (introducer is 'P' or '^' or '_' or 'X')
+            return ConsumeStringControlSequence(text, escapeIndex + 2);
+
+        return escapeIndex + 2;
+    }
+
+    private static int ConsumeOscSequence(string text, int index)
+    {
+        while (index < text.Length)
+        {
+            if (text[index] == '\a')
+                return index + 1;
+
+            if (IsStringTerminator(text, index))
+                return index + 2;
+
+            index++;
+        }
+
+        return text.Length;
+    }
+
+    private static int ConsumeStringControlSequence(string text, int index)
+    {
+        while (index < text.Length)
+        {
+            if (IsStringTerminator(text, index))
+                return index + 2;
+
+            index++;
+        }
+
+        return text.Length;
+    }
+
+    private static bool IsStringTerminator(string text, int index) => text[index] == Escape && index + 1 < text.Length && text[index + 1] == '\\';
 }

@@ -3,6 +3,7 @@ using Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components;
 using Elsa.Studio.Localization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using WorkflowZoneNames = Elsa.Studio.Workflows.Constants.ZoneNames;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Widgets;
 
@@ -11,7 +12,7 @@ namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Widgets;
 /// </summary>
 public class WorkflowInstanceConsoleLogsTabWidget : IWidget
 {
-    private const string ZoneName = "workflow-instance-viewer-bottom-tabs";
+    private const string ZoneName = WorkflowZoneNames.WorkflowInstanceViewerBottomTabs;
     private readonly ILocalizer _localizer;
 
     /// <summary>

@@ -22,6 +22,30 @@ public class ConsoleLogsPageHelperTests
     }
 
     [Fact]
+    public void StripAnsi_RemovesOscSequencesTerminatedByBel()
+    {
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b]0;window title\a after");
+
+        Assert.Equal("before after", text);
+    }
+
+    [Fact]
+    public void StripAnsi_RemovesOscSequencesTerminatedByStringTerminator()
+    {
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b]8;;https://example.com\u001b\\link\u001b]8;;\u001b\\ after");
+
+        Assert.Equal("beforelink after", text);
+    }
+
+    [Fact]
+    public void StripAnsi_RemovesDcsSequences()
+    {
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001bPpayload\u001b\\ after");
+
+        Assert.Equal("before after", text);
+    }
+
+    [Fact]
     public void CreateExportFileName_UsesTimestamp()
     {
         var fileName = TestConsoleLogs.CreateExportFileNameForTest(DateTimeOffset.Parse("2026-05-18T09:10:11Z"));
