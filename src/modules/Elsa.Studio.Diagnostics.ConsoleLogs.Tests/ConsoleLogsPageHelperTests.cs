@@ -1,5 +1,5 @@
 using Xunit;
-using ConsoleLogsPage = Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages.ConsoleLogs;
+using ConsoleLogViewerComponent = Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components.ConsoleLogViewer;
 
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.Tests;
 
@@ -14,19 +14,35 @@ public class ConsoleLogsPageHelperTests
     }
 
     [Fact]
+    public void StripAnsi_RemovesNonSgrCsiSequences()
+    {
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b[2K after");
+
+        Assert.Equal("before after", text);
+    }
+
+    [Fact]
     public void StripAnsi_RemovesOscSequencesTerminatedByBel()
     {
-        var text = TestConsoleLogs.StripAnsiForTest("before \u001b]0;window title\abefore visible");
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b]0;window title\a after");
 
-        Assert.Equal("before before visible", text);
+        Assert.Equal("before after", text);
     }
 
     [Fact]
     public void StripAnsi_RemovesOscSequencesTerminatedByStringTerminator()
     {
-        var text = TestConsoleLogs.StripAnsiForTest("before \u001b]8;;https://example.com\u001b\\link\u001b]8;;\u001b\\ after");
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001b]8;;https://example.com\u001b\\link\u001b]8;;\u001b\\ after");
 
-        Assert.Equal("before link after", text);
+        Assert.Equal("beforelink after", text);
+    }
+
+    [Fact]
+    public void StripAnsi_RemovesDcsSequences()
+    {
+        var text = TestConsoleLogs.StripAnsiForTest("before\u001bPpayload\u001b\\ after");
+
+        Assert.Equal("before after", text);
     }
 
     [Fact]
@@ -37,7 +53,7 @@ public class ConsoleLogsPageHelperTests
         Assert.Equal("diagnostics-console-logs-20260518-091011.tsv", fileName);
     }
 
-    private class TestConsoleLogs : ConsoleLogsPage
+    private class TestConsoleLogs : ConsoleLogViewerComponent
     {
         public static string StripAnsiForTest(string text) => StripAnsi(text);
 

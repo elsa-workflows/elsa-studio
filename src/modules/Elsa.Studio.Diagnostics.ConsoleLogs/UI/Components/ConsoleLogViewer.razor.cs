@@ -1,6 +1,7 @@
 using Elsa.Studio.Diagnostics.ConsoleLogs.Contracts;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Services;
+using Elsa.Studio.Diagnostics.Rendering;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -10,23 +11,25 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Pages;
+namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components;
 
 /// <summary>
-/// Diagnostics console logs page.
+/// Displays diagnostics console logs.
 /// </summary>
 [UsedImplicitly]
-public partial class ConsoleLogs : IAsyncDisposable
+public partial class ConsoleLogViewer : IAsyncDisposable
 {
-    private const string LogSurfaceId = "console-logs-surface";
+    private readonly string _logSurfaceId = $"console-logs-surface-{Guid.NewGuid():N}";
     private readonly List<ConsoleLogSource> _sources = new();
     private readonly Queue<ConsoleLogLine> _refreshBufferedLines = new();
-    private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
+    private readonly ConditionalWeakTable<ConsoleLogLine, ParsedConsoleLogText> _parsedTextCache = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
     private bool _queryInitialized;
     private bool _isRefreshing;
     private bool _scrollAfterRender;
+    private bool _activated;
+    private string? _appliedWorkflowInstanceId;
     private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
@@ -37,9 +40,42 @@ public partial class ConsoleLogs : IAsyncDisposable
     [Inject] private ConsoleLogExportFormatter ExportFormatter { get; set; } = default!;
     [Inject] private ConsoleLogUrlStateMapper UrlStateMapper { get; set; } = default!;
 
+    /// <summary>
+    /// Gets or sets whether filter controls are shown.
+    /// </summary>
+    [Parameter] public bool ShowFilters { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether viewer state is read from and written to the current URL.
+    /// </summary>
+    [Parameter] public bool UseUrlState { get; set; }
+
+    /// <summary>
+    /// Gets or sets the workflow instance ID to scope console lines to.
+    /// </summary>
+    [Parameter] public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of visible rows to keep locally.
+    /// </summary>
+    [Parameter] public int? VisibleRowCap { get; set; }
+
+    /// <summary>
+    /// Gets or sets additional CSS classes for the viewer root.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Gets or sets inline styles for the viewer root.
+    /// </summary>
+    [Parameter] public string? Style { get; set; }
+
     protected ConsoleLogViewState ViewState { get; } = new();
     protected IReadOnlyCollection<ConsoleLogLine> Rows => ViewState.VisibleRows;
     protected IReadOnlyList<ConsoleLogSource> Sources => _sources;
+    protected string LogSurfaceId => _logSurfaceId;
+    protected string RootCssClass => string.Join(" ", new[] { "console-log-viewer", Class }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    protected string? RootStyle => Style;
     protected bool IsLoading { get; private set; }
     protected string? ErrorMessage { get; private set; }
     protected long BackendDroppedCount { get; private set; }
@@ -59,6 +95,8 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected string PauseIcon => ViewState.IsPaused ? Icons.Material.Filled.PlayArrow : Icons.Material.Filled.Pause;
     protected string LogSurfaceCssClass => $"console-logs-surface{(ViewState.Wrap ? " console-logs-wrap" : "")}{(ViewState.Compact ? " console-logs-compact" : "")}";
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.Query) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId) ||
                                       !string.Equals(StreamSelection, "both", StringComparison.Ordinal);
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
     protected string? StateMessage => ViewState.ConnectionStatus switch
@@ -82,12 +120,33 @@ public partial class ConsoleLogs : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        ApplyQueryFromUrl();
+        if (VisibleRowCap.HasValue)
+            ViewState.VisibleRowCap = VisibleRowCap.Value;
+
+        ApplyWorkflowInstanceIdParameter();
+
+        if (UseUrlState)
+            ApplyQueryFromUrl();
+
         Observer.LineReceived += OnLineReceivedAsync;
         Observer.DroppedLinesReceived += OnDroppedLinesReceivedAsync;
         Observer.ConnectionStatusChanged += OnConnectionStatusChangedAsync;
         Observer.SourceChanged += OnSourceChangedAsync;
         await ActivateAsync(_cancellationTokenSource.Token);
+        _activated = true;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        var workflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+
+        if (!_activated || string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal))
+            return;
+
+        _appliedWorkflowInstanceId = workflowInstanceId;
+        ViewState.Filter.WorkflowInstanceId = workflowInstanceId;
+        await RefreshFilterAsync();
     }
 
     /// <inheritdoc />
@@ -226,10 +285,17 @@ public partial class ConsoleLogs : IAsyncDisposable
     protected static string CreateExportFileName(DateTimeOffset timestamp) => $"diagnostics-console-logs-{timestamp:yyyyMMdd-HHmmss}.tsv";
     protected static string StreamCssClass(ConsoleLogStream stream) => $"console-log-stream console-log-stream-{ConsoleLogExportFormatter.StreamLabel(stream)}";
     protected string RowCssClass(ConsoleLogLine line) => $"console-log-row console-log-row-{ConsoleLogExportFormatter.StreamLabel(line.Stream)}";
-    protected string DisplayText(ConsoleLogLine line) => ViewState.Ansi ? line.Text : GetStrippedText(line);
     protected RenderFragment RenderDisplayText(ConsoleLogLine line) => builder =>
     {
-        builder.AddContent(0, DisplayText(line));
+        if (ViewState.Ansi)
+        {
+            builder.OpenComponent<AnsiLine>(0);
+            builder.AddAttribute(1, nameof(AnsiLine.Segments), GetParsedText(line).Segments);
+            builder.CloseComponent();
+            return;
+        }
+
+        builder.AddContent(0, GetStrippedText(line));
     };
     protected static string Shorten(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value ?? "" : string.Concat(value.AsSpan(0, Math.Max(0, maxLength - 1)), "...");
     protected static string SourceDisplayName(ConsoleLogSource source) => ConsoleLogExportFormatter.SourceDisplayName(source);
@@ -446,7 +512,7 @@ public partial class ConsoleLogs : IAsyncDisposable
 
     private void UpdateUrlFromState()
     {
-        if (!_queryInitialized)
+        if (!UseUrlState || !_queryInitialized)
             return;
 
         var uri = NavigationManager.GetUriWithQueryParameters(UrlStateMapper.ToQueryParameters(ViewState));
@@ -495,15 +561,21 @@ public partial class ConsoleLogs : IAsyncDisposable
         return _scriptModule;
     }
 
-    private string GetStrippedText(ConsoleLogLine line)
+    protected string GetStrippedText(ConsoleLogLine line)
     {
-        if (!_strippedTextCache.TryGetValue(line, out var cachedText))
+        return GetParsedText(line).StrippedText;
+    }
+
+    private ParsedConsoleLogText GetParsedText(ConsoleLogLine line)
+    {
+        if (!_parsedTextCache.TryGetValue(line, out var cachedText))
         {
-            cachedText = new StrippedConsoleLogText(StripAnsi(line.Text));
-            _strippedTextCache.Add(line, cachedText);
+            var segments = AnsiSgrParser.Parse(line.Text);
+            cachedText = new ParsedConsoleLogText(segments, StripAnsi(segments));
+            _parsedTextCache.Add(line, cachedText);
         }
 
-        return cachedText.Text;
+        return cachedText;
     }
 
     private void AddRefreshBufferedLine(ConsoleLogLine line)
@@ -553,82 +625,27 @@ public partial class ConsoleLogs : IAsyncDisposable
         SourceId = filter.SourceId,
         Stream = filter.Stream,
         Query = filter.Query,
+        WorkflowInstanceId = filter.WorkflowInstanceId,
         From = filter.From,
         To = filter.To,
         Limit = filter.Limit
     };
 
-    private sealed class StrippedConsoleLogText(string text)
+    private sealed class ParsedConsoleLogText(IReadOnlyList<AnsiSegment> segments, string strippedText)
     {
-        public string Text { get; } = text;
+        public IReadOnlyList<AnsiSegment> Segments { get; } = segments;
+        public string StrippedText { get; } = strippedText;
     }
 
-    protected static string StripAnsi(string text)
+    private void ApplyWorkflowInstanceIdParameter()
     {
-        var builder = new StringBuilder(text.Length);
-
-        for (var i = 0; i < text.Length; i++)
-        {
-            var character = text[i];
-
-            if (character != '\u001b')
-            {
-                builder.Append(character);
-                continue;
-            }
-
-            if (i + 1 >= text.Length)
-                break;
-
-            var introducer = text[++i];
-
-            if (introducer == '[')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next is >= '@' and <= '~')
-                        break;
-                }
-
-                continue;
-            }
-
-            if (introducer == ']')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next == '\a')
-                        break;
-
-                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
-                    {
-                        i++;
-                        break;
-                    }
-                }
-
-                continue;
-            }
-
-            if (introducer is 'P' or '^' or '_' or 'X')
-            {
-                while (i + 1 < text.Length)
-                {
-                    var next = text[++i];
-
-                    if (next == '\u001b' && i + 1 < text.Length && text[i + 1] == '\\')
-                    {
-                        i++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return builder.ToString();
+        _appliedWorkflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+        ViewState.Filter.WorkflowInstanceId = _appliedWorkflowInstanceId;
     }
+
+    private static string? NormalizeWorkflowInstanceId(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    protected static string StripAnsi(string text) => StripAnsi(AnsiSgrParser.Parse(text));
+
+    private static string StripAnsi(IEnumerable<AnsiSegment> segments) => string.Concat(segments.Select(segment => segment.Text));
 }

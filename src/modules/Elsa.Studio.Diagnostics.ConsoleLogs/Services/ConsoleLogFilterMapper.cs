@@ -28,6 +28,7 @@ public static class ConsoleLogFilterMapper
             SourceId = filter.SourceId,
             Stream = filter.Stream,
             Query = filter.Query,
+            WorkflowInstanceId = filter.WorkflowInstanceId,
             From = filter.From,
             To = filter.To,
             Limit = filter.Limit

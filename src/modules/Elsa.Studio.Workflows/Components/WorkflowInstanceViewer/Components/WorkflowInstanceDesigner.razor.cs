@@ -8,8 +8,10 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Constants;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -80,6 +82,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
+    private IDictionary<string, object?> BottomPanelTabAttributes => new Dictionary<string, object?>
+    {
+        ["WorkflowInstanceId"] = WorkflowInstance?.Id,
+        ["WorkflowDefinition"] = WorkflowDefinition,
+        ["WorkflowInstance"] = WorkflowInstance,
+        ["VisiblePaneHeight"] = _propertiesPaneHeight
+    };
 
     private RadzenSplitterPane ActivityPropertiesPane
     {

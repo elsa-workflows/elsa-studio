@@ -3,6 +3,7 @@ using Elsa.Studio.Diagnostics.ConsoleLogs.Client;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Contracts;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Menu;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Services;
+using Elsa.Studio.Diagnostics.ConsoleLogs.UI.Widgets;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +23,9 @@ public static class ServiceCollectionExtensions
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, ConsoleLogsMenu>()
+            .AddScoped<IWidget, WorkflowInstanceConsoleLogsTabWidget>()
             .AddScoped<IConsoleLogService, RemoteConsoleLogService>()
-            .AddScoped<IConsoleLogObserver, SignalRConsoleLogObserver>()
+            .AddTransient<IConsoleLogObserver, SignalRConsoleLogObserver>()
             .AddScoped<ConsoleLogExportFormatter>()
             .AddScoped<ConsoleLogUrlStateMapper>()
             .AddRemoteApi<IConsoleLogsApi>(backendApiConfig);
