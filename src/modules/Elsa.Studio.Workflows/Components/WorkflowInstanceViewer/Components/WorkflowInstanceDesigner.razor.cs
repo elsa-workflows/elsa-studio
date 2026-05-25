@@ -73,7 +73,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] private IWidgetRegistry WidgetRegistry { get; set; } = null!;
 
     private JsonObject? RootActivity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -83,7 +82,6 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
-    private IReadOnlyCollection<IWidget> BottomPanelTabWidgets => WidgetRegistry.List(ZoneNames.WorkflowInstanceViewerBottomTabs).ToList();
     private IDictionary<string, object?> BottomPanelTabAttributes => new Dictionary<string, object?>
     {
         ["WorkflowInstanceId"] = WorkflowInstance?.Id,

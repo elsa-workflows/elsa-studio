@@ -58,10 +58,7 @@
                     </MudTabPanel>
                 }
 
-                @foreach (var widget in BottomPanelTabWidgets)
-                {
-                    @widget.Render(BottomPanelTabAttributes)
-                }
+                <Zone Name="@ZoneNames.WorkflowInstanceViewerBottomTabs" Attributes="BottomPanelTabAttributes" />
 
             </MudTabs>
         }
