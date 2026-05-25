@@ -22,7 +22,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     private readonly string _logSurfaceId = $"console-logs-surface-{Guid.NewGuid():N}";
     private readonly List<ConsoleLogSource> _sources = new();
     private readonly Queue<ConsoleLogLine> _refreshBufferedLines = new();
-    private readonly ConditionalWeakTable<ConsoleLogLine, StrippedConsoleLogText> _strippedTextCache = new();
+    private readonly ConditionalWeakTable<ConsoleLogLine, ParsedConsoleLogText> _parsedTextCache = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private IJSObjectReference? _scriptModule;
     private bool _queryInitialized;
@@ -290,7 +290,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         if (ViewState.Ansi)
         {
             builder.OpenComponent<AnsiLine>(0);
-            builder.AddAttribute(1, nameof(AnsiLine.Text), line.Text);
+            builder.AddAttribute(1, nameof(AnsiLine.Segments), GetParsedText(line).Segments);
             builder.CloseComponent();
             return;
         }
@@ -563,13 +563,19 @@ public partial class ConsoleLogViewer : IAsyncDisposable
 
     protected string GetStrippedText(ConsoleLogLine line)
     {
-        if (!_strippedTextCache.TryGetValue(line, out var cachedText))
+        return GetParsedText(line).StrippedText;
+    }
+
+    private ParsedConsoleLogText GetParsedText(ConsoleLogLine line)
+    {
+        if (!_parsedTextCache.TryGetValue(line, out var cachedText))
         {
-            cachedText = new StrippedConsoleLogText(StripAnsi(line.Text));
-            _strippedTextCache.Add(line, cachedText);
+            var segments = AnsiSgrParser.Parse(line.Text);
+            cachedText = new ParsedConsoleLogText(segments, StripAnsi(segments));
+            _parsedTextCache.Add(line, cachedText);
         }
 
-        return cachedText.Text;
+        return cachedText;
     }
 
     private void AddRefreshBufferedLine(ConsoleLogLine line)
@@ -625,9 +631,10 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         Limit = filter.Limit
     };
 
-    private sealed class StrippedConsoleLogText(string text)
+    private sealed class ParsedConsoleLogText(IReadOnlyList<AnsiSegment> segments, string strippedText)
     {
-        public string Text { get; } = text;
+        public IReadOnlyList<AnsiSegment> Segments { get; } = segments;
+        public string StrippedText { get; } = strippedText;
     }
 
     private void ApplyWorkflowInstanceIdParameter()
@@ -638,5 +645,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
 
     private static string? NormalizeWorkflowInstanceId(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    protected static string StripAnsi(string text) => string.Concat(AnsiSgrParser.Parse(text).Select(segment => segment.Text));
+    protected static string StripAnsi(string text) => StripAnsi(AnsiSgrParser.Parse(text));
+
+    private static string StripAnsi(IEnumerable<AnsiSegment> segments) => string.Concat(segments.Select(segment => segment.Text));
 }
