@@ -110,7 +110,7 @@
                             <tbody>
                             @foreach (var trace in _traces)
                             {
-                                <tr>
+                                <tr class="@TraceRowClass(trace)" @onclick="() => SelectTraceAsync(trace)">
                                     <td>@trace.Name</td>
                                     <td>@trace.Status</td>
                                     <td>@trace.SpanCount</td>
@@ -120,6 +120,13 @@
                             }
                             </tbody>
                         </table>
+                        @if (_selectedTraceDetail != null)
+                        {
+                            <section class="elsa-otel-trace-detail" aria-label="Selected trace detail">
+                                <TraceWaterfall Spans="_selectedTraceDetail.Spans" SelectedSpan="_selectedSpan" SelectedSpanChanged="span => _selectedSpan = span" />
+                                <SpanDetailsDrawer Span="_selectedSpan" />
+                            </section>
+                        }
                     }
                 </section>
                 break;
@@ -227,6 +234,8 @@
     private IReadOnlyCollection<OtlpLogRecord> _logs = [];
     private OpenTelemetryStorageDiagnostics _storage = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     private CollectorConfiguration? _collectorConfiguration;
+    private OpenTelemetryTraceDetail? _selectedTraceDetail;
+    private TelemetrySpan? _selectedSpan;
 
     private string StatusText => _error != null
         ? "Unable to load OpenTelemetry diagnostics."
@@ -254,6 +263,8 @@
             _logs = logs.Items;
             _storage = await TelemetryService.GetStorageDiagnosticsAsync();
             _collectorConfiguration = await TelemetryService.GetCollectorConfigurationAsync();
+            _selectedTraceDetail = null;
+            _selectedSpan = null;
         }
         catch (UnauthorizedAccessException)
         {
@@ -270,6 +281,14 @@
     }
 
     private string TabClass(string tab) => tab == _activeTab ? "elsa-otel-tab elsa-otel-tab-active" : "elsa-otel-tab";
+
+    private string TraceRowClass(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId ? "elsa-otel-selected-row" : "";
+
+    private async Task SelectTraceAsync(TelemetryTrace trace)
+    {
+        _selectedTraceDetail = await TelemetryService.GetTraceAsync(trace.TraceId);
+        _selectedSpan = _selectedTraceDetail?.Spans.OrderBy(x => x.StartTime).FirstOrDefault();
+    }
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
         ? $"{duration.TotalSeconds:n2}s"

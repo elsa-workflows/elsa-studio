@@ -104,8 +104,8 @@
 - [X] T050 [US2] Implement Studio filter mapper and full URL state mapper in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services`
 - [ ] T051 [US2] Implement feature-gated OpenTelemetry page shell in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T052 [US2] Implement Resources and Traces tabs plus `ResourcePicker.razor` in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI`
-- [ ] T053 [US2] Implement trace waterfall component in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/TraceWaterfall.razor`
-- [ ] T054 [US2] Implement span details drawer in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/SpanDetailsDrawer.razor`
+- [X] T053 [US2] Implement trace waterfall component in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/TraceWaterfall.razor`
+- [X] T054 [US2] Implement span details drawer in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/SpanDetailsDrawer.razor`
 - [ ] T055 [US2] Add Structured Logs trace/span links and compatible Console Logs resource/time links in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T056 [US2] Add OpenTelemetry deep-link actions from Structured Logs in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`
 - [X] T057 [US2] Add responsive styling for trace list and waterfall in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor.css`

@@ -1,0 +1,49 @@
+@if (Span == null)
+{
+    <aside class="elsa-otel-span-details">
+        <div class="elsa-otel-state">Select a span to inspect details.</div>
+    </aside>
+}
+else
+{
+    <aside class="elsa-otel-span-details" aria-label="Span details">
+        <header>
+            <h2>@Span.Name</h2>
+            <span>@Span.Status</span>
+        </header>
+        <dl>
+            <dt>Span ID</dt>
+            <dd class="elsa-otel-mono">@Span.SpanId</dd>
+            <dt>Parent Span ID</dt>
+            <dd class="elsa-otel-mono">@(Span.ParentSpanId ?? "-")</dd>
+            <dt>Kind</dt>
+            <dd>@Span.Kind</dd>
+            <dt>Started</dt>
+            <dd>@FormatTime(Span.StartTime)</dd>
+            <dt>Duration</dt>
+            <dd>@FormatDuration(Span.EndTime - Span.StartTime)</dd>
+        </dl>
+
+        @if (Span.Attributes.Count > 0)
+        {
+            <h3>Attributes</h3>
+            <dl>
+                @foreach (var item in Span.Attributes.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+                {
+                    <dt>@item.Key</dt>
+                    <dd class="elsa-otel-mono">@item.Value</dd>
+                }
+            </dl>
+        }
+    </aside>
+}
+
+@code {
+    [Parameter] public TelemetrySpan? Span { get; set; }
+
+    private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
+        ? $"{duration.TotalSeconds:n2}s"
+        : $"{duration.TotalMilliseconds:n0}ms";
+
+    private static string FormatTime(DateTimeOffset value) => value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+}

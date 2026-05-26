@@ -102,6 +102,15 @@
     white-space: nowrap;
 }
 
+.elsa-otel-table tbody tr {
+    cursor: default;
+}
+
+.elsa-otel-table tbody tr:hover,
+.elsa-otel-selected-row {
+    background: color-mix(in srgb, var(--mud-palette-primary, #2563eb) 8%, transparent);
+}
+
 .elsa-otel-mono {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: .82rem;
@@ -132,4 +141,98 @@
 .elsa-otel-setup dd {
     margin: 0;
     overflow-wrap: anywhere;
+}
+
+.elsa-otel-trace-detail {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    margin-top: 1rem;
+}
+
+.elsa-otel-waterfall {
+    border: 1px solid var(--mud-palette-lines-default, #d7dde5);
+    border-radius: 6px;
+    display: grid;
+    gap: .35rem;
+    min-width: 40rem;
+    padding: .75rem;
+}
+
+.elsa-otel-waterfall-item {
+    background: color-mix(in srgb, var(--mud-palette-primary, #2563eb) 18%, var(--mud-palette-surface, #fff));
+    border: 1px solid color-mix(in srgb, var(--mud-palette-primary, #2563eb) 38%, transparent);
+    border-radius: 6px;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    gap: .75rem;
+    grid-column: 1;
+    justify-content: space-between;
+    margin-left: calc(var(--offset) + (var(--depth) * .85rem));
+    min-height: 2rem;
+    padding: .35rem .55rem;
+    text-align: left;
+    width: max(var(--width), 7rem);
+}
+
+.elsa-otel-waterfall-item-selected {
+    outline: 2px solid var(--mud-palette-primary, #2563eb);
+}
+
+.elsa-otel-waterfall-item-error {
+    background: color-mix(in srgb, var(--mud-palette-error, #b42318) 16%, var(--mud-palette-surface, #fff));
+    border-color: color-mix(in srgb, var(--mud-palette-error, #b42318) 42%, transparent);
+}
+
+.elsa-otel-waterfall-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.elsa-otel-waterfall-duration {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    flex: 0 0 auto;
+}
+
+.elsa-otel-span-details {
+    border: 1px solid var(--mud-palette-lines-default, #d7dde5);
+    border-radius: 6px;
+    padding: .75rem;
+}
+
+.elsa-otel-span-details header {
+    align-items: start;
+    display: flex;
+    gap: .75rem;
+    justify-content: space-between;
+}
+
+.elsa-otel-span-details h2,
+.elsa-otel-span-details h3 {
+    font-size: 1rem;
+    margin: 0 0 .75rem;
+}
+
+.elsa-otel-span-details dl {
+    display: grid;
+    gap: .45rem .75rem;
+    grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.elsa-otel-span-details dt {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    font-weight: 650;
+}
+
+.elsa-otel-span-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 64rem) {
+    .elsa-otel-trace-detail {
+        grid-template-columns: 1fr;
+    }
 }
