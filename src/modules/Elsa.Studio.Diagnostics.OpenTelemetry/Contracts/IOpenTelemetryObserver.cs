@@ -8,4 +8,5 @@ namespace Elsa.Studio.Diagnostics.OpenTelemetry.Contracts;
 public interface IOpenTelemetryObserver : IAsyncDisposable
 {
     IAsyncEnumerable<OpenTelemetryStreamItem> ObserveAsync(OpenTelemetryTraceFilter filter, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<OpenTelemetryStreamItem> ObserveMetricsAsync(OpenTelemetryMetricFilter filter, CancellationToken cancellationToken = default);
 }

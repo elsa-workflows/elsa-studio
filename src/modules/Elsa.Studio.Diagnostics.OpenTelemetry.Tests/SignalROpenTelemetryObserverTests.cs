@@ -42,6 +42,32 @@ public class SignalROpenTelemetryObserverTests
         await observer.DisposeAsync();
     }
 
+    [Fact]
+    public async Task ObserveMetricsAsync_WhenConnectionFails_CompletesWithoutItems()
+    {
+        var observer = CreateObserver();
+        var from = new DateTimeOffset(2026, 5, 26, 10, 0, 0, TimeSpan.Zero);
+        var items = new List<OpenTelemetryStreamItem>();
+
+        await foreach (var item in observer.ObserveMetricsAsync(new OpenTelemetryMetricFilter
+                       {
+                           ResourceId = "api:1",
+                           InstrumentName = "workflow.duration",
+                           From = from,
+                           To = from.AddMinutes(5),
+                           Take = 25
+                       }))
+            items.Add(item);
+
+        Assert.Empty(items);
+        Assert.Equal("api:1", observer.CurrentMetricFilter?.ResourceId);
+        Assert.Equal("workflow.duration", observer.CurrentMetricFilter?.InstrumentName);
+        Assert.Equal(from, observer.CurrentFilter?.From);
+        Assert.Equal(from.AddMinutes(5), observer.CurrentFilter?.To);
+        Assert.Equal(25, observer.CurrentFilter?.Take);
+        await observer.DisposeAsync();
+    }
+
     private static SignalROpenTelemetryObserver CreateObserver()
     {
         return new SignalROpenTelemetryObserver(

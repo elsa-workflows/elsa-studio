@@ -132,7 +132,7 @@
 - [ ] T062 [US3] Add metric overflow diagnostics to `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Models/OpenTelemetryStorageDiagnostics.cs`
 - [X] T063 [US3] Implement Metrics tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [X] T064 [US3] Implement metric series table in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/MetricSeriesTable.razor`
-- [ ] T065 [US3] Add metric live-update handling in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
+- [X] T065 [US3] Add metric live-update handling in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
 
 **Checkpoint**: Metric instruments and recent bounded points are visible and filterable in Studio.
 

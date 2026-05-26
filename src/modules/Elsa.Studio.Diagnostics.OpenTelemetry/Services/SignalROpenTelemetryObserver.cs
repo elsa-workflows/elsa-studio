@@ -22,10 +22,33 @@ public class SignalROpenTelemetryObserver(
     private HubConnection? _connection;
 
     public OpenTelemetryTraceFilter? CurrentFilter { get; private set; }
+    public OpenTelemetryMetricFilter? CurrentMetricFilter { get; private set; }
 
     public async IAsyncEnumerable<OpenTelemetryStreamItem> ObserveAsync(OpenTelemetryTraceFilter filter, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         CurrentFilter = filter;
+        CurrentMetricFilter = null;
+
+        await foreach (var item in ObserveCoreAsync(filter, metricFilter: null, cancellationToken))
+            yield return item;
+    }
+
+    public async IAsyncEnumerable<OpenTelemetryStreamItem> ObserveMetricsAsync(OpenTelemetryMetricFilter filter, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        CurrentMetricFilter = filter;
+        CurrentFilter = ToSubscriptionFilter(filter);
+
+        await foreach (var item in ObserveCoreAsync(CurrentFilter, filter, cancellationToken))
+            yield return item;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeConnectionAsync();
+    }
+
+    private async IAsyncEnumerable<OpenTelemetryStreamItem> ObserveCoreAsync(OpenTelemetryTraceFilter subscriptionFilter, OpenTelemetryMetricFilter? metricFilter, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
         var channel = Channel.CreateUnbounded<OpenTelemetryStreamItem>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -38,7 +61,7 @@ public class SignalROpenTelemetryObserver(
         try
         {
             await _connection.StartAsync(cancellationToken);
-            await _connection.SendAsync("SubscribeAsync", CurrentFilter, cancellationToken);
+            await _connection.SendAsync("SubscribeAsync", subscriptionFilter, cancellationToken);
         }
         catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound)
         {
@@ -52,12 +75,10 @@ public class SignalROpenTelemetryObserver(
         }
 
         await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
-            yield return item;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DisposeConnectionAsync();
+        {
+            if (metricFilter == null || MatchesMetricSubscription(item, metricFilter))
+                yield return item;
+        }
     }
 
     private async Task<HubConnection> CreateConnectionAsync(Channel<OpenTelemetryStreamItem> channel, CancellationToken cancellationToken)
@@ -86,6 +107,41 @@ public class SignalROpenTelemetryObserver(
         };
 
         return connection;
+    }
+
+    private static OpenTelemetryTraceFilter ToSubscriptionFilter(OpenTelemetryMetricFilter filter)
+    {
+        return new OpenTelemetryTraceFilter
+        {
+            ResourceId = filter.ResourceId,
+            ServiceName = filter.ServiceName,
+            From = filter.From,
+            To = filter.To,
+            Take = filter.Take
+        };
+    }
+
+    private static bool MatchesMetricSubscription(OpenTelemetryStreamItem item, OpenTelemetryMetricFilter filter)
+    {
+        if (item.DroppedItems is { SignalType: OpenTelemetrySignalType.Metric })
+            return true;
+
+        if (item.MetricPoint is not { } point)
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(filter.ResourceId) && !string.Equals(point.ResourceId, filter.ResourceId, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(filter.InstrumentName) && !string.Equals(point.InstrumentId, filter.InstrumentName, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (filter.From is { } from && point.Timestamp < from)
+            return false;
+
+        if (filter.To is { } to && point.Timestamp > to)
+            return false;
+
+        return true;
     }
 
     private async Task DisposeConnectionAsync()
