@@ -93,7 +93,7 @@
 - [ ] T042 [P] [US2] Add Studio filter mapper tests for trace filters in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryFilterMapperTests.cs`
 - [X] T043 [P] [US2] Add Studio URL state mapper tests for tab, resource, service, trace, span, workflow, severity, status, text, time range, and live state in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryUrlStateMapperTests.cs`
 - [X] T044 [P] [US2] Add Studio service tests for trace search/detail API calls in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/RemoteOpenTelemetryServiceTests.cs`
-- [ ] T045 [P] [US2] Add Studio trace waterfall model tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/TraceWaterfallLayoutTests.cs`
+- [X] T045 [P] [US2] Add Studio trace waterfall model tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/TraceWaterfallLayoutTests.cs`
 - [ ] T046 [P] [US2] Add Core SignalR hub integration tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryHubTests.cs`
 
 ### Implementation for User Story 2
