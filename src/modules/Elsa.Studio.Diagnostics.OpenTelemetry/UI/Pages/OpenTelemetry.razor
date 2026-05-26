@@ -1,6 +1,8 @@
 @page "/diagnostics/opentelemetry"
+@using Elsa.Studio.Contracts
 @using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
 @inject IOpenTelemetryService TelemetryService
+@inject IRemoteFeatureProvider RemoteFeatureProvider
 
 <PageTitle>OpenTelemetry</PageTitle>
 
@@ -52,6 +54,8 @@
                 <span>Dropped</span>
             </div>
         </section>
+
+        <ResourcePicker Resources="_resources" SelectedResourceId="_selectedResourceId" SelectedResourceIdChanged="OnResourceSelectedAsync" />
 
         @switch (_activeTab)
         {
@@ -214,6 +218,7 @@
     private string _activeTab = "Resources";
     private bool _loading = true;
     private string? _error;
+    private string? _selectedResourceId;
     private IReadOnlyCollection<TelemetryResource> _resources = [];
     private IReadOnlyCollection<TelemetryTrace> _traces = [];
     private OpenTelemetryMetricResult _metrics = new([], [], 0);
@@ -238,12 +243,22 @@
 
         try
         {
-            var resources = await TelemetryService.GetResourcesAsync(new OpenTelemetryResourceFilter { Take = RowCap });
-            var traces = await TelemetryService.GetTracesAsync(new OpenTelemetryTraceFilter { Take = RowCap });
-            var metrics = await TelemetryService.GetMetricsAsync(new OpenTelemetryMetricFilter { Take = RowCap });
-            var logs = await TelemetryService.GetLogsAsync(new OpenTelemetryLogFilter { Take = RowCap });
+            if (!await RemoteFeatureProvider.IsEnabledAsync(Feature.RemoteFeatureName))
+            {
+                _error = "OpenTelemetry diagnostics are not enabled on this backend.";
+                ClearTelemetry();
+                return;
+            }
 
+            var resources = await TelemetryService.GetResourcesAsync(new OpenTelemetryResourceFilter { Take = RowCap });
             _resources = resources.Items;
+            if (!string.IsNullOrWhiteSpace(_selectedResourceId) && _resources.All(x => x.Id != _selectedResourceId))
+                _selectedResourceId = null;
+
+            var traces = await TelemetryService.GetTracesAsync(new OpenTelemetryTraceFilter { ResourceId = _selectedResourceId, Take = RowCap });
+            var metrics = await TelemetryService.GetMetricsAsync(new OpenTelemetryMetricFilter { ResourceId = _selectedResourceId, Take = RowCap });
+            var logs = await TelemetryService.GetLogsAsync(new OpenTelemetryLogFilter { ResourceId = _selectedResourceId, Take = RowCap });
+
             _traces = traces.Items;
             _metrics = metrics;
             _logs = logs.Items;
@@ -270,6 +285,12 @@
 
     private string TraceRowClass(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId ? "elsa-otel-selected-row" : "";
 
+    private async Task OnResourceSelectedAsync(string? resourceId)
+    {
+        _selectedResourceId = resourceId;
+        await LoadAsync();
+    }
+
     private async Task SelectTraceAsync(TelemetryTrace trace)
     {
         _selectedTraceDetail = await TelemetryService.GetTraceAsync(trace.TraceId);
@@ -281,4 +302,16 @@
         : $"{duration.TotalMilliseconds:n0}ms";
 
     private static string FormatTime(DateTimeOffset value) => value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+
+    private void ClearTelemetry()
+    {
+        _resources = [];
+        _traces = [];
+        _metrics = new([], [], 0);
+        _logs = [];
+        _storage = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        _collectorConfiguration = null;
+        _selectedTraceDetail = null;
+        _selectedSpan = null;
+    }
 }

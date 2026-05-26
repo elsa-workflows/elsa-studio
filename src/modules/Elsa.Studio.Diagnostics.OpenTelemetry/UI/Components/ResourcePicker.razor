@@ -1,0 +1,28 @@
+@if (Resources.Count > 0)
+{
+    <div class="elsa-otel-resource-picker" aria-label="OpenTelemetry resources">
+        <button type="button" class="@ButtonClass(null)" @onclick="() => SelectAsync(null)">All resources</button>
+        @foreach (var resource in Resources.OrderBy(x => x.ServiceName, StringComparer.OrdinalIgnoreCase))
+        {
+            <button type="button" class="@ButtonClass(resource.Id)" title="@resource.Id" @onclick="() => SelectAsync(resource.Id)">
+                @resource.ServiceName
+            </button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyCollection<TelemetryResource> Resources { get; set; } = [];
+    [Parameter] public string? SelectedResourceId { get; set; }
+    [Parameter] public EventCallback<string?> SelectedResourceIdChanged { get; set; }
+
+    private async Task SelectAsync(string? resourceId)
+    {
+        if (SelectedResourceIdChanged.HasDelegate)
+            await SelectedResourceIdChanged.InvokeAsync(resourceId);
+    }
+
+    private string ButtonClass(string? resourceId) => string.Equals(resourceId, SelectedResourceId, StringComparison.Ordinal)
+        ? "elsa-otel-resource-button elsa-otel-resource-button-active"
+        : "elsa-otel-resource-button";
+}

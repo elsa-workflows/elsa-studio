@@ -77,6 +77,27 @@
     font-size: .85rem;
 }
 
+.elsa-otel-resource-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.elsa-otel-resource-button {
+    background: var(--mud-palette-surface, #fff);
+    border: 1px solid var(--mud-palette-lines-default, #cfd6df);
+    border-radius: 6px;
+    color: inherit;
+    cursor: pointer;
+    min-height: 2rem;
+    padding: .3rem .65rem;
+}
+
+.elsa-otel-resource-button-active {
+    background: color-mix(in srgb, var(--mud-palette-primary, #2563eb) 12%, var(--mud-palette-surface, #fff));
+    border-color: var(--mud-palette-primary, #2563eb);
+}
+
 .elsa-otel-panel {
     overflow-x: auto;
 }
