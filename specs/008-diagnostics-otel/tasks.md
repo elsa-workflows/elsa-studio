@@ -157,7 +157,7 @@
 - [ ] T071 [US4] Implement OTLP API key header validation in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
 - [ ] T072 [US4] Implement Setup tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T073 [US4] Add setup copy helpers in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/openTelemetry.js`
-- [ ] T074 [US4] Add polyglot and .NET setup examples to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
+- [X] T074 [US4] Add polyglot and .NET setup examples to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
 
 **Checkpoint**: Setup metadata is visible in Studio and secure enough for non-loopback ingestion.
 
@@ -167,10 +167,10 @@
 
 **Purpose**: Documentation, verification, and cleanup across Core and Studio.
 
-- [ ] T075 [P] Update Core README with scope boundaries, routes, permissions, and historical extension decision in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/README.md`
-- [ ] T076 [P] Update Studio README with feature gating, route, UI states, and cross-links in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/README.md`
-- [ ] T077 [P] Add Core quickstart validation notes to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
-- [ ] T078 [P] Verify no production code references the historical `Elsa.OpenTelemetry` module by running `rg "Elsa.OpenTelemetry|UseWorkflowExecutionTracing|UseActivityExecutionTracing" /Users/sipke/Projects/Elsa/elsa-core /Users/sipke/Projects/Elsa/elsa-studio`
+- [X] T075 [P] Update Core README with scope boundaries, routes, permissions, and historical extension decision in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/README.md`
+- [X] T076 [P] Update Studio README with feature gating, route, UI states, and cross-links in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/README.md`
+- [X] T077 [P] Add Core quickstart validation notes to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
+- [X] T078 [P] Verify no production code references the historical `Elsa.OpenTelemetry` module by running `rg "Elsa.OpenTelemetry|UseWorkflowExecutionTracing|UseActivityExecutionTracing" /Users/sipke/Projects/Elsa/elsa-core /Users/sipke/Projects/Elsa/elsa-studio`
 - [ ] T079 Run Core OpenTelemetry unit tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Elsa.Diagnostics.OpenTelemetry.UnitTests.csproj`
 - [ ] T080 Run Core OpenTelemetry integration tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/Elsa.Diagnostics.OpenTelemetry.IntegrationTests.csproj`
 - [X] T081 Run Studio OpenTelemetry tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/Elsa.Studio.Diagnostics.OpenTelemetry.Tests.csproj`
