@@ -143,6 +143,10 @@
     overflow-wrap: anywhere;
 }
 
+.elsa-otel-setup-table {
+    margin-top: 1rem;
+}
+
 .elsa-otel-trace-detail {
     display: grid;
     gap: 1rem;

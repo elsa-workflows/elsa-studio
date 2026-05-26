@@ -148,7 +148,7 @@
 
 - [ ] T066 [P] [US4] Add Core collector configuration tests for HTTP metadata, nullable/disabled gRPC metadata, and required headers in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Services/CollectorConfigurationTests.cs`
 - [ ] T067 [P] [US4] Add Core non-loopback API key enforcement tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OtlpIngestionSecurityTests.cs`
-- [ ] T068 [P] [US4] Add Studio setup view mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/CollectorConfigurationViewModelTests.cs`
+- [X] T068 [P] [US4] Add Studio setup view mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/CollectorConfigurationViewModelTests.cs`
 
 ### Implementation for User Story 4
 

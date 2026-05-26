@@ -175,18 +175,31 @@
                     }
                     else
                     {
+                        var setup = CollectorConfigurationViewModelMapper.Create(_collectorConfiguration);
                         <dl>
-                            <dt>HTTP Endpoint</dt>
-                            <dd>@_collectorConfiguration.Http.Endpoint</dd>
-                            <dt>HTTP Protocol</dt>
-                            <dd>@_collectorConfiguration.Http.Protocol</dd>
-                            <dt>gRPC Endpoint</dt>
-                            <dd>@(_collectorConfiguration.Grpc.Enabled ? _collectorConfiguration.Grpc.Endpoint : _collectorConfiguration.Grpc.DisabledReason)</dd>
-                            <dt>Endpoint Variable</dt>
-                            <dd>@_collectorConfiguration.EndpointEnvironmentVariable</dd>
-                            <dt>Protocol Variable</dt>
-                            <dd>@_collectorConfiguration.ProtocolEnvironmentVariable</dd>
+                            @foreach (var row in setup.Rows)
+                            {
+                                <dt>@row.Label</dt>
+                                <dd>@row.Value</dd>
+                            }
                         </dl>
+                        <table class="elsa-otel-table elsa-otel-setup-table">
+                            <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var variable in setup.EnvironmentVariables)
+                            {
+                                <tr>
+                                    <td class="elsa-otel-mono">@variable.Name</td>
+                                    <td class="elsa-otel-mono">@(variable.IsSecret ? "********" : variable.Value)</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
                     }
                 </section>
                 break;
