@@ -132,34 +132,7 @@
                 break;
             case "Metrics":
                 <section class="elsa-otel-panel">
-                    @if (_metrics.Instruments.Count == 0)
-                    {
-                        <div class="elsa-otel-state">No metrics received.</div>
-                    }
-                    else
-                    {
-                        <table class="elsa-otel-table">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Kind</th>
-                                <th>Unit</th>
-                                <th>Points</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach (var instrument in _metrics.Instruments)
-                            {
-                                <tr>
-                                    <td>@instrument.Name</td>
-                                    <td>@instrument.Kind</td>
-                                    <td>@instrument.Unit</td>
-                                    <td>@_metrics.Points.Count(x => x.InstrumentId == instrument.Id)</td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
-                    }
+                    <MetricSeriesTable Metrics="_metrics" />
                 </section>
                 break;
             case "Logs":

@@ -123,7 +123,7 @@
 ### Tests for User Story 3
 
 - [ ] T058 [P] [US3] Add Core metric query tests in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/OpenTelemetryMetricQueryTests.cs`
-- [ ] T059 [P] [US3] Add Studio metric mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricSeriesMapperTests.cs`
+- [X] T059 [P] [US3] Add Studio metric mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricSeriesMapperTests.cs`
 - [ ] T060 [P] [US3] Add Studio metric view-state tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricViewStateTests.cs`
 
 ### Implementation for User Story 3
@@ -131,7 +131,7 @@
 - [ ] T061 [US3] Add metric instrument and point filtering support in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
 - [ ] T062 [US3] Add metric overflow diagnostics to `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Models/OpenTelemetryStorageDiagnostics.cs`
 - [X] T063 [US3] Implement Metrics tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
-- [ ] T064 [US3] Implement metric series table in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/MetricSeriesTable.razor`
+- [X] T064 [US3] Implement metric series table in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/MetricSeriesTable.razor`
 - [ ] T065 [US3] Add metric live-update handling in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
 
 **Checkpoint**: Metric instruments and recent bounded points are visible and filterable in Studio.
