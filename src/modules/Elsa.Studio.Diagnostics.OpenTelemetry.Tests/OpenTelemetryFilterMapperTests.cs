@@ -13,4 +13,20 @@ public class OpenTelemetryFilterMapperTests
 
         Assert.Equal(100, request.Take);
     }
+
+    [Fact]
+    public void ToMetricRequest_WhenTakeIsMissing_UsesRowCap()
+    {
+        var request = OpenTelemetryFilterMapper.ToMetricRequest(new OpenTelemetryMetricFilter(), 75);
+
+        Assert.Equal(75, request.Take);
+    }
+
+    [Fact]
+    public void ToLogRequest_WhenRowCapIsInvalid_UsesMinimumTake()
+    {
+        var request = OpenTelemetryFilterMapper.ToLogRequest(new OpenTelemetryLogFilter(), 0);
+
+        Assert.Equal(1, request.Take);
+    }
 }

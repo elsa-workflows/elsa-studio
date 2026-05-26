@@ -91,7 +91,7 @@
 ### Tests for User Story 2
 
 - [ ] T042 [P] [US2] Add Studio filter mapper tests for trace filters in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryFilterMapperTests.cs`
-- [ ] T043 [P] [US2] Add Studio URL state mapper tests for tab, resource, service, trace, span, workflow, severity, status, text, time range, and live state in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryUrlStateMapperTests.cs`
+- [X] T043 [P] [US2] Add Studio URL state mapper tests for tab, resource, service, trace, span, workflow, severity, status, text, time range, and live state in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryUrlStateMapperTests.cs`
 - [ ] T044 [P] [US2] Add Studio service tests for trace search/detail API calls in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/RemoteOpenTelemetryServiceTests.cs`
 - [ ] T045 [P] [US2] Add Studio trace waterfall model tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/TraceWaterfallLayoutTests.cs`
 - [ ] T046 [P] [US2] Add Core SignalR hub integration tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryHubTests.cs`
@@ -101,7 +101,7 @@
 - [ ] T047 [US2] Implement Core SignalR hub and client contract in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/RealTime/OpenTelemetryHub.cs`
 - [ ] T048 [US2] Implement Studio remote service in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/RemoteOpenTelemetryService.cs`
 - [ ] T049 [US2] Implement Studio SignalR observer in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
-- [ ] T050 [US2] Implement Studio filter mapper and full URL state mapper in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services`
+- [X] T050 [US2] Implement Studio filter mapper and full URL state mapper in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services`
 - [ ] T051 [US2] Implement feature-gated OpenTelemetry page shell in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T052 [US2] Implement Resources and Traces tabs plus `ResourcePicker.razor` in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI`
 - [ ] T053 [US2] Implement trace waterfall component in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/TraceWaterfall.razor`
