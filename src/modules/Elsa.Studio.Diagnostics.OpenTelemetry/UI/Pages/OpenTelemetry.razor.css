@@ -1,4 +1,135 @@
 .elsa-otel-page {
     display: grid;
     gap: 1rem;
+    padding: 1rem;
+}
+
+.elsa-otel-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.elsa-otel-header h1 {
+    font-size: 1.4rem;
+    font-weight: 650;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.elsa-otel-header p {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    margin: .25rem 0 0;
+}
+
+.elsa-otel-button,
+.elsa-otel-tab {
+    border: 1px solid var(--mud-palette-lines-default, #cfd6df);
+    border-radius: 6px;
+    background: var(--mud-palette-surface, #fff);
+    color: inherit;
+    cursor: pointer;
+    min-height: 2.25rem;
+    padding: .35rem .7rem;
+}
+
+.elsa-otel-button:disabled {
+    cursor: default;
+    opacity: .65;
+}
+
+.elsa-otel-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.elsa-otel-tab-active {
+    background: var(--mud-palette-primary, #2563eb);
+    border-color: var(--mud-palette-primary, #2563eb);
+    color: var(--mud-palette-primary-text, #fff);
+}
+
+.elsa-otel-summary {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.elsa-otel-summary div {
+    border: 1px solid var(--mud-palette-lines-default, #d7dde5);
+    border-radius: 6px;
+    padding: .75rem;
+}
+
+.elsa-otel-summary strong,
+.elsa-otel-summary span {
+    display: block;
+}
+
+.elsa-otel-summary strong {
+    font-size: 1.25rem;
+}
+
+.elsa-otel-summary span {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    font-size: .85rem;
+}
+
+.elsa-otel-panel {
+    overflow-x: auto;
+}
+
+.elsa-otel-table {
+    border-collapse: collapse;
+    font-size: .9rem;
+    min-width: 52rem;
+    width: 100%;
+}
+
+.elsa-otel-table th,
+.elsa-otel-table td {
+    border-bottom: 1px solid var(--mud-palette-lines-default, #d7dde5);
+    padding: .55rem .65rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.elsa-otel-table th {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.elsa-otel-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .82rem;
+}
+
+.elsa-otel-state {
+    border: 1px solid var(--mud-palette-lines-default, #d7dde5);
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.elsa-otel-state-error {
+    border-color: var(--mud-palette-error, #b42318);
+    color: var(--mud-palette-error, #b42318);
+}
+
+.elsa-otel-setup dl {
+    display: grid;
+    gap: .5rem 1rem;
+    grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.elsa-otel-setup dt {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    font-weight: 650;
+}
+
+.elsa-otel-setup dd {
+    margin: 0;
+    overflow-wrap: anywhere;
 }

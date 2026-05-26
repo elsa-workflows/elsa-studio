@@ -1,7 +1,279 @@
 @page "/diagnostics/opentelemetry"
+@using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
+@inject IOpenTelemetryService TelemetryService
 
 <PageTitle>OpenTelemetry</PageTitle>
 
 <section class="elsa-otel-page">
-    <h1>OpenTelemetry</h1>
+    <header class="elsa-otel-header">
+        <div>
+            <h1>OpenTelemetry</h1>
+            <p>@StatusText</p>
+        </div>
+        <button type="button" class="elsa-otel-button" @onclick="LoadAsync" disabled="@_loading">Refresh</button>
+    </header>
+
+    <nav class="elsa-otel-tabs" aria-label="OpenTelemetry diagnostics views">
+        @foreach (var tab in Tabs)
+        {
+            <button type="button" class="@TabClass(tab)" @onclick="() => _activeTab = tab">@tab</button>
+        }
+    </nav>
+
+    @if (_loading)
+    {
+        <div class="elsa-otel-state">Loading telemetry...</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="elsa-otel-state elsa-otel-state-error">@_error</div>
+    }
+    else
+    {
+        <section class="elsa-otel-summary" aria-label="Storage diagnostics">
+            <div>
+                <strong>@_resources.Count</strong>
+                <span>Resources</span>
+            </div>
+            <div>
+                <strong>@_traces.Count</strong>
+                <span>Traces</span>
+            </div>
+            <div>
+                <strong>@_metrics.Instruments.Count</strong>
+                <span>Metrics</span>
+            </div>
+            <div>
+                <strong>@_logs.Count</strong>
+                <span>OTLP Logs</span>
+            </div>
+            <div>
+                <strong>@DroppedCount</strong>
+                <span>Dropped</span>
+            </div>
+        </section>
+
+        @switch (_activeTab)
+        {
+            case "Resources":
+                <section class="elsa-otel-panel">
+                    @if (_resources.Count == 0)
+                    {
+                        <div class="elsa-otel-state">No OpenTelemetry resources received.</div>
+                    }
+                    else
+                    {
+                        <table class="elsa-otel-table">
+                            <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Instance</th>
+                                <th>SDK</th>
+                                <th>Status</th>
+                                <th>Last Seen</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var resource in _resources)
+                            {
+                                <tr>
+                                    <td>@resource.ServiceName</td>
+                                    <td>@resource.ServiceInstanceId</td>
+                                    <td>@resource.TelemetrySdkLanguage</td>
+                                    <td>@resource.Status</td>
+                                    <td>@FormatTime(resource.LastSeen)</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+                break;
+            case "Traces":
+                <section class="elsa-otel-panel">
+                    @if (_traces.Count == 0)
+                    {
+                        <div class="elsa-otel-state">No traces received.</div>
+                    }
+                    else
+                    {
+                        <table class="elsa-otel-table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Spans</th>
+                                <th>Duration</th>
+                                <th>Trace ID</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var trace in _traces)
+                            {
+                                <tr>
+                                    <td>@trace.Name</td>
+                                    <td>@trace.Status</td>
+                                    <td>@trace.SpanCount</td>
+                                    <td>@FormatDuration(trace.Duration)</td>
+                                    <td class="elsa-otel-mono">@trace.TraceId</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+                break;
+            case "Metrics":
+                <section class="elsa-otel-panel">
+                    @if (_metrics.Instruments.Count == 0)
+                    {
+                        <div class="elsa-otel-state">No metrics received.</div>
+                    }
+                    else
+                    {
+                        <table class="elsa-otel-table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Kind</th>
+                                <th>Unit</th>
+                                <th>Points</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var instrument in _metrics.Instruments)
+                            {
+                                <tr>
+                                    <td>@instrument.Name</td>
+                                    <td>@instrument.Kind</td>
+                                    <td>@instrument.Unit</td>
+                                    <td>@_metrics.Points.Count(x => x.InstrumentId == instrument.Id)</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+                break;
+            case "Logs":
+                <section class="elsa-otel-panel">
+                    @if (_logs.Count == 0)
+                    {
+                        <div class="elsa-otel-state">No OTLP logs received.</div>
+                    }
+                    else
+                    {
+                        <table class="elsa-otel-table">
+                            <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Severity</th>
+                                <th>Message</th>
+                                <th>Trace ID</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var log in _logs)
+                            {
+                                <tr>
+                                    <td>@FormatTime(log.Timestamp)</td>
+                                    <td>@log.SeverityText</td>
+                                    <td>@log.Body</td>
+                                    <td class="elsa-otel-mono">@log.TraceId</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+                break;
+            case "Setup":
+                <section class="elsa-otel-panel elsa-otel-setup">
+                    @if (_collectorConfiguration == null)
+                    {
+                        <div class="elsa-otel-state">Collector configuration is unavailable.</div>
+                    }
+                    else
+                    {
+                        <dl>
+                            <dt>HTTP Endpoint</dt>
+                            <dd>@_collectorConfiguration.Http.Endpoint</dd>
+                            <dt>HTTP Protocol</dt>
+                            <dd>@_collectorConfiguration.Http.Protocol</dd>
+                            <dt>gRPC Endpoint</dt>
+                            <dd>@(_collectorConfiguration.Grpc.Enabled ? _collectorConfiguration.Grpc.Endpoint : _collectorConfiguration.Grpc.DisabledReason)</dd>
+                            <dt>Endpoint Variable</dt>
+                            <dd>@_collectorConfiguration.EndpointEnvironmentVariable</dd>
+                            <dt>Protocol Variable</dt>
+                            <dd>@_collectorConfiguration.ProtocolEnvironmentVariable</dd>
+                        </dl>
+                    }
+                </section>
+                break;
+        }
+    }
 </section>
+
+@code {
+    private static readonly string[] Tabs = ["Resources", "Traces", "Metrics", "Logs", "Setup"];
+    private const int RowCap = 100;
+
+    private string _activeTab = "Resources";
+    private bool _loading = true;
+    private string? _error;
+    private IReadOnlyCollection<TelemetryResource> _resources = [];
+    private IReadOnlyCollection<TelemetryTrace> _traces = [];
+    private OpenTelemetryMetricResult _metrics = new([], [], 0);
+    private IReadOnlyCollection<OtlpLogRecord> _logs = [];
+    private OpenTelemetryStorageDiagnostics _storage = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    private CollectorConfiguration? _collectorConfiguration;
+
+    private string StatusText => _error != null
+        ? "Unable to load OpenTelemetry diagnostics."
+        : "Recent OpenTelemetry resources, traces, metrics, logs, and collector setup.";
+
+    private long DroppedCount => _storage.DroppedTraceCount + _storage.DroppedSpanCount + _storage.DroppedMetricPointCount + _storage.DroppedLogRecordCount;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            var resources = await TelemetryService.GetResourcesAsync(new OpenTelemetryResourceFilter { Take = RowCap });
+            var traces = await TelemetryService.GetTracesAsync(new OpenTelemetryTraceFilter { Take = RowCap });
+            var metrics = await TelemetryService.GetMetricsAsync(new OpenTelemetryMetricFilter { Take = RowCap });
+            var logs = await TelemetryService.GetLogsAsync(new OpenTelemetryLogFilter { Take = RowCap });
+
+            _resources = resources.Items;
+            _traces = traces.Items;
+            _metrics = metrics;
+            _logs = logs.Items;
+            _storage = await TelemetryService.GetStorageDiagnosticsAsync();
+            _collectorConfiguration = await TelemetryService.GetCollectorConfigurationAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _error = "You do not have permission to view OpenTelemetry diagnostics.";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string TabClass(string tab) => tab == _activeTab ? "elsa-otel-tab elsa-otel-tab-active" : "elsa-otel-tab";
+
+    private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
+        ? $"{duration.TotalSeconds:n2}s"
+        : $"{duration.TotalMilliseconds:n0}ms";
+
+    private static string FormatTime(DateTimeOffset value) => value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+}

@@ -108,7 +108,7 @@
 - [ ] T054 [US2] Implement span details drawer in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/SpanDetailsDrawer.razor`
 - [ ] T055 [US2] Add Structured Logs trace/span links and compatible Console Logs resource/time links in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T056 [US2] Add OpenTelemetry deep-link actions from Structured Logs in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.StructuredLogs/UI/Pages/StructuredLogs.razor`
-- [ ] T057 [US2] Add responsive styling for trace list and waterfall in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor.css`
+- [X] T057 [US2] Add responsive styling for trace list and waterfall in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor.css`
 
 **Checkpoint**: Studio can investigate workflow traces and correlate them to Structured Logs against mocked or real Core APIs.
 
@@ -130,7 +130,7 @@
 
 - [ ] T061 [US3] Add metric instrument and point filtering support in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
 - [ ] T062 [US3] Add metric overflow diagnostics to `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Models/OpenTelemetryStorageDiagnostics.cs`
-- [ ] T063 [US3] Implement Metrics tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
+- [X] T063 [US3] Implement Metrics tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T064 [US3] Implement metric series table in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/MetricSeriesTable.razor`
 - [ ] T065 [US3] Add metric live-update handling in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
 
@@ -155,7 +155,7 @@
 - [ ] T069 [US4] Implement collector configuration service in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/CollectorConfigurationProvider.cs`
 - [ ] T070 [US4] Implement collector configuration endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/CollectorConfiguration/Endpoint.cs`
 - [ ] T071 [US4] Implement OTLP API key header validation in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
-- [ ] T072 [US4] Implement Setup tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
+- [X] T072 [US4] Implement Setup tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [ ] T073 [US4] Add setup copy helpers in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/openTelemetry.js`
 - [X] T074 [US4] Add polyglot and .NET setup examples to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
 
