@@ -90,6 +90,18 @@ public static class OpenTelemetryUrlStateMapper
         }, rowCap);
     }
 
+    public static OpenTelemetryMetricFilter ToMetricFilter(OpenTelemetryUrlState state, int rowCap)
+    {
+        return OpenTelemetryFilterMapper.ToMetricRequest(new OpenTelemetryMetricFilter
+        {
+            ResourceId = state.ResourceId,
+            ServiceName = state.ServiceName,
+            InstrumentName = state.Text,
+            From = state.From,
+            To = state.To
+        }, rowCap);
+    }
+
     private static void Add(IDictionary<string, string> values, string key, string? value)
     {
         if (!string.IsNullOrWhiteSpace(value))

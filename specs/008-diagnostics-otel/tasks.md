@@ -124,7 +124,7 @@
 
 - [ ] T058 [P] [US3] Add Core metric query tests in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/OpenTelemetryMetricQueryTests.cs`
 - [X] T059 [P] [US3] Add Studio metric mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricSeriesMapperTests.cs`
-- [ ] T060 [P] [US3] Add Studio metric view-state tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricViewStateTests.cs`
+- [X] T060 [P] [US3] Add Studio metric view-state tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricViewStateTests.cs`
 
 ### Implementation for User Story 3
 
