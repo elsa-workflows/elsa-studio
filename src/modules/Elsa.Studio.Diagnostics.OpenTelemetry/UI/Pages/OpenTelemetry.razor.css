@@ -23,6 +23,14 @@
     margin: .25rem 0 0;
 }
 
+.elsa-otel-header-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: flex-end;
+}
+
 .elsa-otel-button,
 .elsa-otel-tab {
     border: 1px solid var(--mud-palette-lines-default, #cfd6df);
@@ -37,6 +45,19 @@
 .elsa-otel-button:disabled {
     cursor: default;
     opacity: .65;
+}
+
+.elsa-otel-live-status {
+    color: var(--mud-palette-text-secondary, #5f6b7a);
+    font-size: .85rem;
+}
+
+.elsa-otel-live-status-on {
+    color: var(--mud-palette-success, #067647);
+}
+
+.elsa-otel-live-status-disconnected {
+    color: var(--mud-palette-warning, #b54708);
 }
 
 .elsa-otel-link-button {
@@ -84,6 +105,10 @@
 .elsa-otel-summary span {
     color: var(--mud-palette-text-secondary, #5f6b7a);
     font-size: .85rem;
+}
+
+.elsa-otel-summary-warning {
+    border-color: var(--mud-palette-warning, #b54708) !important;
 }
 
 .elsa-otel-resource-picker {

@@ -54,29 +54,29 @@
 
 ### Tests for User Story 1
 
-- [ ] T022 [P] [US1] Add unit tests for OTLP trace normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpTraceNormalizerTests.cs`
-- [ ] T023 [P] [US1] Add unit tests for OTLP metric normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpMetricNormalizerTests.cs`
-- [ ] T024 [P] [US1] Add unit tests for OTLP log normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpLogNormalizerTests.cs`
-- [ ] T025 [P] [US1] Add unit tests for redaction before storage in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Services/OpenTelemetryRedactorTests.cs`
-- [ ] T026 [P] [US1] Add unit tests for bounded in-memory drop accounting in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/InMemoryOpenTelemetryStoreTests.cs`
-- [ ] T027 [P] [US1] Add integration tests for HTTP/protobuf OTLP endpoints and end-to-end Elsa workflow export-to-collector timing in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OtlpHttpIngestionTests.cs`
-- [ ] T028 [P] [US1] Add integration tests for OpenTelemetry diagnostics API authorization in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryAuthorizationTests.cs`
+- [X] T022 [P] [US1] Add unit tests for OTLP trace normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpTraceNormalizerTests.cs`
+- [X] T023 [P] [US1] Add unit tests for OTLP metric normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpMetricNormalizerTests.cs`
+- [X] T024 [P] [US1] Add unit tests for OTLP log normalization in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Ingestion/OtlpLogNormalizerTests.cs`
+- [X] T025 [P] [US1] Add unit tests for redaction before storage in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Services/OpenTelemetryRedactorTests.cs`
+- [X] T026 [P] [US1] Add unit tests for bounded in-memory drop accounting in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/InMemoryOpenTelemetryStoreTests.cs`
+- [X] T027 [P] [US1] Add integration tests for HTTP/protobuf OTLP endpoints and end-to-end Elsa workflow export-to-collector timing in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OtlpHttpIngestionTests.cs`
+- [X] T028 [P] [US1] Add integration tests for OpenTelemetry diagnostics API authorization in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryAuthorizationTests.cs`
 
 ### Implementation for User Story 1
 
-- [ ] T029 [US1] Implement OTLP protobuf request parsing for traces, metrics, and logs in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion/HttpProtobuf`
-- [ ] T030 [US1] Implement shared OTLP normalization services in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
-- [ ] T031 [US1] Implement `IOpenTelemetryRedactor` in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/OpenTelemetryRedactor.cs`
-- [ ] T032 [US1] Implement resource identity registry in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/OpenTelemetrySourceRegistry.cs`
-- [ ] T033 [US1] Implement bounded in-memory store in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
-- [ ] T034 [US1] Implement provider facade in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/DefaultOpenTelemetryProvider.cs`
-- [ ] T035 [US1] Implement live feed and subscriber drop accounting in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryLiveFeed.cs`
-- [ ] T036 [US1] Implement authenticated resource search endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Resources/Endpoint.cs`
-- [ ] T037 [US1] Implement authenticated trace search and trace detail endpoints in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Traces/Endpoint.cs` and `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Trace/Endpoint.cs`
-- [ ] T038 [US1] Implement authenticated metric, OTLP log, and storage diagnostics endpoints in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry`
-- [ ] T039 [US1] Implement HTTP/protobuf OTLP endpoint mapping in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Extensions/EndpointRouteBuilderExtensions.cs`
-- [ ] T040 [US1] Add option-gated gRPC ingestion service wrappers and disabled metadata handling in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion/Grpc`
-- [ ] T041 [US1] Wire Core services, options, endpoints, permissions, and shell feature in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Extensions`
+- [X] T029 [US1] Implement OTLP protobuf request parsing for traces, metrics, and logs in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion/HttpProtobuf`
+- [X] T030 [US1] Implement shared OTLP normalization services in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
+- [X] T031 [US1] Implement `IOpenTelemetryRedactor` in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/OpenTelemetryRedactor.cs`
+- [X] T032 [US1] Implement resource identity registry in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/OpenTelemetrySourceRegistry.cs`
+- [X] T033 [US1] Implement bounded in-memory store in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
+- [X] T034 [US1] Implement provider facade in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/DefaultOpenTelemetryProvider.cs`
+- [X] T035 [US1] Implement live feed and subscriber drop accounting in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryLiveFeed.cs`
+- [X] T036 [US1] Implement authenticated resource search endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Resources/Endpoint.cs`
+- [X] T037 [US1] Implement authenticated trace search and trace detail endpoints in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Traces/Endpoint.cs` and `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/Trace/Endpoint.cs`
+- [X] T038 [US1] Implement authenticated metric, OTLP log, and storage diagnostics endpoints in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry`
+- [X] T039 [US1] Implement HTTP/protobuf OTLP endpoint mapping in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Extensions/EndpointRouteBuilderExtensions.cs`
+- [X] T040 [US1] Add option-gated gRPC ingestion service wrappers and disabled metadata handling in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion/Grpc`
+- [X] T041 [US1] Wire Core services, options, endpoints, permissions, and shell feature in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Extensions`
 
 **Checkpoint**: Core can collect and query recent OpenTelemetry resources, traces, metrics, and OTLP logs without Studio.
 
@@ -94,11 +94,11 @@
 - [X] T043 [P] [US2] Add Studio URL state mapper tests for tab, resource, service, trace, span, workflow, severity, status, text, time range, and live state in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/OpenTelemetryUrlStateMapperTests.cs`
 - [X] T044 [P] [US2] Add Studio service tests for trace search/detail API calls in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/RemoteOpenTelemetryServiceTests.cs`
 - [X] T045 [P] [US2] Add Studio trace waterfall model tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/TraceWaterfallLayoutTests.cs`
-- [ ] T046 [P] [US2] Add Core SignalR hub integration tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryHubTests.cs`
+- [X] T046 [P] [US2] Add Core SignalR hub integration tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OpenTelemetryHubTests.cs`
 
 ### Implementation for User Story 2
 
-- [ ] T047 [US2] Implement Core SignalR hub and client contract in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/RealTime/OpenTelemetryHub.cs`
+- [X] T047 [US2] Implement Core SignalR hub and client contract in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/RealTime/OpenTelemetryHub.cs`
 - [X] T048 [US2] Implement Studio remote service in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/RemoteOpenTelemetryService.cs`
 - [X] T049 [US2] Implement Studio SignalR observer in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
 - [X] T050 [US2] Implement Studio filter mapper and full URL state mapper in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services`
@@ -122,14 +122,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T058 [P] [US3] Add Core metric query tests in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/OpenTelemetryMetricQueryTests.cs`
+- [X] T058 [P] [US3] Add Core metric query tests in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Providers/OpenTelemetryMetricQueryTests.cs`
 - [X] T059 [P] [US3] Add Studio metric mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricSeriesMapperTests.cs`
 - [X] T060 [P] [US3] Add Studio metric view-state tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/MetricViewStateTests.cs`
 
 ### Implementation for User Story 3
 
-- [ ] T061 [US3] Add metric instrument and point filtering support in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
-- [ ] T062 [US3] Add metric overflow diagnostics to `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Models/OpenTelemetryStorageDiagnostics.cs`
+- [X] T061 [US3] Add metric instrument and point filtering support in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Providers/InMemory/InMemoryOpenTelemetryStore.cs`
+- [X] T062 [US3] Add metric overflow diagnostics to `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Models/OpenTelemetryStorageDiagnostics.cs`
 - [X] T063 [US3] Implement Metrics tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [X] T064 [US3] Implement metric series table in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Components/MetricSeriesTable.razor`
 - [X] T065 [US3] Add metric live-update handling in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/Services/SignalROpenTelemetryObserver.cs`
@@ -146,15 +146,15 @@
 
 ### Tests for User Story 4
 
-- [ ] T066 [P] [US4] Add Core collector configuration tests for HTTP metadata, nullable/disabled gRPC metadata, and required headers in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Services/CollectorConfigurationTests.cs`
-- [ ] T067 [P] [US4] Add Core non-loopback API key enforcement tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OtlpIngestionSecurityTests.cs`
+- [X] T066 [P] [US4] Add Core collector configuration tests for HTTP metadata, nullable/disabled gRPC metadata, and required headers in `/Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Services/CollectorConfigurationTests.cs`
+- [X] T067 [P] [US4] Add Core non-loopback API key enforcement tests in `/Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/OtlpIngestionSecurityTests.cs`
 - [X] T068 [P] [US4] Add Studio setup view mapper tests in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/CollectorConfigurationViewModelTests.cs`
 
 ### Implementation for User Story 4
 
-- [ ] T069 [US4] Implement collector configuration service in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/CollectorConfigurationProvider.cs`
-- [ ] T070 [US4] Implement collector configuration endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/CollectorConfiguration/Endpoint.cs`
-- [ ] T071 [US4] Implement OTLP API key header validation in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
+- [X] T069 [US4] Implement collector configuration service in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Services/CollectorConfigurationProvider.cs`
+- [X] T070 [US4] Implement collector configuration endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/CollectorConfiguration/Endpoint.cs`
+- [X] T071 [US4] Implement OTLP API key header validation in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
 - [X] T072 [US4] Implement Setup tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 - [X] T073 [US4] Add setup copy helpers in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/openTelemetry.js`
 - [X] T074 [US4] Add polyglot and .NET setup examples to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
@@ -171,12 +171,12 @@
 - [X] T076 [P] Update Studio README with feature gating, route, UI states, and cross-links in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/README.md`
 - [X] T077 [P] Add Core quickstart validation notes to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
 - [X] T078 [P] Verify no production code references the historical `Elsa.OpenTelemetry` module by running `rg "Elsa.OpenTelemetry|UseWorkflowExecutionTracing|UseActivityExecutionTracing" /Users/sipke/Projects/Elsa/elsa-core /Users/sipke/Projects/Elsa/elsa-studio`
-- [ ] T079 Run Core OpenTelemetry unit tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Elsa.Diagnostics.OpenTelemetry.UnitTests.csproj`
-- [ ] T080 Run Core OpenTelemetry integration tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/Elsa.Diagnostics.OpenTelemetry.IntegrationTests.csproj`
+- [X] T079 Run Core OpenTelemetry unit tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Elsa.Diagnostics.OpenTelemetry.UnitTests.csproj`
+- [X] T080 Run Core OpenTelemetry integration tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/Elsa.Diagnostics.OpenTelemetry.IntegrationTests.csproj`
 - [X] T081 Run Studio OpenTelemetry tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/Elsa.Studio.Diagnostics.OpenTelemetry.Tests.csproj`
-- [ ] T082 Build Core solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-core/Elsa.sln`
-- [ ] T083 Build Studio solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-studio/Elsa.Studio.sln`
-- [ ] T084 Manually verify Studio route states for enabled, missing feature, unauthorized, disconnected, empty, overflow, and live telemetry states in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
+- [X] T082 Build Core solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-core/Elsa.sln`
+- [X] T083 Build Studio solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-studio/Elsa.Studio.sln`
+- [X] T084 Manually verify Studio route states for enabled, missing feature, unauthorized, disconnected, empty, overflow, and live telemetry states in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
 
 ---
 

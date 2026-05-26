@@ -5,6 +5,7 @@
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IOpenTelemetryService TelemetryService
+@inject IOpenTelemetryObserver TelemetryObserver
 @inject IRemoteFeatureProvider RemoteFeatureProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -17,13 +18,17 @@
             <h1>OpenTelemetry</h1>
             <p>@StatusText</p>
         </div>
-        <button type="button" class="elsa-otel-button" @onclick="LoadAsync" disabled="@_loading">Refresh</button>
+        <div class="elsa-otel-header-actions">
+            <span class="@LiveStatusClass">@_liveStatus</span>
+            <button type="button" class="elsa-otel-button" @onclick="ToggleLiveAsync">@(_liveEnabled ? "Stop live" : "Start live")</button>
+            <button type="button" class="elsa-otel-button" @onclick="LoadAsync" disabled="@_loading">Refresh</button>
+        </div>
     </header>
 
     <nav class="elsa-otel-tabs" aria-label="OpenTelemetry diagnostics views">
         @foreach (var tab in Tabs)
         {
-            <button type="button" class="@TabClass(tab)" @onclick="() => _activeTab = tab">@tab</button>
+            <button type="button" class="@TabClass(tab)" @onclick="() => SelectTabAsync(tab)">@tab</button>
         }
     </nav>
 
@@ -54,7 +59,7 @@
                 <strong>@_logs.Count</strong>
                 <span>OTLP Logs</span>
             </div>
-            <div>
+            <div class="@DroppedSummaryClass">
                 <strong>@DroppedCount</strong>
                 <span>Dropped</span>
             </div>
@@ -243,6 +248,8 @@
 
     private string _activeTab = "Resources";
     private bool _loading = true;
+    private bool _liveEnabled;
+    private string _liveStatus = "Live updates off.";
     private string? _error;
     private string? _selectedResourceId;
     private OpenTelemetryUrlState _urlState = new();
@@ -257,12 +264,19 @@
     private TelemetrySpan? _selectedSpan;
     private IJSObjectReference? _jsModule;
     private string? _copyStatus;
+    private CancellationTokenSource? _liveSubscription;
 
     private string StatusText => _error != null
         ? "Unable to load OpenTelemetry diagnostics."
         : "Recent OpenTelemetry resources, traces, metrics, logs, and collector setup.";
 
     private long DroppedCount => _storage.DroppedTraceCount + _storage.DroppedSpanCount + _storage.DroppedMetricPointCount + _storage.DroppedLogRecordCount;
+
+    private string LiveStatusClass => _liveEnabled
+        ? _liveStatus.Contains("disconnected", StringComparison.OrdinalIgnoreCase) ? "elsa-otel-live-status elsa-otel-live-status-disconnected" : "elsa-otel-live-status elsa-otel-live-status-on"
+        : "elsa-otel-live-status";
+
+    private string DroppedSummaryClass => DroppedCount > 0 ? "elsa-otel-summary-warning" : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -281,6 +295,7 @@
             {
                 _error = "OpenTelemetry diagnostics are not enabled on this backend.";
                 ClearTelemetry();
+                StopLiveSubscription();
                 return;
             }
 
@@ -304,14 +319,18 @@
 
             if (!string.IsNullOrWhiteSpace(_urlState.TraceId))
                 await SelectTraceByIdAsync(_urlState.TraceId);
+
+            await SyncLiveSubscriptionAsync();
         }
         catch (UnauthorizedAccessException)
         {
             _error = "You do not have permission to view OpenTelemetry diagnostics.";
+            StopLiveSubscription();
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+            StopLiveSubscription();
         }
         finally
         {
@@ -322,6 +341,13 @@
     private string TabClass(string tab) => tab == _activeTab ? "elsa-otel-tab elsa-otel-tab-active" : "elsa-otel-tab";
 
     private string TraceRowClass(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId ? "elsa-otel-selected-row" : "";
+
+    private async Task SelectTabAsync(string tab)
+    {
+        _activeTab = tab;
+        _urlState = _urlState with { Tab = tab };
+        await SyncLiveSubscriptionAsync();
+    }
 
     private async Task OnResourceSelectedAsync(string? resourceId)
     {
@@ -358,6 +384,8 @@
 
         _urlState = OpenTelemetryUrlStateMapper.FromQuery(query);
         _selectedResourceId = _urlState.ResourceId;
+        _liveEnabled = _urlState.Live == true;
+        _liveStatus = _liveEnabled ? "Connecting live updates..." : "Live updates off.";
 
         if (!string.IsNullOrWhiteSpace(_urlState.Tab) && Tabs.Contains(_urlState.Tab, StringComparer.OrdinalIgnoreCase))
             _activeTab = Tabs.First(x => string.Equals(x, _urlState.Tab, StringComparison.OrdinalIgnoreCase));
@@ -423,8 +451,121 @@
         _selectedSpan = null;
     }
 
+    private async Task ToggleLiveAsync()
+    {
+        _liveEnabled = !_liveEnabled;
+        _urlState = _urlState with { Live = _liveEnabled };
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(OpenTelemetryUrlStateMapper.ToQuery(_urlState).ToDictionary(x => x.Key, x => (object?)x.Value, StringComparer.OrdinalIgnoreCase)), replace: true);
+        await SyncLiveSubscriptionAsync();
+    }
+
+    private async Task SyncLiveSubscriptionAsync()
+    {
+        if (!_liveEnabled || _error != null)
+        {
+            StopLiveSubscription();
+            _liveStatus = "Live updates off.";
+            return;
+        }
+
+        StopLiveSubscription();
+        _liveStatus = "Connecting live updates...";
+        var subscription = new CancellationTokenSource();
+        _liveSubscription = subscription;
+        var token = subscription.Token;
+
+        var state = _urlState with { ResourceId = _selectedResourceId };
+        var traceFilter = OpenTelemetryUrlStateMapper.ToTraceFilter(state, RowCap);
+        var metricFilter = OpenTelemetryUrlStateMapper.ToMetricFilter(state, RowCap);
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var stream = _activeTab == "Metrics"
+                    ? TelemetryObserver.ObserveMetricsAsync(metricFilter, token)
+                    : TelemetryObserver.ObserveAsync(traceFilter, token);
+
+                await foreach (var item in stream.WithCancellation(token))
+                    await InvokeAsync(() => ApplyLiveItem(item));
+
+                if (!token.IsCancellationRequested)
+                    await InvokeAsync(() =>
+                    {
+                        _liveStatus = "Live stream disconnected.";
+                        StateHasChanged();
+                    });
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+            }
+            catch
+            {
+                await InvokeAsync(() =>
+                {
+                    _liveStatus = "Live stream disconnected.";
+                    StateHasChanged();
+                });
+            }
+        }, token);
+    }
+
+    private void ApplyLiveItem(OpenTelemetryStreamItem item)
+    {
+        if (item.Resource is { } resource)
+            _resources = PrependBounded(_resources, resource, x => x.Id == resource.Id);
+
+        if (item.Trace is { } trace)
+            _traces = PrependBounded(_traces, trace, x => x.TraceId == trace.TraceId);
+
+        if (item.Log is { } log)
+            _logs = PrependBounded(_logs, log, x => x.Id == log.Id);
+
+        if (item.MetricPoint is { } point)
+            _metrics = _metrics with { Points = PrependBounded(_metrics.Points, point, x => x.Id == point.Id) };
+
+        if (item.DroppedItems is { } droppedItems)
+            AddDroppedItems(droppedItems);
+
+        _liveStatus = "Live updates connected.";
+        StateHasChanged();
+    }
+
+    private void AddDroppedItems(OpenTelemetryDroppedItemSummary droppedItems)
+    {
+        _storage = droppedItems.SignalType switch
+        {
+            OpenTelemetrySignalType.Trace => _storage with { DroppedTraceCount = _storage.DroppedTraceCount + droppedItems.Count },
+            OpenTelemetrySignalType.Metric => _storage with { DroppedMetricPointCount = _storage.DroppedMetricPointCount + droppedItems.Count },
+            OpenTelemetrySignalType.Log => _storage with { DroppedLogRecordCount = _storage.DroppedLogRecordCount + droppedItems.Count },
+            _ => _storage
+        };
+    }
+
+    private static IReadOnlyCollection<T> PrependBounded<T>(IEnumerable<T> current, T item, Func<T, bool> isSame)
+    {
+        return current
+            .Where(x => !isSame(x))
+            .Prepend(item)
+            .Take(RowCap)
+            .ToArray();
+    }
+
+    private void StopLiveSubscription()
+    {
+        if (_liveSubscription == null)
+            return;
+
+        _liveSubscription.Cancel();
+        _liveSubscription.Dispose();
+        _liveSubscription = null;
+    }
+
     public async ValueTask DisposeAsync()
     {
+        StopLiveSubscription();
+        await TelemetryObserver.DisposeAsync();
+
         if (_jsModule != null)
             await _jsModule.DisposeAsync();
     }
