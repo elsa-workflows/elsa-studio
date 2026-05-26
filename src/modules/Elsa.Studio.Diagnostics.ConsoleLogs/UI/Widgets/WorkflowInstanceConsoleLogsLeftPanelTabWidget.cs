@@ -8,11 +8,11 @@ using WorkflowZoneNames = Elsa.Studio.Workflows.Constants.ZoneNames;
 namespace Elsa.Studio.Diagnostics.ConsoleLogs.UI.Widgets;
 
 /// <summary>
-/// Adds a workflow-scoped console logs tab to the workflow instance details panel.
+/// Adds a workflow-scoped console logs tab to the workflow instance viewer left panel.
 /// </summary>
-public class WorkflowInstanceDetailsConsoleLogsTabWidget(ILocalizer localizer) : IWidget
+public class WorkflowInstanceConsoleLogsLeftPanelTabWidget(ILocalizer localizer) : IWidget
 {
-    private const string ZoneName = WorkflowZoneNames.WorkflowInstanceDetailsTabs;
+    private const string ZoneName = WorkflowZoneNames.WorkflowInstanceViewerLeftPanelTabs;
 
     /// <inheritdoc />
     public string Zone => ZoneName;
@@ -34,7 +34,7 @@ public class WorkflowInstanceDetailsConsoleLogsTabWidget(ILocalizer localizer) :
             contentBuilder.AddAttribute(2, nameof(ConsoleLogViewer.WorkflowInstanceId), workflowInstanceId);
             contentBuilder.AddAttribute(3, nameof(ConsoleLogViewer.VisibleRowCap), 1_000);
             contentBuilder.AddAttribute(4, nameof(ConsoleLogViewer.Class), "console-log-viewer-embedded");
-            contentBuilder.AddAttribute(5, nameof(ConsoleLogViewer.Style), "height: calc(100vh - var(--mud-appbar-height) - 142px); min-height: 240px;");
+            contentBuilder.AddAttribute(5, nameof(ConsoleLogViewer.Style), "height: calc(100vh - var(--mud-appbar-height) - 48px); min-height: 240px;");
             contentBuilder.CloseComponent();
         }));
         builder.CloseComponent();

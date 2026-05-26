@@ -60,12 +60,6 @@ public partial class WorkflowInstanceDetails
     [Inject] private ITimeFormatter TimeFormatter { get; set; } = null!;
 
     private IDictionary<string, StorageDriverDescriptor> StorageDriverLookup { get; set; } = new Dictionary<string, StorageDriverDescriptor>();
-    private IDictionary<string, object?> WorkflowInstanceDetailsTabAttributes => new Dictionary<string, object?>
-    {
-        ["WorkflowInstanceId"] = WorkflowInstance?.Id,
-        ["WorkflowDefinition"] = WorkflowDefinition,
-        ["WorkflowInstance"] = WorkflowInstance
-    };
 
     private DataPanelModel WorkflowInstanceData
     {
