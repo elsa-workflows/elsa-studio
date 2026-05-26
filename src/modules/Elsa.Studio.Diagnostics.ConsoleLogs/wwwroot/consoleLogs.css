@@ -263,73 +263,71 @@
 .ansi-fg-bright-magenta,
 .ansi-fg-bright-cyan,
 .ansi-fg-bright-white {
-    border-radius: 2px;
-    color: var(--ansi-token-text, #eef4f8);
-    padding: 0 .12em;
+    color: inherit;
 }
 
 .ansi-fg-black {
-    background-color: var(--ansi-black, #505a64);
+    color: var(--ansi-black, #505a64);
 }
 
 .ansi-fg-red {
-    background-color: var(--ansi-red, #9f3f43);
+    color: var(--ansi-red, #9f3f43);
 }
 
 .ansi-fg-green {
-    background-color: var(--ansi-green, #2f6f46);
+    color: var(--ansi-green, #2f6f46);
 }
 
 .ansi-fg-yellow {
-    background-color: var(--ansi-yellow, #8a7227);
+    color: var(--ansi-yellow, #8a7227);
 }
 
 .ansi-fg-blue {
-    background-color: var(--ansi-blue, #386fa7);
+    color: var(--ansi-blue, #386fa7);
 }
 
 .ansi-fg-magenta {
-    background-color: var(--ansi-magenta, #795690);
+    color: var(--ansi-magenta, #795690);
 }
 
 .ansi-fg-cyan {
-    background-color: var(--ansi-cyan, #237d87);
+    color: var(--ansi-cyan, #237d87);
 }
 
 .ansi-fg-white {
-    background-color: var(--ansi-white, #7c858f);
+    color: var(--ansi-white, #7c858f);
 }
 
 .ansi-fg-bright-black {
-    background-color: var(--ansi-bright-black, #68727d);
+    color: var(--ansi-bright-black, #68727d);
 }
 
 .ansi-fg-bright-red {
-    background-color: var(--ansi-bright-red, #c55358);
+    color: var(--ansi-bright-red, #c55358);
 }
 
 .ansi-fg-bright-green {
-    background-color: var(--ansi-bright-green, #3f8f5a);
+    color: var(--ansi-bright-green, #3f8f5a);
 }
 
 .ansi-fg-bright-yellow {
-    background-color: var(--ansi-bright-yellow, #a08630);
+    color: var(--ansi-bright-yellow, #a08630);
 }
 
 .ansi-fg-bright-blue {
-    background-color: var(--ansi-bright-blue, #4c84bf);
+    color: var(--ansi-bright-blue, #4c84bf);
 }
 
 .ansi-fg-bright-magenta {
-    background-color: var(--ansi-bright-magenta, #9668af);
+    color: var(--ansi-bright-magenta, #9668af);
 }
 
 .ansi-fg-bright-cyan {
-    background-color: var(--ansi-bright-cyan, #2f98a3);
+    color: var(--ansi-bright-cyan, #2f98a3);
 }
 
 .ansi-fg-bright-white {
-    background-color: var(--ansi-bright-white, #98a2ad);
+    color: var(--ansi-bright-white, #98a2ad);
 }
 
 .ansi-bold {

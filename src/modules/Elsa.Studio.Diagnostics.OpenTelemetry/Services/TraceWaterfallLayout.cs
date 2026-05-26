@@ -21,7 +21,8 @@ public static class TraceWaterfallLayout
         var start = ordered.Min(x => x.StartTime);
         var end = ordered.Max(x => x.EndTime);
         var totalMilliseconds = Math.Max(1, (end - start).TotalMilliseconds);
-        var depthBySpanId = ordered.ToDictionary(x => x.SpanId, x => GetDepth(x, ordered));
+        var spanById = ordered.ToDictionary(x => x.SpanId, StringComparer.OrdinalIgnoreCase);
+        var depthBySpanId = ordered.ToDictionary(x => x.SpanId, x => GetDepth(x, spanById), StringComparer.OrdinalIgnoreCase);
 
         return ordered
             .Select(span =>
@@ -33,15 +34,14 @@ public static class TraceWaterfallLayout
             .ToArray();
     }
 
-    private static int GetDepth(TelemetrySpan span, IReadOnlyCollection<TelemetrySpan> spans)
+    private static int GetDepth(TelemetrySpan span, IReadOnlyDictionary<string, TelemetrySpan> spans)
     {
         var depth = 0;
         var current = span;
 
         while (!string.IsNullOrWhiteSpace(current.ParentSpanId))
         {
-            var parent = spans.FirstOrDefault(x => x.SpanId == current.ParentSpanId);
-            if (parent == null)
+            if (!spans.TryGetValue(current.ParentSpanId, out var parent))
                 break;
 
             depth++;

@@ -55,29 +55,40 @@ public class SignalROpenTelemetryObserver(
             SingleWriter = false
         });
 
-        await DisposeConnectionAsync();
-        _connection = await CreateConnectionAsync(channel, cancellationToken);
+        HubConnection? connection = null;
 
         try
         {
-            await _connection.StartAsync(cancellationToken);
-            await _connection.SendAsync("SubscribeAsync", subscriptionFilter, cancellationToken);
-        }
-        catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound)
-        {
-            logger.LogWarning("The diagnostics OpenTelemetry hub was not found. Make sure the backend maps the OpenTelemetry hub.");
-            channel.Writer.TryComplete();
-        }
-        catch (Exception e) when (e is not OperationCanceledException)
-        {
-            logger.LogWarning(e, "Failed to connect to the diagnostics OpenTelemetry hub.");
-            channel.Writer.TryComplete();
-        }
+            await DisposeConnectionAsync();
+            connection = await CreateConnectionAsync(channel, cancellationToken);
+            _connection = connection;
 
-        await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+            try
+            {
+                await connection.StartAsync(cancellationToken);
+                await connection.SendAsync("SubscribeAsync", subscriptionFilter, cancellationToken);
+            }
+            catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound)
+            {
+                logger.LogWarning("The diagnostics OpenTelemetry hub was not found. Make sure the backend maps the OpenTelemetry hub.");
+                channel.Writer.TryComplete();
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                logger.LogWarning(e, "Failed to connect to the diagnostics OpenTelemetry hub.");
+                channel.Writer.TryComplete();
+            }
+
+            await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                if (metricFilter == null || MatchesMetricSubscription(item, metricFilter))
+                    yield return item;
+            }
+        }
+        finally
         {
-            if (metricFilter == null || MatchesMetricSubscription(item, metricFilter))
-                yield return item;
+            channel.Writer.TryComplete();
+            await DisposeConnectionAsync(connection);
         }
     }
 
@@ -146,17 +157,25 @@ public class SignalROpenTelemetryObserver(
 
     private async Task DisposeConnectionAsync()
     {
-        if (_connection == null)
+        var connection = _connection;
+        await DisposeConnectionAsync(connection);
+    }
+
+    private async Task DisposeConnectionAsync(HubConnection? connection)
+    {
+        if (connection == null)
             return;
 
         try
         {
-            await _connection.StopAsync();
+            await connection.StopAsync();
         }
         finally
         {
-            await _connection.DisposeAsync();
-            _connection = null;
+            await connection.DisposeAsync();
+
+            if (ReferenceEquals(_connection, connection))
+                _connection = null;
         }
     }
 }
