@@ -14,4 +14,9 @@ public static class ZoneNames
     /// The zone for workflow instance viewer bottom panel tabs.
     /// </summary>
     public const string WorkflowInstanceViewerBottomTabs = "workflow-instance-viewer-bottom-tabs";
+
+    /// <summary>
+    /// The zone for workflow instance details tabs.
+    /// </summary>
+    public const string WorkflowInstanceDetailsTabs = "workflow-instance-details-tabs";
 }

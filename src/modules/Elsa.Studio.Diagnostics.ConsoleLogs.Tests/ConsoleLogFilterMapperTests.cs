@@ -18,6 +18,9 @@ public class ConsoleLogFilterMapperTests
             Stream = ConsoleLogStream.Stdout,
             Query = "incident",
             WorkflowInstanceId = "workflow-instance-a",
+            ActivityInstanceId = "activity-instance-a",
+            ActivityId = "activity-a",
+            ActivityNodeId = "node-a",
             From = _from,
             To = _to,
             Limit = 50
@@ -33,6 +36,9 @@ public class ConsoleLogFilterMapperTests
         Assert.Equal(_filter.Stream, request.Stream);
         Assert.Equal(_filter.Query, request.Query);
         Assert.Equal(_filter.WorkflowInstanceId, request.WorkflowInstanceId);
+        Assert.Equal(_filter.ActivityInstanceId, request.ActivityInstanceId);
+        Assert.Equal(_filter.ActivityId, request.ActivityId);
+        Assert.Equal(_filter.ActivityNodeId, request.ActivityNodeId);
         Assert.Equal(_from, request.From);
         Assert.Equal(_to, request.To);
         Assert.Equal(50, request.Limit);
@@ -76,5 +82,20 @@ public class ConsoleLogFilterMapperTests
         var request = ConsoleLogFilterMapper.ToLiveSubscription(new() { WorkflowInstanceId = "workflow-instance-a" });
 
         Assert.Equal("workflow-instance-a", request.WorkflowInstanceId);
+    }
+
+    [Fact]
+    public void ToLiveSubscription_PreservesActivityScope()
+    {
+        var request = ConsoleLogFilterMapper.ToLiveSubscription(new()
+        {
+            ActivityInstanceId = "activity-instance-a",
+            ActivityId = "activity-a",
+            ActivityNodeId = "node-a"
+        });
+
+        Assert.Equal("activity-instance-a", request.ActivityInstanceId);
+        Assert.Equal("activity-a", request.ActivityId);
+        Assert.Equal("node-a", request.ActivityNodeId);
     }
 }

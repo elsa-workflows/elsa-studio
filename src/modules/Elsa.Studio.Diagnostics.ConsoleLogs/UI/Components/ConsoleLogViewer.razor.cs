@@ -30,6 +30,9 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     private bool _scrollAfterRender;
     private bool _activated;
     private string? _appliedWorkflowInstanceId;
+    private string? _appliedActivityInstanceId;
+    private string? _appliedActivityId;
+    private string? _appliedActivityNodeId;
     private long _refreshVersion;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
@@ -54,6 +57,21 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     /// Gets or sets the workflow instance ID to scope console lines to.
     /// </summary>
     [Parameter] public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the activity execution instance ID to scope console lines to.
+    /// </summary>
+    [Parameter] public string? ActivityInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the logical activity ID to scope console lines to.
+    /// </summary>
+    [Parameter] public string? ActivityId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the activity node ID to scope console lines to.
+    /// </summary>
+    [Parameter] public string? ActivityNodeId { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of visible rows to keep locally.
@@ -97,6 +115,9 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     protected bool HasActiveFilter => !string.IsNullOrWhiteSpace(ViewState.Filter.SourceId) ||
                                       !string.IsNullOrWhiteSpace(ViewState.Filter.Query) ||
                                       !string.IsNullOrWhiteSpace(ViewState.Filter.WorkflowInstanceId) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.ActivityInstanceId) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.ActivityId) ||
+                                      !string.IsNullOrWhiteSpace(ViewState.Filter.ActivityNodeId) ||
                                       !string.Equals(StreamSelection, "both", StringComparison.Ordinal);
     protected string EmptyText => HasActiveFilter ? "No console lines match the current filters." : "No console lines received yet.";
     protected string? StateMessage => ViewState.ConnectionStatus switch
@@ -123,7 +144,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         if (VisibleRowCap.HasValue)
             ViewState.VisibleRowCap = VisibleRowCap.Value;
 
-        ApplyWorkflowInstanceIdParameter();
+        ApplyScopeParameters();
 
         if (UseUrlState)
             ApplyQueryFromUrl();
@@ -139,13 +160,19 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        var workflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+        var workflowInstanceId = NormalizeScopeValue(WorkflowInstanceId);
+        var activityInstanceId = NormalizeScopeValue(ActivityInstanceId);
+        var activityId = NormalizeScopeValue(ActivityId);
+        var activityNodeId = NormalizeScopeValue(ActivityNodeId);
 
-        if (!_activated || string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal))
+        if (!_activated ||
+            string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityInstanceId, activityInstanceId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityId, activityId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityNodeId, activityNodeId, StringComparison.Ordinal))
             return;
 
-        _appliedWorkflowInstanceId = workflowInstanceId;
-        ViewState.Filter.WorkflowInstanceId = workflowInstanceId;
+        ApplyScopeParameters();
         await RefreshFilterAsync();
     }
 
@@ -626,6 +653,9 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         Stream = filter.Stream,
         Query = filter.Query,
         WorkflowInstanceId = filter.WorkflowInstanceId,
+        ActivityInstanceId = filter.ActivityInstanceId,
+        ActivityId = filter.ActivityId,
+        ActivityNodeId = filter.ActivityNodeId,
         From = filter.From,
         To = filter.To,
         Limit = filter.Limit
@@ -637,13 +667,19 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         public string StrippedText { get; } = strippedText;
     }
 
-    private void ApplyWorkflowInstanceIdParameter()
+    private void ApplyScopeParameters()
     {
-        _appliedWorkflowInstanceId = NormalizeWorkflowInstanceId(WorkflowInstanceId);
+        _appliedWorkflowInstanceId = NormalizeScopeValue(WorkflowInstanceId);
+        _appliedActivityInstanceId = NormalizeScopeValue(ActivityInstanceId);
+        _appliedActivityId = NormalizeScopeValue(ActivityId);
+        _appliedActivityNodeId = NormalizeScopeValue(ActivityNodeId);
         ViewState.Filter.WorkflowInstanceId = _appliedWorkflowInstanceId;
+        ViewState.Filter.ActivityInstanceId = _appliedActivityInstanceId;
+        ViewState.Filter.ActivityId = _appliedActivityId;
+        ViewState.Filter.ActivityNodeId = _appliedActivityNodeId;
     }
 
-    private static string? NormalizeWorkflowInstanceId(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeScopeValue(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     protected static string StripAnsi(string text) => StripAnsi(AnsiSgrParser.Parse(text));
 

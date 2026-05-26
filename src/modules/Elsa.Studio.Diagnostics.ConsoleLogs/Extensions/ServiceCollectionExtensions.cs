@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, ConsoleLogsMenu>()
             .AddScoped<IWidget, WorkflowInstanceConsoleLogsTabWidget>()
+            .AddScoped<IWidget, WorkflowInstanceDetailsConsoleLogsTabWidget>()
             .AddScoped<IConsoleLogService, RemoteConsoleLogService>()
             .AddTransient<IConsoleLogObserver, SignalRConsoleLogObserver>()
             .AddScoped<ConsoleLogExportFormatter>()
