@@ -39,6 +39,15 @@
     opacity: .65;
 }
 
+.elsa-otel-link-button {
+    background: transparent;
+    border: 0;
+    color: var(--mud-palette-primary, #2563eb);
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
 .elsa-otel-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -162,6 +171,14 @@
 .elsa-otel-setup dd {
     margin: 0;
     overflow-wrap: anywhere;
+}
+
+.elsa-otel-setup-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-bottom: 1rem;
 }
 
 .elsa-otel-setup-table {

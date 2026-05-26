@@ -2,9 +2,12 @@
 @using Elsa.Studio.Contracts
 @using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inject IOpenTelemetryService TelemetryService
 @inject IRemoteFeatureProvider RemoteFeatureProvider
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>OpenTelemetry</PageTitle>
 
@@ -192,6 +195,13 @@
                     else
                     {
                         var setup = CollectorConfigurationViewModelMapper.Create(_collectorConfiguration);
+                        <div class="elsa-otel-setup-actions">
+                            <button type="button" class="elsa-otel-button" @onclick="() => CopyEnvironmentVariablesAsync(setup.EnvironmentVariables)">Copy all</button>
+                            @if (!string.IsNullOrWhiteSpace(_copyStatus))
+                            {
+                                <span>@_copyStatus</span>
+                            }
+                        </div>
                         <dl>
                             @foreach (var row in setup.Rows)
                             {
@@ -204,6 +214,7 @@
                             <tr>
                                 <th>Variable</th>
                                 <th>Value</th>
+                                <th>Actions</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -212,6 +223,9 @@
                                 <tr>
                                     <td class="elsa-otel-mono">@variable.Name</td>
                                     <td class="elsa-otel-mono">@(variable.IsSecret ? "********" : variable.Value)</td>
+                                    <td>
+                                        <button type="button" class="elsa-otel-link-button" @onclick="() => CopyEnvironmentVariablesAsync([variable])">Copy</button>
+                                    </td>
                                 </tr>
                             }
                             </tbody>
@@ -241,6 +255,8 @@
     private CollectorConfiguration? _collectorConfiguration;
     private OpenTelemetryTraceDetail? _selectedTraceDetail;
     private TelemetrySpan? _selectedSpan;
+    private IJSObjectReference? _jsModule;
+    private string? _copyStatus;
 
     private string StatusText => _error != null
         ? "Unable to load OpenTelemetry diagnostics."
@@ -368,6 +384,33 @@
         });
     }
 
+    private async Task CopyEnvironmentVariablesAsync(IEnumerable<CollectorEnvironmentVariable> variables)
+    {
+        try
+        {
+            _copyStatus = null;
+            var module = await GetJsModuleAsync();
+            var copyVariables = variables.Select(x => new
+            {
+                name = x.Name,
+                value = x.IsSecret ? "********" : x.Value
+            }).ToArray();
+
+            await module.InvokeVoidAsync("copyEnvironmentVariables", copyVariables);
+            _copyStatus = copyVariables.Length == 1 ? "Copied variable." : "Copied environment setup.";
+        }
+        catch
+        {
+            _copyStatus = "Unable to copy. Check browser clipboard permissions.";
+        }
+    }
+
+    private async Task<IJSObjectReference> GetJsModuleAsync()
+    {
+        _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Elsa.Studio.Diagnostics.OpenTelemetry/openTelemetry.js");
+        return _jsModule;
+    }
+
     private void ClearTelemetry()
     {
         _resources = [];
@@ -378,5 +421,11 @@
         _collectorConfiguration = null;
         _selectedTraceDetail = null;
         _selectedSpan = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+            await _jsModule.DisposeAsync();
     }
 }

@@ -156,7 +156,7 @@
 - [ ] T070 [US4] Implement collector configuration endpoint in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Endpoints/OpenTelemetry/CollectorConfiguration/Endpoint.cs`
 - [ ] T071 [US4] Implement OTLP API key header validation in `/Users/sipke/Projects/Elsa/elsa-core/src/modules/Elsa.Diagnostics.OpenTelemetry/Ingestion`
 - [X] T072 [US4] Implement Setup tab in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
-- [ ] T073 [US4] Add setup copy helpers in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/openTelemetry.js`
+- [X] T073 [US4] Add setup copy helpers in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/openTelemetry.js`
 - [X] T074 [US4] Add polyglot and .NET setup examples to `/Users/sipke/Projects/Elsa/elsa-core/doc/wiki/opentelemetry-workflows.md`
 
 **Checkpoint**: Setup metadata is visible in Studio and secure enough for non-loopback ingestion.
