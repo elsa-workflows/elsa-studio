@@ -8,19 +8,19 @@ namespace Elsa.Studio.Diagnostics.OpenTelemetry.Client;
 /// </summary>
 public interface IOpenTelemetryApi
 {
-    [Post("/diagnostics/opentelemetry/resources")]
+    [Post("/diagnostics/opentelemetry/resources/search")]
     Task<OpenTelemetryResourceResult> GetResourcesAsync([Body] OpenTelemetryResourceFilter filter, CancellationToken cancellationToken = default);
 
-    [Post("/diagnostics/opentelemetry/traces")]
+    [Post("/diagnostics/opentelemetry/traces/search")]
     Task<OpenTelemetryTraceResult> GetTracesAsync([Body] OpenTelemetryTraceFilter filter, CancellationToken cancellationToken = default);
 
     [Get("/diagnostics/opentelemetry/traces/{traceId}")]
     Task<OpenTelemetryTraceDetail?> GetTraceAsync(string traceId, CancellationToken cancellationToken = default);
 
-    [Post("/diagnostics/opentelemetry/metrics")]
+    [Post("/diagnostics/opentelemetry/metrics/search")]
     Task<OpenTelemetryMetricResult> GetMetricsAsync([Body] OpenTelemetryMetricFilter filter, CancellationToken cancellationToken = default);
 
-    [Post("/diagnostics/opentelemetry/logs")]
+    [Post("/diagnostics/opentelemetry/logs/search")]
     Task<OpenTelemetryLogResult> GetLogsAsync([Body] OpenTelemetryLogFilter filter, CancellationToken cancellationToken = default);
 
     [Get("/diagnostics/opentelemetry/storage")]

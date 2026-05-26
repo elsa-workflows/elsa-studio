@@ -45,7 +45,7 @@ public class RemoteOpenTelemetryService(IBackendApiClientProvider backendApiClie
     public async Task<OpenTelemetryStorageDiagnostics> GetStorageDiagnosticsAsync(CancellationToken cancellationToken = default)
     {
         var api = await backendApiClientProvider.GetApiAsync<IOpenTelemetryApi>(cancellationToken);
-        return await NotFoundAsDefault(() => api.GetStorageDiagnosticsAsync(cancellationToken), new OpenTelemetryStorageDiagnostics(0, 0, 0, 0, 0, 0, 0, 0));
+        return await NotFoundAsDefault(() => api.GetStorageDiagnosticsAsync(cancellationToken), new OpenTelemetryStorageDiagnostics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     }
 
     public async Task<CollectorConfiguration?> GetCollectorConfigurationAsync(CancellationToken cancellationToken = default)

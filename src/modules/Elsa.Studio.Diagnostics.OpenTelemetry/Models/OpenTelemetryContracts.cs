@@ -4,6 +4,7 @@ public record OpenTelemetryResourceFilter
 {
     public string? Search { get; init; }
     public string? ServiceName { get; init; }
+    public TelemetryResourceStatus? Status { get; init; }
     public int? Take { get; init; }
 }
 
@@ -47,7 +48,11 @@ public record OpenTelemetryResourceResult(IReadOnlyCollection<TelemetryResource>
 
 public record OpenTelemetryTraceResult(IReadOnlyCollection<TelemetryTrace> Items, long DroppedCount);
 
-public record OpenTelemetryTraceDetail(TelemetryTrace Trace, IReadOnlyCollection<TelemetrySpan> Spans);
+public record OpenTelemetryTraceDetail(
+    TelemetryTrace Trace,
+    IReadOnlyCollection<TelemetrySpan> Spans,
+    IReadOnlyCollection<TelemetryResource> Resources,
+    IReadOnlyCollection<OtlpLogRecord> Logs);
 
 public record OpenTelemetryMetricResult(IReadOnlyCollection<MetricInstrument> Instruments, IReadOnlyCollection<MetricPoint> Points, long DroppedCount);
 

@@ -173,7 +173,7 @@
 - [ ] T078 [P] Verify no production code references the historical `Elsa.OpenTelemetry` module by running `rg "Elsa.OpenTelemetry|UseWorkflowExecutionTracing|UseActivityExecutionTracing" /Users/sipke/Projects/Elsa/elsa-core /Users/sipke/Projects/Elsa/elsa-studio`
 - [ ] T079 Run Core OpenTelemetry unit tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/unit/Elsa.Diagnostics.OpenTelemetry.UnitTests/Elsa.Diagnostics.OpenTelemetry.UnitTests.csproj`
 - [ ] T080 Run Core OpenTelemetry integration tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-core/test/integration/Elsa.Diagnostics.OpenTelemetry.IntegrationTests/Elsa.Diagnostics.OpenTelemetry.IntegrationTests.csproj`
-- [ ] T081 Run Studio OpenTelemetry tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/Elsa.Studio.Diagnostics.OpenTelemetry.Tests.csproj`
+- [X] T081 Run Studio OpenTelemetry tests with `dotnet test /Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry.Tests/Elsa.Studio.Diagnostics.OpenTelemetry.Tests.csproj`
 - [ ] T082 Build Core solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-core/Elsa.sln`
 - [ ] T083 Build Studio solution with `dotnet build /Users/sipke/Projects/Elsa/elsa-studio/Elsa.Studio.sln`
 - [ ] T084 Manually verify Studio route states for enabled, missing feature, unauthorized, disconnected, empty, overflow, and live telemetry states in `/Users/sipke/Projects/Elsa/elsa-studio/src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/UI/Pages/OpenTelemetry.razor`
