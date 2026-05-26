@@ -1,8 +1,10 @@
 @page "/diagnostics/opentelemetry"
 @using Elsa.Studio.Contracts
 @using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
+@using Microsoft.AspNetCore.WebUtilities
 @inject IOpenTelemetryService TelemetryService
 @inject IRemoteFeatureProvider RemoteFeatureProvider
+@inject NavigationManager NavigationManager
 
 <PageTitle>OpenTelemetry</PageTitle>
 
@@ -109,6 +111,7 @@
                                 <th>Spans</th>
                                 <th>Duration</th>
                                 <th>Trace ID</th>
+                                <th>Links</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -120,6 +123,7 @@
                                     <td>@trace.SpanCount</td>
                                     <td>@FormatDuration(trace.Duration)</td>
                                     <td class="elsa-otel-mono">@trace.TraceId</td>
+                                    <td><a href="@StructuredLogsHref(trace.TraceId, null)">Structured Logs</a></td>
                                 </tr>
                             }
                             </tbody>
@@ -154,6 +158,7 @@
                                 <th>Severity</th>
                                 <th>Message</th>
                                 <th>Trace ID</th>
+                                <th>Links</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -164,6 +169,13 @@
                                     <td>@log.SeverityText</td>
                                     <td>@log.Body</td>
                                     <td class="elsa-otel-mono">@log.TraceId</td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(log.TraceId))
+                                        {
+                                            <a href="@StructuredLogsHref(log.TraceId, log.SpanId)">Structured Logs</a>
+                                        }
+                                        <a href="@ConsoleLogsHref(log.ResourceId, log.Timestamp)">Console Logs</a>
+                                    </td>
                                 </tr>
                             }
                             </tbody>
@@ -219,6 +231,8 @@
     private bool _loading = true;
     private string? _error;
     private string? _selectedResourceId;
+    private OpenTelemetryUrlState _urlState = new();
+    private bool _queryInitialized;
     private IReadOnlyCollection<TelemetryResource> _resources = [];
     private IReadOnlyCollection<TelemetryTrace> _traces = [];
     private OpenTelemetryMetricResult _metrics = new([], [], 0);
@@ -234,7 +248,11 @@
 
     private long DroppedCount => _storage.DroppedTraceCount + _storage.DroppedSpanCount + _storage.DroppedMetricPointCount + _storage.DroppedLogRecordCount;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        ApplyQueryFromUrl();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -255,9 +273,10 @@
             if (!string.IsNullOrWhiteSpace(_selectedResourceId) && _resources.All(x => x.Id != _selectedResourceId))
                 _selectedResourceId = null;
 
-            var traces = await TelemetryService.GetTracesAsync(new OpenTelemetryTraceFilter { ResourceId = _selectedResourceId, Take = RowCap });
-            var metrics = await TelemetryService.GetMetricsAsync(new OpenTelemetryMetricFilter { ResourceId = _selectedResourceId, Take = RowCap });
-            var logs = await TelemetryService.GetLogsAsync(new OpenTelemetryLogFilter { ResourceId = _selectedResourceId, Take = RowCap });
+            _urlState = _urlState with { ResourceId = _selectedResourceId };
+            var traces = await TelemetryService.GetTracesAsync(OpenTelemetryUrlStateMapper.ToTraceFilter(_urlState, RowCap));
+            var metrics = await TelemetryService.GetMetricsAsync(OpenTelemetryUrlStateMapper.ToMetricFilter(_urlState, RowCap));
+            var logs = await TelemetryService.GetLogsAsync(OpenTelemetryUrlStateMapper.ToLogFilter(_urlState, RowCap));
 
             _traces = traces.Items;
             _metrics = metrics;
@@ -266,6 +285,9 @@
             _collectorConfiguration = await TelemetryService.GetCollectorConfigurationAsync();
             _selectedTraceDetail = null;
             _selectedSpan = null;
+
+            if (!string.IsNullOrWhiteSpace(_urlState.TraceId))
+                await SelectTraceByIdAsync(_urlState.TraceId);
         }
         catch (UnauthorizedAccessException)
         {
@@ -293,8 +315,7 @@
 
     private async Task SelectTraceAsync(TelemetryTrace trace)
     {
-        _selectedTraceDetail = await TelemetryService.GetTraceAsync(trace.TraceId);
-        _selectedSpan = _selectedTraceDetail?.Spans.OrderBy(x => x.StartTime).FirstOrDefault();
+        await SelectTraceByIdAsync(trace.TraceId);
     }
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
@@ -302,6 +323,50 @@
         : $"{duration.TotalMilliseconds:n0}ms";
 
     private static string FormatTime(DateTimeOffset value) => value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+
+    private async Task SelectTraceByIdAsync(string traceId)
+    {
+        _selectedTraceDetail = await TelemetryService.GetTraceAsync(traceId);
+        _selectedSpan = !string.IsNullOrWhiteSpace(_urlState.SpanId)
+            ? _selectedTraceDetail?.Spans.FirstOrDefault(x => string.Equals(x.SpanId, _urlState.SpanId, StringComparison.OrdinalIgnoreCase))
+            : _selectedTraceDetail?.Spans.OrderBy(x => x.StartTime).FirstOrDefault();
+    }
+
+    private void ApplyQueryFromUrl()
+    {
+        if (_queryInitialized)
+            return;
+
+        var query = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query)
+            .ToDictionary(x => x.Key, x => (string?)x.Value.ToString(), StringComparer.OrdinalIgnoreCase);
+
+        _urlState = OpenTelemetryUrlStateMapper.FromQuery(query);
+        _selectedResourceId = _urlState.ResourceId;
+
+        if (!string.IsNullOrWhiteSpace(_urlState.Tab) && Tabs.Contains(_urlState.Tab, StringComparer.OrdinalIgnoreCase))
+            _activeTab = Tabs.First(x => string.Equals(x, _urlState.Tab, StringComparison.OrdinalIgnoreCase));
+
+        _queryInitialized = true;
+    }
+
+    private string StructuredLogsHref(string? traceId, string? spanId)
+    {
+        return NavigationManager.GetUriWithQueryParameters("diagnostics/structured-logs", new Dictionary<string, object?>
+        {
+            ["traceId"] = traceId,
+            ["spanId"] = spanId
+        });
+    }
+
+    private string ConsoleLogsHref(string? resourceId, DateTimeOffset timestamp)
+    {
+        return NavigationManager.GetUriWithQueryParameters("diagnostics/console", new Dictionary<string, object?>
+        {
+            ["source"] = resourceId,
+            ["from"] = timestamp.AddMinutes(-2).ToString("O"),
+            ["to"] = timestamp.AddMinutes(2).ToString("O")
+        });
+    }
 
     private void ClearTelemetry()
     {

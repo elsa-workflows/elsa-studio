@@ -12,12 +12,15 @@ public class ConsoleLogUrlStateMapperTests
     public void ApplyQuery_ParsesCanonicalParameters()
     {
         var state = new ConsoleLogViewState();
-        var uri = new Uri("https://studio/diagnostics/console?source=source-a&stream=stderr&wrap=true&compact=false&ansi=false&follow=false");
+        var uri = new Uri("https://studio/diagnostics/console?source=source-a&stream=stderr&text=failed&from=2026-05-26T10:00:00.0000000%2B00:00&to=2026-05-26T10:05:00.0000000%2B00:00&wrap=true&compact=false&ansi=false&follow=false");
 
         _mapper.ApplyQuery(state, uri);
 
         Assert.Equal("source-a", state.Filter.SourceId);
         Assert.Equal(ConsoleLogStream.Stderr, state.Filter.Stream);
+        Assert.Equal("failed", state.Filter.Query);
+        Assert.Equal(new DateTimeOffset(2026, 5, 26, 10, 0, 0, TimeSpan.Zero), state.Filter.From);
+        Assert.Equal(new DateTimeOffset(2026, 5, 26, 10, 5, 0, TimeSpan.Zero), state.Filter.To);
         Assert.True(state.Wrap);
         Assert.False(state.Compact);
         Assert.False(state.Ansi);
@@ -40,14 +43,17 @@ public class ConsoleLogUrlStateMapperTests
         var state = new ConsoleLogViewState { Wrap = true, Compact = false, Ansi = false, FollowTail = true };
         state.Filter.SourceId = "source-a";
         state.Filter.Stream = ConsoleLogStream.Stdout;
+        state.Filter.Query = "failed";
+        state.Filter.From = new DateTimeOffset(2026, 5, 26, 10, 0, 0, TimeSpan.Zero);
+        state.Filter.To = new DateTimeOffset(2026, 5, 26, 10, 5, 0, TimeSpan.Zero);
 
         var parameters = _mapper.ToQueryParameters(state);
 
         Assert.Equal("source-a", parameters["source"]);
         Assert.Equal("stdout", parameters["stream"]);
-        Assert.Null(parameters["text"]);
-        Assert.Null(parameters["from"]);
-        Assert.Null(parameters["to"]);
+        Assert.Equal("failed", parameters["text"]);
+        Assert.Equal("2026-05-26T10:00:00.0000000+00:00", parameters["from"]);
+        Assert.Equal("2026-05-26T10:05:00.0000000+00:00", parameters["to"]);
         Assert.Equal("true", parameters["wrap"]);
         Assert.Equal("false", parameters["compact"]);
         Assert.Equal("false", parameters["ansi"]);
