@@ -81,6 +81,7 @@ public record MetricInstrument(
 public record MetricPoint(
     string Id,
     string InstrumentId,
+    string InstrumentName,
     string ResourceId,
     DateTimeOffset Timestamp,
     double? Value,

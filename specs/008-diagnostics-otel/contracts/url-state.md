@@ -15,8 +15,8 @@ Supported query parameters:
 | `service` | Service name. |
 | `trace` | Trace ID. |
 | `span` | Span ID. |
-| `workflowInstance` | Workflow instance ID. |
-| `workflowDefinition` | Workflow definition ID. |
+| `workflow` | Workflow instance ID. |
+| `definition` | Workflow definition ID. |
 | `status` | Trace/span status. |
 | `severity` | OTLP log severity filter. |
 | `text` | Free-text search. |
@@ -27,7 +27,7 @@ Supported query parameters:
 Examples:
 
 ```text
-/diagnostics/opentelemetry?tab=traces&workflowInstance=wf-1
+/diagnostics/opentelemetry?tab=traces&workflow=wf-1
 /diagnostics/opentelemetry?tab=traces&trace=4bf92f3577b34da6a3ce929d0e0e4736
 /diagnostics/opentelemetry?tab=logs&trace=4bf92f3577b34da6a3ce929d0e0e4736&span=00f067aa0ba902b7
 ```

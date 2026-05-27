@@ -3,6 +3,7 @@
 @using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Web
 @implements IAsyncDisposable
 @inject IOpenTelemetryService TelemetryService
 @inject IOpenTelemetryObserver TelemetryObserver
@@ -125,7 +126,7 @@
                             <tbody>
                             @foreach (var trace in _traces)
                             {
-                                <tr class="@TraceRowClass(trace)" @onclick="() => SelectTraceAsync(trace)">
+                                <tr class="@TraceRowClass(trace)" @onclick="() => SelectTraceAsync(trace)" @onkeydown="args => SelectTraceFromKeyboardAsync(args, trace)" tabindex="0" role="button" aria-selected="@IsTraceSelected(trace)">
                                     <td>@trace.Name</td>
                                     <td>@trace.Status</td>
                                     <td>@trace.SpanCount</td>
@@ -139,7 +140,7 @@
                         @if (_selectedTraceDetail != null)
                         {
                             <section class="elsa-otel-trace-detail" aria-label="Selected trace detail">
-                                <TraceWaterfall Spans="_selectedTraceDetail.Spans" SelectedSpan="_selectedSpan" SelectedSpanChanged="span => _selectedSpan = span" />
+                                <TraceWaterfall Spans="_selectedTraceDetail.Spans" SelectedSpan="_selectedSpan" SelectedSpanChanged="SelectSpanAsync" />
                                 <SpanDetailsDrawer Span="_selectedSpan" />
                             </section>
                         }
@@ -340,24 +341,47 @@
 
     private string TabClass(string tab) => tab == _activeTab ? "elsa-otel-tab elsa-otel-tab-active" : "elsa-otel-tab";
 
-    private string TraceRowClass(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId ? "elsa-otel-selected-row" : "";
+    private string TraceRowClass(TelemetryTrace trace) => IsTraceSelected(trace) ? "elsa-otel-selected-row" : "";
+
+    private bool IsTraceSelected(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId;
 
     private async Task SelectTabAsync(string tab)
     {
         _activeTab = tab;
         _urlState = _urlState with { Tab = tab };
+        UpdateUrlState();
         await SyncLiveSubscriptionAsync();
     }
 
     private async Task OnResourceSelectedAsync(string? resourceId)
     {
         _selectedResourceId = resourceId;
+        _urlState = _urlState with { ResourceId = resourceId, TraceId = null, SpanId = null };
+        UpdateUrlState();
         await LoadAsync();
     }
 
     private async Task SelectTraceAsync(TelemetryTrace trace)
     {
         await SelectTraceByIdAsync(trace.TraceId);
+        _urlState = _urlState with { TraceId = trace.TraceId, SpanId = _selectedSpan?.SpanId };
+        UpdateUrlState();
+    }
+
+    private async Task SelectTraceFromKeyboardAsync(KeyboardEventArgs args, TelemetryTrace trace)
+    {
+        if (args.Key is not ("Enter" or " "))
+            return;
+
+        await SelectTraceAsync(trace);
+    }
+
+    private Task SelectSpanAsync(TelemetrySpan? span)
+    {
+        _selectedSpan = span;
+        _urlState = _urlState with { SpanId = span?.SpanId };
+        UpdateUrlState();
+        return Task.CompletedTask;
     }
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
@@ -455,8 +479,13 @@
     {
         _liveEnabled = !_liveEnabled;
         _urlState = _urlState with { Live = _liveEnabled };
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(OpenTelemetryUrlStateMapper.ToQuery(_urlState).ToDictionary(x => x.Key, x => (object?)x.Value, StringComparer.OrdinalIgnoreCase)), replace: true);
+        UpdateUrlState();
         await SyncLiveSubscriptionAsync();
+    }
+
+    private void UpdateUrlState()
+    {
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(OpenTelemetryUrlStateMapper.ToQuery(_urlState).ToDictionary(x => x.Key, x => (object?)x.Value, StringComparer.OrdinalIgnoreCase)), replace: true);
     }
 
     private async Task SyncLiveSubscriptionAsync()

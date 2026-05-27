@@ -58,6 +58,6 @@ public class MetricSeriesMapperTests
 
     private static MetricPoint Point(string id, string instrumentId, DateTimeOffset timestamp, double value)
     {
-        return new(id, instrumentId, "resource-1", timestamp, value, null, null, new Dictionary<string, string?>(), null, null);
+        return new(id, instrumentId, instrumentId, "resource-1", timestamp, value, null, null, new Dictionary<string, string?>(), null, null);
     }
 }

@@ -51,7 +51,7 @@ OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 Register the Studio module in the Studio bundle or host:
 
 ```csharp
-services.AddOpenTelemetryModule(backendApiConfig);
+services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);
 ```
 
 Open:

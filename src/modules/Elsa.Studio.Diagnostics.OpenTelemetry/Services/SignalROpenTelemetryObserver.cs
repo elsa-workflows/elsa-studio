@@ -143,7 +143,7 @@ public class SignalROpenTelemetryObserver(
         if (!string.IsNullOrWhiteSpace(filter.ResourceId) && !string.Equals(point.ResourceId, filter.ResourceId, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (!string.IsNullOrWhiteSpace(filter.InstrumentName) && !string.Equals(point.InstrumentId, filter.InstrumentName, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(filter.InstrumentName) && !string.Equals(point.InstrumentName, filter.InstrumentName, StringComparison.OrdinalIgnoreCase))
             return false;
 
         if (filter.From is { } from && point.Timestamp < from)
