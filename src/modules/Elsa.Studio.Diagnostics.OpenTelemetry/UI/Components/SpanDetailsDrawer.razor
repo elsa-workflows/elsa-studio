@@ -1,16 +1,14 @@
 @if (Span == null)
 {
-    <aside class="elsa-otel-span-details">
-        <div class="elsa-otel-state">Select a span to inspect details.</div>
-    </aside>
+    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">Select a span to inspect details.</MudAlert>
 }
 else
 {
-    <aside class="elsa-otel-span-details" aria-label="Span details">
-        <header>
-            <h2>@Span.Name</h2>
-            <span>@Span.Status</span>
-        </header>
+    <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-span-details" aria-label="Span details">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween" Spacing="2" Class="mb-3">
+            <MudText Typo="Typo.subtitle1">@Span.Name</MudText>
+            <MudChip T="string" Size="Size.Small" Color="@StatusColor">@Span.Status</MudChip>
+        </MudStack>
         <dl>
             <dt>Span ID</dt>
             <dd class="elsa-otel-mono">@Span.SpanId</dd>
@@ -35,11 +33,13 @@ else
                 }
             </dl>
         }
-    </aside>
+    </MudPaper>
 }
 
 @code {
     [Parameter] public TelemetrySpan? Span { get; set; }
+
+    private Color StatusColor => Span?.Status == SpanStatus.Error ? Color.Error : Color.Success;
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
         ? $"{duration.TotalSeconds:n2}s"

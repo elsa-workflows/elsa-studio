@@ -2,39 +2,32 @@
 
 @if (Rows.Count == 0)
 {
-    <div class="elsa-otel-state">No metrics received.</div>
+    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">No metrics received.</MudAlert>
 }
 else
 {
-    <table class="elsa-otel-table">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Kind</th>
-            <th>Unit</th>
-            <th>Points</th>
-            <th>Last Value</th>
-            <th>Last Sum</th>
-            <th>Last Count</th>
-            <th>Last Timestamp</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var row in Rows)
-        {
-            <tr>
-                <td>@row.Instrument.Name</td>
-                <td>@row.Instrument.Kind</td>
-                <td>@(row.Instrument.Unit ?? "-")</td>
-                <td>@row.PointCount</td>
-                <td>@FormatNumber(row.LastValue)</td>
-                <td>@FormatNumber(row.LastSum)</td>
-                <td>@(row.LastCount?.ToString() ?? "-")</td>
-                <td>@(row.LastTimestamp.HasValue ? FormatTime(row.LastTimestamp.Value) : "-")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <MudTable T="MetricSeriesRow" Items="Rows" Dense="true" Hover="true" Elevation="0" Outlined="true">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Kind</MudTh>
+            <MudTh>Unit</MudTh>
+            <MudTh>Points</MudTh>
+            <MudTh>Last Value</MudTh>
+            <MudTh>Last Sum</MudTh>
+            <MudTh>Last Count</MudTh>
+            <MudTh>Last Timestamp</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Instrument.Name</MudTd>
+            <MudTd DataLabel="Kind">@context.Instrument.Kind</MudTd>
+            <MudTd DataLabel="Unit">@(context.Instrument.Unit ?? "-")</MudTd>
+            <MudTd DataLabel="Points">@context.PointCount</MudTd>
+            <MudTd DataLabel="Last Value">@FormatNumber(context.LastValue)</MudTd>
+            <MudTd DataLabel="Last Sum">@FormatNumber(context.LastSum)</MudTd>
+            <MudTd DataLabel="Last Count">@(context.LastCount?.ToString() ?? "-")</MudTd>
+            <MudTd DataLabel="Last Timestamp">@(context.LastTimestamp.HasValue ? FormatTime(context.LastTimestamp.Value) : "-")</MudTd>
+        </RowTemplate>
+    </MudTable>
 }
 
 @code {
