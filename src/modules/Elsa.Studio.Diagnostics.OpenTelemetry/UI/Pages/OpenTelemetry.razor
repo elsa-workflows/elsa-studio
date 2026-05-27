@@ -302,8 +302,12 @@
 
             var resources = await TelemetryService.GetResourcesAsync(new OpenTelemetryResourceFilter { Take = RowCap });
             _resources = resources.Items;
+            var urlStateChanged = false;
             if (!string.IsNullOrWhiteSpace(_selectedResourceId) && _resources.All(x => x.Id != _selectedResourceId))
+            {
                 _selectedResourceId = null;
+                urlStateChanged = true;
+            }
 
             _urlState = _urlState with { ResourceId = _selectedResourceId };
             var traces = await TelemetryService.GetTracesAsync(OpenTelemetryUrlStateMapper.ToTraceFilter(_urlState, RowCap));
@@ -319,7 +323,22 @@
             _selectedSpan = null;
 
             if (!string.IsNullOrWhiteSpace(_urlState.TraceId))
+            {
                 await SelectTraceByIdAsync(_urlState.TraceId);
+                if (_selectedTraceDetail == null)
+                {
+                    _urlState = _urlState with { TraceId = null, SpanId = null };
+                    urlStateChanged = true;
+                }
+                else if (!string.IsNullOrWhiteSpace(_urlState.SpanId) && _selectedSpan == null)
+                {
+                    _urlState = _urlState with { SpanId = null };
+                    urlStateChanged = true;
+                }
+            }
+
+            if (urlStateChanged)
+                UpdateUrlState();
 
             await SyncLiveSubscriptionAsync();
         }

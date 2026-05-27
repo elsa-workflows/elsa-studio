@@ -19,6 +19,7 @@ public class SignalROpenTelemetryObserver(
     IHttpConnectionOptionsConfigurator httpConnectionOptionsConfigurator,
     ILogger<SignalROpenTelemetryObserver> logger) : IOpenTelemetryObserver
 {
+    private const int LiveChannelCapacity = 500;
     private HubConnection? _connection;
 
     public OpenTelemetryTraceFilter? CurrentFilter { get; private set; }
@@ -49,10 +50,11 @@ public class SignalROpenTelemetryObserver(
 
     private async IAsyncEnumerable<OpenTelemetryStreamItem> ObserveCoreAsync(OpenTelemetryTraceFilter subscriptionFilter, OpenTelemetryMetricFilter? metricFilter, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var channel = Channel.CreateUnbounded<OpenTelemetryStreamItem>(new UnboundedChannelOptions
+        var channel = Channel.CreateBounded<OpenTelemetryStreamItem>(new BoundedChannelOptions(LiveChannelCapacity)
         {
             SingleReader = true,
-            SingleWriter = false
+            SingleWriter = false,
+            FullMode = BoundedChannelFullMode.DropOldest
         });
 
         HubConnection? connection = null;
@@ -108,8 +110,16 @@ public class SignalROpenTelemetryObserver(
         connection.On<OpenTelemetryStreamItem>("ReceiveAsync", item => channel.Writer.TryWrite(item));
         connection.Reconnected += async _ =>
         {
-            if (CurrentFilter != null)
-                await connection.SendAsync("SubscribeAsync", CurrentFilter, CancellationToken.None);
+            try
+            {
+                if (CurrentFilter != null)
+                    await connection.SendAsync("SubscribeAsync", CurrentFilter, CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Failed to resubscribe to the diagnostics OpenTelemetry hub after reconnect.");
+                channel.Writer.TryComplete(e);
+            }
         };
         connection.Closed += exception =>
         {
