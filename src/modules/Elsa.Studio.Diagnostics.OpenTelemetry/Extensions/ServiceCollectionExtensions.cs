@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, OpenTelemetryMenu>()
             .AddScoped<IOpenTelemetryService, RemoteOpenTelemetryService>()
-            .AddScoped<IOpenTelemetryObserver, SignalROpenTelemetryObserver>()
+            .AddTransient<IOpenTelemetryObserver, SignalROpenTelemetryObserver>()
             .AddRemoteApi<IOpenTelemetryApi>(backendApiConfig);
     }
 }
