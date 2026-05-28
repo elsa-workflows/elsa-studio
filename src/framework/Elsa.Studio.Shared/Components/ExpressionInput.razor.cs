@@ -25,6 +25,7 @@ public partial class ExpressionInput : IDisposable
     private string _selectedExpressionTypeDisplayName = DefaultSyntax;
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
+    private bool _isDisposed;
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";
     private string? _lastMonacoEditorContent;
     private readonly RateLimitedFunc<WrappedInput, Task> _throttledValueChanged;
@@ -93,9 +94,6 @@ public partial class ExpressionInput : IDisposable
 
     private async Task UpdateMonacoLanguageAsync()
     {
-        if (_monacoEditor == null)
-            return;
-
         var expressionDescriptor = SelectedExpressionDescriptor;
 
         if (expressionDescriptor == null)
@@ -104,12 +102,22 @@ public partial class ExpressionInput : IDisposable
         var monacoLanguage = expressionDescriptor.GetMonacoLanguage();
         _selectedExpressionTypeDisplayName = expressionDescriptor.DisplayName;
 
-        if (string.IsNullOrWhiteSpace(monacoLanguage))
+        var editor = _monacoEditor;
+
+        if (_isDisposed || editor == null || string.IsNullOrWhiteSpace(monacoLanguage))
             return;
 
-        var model = await _monacoEditor!.GetModel();
-        await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
-        await RunMonacoHandlersAsync(_monacoEditor);
+        try
+        {
+            var model = await editor.GetModel();
+            await Global.SetModelLanguage(JSRuntime, model, monacoLanguage);
+            await RunMonacoHandlersAsync(editor);
+        }
+        catch (JSException e) when (IsMissingMonacoEditorException(e))
+        {
+            // The activity input can be rebuilt while a syntax change is still being handled.
+            // In that case BlazorMonaco has already removed this editor from its JS registry.
+        }
     }
 
     /// <inheritdoc />
@@ -153,13 +161,29 @@ public partial class ExpressionInput : IDisposable
 
     private async Task OnMonacoInitializedAsync()
     {
+        var editor = _monacoEditor;
+
+        if (_isDisposed || editor == null)
+            return;
+
         _isInternalContentChange = true;
-        var model = await _monacoEditor!.GetModel();
-        _lastMonacoEditorContent = InputValue;
-        await model.SetValue(InputValue);
-        _isInternalContentChange = false;
-        await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
-        await RunMonacoHandlersAsync(_monacoEditor);
+
+        try
+        {
+            var model = await editor.GetModel();
+            _lastMonacoEditorContent = InputValue;
+            await model.SetValue(InputValue);
+            await Global.SetModelLanguage(JSRuntime, model, MonacoLanguage);
+            await RunMonacoHandlersAsync(editor);
+        }
+        catch (JSException e) when (IsMissingMonacoEditorException(e))
+        {
+            // The component was disposed before BlazorMonaco completed initialization.
+        }
+        finally
+        {
+            _isInternalContentChange = false;
+        }
     }
 
     private async Task OnSyntaxSelectedAsync(string syntax)
@@ -170,8 +194,8 @@ public partial class ExpressionInput : IDisposable
         var input = (WrappedInput?)EditorContext.Value ?? new WrappedInput();
 
         input.Expression = new(_selectedExpressionType, value);
-        await InvokeValueChangedCallbackAsync(input);
         await UpdateMonacoLanguageAsync();
+        await InvokeValueChangedCallbackAsync(input);
     }
 
     /// <summary>
@@ -213,7 +237,21 @@ public partial class ExpressionInput : IDisposable
         if (_isInternalContentChange)
             return;
 
-        var value = await _monacoEditor!.GetValue();
+        var editor = _monacoEditor;
+
+        if (_isDisposed || editor == null)
+            return;
+
+        string value;
+
+        try
+        {
+            value = await editor.GetValue();
+        }
+        catch (JSException exception) when (IsMissingMonacoEditorException(exception))
+        {
+            return;
+        }
 
         // This event gets fired even when the content hasn't changed, but for example when the containing pane is resized.
         // This happens from within the monaco editor itself (or the Blazor wrapper, not sure).
@@ -271,11 +309,30 @@ public partial class ExpressionInput : IDisposable
             input.Expression = new(_selectedExpressionType, newValue);
             await EditorContext.OnValueChanged(input);
 
-            var model = await _monacoEditor!.GetModel();
-            await model.SetValue(InputValue);
+            var editor = _monacoEditor;
+
+            if (_isDisposed || editor == null)
+                return;
+
+            try
+            {
+                var model = await editor.GetModel();
+                await model.SetValue(InputValue);
+            }
+            catch (JSException exception) when (IsMissingMonacoEditorException(exception))
+            {
+                // The parent rebuilt the input editor after accepting the dialog value.
+            }
         }
     }
 
+    private static bool IsMissingMonacoEditorException(JSException exception) =>
+        exception.Message.Contains("Couldn't find the editor with id:", StringComparison.Ordinal);
+
     /// <inheritdoc />
-    void IDisposable.Dispose() => _throttledValueChanged.Dispose();
+    void IDisposable.Dispose()
+    {
+        _isDisposed = true;
+        _throttledValueChanged.Dispose();
+    }
 }

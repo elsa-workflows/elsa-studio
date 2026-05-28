@@ -1,17 +1,14 @@
-@if (Resources.Count > 0)
-{
-    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3 flex-wrap" aria-label="OpenTelemetry resources">
-        <MudButton Variant="@ButtonVariant(null)" Color="Color.Primary" Size="Size.Small" OnClick="() => SelectAsync(null)">All resources</MudButton>
-        @foreach (var resource in Resources.OrderBy(x => x.ServiceName, StringComparer.OrdinalIgnoreCase))
-        {
-            <MudTooltip Text="@resource.Id" Delay="500">
-                <MudButton Variant="@ButtonVariant(resource.Id)" Color="Color.Primary" Size="Size.Small" OnClick="() => SelectAsync(resource.Id)">
-                    @resource.ServiceName
-                </MudButton>
-            </MudTooltip>
-        }
-    </MudStack>
-}
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap" aria-label="OpenTelemetry resources">
+    <MudButton Variant="@ButtonVariant(null)" Color="Color.Primary" Size="Size.Small" OnClick="() => SelectAsync(null)">All resources</MudButton>
+    @foreach (var resource in Resources.OrderBy(x => x.ServiceName, StringComparer.OrdinalIgnoreCase))
+    {
+        <MudTooltip Text="@resource.Id" Delay="500">
+            <MudButton Variant="@ButtonVariant(resource.Id)" Color="Color.Primary" Size="Size.Small" OnClick="() => SelectAsync(resource.Id)">
+                @resource.ServiceName
+            </MudButton>
+        </MudTooltip>
+    }
+</MudStack>
 
 @code {
     [Parameter] public IReadOnlyCollection<TelemetryResource> Resources { get; set; } = [];

@@ -48,6 +48,11 @@ public class ConsoleLogLine
     public string? WorkflowInstanceId { get; set; }
 
     /// <summary>
+    /// Gets or sets backend line metadata.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Gets or sets a value indicating whether the backend truncated this line.
     /// </summary>
     [JsonPropertyName("truncated")]

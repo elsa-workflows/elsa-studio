@@ -23,6 +23,23 @@ export async function copyEnvironmentVariables(variables) {
   await copyText(formatEnvironmentVariables(variables));
 }
 
+export function downloadText(filename, text, contentType = "text/plain") {
+  const blob = new Blob([text ?? ""], { type: contentType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename || "elsa-otel-export.txt";
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+
+  try {
+    anchor.click();
+  } finally {
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+}
+
 export function formatEnvironmentVariables(variables) {
   return (variables ?? [])
     .filter(variable => readValue(variable, "name"))

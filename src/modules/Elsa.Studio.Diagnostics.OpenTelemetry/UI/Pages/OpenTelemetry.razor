@@ -1,4 +1,5 @@
 @page "/diagnostics/opentelemetry"
+@using System.Text.Json
 @using Elsa.Studio.Contracts
 @using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts
 @using Microsoft.AspNetCore.WebUtilities
@@ -15,20 +16,29 @@
 <PageTitle>@Localizer["OpenTelemetry"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False" Class="elsa-otel-page">
-    <PageHeading Text="@Localizer["OpenTelemetry"]" />
-
-    <MudPaper Elevation="0" Outlined="true" Class="pa-3 mb-3">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2" Class="flex-wrap gap-2">
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.body2">@StatusText</MudText>
-                <MudText Typo="Typo.caption" Color="@LiveStatusColor">@_liveStatus</MudText>
+    <MudPaper Elevation="1" Outlined="false" Class="elsa-otel-hero">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="3" Class="elsa-otel-hero-row">
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.h5">@Localizer["OpenTelemetry"]</MudText>
+                <MudText Typo="Typo.body2" Class="elsa-otel-muted">@StatusText</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@LiveChipColor">@LiveChipText</MudChip>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@CollectorChipColor">@CollectorStatusText</MudChip>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@LastUpdateText</MudText>
+                </MudStack>
             </MudStack>
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                <MudTooltip Text="@(_liveEnabled ? Localizer["Stop live"] : Localizer["Start live"])" Delay="500">
-                    <MudIconButton Icon="@(_liveEnabled ? Icons.Material.Filled.Pause : Icons.Material.Filled.PlayArrow)" Color="Color.Primary" Size="Size.Small" OnClick="ToggleLiveAsync" />
-                </MudTooltip>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="elsa-otel-actions">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@(_liveEnabled ? Icons.Material.Filled.Pause : Icons.Material.Filled.PlayArrow)" OnClick="ToggleLiveAsync">
+                    @(_liveEnabled ? Localizer["Stop live updates"] : Localizer["Start live updates"])
+                </MudButton>
                 <MudTooltip Text="@Localizer["Refresh"]" Delay="500">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Size="Size.Small" Disabled="@_loading" OnClick="LoadAsync" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Disabled="@_loading" OnClick="LoadAsync" />
+                </MudTooltip>
+                <MudTooltip Text="@Localizer["Clear view"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Disabled="@IsTelemetryEmpty" OnClick="ClearViewAsync" />
+                </MudTooltip>
+                <MudTooltip Text="@Localizer["Export visible telemetry"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Download" Disabled="@IsTelemetryEmpty" OnClick="ExportTelemetryAsync" />
                 </MudTooltip>
             </MudStack>
         </MudStack>
@@ -36,206 +46,395 @@
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-3" />
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
-        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@_error</MudAlert>
+        <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
     }
     else
     {
-        <MudGrid Spacing="2" Class="mb-3">
+        <MudGrid Spacing="2" Class="elsa-otel-kpis">
             <MudItem xs="12" sm="6" md="2">
-                <MudPaper Elevation="0" Outlined="true" Class="pa-3">
-                    <MudText Typo="Typo.h6">@_resources.Count</MudText>
-                    <MudText Typo="Typo.caption">@Localizer["Resources"]</MudText>
+                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-kpi-card">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Resources"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.CloudQueue" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h4">@_resources.Count</MudText>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@ActiveResourceText</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="2">
-                <MudPaper Elevation="0" Outlined="true" Class="pa-3">
-                    <MudText Typo="Typo.h6">@_traces.Count</MudText>
-                    <MudText Typo="Typo.caption">@Localizer["Traces"]</MudText>
+                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-kpi-card">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Traces"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.Timeline" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h4">@FilteredTraces.Count</MudText>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@TraceSupportText</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="2">
-                <MudPaper Elevation="0" Outlined="true" Class="pa-3">
-                    <MudText Typo="Typo.h6">@_metrics.Instruments.Count</MudText>
-                    <MudText Typo="Typo.caption">@Localizer["Metrics"]</MudText>
+                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-kpi-card">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Metrics"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.QueryStats" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h4">@_metrics.Instruments.Count</MudText>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@Localizer["OTLP received"]</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="2">
-                <MudPaper Elevation="0" Outlined="true" Class="pa-3">
-                    <MudText Typo="Typo.h6">@_logs.Count</MudText>
-                    <MudText Typo="Typo.caption">@Localizer["OTLP Logs"]</MudText>
+                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-kpi-card">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Logs"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.Article" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h4">@_logs.Count</MudText>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@Localizer["Structured + OTLP"]</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="2">
-                <MudPaper Elevation="0" Outlined="true" Class="@DroppedSummaryClass">
-                    <MudText Typo="Typo.h6" Color="@DroppedTextColor">@DroppedCount</MudText>
-                    <MudText Typo="Typo.caption">@Localizer["Dropped"]</MudText>
+                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-kpi-card">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Dropped"]</MudText>
+                        <MudIcon Icon="@DroppedIcon" Size="Size.Small" Color="@DroppedTextColor" />
+                    </MudStack>
+                    <MudText Typo="Typo.h4" Color="@DroppedTextColor">@DroppedCount</MudText>
+                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@DroppedSupportText</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
-        <ResourcePicker Resources="_resources" SelectedResourceId="_selectedResourceId" SelectedResourceIdChanged="OnResourceSelectedAsync" />
+        <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-toolbar">
+            <MudStack Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
+                    <MudText Typo="Typo.caption" Class="elsa-otel-toolbar-label">@Localizer["Resource"]</MudText>
+                    <ResourcePicker Resources="_resources" SelectedResourceId="_selectedResourceId" SelectedResourceIdChanged="OnResourceSelectedAsync" />
+                </MudStack>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Value="@_urlState.Text" ValueChanged="SetSearchAsync" Placeholder="@Localizer["Search traces..."]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="2">
+                        <MudSelect T="SpanStatus?" Value="@_urlState.Status" ValueChanged="SetStatusAsync" Label="@Localizer["Status"]" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem T="SpanStatus?" Value="@(null)">@Localizer["All"]</MudSelectItem>
+                            @foreach (var status in Enum.GetValues<SpanStatus>())
+                            {
+                                <MudSelectItem T="SpanStatus?" Value="@status">@status</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="2">
+                        <MudSelect T="string" Value="@_durationFilter" ValueChanged="SetDurationFilterAsync" Label="@Localizer["Duration"]" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            <MudSelectItem T="string" Value="@("any")">@Localizer["Any"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("fast")">@Localizer["Under 50ms"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("medium")">@Localizer["50-500ms"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("slow")">@Localizer["Over 500ms"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="2" Class="d-flex align-center justify-end">
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.RestartAlt" OnClick="ResetFiltersAsync">@Localizer["Reset"]</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudPaper>
 
-        <MudTabs Elevation="0" Rounded="true" Border="true" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync">
-            <MudTabPanel Text="@Localizer["Resources"]">
-                @if (_resources.Count == 0)
-                {
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No OpenTelemetry resources received."]</MudAlert>
-                }
-                else
-                {
-                    <MudTable T="TelemetryResource" Items="_resources" Dense="true" Hover="true" Elevation="0" Outlined="true">
-                        <HeaderContent>
-                            <MudTh>@Localizer["Service"]</MudTh>
-                            <MudTh>@Localizer["Instance"]</MudTh>
-                            <MudTh>@Localizer["SDK"]</MudTh>
-                            <MudTh>@Localizer["Status"]</MudTh>
-                            <MudTh>@Localizer["Last Seen"]</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Service">@context.ServiceName</MudTd>
-                            <MudTd DataLabel="Instance"><span class="elsa-otel-mono">@context.ServiceInstanceId</span></MudTd>
-                            <MudTd DataLabel="SDK">@context.TelemetrySdkLanguage</MudTd>
-                            <MudTd DataLabel="Status">@context.Status</MudTd>
-                            <MudTd DataLabel="Last Seen">@FormatTime(context.LastSeen)</MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                }
-            </MudTabPanel>
-            <MudTabPanel Text="@Localizer["Traces"]">
-                @if (_traces.Count == 0)
-                {
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No traces received."]</MudAlert>
-                }
-                else
-                {
-                    <MudTable T="TelemetryTrace" Items="_traces" Dense="true" Hover="true" Elevation="0" Outlined="true" RowClassFunc="TraceRowClass" OnRowClick="SelectTraceFromRowAsync" RowStyle="cursor: pointer;">
-                        <HeaderContent>
-                            <MudTh>@Localizer["Name"]</MudTh>
-                            <MudTh>@Localizer["Status"]</MudTh>
-                            <MudTh>@Localizer["Spans"]</MudTh>
-                            <MudTh>@Localizer["Duration"]</MudTh>
-                            <MudTh>@Localizer["Trace ID"]</MudTh>
-                            <MudTh>@Localizer["Links"]</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Name">@context.Name</MudTd>
-                            <MudTd DataLabel="Status">@context.Status</MudTd>
-                            <MudTd DataLabel="Spans">@context.SpanCount</MudTd>
-                            <MudTd DataLabel="Duration">@FormatDuration(context.Duration)</MudTd>
-                            <MudTd DataLabel="Trace ID"><span class="elsa-otel-mono">@context.TraceId</span></MudTd>
-                            <MudTd DataLabel="Links"><MudLink Href="@StructuredLogsHref(context.TraceId, null)">@Localizer["Structured Logs"]</MudLink></MudTd>
-                        </RowTemplate>
-                    </MudTable>
-
-                    @if (_selectedTraceDetail != null)
-                    {
-                        <section class="elsa-otel-trace-detail" aria-label="Selected trace detail">
-                            <TraceWaterfall Spans="_selectedTraceDetail.Spans" SelectedSpan="_selectedSpan" SelectedSpanChanged="SelectSpanAsync" />
-                            <SpanDetailsDrawer Span="_selectedSpan" />
-                        </section>
-                    }
-                }
-            </MudTabPanel>
-            <MudTabPanel Text="@Localizer["Metrics"]">
-                <MetricSeriesTable Metrics="_metrics" />
-            </MudTabPanel>
-            <MudTabPanel Text="@Localizer["Logs"]">
-                @if (_logs.Count == 0)
-                {
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No OTLP logs received."]</MudAlert>
-                }
-                else
-                {
-                    <MudTable T="OtlpLogRecord" Items="_logs" Dense="true" Hover="true" Elevation="0" Outlined="true">
-                        <HeaderContent>
-                            <MudTh>@Localizer["Time"]</MudTh>
-                            <MudTh>@Localizer["Severity"]</MudTh>
-                            <MudTh>@Localizer["Message"]</MudTh>
-                            <MudTh>@Localizer["Trace ID"]</MudTh>
-                            <MudTh>@Localizer["Links"]</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Time">@FormatTime(context.Timestamp)</MudTd>
-                            <MudTd DataLabel="Severity">@context.SeverityText</MudTd>
-                            <MudTd DataLabel="Message">@context.Body</MudTd>
-                            <MudTd DataLabel="Trace ID"><span class="elsa-otel-mono">@context.TraceId</span></MudTd>
-                            <MudTd DataLabel="Links">
-                                <MudStack Row="true" Spacing="1">
-                                    @if (!string.IsNullOrWhiteSpace(context.TraceId))
+        <MudDrawerContainer Class="elsa-otel-drawer-container">
+            <div class="elsa-otel-main-panel">
+                <MudTabs Elevation="0" Rounded="true" Border="true" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync" Class="elsa-otel-tabs">
+                    <MudTabPanel Text="@Localizer["Overview"]">
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" md="3">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Trace latency"]</MudText>
+                                    <MudText Typo="Typo.h5">@AverageTraceDurationText</MudText>
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@Localizer["Average visible trace duration"]</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Errors"]</MudText>
+                                    <MudText Typo="Typo.h5" Color="@ErrorRateColor">@TraceErrorRateText</MudText>
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@DroppedSupportText</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Log volume"]</MudText>
+                                    <MudText Typo="Typo.h5">@_logs.Count</MudText>
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@Localizer["Visible OTLP log records"]</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Collector"]</MudText>
+                                    <MudText Typo="Typo.h5">@CollectorShortStatus</MudText>
+                                    <MudText Typo="Typo.caption" Class="elsa-otel-muted">@CollectorProtocolText</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" md="7">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2">@Localizer["Top operations"]</MudText>
+                                    @if (TopOperations.Count == 0)
                                     {
-                                        <MudLink Href="@StructuredLogsHref(context.TraceId, context.SpanId)">@Localizer["Structured Logs"]</MudLink>
+                                        <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No traces received."]</MudAlert>
                                     }
-                                    <MudLink Href="@ConsoleLogsHref(context.ResourceId, context.Timestamp)">@Localizer["Console Logs"]</MudLink>
+                                    else
+                                    {
+                                        <MudSimpleTable Dense="true" Hover="true">
+                                            <tbody>
+                                            @foreach (var operation in TopOperations)
+                                            {
+                                                <tr>
+                                                    <td><strong>@operation.Name</strong></td>
+                                                    <td>@operation.Count @Localizer["traces"]</td>
+                                                    <td>@FormatDuration(operation.AverageDuration)</td>
+                                                </tr>
+                                            }
+                                            </tbody>
+                                        </MudSimpleTable>
+                                    }
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" md="5">
+                                <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-overview-card">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2">@Localizer["Collector setup"]</MudText>
+                                    <MudSimpleTable Dense="true" Hover="false">
+                                        <tbody>
+                                        <tr><th>@Localizer["HTTP"]</th><td>@EndpointStatus(_collectorConfiguration?.Http)</td></tr>
+                                        <tr><th>@Localizer["gRPC"]</th><td>@EndpointStatus(_collectorConfiguration?.Grpc)</td></tr>
+                                        <tr><th>@Localizer["Headers"]</th><td>@RequiredHeaderText</td></tr>
+                                        </tbody>
+                                    </MudSimpleTable>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Resources"]">
+                        @if (_resources.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No OpenTelemetry resources received."]</MudAlert>
+                        }
+                        else
+                        {
+                            <MudTable T="TelemetryResource" Items="_resources" Dense="true" Hover="true" Elevation="0" Outlined="true" Class="elsa-otel-table-card">
+                                <HeaderContent>
+                                    <MudTh>@Localizer["Service"]</MudTh>
+                                    <MudTh>@Localizer["Instance"]</MudTh>
+                                    <MudTh>@Localizer["SDK"]</MudTh>
+                                    <MudTh>@Localizer["Status"]</MudTh>
+                                    <MudTh>@Localizer["Last Seen"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Service"><strong>@context.ServiceName</strong></MudTd>
+                                    <MudTd DataLabel="Instance"><span class="elsa-otel-mono">@context.ServiceInstanceId</span></MudTd>
+                                    <MudTd DataLabel="SDK">@context.TelemetrySdkLanguage</MudTd>
+                                    <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@ResourceStatusColor(context.Status)">@context.Status</MudChip></MudTd>
+                                    <MudTd DataLabel="Last Seen">@FormatTime(context.LastSeen)</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Traces"]">
+                        @if (FilteredTraces.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No traces received."]</MudAlert>
+                        }
+                        else
+                        {
+                            <MudTable T="TelemetryTrace" Items="FilteredTraces" Dense="true" Hover="true" Elevation="0" Outlined="true" RowClassFunc="TraceRowClass" OnRowClick="SelectTraceFromRowAsync" RowStyle="cursor: pointer;" Class="elsa-otel-table-card">
+                                <HeaderContent>
+                                    <MudTh>@Localizer["Operation"]</MudTh>
+                                    <MudTh>@Localizer["Status"]</MudTh>
+                                    <MudTh>@Localizer["Spans"]</MudTh>
+                                    <MudTh>@Localizer["Duration"]</MudTh>
+                                    <MudTh>@Localizer["Trace ID"]</MudTh>
+                                    <MudTh>@Localizer["Links"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Operation">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            @if (TryGetHttpMethod(context.Name) is { } method)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@method</MudChip>
+                                            }
+                                            <MudText Typo="Typo.body2"><strong>@OperationName(context.Name)</strong></MudText>
+                                        </MudStack>
+                                    </MudTd>
+                                    <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@TraceStatusColor(context.Status)">@context.Status</MudChip></MudTd>
+                                    <MudTd DataLabel="Spans">@context.SpanCount</MudTd>
+                                    <MudTd DataLabel="Duration"><MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DurationColor(context.Duration)">@FormatDuration(context.Duration)</MudChip></MudTd>
+                                    <MudTd DataLabel="Trace ID">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudTooltip Text="@context.TraceId" Delay="500">
+                                                <span class="elsa-otel-mono">@ShortTraceId(context.TraceId)</span>
+                                            </MudTooltip>
+                                            <MudTooltip Text="@Localizer["Copy trace ID"]" Delay="500">
+                                                <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="() => CopyTextAsync(context.TraceId, CopiedTraceIdText)" />
+                                            </MudTooltip>
+                                        </MudStack>
+                                    </MudTd>
+                                    <MudTd DataLabel="Links">
+                                        <MudTooltip Text="@Localizer["View structured logs"]" Delay="500">
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Article" Size="Size.Small" Color="Color.Primary" Href="@StructuredLogsHref(context.TraceId, null)" />
+                                        </MudTooltip>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Metrics"]">
+                        <MetricSeriesTable Metrics="_metrics" />
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Logs"]">
+                        @if (_logs.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["No OTLP logs received."]</MudAlert>
+                        }
+                        else
+                        {
+                            <MudTable T="OtlpLogRecord" Items="_logs" Dense="true" Hover="true" Elevation="0" Outlined="true" Class="elsa-otel-table-card">
+                                <HeaderContent>
+                                    <MudTh>@Localizer["Time"]</MudTh>
+                                    <MudTh>@Localizer["Severity"]</MudTh>
+                                    <MudTh>@Localizer["Message"]</MudTh>
+                                    <MudTh>@Localizer["Trace ID"]</MudTh>
+                                    <MudTh>@Localizer["Links"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Time">@FormatTime(context.Timestamp)</MudTd>
+                                    <MudTd DataLabel="Severity"><MudChip T="string" Size="Size.Small" Variant="Variant.Text">@context.SeverityText</MudChip></MudTd>
+                                    <MudTd DataLabel="Message">@context.Body</MudTd>
+                                    <MudTd DataLabel="Trace ID"><span class="elsa-otel-mono">@ShortTraceId(context.TraceId)</span></MudTd>
+                                    <MudTd DataLabel="Links">
+                                        <MudStack Row="true" Spacing="1">
+                                            @if (!string.IsNullOrWhiteSpace(context.TraceId))
+                                            {
+                                                <MudTooltip Text="@Localizer["Structured Logs"]" Delay="500">
+                                                    <MudIconButton Icon="@Icons.Material.Outlined.Article" Size="Size.Small" Color="Color.Primary" Href="@StructuredLogsHref(context.TraceId, context.SpanId)" />
+                                                </MudTooltip>
+                                            }
+                                            <MudTooltip Text="@Localizer["Console Logs"]" Delay="500">
+                                                <MudIconButton Icon="@Icons.Material.Outlined.Terminal" Size="Size.Small" Color="Color.Primary" Href="@ConsoleLogsHref(context.ResourceId, context.Timestamp)" />
+                                            </MudTooltip>
+                                        </MudStack>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="@Localizer["Collector Setup"]">
+                        @if (_collectorConfiguration == null)
+                        {
+                            <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["Collector configuration is unavailable."]</MudAlert>
+                        }
+                        else
+                        {
+                            var setup = CollectorConfigurationViewModelMapper.Create(_collectorConfiguration);
+                            <MudPaper Elevation="0" Outlined="true" Class="pa-3 mb-3">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy" OnClick="() => CopyEnvironmentVariablesAsync(setup.EnvironmentVariables)">@Localizer["Copy all"]</MudButton>
+                                    @if (!string.IsNullOrWhiteSpace(_copyStatus))
+                                    {
+                                        <MudText Typo="Typo.body2">@_copyStatus</MudText>
+                                    }
                                 </MudStack>
-                            </MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                }
-            </MudTabPanel>
-            <MudTabPanel Text="@Localizer["Setup"]">
-                @if (_collectorConfiguration == null)
-                {
-                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["Collector configuration is unavailable."]</MudAlert>
-                }
-                else
-                {
-                    var setup = CollectorConfigurationViewModelMapper.Create(_collectorConfiguration);
-                    <MudPaper Elevation="0" Outlined="true" Class="pa-3 mb-3">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy" OnClick="() => CopyEnvironmentVariablesAsync(setup.EnvironmentVariables)">@Localizer["Copy all"]</MudButton>
+                                <MudSimpleTable Dense="true" Hover="false">
+                                    <tbody>
+                                    @foreach (var row in setup.Rows)
+                                    {
+                                        <tr>
+                                            <th>@row.Label</th>
+                                            <td class="elsa-otel-mono">@row.Value</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </MudSimpleTable>
+                            </MudPaper>
+                            <MudTable T="CollectorEnvironmentVariable" Items="setup.EnvironmentVariables" Dense="true" Hover="true" Elevation="0" Outlined="true" Class="elsa-otel-table-card">
+                                <HeaderContent>
+                                    <MudTh>@Localizer["Variable"]</MudTh>
+                                    <MudTh>@Localizer["Value"]</MudTh>
+                                    <MudTh>@Localizer["Actions"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Variable"><span class="elsa-otel-mono">@context.Name</span></MudTd>
+                                    <MudTd DataLabel="Value"><span class="elsa-otel-mono">@(context.IsSecret ? "********" : context.Value)</span></MudTd>
+                                    <MudTd DataLabel="Actions">
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="() => CopyEnvironmentVariablesAsync([context])">@Localizer["Copy"]</MudButton>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudTabPanel>
+                </MudTabs>
+            </div>
+
+            <MudDrawer @bind-Open="_traceDrawerOpen" Anchor="Anchor.Right" Width="440px" Height="100%" Elevation="2" Variant="@DrawerVariant.Persistent">
+                <MudDrawerHeader>
+                    <MudText Typo="Typo.h6">@Localizer["Trace Details"]</MudText>
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseTraceDrawer" />
+                </MudDrawerHeader>
+                <MudDivider />
+                <div class="elsa-otel-trace-drawer-body">
+                    @if (_selectedTraceDetail?.Trace is { } trace)
+                    {
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.caption" Class="elsa-otel-kpi-title">@Localizer["Operation"]</MudText>
+                            <MudText Typo="Typo.subtitle1"><strong>@(trace.Name ?? trace.TraceId)</strong></MudText>
+                            <MudDivider />
+                            <MudSimpleTable Dense="true" Hover="false">
+                                <tbody>
+                                <tr><th>@Localizer["Trace ID"]</th><td class="elsa-otel-mono">@trace.TraceId</td></tr>
+                                <tr><th>@Localizer["Status"]</th><td><MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@TraceStatusColor(trace.Status)">@trace.Status</MudChip></td></tr>
+                                <tr><th>@Localizer["Duration"]</th><td><MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DurationColor(trace.Duration)">@FormatDuration(trace.Duration)</MudChip></td></tr>
+                                <tr><th>@Localizer["Spans"]</th><td>@trace.SpanCount</td></tr>
+                                <tr><th>@Localizer["Resource"]</th><td>@TraceResourceNames(trace)</td></tr>
+                                </tbody>
+                            </MudSimpleTable>
+                            <MudStack Row="true" Spacing="1" Class="flex-wrap">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Article" Href="@StructuredLogsHref(trace.TraceId, _selectedSpan?.SpanId)">@Localizer["View structured logs"]</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy" OnClick="() => CopyTextAsync(trace.TraceId, CopiedTraceIdText)">@Localizer["Copy trace ID"]</MudButton>
+                            </MudStack>
                             @if (!string.IsNullOrWhiteSpace(_copyStatus))
                             {
-                                <MudText Typo="Typo.body2">@_copyStatus</MudText>
+                                <MudText Typo="Typo.caption" Class="elsa-otel-muted">@_copyStatus</MudText>
                             }
+                            <MudDivider />
+                            <MudText Typo="Typo.subtitle2">@Localizer["Span timeline"]</MudText>
+                            <TraceWaterfall Spans="_selectedTraceDetail.Spans" SelectedSpan="_selectedSpan" SelectedSpanChanged="SelectSpanAsync" />
+                            <SpanDetailsDrawer Span="_selectedSpan" />
                         </MudStack>
-                        <MudSimpleTable Dense="true" Hover="false">
-                            <tbody>
-                            @foreach (var row in setup.Rows)
-                            {
-                                <tr>
-                                    <th>@row.Label</th>
-                                    <td class="elsa-otel-mono">@row.Value</td>
-                                </tr>
-                            }
-                            </tbody>
-                        </MudSimpleTable>
-                    </MudPaper>
-                    <MudTable T="CollectorEnvironmentVariable" Items="setup.EnvironmentVariables" Dense="true" Hover="true" Elevation="0" Outlined="true">
-                        <HeaderContent>
-                            <MudTh>@Localizer["Variable"]</MudTh>
-                            <MudTh>@Localizer["Value"]</MudTh>
-                            <MudTh>@Localizer["Actions"]</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Variable"><span class="elsa-otel-mono">@context.Name</span></MudTd>
-                            <MudTd DataLabel="Value"><span class="elsa-otel-mono">@(context.IsSecret ? "********" : context.Value)</span></MudTd>
-                            <MudTd DataLabel="Actions">
-                                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="() => CopyEnvironmentVariablesAsync([context])">@Localizer["Copy"]</MudButton>
-                            </MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                }
-            </MudTabPanel>
-        </MudTabs>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Normal" Variant="Variant.Text">@Localizer["Select a trace to inspect details."]</MudAlert>
+                    }
+                </div>
+            </MudDrawer>
+        </MudDrawerContainer>
     }
 </MudContainer>
 
 @code {
-    private static readonly string[] Tabs = ["Resources", "Traces", "Metrics", "Logs", "Setup"];
+    private static readonly string[] Tabs = ["Overview", "Resources", "Traces", "Metrics", "Logs", "Collector Setup"];
     private const int RowCap = 100;
+    private static readonly JsonSerializerOptions ExportJsonOptions = new() { WriteIndented = true };
 
-    private string _activeTab = "Resources";
+    private string _activeTab = "Overview";
     private bool _loading = true;
     private bool _liveEnabled;
+    private bool _traceDrawerOpen;
     private string _liveStatus = "Live updates off.";
+    private string _durationFilter = "any";
     private string? _error;
     private string? _selectedResourceId;
     private OpenTelemetryUrlState _urlState = new();
     private bool _queryInitialized;
+    private DateTimeOffset? _lastUpdated;
     private IReadOnlyCollection<TelemetryResource> _resources = [];
     private IReadOnlyCollection<TelemetryTrace> _traces = [];
     private OpenTelemetryMetricResult _metrics = new([], [], 0);
@@ -250,17 +449,79 @@
 
     private string StatusText => _error != null
         ? "Unable to load OpenTelemetry diagnostics."
-        : "Recent OpenTelemetry resources, traces, metrics, logs, and collector setup.";
+        : "Live diagnostics for traces, metrics, logs, resources, and collector health.";
+
+    private IReadOnlyCollection<TelemetryTrace> FilteredTraces => _traces.Where(MatchesDurationFilter).ToArray();
 
     private long DroppedCount => _storage.DroppedTraceCount + _storage.DroppedSpanCount + _storage.DroppedMetricPointCount + _storage.DroppedLogRecordCount;
 
-    private Color LiveStatusColor => _liveEnabled
+    private bool IsTelemetryEmpty => _resources.Count == 0 && _traces.Count == 0 && _metrics.Instruments.Count == 0 && _metrics.Points.Count == 0 && _logs.Count == 0;
+
+    private Color LiveChipColor => _liveEnabled
         ? _liveStatus.Contains("disconnected", StringComparison.OrdinalIgnoreCase) ? Color.Warning : Color.Success
         : Color.Default;
 
-    private Color DroppedTextColor => DroppedCount > 0 ? Color.Warning : Color.Default;
+    private string LiveChipText => _liveEnabled ? Localizer["Live On"] : Localizer["Live Off"];
 
-    private string DroppedSummaryClass => DroppedCount > 0 ? "pa-3 elsa-otel-dropped-summary" : "pa-3";
+    private Color CollectorChipColor => _collectorConfiguration == null ? Color.Warning : Color.Success;
+
+    private string CollectorStatusText => _collectorConfiguration == null ? Localizer["Collector Unknown"] : Localizer["Collector Connected"];
+
+    private string CollectorShortStatus => _collectorConfiguration == null ? Localizer["Unknown"] : Localizer["Connected"];
+
+    private string CollectorProtocolText => _collectorConfiguration == null
+        ? Localizer["Configuration unavailable"]
+        : string.Join(" / ", new[] { _collectorConfiguration.Http.Enabled ? "HTTP" : null, _collectorConfiguration.Grpc.Enabled ? "gRPC" : null }.Where(x => x != null));
+
+    private string LastUpdateText => _lastUpdated.HasValue
+        ? string.Format("{0}: {1}", Localizer["Last update"], _lastUpdated.Value.ToLocalTime().ToString("HH:mm:ss"))
+        : Localizer["No updates yet"];
+
+    private Color DroppedTextColor => DroppedCount > 0 ? Color.Warning : Color.Success;
+
+    private string DroppedIcon => DroppedCount > 0 ? Icons.Material.Outlined.ReportProblem : Icons.Material.Outlined.CheckCircle;
+
+    private string DroppedSupportText => DroppedCount > 0 ? Localizer["Needs attention"] : Localizer["Healthy"];
+
+    private string CopiedTraceIdText => Localizer["Copied trace ID."];
+
+    private string ActiveResourceText => _resources.Count == 0
+        ? Localizer["No active services"]
+        : _resources.OrderBy(x => x.ServiceName, StringComparer.OrdinalIgnoreCase).First().ServiceName;
+
+    private string TraceSupportText => FilteredTraces.Count == _traces.Count
+        ? Localizer["Visible traces"]
+        : string.Format("{0} {1}", FilteredTraces.Count, Localizer["after filters"]);
+
+    private string AverageTraceDurationText => FilteredTraces.Count == 0
+        ? "-"
+        : FormatDuration(TimeSpan.FromMilliseconds(FilteredTraces.Average(x => x.Duration.TotalMilliseconds)));
+
+    private string TraceErrorRateText
+    {
+        get
+        {
+            if (FilteredTraces.Count == 0)
+                return "0%";
+
+            var errorCount = FilteredTraces.Count(x => x.Status == SpanStatus.Error);
+            return $"{(double)errorCount / FilteredTraces.Count:P0}";
+        }
+    }
+
+    private Color ErrorRateColor => FilteredTraces.Any(x => x.Status == SpanStatus.Error) ? Color.Warning : Color.Success;
+
+    private IReadOnlyCollection<TopOperation> TopOperations => FilteredTraces
+        .GroupBy(x => OperationName(x.Name), StringComparer.OrdinalIgnoreCase)
+        .Select(x => new TopOperation(x.Key, x.Count(), TimeSpan.FromMilliseconds(x.Average(trace => trace.Duration.TotalMilliseconds))))
+        .OrderByDescending(x => x.Count)
+        .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+        .Take(5)
+        .ToArray();
+
+    private string RequiredHeaderText => _collectorConfiguration?.RequiredHeaders.Count > 0
+        ? string.Join(", ", _collectorConfiguration.RequiredHeaders.Keys)
+        : Localizer["None"];
 
     private int ActiveTabIndex => Math.Max(0, Array.FindIndex(Tabs, x => string.Equals(x, _activeTab, StringComparison.OrdinalIgnoreCase)));
 
@@ -304,8 +565,10 @@
             _logs = logs.Items;
             _storage = await TelemetryService.GetStorageDiagnosticsAsync();
             _collectorConfiguration = await TelemetryService.GetCollectorConfigurationAsync();
+            _lastUpdated = DateTimeOffset.Now;
             _selectedTraceDetail = null;
             _selectedSpan = null;
+            _traceDrawerOpen = false;
 
             if (!string.IsNullOrWhiteSpace(_urlState.TraceId))
             {
@@ -315,10 +578,14 @@
                     _urlState = _urlState with { TraceId = null, SpanId = null };
                     urlStateChanged = true;
                 }
-                else if (!string.IsNullOrWhiteSpace(_urlState.SpanId) && _selectedSpan == null)
+                else
                 {
-                    _urlState = _urlState with { SpanId = null };
-                    urlStateChanged = true;
+                    _traceDrawerOpen = true;
+                    if (!string.IsNullOrWhiteSpace(_urlState.SpanId) && _selectedSpan == null)
+                    {
+                        _urlState = _urlState with { SpanId = null };
+                        urlStateChanged = true;
+                    }
                 }
             }
 
@@ -343,7 +610,7 @@
         }
     }
 
-    private string TraceRowClass(TelemetryTrace trace, int rowNumber) => IsTraceSelected(trace) ? "mud-selected-row" : string.Empty;
+    private string TraceRowClass(TelemetryTrace trace, int rowNumber) => IsTraceSelected(trace) ? "mud-selected-row elsa-otel-selected-trace" : string.Empty;
 
     private bool IsTraceSelected(TelemetryTrace trace) => trace.TraceId == _selectedTraceDetail?.Trace.TraceId;
 
@@ -365,6 +632,35 @@
         await LoadAsync();
     }
 
+    private async Task SetSearchAsync(string? search)
+    {
+        _urlState = _urlState with { Text = string.IsNullOrWhiteSpace(search) ? null : search, TraceId = null, SpanId = null };
+        UpdateUrlState();
+        await LoadAsync();
+    }
+
+    private async Task SetStatusAsync(SpanStatus? status)
+    {
+        _urlState = _urlState with { Status = status, TraceId = null, SpanId = null };
+        UpdateUrlState();
+        await LoadAsync();
+    }
+
+    private Task SetDurationFilterAsync(string value)
+    {
+        _durationFilter = string.IsNullOrWhiteSpace(value) ? "any" : value;
+        return Task.CompletedTask;
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _durationFilter = "any";
+        _selectedResourceId = null;
+        _urlState = _urlState with { ResourceId = null, ServiceName = null, TraceId = null, SpanId = null, Status = null, Text = null, From = null, To = null };
+        UpdateUrlState();
+        await LoadAsync();
+    }
+
     private async Task SelectTraceFromRowAsync(TableRowClickEventArgs<TelemetryTrace> args)
     {
         if (args.Item != null)
@@ -374,6 +670,7 @@
     private async Task SelectTraceAsync(TelemetryTrace trace)
     {
         await SelectTraceByIdAsync(trace.TraceId);
+        _traceDrawerOpen = _selectedTraceDetail != null;
         _urlState = _urlState with { TraceId = trace.TraceId, SpanId = _selectedSpan?.SpanId };
         UpdateUrlState();
     }
@@ -384,6 +681,58 @@
         _urlState = _urlState with { SpanId = span?.SpanId };
         UpdateUrlState();
         return Task.CompletedTask;
+    }
+
+    private void CloseTraceDrawer()
+    {
+        _traceDrawerOpen = false;
+        _urlState = _urlState with { TraceId = null, SpanId = null };
+        UpdateUrlState();
+    }
+
+    private Task ClearViewAsync()
+    {
+        ClearTelemetry();
+        _traceDrawerOpen = false;
+        _lastUpdated = null;
+        return Task.CompletedTask;
+    }
+
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The export payload is user-visible diagnostics data from concrete runtime models.")]
+    private async Task ExportTelemetryAsync()
+    {
+        var payload = new
+        {
+            exportedAt = DateTimeOffset.Now,
+            resourceId = _selectedResourceId,
+            filters = new { _urlState.Text, _urlState.Status, duration = _durationFilter },
+            resources = _resources,
+            traces = FilteredTraces,
+            metrics = _metrics,
+            logs = _logs,
+            storage = _storage,
+            collector = _collectorConfiguration
+        };
+
+        var module = await GetJsModuleAsync();
+        await module.InvokeVoidAsync("downloadText", $"elsa-otel-{DateTimeOffset.Now:yyyyMMdd-HHmmss}.json", JsonSerializer.Serialize(payload, ExportJsonOptions), "application/json");
+    }
+
+    private async Task CopyTextAsync(string? text, string successMessage)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+
+        try
+        {
+            var module = await GetJsModuleAsync();
+            await module.InvokeVoidAsync("copyText", text);
+            _copyStatus = successMessage;
+        }
+        catch
+        {
+            _copyStatus = "Unable to copy. Check browser clipboard permissions.";
+        }
     }
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
@@ -546,6 +895,7 @@
         if (item.IsConnectionEstablished)
         {
             _liveStatus = "Live updates connected.";
+            _lastUpdated = DateTimeOffset.Now;
             StateHasChanged();
             return;
         }
@@ -565,6 +915,7 @@
         if (item.DroppedItems is { } droppedItems)
             AddDroppedItems(droppedItems);
 
+        _lastUpdated = DateTimeOffset.Now;
         _liveStatus = "Live updates connected.";
         StateHasChanged();
     }
@@ -578,6 +929,88 @@
             OpenTelemetrySignalType.Log => _storage with { DroppedLogRecordCount = _storage.DroppedLogRecordCount + droppedItems.Count },
             _ => _storage
         };
+    }
+
+    private bool MatchesDurationFilter(TelemetryTrace trace)
+    {
+        return _durationFilter switch
+        {
+            "fast" => trace.Duration.TotalMilliseconds < 50,
+            "medium" => trace.Duration.TotalMilliseconds >= 50 && trace.Duration.TotalMilliseconds <= 500,
+            "slow" => trace.Duration.TotalMilliseconds > 500,
+            _ => true
+        };
+    }
+
+    private Color TraceStatusColor(SpanStatus status) => status switch
+    {
+        SpanStatus.Error => Color.Error,
+        SpanStatus.Ok => Color.Success,
+        _ => Color.Default
+    };
+
+    private Color ResourceStatusColor(TelemetryResourceStatus status) => status switch
+    {
+        TelemetryResourceStatus.Active => Color.Success,
+        TelemetryResourceStatus.Stale => Color.Warning,
+        _ => Color.Default
+    };
+
+    private Color DurationColor(TimeSpan duration) => duration.TotalMilliseconds switch
+    {
+        < 50 => Color.Default,
+        <= 500 => Color.Info,
+        <= 1000 => Color.Warning,
+        _ => Color.Error
+    };
+
+    private string TraceResourceNames(TelemetryTrace trace)
+    {
+        var names = _resources
+            .Where(resource => trace.ResourceIds.Contains(resource.Id))
+            .Select(resource => resource.ServiceName)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return names.Length == 0 ? "-" : string.Join(", ", names);
+    }
+
+    private string EndpointStatus(CollectorEndpointInfo? endpoint)
+    {
+        if (endpoint == null)
+            return Localizer["Unknown"];
+
+        return endpoint.Enabled ? endpoint.Endpoint ?? endpoint.Protocol : endpoint.DisabledReason ?? Localizer["Disabled"];
+    }
+
+    private static string OperationName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "-";
+
+        var method = TryGetHttpMethod(name);
+        return method == null ? name : name[method.Length..].TrimStart();
+    }
+
+    private static string? TryGetHttpMethod(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        var parts = name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0)
+            return null;
+
+        var value = parts[0].ToUpperInvariant();
+        return value is "GET" or "POST" or "PUT" or "PATCH" or "DELETE" or "HEAD" or "OPTIONS" ? value : null;
+    }
+
+    private static string ShortTraceId(string? traceId)
+    {
+        if (string.IsNullOrWhiteSpace(traceId) || traceId.Length <= 12)
+            return traceId ?? "-";
+
+        return string.Concat(traceId.AsSpan(0, 6), "...", traceId.AsSpan(traceId.Length - 6));
     }
 
     private static IReadOnlyCollection<T> PrependBounded<T>(IEnumerable<T> current, T item, Func<T, bool> isSame)
@@ -607,4 +1040,6 @@
         if (_jsModule != null)
             await _jsModule.DisposeAsync();
     }
+
+    private record TopOperation(string Name, int Count, TimeSpan AverageDuration);
 }

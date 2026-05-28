@@ -34,6 +34,9 @@ public class ConsoleLogSerializationTests
                 "lastSeen": "2026-05-18T09:00:00.0000000Z",
                 "health": 1
               },
+              "metadata": {
+                "elsa.workflowInstanceId": "workflow-a"
+              },
               "truncated": true,
               "dropped": {
                 "sourceId": "source-a",
@@ -64,6 +67,7 @@ public class ConsoleLogSerializationTests
         Assert.Equal("source-a", line.Source.Id);
         Assert.Equal("Worker A", line.Source.DisplayName);
         Assert.Equal(ConsoleLogSourceHealth.Connected, line.Source.Health);
+        Assert.Equal("workflow-a", line.Metadata["elsa.workflowInstanceId"]);
         Assert.True(line.IsTruncated);
         Assert.Equal(3, line.Dropped?.Count);
     }

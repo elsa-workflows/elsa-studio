@@ -466,6 +466,9 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     {
         return InvokeAsync(async () =>
         {
+            if (!ConsoleLogFilterMatcher.IsMatch(line, ViewState.Filter))
+                return;
+
             if (_isRefreshing)
             {
                 var discardedRows = DiscardedRefreshBufferRows;
