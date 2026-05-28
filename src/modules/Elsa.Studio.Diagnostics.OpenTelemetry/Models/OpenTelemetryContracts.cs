@@ -70,6 +70,7 @@ public record CollectorConfiguration(
 
 public record OpenTelemetryStreamItem
 {
+    public bool IsConnectionEstablished { get; init; }
     public TelemetryResource? Resource { get; init; }
     public TelemetryTrace? Trace { get; init; }
     public MetricPoint? MetricPoint { get; init; }

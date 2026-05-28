@@ -543,6 +543,13 @@
 
     private void ApplyLiveItem(OpenTelemetryStreamItem item)
     {
+        if (item.IsConnectionEstablished)
+        {
+            _liveStatus = "Live updates connected.";
+            StateHasChanged();
+            return;
+        }
+
         if (item.Resource is { } resource)
             _resources = PrependBounded(_resources, resource, x => x.Id == resource.Id);
 

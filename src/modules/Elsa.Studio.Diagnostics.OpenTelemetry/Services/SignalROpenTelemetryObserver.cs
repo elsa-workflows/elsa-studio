@@ -69,6 +69,7 @@ public class SignalROpenTelemetryObserver(
             {
                 await connection.StartAsync(cancellationToken);
                 await connection.SendAsync("SubscribeAsync", subscriptionFilter, cancellationToken);
+                channel.Writer.TryWrite(new OpenTelemetryStreamItem { IsConnectionEstablished = true });
             }
             catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound)
             {
