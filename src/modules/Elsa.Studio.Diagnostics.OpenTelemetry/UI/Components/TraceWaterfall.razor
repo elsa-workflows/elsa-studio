@@ -1,0 +1,48 @@
+@using Elsa.Studio.Diagnostics.OpenTelemetry.Services
+
+@if (Items.Count == 0)
+{
+    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">No spans available for this trace.</MudAlert>
+}
+else
+{
+    <div style="border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; display: grid; gap: 6px; min-width: 320px; overflow-x: auto; padding: 12px;" role="list" aria-label="Trace spans">
+        @foreach (var item in Items)
+        {
+            <button type="button" style="@ItemStyle(item)" @onclick="() => SelectSpan(item.Span)" role="listitem">
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.Span.Name</span>
+                <span style="color: var(--mud-palette-text-secondary); flex: 0 0 auto;">@FormatDuration(item.Span.EndTime - item.Span.StartTime)</span>
+            </button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyCollection<TelemetrySpan> Spans { get; set; } = [];
+    [Parameter] public TelemetrySpan? SelectedSpan { get; set; }
+    [Parameter] public EventCallback<TelemetrySpan> SelectedSpanChanged { get; set; }
+
+    private IReadOnlyCollection<TraceWaterfallItem> Items => TraceWaterfallLayout.Create(Spans);
+
+    private async Task SelectSpan(TelemetrySpan span)
+    {
+        if (SelectedSpanChanged.HasDelegate)
+            await SelectedSpanChanged.InvokeAsync(span);
+    }
+
+    private string ItemStyle(TraceWaterfallItem item)
+    {
+        var background = item.Span.Status == SpanStatus.Error
+            ? "color-mix(in srgb, var(--mud-palette-error) 12%, var(--mud-palette-surface))"
+            : "color-mix(in srgb, var(--mud-palette-primary) 12%, var(--mud-palette-surface))";
+        var border = item.Span.Status == SpanStatus.Error
+            ? "color-mix(in srgb, var(--mud-palette-error) 36%, transparent)"
+            : "color-mix(in srgb, var(--mud-palette-primary) 32%, transparent)";
+        var outline = item.Span.SpanId == SelectedSpan?.SpanId ? "outline: 2px solid var(--mud-palette-primary);" : "";
+        return $"background: {background}; border: 1px solid {border}; border-radius: 6px; color: inherit; cursor: pointer; display: flex; gap: 12px; justify-content: space-between; margin-left: calc({item.OffsetPercent:0.###}% + ({item.Depth} * 12px)); min-height: 32px; padding: 6px 10px; text-align: left; width: max({item.WidthPercent:0.###}%, 112px); {outline}";
+    }
+
+    private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
+        ? $"{duration.TotalSeconds:n2}s"
+        : $"{duration.TotalMilliseconds:n0}ms";
+}

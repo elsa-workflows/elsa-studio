@@ -87,6 +87,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         ["WorkflowInstanceId"] = WorkflowInstance?.Id,
         ["WorkflowDefinition"] = WorkflowDefinition,
         ["WorkflowInstance"] = WorkflowInstance,
+        ["SelectedActivity"] = SelectedActivity,
+        ["LastActivityExecution"] = LastActivityExecution,
         ["VisiblePaneHeight"] = _propertiesPaneHeight
     };
 
