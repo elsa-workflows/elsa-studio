@@ -1,3 +1,4 @@
+using Elsa.Studio.Diagnostics.ConsoleLogs.Models;
 using Xunit;
 using ConsoleLogViewerComponent = Elsa.Studio.Diagnostics.ConsoleLogs.UI.Components.ConsoleLogViewer;
 
@@ -53,8 +54,36 @@ public class ConsoleLogsPageHelperTests
         Assert.Equal("diagnostics-console-logs-20260518-091011.tsv", fileName);
     }
 
+    [Fact]
+    public async Task OnParametersSetAsync_WhenScopeChangesBeforeActivation_AppliesFilter()
+    {
+        var component = new TestConsoleLogs();
+
+        await component.ApplyParametersForTestAsync(
+            "workflow-instance-a",
+            "activity-instance-a",
+            "activity-a",
+            "node-a");
+
+        Assert.Equal("workflow-instance-a", component.Filter.WorkflowInstanceId);
+        Assert.Equal("activity-instance-a", component.Filter.ActivityInstanceId);
+        Assert.Equal("activity-a", component.Filter.ActivityId);
+        Assert.Equal("node-a", component.Filter.ActivityNodeId);
+    }
+
     private class TestConsoleLogs : ConsoleLogViewerComponent
     {
+        public ConsoleLogFilter Filter => ViewState.Filter;
+
+        public Task ApplyParametersForTestAsync(string workflowInstanceId, string activityInstanceId, string activityId, string activityNodeId)
+        {
+            WorkflowInstanceId = workflowInstanceId;
+            ActivityInstanceId = activityInstanceId;
+            ActivityId = activityId;
+            ActivityNodeId = activityNodeId;
+            return OnParametersSetAsync();
+        }
+
         public static string StripAnsiForTest(string text) => StripAnsi(text);
 
         public static string CreateExportFileNameForTest(DateTimeOffset timestamp) => CreateExportFileName(timestamp);

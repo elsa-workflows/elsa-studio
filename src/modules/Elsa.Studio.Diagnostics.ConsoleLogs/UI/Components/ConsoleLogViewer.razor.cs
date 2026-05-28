@@ -34,6 +34,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
     private string? _appliedActivityId;
     private string? _appliedActivityNodeId;
     private long _refreshVersion;
+    private bool _refreshAfterActivation;
 
     [Inject] private IConsoleLogService ConsoleLogService { get; set; } = default!;
     [Inject] private IConsoleLogObserver Observer { get; set; } = default!;
@@ -145,6 +146,7 @@ public partial class ConsoleLogViewer : IAsyncDisposable
             ViewState.VisibleRowCap = VisibleRowCap.Value;
 
         ApplyScopeParameters();
+        _refreshAfterActivation = false;
 
         if (UseUrlState)
             ApplyQueryFromUrl();
@@ -155,6 +157,12 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         Observer.SourceChanged += OnSourceChangedAsync;
         await ActivateAsync(_cancellationTokenSource.Token);
         _activated = true;
+
+        if (_refreshAfterActivation)
+        {
+            _refreshAfterActivation = false;
+            await RefreshFilterAsync();
+        }
     }
 
     /// <inheritdoc />
@@ -165,16 +173,25 @@ public partial class ConsoleLogViewer : IAsyncDisposable
         var activityId = NormalizeScopeValue(ActivityId);
         var activityNodeId = NormalizeScopeValue(ActivityNodeId);
 
-        if (!_activated ||
-            string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
-            string.Equals(_appliedActivityInstanceId, activityInstanceId, StringComparison.Ordinal) &&
-            string.Equals(_appliedActivityId, activityId, StringComparison.Ordinal) &&
-            string.Equals(_appliedActivityNodeId, activityNodeId, StringComparison.Ordinal))
+        if (HasAppliedScope(workflowInstanceId, activityInstanceId, activityId, activityNodeId))
             return;
 
         ApplyScopeParameters();
+
+        if (!_activated)
+        {
+            _refreshAfterActivation = true;
+            return;
+        }
+
         await RefreshFilterAsync();
     }
+
+    private bool HasAppliedScope(string? workflowInstanceId, string? activityInstanceId, string? activityId, string? activityNodeId) =>
+        string.Equals(_appliedWorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityInstanceId, activityInstanceId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityId, activityId, StringComparison.Ordinal) &&
+            string.Equals(_appliedActivityNodeId, activityNodeId, StringComparison.Ordinal);
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
