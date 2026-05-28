@@ -4,34 +4,32 @@
 }
 else
 {
-    <MudPaper Elevation="0" Outlined="true" Class="elsa-otel-span-details" aria-label="Span details">
+    <MudPaper Elevation="0" Outlined="false" Class="pa-3" Style="border-radius: 8px; background: #f8fafc;" aria-label="Span details">
         <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween" Spacing="2" Class="mb-3">
             <MudText Typo="Typo.subtitle1">@Span.Name</MudText>
             <MudChip T="string" Size="Size.Small" Color="@StatusColor">@Span.Status</MudChip>
         </MudStack>
-        <dl>
-            <dt>Span ID</dt>
-            <dd class="elsa-otel-mono">@Span.SpanId</dd>
-            <dt>Parent Span ID</dt>
-            <dd class="elsa-otel-mono">@(Span.ParentSpanId ?? "-")</dd>
-            <dt>Kind</dt>
-            <dd>@Span.Kind</dd>
-            <dt>Started</dt>
-            <dd>@FormatTime(Span.StartTime)</dd>
-            <dt>Duration</dt>
-            <dd>@FormatDuration(Span.EndTime - Span.StartTime)</dd>
-        </dl>
+        <MudSimpleTable Dense="true" Hover="false">
+            <tbody>
+            <tr><th>Span ID</th><td class="elsa-otel-mono">@Span.SpanId</td></tr>
+            <tr><th>Parent Span ID</th><td class="elsa-otel-mono">@(Span.ParentSpanId ?? "-")</td></tr>
+            <tr><th>Kind</th><td>@Span.Kind</td></tr>
+            <tr><th>Started</th><td>@FormatTime(Span.StartTime)</td></tr>
+            <tr><th>Duration</th><td>@FormatDuration(Span.EndTime - Span.StartTime)</td></tr>
+            </tbody>
+        </MudSimpleTable>
 
         @if (Span.Attributes.Count > 0)
         {
-            <h3>Attributes</h3>
-            <dl>
+            <MudText Typo="Typo.subtitle2" Class="mt-3 mb-2">Attributes</MudText>
+            <MudSimpleTable Dense="true" Hover="false">
+                <tbody>
                 @foreach (var item in Span.Attributes.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
                 {
-                    <dt>@item.Key</dt>
-                    <dd class="elsa-otel-mono">@item.Value</dd>
+                    <tr><th>@item.Key</th><td class="elsa-otel-mono">@item.Value</td></tr>
                 }
-            </dl>
+                </tbody>
+            </MudSimpleTable>
         }
     </MudPaper>
 }

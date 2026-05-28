@@ -2,16 +2,16 @@
 
 @if (Items.Count == 0)
 {
-    <div class="elsa-otel-state">No spans available for this trace.</div>
+    <MudAlert Severity="Severity.Normal" Variant="Variant.Text">No spans available for this trace.</MudAlert>
 }
 else
 {
-    <div class="elsa-otel-waterfall" role="list" aria-label="Trace spans">
+    <div style="border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; display: grid; gap: 6px; min-width: 320px; overflow-x: auto; padding: 12px;" role="list" aria-label="Trace spans">
         @foreach (var item in Items)
         {
-            <button type="button" class="@ItemClass(item)" style="@ItemStyle(item)" @onclick="() => SelectSpan(item.Span)" role="listitem">
-                <span class="elsa-otel-waterfall-name">@item.Span.Name</span>
-                <span class="elsa-otel-waterfall-duration">@FormatDuration(item.Span.EndTime - item.Span.StartTime)</span>
+            <button type="button" style="@ItemStyle(item)" @onclick="() => SelectSpan(item.Span)" role="listitem">
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.Span.Name</span>
+                <span style="color: var(--mud-palette-text-secondary); flex: 0 0 auto;">@FormatDuration(item.Span.EndTime - item.Span.StartTime)</span>
             </button>
         }
     </div>
@@ -30,16 +30,16 @@ else
             await SelectedSpanChanged.InvokeAsync(span);
     }
 
-    private string ItemClass(TraceWaterfallItem item)
+    private string ItemStyle(TraceWaterfallItem item)
     {
-        var selected = item.Span.SpanId == SelectedSpan?.SpanId ? " elsa-otel-waterfall-item-selected" : "";
-        var status = item.Span.Status == SpanStatus.Error ? " elsa-otel-waterfall-item-error" : "";
-        return $"elsa-otel-waterfall-item{selected}{status}";
-    }
-
-    private static string ItemStyle(TraceWaterfallItem item)
-    {
-        return $"--depth:{item.Depth};--offset:{item.OffsetPercent:0.###}%;--width:{item.WidthPercent:0.###}%";
+        var background = item.Span.Status == SpanStatus.Error
+            ? "color-mix(in srgb, var(--mud-palette-error) 12%, var(--mud-palette-surface))"
+            : "color-mix(in srgb, var(--mud-palette-primary) 12%, var(--mud-palette-surface))";
+        var border = item.Span.Status == SpanStatus.Error
+            ? "color-mix(in srgb, var(--mud-palette-error) 36%, transparent)"
+            : "color-mix(in srgb, var(--mud-palette-primary) 32%, transparent)";
+        var outline = item.Span.SpanId == SelectedSpan?.SpanId ? "outline: 2px solid var(--mud-palette-primary);" : "";
+        return $"background: {background}; border: 1px solid {border}; border-radius: 6px; color: inherit; cursor: pointer; display: flex; gap: 12px; justify-content: space-between; margin-left: calc({item.OffsetPercent:0.###}% + ({item.Depth} * 12px)); min-height: 32px; padding: 6px 10px; text-align: left; width: max({item.WidthPercent:0.###}%, 112px); {outline}";
     }
 
     private static string FormatDuration(TimeSpan duration) => duration.TotalMilliseconds >= 1000
