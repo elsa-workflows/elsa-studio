@@ -22,6 +22,7 @@ export function getActivityDisplayName(activityId) {
     if (!activityId || typeof document === 'undefined') return null;
     const host = document.querySelector(`[data-node-id="${CSS.escape(activityId)}"]`);
     if (!host) return activityId;
-    const text = host.textContent?.trim();
+    const label = host.querySelector('.activity-label');
+    const text = label?.textContent?.replace(/\s+/g, ' ').trim();
     return text && text.length > 0 ? text : activityId;
 }
