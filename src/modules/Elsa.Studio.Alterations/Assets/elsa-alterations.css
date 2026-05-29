@@ -674,7 +674,7 @@
  * ============================================================================ */
 
 .elsa-alt-submit-dialog .mud-dialog-content {
-    min-width: 600px;
+    min-width: min(600px, 100%);
     max-width: 800px;
 }
 
