@@ -6,7 +6,9 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Constants;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -51,6 +53,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
     [Inject] private IOptions<WorkflowInstanceListPollingOptions> PollingOptions { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = default!;
 
     /// <summary>
     /// Invoked when the "Ctrl+R" hotkeys are pressed, triggering the refresh operation.
@@ -73,6 +76,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private bool EnablePolling { get; set; }
     private bool? HasIncidents { get; set; }
     private bool IsDateRangePopoverOpen { get; set; }
+    private bool IsAlterationsEnabled { get; set; }
 
     private void Reload() => _table.ReloadServerData();
     private async Task ViewAsync(string instanceId) => await ViewWorkflowInstance.InvokeAsync(instanceId);
@@ -86,6 +90,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     protected override async Task OnInitializedAsync()
     {
         EnablePolling = PollingOptions.Value.IsEnabledByDefault;
+        IsAlterationsEnabled = await RemoteFeatureProvider.IsEnabledOrDefaultAsync(RemoteFeatureNames.Alterations);
         _loadWorkflowsTask = LoadWorkflowDefinitionsAsync();
     }
 
