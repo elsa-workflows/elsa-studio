@@ -1,0 +1,72 @@
+.elsa-otel-page-shell {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--mud-appbar-height));
+    min-height: 0;
+    overflow: hidden;
+}
+
+.elsa-otel-fixed-section {
+    flex: 0 0 auto;
+}
+
+.elsa-otel-tabs-paper {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.elsa-otel-tabs {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.elsa-otel-tabs > .mud-tabs-tabbar,
+.elsa-otel-tabs > .mud-tabs-toolbar {
+    flex: 0 0 auto;
+}
+
+.elsa-otel-tabs > .mud-tabs-panels {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.elsa-otel-tabs .mud-tab-panel {
+    min-width: fit-content;
+}
+
+.elsa-otel-table-card {
+    border-radius: 8px;
+    min-width: 100%;
+}
+
+.elsa-otel-table-card .mud-table-container {
+    overflow: visible;
+}
+
+.elsa-otel-table-card table {
+    min-width: 900px;
+}
+
+.elsa-otel-table-card th,
+.elsa-otel-table-card td {
+    vertical-align: top;
+}
+
+@media (max-height: 760px) {
+    .elsa-otel-page-shell {
+        padding-bottom: 16px !important;
+        padding-top: 16px !important;
+    }
+
+    .elsa-otel-page-shell > .elsa-otel-fixed-section {
+        margin-bottom: 12px !important;
+    }
+}
