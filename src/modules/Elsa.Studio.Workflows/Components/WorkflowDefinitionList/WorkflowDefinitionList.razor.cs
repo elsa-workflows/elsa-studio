@@ -45,6 +45,17 @@ public partial class WorkflowDefinitionList
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
     private string ReadonlyWorkflowsExcluded => Localizer["The read-only workflows will not be affected."];
+    private IDictionary<string, object?> WorkflowDefinitionListBulkActionAttributes => new Dictionary<string, object?>
+    {
+        ["DefinitionIds"] = _selectedRows.Select(x => x.DefinitionId).ToList(),
+        ["Disabled"] = IsReadOnlyMode || !(_selectedRows?.Any() ?? false)
+    };
+
+    private IDictionary<string, object?> GetWorkflowDefinitionListRowActionAttributes(WorkflowDefinitionRow row) => new Dictionary<string, object?>
+    {
+        ["DefinitionIds"] = new[] { row.DefinitionId },
+        ["Disabled"] = IsReadOnlyMode || row.IsReadOnlyMode
+    };
 
     private async Task<TableData<WorkflowDefinitionRow>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
