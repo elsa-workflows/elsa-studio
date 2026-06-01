@@ -1,4 +1,16 @@
+using System.Text.Json.Serialization;
+
 namespace Elsa.Studio.Secrets.Models;
+
+public static class SecretInputUIHints
+{
+    public const string SecretPicker = "secret-picker";
+}
+
+public static class SecretExpressionTypes
+{
+    public const string Secret = "Secret";
+}
 
 public enum SecretStatus
 {
@@ -50,6 +62,8 @@ public class SecretModel
     public DateTimeOffset? UpdatedAt { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
 }
+
+public record SecretReference(string Name, string? TypeName = null, string? Scope = null);
 
 public class CreateSecretRequest
 {
@@ -109,6 +123,14 @@ public class SecretPickerRequest
     public bool ActiveOnly { get; set; } = true;
 }
 
+public class SecretPickerOptions
+{
+    public ICollection<string> TypeNames { get; set; } = [];
+    public ICollection<string> StoreNames { get; set; } = [];
+    public string? Scope { get; set; }
+    public bool AllowInlineCreate { get; set; } = true;
+}
+
 public class SecretPickerResponse
 {
     public ICollection<SecretModel> Items { get; set; } = [];
@@ -120,3 +142,8 @@ public class SecretTestResponse
     public bool Succeeded { get; set; }
     public string? Error { get; set; }
 }
+
+[JsonSerializable(typeof(SecretPickerOptions))]
+[JsonSerializable(typeof(SecretReference))]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)]
+internal partial class SecretJsonSerializerContext : JsonSerializerContext;
