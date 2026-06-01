@@ -87,9 +87,6 @@ builder.Services.AddOpenIdConnectAuth(options =>
     options.CallbackPath = "/authentication/login-callback"; // Default
     options.SignedOutCallbackPath = "/authentication/logout-callback"; // Default
 
-    // Optional: Absolute redirect URIs (only if AppBaseUrl is set)
-    options.AppBaseUrl = "https://your-app.com"; // Only needed for absolute URIs
-
     // Discovery
     options.MetadataAddress = "https://.../.well-known/openid-configuration"; // Auto-discovered if not set
 });
@@ -119,7 +116,7 @@ builder.Services.AddOpenIdConnectAuth(options =>
 - Use tenant-specific authority (not `/common` for production)
 - Register your app as a "Single Page Application" (SPA) in Azure AD
 - Add redirect URI: `https://your-app.com/authentication/login-callback`
-- Enable "Access tokens" and "ID tokens" under "Implicit grant and hybrid flows"
+- Do not configure a client secret for the SPA client
 - **Only include scopes for ONE resource** - Azure AD limitation (don't mix Graph scopes with custom API scopes)
 - For userinfo endpoint issues, see troubleshooting section below
 
@@ -264,23 +261,34 @@ Or use the `NavigateToLogin` component provided by this module:
 ### Complete Setup Example
 
 ```csharp
+using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
+using Elsa.Studio.Core.BlazorWasm.Extensions;
+using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
+using Elsa.Studio.Shell.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-
-// Add Elsa Studio services
-builder.Services.AddElsaStudio(elsa =>
-{
-    elsa.AddBackend(backend => backend.Url = "https://your-elsa-api.com");
-});
 
 // Add OpenID Connect authentication
 builder.Services.AddOpenIdConnectAuth(options =>
 {
     options.Authority = "https://login.microsoftonline.com/{tenant-id}/v2.0";
     options.ClientId = "{client-id}";
-    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access", "api://your-api/scope" };
+    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
+    options.BackendApiScopes = new[] { "api://your-api/scope" };
 });
+
+// Configure the Elsa backend HTTP client to use OIDC tokens.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => options.Url = new("https://your-elsa-api.com/elsa/api"),
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler)
+};
+
+builder.Services.AddCore();
+builder.Services.AddShell();
+builder.Services.AddRemoteBackend(backendApiConfig);
 
 await builder.Build().RunAsync();
 ```
@@ -327,10 +335,7 @@ If you need both Graph and custom API tokens, configure them separately:
 options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
 
 // Backend API scopes (for Elsa API calls)
-builder.Services.Configure<BackendApiScopeOptions>(backendOptions =>
-{
-    backendOptions.Scopes = new[] { "api://your-api/elsa-server-api" };
-});
+options.BackendApiScopes = new[] { "api://your-api/elsa-server-api" };
 ```
 
 ### Azure AD: UserInfo endpoint returns 401
@@ -341,7 +346,7 @@ builder.Services.Configure<BackendApiScopeOptions>(backendOptions =>
 
 **Solution 1 - Disable UserInfo endpoint (recommended):**
 
-The existing README for `Elsa.Studio.Authentication.OpenIdConnect` mentions setting `GetClaimsFromUserInfoEndpoint = false`, but this property doesn't exist in `OidcOptions` for Blazor WebAssembly (it's only available in Blazor Server).
+The shared `OidcOptions` model has `GetClaimsFromUserInfoEndpoint`, but the Blazor WebAssembly module relies on Microsoft's `Microsoft.AspNetCore.Components.WebAssembly.Authentication` pipeline and does not use that server-side OIDC handler option.
 
 For WASM, claims are automatically included in the ID token, so you typically don't need the UserInfo endpoint.
 
@@ -413,10 +418,8 @@ For Azure AD specifically, redirect URIs must be absolute:
 options.CallbackPath = "/authentication/login-callback";
 // Framework will use current origin: https://your-app.com/authentication/login-callback
 
-// Option 2: Set AppBaseUrl explicitly (only if needed)
-options.AppBaseUrl = "https://your-app.com";
-options.CallbackPath = "/authentication/login-callback";
-// Results in: https://your-app.com/authentication/login-callback
+// Register the exact absolute URI in your identity provider:
+// https://your-app.com/authentication/login-callback
 ```
 
 ## Security Considerations
