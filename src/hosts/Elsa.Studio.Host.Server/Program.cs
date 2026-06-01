@@ -117,7 +117,7 @@ builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioB
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
 
-builder.Services.AddDashboardModule();
+builder.Services.AddDashboardModule(backendApiConfig);
 builder.Services.AddWorkflowsModule();
 builder.Services.AddAlterationsModule();
 builder.Services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);
