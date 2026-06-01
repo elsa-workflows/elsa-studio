@@ -55,7 +55,6 @@ public class SecretModel
     public string TypeName { get; set; } = default!;
     public string StoreName { get; set; } = default!;
     public string? Scope { get; set; }
-    public ICollection<string> Tags { get; set; } = [];
     public SecretStatus Status { get; set; }
     public int? CurrentVersion { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
@@ -73,7 +72,6 @@ public class CreateSecretRequest
     public string TypeName { get; set; } = SecretTypeNames.Text;
     public string StoreName { get; set; } = SecretStoreNames.Encrypted;
     public string? Scope { get; set; }
-    public ICollection<string> Tags { get; set; } = [];
     public string? Value { get; set; }
     public string? ConfigurationKey { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
