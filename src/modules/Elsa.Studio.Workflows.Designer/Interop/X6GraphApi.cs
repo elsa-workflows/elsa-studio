@@ -101,6 +101,18 @@ public class X6GraphApi
     }
 
     /// <summary>
+    /// Sets the Sequence layout orientation on constrained graph designers.
+    /// </summary>
+    public async Task SetSequenceOrientationAsync(string orientation) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("setX6SequenceOrientation", _containerId, orientation));
+
+    /// <summary>
+    /// Moves the selected Sequence activity earlier or later.
+    /// </summary>
+    public async Task MoveSelectedSequenceNodeAsync(int direction) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("moveSelectedX6SequenceNode", _containerId, direction));
+
+    /// <summary>
     /// Updates the node with the specified activity. 
     /// </summary>
     /// <param name="activity">The activity.</param>

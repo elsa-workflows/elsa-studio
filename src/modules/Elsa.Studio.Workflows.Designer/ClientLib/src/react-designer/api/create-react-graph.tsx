@@ -35,6 +35,7 @@ export async function createReactGraph(
         centerContent: () => handleRef.current?.centerContent(),
         readGraph: () => handleRef.current?.readGraph() ?? { nodes: [], edges: [] },
         setSequenceOrientation: (orientation) => handleRef.current?.setSequenceOrientation(orientation),
+        moveSelectedSequenceNode: (direction) => handleRef.current?.moveSelectedSequenceNode(direction),
         addNode: (node, dropPagePosition) => handleRef.current?.addNode(node, dropPagePosition),
         updateNode: (node) => handleRef.current?.updateNode(node),
         updateNodeStats: (activityId, stats) => handleRef.current?.updateNodeStats(activityId, stats),
