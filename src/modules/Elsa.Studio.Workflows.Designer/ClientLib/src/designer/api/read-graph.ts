@@ -3,8 +3,9 @@ import {graphBindings} from "./graph-bindings";
 
 export function readGraph(graphId: string): {
     cells: Cell.Properties[];
+    layoutOrientation?: string;
 } {
-    const {graph} = graphBindings[graphId];
+    const {graph, layoutOrientation} = graphBindings[graphId];
     const model = graph.toJSON();
     
     // Filter out edges that don't have both a star and end node.
@@ -23,6 +24,7 @@ export function readGraph(graphId: string): {
         
         return false;
     });
-    
+
+    (model as any).layoutOrientation = layoutOrientation;
     return model;
 }

@@ -14,30 +14,33 @@ using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Args;
-using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using MudBlazor.Utilities;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
 
 /// <summary>
-/// A constrained React Flow designer for Sequence activities.
+/// A constrained X6 designer for Sequence activities.
 /// </summary>
-public partial class SequenceFlowDesigner : IAsyncDisposable
+public partial class SequenceDesigner : IDisposable, IAsyncDisposable
 {
-    private readonly string _containerId = $"sequence-rf-container-{Guid.NewGuid():N}";
+    private readonly string _containerId = $"sequence-container-{Guid.NewGuid():N}";
+    private readonly PendingActionsQueue _pendingGraphActions;
     private readonly RateLimitedFunc<Task> _rateLimitedLoadSequenceAction;
-    private DotNetObjectReference<SequenceFlowDesigner>? _componentRef;
+    private DotNetObjectReference<SequenceDesigner>? _componentRef;
     private ISequenceMapper? _sequenceMapper;
-    private ReactFlowGraphApi? _graphApi;
     private JsonObject? _sequence;
     private IDictionary<string, ActivityStats>? _activityStats;
+    private X6GraphApi _graphApi = null!;
 
-    public SequenceFlowDesigner()
+    public SequenceDesigner()
     {
+        _pendingGraphActions = new(() => new(_graphApi != null!), () => Logger);
         _rateLimitedLoadSequenceAction = Debouncer.Debounce(
             async () => await InvokeAsync(async () => await LoadSequenceAsync(Sequence, ActivityStats)),
             TimeSpan.FromMilliseconds(100));
@@ -53,12 +56,13 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     [Parameter] public EventCallback CanvasSelected { get; set; }
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
-    [Inject] private ReactFlowJsInterop JsInterop { get; set; } = null!;
+    [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = null!;
+    [Inject] private IThemeService ThemeService { get; set; } = null!;
     [Inject] private IMapperFactory MapperFactory { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
-    [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
+    [Inject] private ILogger<SequenceDesigner> Logger { get; set; } = null!;
 
     [JSInvokable]
     public async Task HandleActivitySelected(JsonObject activity)
@@ -98,8 +102,6 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     [JSInvokable]
     public async Task HandlePasteCellsRequested(X6ActivityNode[] activityNodes, X6Edge[] edges)
     {
-        if (_graphApi is null) return;
-
         var allActivities = Sequence.GetActivities().ToList();
         var container = Sequence;
 
@@ -115,7 +117,7 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
             allActivities.Add(activity);
         }
 
-        await _graphApi.PasteCellsAsync(activityNodes, []);
+        await ScheduleGraphActionAsync(() => _graphApi.PasteCellsAsync(activityNodes, []));
     }
 
     public async Task LoadSequenceAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
@@ -125,135 +127,84 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         _sequence = activity;
         _activityStats = activityStats;
 
-        if (_graphApi is null) return;
-
         var mapper = await GetSequenceMapperAsync();
         var graph = mapper.Map(activity, activityStats);
-        await _graphApi.LoadGraphAsync(graph);
+        await ScheduleGraphActionAsync(() => _graphApi.LoadGraphAsync(graph));
     }
 
     public async Task<JsonObject> ReadSequenceAsync()
     {
-        if (_graphApi is null) return Sequence;
-
         var serializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        var data = await _graphApi.ReadGraphAsync();
-        var cells = data.GetProperty("cells").EnumerateArray();
-        var nodes = cells.Where(x => x.TryGetProperty("shape", out var shape) && shape.GetString() == "elsa-activity")
-            .Select(x => x.Deserialize<X6ActivityNode>(serializerOptions)!)
-            .ToList();
-        var graph = new X6Graph(nodes, [])
+
+        return await ScheduleGraphActionAsync(async () =>
         {
-            LayoutOrientation = data.TryGetProperty("layoutOrientation", out var orientation) ? orientation.GetString() : null
-        };
-        var mapper = await GetSequenceMapperAsync();
-        return mapper.Map(Sequence, graph);
-    }
-
-    public async Task ZoomToFitAsync()
-    {
-        if (_graphApi is not null)
-            await _graphApi.ZoomToFitAsync();
-    }
-
-    public async Task CenterContentAsync()
-    {
-        if (_graphApi is not null)
-            await _graphApi.CenterContentAsync();
-    }
-
-    public async Task AutoLayoutAsync()
-    {
-        if (_graphApi is not null)
-            await _graphApi.AutoLayoutAsync();
-    }
-
-    public async Task SetLayoutOrientationAsync(string orientation)
-    {
-        if (_graphApi is not null)
-            await _graphApi.SetSequenceOrientationAsync(orientation);
-    }
-
-    public async Task MoveSelectedActivityAsync(int direction)
-    {
-        if (_graphApi is not null)
-            await _graphApi.MoveSelectedSequenceNodeAsync(direction);
-    }
-
-    public async Task SelectActivityAsync(string id)
-    {
-        if (_graphApi is not null)
-            await _graphApi.SelectActivityAsync(id);
-    }
-
-    public async Task UpdateActivityAsync(string id, JsonObject activity)
-    {
-        if (_graphApi is null) return;
-        var mapper = await MapperFactory.CreateActivityMapperAsync();
-        var node = mapper.MapActivity(activity);
-        await _graphApi.UpdateActivityAsync(node);
-        await NotifyActivityUpdatedAsync(activity);
-    }
-
-    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats)
-    {
-        if (_graphApi is not null)
-            await _graphApi.UpdateActivityStatsAsync(activityId, stats);
+            var data = await _graphApi.ReadGraphAsync();
+            var cells = data.GetProperty("cells").EnumerateArray();
+            var nodes = cells.Where(x => x.TryGetProperty("shape", out var shape) && shape.GetString() == "elsa-activity")
+                .Select(x => x.Deserialize<X6ActivityNode>(serializerOptions)!)
+                .ToList();
+            var graph = new X6Graph(nodes, [])
+            {
+                LayoutOrientation = data.TryGetProperty("layoutOrientation", out var orientation) ? orientation.GetString() : null
+            };
+            var mapper = await GetSequenceMapperAsync();
+            return mapper.Map(Sequence, graph);
+        });
     }
 
     public async Task AddActivityAsync(JsonObject activity)
     {
-        if (_graphApi is null) return;
         var mapper = await MapperFactory.CreateActivityMapperAsync();
         var node = mapper.MapActivity(activity);
-        await _graphApi.AddActivityNodeAsync(node);
+        await ScheduleGraphActionAsync(() => _graphApi.AddActivityNodeAsync(node));
     }
 
-    [JSInvokable]
-    public async Task<IList<ActivityDescriptorDto>> GetAvailableActivities()
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
-        await ActivityRegistry.EnsureLoadedAsync();
-        return ActivityRegistry.ListBrowsable().Select(d =>
-        {
-            var settings = ActivityDisplaySettingsRegistry.GetSettings(d.TypeName);
-            return new ActivityDescriptorDto(
-                d.TypeName,
-                d.Version,
-                d.Name,
-                d.DisplayName ?? d.Name,
-                d.Category,
-                d.Description,
-                settings.Color,
-                settings.Icon);
-        })
-        .OrderBy(d => d.Category)
-        .ThenBy(d => d.DisplayName)
-        .ToList();
+        await ScheduleGraphActionAsync(() => _graphApi.UpdateActivityAsync(activity));
+
+        if (ActivityUpdated.HasDelegate)
+            await ActivityUpdated.InvokeAsync(activity);
     }
 
-    [JSInvokable]
-    public async Task<JsonObject?> AddActivityAtPosition(string typeName, int version, double x, double y)
+    public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) =>
+        await ScheduleGraphActionAsync(() => DesignerJsInterop.UpdateActivityStatsAsync($"activity-{activityId}", activityId, stats));
+
+    public async Task SelectActivityAsync(string id) =>
+        await ScheduleGraphActionAsync(() => _graphApi.SelectActivityAsync(id));
+
+    public async Task ZoomToFitAsync() =>
+        await ScheduleGraphActionAsync(() => _graphApi.ZoomToFitAsync());
+
+    public async Task CenterContentAsync() =>
+        await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
+
+    public async Task AutoLayoutAsync()
     {
-        if (_graphApi is null) return null;
-
-        await ActivityRegistry.EnsureLoadedAsync();
-        var descriptor = ActivityRegistry.Find(typeName, version);
-        if (descriptor == null) return null;
-
-        var newActivity = SequenceActivityFactory.CreateActivity(Sequence, descriptor, IdentityGenerator, ActivityNameGenerator, x, y);
-        await AddActivityAsync(newActivity);
-        await NotifyActivityUpdatedAsync(newActivity);
-        return newActivity;
+        var mapper = await GetSequenceMapperAsync();
+        var graph = mapper.Map(Sequence, ActivityStats);
+        await ScheduleGraphActionAsync(() => _graphApi.AutoLayoutAsync(graph));
     }
 
-    protected override void OnInitialized() => _sequence = Sequence;
+    public async Task SetLayoutOrientationAsync(string orientation) =>
+        await ScheduleGraphActionAsync(() => _graphApi.SetSequenceOrientationAsync(orientation));
+
+    public async Task MoveSelectedActivityAsync(int direction) =>
+        await ScheduleGraphActionAsync(() => _graphApi.MoveSelectedSequenceNodeAsync(direction));
+
+    protected override void OnInitialized()
+    {
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+        _sequence = Sequence;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
         _componentRef = DotNetObjectReference.Create(this);
-        _graphApi = await JsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly, "sequence");
+        _graphApi = await DesignerJsInterop.CreateGraphAsync(_containerId, _componentRef, IsReadOnly, "sequence");
+        await _pendingGraphActions.ProcessAsync();
         await LoadSequenceAsync(Sequence, ActivityStats);
     }
 
@@ -280,11 +231,11 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
     private async Task<ISequenceMapper> GetSequenceMapperAsync() =>
         _sequenceMapper ??= await MapperFactory.CreateSequenceMapperAsync();
 
-    private async Task NotifyActivityUpdatedAsync(JsonObject activity)
-    {
-        if (ActivityUpdated.HasDelegate)
-            await ActivityUpdated.InvokeAsync(activity);
-    }
+    private async Task ScheduleGraphActionAsync(Func<Task> action) =>
+        await _pendingGraphActions.EnqueueAsync(action);
+
+    private async Task<T> ScheduleGraphActionAsync<T>(Func<Task<T>> action) =>
+        await _pendingGraphActions.EnqueueAsync(action);
 
     private void GenerateNewActivityIds(JsonObject container)
     {
@@ -325,11 +276,24 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    private async void OnDarkModeChanged()
     {
-        if (_graphApi is not null)
+        var palette = ThemeService.CurrentPalette;
+        var gridColor = palette.BackgroundGray;
+        await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA)));
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_graphApi != null!)
             await _graphApi.DisposeGraphAsync();
 
+        ((IDisposable)this).Dispose();
+    }
+
+    void IDisposable.Dispose()
+    {
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
         _componentRef?.Dispose();
     }
 }
