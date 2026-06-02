@@ -62,44 +62,25 @@
     }
     else
     {
-        var overview = _snapshot.Overview;
-        var metrics = overview.WorkflowInstances;
-
-        <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Running" Value="@DashboardMetricFormatter.Count(metrics.Running)" Caption="Current active instances" Icon="@Icons.Material.Outlined.PlayCircle" Color="Color.Info" Href="@DashboardNavigationTargetMapper.ForMetric("running")" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Completed" Value="@DashboardMetricFormatter.Count(metrics.Completed)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Faulted" Value="@DashboardMetricFormatter.Count(metrics.Faulted)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.ErrorOutline" Color="@(metrics.Faulted > 0 ? Color.Error : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("faulted")" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Suspended" Value="@DashboardMetricFormatter.Count(metrics.Suspended)" Caption="Current suspended instances" Icon="@Icons.Material.Outlined.PauseCircle" Color="@(metrics.Suspended > 0 ? Color.Warning : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("suspended")" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Avg duration" Value="@DashboardMetricFormatter.Duration(metrics.AverageDuration)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.Timer" Color="Color.Default" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4" lg="2">
-                <DashboardMetricCard Label="Needs attention" Value="@DashboardMetricFormatter.Count(_snapshot.NeedsAttention.Findings.Count)" Caption="Prioritized findings" Icon="@Icons.Material.Outlined.ReportProblem" Color="@(_snapshot.NeedsAttention.Findings.Count > 0 ? Color.Warning : Color.Success)" />
-            </MudItem>
-        </MudGrid>
+        <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Metrics)" Context="@WidgetContext" />
 
         <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
             <MudItem xs="12" lg="4">
-                <DashboardNeedsAttention Items="@_snapshot.NeedsAttention.Findings" Capability="@_snapshot.NeedsAttention.Capability" />
+                <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Findings)" Context="@WidgetContext" />
             </MudItem>
             <MudItem xs="12" lg="8">
-                <DashboardTrendChart Response="@_snapshot.Trend" Loading="@_loading" />
+                <MudStack Spacing="2">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.PrimaryPanels)" Context="@WidgetContext" />
+                </MudStack>
             </MudItem>
             <MudItem xs="12" lg="8">
-                <DashboardRecentActivityTable Items="@_snapshot.RecentActivity.Items" />
+                <MudStack Spacing="2">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.DiagnosticsStatus)" Context="@WidgetContext" />
+                </MudStack>
             </MudItem>
             <MudItem xs="12" lg="4">
                 <MudStack Spacing="2">
-                    <DashboardDiagnosticsSnapshot Summary="@overview.Diagnostics" />
-                    <DashboardWorkflowHotspotsPanel Response="@_snapshot.Hotspots" />
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.SecondaryPanels)" Context="@WidgetContext" />
                 </MudStack>
             </MudItem>
         </MudGrid>

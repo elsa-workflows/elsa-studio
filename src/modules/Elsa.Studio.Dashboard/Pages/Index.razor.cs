@@ -1,5 +1,6 @@
 using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
+using Elsa.Studio.Dashboard.Widgets;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -16,6 +17,18 @@ public partial class Index : IAsyncDisposable
     private DateTimeOffset? _lastRefreshedAt;
 
     [Inject] private IDashboardService DashboardService { get; set; } = null!;
+    [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    private DashboardWidgetContext WidgetContext => new(
+        _selectedRange,
+        _loading,
+        _lastRefreshedAt,
+        _status,
+        _message,
+        _snapshot,
+        RefreshAsync,
+        NavigationManager);
 
     private string BackendLabel
     {
@@ -54,6 +67,13 @@ public partial class Index : IAsyncDisposable
         DashboardLoadStatus.Loaded => Severity.Info,
         _ => Severity.Error
     };
+
+    private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
+        Widgets
+            .Where(x => x.Zone == zone && x.IsVisible(WidgetContext))
+            .OrderBy(x => x.Order)
+            .ThenBy(x => x.Id, StringComparer.Ordinal)
+            .ToList();
 
     protected override async Task OnInitializedAsync()
     {
