@@ -1,7 +1,7 @@
 @inject NavigationManager NavigationManager
 
-<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header">
+<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section" Style="@DashboardStyles.Panel">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
         <MudText Typo="Typo.subtitle1">Recent workflow activity</MudText>
         <MudText Typo="Typo.caption" Class="dashboard-muted">@Items.Count item(s)</MudText>
     </MudStack>

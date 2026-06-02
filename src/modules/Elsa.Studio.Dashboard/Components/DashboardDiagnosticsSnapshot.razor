@@ -1,12 +1,12 @@
-<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header">
+<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section" Style="@DashboardStyles.Panel">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
         <MudText Typo="Typo.subtitle1">Diagnostics snapshot</MudText>
         <MudIcon Icon="@Icons.Material.Outlined.MonitorHeart" Size="Size.Small" />
     </MudStack>
 
     <MudGrid Spacing="2">
-        <MudItem xs="12" md="6">
-            <div class="dashboard-diagnostics-block">
+        <MudItem xs="12">
+            <div class="dashboard-diagnostics-block" style="@DashboardStyles.DiagnosticsBlock">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <MudText Typo="Typo.overline">Structured logs</MudText>
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DashboardUiMapper.CapabilityColor(Summary.StructuredLogs.Capability)">
@@ -20,8 +20,8 @@
                 <MudButton Href="@DashboardNavigationTargetMapper.StructuredLogs" Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.OpenInNew">Open logs</MudButton>
             </div>
         </MudItem>
-        <MudItem xs="12" md="6">
-            <div class="dashboard-diagnostics-block">
+        <MudItem xs="12">
+            <div class="dashboard-diagnostics-block" style="@DashboardStyles.DiagnosticsBlock">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <MudText Typo="Typo.overline">Console</MudText>
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DashboardUiMapper.CapabilityColor(Summary.ConsoleLogs.Capability)">

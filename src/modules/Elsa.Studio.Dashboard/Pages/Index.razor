@@ -4,8 +4,8 @@
 
 <PageTitle>@Localizer["Dashboard"]</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False" Class="dashboard-shell">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-header" Spacing="3">
+<MudContainer MaxWidth="MaxWidth.False" Class="dashboard-shell" Style="@DashboardStyles.Shell">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-header" Spacing="3" Style="@DashboardStyles.Header">
         <MudStack Spacing="1">
             <MudText Typo="Typo.h4">Dashboard</MudText>
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
@@ -54,7 +54,7 @@
     }
     else if (_snapshot == null)
     {
-        <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-empty-state">
+        <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-empty-state" Style="@DashboardStyles.EmptyPanel">
             <MudIcon Icon="@Icons.Material.Outlined.DashboardCustomize" Color="Color.Default" />
             <MudText Typo="Typo.h6">@StatusLabel</MudText>
             <MudText Typo="Typo.body2" Class="dashboard-muted">@(_message ?? "Dashboard data is unavailable from the selected backend.")</MudText>
@@ -65,28 +65,28 @@
         var overview = _snapshot.Overview;
         var metrics = overview.WorkflowInstances;
 
-        <MudGrid Spacing="2" Class="dashboard-metrics">
-            <MudItem xs="12" sm="6" md="4" xl="2">
+        <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Running" Value="@DashboardMetricFormatter.Count(metrics.Running)" Caption="Current active instances" Icon="@Icons.Material.Outlined.PlayCircle" Color="Color.Info" Href="@DashboardNavigationTargetMapper.ForMetric("running")" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="4" xl="2">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Completed" Value="@DashboardMetricFormatter.Count(metrics.Completed)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="4" xl="2">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Faulted" Value="@DashboardMetricFormatter.Count(metrics.Faulted)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.ErrorOutline" Color="@(metrics.Faulted > 0 ? Color.Error : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("faulted")" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="4" xl="2">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Suspended" Value="@DashboardMetricFormatter.Count(metrics.Suspended)" Caption="Current suspended instances" Icon="@Icons.Material.Outlined.PauseCircle" Color="@(metrics.Suspended > 0 ? Color.Warning : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("suspended")" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="4" xl="2">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Avg duration" Value="@DashboardMetricFormatter.Duration(metrics.AverageDuration)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.Timer" Color="Color.Default" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="4" xl="2">
+            <MudItem xs="12" sm="6" md="4" lg="2">
                 <DashboardMetricCard Label="Needs attention" Value="@DashboardMetricFormatter.Count(_snapshot.NeedsAttention.Findings.Count)" Caption="Prioritized findings" Icon="@Icons.Material.Outlined.ReportProblem" Color="@(_snapshot.NeedsAttention.Findings.Count > 0 ? Color.Warning : Color.Success)" />
             </MudItem>
         </MudGrid>
 
-        <MudGrid Spacing="2" Class="mt-1">
+        <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
             <MudItem xs="12" lg="4">
                 <DashboardNeedsAttention Items="@_snapshot.NeedsAttention.Findings" Capability="@_snapshot.NeedsAttention.Capability" />
             </MudItem>

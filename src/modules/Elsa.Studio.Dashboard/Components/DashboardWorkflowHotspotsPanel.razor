@@ -1,7 +1,7 @@
 @if (Response != null)
 {
-    <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header">
+    <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section" Style="@DashboardStyles.Panel">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
             <MudText Typo="Typo.subtitle1">Workflow hotspots</MudText>
             <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@Response.Metric</MudChip>
         </MudStack>
