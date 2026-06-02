@@ -15,6 +15,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Diagnostics.ConsoleLogs\Elsa.Studio.Diagnostics.ConsoleLogs.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Diagnostics.StructuredLogs\Elsa.Studio.Diagnostics.StructuredLogs.csproj" />
+        <ProjectReference Include="..\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
     </ItemGroup>
 
 </Project>

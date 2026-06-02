@@ -1,6 +1,6 @@
 namespace Elsa.Studio.Dashboard.Components;
 
-internal static class DashboardStyles
+public static class DashboardStyles
 {
     public const string Shell = "min-height:100%; padding:20px 24px 28px; background:#f6f8fb;";
     public const string Header = "gap:12px 16px; margin-bottom:14px;";

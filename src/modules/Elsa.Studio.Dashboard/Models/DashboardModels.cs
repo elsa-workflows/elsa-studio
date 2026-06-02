@@ -185,6 +185,15 @@ public record DashboardLoadResult(DashboardLoadStatus Status, DashboardSnapshot?
     public static DashboardLoadResult Failed(string message) => new(DashboardLoadStatus.Failed, null, message);
 }
 
+public record DashboardLoadResult<T>(DashboardLoadStatus Status, T? Value = default, string? Message = null)
+{
+    public static DashboardLoadResult<T> Loaded(T value) => new(DashboardLoadStatus.Loaded, value);
+    public static DashboardLoadResult<T> Unavailable(string message) => new(DashboardLoadStatus.Unavailable, default, message);
+    public static DashboardLoadResult<T> Unauthorized(string message) => new(DashboardLoadStatus.Unauthorized, default, message);
+    public static DashboardLoadResult<T> BackendDisconnected(string message) => new(DashboardLoadStatus.BackendDisconnected, default, message);
+    public static DashboardLoadResult<T> Failed(string message) => new(DashboardLoadStatus.Failed, default, message);
+}
+
 public enum DashboardLoadStatus
 {
     Loaded,
