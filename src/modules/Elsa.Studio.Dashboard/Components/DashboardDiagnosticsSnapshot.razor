@@ -1,0 +1,46 @@
+<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header">
+        <MudText Typo="Typo.subtitle1">Diagnostics snapshot</MudText>
+        <MudIcon Icon="@Icons.Material.Outlined.MonitorHeart" Size="Size.Small" />
+    </MudStack>
+
+    <MudGrid Spacing="2">
+        <MudItem xs="12" md="6">
+            <div class="dashboard-diagnostics-block">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.overline">Structured logs</MudText>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DashboardUiMapper.CapabilityColor(Summary.StructuredLogs.Capability)">
+                        @DashboardUiMapper.CapabilityLabel(Summary.StructuredLogs.Capability)
+                    </MudChip>
+                </MudStack>
+                <DashboardDiagnosticsValue Label="Sources" Value="@DashboardMetricFormatter.Count(Summary.StructuredLogs.SourceCount)" />
+                <DashboardDiagnosticsValue Label="Stale" Value="@DashboardMetricFormatter.Count(Summary.StructuredLogs.StaleSourceCount)" Color="@StaleColor(Summary.StructuredLogs.StaleSourceCount)" />
+                <DashboardDiagnosticsValue Label="Errors / critical" Value="@DashboardMetricFormatter.Count(Summary.StructuredLogs.RecentErrorOrCriticalCount)" Color="@ErrorColor(Summary.StructuredLogs.RecentErrorOrCriticalCount)" />
+                <DashboardDiagnosticsValue Label="Dropped writes" Value="@DashboardMetricFormatter.Count(Summary.StructuredLogs.DroppedWriteCount)" Color="@ErrorColor(Summary.StructuredLogs.DroppedWriteCount)" />
+                <MudButton Href="@DashboardNavigationTargetMapper.StructuredLogs" Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.OpenInNew">Open logs</MudButton>
+            </div>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <div class="dashboard-diagnostics-block">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.overline">Console</MudText>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DashboardUiMapper.CapabilityColor(Summary.ConsoleLogs.Capability)">
+                        @DashboardUiMapper.CapabilityLabel(Summary.ConsoleLogs.Capability)
+                    </MudChip>
+                </MudStack>
+                <DashboardDiagnosticsValue Label="Sources" Value="@DashboardMetricFormatter.Count(Summary.ConsoleLogs.SourceCount)" />
+                <DashboardDiagnosticsValue Label="Stale" Value="@DashboardMetricFormatter.Count(Summary.ConsoleLogs.StaleSourceCount)" Color="@StaleColor(Summary.ConsoleLogs.StaleSourceCount)" />
+                <DashboardDiagnosticsValue Label="stderr" Value="@DashboardMetricFormatter.Count(Summary.ConsoleLogs.RecentStderrCount)" Color="@ErrorColor(Summary.ConsoleLogs.RecentStderrCount)" />
+                <DashboardDiagnosticsValue Label="Dropped lines" Value="@DashboardMetricFormatter.Count(Summary.ConsoleLogs.DroppedLineCount)" Color="@ErrorColor(Summary.ConsoleLogs.DroppedLineCount)" />
+                <MudButton Href="@DashboardNavigationTargetMapper.Console" Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.OpenInNew">Open console</MudButton>
+            </div>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    [Parameter] public DashboardDiagnosticsSummary Summary { get; set; } = new();
+
+    private static Color StaleColor(long value) => value > 0 ? Color.Warning : Color.Default;
+    private static Color ErrorColor(long value) => value > 0 ? Color.Error : Color.Default;
+}
