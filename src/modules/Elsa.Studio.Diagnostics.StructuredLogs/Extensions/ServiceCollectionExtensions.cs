@@ -1,10 +1,12 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Dashboard.Widgets;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Diagnostics.StructuredLogs.Client;
 using Elsa.Studio.Diagnostics.StructuredLogs.Contracts;
 using Elsa.Studio.Diagnostics.StructuredLogs.Menu;
 using Elsa.Studio.Diagnostics.StructuredLogs.Services;
+using Elsa.Studio.Diagnostics.StructuredLogs.UI.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
@@ -24,6 +26,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IMenuProvider, StructuredLogsMenu>()
             .AddScoped<IStructuredLogService, RemoteStructuredLogService>()
             .AddScoped<IStructuredLogObserver, SignalRStructuredLogObserver>()
+            .AddDashboardWidget<StructuredLogsDashboardWidget>("diagnostics.structured-logs", DashboardWidgetZones.DiagnosticsStatus, 100, "Structured logs", requiredBackendCapability: "StructuredLogs", payloadKind: "Diagnostics.StructuredLogs")
             .AddRemoteApi<IStructuredLogsApi>(backendApiConfig);
     }
 }

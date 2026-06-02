@@ -2,6 +2,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Dashboard.Client;
 using Elsa.Studio.Dashboard.Menu;
 using Elsa.Studio.Dashboard.Services;
+using Elsa.Studio.Dashboard.Widgets;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,12 @@ public static class ServiceCollectionExtensions
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, DashboardMenu>()
-            .AddScoped<IDashboardService, DashboardService>();
+            .AddScoped<IDashboardService, DashboardService>()
+            .AddDashboardWidget<DashboardWorkflowMetricsWidget>("dashboard.workflow.metrics", DashboardWidgetZones.Metrics, 100, "Workflow metrics", payloadKind: "WorkflowInstances")
+            .AddDashboardWidget<DashboardNeedsAttentionWidget>("dashboard.needs-attention", DashboardWidgetZones.Findings, 100, "Needs attention")
+            .AddDashboardWidget<DashboardTrendWidget>("dashboard.workflow.trend", DashboardWidgetZones.PrimaryPanels, 100, "Workflow trends", payloadKind: "WorkflowTrends")
+            .AddDashboardWidget<DashboardRecentActivityWidget>("dashboard.workflow.recent-activity", DashboardWidgetZones.PrimaryPanels, 200, "Recent activity", payloadKind: "RecentActivity")
+            .AddDashboardWidget<DashboardWorkflowHotspotsWidget>("dashboard.workflow.hotspots", DashboardWidgetZones.SecondaryPanels, 100, "Workflow hotspots", payloadKind: "WorkflowHotspots");
     }
 
     /// <summary>
