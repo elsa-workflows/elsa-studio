@@ -49,6 +49,7 @@
                 <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
                 <MudDivider />
                 <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkPublishClicked">@Localizer["Publish"]</MudMenuItem>
+                <Zone Name="@ZoneNames.WorkflowDefinitionListBulkActions" Attributes="@WorkflowDefinitionListBulkActionAttributes" />
                 <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" Disabled="IsReadOnlyMode || !(_selectedRows?.Any() ?? false)" OnClick="@OnBulkRetractClicked">@Localizer["Unpublish"]</MudMenuItem>
                 <MudDivider />
                 <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkExportClicked">@Localizer["Export"]</MudMenuItem>
@@ -140,6 +141,7 @@
                     <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => OnDeleteClicked(context))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Delete"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudUpload" OnClick="@(() => OnPublishClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Publish"]</MudMenuItem>
+                    <Zone Name="@ZoneNames.WorkflowDefinitionListRowActions" Attributes="@GetWorkflowDefinitionListRowActionAttributes(context)" />
                     <MudMenuItem Icon="@Icons.Material.Outlined.CloudDownload" OnClick="@(() => OnRetractClicked(context.DefinitionId))" Disabled="IsReadOnlyMode || context.IsReadOnlyMode">@Localizer["Unpublish"]</MudMenuItem>
                     <MudDivider DividerType="DividerType.FullWidth"></MudDivider>
                     <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@(() => OnExportClicked(context))">@Localizer["Export"]</MudMenuItem>

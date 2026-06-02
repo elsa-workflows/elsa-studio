@@ -15,8 +15,8 @@
 
 <PageTitle>@Localizer["OpenTelemetry"]</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False" Class="pa-6" Style="background: #f7f9fc; min-height: calc(100vh - var(--mud-appbar-height));">
-    <MudPaper Elevation="2" Outlined="false" Class="pa-6 mb-5" Style="border-radius: 14px;">
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-6 elsa-otel-page-shell" Style="background: #f7f9fc;">
+    <MudPaper Elevation="2" Outlined="false" Class="pa-6 mb-5 elsa-otel-fixed-section" Style="border-radius: 14px;">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="4" Class="flex-wrap">
             <MudStack Spacing="2">
                 <MudText Typo="Typo.h4">OpenTelemetry</MudText>
@@ -54,7 +54,7 @@
     }
     else
     {
-        <div class="mb-5" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <div class="mb-5 elsa-otel-fixed-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
             <div>
                 <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid var(--mud-palette-primary);">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
@@ -107,7 +107,7 @@
             </div>
         </div>
 
-        <MudPaper Elevation="1" Outlined="false" Class="pa-4 mb-5" Style="border-radius: 12px;">
+        <MudPaper Elevation="1" Outlined="false" Class="pa-4 mb-5 elsa-otel-fixed-section" Style="border-radius: 12px;">
             <MudStack Spacing="3">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
                     <MudText Typo="Typo.overline">@Localizer["Resource"]</MudText>
@@ -141,8 +141,8 @@
             </MudStack>
         </MudPaper>
 
-        <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px;">
-                <MudTabs Elevation="0" Rounded="true" Border="false" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync">
+        <MudPaper Elevation="1" Outlined="false" Class="pa-4 elsa-otel-tabs-paper" Style="border-radius: 12px;">
+                <MudTabs Class="elsa-otel-tabs" Elevation="0" Rounded="true" Border="false" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync">
                     <MudTabPanel Text="@Localizer["Overview"]">
                         <MudGrid Spacing="2">
                             <MudItem xs="12" md="3">

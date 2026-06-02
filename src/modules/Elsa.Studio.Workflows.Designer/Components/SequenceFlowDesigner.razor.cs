@@ -168,6 +168,18 @@ public partial class SequenceFlowDesigner : IAsyncDisposable
             await _graphApi.AutoLayoutAsync();
     }
 
+    public async Task SetLayoutOrientationAsync(string orientation)
+    {
+        if (_graphApi is not null)
+            await _graphApi.SetSequenceOrientationAsync(orientation);
+    }
+
+    public async Task MoveSelectedActivityAsync(int direction)
+    {
+        if (_graphApi is not null)
+            await _graphApi.MoveSelectedSequenceNodeAsync(direction);
+    }
+
     public async Task SelectActivityAsync(string id)
     {
         if (_graphApi is not null)

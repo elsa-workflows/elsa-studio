@@ -11,6 +11,21 @@ public static class ZoneNames
     public const string WorkflowDefinitionProperties = "workflow-definition-properties";
 
     /// <summary>
+    /// The zone for workflow definition editor toolbar actions.
+    /// </summary>
+    public const string WorkflowDefinitionEditorToolbarActions = "workflow-definition-editor-toolbar-actions";
+
+    /// <summary>
+    /// The zone for workflow definition list bulk actions.
+    /// </summary>
+    public const string WorkflowDefinitionListBulkActions = "workflow-definition-list-bulk-actions";
+
+    /// <summary>
+    /// The zone for workflow definition list row actions.
+    /// </summary>
+    public const string WorkflowDefinitionListRowActions = "workflow-definition-list-row-actions";
+
+    /// <summary>
     /// The zone for workflow instance viewer bottom panel tabs.
     /// </summary>
     public const string WorkflowInstanceViewerBottomTabs = "workflow-instance-viewer-bottom-tabs";
