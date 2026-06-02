@@ -28,6 +28,8 @@ Add a package reference to your Blazor WebAssembly project:
 <PackageReference Include="Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm" />
 ```
 
+This package references `Microsoft.AspNetCore.Components.WebAssembly.Authentication`, so a separate package reference is normally not needed unless your project manages package references explicitly.
+
 ## Usage
 
 ### Basic Setup
@@ -49,9 +51,14 @@ builder.Services.AddOpenIdConnectAuth(options =>
 
 ### App.razor Configuration
 
-Ensure your `App.razor` uses `CascadingAuthenticationState` and `AuthorizeRouteView`:
+If your host uses the standard Elsa Studio shell `App` component from `Elsa.Studio.Shell`, you do not need to change `App.razor`. The shell already wraps routes in `CascadingAuthenticationState` and `AuthorizeRouteView`, and it uses the unauthorized component registered by this module.
+
+Only update `App.razor` if you replaced the standard shell router with your own custom app component. In that case, ensure your router uses `CascadingAuthenticationState` and `AuthorizeRouteView`:
 
 ```razor
+@using Microsoft.AspNetCore.Components.Authorization
+@using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Components
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
@@ -67,6 +74,21 @@ Ensure your `App.razor` uses `CascadingAuthenticationState` and `AuthorizeRouteV
 ```
 
 **Important:** The authentication pages (`/authentication/{action}`) are automatically registered by this module via the `OpenIdConnectBlazorWasmFeature`. You don't need to create an `Authentication.razor` page in your host project.
+
+### index.html Configuration
+
+Blazor WebAssembly OIDC requires Microsoft's authentication JavaScript static asset. The default Elsa Studio WASM host already includes it. If you use a custom host, add this script before `_framework/blazor.webassembly.js`:
+
+```html
+<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
+```
+
+If this script is missing, the browser console shows an error like:
+
+```text
+Could not find 'AuthenticationService.init' ('AuthenticationService' was undefined).
+```
 
 ### Configuration Options
 
@@ -277,6 +299,8 @@ builder.Services.AddOpenIdConnectAuth(options =>
     options.ClientId = "{client-id}";
     options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
     options.BackendApiScopes = new[] { "api://your-api/scope" };
+    options.CallbackPath = "/authentication/login-callback";
+    options.SignedOutCallbackPath = "/authentication/logout-callback";
 });
 
 // Configure the Elsa backend HTTP client to use OIDC tokens.

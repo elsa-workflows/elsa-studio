@@ -56,6 +56,15 @@ Do not configure a client secret for WebAssembly or other browser-hosted clients
 
 The WebAssembly package provides the `/authentication/{action}` routes used by `RemoteAuthenticatorView`, so host projects do not need to add their own `Authentication.razor` page when using the standard Elsa Studio shell.
 
+If your host uses the standard Elsa Studio shell `App` component, no Razor file changes are required. If you use a custom WebAssembly host, make sure `wwwroot/index.html` includes Microsoft's authentication script before `_framework/blazor.webassembly.js`:
+
+```html
+<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
+```
+
+Without this script, the browser will report `AuthenticationService.init` as undefined during startup.
+
 ## Default Studio Hosts
 
 The default Elsa Studio hosts select the authentication provider from configuration:
