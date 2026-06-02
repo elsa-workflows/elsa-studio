@@ -23,6 +23,8 @@ public static class ServiceCollectionExtensions
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, DashboardMenu>()
+            .AddScoped<IDashboardWidgetRegistry, DashboardWidgetRegistry>()
+            .AddScoped<IDashboardWidgetProvider, DashboardWidgetProvider>()
             .AddScoped<IDashboardService, DashboardService>();
     }
 
