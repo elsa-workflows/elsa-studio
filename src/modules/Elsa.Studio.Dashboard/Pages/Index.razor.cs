@@ -7,126 +7,81 @@ namespace Elsa.Studio.Dashboard.Pages;
 
 public partial class Index : IAsyncDisposable
 {
-    private CancellationTokenSource? _loadCancellationTokenSource;
-    private DashboardSnapshot? _snapshot;
-    private DashboardLoadStatus _status = DashboardLoadStatus.Unavailable;
+    private static readonly DashboardWidgetZone[] MainZones =
+    [
+        DashboardWidgetZone.Findings,
+        DashboardWidgetZone.Primary,
+        DashboardWidgetZone.Secondary,
+        DashboardWidgetZone.Diagnostics
+    ];
+
+    private IReadOnlyList<DashboardWidgetDescriptor> _widgets = [];
     private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
-    private string? _message;
-    private bool _loading;
+    private int _refreshVersion;
     private DateTimeOffset? _lastRefreshedAt;
 
-    [Inject] private IDashboardService DashboardService { get; set; } = null!;
+    [Inject] private IDashboardWidgetProvider DashboardWidgetProvider { get; set; } = null!;
 
-    private string BackendLabel
-    {
-        get
-        {
-            if (_snapshot == null)
-                return "Selected backend";
-
-            var overview = _snapshot.Overview;
-            var backendName = string.IsNullOrWhiteSpace(overview.BackendName) ? "Backend" : overview.BackendName;
-            return string.IsNullOrWhiteSpace(overview.EnvironmentName) ? backendName : $"{backendName} / {overview.EnvironmentName}";
-        }
-    }
+    private string BackendLabel => "Selected backend";
 
     private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
+    private string WidgetCountLabel => _widgets.Count == 1 ? "1 widget" : $"{_widgets.Count} widgets";
+    private DashboardWidgetContext WidgetContext => new(_selectedRange, _refreshVersion);
 
-    private string RangeCaption => _selectedRange switch
+    protected override void OnInitialized()
     {
-        DashboardRangeKeys.OneHour => "Last hour",
-        DashboardRangeKeys.SevenDays => "Last 7 days",
-        _ => "Last 24 hours"
-    };
-
-    private string StatusLabel => _status switch
-    {
-        DashboardLoadStatus.Unauthorized => "No access",
-        DashboardLoadStatus.BackendDisconnected => "Backend disconnected",
-        DashboardLoadStatus.Failed => "Refresh failed",
-        DashboardLoadStatus.Loaded => "Loaded",
-        _ => "Dashboard unavailable"
-    };
-
-    private Severity AlertSeverity => _status switch
-    {
-        DashboardLoadStatus.Unauthorized => Severity.Warning,
-        DashboardLoadStatus.Loaded => Severity.Info,
-        _ => Severity.Error
-    };
-
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshAsync();
+        _widgets = DashboardWidgetProvider.GetWidgets();
+        Refresh();
     }
 
     private async Task OnRangeChangedAsync(string? range)
     {
         _selectedRange = DashboardRangeMapper.Normalize(range);
-        await RefreshAsync();
+        Refresh();
+        await Task.CompletedTask;
     }
 
-    private async Task RefreshAsync()
+    private Task RefreshAsync()
     {
-        await LoadAsync(_selectedRange);
+        Refresh();
+        return Task.CompletedTask;
     }
 
-    private async Task LoadAsync(string range)
+    private void Refresh()
     {
-        await CancelCurrentLoadAsync();
-
-        var cancellationTokenSource = new CancellationTokenSource();
-        _loadCancellationTokenSource = cancellationTokenSource;
-        _loading = true;
-        _message = null;
-
-        try
-        {
-            var result = await DashboardService.LoadAsync(range, cancellationToken: cancellationTokenSource.Token);
-            _status = result.Status;
-
-            if (result.Snapshot != null)
-            {
-                _snapshot = result.Snapshot;
-                _lastRefreshedAt = DateTimeOffset.UtcNow;
-                _message = null;
-            }
-            else
-            {
-                _message = result.Message;
-            }
-        }
-        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
-        {
-        }
-        catch (Exception e)
-        {
-            _status = DashboardLoadStatus.Failed;
-            _message = e.Message;
-        }
-        finally
-        {
-            if (ReferenceEquals(_loadCancellationTokenSource, cancellationTokenSource))
-            {
-                _loading = false;
-                _loadCancellationTokenSource = null;
-            }
-
-            cancellationTokenSource.Dispose();
-        }
+        _refreshVersion++;
+        _lastRefreshedAt = DateTimeOffset.UtcNow;
     }
 
-    private async Task CancelCurrentLoadAsync()
+    private bool HasWidgets(DashboardWidgetZone zone) => _widgets.Any(x => x.Zone == zone);
+
+    private RenderFragment RenderZone(DashboardWidgetZone zone) => builder =>
     {
-        if (_loadCancellationTokenSource == null)
-            return;
+        var sequence = 0;
 
-        await _loadCancellationTokenSource.CancelAsync();
-        _loadCancellationTokenSource = null;
-    }
+        foreach (var widget in _widgets.Where(x => x.Zone == zone))
+        {
+            builder.OpenComponent<MudItem>(sequence++);
+            builder.AddAttribute(sequence++, "xs", 12);
+            builder.AddAttribute(sequence++, "sm", GetSmallColumns(widget));
+            builder.AddAttribute(sequence++, "lg", GetLargeColumns(widget));
+            builder.OpenComponent<DynamicComponent>(sequence++);
+            builder.AddAttribute(sequence++, "Type", widget.ComponentType);
+            builder.AddAttribute(sequence++, "Parameters", widget.Parameters);
+            builder.CloseComponent();
+            builder.CloseComponent();
+        }
+    };
 
-    public async ValueTask DisposeAsync()
+    private static int GetSmallColumns(DashboardWidgetDescriptor widget) => widget.Span == DashboardWidgetSpan.Compact ? 6 : 12;
+
+    private static int GetLargeColumns(DashboardWidgetDescriptor widget) => widget.Span switch
     {
-        await CancelCurrentLoadAsync();
-    }
+        DashboardWidgetSpan.Compact => 4,
+        DashboardWidgetSpan.Wide => 8,
+        DashboardWidgetSpan.Full => 12,
+        _ => widget.Zone is DashboardWidgetZone.Diagnostics or DashboardWidgetZone.Findings ? 4 : 8
+    };
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

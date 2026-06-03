@@ -1,0 +1,47 @@
+@using Elsa.Studio.Dashboard.Components
+@using Elsa.Studio.Dashboard.Models
+@using Elsa.Studio.Dashboard.Services
+@inherits WorkflowDashboardWidgetBase
+
+@if (Loading && Snapshot == null)
+{
+    <MudSkeleton Height="112px" Animation="Animation.Wave" />
+}
+else if (Snapshot == null)
+{
+    <MudAlert Severity="Severity.Error" Dense="true">@Message</MudAlert>
+}
+else
+{
+    var metrics = Snapshot.Overview.WorkflowInstances;
+
+    <MudGrid Spacing="2">
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Running" Value="@DashboardMetricFormatter.Count(metrics.Running)" Caption="Current active instances" Icon="@Icons.Material.Outlined.PlayCircle" Color="Color.Info" Href="@DashboardNavigationTargetMapper.ForMetric("running")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Completed" Value="@DashboardMetricFormatter.Count(metrics.Completed)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Faulted" Value="@DashboardMetricFormatter.Count(metrics.Faulted)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.ErrorOutline" Color="@(metrics.Faulted > 0 ? Color.Error : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("faulted")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Suspended" Value="@DashboardMetricFormatter.Count(metrics.Suspended)" Caption="Current suspended instances" Icon="@Icons.Material.Outlined.PauseCircle" Color="@(metrics.Suspended > 0 ? Color.Warning : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("suspended")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Avg duration" Value="@DashboardMetricFormatter.Duration(metrics.AverageDuration)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.Timer" Color="Color.Default" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4" xl="2">
+            <DashboardMetricCard Label="Needs attention" Value="@DashboardMetricFormatter.Count(Snapshot.NeedsAttention.Findings.Count)" Caption="Prioritized findings" Icon="@Icons.Material.Outlined.ReportProblem" Color="@(Snapshot.NeedsAttention.Findings.Count > 0 ? Color.Warning : Color.Success)" />
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private string RangeCaption => WidgetContext?.Range switch
+    {
+        DashboardRangeKeys.OneHour => "Last hour",
+        DashboardRangeKeys.SevenDays => "Last 7 days",
+        _ => "Last 24 hours"
+    };
+}
