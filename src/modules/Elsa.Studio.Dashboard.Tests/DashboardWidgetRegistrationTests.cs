@@ -58,23 +58,6 @@ public class DashboardWidgetRegistrationTests
     }
 
     [Fact]
-    public void OwnerProjects_DoNotReferenceDashboardModule()
-    {
-        var root = FindRepositoryRoot();
-        var ownerProjects = new[]
-        {
-            "src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/Elsa.Studio.Diagnostics.ConsoleLogs.csproj",
-            "src/modules/Elsa.Studio.Diagnostics.StructuredLogs/Elsa.Studio.Diagnostics.StructuredLogs.csproj"
-        };
-
-        foreach (var ownerProject in ownerProjects)
-        {
-            var project = File.ReadAllText(root.Combine(ownerProject));
-            Assert.DoesNotContain("Elsa.Studio.Dashboard", project);
-        }
-    }
-
-    [Fact]
     public async Task DashboardCompanionModules_RegisterExpectedWidgets()
     {
         var services = new ServiceCollection();

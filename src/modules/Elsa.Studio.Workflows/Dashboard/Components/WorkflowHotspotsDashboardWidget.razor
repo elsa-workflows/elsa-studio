@@ -1,0 +1,15 @@
+@using Elsa.Studio.Dashboard.Components
+@inherits WorkflowDashboardWidgetBase
+
+@if (Loading && Snapshot == null)
+{
+    <MudSkeleton Height="220px" Animation="Animation.Wave" />
+}
+else if (Snapshot == null)
+{
+    <MudAlert Severity="Severity.Error" Dense="true">@Message</MudAlert>
+}
+else
+{
+    <DashboardWorkflowHotspotsPanel Response="@Snapshot.Hotspots" />
+}
