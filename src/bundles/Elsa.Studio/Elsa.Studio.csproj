@@ -8,10 +8,13 @@
     <ItemGroup>
         <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.ConsoleLogs\Elsa.Studio.Diagnostics.ConsoleLogs.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.OpenTelemetry\Elsa.Studio.Diagnostics.OpenTelemetry.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.StructuredLogs\Elsa.Studio.Diagnostics.StructuredLogs.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows.Dashboard\Elsa.Studio.Workflows.Dashboard.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj"/>
     </ItemGroup>
 

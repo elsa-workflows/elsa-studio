@@ -15,6 +15,33 @@ public record DashboardWidgetDescriptor(
     public bool IsVisible(DashboardWidgetContext context) => context.Snapshot != null;
 }
 
+public interface IDashboardWidgetRegistry
+{
+    void Add(DashboardWidgetDescriptor descriptor);
+
+    IReadOnlyCollection<DashboardWidgetDescriptor> List();
+}
+
+public class DashboardWidgetRegistry : IDashboardWidgetRegistry
+{
+    private readonly object _lock = new();
+    private readonly Dictionary<string, DashboardWidgetDescriptor> _descriptors = new(StringComparer.Ordinal);
+
+    public void Add(DashboardWidgetDescriptor descriptor)
+    {
+        lock (_lock)
+        {
+            _descriptors[descriptor.Id] = descriptor;
+        }
+    }
+
+    public IReadOnlyCollection<DashboardWidgetDescriptor> List()
+    {
+        lock (_lock)
+            return _descriptors.Values.ToList();
+    }
+}
+
 public record DashboardWidgetContext(
     string SelectedRange,
     bool Loading,

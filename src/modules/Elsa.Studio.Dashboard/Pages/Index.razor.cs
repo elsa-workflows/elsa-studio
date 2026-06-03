@@ -17,6 +17,7 @@ public partial class Index : IAsyncDisposable
     private DateTimeOffset? _lastRefreshedAt;
 
     [Inject] private IDashboardService DashboardService { get; set; } = null!;
+    [Inject] private IDashboardWidgetRegistry WidgetRegistry { get; set; } = null!;
     [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
@@ -70,6 +71,8 @@ public partial class Index : IAsyncDisposable
 
     private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
         Widgets
+            .Concat(WidgetRegistry.List())
+            .DistinctBy(x => x.Id)
             .Where(x => x.Zone == zone && x.IsVisible(WidgetContext))
             .OrderBy(x => x.Order)
             .ThenBy(x => x.Id, StringComparer.Ordinal)
