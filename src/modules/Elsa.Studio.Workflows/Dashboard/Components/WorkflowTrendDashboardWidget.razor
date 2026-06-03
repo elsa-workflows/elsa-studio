@@ -1,6 +1,5 @@
 @using Elsa.Studio.Dashboard.Components
 @using Elsa.Studio.Dashboard.Models
-@using Elsa.Studio.Dashboard.Services
 @inherits WorkflowDashboardWidgetBase
 
 @if (Loading && Snapshot == null)
@@ -13,32 +12,5 @@ else if (Snapshot == null)
 }
 else
 {
-    <DashboardTrendChart Response="@Snapshot.Trend" Loading="@Loading">
-        <Actions>
-            <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                @foreach (var option in DashboardRangeMapper.Options)
-                {
-                    <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                }
-            </MudToggleGroup>
-        </Actions>
-    </DashboardTrendChart>
-}
-
-@code {
-    private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
-
-    protected override DashboardWidgetContext? LoadContext =>
-        WidgetContext == null ? null : WidgetContext with { Range = _selectedRange };
-
-    private async Task OnRangeChangedAsync(string? range)
-    {
-        var selectedRange = DashboardRangeMapper.Normalize(range);
-
-        if (_selectedRange == selectedRange)
-            return;
-
-        _selectedRange = selectedRange;
-        await ReloadAsync();
-    }
+    <DashboardTrendChart Response="@Snapshot.Trend" Loading="@Loading" />
 }

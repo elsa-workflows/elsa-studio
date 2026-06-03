@@ -16,6 +16,7 @@ public partial class Index : IAsyncDisposable
     ];
 
     private IReadOnlyList<DashboardWidgetDescriptor> _widgets = [];
+    private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
     private int _refreshVersion;
     private DateTimeOffset? _lastRefreshedAt;
     private bool _disposed;
@@ -28,7 +29,7 @@ public partial class Index : IAsyncDisposable
 
     private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
     private string WidgetCountLabel => _widgets.Count == 1 ? "1 widget" : $"{_widgets.Count} widgets";
-    private DashboardWidgetContext WidgetContext => new(DashboardRangeKeys.TwentyFourHours, _refreshVersion);
+    private DashboardWidgetContext WidgetContext => new(_selectedRange, _refreshVersion);
 
     protected override void OnInitialized()
     {
@@ -86,6 +87,18 @@ public partial class Index : IAsyncDisposable
 
     private Task RefreshAsync()
     {
+        Refresh();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRangeChangedAsync(string? range)
+    {
+        var selectedRange = DashboardRangeMapper.Normalize(range);
+
+        if (_selectedRange == selectedRange)
+            return Task.CompletedTask;
+
+        _selectedRange = selectedRange;
         Refresh();
         return Task.CompletedTask;
     }
