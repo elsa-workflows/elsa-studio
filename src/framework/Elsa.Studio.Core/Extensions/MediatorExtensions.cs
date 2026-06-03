@@ -7,9 +7,6 @@ namespace Elsa.Studio.Extensions;
 /// Contains extension methods for <see cref="IMediator"/>.
 /// </summary>
 [UsedImplicitly]
-/// <summary>
-/// Provides extension methods for mediator.
-/// </summary>
 public static class MediatorExtensions
 {
     /// <summary>
