@@ -1,15 +1,92 @@
 @using Elsa.Studio.Dashboard.Components
-@inherits DashboardOverviewWidgetBase
+@using Elsa.Studio.Dashboard.Models
+@using Elsa.Studio.Dashboard.Services
+@using Elsa.Studio.Diagnostics.ConsoleLogs.Contracts
+@inherits DashboardAsyncWidgetBase<RecentConsoleLinesResult>
+@inject IConsoleLogService ConsoleLogService
 
-@if (Loading && Overview == null)
+@if (Loading && Value == null)
 {
     <MudSkeleton Height="220px" Animation="Animation.Wave" />
 }
-else if (Overview == null)
-{
-    <MudAlert Severity="Severity.Error" Dense="true">@Message</MudAlert>
-}
 else
 {
-    <DashboardConsoleLogsSnapshot Summary="@Overview.Diagnostics.ConsoleLogs" />
+    <div class="dashboard-log-card">
+        <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section dashboard-log-panel" Style="@DashboardStyles.Panel">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
+                    <MudText Typo="Typo.subtitle1">Console</MudText>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@LineCountColor">@LineCountLabel</MudChip>
+                </MudStack>
+                <MudButton Href="@DashboardNavigationTargetMapper.Console" Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.OpenInNew">Open console</MudButton>
+            </MudStack>
+
+            @if (Loading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-2" />
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@Message</MudAlert>
+            }
+            else if (Result.Items.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true">No console lines in this range.</MudAlert>
+            }
+            else
+            {
+                @if (Result.DroppedLineCount > 0)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">@DashboardMetricFormatter.Count(Result.DroppedLineCount) dropped console lines in this range.</MudAlert>
+                }
+
+                <div class="dashboard-log-list" role="list" aria-label="Recent console lines">
+                    @foreach (var line in Result.Items)
+                    {
+                        <article class="dashboard-log-row dashboard-console-row" role="listitem">
+                            <MudText Typo="Typo.caption" Class="dashboard-log-time">@FormatTimestamp(line.Timestamp)</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@StreamColor(line)">@StreamLabel(line)</MudChip>
+                            <MudText Typo="Typo.caption" Class="dashboard-log-source">@SourceLabel(line.Source)</MudText>
+                            <MudText Typo="Typo.body2" Class="dashboard-log-message dashboard-console-message" title="@line.Text">@line.Text</MudText>
+                        </article>
+                    }
+                </div>
+            }
+        </MudPaper>
+    </div>
+}
+
+@code {
+    private const int RowCap = 12;
+
+    private RecentConsoleLinesResult Result => Value ?? new();
+    private string LineCountLabel => Result.Items.Count == 1 ? "1 line" : $"{Result.Items.Count} lines";
+    private Color LineCountColor => Result.Items.Count > 0 ? Color.Success : Color.Default;
+
+    protected override Task<RecentConsoleLinesResult> LoadValueAsync(DashboardWidgetContext context, CancellationToken cancellationToken)
+    {
+        var range = DashboardRangeMapper.GetUtcRange(context.Range);
+        return ConsoleLogService.GetRecentAsync(new ConsoleLogFilter
+        {
+            From = range.From,
+            To = range.To
+        }, RowCap, cancellationToken);
+    }
+
+    private static string FormatTimestamp(DateTimeOffset timestamp) => timestamp.ToLocalTime().ToString("HH:mm:ss");
+
+    private static string StreamLabel(ConsoleLogLine line) => line.Stream == ConsoleLogStream.Stderr ? "stderr" : "stdout";
+
+    private static Color StreamColor(ConsoleLogLine line) => line.Stream == ConsoleLogStream.Stderr ? Color.Error : Color.Default;
+
+    private static string SourceLabel(ConsoleLogSource source)
+    {
+        return FirstNonEmpty(source.DisplayName, source.ServiceName, source.PodName, source.ContainerName, source.MachineName, source.Id) ?? "source";
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+    }
 }

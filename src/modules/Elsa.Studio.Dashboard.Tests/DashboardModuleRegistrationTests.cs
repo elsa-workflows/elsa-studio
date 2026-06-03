@@ -47,8 +47,8 @@ public class DashboardModuleRegistrationTests
                 "workflows.metrics",
                 "workflows.needs-attention",
                 "workflows.execution-trend",
-                "workflows.recent-activity",
                 "workflows.hotspots",
+                "workflows.recent-activity",
                 "diagnostics.structured-logs",
                 "diagnostics.console-logs"
             ],
@@ -73,12 +73,33 @@ public class DashboardModuleRegistrationTests
                 "workflows.metrics",
                 "workflows.needs-attention",
                 "workflows.execution-trend",
+                "workflows.hotspots",
                 "workflows.recent-activity",
-                "workflows.hotspots"
+                "diagnostics.structured-logs",
+                "diagnostics.console-logs"
             ],
             timeRangeWidgetIds);
-        Assert.False(widgets.Single(x => x.Id == "diagnostics.structured-logs").UsesTimeRange);
-        Assert.False(widgets.Single(x => x.Id == "diagnostics.console-logs").UsesTimeRange);
+    }
+
+    [Fact]
+    public async Task InitializeFeaturesAsync_WhenCompanionWidgetsRegister_DeclaresExpectedLayout()
+    {
+        using var provider = BuildProvider(
+            WorkflowDashboardFeature.RemoteFeatureName,
+            ConsoleLogsDashboardFeature.RemoteFeatureName,
+            StructuredLogsDashboardFeature.RemoteFeatureName);
+
+        await InitializeFeaturesAsync(provider);
+
+        var widgets = provider.GetRequiredService<IDashboardWidgetProvider>().GetWidgets();
+
+        AssertLayout(widgets, "workflows.metrics", DashboardWidgetZone.Metrics, DashboardWidgetSpan.Full);
+        AssertLayout(widgets, "workflows.needs-attention", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
+        AssertLayout(widgets, "workflows.execution-trend", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
+        AssertLayout(widgets, "workflows.hotspots", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
+        AssertLayout(widgets, "workflows.recent-activity", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Full);
+        AssertLayout(widgets, "diagnostics.structured-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
+        AssertLayout(widgets, "diagnostics.console-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
     }
 
     [Fact]
@@ -133,6 +154,14 @@ public class DashboardModuleRegistrationTests
         new(
             provider.GetRequiredService<IEnumerable<IFeature>>(),
             provider.GetRequiredService<IRemoteFeatureProvider>());
+
+    private static void AssertLayout(IReadOnlyList<DashboardWidgetDescriptor> widgets, string id, DashboardWidgetZone zone, DashboardWidgetSpan span)
+    {
+        var widget = widgets.Single(x => x.Id == id);
+
+        Assert.Equal(zone, widget.Zone);
+        Assert.Equal(span, widget.Span);
+    }
 
     private class TestRemoteFeatureProvider(params string[] enabledRemoteFeatures) : IRemoteFeatureProvider
     {

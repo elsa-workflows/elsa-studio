@@ -26,6 +26,7 @@ public enum DashboardWidgetSpan
 {
     Auto,
     Compact,
+    Half,
     Wide,
     Full
 }

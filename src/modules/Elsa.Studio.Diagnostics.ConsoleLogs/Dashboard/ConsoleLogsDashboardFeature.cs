@@ -21,6 +21,8 @@ public class ConsoleLogsDashboardFeature(IServiceProvider serviceProvider) : Fea
             ComponentType = typeof(ConsoleLogsDashboardWidget),
             Zone = DashboardWidgetZone.Diagnostics,
             Order = 20,
+            Span = DashboardWidgetSpan.Half,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         });
 

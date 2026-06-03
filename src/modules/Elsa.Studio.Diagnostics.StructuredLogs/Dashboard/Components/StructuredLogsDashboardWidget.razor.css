@@ -1,0 +1,54 @@
+.dashboard-log-card ::deep .dashboard-log-panel {
+    min-height: 320px;
+}
+
+.dashboard-log-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 280px;
+    overflow: auto;
+}
+
+.dashboard-log-row {
+    display: grid;
+    grid-template-columns: 64px 64px minmax(110px, 160px) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    min-width: 0;
+    padding: 6px 0;
+    border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.dashboard-log-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.dashboard-log-card ::deep .dashboard-log-time,
+.dashboard-log-card ::deep .dashboard-log-source,
+.dashboard-log-card ::deep .dashboard-log-message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-log-card ::deep .dashboard-log-source {
+    color: var(--mud-palette-text-secondary);
+}
+
+.dashboard-log-card ::deep .dashboard-log-exception {
+    color: var(--mud-palette-error);
+    margin-left: 6px;
+}
+
+@media (max-width: 720px) {
+    .dashboard-log-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+    }
+
+    .dashboard-log-card ::deep .dashboard-log-source,
+    .dashboard-log-card ::deep .dashboard-log-message {
+        grid-column: 1 / -1;
+    }
+}

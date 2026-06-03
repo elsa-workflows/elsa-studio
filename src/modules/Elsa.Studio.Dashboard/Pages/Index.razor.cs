@@ -117,11 +117,12 @@ public partial class Index : IAsyncDisposable
     private static IDictionary<string, object> GetParameters(DashboardWidgetDescriptor widget) =>
         widget.Parameters.ToDictionary(x => x.Key, x => x.Value!);
 
-    private static int GetSmallColumns(DashboardWidgetDescriptor widget) => widget.Span == DashboardWidgetSpan.Compact ? 6 : 12;
+    private static int GetSmallColumns(DashboardWidgetDescriptor widget) => widget.Span is DashboardWidgetSpan.Compact or DashboardWidgetSpan.Half ? 6 : 12;
 
     private static int GetLargeColumns(DashboardWidgetDescriptor widget) => widget.Span switch
     {
         DashboardWidgetSpan.Compact => 4,
+        DashboardWidgetSpan.Half => 6,
         DashboardWidgetSpan.Wide => 8,
         DashboardWidgetSpan.Full => 12,
         _ => widget.Zone is DashboardWidgetZone.Diagnostics or DashboardWidgetZone.Findings ? 4 : 8
