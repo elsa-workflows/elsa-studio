@@ -2,7 +2,6 @@ using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Pages;
 
@@ -99,23 +98,10 @@ public partial class Index : IAsyncDisposable
 
     private bool HasWidgets(DashboardWidgetZone zone) => _widgets.Any(x => x.Zone == zone);
 
-    private RenderFragment RenderZone(DashboardWidgetZone zone) => builder =>
-    {
-        var sequence = 0;
+    private IEnumerable<DashboardWidgetDescriptor> WidgetsFor(DashboardWidgetZone zone) => _widgets.Where(x => x.Zone == zone);
 
-        foreach (var widget in _widgets.Where(x => x.Zone == zone))
-        {
-            builder.OpenComponent<MudItem>(sequence++);
-            builder.AddAttribute(sequence++, "xs", 12);
-            builder.AddAttribute(sequence++, "sm", GetSmallColumns(widget));
-            builder.AddAttribute(sequence++, "lg", GetLargeColumns(widget));
-            builder.OpenComponent<DynamicComponent>(sequence++);
-            builder.AddAttribute(sequence++, "Type", widget.ComponentType);
-            builder.AddAttribute(sequence++, "Parameters", widget.Parameters);
-            builder.CloseComponent();
-            builder.CloseComponent();
-        }
-    };
+    private static IDictionary<string, object> GetParameters(DashboardWidgetDescriptor widget) =>
+        widget.Parameters.ToDictionary(x => x.Key, x => x.Value!);
 
     private static int GetSmallColumns(DashboardWidgetDescriptor widget) => widget.Span == DashboardWidgetSpan.Compact ? 6 : 12;
 

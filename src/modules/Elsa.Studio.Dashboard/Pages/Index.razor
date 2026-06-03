@@ -37,14 +37,24 @@
             @if (HasWidgets(DashboardZone.Metrics))
             {
                 <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
-                    @RenderZone(DashboardZone.Metrics)
+                    @foreach (var widget in WidgetsFor(DashboardZone.Metrics))
+                    {
+                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
+                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
+                        </MudItem>
+                    }
                 </MudGrid>
             }
 
             <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
                 @foreach (var zone in MainZones)
                 {
-                    @RenderZone(zone)
+                    foreach (var widget in WidgetsFor(zone))
+                    {
+                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
+                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
+                        </MudItem>
+                    }
                 }
             </MudGrid>
         </CascadingValue>
