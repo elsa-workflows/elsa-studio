@@ -17,12 +17,6 @@
         </MudStack>
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-            <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                @foreach (var option in DashboardRangeMapper.Options)
-                {
-                    <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                }
-            </MudToggleGroup>
             <MudTooltip Text="Refresh dashboard" Delay="400">
                 <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
             </MudTooltip>

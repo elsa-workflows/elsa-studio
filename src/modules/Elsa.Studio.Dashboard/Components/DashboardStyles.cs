@@ -2,7 +2,7 @@ namespace Elsa.Studio.Dashboard.Components;
 
 public static class DashboardStyles
 {
-    public const string Shell = "min-height:100%; padding:20px 24px 28px; background:#f6f8fb;";
+    public const string Shell = "width:100%; max-width:none; min-height:100%; padding:24px 32px 32px; box-sizing:border-box; background:#f6f8fb;";
     public const string Header = "gap:12px 16px; margin-bottom:14px;";
     public const string MetricGrid = "margin-bottom:8px;";
     public const string MainGrid = "margin-top:0;";

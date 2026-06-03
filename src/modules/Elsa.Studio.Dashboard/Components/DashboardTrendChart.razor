@@ -1,7 +1,10 @@
 <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section dashboard-chart-panel" Style="@DashboardStyles.ChartPanel">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
         <MudText Typo="Typo.subtitle1">Execution trend</MudText>
-        <MudText Typo="Typo.caption" Class="dashboard-muted">@RangeCaption</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="dashboard-trend-actions">
+            <MudText Typo="Typo.caption" Class="dashboard-muted">@RangeCaption</MudText>
+            @Actions
+        </MudStack>
     </MudStack>
 
     @if (Loading)
@@ -21,6 +24,7 @@
 @code {
     [Parameter] public DashboardTrendResponse Response { get; set; } = new();
     [Parameter] public bool Loading { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
 
     private string RangeCaption => $"{DashboardMetricFormatter.DateTime(Response.From)} - {DashboardMetricFormatter.DateTime(Response.To)}";
 

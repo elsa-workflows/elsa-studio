@@ -1,6 +1,9 @@
 .dashboard-shell {
+    width: 100%;
+    max-width: none;
     min-height: 100%;
-    padding: 20px 24px 28px;
+    padding: 24px 32px 32px;
+    box-sizing: border-box;
     background: #f6f8fb;
 }
 
@@ -78,6 +81,12 @@
     margin-bottom: 10px;
 }
 
+.dashboard-shell ::deep .dashboard-trend-actions {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    min-width: 0;
+}
+
 .dashboard-shell ::deep .dashboard-chart-panel {
     min-height: 294px;
 }
@@ -115,11 +124,12 @@
 
 @media (max-width: 768px) {
     .dashboard-shell {
-        padding: 14px;
+        padding: 16px;
     }
 
     .dashboard-header {
         align-items: flex-start;
+        gap: 10px;
     }
 
     .dashboard-shell ::deep .dashboard-section {
