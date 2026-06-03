@@ -1,5 +1,6 @@
 using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
+using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -20,6 +21,7 @@ public partial class Index : IAsyncDisposable
     private DateTimeOffset? _lastRefreshedAt;
 
     [Inject] private IDashboardWidgetProvider DashboardWidgetProvider { get; set; } = null!;
+    [Inject] private IFeatureService FeatureService { get; set; } = null!;
 
     private string BackendLabel => "Selected backend";
 
@@ -29,8 +31,23 @@ public partial class Index : IAsyncDisposable
 
     protected override void OnInitialized()
     {
-        _widgets = DashboardWidgetProvider.GetWidgets();
+        FeatureService.Initialized += OnFeatureServiceInitialized;
+        LoadWidgets();
         Refresh();
+    }
+
+    private void OnFeatureServiceInitialized()
+    {
+        _ = InvokeAsync(() =>
+        {
+            LoadWidgets();
+            StateHasChanged();
+        });
+    }
+
+    private void LoadWidgets()
+    {
+        _widgets = DashboardWidgetProvider.GetWidgets();
     }
 
     private Task RefreshAsync()
@@ -75,5 +92,9 @@ public partial class Index : IAsyncDisposable
         _ => widget.Zone is DashboardWidgetZone.Diagnostics or DashboardWidgetZone.Findings ? 4 : 8
     };
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public ValueTask DisposeAsync()
+    {
+        FeatureService.Initialized -= OnFeatureServiceInitialized;
+        return ValueTask.CompletedTask;
+    }
 }
