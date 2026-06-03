@@ -5,6 +5,9 @@ namespace Elsa.Studio.Contracts;
 /// </summary>
 public interface IUIHintService
 {
+    /// <summary>
+    /// Gets the UI hint handler for the specified UI hint.
+    /// </summary>
     IUIHintHandler GetHandler(string uiHint);
     //RenderFragment DisplayInputEditor(DisplayInputEditorContext context);
 }

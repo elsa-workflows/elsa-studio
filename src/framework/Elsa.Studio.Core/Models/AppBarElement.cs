@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 
@@ -41,7 +42,7 @@ public class AppBarElement
 /// This generic specialization of the `AppBarElement` class enforces that only components of the specified type
 /// are allowed. The rendering logic uses the type parameter to instantiate the specified component.
 /// </remarks>
-public class AppBarElement<T> : AppBarElement where T : IComponent
+public class AppBarElement<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T> : AppBarElement where T : IComponent
 {
     /// <inheritdoc />
     public override RenderFragment Component { get; set; } = builder => builder.CreateComponent<T>();

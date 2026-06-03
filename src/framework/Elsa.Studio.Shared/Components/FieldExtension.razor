@@ -64,7 +64,7 @@ else
     /// </summary>
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
 
-    [Inject] private IUIFieldExtensionService FieldExtensionService { get; set; }
+    [Inject] private IUIFieldExtensionService FieldExtensionService { get; set; } = default!;
 
     /// <inheritdoc />
     protected override void OnInitialized()

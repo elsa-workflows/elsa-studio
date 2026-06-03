@@ -1,4 +1,5 @@
-﻿using Elsa.Studio.Contracts;
+﻿using System.Diagnostics.CodeAnalysis;
+using Elsa.Studio.Contracts;
 using System.Text.Json;
 using Elsa.Studio.Models;
 
@@ -9,6 +10,8 @@ namespace Elsa.Studio.Visualizers;
 /// </summary>
 public class JsonContentVisualizer : IContentVisualizer
 {
+    private static readonly JsonSerializerOptions IndentedJsonSerializerOptions = new() { WriteIndented = true };
+
     /// <inheritdoc/>
     public string Name => "Json";
 
@@ -28,11 +31,11 @@ public class JsonContentVisualizer : IContentVisualizer
     {
         try
         {
-            string formatted = input is string str
-                ? JsonSerializer.Serialize(JsonDocument.Parse(str), new JsonSerializerOptions { WriteIndented = true })
-                : JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });
+            if (input is not string str)
+                return input?.ToString() ?? string.Empty;
 
-            return formatted;
+            using var document = JsonDocument.Parse(str);
+            return FormatJsonElement(document.RootElement);
         }
         catch
         {
@@ -100,7 +103,10 @@ public class JsonContentVisualizer : IContentVisualizer
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
             JsonValueKind.Null => "null",
-            _ => JsonSerializer.Serialize(element)
+            _ => FormatJsonElement(element)
         };
     }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "JsonElement serialization does not require runtime type discovery.")]
+    private static string FormatJsonElement(JsonElement element) => JsonSerializer.Serialize(element, IndentedJsonSerializerOptions);
 }

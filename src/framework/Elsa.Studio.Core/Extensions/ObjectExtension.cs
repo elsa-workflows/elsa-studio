@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Elsa.Studio.Extensions;
@@ -13,6 +14,7 @@ public static class ObjectExtension
     /// <param name="obj"></param>
     /// <returns>The result of the operation.</returns>
     /// <exception cref="ArgumentNullException"></exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "This helper intentionally reflects over anonymous UI attribute bags.")]
     public static Dictionary<string, object?> ToDictionary(this object obj)
     {
         if (obj == null)
