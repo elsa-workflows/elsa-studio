@@ -19,6 +19,8 @@ public partial class Index : IAsyncDisposable
     private IReadOnlyList<DashboardWidgetDescriptor> _widgets = [];
     private int _refreshVersion;
     private DateTimeOffset? _lastRefreshedAt;
+    private bool _disposed;
+    private bool _subscribedToFeatureInitialized;
 
     [Inject] private IDashboardWidgetProvider DashboardWidgetProvider { get; set; } = null!;
     [Inject] private IFeatureService FeatureService { get; set; } = null!;
@@ -31,23 +33,56 @@ public partial class Index : IAsyncDisposable
 
     protected override void OnInitialized()
     {
-        FeatureService.Initialized += OnFeatureServiceInitialized;
         LoadWidgets();
         Refresh();
     }
 
-    private void OnFeatureServiceInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _ = InvokeAsync(() =>
-        {
-            LoadWidgets();
-            StateHasChanged();
-        });
+        if (!firstRender || _disposed)
+            return;
+
+        FeatureService.Initialized += OnFeatureServiceInitialized;
+        _subscribedToFeatureInitialized = true;
+
+        if (LoadWidgets())
+            await InvokeAsync(StateHasChanged);
     }
 
-    private void LoadWidgets()
+    private void OnFeatureServiceInitialized()
     {
-        _widgets = DashboardWidgetProvider.GetWidgets();
+        _ = RefreshWidgetsAfterFeatureInitializationAsync();
+    }
+
+    private async Task RefreshWidgetsAfterFeatureInitializationAsync()
+    {
+        if (_disposed)
+            return;
+
+        try
+        {
+            await InvokeAsync(() =>
+            {
+                if (_disposed || !LoadWidgets())
+                    return;
+
+                StateHasChanged();
+            });
+        }
+        catch (InvalidOperationException) when (_disposed)
+        {
+        }
+    }
+
+    private bool LoadWidgets()
+    {
+        var widgets = DashboardWidgetProvider.GetWidgets();
+
+        if (_widgets.Select(x => x.Id).SequenceEqual(widgets.Select(x => x.Id), StringComparer.Ordinal))
+            return false;
+
+        _widgets = widgets;
+        return true;
     }
 
     private Task RefreshAsync()
@@ -94,7 +129,11 @@ public partial class Index : IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        FeatureService.Initialized -= OnFeatureServiceInitialized;
+        _disposed = true;
+
+        if (_subscribedToFeatureInitialized)
+            FeatureService.Initialized -= OnFeatureServiceInitialized;
+
         return ValueTask.CompletedTask;
     }
 }
