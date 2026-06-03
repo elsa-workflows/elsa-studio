@@ -12,6 +12,7 @@ Dashboard widgets are contributed through `DashboardWidgetDescriptor`:
 - `Order`: deterministic ordering within the zone
 - `Title`: optional display name for tooling and diagnostics
 - `Span`: optional size hint for compact, wide, or full-width widgets
+- `UsesTimeRange`: true when the widget reloads or changes meaning based on the shell's selected time range
 - `RequiredRemoteFeatureName`: backend feature that enables the widget
 
 Supported zones are:

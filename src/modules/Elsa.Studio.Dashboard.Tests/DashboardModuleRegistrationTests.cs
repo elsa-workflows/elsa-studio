@@ -56,6 +56,32 @@ public class DashboardModuleRegistrationTests
     }
 
     [Fact]
+    public async Task InitializeFeaturesAsync_WhenCompanionWidgetsRegister_DeclaresTimeRangeUsage()
+    {
+        using var provider = BuildProvider(
+            WorkflowDashboardFeature.RemoteFeatureName,
+            ConsoleLogsDashboardFeature.RemoteFeatureName,
+            StructuredLogsDashboardFeature.RemoteFeatureName);
+
+        await InitializeFeaturesAsync(provider);
+
+        var widgets = provider.GetRequiredService<IDashboardWidgetProvider>().GetWidgets();
+        var timeRangeWidgetIds = widgets.Where(x => x.UsesTimeRange).Select(x => x.Id).ToList();
+
+        Assert.Equal(
+            [
+                "workflows.metrics",
+                "workflows.needs-attention",
+                "workflows.execution-trend",
+                "workflows.recent-activity",
+                "workflows.hotspots"
+            ],
+            timeRangeWidgetIds);
+        Assert.False(widgets.Single(x => x.Id == "diagnostics.structured-logs").UsesTimeRange);
+        Assert.False(widgets.Single(x => x.Id == "diagnostics.console-logs").UsesTimeRange);
+    }
+
+    [Fact]
     public async Task InitializeFeaturesAsync_WhenWidgetsAreReadBeforeRemoteFeaturesInitialize_RaisesEventAfterWidgetsRegister()
     {
         using var provider = BuildProvider(

@@ -30,6 +30,7 @@ public partial class Index : IAsyncDisposable
     private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
     private string WidgetCountLabel => _widgets.Count == 1 ? "1 widget" : $"{_widgets.Count} widgets";
     private DashboardWidgetContext WidgetContext => new(_selectedRange, _refreshVersion);
+    private bool HasTimeRangeWidgets => _widgets.Any(x => x.UsesTimeRange);
 
     protected override void OnInitialized()
     {

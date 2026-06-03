@@ -34,6 +34,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Zone = DashboardWidgetZone.Metrics,
             Order = 0,
             Span = DashboardWidgetSpan.Full,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -43,6 +44,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             ComponentType = typeof(WorkflowNeedsAttentionDashboardWidget),
             Zone = DashboardWidgetZone.Findings,
             Order = 0,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -53,6 +55,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Zone = DashboardWidgetZone.Primary,
             Order = 0,
             Span = DashboardWidgetSpan.Wide,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -63,6 +66,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Zone = DashboardWidgetZone.Secondary,
             Order = 0,
             Span = DashboardWidgetSpan.Wide,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -72,6 +76,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             ComponentType = typeof(WorkflowHotspotsDashboardWidget),
             Zone = DashboardWidgetZone.Diagnostics,
             Order = 0,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         }
     ];

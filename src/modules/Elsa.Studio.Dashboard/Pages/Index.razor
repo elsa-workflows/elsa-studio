@@ -17,15 +17,18 @@
         </MudStack>
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="dashboard-range-control">
-                <MudText Typo="Typo.caption" Class="dashboard-muted">Range</MudText>
-                <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                    @foreach (var option in DashboardRangeMapper.Options)
-                    {
-                        <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                    }
-                </MudToggleGroup>
-            </MudStack>
+            @if (HasTimeRangeWidgets)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="dashboard-range-control">
+                    <MudText Typo="Typo.caption" Class="dashboard-muted">Range</MudText>
+                    <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
+                        @foreach (var option in DashboardRangeMapper.Options)
+                        {
+                            <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
+                        }
+                    </MudToggleGroup>
+                </MudStack>
+            }
             <MudTooltip Text="Refresh dashboard" Delay="400">
                 <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
             </MudTooltip>
