@@ -27,12 +27,7 @@
 }
 
 .dashboard-empty-state {
-    min-height: 240px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    text-align: center;
 }
 
 .dashboard-metrics {
@@ -79,12 +74,6 @@
 
 .dashboard-shell ::deep .dashboard-section-header {
     margin-bottom: 10px;
-}
-
-.dashboard-shell ::deep .dashboard-trend-actions {
-    flex-wrap: wrap;
-    gap: 6px 8px;
-    min-width: 0;
 }
 
 .dashboard-shell ::deep .dashboard-chart-panel {

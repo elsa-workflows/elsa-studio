@@ -7,8 +7,9 @@ public static class DashboardStyles
     public const string MetricGrid = "margin-bottom:8px;";
     public const string MainGrid = "margin-top:0;";
     public const string Panel = "padding:14px; border-radius:8px; background:var(--mud-palette-surface);";
-    public const string EmptyPanel = "min-height:240px; border-radius:8px; background:var(--mud-palette-surface);";
+    public const string EmptyPanel = "min-height:240px; padding:28px; box-sizing:border-box; border-radius:8px; background:var(--mud-palette-surface); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center;";
     public const string SectionHeader = "margin-bottom:10px;";
+    public const string TrendActions = "flex-wrap:wrap; gap:6px 8px; min-width:0;";
     public const string MetricCard = "min-height:104px; height:100%; padding:12px; border-radius:8px; background:var(--mud-palette-surface);";
     public const string MetricValue = "line-height:1.1; margin-top:6px;";
     public const string CardLink = "color:inherit; display:block; height:100%;";

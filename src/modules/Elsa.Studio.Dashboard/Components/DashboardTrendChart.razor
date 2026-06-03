@@ -1,7 +1,7 @@
 <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section dashboard-chart-panel" Style="@DashboardStyles.ChartPanel">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
         <MudText Typo="Typo.subtitle1">Execution trend</MudText>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="dashboard-trend-actions">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="dashboard-trend-actions" Style="@DashboardStyles.TrendActions">
             <MudText Typo="Typo.caption" Class="dashboard-muted">@RangeCaption</MudText>
             @Actions
         </MudStack>
