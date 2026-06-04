@@ -15,6 +15,6 @@ public static class DashboardStyles
     public const string CardLink = "color:inherit; display:block; height:100%;";
     public const string FindingList = "margin:-6px;";
     public const string FindingRow = "width:100%; min-width:0;";
-    public const string ChartPanel = "min-height:294px; padding:14px; border-radius:8px; background:var(--mud-palette-surface);";
+    public const string ChartPanel = "min-height:396px; padding:14px; border-radius:8px; background:var(--mud-palette-surface);";
     public const string DiagnosticsBlock = "border:1px solid var(--mud-palette-lines-default); border-radius:8px; padding:12px;";
 }

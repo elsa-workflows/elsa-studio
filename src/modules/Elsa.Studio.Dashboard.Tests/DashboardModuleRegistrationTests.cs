@@ -47,8 +47,8 @@ public class DashboardModuleRegistrationTests
                 "workflows.metrics",
                 "workflows.needs-attention",
                 "workflows.execution-trend",
-                "workflows.hotspots",
                 "workflows.recent-activity",
+                "workflows.hotspots",
                 "diagnostics.structured-logs",
                 "diagnostics.console-logs"
             ],
@@ -73,8 +73,8 @@ public class DashboardModuleRegistrationTests
                 "workflows.metrics",
                 "workflows.needs-attention",
                 "workflows.execution-trend",
-                "workflows.hotspots",
                 "workflows.recent-activity",
+                "workflows.hotspots",
                 "diagnostics.structured-logs",
                 "diagnostics.console-logs"
             ],
@@ -95,9 +95,9 @@ public class DashboardModuleRegistrationTests
 
         AssertLayout(widgets, "workflows.metrics", DashboardWidgetZone.Metrics, DashboardWidgetSpan.Full);
         AssertLayout(widgets, "workflows.needs-attention", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
-        AssertLayout(widgets, "workflows.execution-trend", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
-        AssertLayout(widgets, "workflows.hotspots", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
-        AssertLayout(widgets, "workflows.recent-activity", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Full);
+        AssertLayout(widgets, "workflows.execution-trend", DashboardWidgetZone.Primary, DashboardWidgetSpan.Wide);
+        AssertLayout(widgets, "workflows.recent-activity", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Wide);
+        AssertLayout(widgets, "workflows.hotspots", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Compact);
         AssertLayout(widgets, "diagnostics.structured-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
         AssertLayout(widgets, "diagnostics.console-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
     }

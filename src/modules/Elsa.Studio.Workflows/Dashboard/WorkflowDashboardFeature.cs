@@ -55,18 +55,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             ComponentType = typeof(WorkflowTrendDashboardWidget),
             Zone = DashboardWidgetZone.Primary,
             Order = 10,
-            Span = DashboardWidgetSpan.Compact,
-            UsesTimeRange = true,
-            RequiredRemoteFeatureName = RemoteFeatureName
-        },
-        new()
-        {
-            Id = "workflows.hotspots",
-            Title = "Workflow hotspots",
-            ComponentType = typeof(WorkflowHotspotsDashboardWidget),
-            Zone = DashboardWidgetZone.Primary,
-            Order = 20,
-            Span = DashboardWidgetSpan.Compact,
+            Span = DashboardWidgetSpan.Wide,
             UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
@@ -77,7 +66,18 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             ComponentType = typeof(WorkflowRecentActivityDashboardWidget),
             Zone = DashboardWidgetZone.Secondary,
             Order = 0,
-            Span = DashboardWidgetSpan.Full,
+            Span = DashboardWidgetSpan.Wide,
+            UsesTimeRange = true,
+            RequiredRemoteFeatureName = RemoteFeatureName
+        },
+        new()
+        {
+            Id = "workflows.hotspots",
+            Title = "Workflow hotspots",
+            ComponentType = typeof(WorkflowHotspotsDashboardWidget),
+            Zone = DashboardWidgetZone.Secondary,
+            Order = 10,
+            Span = DashboardWidgetSpan.Compact,
             UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         }

@@ -17,7 +17,16 @@
     }
     else
     {
-        <MudChart T="double" ChartType="ChartType.Line" ChartSeries="@Series" ChartLabels="@Labels" Width="100%" Height="220px" />
+        <div class="dashboard-trend-chart-frame">
+            <MudChart T="double"
+                      Class="dashboard-trend-chart"
+                      ChartType="ChartType.Line"
+                      ChartSeries="@Series"
+                      ChartLabels="@Labels"
+                      Width="100%"
+                      Height="300px"
+                      MatchBoundsToSize="true" />
+        </div>
     }
 </MudPaper>
 
