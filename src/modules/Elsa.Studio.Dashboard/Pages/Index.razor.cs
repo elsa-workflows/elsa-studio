@@ -1,53 +1,92 @@
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
-using Elsa.Studio.Contracts;
+using Elsa.Studio.Dashboard.Widgets;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Pages;
 
 public partial class Index : IAsyncDisposable
 {
-    private static readonly DashboardWidgetZone[] MainZones =
-    [
-        DashboardWidgetZone.Findings,
-        DashboardWidgetZone.Primary,
-        DashboardWidgetZone.Secondary,
-        DashboardWidgetZone.Diagnostics
-    ];
-
-    private IReadOnlyList<DashboardWidgetDescriptor> _widgets = [];
+    private CancellationTokenSource? _loadCancellationTokenSource;
+    private DashboardSnapshot? _snapshot;
+    private DashboardLoadStatus _status = DashboardLoadStatus.Unavailable;
     private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
-    private int _refreshVersion;
-    private DateTimeOffset? _lastRefreshedAt;
+    private string? _message;
+    private bool _loading;
     private bool _disposed;
     private bool _subscribedToFeatureInitialized;
+    private DateTimeOffset? _lastRefreshedAt;
 
-    [Inject] private IDashboardWidgetProvider DashboardWidgetProvider { get; set; } = null!;
+    [Inject] private IDashboardService DashboardService { get; set; } = null!;
+    [Inject] private IDashboardWidgetRegistry WidgetRegistry { get; set; } = null!;
+    [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IFeatureService FeatureService { get; set; } = null!;
 
-    private string BackendLabel => "Selected backend";
+    private DashboardWidgetContext WidgetContext => new(
+        _selectedRange,
+        _loading,
+        _lastRefreshedAt,
+        _status,
+        _message,
+        _snapshot,
+        RefreshAsync,
+        NavigationManager);
 
-    private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
-    private string WidgetCountLabel => _widgets.Count == 1 ? "1 widget" : $"{_widgets.Count} widgets";
-    private DashboardWidgetContext WidgetContext => new(_selectedRange, _refreshVersion);
-    private bool HasTimeRangeWidgets => _widgets.Any(x => x.UsesTimeRange);
-
-    protected override void OnInitialized()
+    private string BackendLabel
     {
-        LoadWidgets();
-        Refresh();
+        get
+        {
+            if (_snapshot == null)
+                return "Selected backend";
+
+            var overview = _snapshot.Overview;
+            var backendName = string.IsNullOrWhiteSpace(overview.BackendName) ? "Backend" : overview.BackendName;
+            return string.IsNullOrWhiteSpace(overview.EnvironmentName) ? backendName : $"{backendName} / {overview.EnvironmentName}";
+        }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
+
+    private string StatusLabel => _status switch
+    {
+        DashboardLoadStatus.Unauthorized => "No access",
+        DashboardLoadStatus.BackendDisconnected => "Backend disconnected",
+        DashboardLoadStatus.Failed => "Refresh failed",
+        DashboardLoadStatus.Loaded => "Loaded",
+        _ => "Dashboard unavailable"
+    };
+
+    private Severity AlertSeverity => _status switch
+    {
+        DashboardLoadStatus.Unauthorized => Severity.Warning,
+        DashboardLoadStatus.Loaded => Severity.Info,
+        _ => Severity.Error
+    };
+
+    private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
+        Widgets
+            .Concat(WidgetRegistry.List())
+            .DistinctBy(x => x.Id)
+            .Where(x => x.Zone == zone && x.IsVisible(WidgetContext))
+            .OrderBy(x => x.Order)
+            .ThenBy(x => x.Id, StringComparer.Ordinal)
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
     {
         if (!firstRender || _disposed)
             return;
 
         FeatureService.Initialized += OnFeatureServiceInitialized;
         _subscribedToFeatureInitialized = true;
-
-        if (LoadWidgets())
-            await InvokeAsync(StateHasChanged);
     }
 
     private void OnFeatureServiceInitialized()
@@ -62,79 +101,90 @@ public partial class Index : IAsyncDisposable
 
         try
         {
-            await InvokeAsync(() =>
-            {
-                if (_disposed || !LoadWidgets())
-                    return;
-
-                StateHasChanged();
-            });
+            await InvokeAsync(StateHasChanged);
         }
         catch (InvalidOperationException) when (_disposed)
         {
         }
     }
 
-    private bool LoadWidgets()
-    {
-        var widgets = DashboardWidgetProvider.GetWidgets();
-
-        if (_widgets.Select(x => x.Id).SequenceEqual(widgets.Select(x => x.Id), StringComparer.Ordinal))
-            return false;
-
-        _widgets = widgets;
-        return true;
-    }
-
-    private Task RefreshAsync()
-    {
-        Refresh();
-        return Task.CompletedTask;
-    }
-
-    private Task OnRangeChangedAsync(string? range)
+    private async Task OnRangeChangedAsync(string? range)
     {
         var selectedRange = DashboardRangeMapper.Normalize(range);
 
         if (_selectedRange == selectedRange)
-            return Task.CompletedTask;
+            return;
 
         _selectedRange = selectedRange;
-        Refresh();
-        return Task.CompletedTask;
+        await RefreshAsync();
     }
 
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        _refreshVersion++;
-        _lastRefreshedAt = DateTimeOffset.UtcNow;
+        await LoadAsync(_selectedRange);
     }
 
-    private bool HasWidgets(DashboardWidgetZone zone) => _widgets.Any(x => x.Zone == zone);
-
-    private IEnumerable<DashboardWidgetDescriptor> WidgetsFor(DashboardWidgetZone zone) => _widgets.Where(x => x.Zone == zone);
-
-    private static IDictionary<string, object> GetParameters(DashboardWidgetDescriptor widget) =>
-        widget.Parameters.ToDictionary(x => x.Key, x => x.Value!);
-
-    private static int GetSmallColumns(DashboardWidgetDescriptor widget) => widget.Span is DashboardWidgetSpan.Compact or DashboardWidgetSpan.Half ? 6 : 12;
-
-    private static int GetLargeColumns(DashboardWidgetDescriptor widget) => widget.Span switch
+    private async Task LoadAsync(string range)
     {
-        DashboardWidgetSpan.Compact => 4,
-        DashboardWidgetSpan.Half => 6,
-        DashboardWidgetSpan.Wide => 8,
-        DashboardWidgetSpan.Full => 12,
-        _ => widget.Zone is DashboardWidgetZone.Diagnostics or DashboardWidgetZone.Findings ? 4 : 8
-    };
+        await CancelCurrentLoadAsync();
 
-    public ValueTask DisposeAsync()
+        var cancellationTokenSource = new CancellationTokenSource();
+        _loadCancellationTokenSource = cancellationTokenSource;
+        _loading = true;
+        _message = null;
+
+        try
+        {
+            var result = await DashboardService.LoadAsync(range, cancellationToken: cancellationTokenSource.Token);
+            _status = result.Status;
+
+            if (result.Snapshot != null)
+            {
+                _snapshot = result.Snapshot;
+                _lastRefreshedAt = DateTimeOffset.UtcNow;
+                _message = null;
+            }
+            else
+            {
+                _message = result.Message;
+            }
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+        }
+        catch (Exception e)
+        {
+            _status = DashboardLoadStatus.Failed;
+            _message = e.Message;
+        }
+        finally
+        {
+            if (ReferenceEquals(_loadCancellationTokenSource, cancellationTokenSource))
+            {
+                _loading = false;
+                _loadCancellationTokenSource = null;
+            }
+
+            cancellationTokenSource.Dispose();
+        }
+    }
+
+    private async Task CancelCurrentLoadAsync()
+    {
+        if (_loadCancellationTokenSource == null)
+            return;
+
+        await _loadCancellationTokenSource.CancelAsync();
+        _loadCancellationTokenSource = null;
+    }
+
+    public async ValueTask DisposeAsync()
     {
         _disposed = true;
 
         if (_subscribedToFeatureInitialized)
             FeatureService.Initialized -= OnFeatureServiceInitialized;
 
-        return ValueTask.CompletedTask;
+        await CancelCurrentLoadAsync();
     }
 }

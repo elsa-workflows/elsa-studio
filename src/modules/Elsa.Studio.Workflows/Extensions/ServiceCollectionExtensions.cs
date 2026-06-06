@@ -7,7 +7,6 @@ using Elsa.Studio.Workflows.ActivityPickers.Accordion;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Contracts;
-using Elsa.Studio.Workflows.Dashboard;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
@@ -34,9 +33,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IFeature, WorkflowDashboardFeature>()
             .AddScoped<IMenuProvider, WorkflowsMenu>()
-            .AddScoped<IWorkflowDashboardDataProvider, WorkflowDashboardDataProvider>()
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddScoped<IWorkflowCloningDialogService, WorkflowCloningDialogService>()
             .AddScoped<IWorkflowExportDialogService, WorkflowExportDialogService>()

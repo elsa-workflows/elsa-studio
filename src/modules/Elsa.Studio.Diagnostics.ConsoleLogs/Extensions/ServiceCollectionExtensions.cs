@@ -1,7 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Client;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Contracts;
-using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Menu;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Services;
 using Elsa.Studio.Diagnostics.ConsoleLogs.UI.Widgets;
@@ -23,7 +22,6 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IFeature, ConsoleLogsDashboardFeature>()
             .AddScoped<IMenuProvider, ConsoleLogsMenu>()
             .AddScoped<IWidget, WorkflowInstanceConsoleLogsTabWidget>()
             .AddScoped<IWidget, WorkflowInstanceConsoleLogsLeftPanelTabWidget>()

@@ -7,10 +7,6 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using DashboardWidgetRegistry = Elsa.Studio.Dashboard.Services.DashboardWidgetRegistry;
-using IDashboardWidgetRegistry = Elsa.Studio.Dashboard.Services.IDashboardWidgetRegistry;
-using LegacyDashboardWidgetRegistry = Elsa.Studio.Dashboard.Widgets.DashboardWidgetRegistry;
-using ILegacyDashboardWidgetRegistry = Elsa.Studio.Dashboard.Widgets.IDashboardWidgetRegistry;
 
 namespace Elsa.Studio.Dashboard.Extensions;
 
@@ -26,13 +22,11 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddDashboardModule(this IServiceCollection services)
     {
-        services.TryAddSingleton<ILegacyDashboardWidgetRegistry, LegacyDashboardWidgetRegistry>();
+        services.TryAddSingleton<IDashboardWidgetRegistry, DashboardWidgetRegistry>();
 
         return services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, DashboardMenu>()
-            .AddScoped<IDashboardWidgetRegistry, DashboardWidgetRegistry>()
-            .AddScoped<IDashboardWidgetProvider, DashboardWidgetProvider>()
             .AddScoped<IDashboardService, DashboardService>();
     }
 

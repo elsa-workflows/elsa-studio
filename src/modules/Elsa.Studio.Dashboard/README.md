@@ -6,22 +6,21 @@
 
 Dashboard widgets are contributed through `DashboardWidgetDescriptor`:
 
-- `Id`: stable unique ID, for example `workflows.execution-trend`
-- `ComponentType`: Blazor component rendered by the shell
+- `Id`: stable unique ID, for example `dashboard.workflow.trend`
 - `Zone`: semantic placement, not a concrete grid coordinate
 - `Order`: deterministic ordering within the zone
+- `ComponentType`: Blazor component rendered by the shell
 - `Title`: optional display name for tooling and diagnostics
-- `Span`: optional size hint for compact, half-width, wide, or full-width widgets
-- `UsesTimeRange`: true when the widget reloads or changes meaning based on the shell's selected time range
-- `RequiredRemoteFeatureName`: backend feature that enables the widget
+- `RequiredBackendCapability`: backend capability needed by the widget
+- `PayloadKind`: optional snapshot payload key used by the widget
 
 Supported zones are:
 
-- `Metrics`: top-level KPI bands and compact counters
-- `Findings`: prioritized status and attention panels
-- `Primary`: wide charts or primary operational panels
-- `Secondary`: supporting tables and activity panels
-- `Diagnostics`: status cards and health panels
+- `DashboardWidgetZones.Metrics`: top-level KPI bands and compact counters
+- `DashboardWidgetZones.Findings`: prioritized status and attention panels
+- `DashboardWidgetZones.PrimaryPanels`: wide charts or primary operational panels
+- `DashboardWidgetZones.SecondaryPanels`: supporting tables and activity panels
+- `DashboardWidgetZones.DiagnosticsStatus`: diagnostics status cards and health panels
 
 ## Remote-Gated Registration
 
@@ -35,15 +34,14 @@ public class ExampleDashboardFeature(IServiceProvider serviceProvider) : Feature
 
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        serviceProvider.GetService<IDashboardWidgetRegistry>()?.Add(new DashboardWidgetDescriptor
-        {
-            Id = "example.status",
-            Title = "Example status",
-            ComponentType = typeof(ExampleStatusDashboardWidget),
-            Zone = DashboardWidgetZone.Diagnostics,
-            Order = 10,
-            RequiredRemoteFeatureName = RemoteFeatureName
-        });
+        serviceProvider.GetService<IDashboardWidgetRegistry>()?.Add(new(
+            "example.status",
+            DashboardWidgetZones.DiagnosticsStatus,
+            10,
+            typeof(ExampleStatusDashboardWidget),
+            "Example status",
+            RequiredBackendCapability: "Example",
+            PayloadKind: "Example.Status"));
 
         return ValueTask.CompletedTask;
     }
@@ -54,9 +52,9 @@ The optional registry lookup keeps companion modules usable when a host does not
 
 ## Widget Data Loading
 
-The shell supplies a cascading `DashboardWidgetContext` with the selected range and refresh version. Widgets should load only the backend APIs needed by that widget, cancel in-flight work when the context changes, and keep their own empty, loading, error, and unavailable states.
+The shell supplies a `DashboardWidgetContext` parameter with the selected range, load status, latest dashboard snapshot, refresh callback, and navigation manager. Widgets should read the snapshot payloads they need and keep their own empty and unavailable states.
 
-Use a scoped provider when multiple widgets from the same companion module share one backend snapshot. For example, workflow dashboard widgets share `IWorkflowDashboardDataProvider`, while console and structured log widgets load their own recent diagnostics slices.
+Use `PayloadKind` to document which snapshot payload a widget consumes. For example, workflow dashboard widgets consume `WorkflowInstances`, `WorkflowTrends`, `RecentActivity`, and `WorkflowHotspots`, while diagnostics widgets consume their matching diagnostics payloads.
 
 ## Host Registration
 
@@ -65,8 +63,11 @@ Install the dashboard shell and the companion modules you want:
 ```csharp
 services.AddDashboardModule(backendApiConfig);
 services.AddWorkflowsModule();
+services.AddWorkflowsDashboardModule();
 services.AddConsoleLogsModule(backendApiConfig);
+services.AddConsoleLogsDashboardModule();
 services.AddStructuredLogsModule(backendApiConfig);
+services.AddStructuredLogsDashboardModule();
 ```
 
 The shell remains coherent when any companion is absent or when the backend does not advertise a companion dashboard feature.

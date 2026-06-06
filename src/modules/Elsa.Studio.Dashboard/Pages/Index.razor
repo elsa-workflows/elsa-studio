@@ -1,7 +1,6 @@
 @page "/"
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
-@using DashboardZone = Elsa.Studio.Dashboard.Models.DashboardWidgetZone
 
 <PageTitle>@Localizer["Dashboard"]</PageTitle>
 
@@ -11,64 +10,79 @@
             <MudText Typo="Typo.h4">Dashboard</MudText>
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
                 <MudText Typo="Typo.body2" Class="dashboard-muted">@BackendLabel</MudText>
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@(_widgets.Count > 0 ? Color.Success : Color.Default)" Icon="@Icons.Material.Outlined.Widgets">@WidgetCountLabel</MudChip>
+                @if (_snapshot != null)
+                {
+                    <DashboardRuntimeChip Runtime="@_snapshot.Overview.Runtime" />
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" Icon="@Icons.Material.Outlined.CloudOff">@StatusLabel</MudChip>
+                }
                 <MudText Typo="Typo.caption" Class="dashboard-muted">@LastRefreshedLabel</MudText>
             </MudStack>
         </MudStack>
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-            @if (HasTimeRangeWidgets)
-            {
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="dashboard-range-control">
-                    <MudText Typo="Typo.caption" Class="dashboard-muted">Range</MudText>
-                    <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                        @foreach (var option in DashboardRangeMapper.Options)
-                        {
-                            <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                        }
-                    </MudToggleGroup>
-                </MudStack>
-            }
+            <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
+                @foreach (var option in DashboardRangeMapper.Options)
+                {
+                    <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
+                }
+            </MudToggleGroup>
             <MudTooltip Text="Refresh dashboard" Delay="400">
-                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Disabled="@_loading" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
             </MudTooltip>
         </MudStack>
     </MudStack>
 
-    @if (_widgets.Count == 0)
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <MudAlert Severity="@AlertSeverity" Dense="true" Class="mb-4">@_message</MudAlert>
+    }
+
+    @if (_loading && _snapshot == null)
+    {
+        <MudGrid Spacing="2" Class="mb-4">
+            @for (var i = 0; i < 6; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" xl="2">
+                    <MudSkeleton Height="112px" Animation="Animation.Wave" />
+                </MudItem>
+            }
+        </MudGrid>
+        <MudSkeleton Height="360px" Animation="Animation.Wave" />
+    }
+    else if (_snapshot == null)
     {
         <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-empty-state" Style="@DashboardStyles.EmptyPanel">
             <MudIcon Icon="@Icons.Material.Outlined.DashboardCustomize" Color="Color.Default" />
-            <MudText Typo="Typo.h6">No dashboard widgets</MudText>
-            <MudText Typo="Typo.body2" Class="dashboard-muted">Install a companion dashboard module for this backend to show operational widgets.</MudText>
+            <MudText Typo="Typo.h6">@StatusLabel</MudText>
+            <MudText Typo="Typo.body2" Class="dashboard-muted">@(_message ?? "Dashboard data is unavailable from the selected backend.")</MudText>
         </MudPaper>
     }
     else
     {
-        <CascadingValue Value="@WidgetContext">
-            @if (HasWidgets(DashboardZone.Metrics))
-            {
-                <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
-                    @foreach (var widget in WidgetsFor(DashboardZone.Metrics))
-                    {
-                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
-                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
-                        </MudItem>
-                    }
-                </MudGrid>
-            }
+        <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Metrics)" Context="@WidgetContext" />
 
-            <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
-                @foreach (var zone in MainZones)
-                {
-                    foreach (var widget in WidgetsFor(zone))
-                    {
-                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
-                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
-                        </MudItem>
-                    }
-                }
-            </MudGrid>
-        </CascadingValue>
+        <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
+            <MudItem xs="12" lg="4">
+                <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Findings)" Context="@WidgetContext" />
+            </MudItem>
+            <MudItem xs="12" lg="8">
+                <MudStack Spacing="2">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.PrimaryPanels)" Context="@WidgetContext" />
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" lg="8">
+                <MudStack Spacing="2">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.DiagnosticsStatus)" Context="@WidgetContext" />
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" lg="4">
+                <MudStack Spacing="2">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.SecondaryPanels)" Context="@WidgetContext" />
+                </MudStack>
+            </MudItem>
+        </MudGrid>
     }
 </MudContainer>

@@ -3,7 +3,6 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Diagnostics.StructuredLogs.Client;
 using Elsa.Studio.Diagnostics.StructuredLogs.Contracts;
-using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard;
 using Elsa.Studio.Diagnostics.StructuredLogs.Menu;
 using Elsa.Studio.Diagnostics.StructuredLogs.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +21,6 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IFeature, StructuredLogsDashboardFeature>()
             .AddScoped<IMenuProvider, StructuredLogsMenu>()
             .AddScoped<IStructuredLogService, RemoteStructuredLogService>()
             .AddScoped<IStructuredLogObserver, SignalRStructuredLogObserver>()
