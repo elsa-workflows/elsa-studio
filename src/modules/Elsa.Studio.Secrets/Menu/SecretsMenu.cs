@@ -1,14 +1,14 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using MudBlazor;
-using Refit;
 namespace Elsa.Studio.Secrets.Menu;
 
 public class SecretsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
     public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
-        if (!await IsSecretsEnabledAsync(cancellationToken))
+        if (!await remoteFeatureProvider.IsEnabledOrDefaultAsync(Feature.RemoteFeatureName, cancellationToken))
             return [];
 
         return
@@ -21,29 +21,5 @@ public class SecretsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuPr
                 GroupName = MenuItemGroups.Settings.Name
             }
         ];
-    }
-
-    private async Task<bool> IsSecretsEnabledAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await remoteFeatureProvider.IsEnabledAsync(Feature.RemoteFeatureName, cancellationToken);
-        }
-        catch (ApiException)
-        {
-            return false;
-        }
-        catch (HttpRequestException)
-        {
-            return false;
-        }
-        catch (TaskCanceledException)
-        {
-            return false;
-        }
-        catch (InvalidOperationException e) when (e.Message.Contains("JavaScript interop calls cannot be issued at this time", StringComparison.Ordinal))
-        {
-            return false;
-        }
     }
 }
