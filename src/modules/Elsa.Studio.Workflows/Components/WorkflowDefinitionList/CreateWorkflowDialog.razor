@@ -1,5 +1,6 @@
 @using Variant = MudBlazor.Variant
 @inherits StudioComponentBase
+@using Elsa.Studio.Workflows.Domain.Models
 @using Elsa.Studio.Workflows.Services
 @inject ILocalizer Localizer
 
@@ -9,6 +10,27 @@
             <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
             <MudStack>
                 <MudTextField Label="@Localizer["Name"]" @bind-Value="_metadataModel.Name" For="@(() => _metadataModel.Name)" HelperText="@Localizer["The name of the new workflow."]" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.subtitle2">@Localizer["Workflow type"]</MudText>
+                    <MudStack Spacing="1">
+                        @foreach (var template in _rootActivityTemplates)
+                        {
+                            <MudPaper Outlined="true" Elevation="0" Class="@GetRootActivityTemplateClass(template)" @onclick="@(() => SelectRootActivityTemplate(template.Key))">
+                                <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
+                                    <MudIcon Icon="@template.Icon" Style="@GetRootActivityTemplateIconStyle(template)" />
+                                    <MudStack Spacing="0" Class="flex-grow-1">
+                                        <MudText Typo="Typo.subtitle2">@Localizer[template.DisplayName]</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer[template.Description]</MudText>
+                                    </MudStack>
+                                    @if (IsRootActivityTemplateSelected(template))
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+                                    }
+                                </MudStack>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                </MudStack>
                 <MarkdownTextArea Label="@Localizer["Description"]" @bind-Value="_metadataModel.Description" For="@(() => _metadataModel.Description)" HelperText="@Localizer["A brief description of the workflow."]" />
             </MudStack>
         </EditForm>

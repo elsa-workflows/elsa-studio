@@ -1,9 +1,11 @@
 import {Node} from "@antv/x6";
 import {graphBindings} from "./graph-bindings";
+import {arrangeSequenceGraph, withSuppressedGraphUpdated} from "./sequence-mode";
 
 export async function addActivityNode(graphId: string, node: Node.Properties) {
     // Get graph reference.
-    const {graph} = graphBindings[graphId];
+    const binding = graphBindings[graphId];
+    const {graph} = binding;
 
     // Convert the node coordinates from page to local.
     const {x, y} = graph.pageToLocal(node.position);
@@ -13,7 +15,14 @@ export async function addActivityNode(graphId: string, node: Node.Properties) {
     node.id = node.id!;
 
     // Add the node to the graph.
-    graph.addNode(node);
+    if (binding.mode === 'sequence') {
+        withSuppressedGraphUpdated(binding, () => graph.addNode(node));
+        arrangeSequenceGraph(binding);
+        await binding.interop.raiseGraphUpdated();
+    } else {
+        graph.addNode(node);
+    }
+
     graph.cleanSelection();
     graph.select(node.id);
 }

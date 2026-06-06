@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         services
             .AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>()
             .AddScoped<IWorkflowDefinitionService, RemoteWorkflowDefinitionService>()
+            .AddScoped<IWorkflowRootActivityTemplateProvider, DefaultWorkflowRootActivityTemplateProvider>()
             .AddScoped<IWorkflowInstanceService, RemoteWorkflowInstanceService>()
             .AddScoped<IWorkflowDefinitionEditorService, WorkflowDefinitionEditorService>()
             .AddScoped<IWorkflowDefinitionImporter, WorkflowDefinitionImporter>()

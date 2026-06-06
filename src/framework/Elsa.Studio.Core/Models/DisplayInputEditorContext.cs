@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
@@ -186,6 +187,7 @@ public class DisplayInputEditorContext
         await UpdateValueAsync(value);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Input editor values are runtime UI models that cannot use a fixed source-generated context.")]
     private static string Serialize(object? value)
     {
         var options = new JsonSerializerOptions

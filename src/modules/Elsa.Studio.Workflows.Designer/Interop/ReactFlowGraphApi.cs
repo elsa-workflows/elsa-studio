@@ -78,6 +78,14 @@ public class ReactFlowGraphApi
     public async Task AutoLayoutAsync() =>
         await _module.InvokeVoidAsync("autoLayoutReactGraph", _containerId);
 
+    /// <summary>Sets the Sequence layout orientation.</summary>
+    public async Task SetSequenceOrientationAsync(string orientation) =>
+        await _module.InvokeVoidAsync("setSequenceOrientation", _containerId, orientation);
+
+    /// <summary>Moves the selected Sequence activity earlier or later.</summary>
+    public async Task MoveSelectedSequenceNodeAsync(int direction) =>
+        await _module.InvokeVoidAsync("moveSelectedReactSequenceNode", _containerId, direction);
+
     /// <summary>Adds the specified activity nodes and edges (after .NET regenerated their IDs).</summary>
     public async Task PasteCellsAsync(IEnumerable<X6ActivityNode> activityNodes, X6Edge[] edges)
     {

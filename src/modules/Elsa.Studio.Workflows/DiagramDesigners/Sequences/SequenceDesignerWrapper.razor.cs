@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -10,6 +11,7 @@ using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Args;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Sequences;
 
@@ -30,8 +32,11 @@ public partial class SequenceDesignerWrapper
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
+    [Inject] private IOptions<DesignerOptions> DesignerOptions { get; set; } = null!;
 
-    private SequenceFlowDesigner? Designer { get; set; }
+    private SequenceDesigner? Designer { get; set; }
+    private SequenceFlowDesigner? ReactDesigner { get; set; }
+    private bool UseReactFlow => DesignerOptions.Value.UseReactFlow;
     private string? _lastSequenceId;
 
     public async Task LoadSequenceAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = null)
@@ -48,7 +53,9 @@ public partial class SequenceDesignerWrapper
         Sequence = sequence;
         ActivityStats = activityStats;
 
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.LoadSequenceAsync(sequence, activityStats);
+        else if (Designer is not null)
             await Designer.LoadSequenceAsync(sequence, activityStats);
     }
 
@@ -59,24 +66,32 @@ public partial class SequenceDesignerWrapper
 
         if (activity == Sequence) return;
 
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.UpdateActivityAsync(id, activity);
+        else if (Designer is not null)
             await Designer.UpdateActivityAsync(id, activity);
     }
 
     public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)
     {
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.UpdateActivityStatsAsync(id, stats);
+        else if (Designer is not null)
             await Designer.UpdateActivityStatsAsync(id, stats);
     }
 
     public async Task SelectActivityAsync(string id)
     {
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.SelectActivityAsync(id);
+        else if (Designer is not null)
             await Designer.SelectActivityAsync(id);
     }
 
     public async Task<JsonObject> ReadRootActivityAsync()
     {
+        if (ReactDesigner is not null)
+            return await ReactDesigner.ReadSequenceAsync();
         if (Designer is not null)
             return await Designer.ReadSequenceAsync();
 
@@ -85,27 +100,51 @@ public partial class SequenceDesignerWrapper
 
     public async Task ZoomToFitAsync()
     {
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.ZoomToFitAsync();
+        else if (Designer is not null)
             await Designer.ZoomToFitAsync();
     }
 
     public async Task CenterContentAsync()
     {
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.CenterContentAsync();
+        else if (Designer is not null)
             await Designer.CenterContentAsync();
     }
 
     public async Task AutoLayoutAsync()
     {
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.AutoLayoutAsync();
+        else if (Designer is not null)
             await Designer.AutoLayoutAsync();
+    }
+
+    public async Task SetLayoutOrientationAsync(string orientation)
+    {
+        if (ReactDesigner is not null)
+            await ReactDesigner.SetLayoutOrientationAsync(orientation);
+        else if (Designer is not null)
+            await Designer.SetLayoutOrientationAsync(orientation);
+    }
+
+    public async Task MoveSelectedActivityAsync(int direction)
+    {
+        if (ReactDesigner is not null)
+            await ReactDesigner.MoveSelectedActivityAsync(direction);
+        else if (Designer is not null)
+            await Designer.MoveSelectedActivityAsync(direction);
     }
 
     private async Task AddNewActivityAsync(ActivityDescriptor activityDescriptor, double x, double y)
     {
         var newActivity = SequenceActivityFactory.CreateActivity(Sequence, activityDescriptor, IdentityGenerator, ActivityNameGenerator, x, y);
 
-        if (Designer is not null)
+        if (ReactDesigner is not null)
+            await ReactDesigner.AddActivityAsync(newActivity);
+        else if (Designer is not null)
             await Designer.AddActivityAsync(newActivity);
 
         if (ActivitySelected.HasDelegate)

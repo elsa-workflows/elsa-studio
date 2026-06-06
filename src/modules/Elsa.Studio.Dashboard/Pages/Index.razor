@@ -1,12 +1,57 @@
-﻿@page "/"
+@page "/"
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
 
-<PageTitle>Index</PageTitle>
+<PageTitle>@Localizer["Dashboard"]</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="@Localizer["Dashboard"]"></PageHeading>
-    <MudText Class="mb-8">@Localizer["Manage all the things"]</MudText>
-    <MudAlert Severity="Severity.Normal">@Localizer["You can find documentation and examples here"]: <MudLink Href="https://docs.elsaworkflows.io/" Typo="Typo.body2" Color="Color.Inherit"><b>docs.elsaworkflows.io</b></MudLink></MudAlert>
+<MudContainer MaxWidth="MaxWidth.False" Class="dashboard-shell" Style="@DashboardStyles.Shell">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-header" Spacing="3" Style="@DashboardStyles.Header">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4">Dashboard</MudText>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
+                <MudText Typo="Typo.body2" Class="dashboard-muted">@BackendLabel</MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@(_widgets.Count > 0 ? Color.Success : Color.Default)" Icon="@Icons.Material.Outlined.Widgets">@WidgetCountLabel</MudChip>
+                <MudText Typo="Typo.caption" Class="dashboard-muted">@LastRefreshedLabel</MudText>
+            </MudStack>
+        </MudStack>
 
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
+            <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
+                @foreach (var option in DashboardRangeMapper.Options)
+                {
+                    <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
+                }
+            </MudToggleGroup>
+            <MudTooltip Text="Refresh dashboard" Delay="400">
+                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
+            </MudTooltip>
+        </MudStack>
+    </MudStack>
+
+    @if (_widgets.Count == 0)
+    {
+        <MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-empty-state" Style="@DashboardStyles.EmptyPanel">
+            <MudIcon Icon="@Icons.Material.Outlined.DashboardCustomize" Color="Color.Default" />
+            <MudText Typo="Typo.h6">No dashboard widgets</MudText>
+            <MudText Typo="Typo.body2" Class="dashboard-muted">Install a companion dashboard module for this backend to show operational widgets.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <CascadingValue Value="@WidgetContext">
+            @if (HasWidgets(DashboardWidgetZone.Metrics))
+            {
+                <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
+                    @RenderZone(DashboardWidgetZone.Metrics)
+                </MudGrid>
+            }
+
+            <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
+                @foreach (var zone in MainZones)
+                {
+                    @RenderZone(zone)
+                }
+            </MudGrid>
+        </CascadingValue>
+    }
 </MudContainer>

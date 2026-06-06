@@ -77,4 +77,29 @@ export function initialize() {
         true,
     );
 
+    Graph.registerEdge(
+        'elsa-sequence-edge',
+        {
+            inherit: 'edge',
+            attrs: {
+                line: {
+                    stroke: '#94a3b8',
+                    strokeWidth: 2,
+                    targetMarker: 'classic',
+                    size: 6,
+                },
+            },
+            connector: {
+                name: 'rounded',
+                args: {
+                    radius: 8,
+                },
+            },
+            router: {
+                name: 'orth',
+            },
+        },
+        true,
+    );
+
 }

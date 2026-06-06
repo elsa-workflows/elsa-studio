@@ -1,0 +1,23 @@
+<MudPaper Outlined="true" Elevation="0" Class="dashboard-panel dashboard-section" Style="@DashboardStyles.Panel">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-section-header" Style="@DashboardStyles.SectionHeader">
+        <MudText Typo="Typo.subtitle1">Structured logs</MudText>
+        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@DashboardUiMapper.CapabilityColor(Summary.Capability)">
+            @DashboardUiMapper.CapabilityLabel(Summary.Capability)
+        </MudChip>
+    </MudStack>
+
+    <div class="dashboard-diagnostics-block" style="@DashboardStyles.DiagnosticsBlock">
+        <DashboardDiagnosticsValue Label="Sources" Value="@DashboardMetricFormatter.Count(Summary.SourceCount)" />
+        <DashboardDiagnosticsValue Label="Stale" Value="@DashboardMetricFormatter.Count(Summary.StaleSourceCount)" Color="@StaleColor(Summary.StaleSourceCount)" />
+        <DashboardDiagnosticsValue Label="Errors / critical" Value="@DashboardMetricFormatter.Count(Summary.RecentErrorOrCriticalCount)" Color="@ErrorColor(Summary.RecentErrorOrCriticalCount)" />
+        <DashboardDiagnosticsValue Label="Dropped writes" Value="@DashboardMetricFormatter.Count(Summary.DroppedWriteCount)" Color="@ErrorColor(Summary.DroppedWriteCount)" />
+        <MudButton Href="@DashboardNavigationTargetMapper.StructuredLogs" Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.OpenInNew">Open logs</MudButton>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public DashboardStructuredLogSummary Summary { get; set; } = new();
+
+    private static Color StaleColor(long value) => value > 0 ? Color.Warning : Color.Default;
+    private static Color ErrorColor(long value) => value > 0 ? Color.Error : Color.Default;
+}

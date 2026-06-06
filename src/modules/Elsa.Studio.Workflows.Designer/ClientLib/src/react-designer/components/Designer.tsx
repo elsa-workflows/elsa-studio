@@ -45,6 +45,7 @@ export interface DesignerHandle {
     centerContent: () => void;
     readGraph: () => ElsaGraph;
     setSequenceOrientation: (orientation: SequenceLayoutOrientation) => void;
+    moveSelectedSequenceNode: (direction: -1 | 1) => void;
     addNode: (node: ElsaActivityNode, dropPagePosition?: { x: number; y: number }) => void;
     updateNode: (node: ElsaActivityNode) => void;
     updateNodeStats: (activityId: string, stats: ElsaActivityStats) => void;
@@ -492,6 +493,16 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
             requestAnimationFrame(fitToContent);
             interop.raiseGraphUpdated();
         },
+        moveSelectedSequenceNode: (direction) => {
+            if (readOnlyRef.current) return;
+            const moved = moveSequenceSelection(nodesRef.current, sequenceOrientation, direction);
+            if (moved === nodesRef.current) return;
+            const nextEdges = buildSequenceEdges(moved);
+            setNodes(moved);
+            setEdges(nextEdges);
+            snapshot(moved, nextEdges);
+            interop.raiseGraphUpdated();
+        },
         addNode: (node, dropPagePosition) => {
             const reactNode = toReactFlowNode(node, onEmbeddedPortClick, onDeleteNode, readOnly);
             if (dropPagePosition) {
@@ -933,29 +944,6 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
         setConnectMenu({ kind: 'fromEmpty', clientX: event.clientX, clientY: event.clientY });
     }, [ensureCatalogLoaded]);
 
-    const changeSequenceOrientation = useCallback((orientation: SequenceLayoutOrientation) => {
-        const normalized = normalizeOrientation(orientation);
-        setSequenceOrientationState(normalized);
-        const arranged = arrangeSequenceNodes(nodesRef.current, normalized);
-        const nextEdges = buildSequenceEdges(arranged);
-        setNodes(arranged);
-        setEdges(nextEdges);
-        snapshot(arranged, nextEdges);
-        requestAnimationFrame(fitToContent);
-        interop.raiseGraphUpdated();
-    }, [snapshot, fitToContent, interop]);
-
-    const moveSelectedSequenceNode = useCallback((direction: -1 | 1) => {
-        if (readOnlyRef.current) return;
-        const moved = moveSequenceSelection(nodesRef.current, sequenceOrientation, direction);
-        if (moved === nodesRef.current) return;
-        const nextEdges = buildSequenceEdges(moved);
-        setNodes(moved);
-        setEdges(nextEdges);
-        snapshot(moved, nextEdges);
-        interop.raiseGraphUpdated();
-    }, [sequenceOrientation, snapshot, interop]);
-
     const isValidConnection: IsValidConnection = useCallback((connection) => {
         if (isSequenceMode) return false;
         const { source, target, sourceHandle, targetHandle } = connection as Connection;
@@ -1242,48 +1230,8 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
                 <Controls showInteractive={!readOnly} />
                 <MiniMap pannable zoomable nodeColor={miniMapNodeColor} maskColor="rgba(15, 23, 42, 0.06)" />
                 <SnapLines guides={snapGuides} />
-                {!readOnly && (
+                {!readOnly && !isSequenceMode && (
                     <Panel position="top-right" className="elsa-react-flow-toolbar">
-                        {isSequenceMode && (
-                            <>
-                                <button
-                                    type="button"
-                                    className={`elsa-react-flow-toolbar-btn${sequenceOrientation === 'vertical' ? ' active' : ''}`}
-                                    onClick={() => changeSequenceOrientation('vertical')}
-                                    title="Use vertical Sequence layout"
-                                    aria-label="Use vertical Sequence layout"
-                                >
-                                    Vertical
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`elsa-react-flow-toolbar-btn${sequenceOrientation === 'horizontal' ? ' active' : ''}`}
-                                    onClick={() => changeSequenceOrientation('horizontal')}
-                                    title="Use horizontal Sequence layout"
-                                    aria-label="Use horizontal Sequence layout"
-                                >
-                                    Horizontal
-                                </button>
-                                <button
-                                    type="button"
-                                    className="elsa-react-flow-toolbar-btn"
-                                    onClick={() => moveSelectedSequenceNode(-1)}
-                                    title="Move selected activity earlier"
-                                    aria-label="Move selected activity earlier"
-                                >
-                                    Earlier
-                                </button>
-                                <button
-                                    type="button"
-                                    className="elsa-react-flow-toolbar-btn"
-                                    onClick={() => moveSelectedSequenceNode(1)}
-                                    title="Move selected activity later"
-                                    aria-label="Move selected activity later"
-                                >
-                                    Later
-                                </button>
-                            </>
-                        )}
                         <button
                             type="button"
                             className="elsa-react-flow-toolbar-btn"
