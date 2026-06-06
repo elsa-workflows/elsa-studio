@@ -21,7 +21,7 @@ public class RemoteFeatureProvider(IBackendApiClientProvider remoteBackendApiCli
             _ = await api.GetAsync(featureName, cancellationToken);
             return true;
         }
-        catch (ApiException e) when(e.StatusCode == HttpStatusCode.NotFound)
+        catch (ApiException e) when(e.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
             return false;
         }
@@ -31,7 +31,14 @@ public class RemoteFeatureProvider(IBackendApiClientProvider remoteBackendApiCli
     public async Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default)
     {
         var api = await remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
-        var response = await api.ListAsync(cancellationToken);
-        return response.Items;
+        try
+        {
+            var response = await api.ListAsync(cancellationToken);
+            return response.Items;
+        }
+        catch (ApiException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            return [];
+        }
     }
 }

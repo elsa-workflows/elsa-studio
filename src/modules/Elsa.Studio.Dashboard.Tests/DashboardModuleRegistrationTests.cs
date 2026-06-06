@@ -1,6 +1,7 @@
 using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Dashboard.Extensions;
+using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
@@ -55,6 +56,73 @@ public class DashboardModuleRegistrationTests
     }
 
     [Fact]
+    public async Task InitializeFeaturesAsync_WhenCompanionWidgetsRegister_DeclaresTimeRangeUsage()
+    {
+        using var provider = BuildProvider(
+            WorkflowDashboardFeature.RemoteFeatureName,
+            ConsoleLogsDashboardFeature.RemoteFeatureName,
+            StructuredLogsDashboardFeature.RemoteFeatureName);
+
+        await InitializeFeaturesAsync(provider);
+
+        var widgets = provider.GetRequiredService<IDashboardWidgetProvider>().GetWidgets();
+        var timeRangeWidgetIds = widgets.Where(x => x.UsesTimeRange).Select(x => x.Id).ToList();
+
+        Assert.Equal(
+            [
+                "workflows.metrics",
+                "workflows.needs-attention",
+                "workflows.execution-trend",
+                "workflows.recent-activity",
+                "workflows.hotspots",
+                "diagnostics.structured-logs",
+                "diagnostics.console-logs"
+            ],
+            timeRangeWidgetIds);
+    }
+
+    [Fact]
+    public async Task InitializeFeaturesAsync_WhenCompanionWidgetsRegister_DeclaresExpectedLayout()
+    {
+        using var provider = BuildProvider(
+            WorkflowDashboardFeature.RemoteFeatureName,
+            ConsoleLogsDashboardFeature.RemoteFeatureName,
+            StructuredLogsDashboardFeature.RemoteFeatureName);
+
+        await InitializeFeaturesAsync(provider);
+
+        var widgets = provider.GetRequiredService<IDashboardWidgetProvider>().GetWidgets();
+
+        AssertLayout(widgets, "workflows.metrics", DashboardWidgetZone.Metrics, DashboardWidgetSpan.Full);
+        AssertLayout(widgets, "workflows.needs-attention", DashboardWidgetZone.Primary, DashboardWidgetSpan.Compact);
+        AssertLayout(widgets, "workflows.execution-trend", DashboardWidgetZone.Primary, DashboardWidgetSpan.Wide);
+        AssertLayout(widgets, "workflows.recent-activity", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Wide);
+        AssertLayout(widgets, "workflows.hotspots", DashboardWidgetZone.Secondary, DashboardWidgetSpan.Compact);
+        AssertLayout(widgets, "diagnostics.structured-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
+        AssertLayout(widgets, "diagnostics.console-logs", DashboardWidgetZone.Diagnostics, DashboardWidgetSpan.Half);
+    }
+
+    [Fact]
+    public async Task InitializeFeaturesAsync_WhenWidgetsAreReadBeforeRemoteFeaturesInitialize_RaisesEventAfterWidgetsRegister()
+    {
+        using var provider = BuildProvider(
+            WorkflowDashboardFeature.RemoteFeatureName,
+            ConsoleLogsDashboardFeature.RemoteFeatureName,
+            StructuredLogsDashboardFeature.RemoteFeatureName);
+        var widgetProvider = provider.GetRequiredService<IDashboardWidgetProvider>();
+        var featureService = CreateFeatureService(provider);
+        IReadOnlyList<DashboardWidgetDescriptor>? refreshedWidgets = null;
+
+        Assert.Empty(widgetProvider.GetWidgets());
+
+        featureService.Initialized += () => refreshedWidgets = widgetProvider.GetWidgets();
+        await featureService.InitializeFeaturesAsync();
+
+        Assert.NotNull(refreshedWidgets);
+        Assert.Equal(7, refreshedWidgets.Count);
+    }
+
+    [Fact]
     public void DashboardModule_DoesNotReferenceWorkflowOrDiagnosticsModules()
     {
         var references = typeof(Feature).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -78,11 +146,21 @@ public class DashboardModuleRegistrationTests
 
     private static async Task InitializeFeaturesAsync(ServiceProvider provider)
     {
-        var featureService = new DefaultFeatureService(
+        var featureService = CreateFeatureService(provider);
+        await featureService.InitializeFeaturesAsync();
+    }
+
+    private static DefaultFeatureService CreateFeatureService(ServiceProvider provider) =>
+        new(
             provider.GetRequiredService<IEnumerable<IFeature>>(),
             provider.GetRequiredService<IRemoteFeatureProvider>());
 
-        await featureService.InitializeFeaturesAsync();
+    private static void AssertLayout(IReadOnlyList<DashboardWidgetDescriptor> widgets, string id, DashboardWidgetZone zone, DashboardWidgetSpan span)
+    {
+        var widget = widgets.Single(x => x.Id == id);
+
+        Assert.Equal(zone, widget.Zone);
+        Assert.Equal(span, widget.Span);
     }
 
     private class TestRemoteFeatureProvider(params string[] enabledRemoteFeatures) : IRemoteFeatureProvider

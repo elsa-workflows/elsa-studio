@@ -34,6 +34,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Zone = DashboardWidgetZone.Metrics,
             Order = 0,
             Span = DashboardWidgetSpan.Full,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -41,8 +42,10 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Id = "workflows.needs-attention",
             Title = "Needs attention",
             ComponentType = typeof(WorkflowNeedsAttentionDashboardWidget),
-            Zone = DashboardWidgetZone.Findings,
+            Zone = DashboardWidgetZone.Primary,
             Order = 0,
+            Span = DashboardWidgetSpan.Compact,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -51,8 +54,9 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Title = "Execution trend",
             ComponentType = typeof(WorkflowTrendDashboardWidget),
             Zone = DashboardWidgetZone.Primary,
-            Order = 0,
+            Order = 10,
             Span = DashboardWidgetSpan.Wide,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -63,6 +67,7 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Zone = DashboardWidgetZone.Secondary,
             Order = 0,
             Span = DashboardWidgetSpan.Wide,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         },
         new()
@@ -70,8 +75,10 @@ public class WorkflowDashboardFeature(IServiceProvider serviceProvider) : Featur
             Id = "workflows.hotspots",
             Title = "Workflow hotspots",
             ComponentType = typeof(WorkflowHotspotsDashboardWidget),
-            Zone = DashboardWidgetZone.Diagnostics,
-            Order = 0,
+            Zone = DashboardWidgetZone.Secondary,
+            Order = 10,
+            Span = DashboardWidgetSpan.Compact,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         }
     ];

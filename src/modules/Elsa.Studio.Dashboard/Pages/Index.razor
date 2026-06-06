@@ -1,6 +1,7 @@
 @page "/"
 @inherits StudioComponentBase
 @inject ILocalizer Localizer
+@using DashboardZone = Elsa.Studio.Dashboard.Models.DashboardWidgetZone
 
 <PageTitle>@Localizer["Dashboard"]</PageTitle>
 
@@ -16,12 +17,18 @@
         </MudStack>
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-            <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                @foreach (var option in DashboardRangeMapper.Options)
-                {
-                    <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                }
-            </MudToggleGroup>
+            @if (HasTimeRangeWidgets)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="dashboard-range-control">
+                    <MudText Typo="Typo.caption" Class="dashboard-muted">Range</MudText>
+                    <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
+                        @foreach (var option in DashboardRangeMapper.Options)
+                        {
+                            <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
+                        }
+                    </MudToggleGroup>
+                </MudStack>
+            }
             <MudTooltip Text="Refresh dashboard" Delay="400">
                 <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
             </MudTooltip>
@@ -39,17 +46,27 @@
     else
     {
         <CascadingValue Value="@WidgetContext">
-            @if (HasWidgets(DashboardWidgetZone.Metrics))
+            @if (HasWidgets(DashboardZone.Metrics))
             {
                 <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
-                    @RenderZone(DashboardWidgetZone.Metrics)
+                    @foreach (var widget in WidgetsFor(DashboardZone.Metrics))
+                    {
+                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
+                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
+                        </MudItem>
+                    }
                 </MudGrid>
             }
 
             <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
                 @foreach (var zone in MainZones)
                 {
-                    @RenderZone(zone)
+                    foreach (var widget in WidgetsFor(zone))
+                    {
+                        <MudItem xs="12" sm="@GetSmallColumns(widget)" lg="@GetLargeColumns(widget)">
+                            <DynamicComponent Type="@widget.ComponentType" Parameters="@GetParameters(widget)" />
+                        </MudItem>
+                    }
                 }
             </MudGrid>
         </CascadingValue>

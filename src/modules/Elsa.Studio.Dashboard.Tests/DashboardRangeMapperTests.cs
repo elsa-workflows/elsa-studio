@@ -30,4 +30,27 @@ public class DashboardRangeMapperTests
 
         Assert.Equal(expected, result);
     }
+
+    [Theory]
+    [InlineData("1h", 1)]
+    [InlineData("24h", 24)]
+    [InlineData("invalid", 24)]
+    public void GetUtcRange_ReturnsExpectedHourWindow(string range, int expectedHours)
+    {
+        var now = new DateTimeOffset(2026, 6, 4, 12, 0, 0, TimeSpan.FromHours(2));
+        var result = DashboardRangeMapper.GetUtcRange(range, now);
+
+        Assert.Equal(now.ToUniversalTime(), result.To);
+        Assert.Equal(now.ToUniversalTime().AddHours(-expectedHours), result.From);
+    }
+
+    [Fact]
+    public void GetUtcRange_ReturnsExpectedSevenDayWindow()
+    {
+        var now = new DateTimeOffset(2026, 6, 4, 12, 0, 0, TimeSpan.FromHours(2));
+        var result = DashboardRangeMapper.GetUtcRange(DashboardRangeKeys.SevenDays, now);
+
+        Assert.Equal(now.ToUniversalTime(), result.To);
+        Assert.Equal(now.ToUniversalTime().AddDays(-7), result.From);
+    }
 }

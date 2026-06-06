@@ -16,15 +16,29 @@ public abstract class WorkflowDashboardWidgetBase : ComponentBase, IAsyncDisposa
     protected string? Message { get; private set; }
     protected bool Loading { get; private set; }
 
+    protected virtual DashboardWidgetContext? LoadContext => WidgetContext;
+
     protected override async Task OnParametersSetAsync()
     {
-        if (WidgetContext == null || _loadedContext == WidgetContext)
+        var context = LoadContext;
+
+        if (context == null || _loadedContext == context)
             return;
 
-        await LoadAsync(WidgetContext);
+        await LoadAsync(context);
     }
 
-    private async Task LoadAsync(DashboardWidgetContext context)
+    protected async Task ReloadAsync()
+    {
+        var context = LoadContext;
+
+        if (context == null)
+            return;
+
+        await LoadAsync(context);
+    }
+
+    protected async Task LoadAsync(DashboardWidgetContext context)
     {
         await CancelCurrentLoadAsync();
 

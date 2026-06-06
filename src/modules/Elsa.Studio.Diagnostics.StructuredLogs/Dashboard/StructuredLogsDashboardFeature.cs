@@ -21,6 +21,8 @@ public class StructuredLogsDashboardFeature(IServiceProvider serviceProvider) : 
             ComponentType = typeof(StructuredLogsDashboardWidget),
             Zone = DashboardWidgetZone.Diagnostics,
             Order = 10,
+            Span = DashboardWidgetSpan.Half,
+            UsesTimeRange = true,
             RequiredRemoteFeatureName = RemoteFeatureName
         });
 

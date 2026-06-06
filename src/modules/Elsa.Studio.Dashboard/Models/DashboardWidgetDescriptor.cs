@@ -8,6 +8,7 @@ public record DashboardWidgetDescriptor
     public int Order { get; init; }
     public string? Title { get; init; }
     public DashboardWidgetSpan Span { get; init; } = DashboardWidgetSpan.Auto;
+    public bool UsesTimeRange { get; init; }
     public string? RequiredRemoteFeatureName { get; init; }
     public IReadOnlyDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
 }
@@ -25,6 +26,7 @@ public enum DashboardWidgetSpan
 {
     Auto,
     Compact,
+    Half,
     Wide,
     Full
 }

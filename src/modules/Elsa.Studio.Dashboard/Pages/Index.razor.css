@@ -1,6 +1,9 @@
 .dashboard-shell {
+    width: 100%;
+    max-width: none;
     min-height: 100%;
-    padding: 20px 24px 28px;
+    padding: 24px 32px 32px;
+    box-sizing: border-box;
     background: #f6f8fb;
 }
 
@@ -24,12 +27,7 @@
 }
 
 .dashboard-empty-state {
-    min-height: 240px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    text-align: center;
 }
 
 .dashboard-metrics {
@@ -115,11 +113,12 @@
 
 @media (max-width: 768px) {
     .dashboard-shell {
-        padding: 14px;
+        padding: 16px;
     }
 
     .dashboard-header {
         align-items: flex-start;
+        gap: 10px;
     }
 
     .dashboard-shell ::deep .dashboard-section {

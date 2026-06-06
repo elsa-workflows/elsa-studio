@@ -11,7 +11,8 @@ Dashboard widgets are contributed through `DashboardWidgetDescriptor`:
 - `Zone`: semantic placement, not a concrete grid coordinate
 - `Order`: deterministic ordering within the zone
 - `Title`: optional display name for tooling and diagnostics
-- `Span`: optional size hint for compact, wide, or full-width widgets
+- `Span`: optional size hint for compact, half-width, wide, or full-width widgets
+- `UsesTimeRange`: true when the widget reloads or changes meaning based on the shell's selected time range
 - `RequiredRemoteFeatureName`: backend feature that enables the widget
 
 Supported zones are:
@@ -55,7 +56,7 @@ The optional registry lookup keeps companion modules usable when a host does not
 
 The shell supplies a cascading `DashboardWidgetContext` with the selected range and refresh version. Widgets should load only the backend APIs needed by that widget, cancel in-flight work when the context changes, and keep their own empty, loading, error, and unavailable states.
 
-Use a scoped provider when multiple widgets from the same companion module share one backend snapshot. For example, workflow dashboard widgets share `IWorkflowDashboardDataProvider`, while console and structured log widgets load only dashboard overview data.
+Use a scoped provider when multiple widgets from the same companion module share one backend snapshot. For example, workflow dashboard widgets share `IWorkflowDashboardDataProvider`, while console and structured log widgets load their own recent diagnostics slices.
 
 ## Host Registration
 

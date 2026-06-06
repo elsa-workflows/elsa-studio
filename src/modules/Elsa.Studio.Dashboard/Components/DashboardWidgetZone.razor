@@ -1,0 +1,19 @@
+@using Elsa.Studio.Dashboard.Widgets
+@using WidgetContext = Elsa.Studio.Dashboard.Widgets.DashboardWidgetContext
+@using WidgetDescriptor = Elsa.Studio.Dashboard.Widgets.DashboardWidgetDescriptor
+
+@foreach (var widget in Widgets)
+{
+    <DynamicComponent Type="@widget.ComponentType" Parameters="@CreateParameters(widget)" />
+}
+
+@code {
+    [Parameter] public IReadOnlyCollection<WidgetDescriptor> Widgets { get; set; } = [];
+    [Parameter] public WidgetContext Context { get; set; } = null!;
+
+    private Dictionary<string, object?> CreateParameters(WidgetDescriptor widget) => new()
+    {
+        [nameof(Context)] = Context,
+        ["Descriptor"] = widget
+    };
+}
