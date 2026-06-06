@@ -32,7 +32,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, DashboardMenu>()
             .AddScoped<IDashboardWidgetRegistry, DashboardWidgetRegistry>()
-            .AddScoped<ILegacyDashboardWidgetRegistry, LegacyDashboardWidgetRegistry>()
             .AddScoped<IDashboardWidgetProvider, DashboardWidgetProvider>()
             .AddScoped<IDashboardService, DashboardService>();
     }

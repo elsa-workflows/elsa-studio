@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using Elsa.Studio.Components.DataPanelRenderers;
@@ -147,6 +148,7 @@ public partial class DataPanel : ComponentBase
         return value is bool b ? (b ? Localizer["Yes"] : Localizer["No"]) : value.ToString() ?? string.Empty;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Data panel values are runtime UI objects that cannot use a fixed source-generated context.")]
     private string FormatJson(object value)
     {
         return value as string ?? JsonSerializer.Serialize(value, JsonSerializerOptions);
@@ -168,7 +170,7 @@ public partial class DataPanel : ComponentBase
     {
         var textToCopy = !string.IsNullOrWhiteSpace(item.Text) ? item.Text : GetFormattedValue(item);
         await Clipboard.CopyText(textToCopy);
-        Snackbar.Add(Localizer["{0} copied", item.Label], Severity.Success);
+        Snackbar.Add(Localizer["{0} copied", item.Label ?? string.Empty], Severity.Success);
     }
 
     private async Task OnViewClicked(DataPanelItem item)
