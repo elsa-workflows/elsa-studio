@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -28,13 +29,13 @@ public interface IAppBarService
     /// </summary>
     /// <typeparam name="T">The type of the component.</typeparam>
     [Obsolete("Use AddElement instead.")]
-    void AddAppBarItem<T>() where T : IComponent;
+    void AddAppBarItem<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : IComponent;
 
     /// <summary>
     /// Adds a component of the specified type to the app bar.
     /// </summary>
     /// <typeparam name="T">The type of the component to add.</typeparam>
-    void AddComponent<T>(float? order = null) where T : IComponent;
+    void AddComponent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(float? order = null) where T : IComponent;
 
     /// <summary>
     /// Adds an element of the specified type to the app bar.

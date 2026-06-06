@@ -99,6 +99,11 @@ public interface IWorkflowDefinitionService
     Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = null, Action<SaveWorkflowDefinitionRequest>? configureRequest = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates a new workflow definition using the specified root activity template.
+    /// </summary>
+    Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description, string? rootActivityTemplateKey, Action<SaveWorkflowDefinitionRequest>? configureRequest = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Exports a workflow definition.
     /// </summary>
     Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default);

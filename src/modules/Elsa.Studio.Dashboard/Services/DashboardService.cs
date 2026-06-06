@@ -8,6 +8,31 @@ namespace Elsa.Studio.Dashboard.Services;
 
 public class DashboardService(IBackendApiClientProvider backendApiClientProvider) : IDashboardService
 {
+    public async Task<DashboardLoadResult<DashboardOverview>> LoadOverviewAsync(string range, bool includeSystem = false, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var api = await backendApiClientProvider.GetApiAsync<IDashboardApi>(cancellationToken);
+            return DashboardLoadResult<DashboardOverview>.Loaded(await api.GetOverviewAsync(range, includeSystem, cancellationToken));
+        }
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            return DashboardLoadResult<DashboardOverview>.Unavailable("Dashboard data is not available from this backend.");
+        }
+        catch (ApiException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            return DashboardLoadResult<DashboardOverview>.Unauthorized("You do not have access to dashboard data for this backend.");
+        }
+        catch (HttpRequestException e)
+        {
+            return DashboardLoadResult<DashboardOverview>.BackendDisconnected(e.Message);
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return DashboardLoadResult<DashboardOverview>.BackendDisconnected("The dashboard request timed out.");
+        }
+    }
+
     public async Task<DashboardLoadResult> LoadAsync(string range, bool includeSystem = false, CancellationToken cancellationToken = default)
     {
         try

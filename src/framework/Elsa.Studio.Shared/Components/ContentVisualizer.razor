@@ -73,7 +73,7 @@
                      Outlined="true"
                      KeepPanelsAlive="true"
                      ApplyEffectsToContainer="true"
-                     PanelClass="pa-4">
+                     TabPanelsClass="pa-4">
                 <MudPaper Height="655px" Width="100%" Elevation="0">
                     <MudTabPanel Text="@Localizer["Pretty"]" Visible="@(_pretty is not null)">
                         <StandaloneCodeEditor @ref="_monacoEditor"
@@ -93,14 +93,14 @@
                             {
                                 <thead>
                                     <tr>
-                                        @foreach (var header in _table?.Headers)
+                                        @foreach (var header in _table.Headers)
                                         {
                                             <th>@header</th>
                                         }
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var row in _table?.Rows)
+                                    @foreach (var row in _table.Rows)
                                     {
                                         <tr>
                                             @foreach (var x in row)

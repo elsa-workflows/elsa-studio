@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
@@ -20,13 +21,13 @@ public class DefaultAppBarService : IAppBarService
     public IEnumerable<RenderFragment> AppBarComponents => AppBarElements.Select(x => x.Component).ToList();
 
     /// <inheritdoc />
-    public void AddAppBarItem<T>() where T : IComponent
+    public void AddAppBarItem<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : IComponent
     {
         AddComponent<T>();
     }
 
     /// <inheritdoc />
-    public void AddComponent<T>(float? order = null) where T : IComponent
+    public void AddComponent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(float? order = null) where T : IComponent
     {
         var element = new AppBarElement
         {

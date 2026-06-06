@@ -1,0 +1,15 @@
+.workflow-root-template {
+    cursor: pointer;
+    padding: 10px 12px;
+    transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.workflow-root-template:hover {
+    border-color: var(--mud-palette-primary);
+    background-color: var(--mud-palette-action-default-hover);
+}
+
+.workflow-root-template-selected {
+    border-color: var(--mud-palette-primary);
+    background-color: var(--mud-palette-primary-hover);
+}
