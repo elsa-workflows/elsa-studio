@@ -18,6 +18,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisModeDocumentation>Default</AnalysisModeDocumentation>
     <AnalysisLevelDocumentation>latest</AnalysisLevelDocumentation>
+    <NoWarn>$(NoWarn);CS1591;CS1570;CS1572;CS1573;CS1574;CS1587;CS8669;IL2026;IL2072;IL2075;IL2067;IL2091;IL2095;IL2110;IL2111</NoWarn>
 
     <!-- https://github.com/dotnet/sourcelink -->
     <IncludeSymbols>true</IncludeSymbols>

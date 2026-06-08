@@ -431,7 +431,7 @@ public partial class DiagramDesignerWrapper
             }
 
             var activityBreadcrumbItem = new BreadcrumbItem(
-                breadcrumbDisplayText,
+                breadcrumbDisplayText ?? string.Empty,
                 $"#{activity.GetId()}",
                 disabled,
                 displaySettings.Icon

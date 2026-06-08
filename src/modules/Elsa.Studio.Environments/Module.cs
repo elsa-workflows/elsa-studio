@@ -1,6 +1,7 @@
 using Elsa.Studio.Abstractions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Components;
+using Elsa.Studio.Models;
 
 namespace Elsa.Studio.Environments;
 
@@ -12,7 +13,7 @@ public class Feature(IAppBarService appBarService) : FeatureBase
     /// <inheritdoc />
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        appBarService.AddAppBarItem<EnvironmentPicker>();
+        appBarService.AddElement(new AppBarElement<EnvironmentPicker>());
 
         return ValueTask.CompletedTask;
     }
