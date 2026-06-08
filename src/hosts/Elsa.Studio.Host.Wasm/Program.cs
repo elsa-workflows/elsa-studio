@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
@@ -94,6 +95,7 @@ services.AddShell();
 services.AddRemoteBackend(backendApiConfig);
 
 services.AddDashboardModule(backendApiConfig);
+services.AddWeaverModule(backendApiConfig);
 services.AddWorkflowsModule();
 services.AddWorkflowsDashboardModule();
 services.AddAlterationsModule();

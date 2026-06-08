@@ -6,6 +6,7 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
+using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
@@ -121,6 +122,7 @@ builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(opti
 builder.Services.AddRemoteBackend(backendApiConfig);
 
 builder.Services.AddDashboardModule(backendApiConfig);
+builder.Services.AddWeaverModule(backendApiConfig);
 builder.Services.AddWorkflowsModule();
 builder.Services.AddWorkflowsDashboardModule();
 builder.Services.AddAlterationsModule();

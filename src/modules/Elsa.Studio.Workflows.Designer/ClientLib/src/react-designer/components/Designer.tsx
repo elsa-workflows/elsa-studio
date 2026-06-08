@@ -20,6 +20,7 @@ import {
     type DefaultEdgeOptions,
     type IsValidConnection,
     type NodeMouseHandler,
+    type OnNodeDrag,
     type OnConnectStart,
     type OnConnectEnd,
 } from '@xyflow/react';
@@ -1034,7 +1035,7 @@ const InnerDesigner = forwardRef<DesignerHandle, DesignerProps>(function InnerDe
     // Snap-to-other-node alignment guides while dragging. We compute against
     // the live state (after React Flow applied its own delta) and snap by
     // patching the node position. Guides are visible only mid-drag.
-    const onNodeDrag: NodeMouseHandler = useCallback((_event, draggedNode) => {
+    const onNodeDrag: OnNodeDrag<Node<ActivityNodeData>> = useCallback((_event, draggedNode) => {
         if (readOnly || isSequenceMode) return;
         const { position, guides } = computeSnap(draggedNode, nodesRef.current);
         if (position.x !== draggedNode.position.x || position.y !== draggedNode.position.y) {
