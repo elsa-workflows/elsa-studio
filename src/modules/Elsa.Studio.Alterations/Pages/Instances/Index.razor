@@ -27,7 +27,7 @@
                      Variant="Variant.Filled"
                      Dense="true">
                 <MudMenuItem Icon="@Icons.Material.Outlined.Refresh"
-                             OnClick="@(() => _table?.ReloadServerData())">
+                             OnClick="@(() => { _table?.ReloadServerData(); })">
                     @Localizer["Refresh"]
                 </MudMenuItem>
                 <MudMenuItem Icon="@(_polling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)"
@@ -113,7 +113,7 @@
         if (!_polling) return;
         _pollingTimer = new Timer(_ =>
         {
-            _ = InvokeAsync(() => _table?.ReloadServerData());
+            _ = InvokeAsync(() => { _table?.ReloadServerData(); });
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
 

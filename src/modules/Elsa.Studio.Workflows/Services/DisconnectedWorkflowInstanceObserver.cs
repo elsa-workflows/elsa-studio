@@ -12,12 +12,24 @@ public class DisconnectedWorkflowInstanceObserver : IWorkflowInstanceObserver
     public string? Name { get; set; }
 
     /// <inheritdoc />
-    public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated = default!;
+    public event Func<WorkflowExecutionLogUpdatedMessage, Task> WorkflowJournalUpdated
+    {
+        add { }
+        remove { }
+    }
 
     /// <inheritdoc />
-    public event Func<ActivityExecutionLogUpdatedMessage, Task> ActivityExecutionLogUpdated = default!;
+    public event Func<ActivityExecutionLogUpdatedMessage, Task> ActivityExecutionLogUpdated
+    {
+        add { }
+        remove { }
+    }
 
     /// <inheritdoc />
-    public event Func<WorkflowInstanceUpdatedMessage, Task> WorkflowInstanceUpdated = default!;
+    public event Func<WorkflowInstanceUpdatedMessage, Task> WorkflowInstanceUpdated
+    {
+        add { }
+        remove { }
+    }
     ValueTask IAsyncDisposable.DisposeAsync() => ValueTask.CompletedTask;
 }

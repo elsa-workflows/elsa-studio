@@ -398,9 +398,14 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnSaveAsClick()
     {
+        if (WorkflowDefinition is null)
+            return;
+
         var result = await WorkflowCloningService.SaveAs(WorkflowDefinition);
         if (result is null) return;
-        if (result.IsSuccess) NavigationManager.NavigateTo($"workflows/definitions/{result?.Success?.WorkflowDefinition.DefinitionId}/edit");
+        var definitionId = result.Success?.WorkflowDefinition.DefinitionId;
+        if (result.IsSuccess && !string.IsNullOrWhiteSpace(definitionId))
+            NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
     }
 
     private async Task OnPublishClicked()

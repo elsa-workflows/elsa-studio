@@ -13,7 +13,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -40,7 +39,6 @@ public partial class WorkflowDefinitionList
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
-    [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
@@ -72,17 +70,21 @@ public partial class WorkflowDefinitionList
         };
 
         var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
+        if (latestWorkflowDefinitionsResponse is null)
+            return new TableData<WorkflowDefinitionRow> { TotalItems = 0, Items = [] };
+
+        var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items;
         IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
-        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitions.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
         var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             DefinitionIds = unpublishedWorkflowDefinitionIds,
         }, VersionOptions.Published);
 
-        _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
+        _totalCount = latestWorkflowDefinitionsResponse!.TotalCount;
 
-        var workflowDefinitionRows = latestWorkflowDefinitionsResponse.Items
+        var workflowDefinitionRows = latestWorkflowDefinitions
             .Select(definition =>
             {
                 var latestVersionNumber = definition.Version;
@@ -142,7 +144,7 @@ public partial class WorkflowDefinitionList
         return query;
     }
 
-    private OrderByWorkflowDefinition? GetOrderBy(string sortLabel)
+    private OrderByWorkflowDefinition? GetOrderBy(string? sortLabel)
     {
         return sortLabel switch
         {
@@ -175,12 +177,11 @@ public partial class WorkflowDefinitionList
         var dialogInstance = await DialogService.ShowAsync(dialogComponentType, Localizer["New workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
 
-        if (!dialogResult.Canceled)
-        {
-            var result = (Result<WorkflowDefinition, ValidationErrors>)dialogResult.Data!;
-            await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
-            result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
-        }
+        if (dialogResult?.Canceled != false || dialogResult.Data is not Result<WorkflowDefinition, ValidationErrors> result)
+            return;
+
+        await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
+        result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
     }
 
     private async Task OnDuplicateWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
@@ -214,7 +215,8 @@ public partial class WorkflowDefinitionList
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionRow> e)
     {
-        await EditAsync(e.Item.DefinitionId);
+        if (e.Item is not null)
+            await EditAsync(e.Item.DefinitionId);
     }
 
     private async Task OnRunWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)

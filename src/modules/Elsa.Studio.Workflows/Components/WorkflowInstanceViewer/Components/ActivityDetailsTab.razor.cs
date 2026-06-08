@@ -51,7 +51,9 @@ public partial class ActivityDetailsTab
     private void CreateDataModels()
     {
         var activity = Activity;
-        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
+        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
+        if (activityDescriptor is null)
+            return;
         var activityId = activity.GetId();
         var activityNodeId = activity.GetNodeId();
         var activityName = activity.GetName();
@@ -87,17 +89,21 @@ public partial class ActivityDetailsTab
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
-                    outcomesData.Add("Outcomes", outcomes.ToString());
+                    outcomesData.Add("Outcomes", outcomes?.ToString());
 
             var outputDescriptors = activityDescriptor.Outputs;
             var outputs = execution.Outputs;
 
             foreach (var outputDescriptor in outputDescriptors)
             {
+                var outputName = outputDescriptor.Name;
+                if (string.IsNullOrWhiteSpace(outputName))
+                    continue;
+
                 var outputValue = outputs != null
-                    ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
+                    ? outputs.TryGetValue(outputName, out var value) ? value : null
                     : null;
-                outputData.Add(outputDescriptor.Name, outputValue?.ToString());
+                outputData.Add(outputName, outputValue?.ToString());
             }
         }
         else

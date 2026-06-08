@@ -65,14 +65,11 @@ public partial class OutputsSection
         var dialog = await DialogService.ShowAsync<EditOutputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result.Canceled)
+        if (result?.Canceled != false)
             return;
 
-        if (isNew)
-        {
-            outputDefinition = (OutputDefinition)result.Data;
-            WorkflowDefinition.Outputs.Add(outputDefinition);
-        }
+        if (isNew && result.Data is OutputDefinition newOutput)
+            WorkflowDefinition.Outputs.Add(newOutput);
 
         await RaiseWorkflowDefinitionUpdatedAsync();
     }

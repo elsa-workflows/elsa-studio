@@ -79,7 +79,7 @@ public partial class ActivityPicker
 
     private ActivityTreeItem FindOrCreateCategoryNode(List<ITreeItemData<string>> level, string category, string? path)
     {
-        var node = level.OfType<ActivityTreeItem>().FirstOrDefault(x => x.Text.Equals(category, StringComparison.OrdinalIgnoreCase));
+        var node = level.OfType<ActivityTreeItem>().FirstOrDefault(x => string.Equals(x.Text, category, StringComparison.OrdinalIgnoreCase));
         if (node == null)
         {
             node = new(category) { CategoryPath = path ?? string.Empty };
@@ -92,7 +92,7 @@ public partial class ActivityPicker
     {
         var index = list.OfType<ActivityTreeItem>()
             .ToList()
-            .FindIndex(x => string.Compare(node.Text, x.Text, StringComparison.OrdinalIgnoreCase) < 0);
+            .FindIndex(x => string.Compare(node.Text ?? string.Empty, x.Text ?? string.Empty, StringComparison.OrdinalIgnoreCase) < 0);
 
         if (index == -1)
             list.Add(node);
@@ -118,7 +118,7 @@ public partial class ActivityPicker
 
     private void OnItemDoubleClick(ActivityTreeItem item)
     {
-        if (item.Children.Any())
+        if (item.Children?.Any() == true)
         {
             item.Expanded = !item.Expanded;
         }
@@ -129,7 +129,7 @@ public partial class ActivityPicker
         if (string.IsNullOrEmpty(item.CategoryPath) && string.IsNullOrEmpty(item.Text))
             return Task.FromResult(false);
 
-        return Task.FromResult(item.CategoryPath.Contains(_searchText, StringComparison.OrdinalIgnoreCase) || item.Text.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(item.CategoryPath.Contains(_searchText, StringComparison.OrdinalIgnoreCase) || (item.Text?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false));
     }
 
     private void OnDragStart(ActivityDescriptor activityDescriptor)

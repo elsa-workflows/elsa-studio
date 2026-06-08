@@ -78,7 +78,7 @@
                 inputTimeValue = null;
                 showTimePicker = false;
             }
-            OnValueChanged();
+            _ = OnValueChanged();
         }
     }
     public TimeSpan? InputTimeValue
@@ -87,7 +87,7 @@
         set
         {
             inputTimeValue = value;
-            OnValueChanged();
+            _ = OnValueChanged();
         }
     }
 
@@ -106,6 +106,6 @@
     private async Task OnValueChanged()
     {
         var combinedDateTime = InputDateValue?.Date.Add(InputTimeValue ?? TimeSpan.Zero);
-        await EditorContext.UpdateValueOrLiteralExpressionAsync(combinedDateTime?.ToString());
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(combinedDateTime?.ToString() ?? string.Empty);
     }
 }
