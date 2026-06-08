@@ -19,7 +19,7 @@ public static class ValidationApiExceptionExtensions
         if (problemDetails != null)
             return problemDetails.ToValidationErrors();
 
-        return problemDetails?.ToValidationErrors() ?? new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? "The server responded with a Bad Request status code. That's all I know.") });
+        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? "The server responded with a Bad Request status code. That's all I know.") });
     }
 
     /// <summary>
@@ -31,7 +31,13 @@ public static class ValidationApiExceptionExtensions
             return validationApiException.GetValidationErrors();
 
         var errors = GetValidationErrorsFromContent(e.Content);
-        return errors ?? new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? e.Message) });
+        if (errors != null)
+            return errors;
+
+        if (!string.IsNullOrWhiteSpace(e.Content))
+            return new ValidationErrors(new List<ValidationError> { new(e.Content) });
+
+        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? e.Message) });
     }
 
     private static ValidationErrors? GetValidationErrorsFromContent(string? content)

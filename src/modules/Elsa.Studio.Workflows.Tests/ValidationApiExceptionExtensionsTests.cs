@@ -46,6 +46,18 @@ public class ValidationApiExceptionExtensionsTests
         Assert.Equal("The workflow definition is invalid.", error.ErrorMessage);
     }
 
+    [Fact]
+    public async Task GetValidationErrors_PreservesPlainTextContent()
+    {
+        const string content = "The /absence/created path and post method are already in use by another workflow!";
+        var exception = await CreateApiExceptionAsync(content);
+
+        var errors = exception.GetValidationErrors();
+
+        var error = Assert.Single(errors.Errors);
+        Assert.Equal(content, error.ErrorMessage);
+    }
+
     private static async Task<ApiException> CreateApiExceptionAsync(string content)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/workflow-definitions");
