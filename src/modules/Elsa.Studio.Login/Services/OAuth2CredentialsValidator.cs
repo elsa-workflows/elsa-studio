@@ -1,6 +1,5 @@
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Models;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Login.Services;
 
