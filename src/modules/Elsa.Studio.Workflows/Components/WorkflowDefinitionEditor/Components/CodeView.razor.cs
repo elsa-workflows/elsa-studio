@@ -137,7 +137,6 @@ public partial class CodeView : IDisposable
             return false;
         }
 
-        _lastMonacoEditorContent = value;
         WorkflowDefinition? deserialized = null;
         try
         {
@@ -165,11 +164,15 @@ public partial class CodeView : IDisposable
         }
 
         if (ApplyWorkflowDefinition is null)
+        {
+            _lastMonacoEditorContent = value;
             return true;
+        }
 
         try
         {
             await ApplyWorkflowDefinition(deserialized);
+            _lastMonacoEditorContent = value;
             return true;
         }
         catch (Exception ex)
