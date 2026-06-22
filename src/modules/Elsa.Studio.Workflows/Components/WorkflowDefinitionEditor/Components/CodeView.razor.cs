@@ -64,7 +64,6 @@ public partial class CodeView : IDisposable
     /// <param name="json">The JSON string representing the new content to display in the code editor.</param>
     public async Task UpdateCodeViewFromEditorAsync(string json)
     {
-        _isInternalContentChange = true;
         if (_monacoEditor is null)
             return;
 
@@ -72,8 +71,16 @@ public partial class CodeView : IDisposable
         if (json == _lastMonacoEditorContent)
             return;
 
-        _lastMonacoEditorContent = json;
-        await model.SetValue(json);
+        _isInternalContentChange = true;
+        try
+        {
+            _lastMonacoEditorContent = json;
+            await model.SetValue(json);
+        }
+        finally
+        {
+            _isInternalContentChange = false;
+        }
     }
 
     private StandaloneEditorConstructionOptions ConfigureMonacoEditor(StandaloneCodeEditor editor)
@@ -176,9 +183,16 @@ public partial class CodeView : IDisposable
     private async Task ReloadMonacoClick()
     {
         _isInternalContentChange = true;
-        var model = await _monacoEditor!.GetModel();
-        await model.SetValue(WorkflowDefinitionSerialized);
-        _lastMonacoEditorContent = WorkflowDefinitionSerialized;
+        try
+        {
+            var model = await _monacoEditor!.GetModel();
+            await model.SetValue(WorkflowDefinitionSerialized);
+            _lastMonacoEditorContent = WorkflowDefinitionSerialized;
+        }
+        finally
+        {
+            _isInternalContentChange = false;
+        }
     }
 
     private async Task OnAutoApplyChanged(bool value)

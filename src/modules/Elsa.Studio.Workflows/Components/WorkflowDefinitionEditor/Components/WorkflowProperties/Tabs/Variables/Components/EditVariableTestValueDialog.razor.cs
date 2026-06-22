@@ -55,7 +55,7 @@ public partial class EditVariableTestValueDialog
             WorkflowDefinition.ClearVariableTestValue(Variable.Id);
         else
             WorkflowDefinition.SetVariableTestValue(Variable.Id, _model.TestValue);
-        MudDialog.Close();
+        MudDialog.Close(DialogResult.Ok(true));
     }
 
     private void OnClearTestValueClick()
