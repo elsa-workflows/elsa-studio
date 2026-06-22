@@ -98,7 +98,7 @@ public partial class VariablesTab
         var dialog = await DialogService.ShowAsync<EditVariableTestValueDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result?.Canceled == true)
+        if (result?.Canceled != false)
             return;
         
         await RaiseWorkflowDefinitionUpdatedAsync();
