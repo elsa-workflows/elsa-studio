@@ -11,7 +11,6 @@ public interface IActivityDisplaySettingsProvider
     /// <summary>
     /// Returns a dictionary of activity type to display settings.
     /// </summary>
-    /// <param name="activityDescriptor"></param>
     /// <returns></returns>
     IDictionary<string, ActivityDisplaySettings> GetSettings();
 }

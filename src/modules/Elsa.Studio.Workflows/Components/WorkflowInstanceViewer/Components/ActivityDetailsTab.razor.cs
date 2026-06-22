@@ -51,7 +51,7 @@ public partial class ActivityDetailsTab
     private void CreateDataModels()
     {
         var activity = Activity;
-        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
+        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         var activityId = activity.GetId();
         var activityNodeId = activity.GetNodeId();
         var activityName = activity.GetName();
@@ -69,7 +69,7 @@ public partial class ActivityDetailsTab
             new DataPanelItem("ID", activityId),
             new DataPanelItem("Node ID", activityNodeId),
             new DataPanelItem(Localizer["Name"], activityName),
-            new DataPanelItem(Localizer["Type"], activityType,
+            new DataPanelItem(Localizer["Type"], activityDescriptor?.DisplayName ?? activityType,
                 string.IsNullOrWhiteSpace(workflowDefinitionId)
                     ? null
                     : $"/workflows/definitions/{workflowDefinitionId}/edit"),
@@ -87,9 +87,9 @@ public partial class ActivityDetailsTab
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
-                    outcomesData.Add("Outcomes", outcomes.ToString());
+                    outcomesData.Add("Outcomes", outcomes?.ToString());
 
-            var outputDescriptors = activityDescriptor.Outputs;
+            var outputDescriptors = activityDescriptor?.Outputs ?? [];
             var outputs = execution.Outputs;
 
             foreach (var outputDescriptor in outputDescriptors)
@@ -121,7 +121,7 @@ public partial class ActivityDetailsTab
 
         if (activityState != null)
         {
-            foreach (var inputDescriptor in activityDescriptor.Inputs)
+            foreach (var inputDescriptor in activityDescriptor?.Inputs ?? [])
             {
                 var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
                 activityStateData.Add(inputDescriptor.Name, inputValue?.ToString());

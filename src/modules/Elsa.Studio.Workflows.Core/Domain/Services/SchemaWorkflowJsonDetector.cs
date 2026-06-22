@@ -5,12 +5,9 @@ using JetBrains.Annotations;
 namespace Elsa.Studio.Workflows.Domain.Services;
 
 /// <summary>
-/// A service that detects whether a JSON string is a workflow definition using a schema.
+/// Detects whether a JSON string is a workflow definition using a schema.
 /// </summary>
 [UsedImplicitly]
-/// <summary>
-/// Represents the schema workflow json detector.
-/// </summary>
 public class SchemaWorkflowJsonDetector : IWorkflowJsonDetector
 {
     /// <inheritdoc />

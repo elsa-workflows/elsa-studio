@@ -14,11 +14,10 @@ public partial class TaskTab
     /// The activity.
     [Parameter] public JsonObject? Activity { get; set; }
     
-    /// The activity descriptor.
-    [Parameter]
     /// <summary>
-    /// Gets or sets the activity descriptor.
+    /// The activity descriptor.
     /// </summary>
+    [Parameter]
     public ActivityDescriptor ActivityDescriptor { get; set; } = default!;
     
     /// An event raised when the activity is updated.

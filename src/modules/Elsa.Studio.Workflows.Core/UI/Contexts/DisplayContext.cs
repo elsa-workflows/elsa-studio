@@ -11,7 +11,9 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 /// </summary>
 /// <param name="Activity">The activity to display.</param>
 /// <param name="ActivitySelectedCallback">A callback that is invoked when an activity is selected.</param>
+/// <param name="ActivityUpdated">A callback that is invoked when an activity is updated.</param>
 /// <param name="ActivityEmbeddedPortSelectedCallback">A callback that is invoked when an embedded port is selected.</param>
+/// <param name="ActivityDoubleClickCallback">A callback that is invoked when an activity is double-clicked.</param>
 /// <param name="GraphUpdatedCallback">A callback that is invoked when the graph is updated.</param>
 /// <param name="IsReadOnly">Whether the activity is read-only.</param>
 /// <param name="ActivityStats">A map of activity stats.</param>

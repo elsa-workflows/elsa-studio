@@ -82,14 +82,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     [Inject] private ILogger<FlowchartDesigner> Logger { get; set; } = null!;
 
     /// <summary>
-    /// Invoked from JavaScript when an activity is selected.
-    /// </summary>
-    /// <param name="activity">The selected activity.</param>
-    [JSInvokable]
-    /// <summary>
     /// Performs the handle activity selected operation asynchronously.
     /// </summary>
     /// <param name="activity">The activity.</param>
+    [JSInvokable]
     public async Task HandleActivitySelected(JsonObject activity)
     {
         if (ActivitySelected.HasDelegate)
@@ -107,16 +103,11 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Invoked from JavaScript when an activity embedded port is selected.
-    /// </summary>
-    /// <param name="activity">The selected activity.</param>
-    /// <param name="portName">The selected port name.</param>
-    [JSInvokable]
-    /// <summary>
     /// Performs the handle activity embedded port selected operation asynchronously.
     /// </summary>
     /// <param name="activity">The activity.</param>
     /// <param name="portName">The port name.</param>
+    [JSInvokable]
     public async Task HandleActivityEmbeddedPortSelected(JsonObject activity, string portName)
     {
         if (ActivityEmbeddedPortSelected.HasDelegate)
@@ -127,14 +118,10 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Invoked from JavaScript when an activity is double-clicked.
-    /// </summary>
-    /// <param name="activity">The clicked activity.</param>
-    [JSInvokable]
-    /// <summary>
     /// Performs the handle activity double click operation asynchronously.
     /// </summary>
     /// <param name="activity">The activity.</param>
+    [JSInvokable]
     public async Task HandleActivityDoubleClick(JsonObject activity)
     {
         if (ActivityDoubleClick.HasDelegate)
@@ -143,35 +130,32 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         }
     }
 
-    /// Invoked from JavaScript when the canvas is selected.
-    [JSInvokable]
     /// <summary>
     /// Performs the handle canvas selected operation asynchronously.
     /// </summary>
+    [JSInvokable]
     public async Task HandleCanvasSelected()
     {
         if (CanvasSelected.HasDelegate)
             await CanvasSelected.InvokeAsync();
     }
 
-    /// Invoked from JavaScript when the graph is updated.
-    [JSInvokable]
     /// <summary>
     /// Performs the handle graph updated operation asynchronously.
     /// </summary>
+    [JSInvokable]
     public async Task HandleGraphUpdated()
     {
         if (GraphUpdated.HasDelegate)
             await GraphUpdated.InvokeAsync();
     }
 
-    /// Invoked from JavaScript when the graph is updated.
-    [JSInvokable]
     /// <summary>
     /// Performs the handle paste cells requested operation asynchronously.
     /// </summary>
     /// <param name="activityNodes">The activity nodes.</param>
     /// <param name="edges">The edges.</param>
+    [JSInvokable]
     public async Task HandlePasteCellsRequested(X6ActivityNode[] activityNodes, X6Edge[] edges)
     {
         var allActivities = Flowchart.GetActivities().ToList();

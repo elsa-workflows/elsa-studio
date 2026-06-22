@@ -27,7 +27,7 @@
                      Variant="Variant.Filled"
                      Dense="true">
                 <MudMenuItem Icon="@Icons.Material.Outlined.Refresh"
-                             OnClick="@(() => _table?.ReloadServerData())">
+                             OnClick="ReloadTableAsync">
                     @Localizer["Refresh"]
                 </MudMenuItem>
                 <MudMenuItem Icon="@(_polling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)"
@@ -113,9 +113,11 @@
         if (!_polling) return;
         _pollingTimer = new Timer(_ =>
         {
-            _ = InvokeAsync(() => _table?.ReloadServerData());
+            _ = InvokeAsync(ReloadTableAsync);
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
+
+    private Task ReloadTableAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;
 
     private void StopPolling()
     {
@@ -132,7 +134,7 @@
     private void OnSearchChanged(string value)
     {
         _searchTerm = value;
-        _table?.ReloadServerData();
+        _ = ReloadTableAsync();
     }
 
     public void Dispose() => StopPolling();

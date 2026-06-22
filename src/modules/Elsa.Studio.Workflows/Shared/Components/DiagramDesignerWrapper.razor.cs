@@ -33,11 +33,10 @@ public partial class DiagramDesignerWrapper
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
         new Dictionary<string, ActivityNode>();
 
-    /// The workflow definition version ID.
-    [Parameter]
     /// <summary>
-    /// Gets or sets the workflow definition version id.
+    /// The workflow definition version ID.
     /// </summary>
+    [Parameter]
     public string WorkflowDefinitionVersionId { get; set; } = null!;
 
     /// The root activity to display.
@@ -56,9 +55,10 @@ public partial class DiagramDesignerWrapper
     [Parameter]
     public RenderFragment? CustomToolbarItems { get; set; }
 
-    /// Whether the designer is progressing.
-    [Parameter]
     /// <summary>
+    /// Whether the designer is progressing.
+    /// </summary>
+    [Parameter]
     public bool IsProgressing { get; set; }
 
     /// An event raised when an activity is selected.
@@ -431,7 +431,7 @@ public partial class DiagramDesignerWrapper
             }
 
             var activityBreadcrumbItem = new BreadcrumbItem(
-                breadcrumbDisplayText,
+                breadcrumbDisplayText ?? string.Empty,
                 $"#{activity.GetId()}",
                 disabled,
                 displaySettings.Icon

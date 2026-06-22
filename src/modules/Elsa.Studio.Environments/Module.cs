@@ -12,7 +12,7 @@ public class Feature(IAppBarService appBarService) : FeatureBase
     /// <inheritdoc />
     public override ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        appBarService.AddAppBarItem<EnvironmentPicker>();
+        appBarService.AddComponent<EnvironmentPicker>();
 
         return ValueTask.CompletedTask;
     }

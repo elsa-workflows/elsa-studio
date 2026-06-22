@@ -5,11 +5,10 @@ using MudBlazor;
 
 namespace Elsa.Studio.Workflows.UI.Providers;
 
-/// Provides default activity display settings.
-[UsedImplicitly]
 /// <summary>
-/// Provides default activity display settings services.
+/// Provides default activity display settings.
 /// </summary>
+[UsedImplicitly]
 public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsProvider
 {
     /// <inheritdoc />

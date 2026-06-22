@@ -25,8 +25,7 @@
                         Style="height: 100%; display:flex; flex-direction:column; justify-content:space-between; background: var(--rz-primary-light) no-repeat 100% 70% fixed">
                 
                 <RadzenStack Gap="6" AlignItems="Radzen.AlignItems.Center">
-                    <RadzenImage Path="@BrandingProvider.LogoUrl" Style="width: 3rem; padding-bottom: 1rem" AlternateText="logo" />
-                    <RadzenText TextStyle="TextStyle.DisplayH3" TagName="TagName.H2" class="rz-color-white">@BrandingProvider.AppName</RadzenText>
+                    @BrandingProvider.Branding
                     <RadzenText TextStyle="TextStyle.H6" class="rz-color-white">@BrandingProvider.AppTagline</RadzenText>
                 </RadzenStack>
 

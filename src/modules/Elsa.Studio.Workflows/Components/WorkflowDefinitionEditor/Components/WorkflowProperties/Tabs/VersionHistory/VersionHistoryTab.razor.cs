@@ -110,6 +110,9 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnRowClick(TableRowClickEventArgs<WorkflowDefinitionSummary> arg)
     {
+        if (arg.Item is null)
+            return;
+
         await ViewVersionAsync(arg.Item);
     }
 

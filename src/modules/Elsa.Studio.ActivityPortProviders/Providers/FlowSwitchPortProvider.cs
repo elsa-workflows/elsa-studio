@@ -13,9 +13,6 @@ namespace Elsa.Studio.ActivityPortProviders.Providers;
 /// Provides ports for the FlowSwitch activity based on its cases.
 /// </summary>
 [UsedImplicitly]
-/// <summary>
-/// Provides flow switch port services.
-/// </summary>
 public class FlowSwitchPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />
