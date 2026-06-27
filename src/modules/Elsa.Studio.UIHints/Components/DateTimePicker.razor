@@ -78,7 +78,7 @@
                 inputTimeValue = null;
                 showTimePicker = false;
             }
-            OnValueChanged();
+            _ = OnValueChanged();
         }
     }
     public TimeSpan? InputTimeValue
@@ -87,7 +87,7 @@
         set
         {
             inputTimeValue = value;
-            OnValueChanged();
+            _ = OnValueChanged();
         }
     }
 

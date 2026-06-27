@@ -15,10 +15,10 @@ public partial class ElapsedTime
     /// The start time represents the point in time from which the property should be considered.
     /// The default value is set to the current UTC time.
     /// </remarks>
-    [Parameter]
     /// <summary>
     /// Gets or sets the start time.
     /// </summary>
+    [Parameter]
     public DateTimeOffset StartTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
@@ -31,10 +31,10 @@ public partial class ElapsedTime
     /// <value>
     /// The end time as a <see cref="DateTimeOffset"/> value.
     /// </value>
-    [Parameter]
     /// <summary>
     /// Gets or sets the end time.
     /// </summary>
+    [Parameter]
     public DateTimeOffset EndTime { get; set; } = DateTimeOffset.UtcNow;
     
     private TimeSpan Elapsed => EndTime < StartTime ? TimeSpan.Zero : EndTime - StartTime;

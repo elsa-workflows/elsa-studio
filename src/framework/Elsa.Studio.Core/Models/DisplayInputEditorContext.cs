@@ -151,7 +151,7 @@ public class DisplayInputEditorContext
     /// depending on the wrapping configuration of the <see cref="InputDescriptor"/>.
     /// </summary>
     /// <param name="value">The new value to be set, either directly or wrapped as a literal expression.</param>
-    public Task UpdateValueOrLiteralExpressionAsync(string value)
+    public Task UpdateValueOrLiteralExpressionAsync(string? value)
     {
         return UpdateValueOrExpressionAsync(value, _ => value, "Literal");
     }

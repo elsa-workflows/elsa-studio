@@ -15,6 +15,8 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
+#pragma warning disable CS0612 // The tab reads this legacy model to upgrade existing persisted activity metadata.
+
 /// <summary>
 /// Represents the persistence tab.
 /// </summary>
@@ -265,12 +267,9 @@ public partial class LogPersistenceTab
 }
 
 /// <summary>
-/// Defines the Persistence Strategy Configuration for an activity
+/// Defines the legacy persistence strategy configuration for an activity.
 /// </summary>
 [Obsolete]
-/// <summary>
-/// Represents the legacy persistence activity configuration.
-/// </summary>
 public class LegacyPersistenceActivityConfiguration
 {
     /// <summary>
@@ -288,6 +287,8 @@ public class LegacyPersistenceActivityConfiguration
     /// </summary>
     public IDictionary<string, LogPersistenceMode> Outputs { get; set; } = new Dictionary<string, LogPersistenceMode>();
 }
+
+#pragma warning restore CS0612
 
 /// <summary>
 /// Defines the Persistence Strategy Configuration for an activity

@@ -39,6 +39,12 @@ public partial class Login
 
     private async Task TryLogin(LoginArgs args)
     {
+        if (string.IsNullOrWhiteSpace(args.Username) || string.IsNullOrWhiteSpace(args.Password))
+        {
+            UserMessageService.ShowSnackbarTextMessage("Invalid credentials. Please try again", Severity.Error);
+            return;
+        }
+
         var isValid = await ValidateCredentials(args.Username, args.Password);
         if (!isValid)
         {
@@ -61,7 +67,7 @@ public partial class Login
 
     private async Task<bool> ValidateCredentials(string username, string password)
     {
-        if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             return false;
         
         var result = await CredentialsValidator.ValidateCredentialsAsync(username, password);

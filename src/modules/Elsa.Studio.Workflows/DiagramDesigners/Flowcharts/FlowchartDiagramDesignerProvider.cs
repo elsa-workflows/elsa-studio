@@ -11,9 +11,6 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 /// A diagram designer provider for the Flowchart designer.
 /// </summary>
 [UsedImplicitly]
-/// <summary>
-/// Provides flowchart diagram designer services.
-/// </summary>
 public class FlowchartDiagramDesignerProvider(ILocalizer localizer) : IDiagramDesignerProvider
 {
     /// <inheritdoc />

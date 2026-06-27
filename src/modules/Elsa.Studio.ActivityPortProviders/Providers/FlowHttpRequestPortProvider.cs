@@ -14,12 +14,9 @@ using JetBrains.Annotations;
 namespace Elsa.Studio.ActivityPortProviders.Providers;
 
 /// <summary>
-/// Provides ports for the FlowSendHttpRequest & DownloadHttpFile activities based on its supported status codes.
+/// Provides ports for the FlowSendHttpRequest and DownloadHttpFile activities based on supported status codes.
 /// </summary>
 [UsedImplicitly]
-/// <summary>
-/// Provides flow http request port services.
-/// </summary>
 public class FlowHttpRequestPortProvider : ActivityPortProviderBase
 {
     /// <inheritdoc />

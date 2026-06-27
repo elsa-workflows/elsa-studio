@@ -1,13 +1,12 @@
 using Elsa.Studio.Login.Contracts;
 using Elsa.Studio.Login.Models;
-using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Login.Services;
 
 /// <summary>
 /// Validates OAuth2 credentials using a token endpoint, client ID, and optional client secret.
 /// </summary>
-public class OAuth2CredentialsValidator(IOptions<OAuth2CredentialsValidatorOptions> options, OAuth2HttpClient httpClient) : ICredentialsValidator
+public class OAuth2CredentialsValidator(OAuth2HttpClient httpClient) : ICredentialsValidator
 {
     /// <inheritdoc />
     public async ValueTask<ValidateCredentialsResult> ValidateCredentialsAsync(string username, string password, CancellationToken cancellationToken = default)

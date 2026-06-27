@@ -34,11 +34,11 @@ public class WorkflowCloningDialogService(
     /// or <see langword="null"/> if the operation is canceled.</returns>
     private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>?> Clone(WorkflowDefinition workflowDefinition, string type)
     {
-        var newWorkflowName = $"{workflowDefinition?.Name} - {type} of {workflowDefinition?.DefinitionId}";
+        var newWorkflowName = $"{workflowDefinition.Name} - {type} of {workflowDefinition.DefinitionId}";
         var parameters = new DialogParameters<CloneWorkflowDialog>
         {
             { x => x.WorkflowName, newWorkflowName },
-            { x => x.WorkflowDescription, workflowDefinition?.Description }
+            { x => x.WorkflowDescription, workflowDefinition.Description }
         };
 
         var options = new DialogOptions
@@ -57,11 +57,13 @@ public class WorkflowCloningDialogService(
             return null;
         }
 
-        var newWorkflowModel = (WorkflowMetadataModel)dialogResult.Data;
+        if (dialogResult.Data is not WorkflowMetadataModel newWorkflowModel)
+            return null;
+
         var newDefinition = new WorkflowDefinition
         {
-            Name = newWorkflowModel?.Name ?? newWorkflowName,
-            Description = newWorkflowModel?.Description,
+            Name = newWorkflowModel.Name ?? newWorkflowName,
+            Description = newWorkflowModel.Description,
             Root = workflowDefinition.Root,
             Inputs = workflowDefinition.Inputs,
             Outputs = workflowDefinition.Outputs,
@@ -77,7 +79,9 @@ public class WorkflowCloningDialogService(
             UserMessageService.ShowSnackbarTextMessage(Localizer[$"{type} successfully saved."], Severity.Success);
         });
 
-        if (result.IsFailed) UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, result.Failure.Errors), Severity.Error);
+        if (result.IsFailed && result.Failure is not null)
+            UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, result.Failure.Errors), Severity.Error);
+
         return result;
     }
 }

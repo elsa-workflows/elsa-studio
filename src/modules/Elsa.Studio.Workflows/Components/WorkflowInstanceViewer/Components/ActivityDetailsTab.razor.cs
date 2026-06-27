@@ -51,7 +51,7 @@ public partial class ActivityDetailsTab
     private void CreateDataModels()
     {
         var activity = Activity;
-        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
+        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
         var activityId = activity.GetId();
         var activityNodeId = activity.GetNodeId();
         var activityName = activity.GetName();
@@ -69,7 +69,7 @@ public partial class ActivityDetailsTab
             new DataPanelItem("ID", activityId),
             new DataPanelItem("Node ID", activityNodeId),
             new DataPanelItem(Localizer["Name"], activityName),
-            new DataPanelItem(Localizer["Type"], activityType,
+            new DataPanelItem(Localizer["Type"], activityDescriptor?.DisplayName ?? activityType,
                 string.IsNullOrWhiteSpace(workflowDefinitionId)
                     ? null
                     : $"/workflows/definitions/{workflowDefinitionId}/edit"),
@@ -87,17 +87,22 @@ public partial class ActivityDetailsTab
 
             if (execution.Payload != null)
                 if (execution.Payload.TryGetValue("Outcomes", out var outcomes))
-                    outcomesData.Add("Outcomes", outcomes.ToString());
+                    outcomesData.Add("Outcomes", outcomes?.ToString());
 
-            var outputDescriptors = activityDescriptor.Outputs;
             var outputs = execution.Outputs;
-
-            foreach (var outputDescriptor in outputDescriptors)
+            if (activityDescriptor != null)
             {
-                var outputValue = outputs != null
-                    ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
-                    : null;
-                outputData.Add(outputDescriptor.Name, outputValue?.ToString());
+                foreach (var outputDescriptor in activityDescriptor.Outputs)
+                {
+                    var outputValue = outputs != null
+                        ? outputs.TryGetValue(outputDescriptor.Name, out var value) ? value : null
+                        : null;
+                    outputData.Add(outputDescriptor.Name, outputValue?.ToString());
+                }
+            }
+            else if (outputs != null)
+            {
+                AddRawDataItems(outputData, outputs);
             }
         }
         else
@@ -121,10 +126,17 @@ public partial class ActivityDetailsTab
 
         if (activityState != null)
         {
-            foreach (var inputDescriptor in activityDescriptor.Inputs)
+            if (activityDescriptor != null)
             {
-                var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
-                activityStateData.Add(inputDescriptor.Name, inputValue?.ToString());
+                foreach (var inputDescriptor in activityDescriptor.Inputs)
+                {
+                    var inputValue = activityState.TryGetValue(inputDescriptor.Name, out var value) ? value : null;
+                    activityStateData.Add(inputDescriptor.Name, inputValue?.ToString());
+                }
+            }
+            else
+            {
+                AddRawDataItems(activityStateData, activityState.Where(x => !x.Key.StartsWith("_")));
             }
         }
 
@@ -153,5 +165,11 @@ public partial class ActivityDetailsTab
         OutputData = outputData;
         ExceptionData = exceptionData;
         ResilienceStrategyData = resilienceStrategyData;
+    }
+
+    private static void AddRawDataItems(DataPanelModel target, IEnumerable<KeyValuePair<string, object?>> values)
+    {
+        foreach (var (key, value) in values)
+            target.Add(key, value?.ToString());
     }
 }

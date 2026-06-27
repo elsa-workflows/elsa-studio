@@ -8,7 +8,7 @@
         <MudToggleIconButton
             Icon="@Icons.Material.Outlined.Timer"
             ToggledIcon="@Icons.Material.Outlined.AccessTime"
-            Title="@(TimeMetricMode == TimeMetricMode.Accumulated ? @Localizer["Show relative time"] : @Localizer["Show accumulated time"])"
+            title="@(TimeMetricMode == TimeMetricMode.Accumulated ? @Localizer["Show relative time"] : @Localizer["Show accumulated time"])"
             Toggled="@(TimeMetricMode == TimeMetricMode.Accumulated)"
             ToggledChanged="OnTimeMetricButtonToggleChanged"/>
 
