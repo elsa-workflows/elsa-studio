@@ -67,13 +67,12 @@ public partial class VariablesTab
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result.Canceled)
+        if (result?.Canceled != false)
             return;
 
-        if (isNew)
+        if (isNew && result.Data is Variable newVariable)
         {
-            variable = (Variable)result.Data;
-            WorkflowDefinition.Variables.Add(variable);
+            WorkflowDefinition.Variables.Add(newVariable);
         }
 
         await RaiseWorkflowDefinitionUpdatedAsync();

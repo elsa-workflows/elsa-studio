@@ -19,7 +19,7 @@
                            Value="@_selectedActivationStrategy"
                            ToStringFunc="@(x => x?.DisplayName ?? string.Empty)"
                            ValueChanged="@OnActivationStrategyChanged"
-                           HelperText="@Localizer[(_selectedActivationStrategy?.Description)]"
+                           HelperText="@Localizer[_selectedActivationStrategy?.Description ?? string.Empty]"
                            ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                     @foreach (var strategy in _activationStrategies)
                     {
@@ -34,7 +34,7 @@
                            Value="@_selectedIncidentStrategy"
                            ToStringFunc="@(x => x?.DisplayName ?? Localizer["Default"])"
                            ValueChanged="@OnIncidentStrategyChanged"
-                           HelperText="@Localizer[(_selectedIncidentStrategy?.Description)]"
+                           HelperText="@Localizer[_selectedIncidentStrategy?.Description ?? string.Empty]"
                            ReadOnly="IsReadOnly" Disabled="IsReadOnly">
                     @foreach (var strategy in _incidentStrategies)
                     {

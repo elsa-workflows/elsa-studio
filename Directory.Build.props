@@ -18,12 +18,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisModeDocumentation>Default</AnalysisModeDocumentation>
     <AnalysisLevelDocumentation>latest</AnalysisLevelDocumentation>
-    <NoWarn>$(NoWarn);CS0108;CS0414;CS0612;CS0618;CS1570;CS1572;CS1573;CS1574;CS1587;CS1591;CS4014;CS8600;CS8602;CS8603;CS8604;CS8618;CS8669;CS8766;CS9113;MUD0002</NoWarn>
+    <NoWarn>$(NoWarn);CS0108;CS0414;CS0612;CS0618;CS1570;CS1572;CS1573;CS1574;CS1587;CS1591;CS8669;CS9113;IL2026;IL2067;IL2072;IL2075;IL2091;IL2095;IL2110;IL2111;MUD0002</NoWarn>
 
     <!-- https://github.com/dotnet/sourcelink -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <ItemGroup Label="Files">

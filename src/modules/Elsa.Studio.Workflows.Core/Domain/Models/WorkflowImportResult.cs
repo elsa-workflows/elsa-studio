@@ -10,7 +10,7 @@ public class WorkflowImportResult
     /// <summary>
     /// Gets or sets the file name.
     /// </summary>
-    public string FileName { get; set; }
+    public string FileName { get; set; } = string.Empty;
     /// <summary>
     /// Gets or sets the workflow definition.
     /// </summary>

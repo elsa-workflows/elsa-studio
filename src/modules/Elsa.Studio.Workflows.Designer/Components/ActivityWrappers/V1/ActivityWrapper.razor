@@ -31,7 +31,7 @@
                     @{
                         var visiblePorts = Ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
                     }
-                    @if (visiblePorts.Any())
+                    @if (visiblePorts.Any() && ActivityDescriptor is not null)
                     {
                         <MudStack Row="true">
                             @foreach (var port in visiblePorts)

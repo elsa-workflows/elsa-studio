@@ -39,7 +39,7 @@
                                         var icon = displaySettings.Icon;
                                         var color = displaySettings.Color;
 
-                                        <MudTooltip Text="@Localizer[activityDescriptor.Description]">
+                                        <MudTooltip Text="@Localizer[activityDescriptor.Description ?? string.Empty]">
                                             <MudPaper
                                                 Class="pa-2 cursor-grab"
                                                 Style="@($"border-left: solid 6px {color}; filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));")"
