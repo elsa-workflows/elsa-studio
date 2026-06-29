@@ -67,7 +67,7 @@ public partial class VariablesTab
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result?.Canceled != false)
+        if (result?.Canceled is not false)
             return;
 
         if (isNew && result.Data is Variable newVariable)

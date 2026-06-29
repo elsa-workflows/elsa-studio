@@ -94,7 +94,10 @@ public partial class ActivityDetailsTab
 
             foreach (var outputDescriptor in outputDescriptors)
             {
-                var outputName = outputDescriptor.Name ?? string.Empty;
+                var outputName = outputDescriptor.Name;
+                if (string.IsNullOrWhiteSpace(outputName))
+                    continue;
+
                 var outputValue = outputs != null
                     ? outputs.TryGetValue(outputName, out var value) ? value : null
                     : null;
