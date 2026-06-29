@@ -295,7 +295,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         };
     }
 
-    private OrderByWorkflowInstance? GetOrderBy(string sortLabel)
+    private OrderByWorkflowInstance? GetOrderBy(string? sortLabel)
     {
         return sortLabel switch
         {
