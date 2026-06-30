@@ -29,4 +29,10 @@ public interface IDomAccessor
     /// <param name="elementRef">The element reference to click.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     Task ClickElementAsync(ElementRef elementRef, CancellationToken cancellationToken = default);
+    
+    // Shadow DOM support
+    Task CreateShadowRootAsync(ElementRef elementRef, string mode = "open", CancellationToken cancellationToken = default);
+    Task InjectStylesheetsAsync(ElementRef elementRef, string[] stylesheets, CancellationToken cancellationToken = default);
+    Task SetupElsaShadowRootAsync(ElementRef elementRef, string[]? customStylesheets = null, CancellationToken cancellationToken = default);
+    Task CreateElsaCustomElementAsync(string tagName, string componentName, bool enableShadowDOM = false, CancellationToken cancellationToken = default);
 }
