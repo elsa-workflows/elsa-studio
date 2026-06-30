@@ -8,6 +8,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Labels.UI.Pages;
 
+/// <summary>
+/// Displays the label editor page.
+/// </summary>
 public partial class Label : StudioComponentBase
 {
     /// The ID of the label to edit.

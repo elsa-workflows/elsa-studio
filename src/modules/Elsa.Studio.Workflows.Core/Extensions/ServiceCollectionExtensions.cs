@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -61,7 +62,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds a <see cref="IDiagramDesignerProvider"/> to the service collection.
     /// </summary>
-    public static IServiceCollection AddDiagramDesignerProvider<T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
+    public static IServiceCollection AddDiagramDesignerProvider<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IDiagramDesignerProvider
     {
         services.AddScoped<IDiagramDesignerProvider, T>();
         return services;
@@ -70,7 +71,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds a <see cref="IActivityDisplaySettingsProvider"/> to the service collection.
     /// </summary>
-    public static IServiceCollection AddActivityDisplaySettingsProvider<T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
+    public static IServiceCollection AddActivityDisplaySettingsProvider<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IActivityDisplaySettingsProvider
     {
         services.AddScoped<IActivityDisplaySettingsProvider, T>();
         return services;
@@ -79,7 +80,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds a <see cref="IActivityPortProvider"/> to the service collection.
     /// </summary>
-    public static IServiceCollection AddActivityPortProvider<T>(this IServiceCollection services) where T : class, IActivityPortProvider
+    public static IServiceCollection AddActivityPortProvider<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IActivityPortProvider
     {
         services.AddScoped<IActivityPortProvider, T>();
         return services;
