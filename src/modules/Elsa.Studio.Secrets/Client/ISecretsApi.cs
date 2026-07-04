@@ -14,6 +14,9 @@ public interface ISecretsApi
     [Post("/secrets")]
     Task<SecretModel> CreateAsync([Body] CreateSecretRequest request, CancellationToken cancellationToken = default);
 
+    [Post("/secrets/{name}")]
+    Task<SecretModel> UpdateAsync(string name, [Body] UpdateSecretRequest request, CancellationToken cancellationToken = default);
+
     [Post("/secrets/{name}/rotate")]
     Task<SecretModel> RotateAsync(string name, [Body] RotateSecretRequest request, CancellationToken cancellationToken = default);
 

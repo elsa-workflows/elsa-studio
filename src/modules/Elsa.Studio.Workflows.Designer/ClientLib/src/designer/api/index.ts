@@ -11,6 +11,7 @@ export * from './raise-activity-selected';
 export * from './raise-activity-embedded-port-selected';
 export * from './select-activity';
 export * from './set-grid-color';
+export * from './sequence-commands';
 export * from './update-activity';
 export * from './update-activity-size';
 export * from './update-activity-stats';

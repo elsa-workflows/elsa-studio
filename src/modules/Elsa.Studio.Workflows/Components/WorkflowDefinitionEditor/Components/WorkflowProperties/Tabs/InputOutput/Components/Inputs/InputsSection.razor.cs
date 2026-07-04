@@ -66,13 +66,12 @@ public partial class InputsSection
         var dialog = await DialogService.ShowAsync<EditInputDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result.Canceled)
+        if (result?.Canceled is not false)
             return;
 
-        if (isNew)
+        if (isNew && result.Data is InputDefinition newInputDefinition)
         {
-            inputDefinition = (InputDefinition)result.Data;
-            WorkflowDefinition.Inputs.Add(inputDefinition);
+            WorkflowDefinition.Inputs.Add(newInputDefinition);
         }
 
         await RaiseWorkflowDefinitionUpdatedAsync();

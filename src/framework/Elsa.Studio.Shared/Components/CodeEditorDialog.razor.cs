@@ -5,6 +5,9 @@ using MudBlazor;
 
 namespace Elsa.Studio.Components;
 
+/// <summary>
+/// Represents a dialog for editing code with Monaco.
+/// </summary>
 public partial class CodeEditorDialog : IDisposable
 {
     private readonly string _monacoEditorId = $"monaco-editor-{Guid.NewGuid():N}";

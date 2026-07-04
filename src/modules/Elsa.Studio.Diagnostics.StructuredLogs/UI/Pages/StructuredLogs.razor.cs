@@ -432,7 +432,7 @@ public partial class StructuredLogs : IAsyncDisposable
         return SetCorrelationIdAsync(logEvent.CorrelationId);
     }
 
-    protected RenderFragment DetailRow(string label, string? value, Func<string?, Task>? applyFilterAsync = null) => builder =>
+    protected RenderFragment DetailRow(string label, string? value, Func<string?, Task>? applyFilterAsync = null, string? href = null, string? hrefLabel = null) => builder =>
     {
         if (string.IsNullOrWhiteSpace(value))
             return;
@@ -464,8 +464,32 @@ public partial class StructuredLogs : IAsyncDisposable
             builder.CloseElement();
         }
 
+        if (!string.IsNullOrWhiteSpace(href))
+        {
+            builder.OpenElement(17, "a");
+            builder.AddAttribute(18, "class", "structured-log-detail-action");
+            builder.AddAttribute(19, "href", href);
+            builder.AddContent(20, hrefLabel ?? "Open");
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
     };
+
+    protected string? OpenTelemetryHref(StructuredLogEvent logEvent, bool includeSpan)
+    {
+        if (string.IsNullOrWhiteSpace(logEvent.TraceId))
+            return null;
+
+        return NavigationManager.GetUriWithQueryParameters("diagnostics/opentelemetry", new Dictionary<string, object?>
+        {
+            ["tab"] = "Traces",
+            ["trace"] = logEvent.TraceId,
+            ["span"] = includeSpan ? logEvent.SpanId : null,
+            ["workflow"] = logEvent.WorkflowInstanceId,
+            ["definition"] = logEvent.WorkflowDefinitionId
+        });
+    }
 
     private async Task ActivateAsync(CancellationToken cancellationToken)
     {

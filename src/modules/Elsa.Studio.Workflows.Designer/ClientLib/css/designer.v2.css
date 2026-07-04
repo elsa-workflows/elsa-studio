@@ -99,3 +99,11 @@
 .elsa-flowchart-diagram-designer-v2 .activity-menu {
     align-self: center;
 }
+
+.elsa-sequence-diagram-designer .x6-port {
+    display: none;
+}
+
+.elsa-sequence-diagram-designer .x6-edge {
+    pointer-events: none;
+}

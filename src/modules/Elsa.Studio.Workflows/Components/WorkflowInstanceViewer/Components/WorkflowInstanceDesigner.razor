@@ -16,7 +16,7 @@
                 WorkflowInstanceId="@WorkflowInstance.Id"
                 PathChanged="PathChanged">
                 <CustomToolbarItems>
-                    @if (WorkflowInstance.Status == WorkflowStatus.Running)
+                    @if (WorkflowInstance.Status == WorkflowStatus.Running && IsAlterationsEnabled)
                     {
                         <MudTooltip Text="@Localizer["Alter this instance"]" Delay="500">
                             <MudIconButton
@@ -57,6 +57,8 @@
                         <ActivityExecutionsTab @ref="_activityExecutionsTab" Activity="@SelectedActivity" ActivityExecutionSummaries="SelectedActivityExecutions" VisiblePaneHeight="@_propertiesPaneHeight" ExecutionSelected="OnActivityExecutionSelected"/>
                     </MudTabPanel>
                 }
+
+                <Zone Name="@ZoneNames.WorkflowInstanceViewerBottomTabs" Attributes="BottomPanelTabAttributes" />
 
             </MudTabs>
         }

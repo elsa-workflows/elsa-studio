@@ -8,7 +8,7 @@ This module provides the Blazor Server-specific implementation for OpenID Connec
 
 - **Cookie-based authentication** - Secure server-side session management
 - **Automatic token refresh** - Silent token renewal using refresh tokens via `OnValidatePrincipal`
-- **Token storage in auth properties** - Tokens stored server-side only, never exposed to browser
+- **Token storage in auth properties** - Tokens are stored in the protected authentication ticket and are not exposed to browser JavaScript
 - **Standard ASP.NET Core middleware** - Integrates with authentication and authorization pipeline
 - **Challenge-based login** - Users are redirected to OIDC provider for authentication
 
@@ -68,7 +68,7 @@ builder.Services.AddOpenIdConnectAuth(options =>
     options.SaveTokens = true; // Default: true (required for token access)
     options.CallbackPath = "/signin-oidc"; // Default
     options.SignedOutCallbackPath = "/signout-callback-oidc"; // Default
-    options.GetClaimsFromUserInfoEndpoint = true; // Default: true
+    options.GetClaimsFromUserInfoEndpoint = false; // Default: false
     options.RequireHttpsMetadata = true; // Default: true
     options.MetadataAddress = "https://.../.well-known/openid-configuration"; // Auto-discovered if not set
 });
@@ -111,11 +111,11 @@ Blazor Server uses ASP.NET Core cookie authentication:
 1. User is redirected to OIDC provider for authentication
 2. After successful login, tokens are stored in server-side authentication properties
 3. A secure HTTP-only cookie is issued to the browser
-4. Cookie contains an encrypted reference to the server-side session
-5. Tokens are never sent to or accessible by the browser
+4. The cookie contains an encrypted ASP.NET Core authentication ticket
+5. Tokens are not accessible to browser JavaScript
 
 **Security benefits:**
-- ✅ Tokens stored server-side only
+- ✅ Tokens stored in a protected authentication ticket
 - ✅ HTTP-only, secure cookies
 - ✅ No token exposure to JavaScript (XSS protection)
 - ✅ Tokens not visible in browser storage/network tools
@@ -240,13 +240,15 @@ builder.Services.AddOpenIdConnectAuth(
 
 ### Backend API Token Acquisition
 
-When your backend API requires different scopes than the authentication scopes, use `IBackendApiScopeProvider`:
+When your backend API requires different scopes than the authentication scopes, configure `BackendApiScopes`:
 
 ```csharp
-// Configure backend API scopes separately
-builder.Services.Configure<BackendApiScopeOptions>(options =>
+builder.Services.AddOpenIdConnectAuth(options =>
 {
-    options.Scopes = new[] { "api://your-api/elsa-server-api" };
+    options.Authority = "https://your-identity-server.com";
+    options.ClientId = "elsa-studio";
+    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
+    options.BackendApiScopes = new[] { "api://your-api/elsa-server-api" };
 });
 ```
 
@@ -257,15 +259,14 @@ The HTTP message handler automatically requests tokens with backend API scopes w
 ### Complete Setup Example
 
 ```csharp
+using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
+using Elsa.Studio.Core.BlazorServer.Extensions;
+using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
+using Elsa.Studio.Shell.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add Elsa Studio services
-builder.Services.AddElsaStudio(elsa =>
-{
-    elsa.AddBackend(backend => backend.Url = "https://your-elsa-api.com");
-});
 
 // Add OpenID Connect authentication
 builder.Services.AddOpenIdConnectAuth(options =>
@@ -273,8 +274,20 @@ builder.Services.AddOpenIdConnectAuth(options =>
     options.Authority = "https://login.microsoftonline.com/{tenant-id}/v2.0";
     options.ClientId = "{client-id}";
     options.ClientSecret = "{client-secret}";
-    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access", "api://your-api/scope" };
+    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
+    options.BackendApiScopes = new[] { "api://your-api/scope" };
 });
+
+// Configure the Elsa backend HTTP client to use OIDC tokens.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => options.Url = new("https://your-elsa-api.com/elsa/api"),
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler)
+};
+
+builder.Services.AddCore();
+builder.Services.AddShell();
+builder.Services.AddRemoteBackend(backendApiConfig);
 
 var app = builder.Build();
 
@@ -348,19 +361,14 @@ Azure AD v2.0 only allows one resource per token request. If you need tokens for
 ```csharp
 // Correct: Separate scopes for authentication vs backend API
 options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
-
-// Backend API scopes configured separately
-builder.Services.Configure<BackendApiScopeOptions>(options =>
-{
-    options.Scopes = new[] { "api://your-api/elsa-server-api" };
-});
+options.BackendApiScopes = new[] { "api://your-api/elsa-server-api" };
 ```
 
 ## Security Considerations
 
 ### Token Security
 
-✅ **Tokens are secure** - Stored server-side only, never exposed to browser
+✅ **Tokens are protected** - Stored in the encrypted authentication ticket and not exposed to browser JavaScript
 ✅ **HTTP-only cookies** - Not accessible to JavaScript (XSS protection)
 ✅ **Encrypted cookies** - Cookie content is encrypted by ASP.NET Core
 ✅ **Secure transmission** - Cookies sent over HTTPS only

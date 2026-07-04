@@ -5,10 +5,17 @@ namespace Elsa.Studio.Models;
 /// </summary>
 public class DataPanelModel : List<DataPanelItem>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataPanelModel"/> class.
+    /// </summary>
     public DataPanelModel()
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataPanelModel"/> class.
+    /// </summary>
+    /// <param name="collection">The items to include in the model.</param>
     public DataPanelModel(IEnumerable<DataPanelItem> collection) : base(collection)
     {
     }

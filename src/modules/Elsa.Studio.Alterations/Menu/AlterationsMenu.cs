@@ -1,7 +1,7 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
-using Elsa.Studio.Workflows.Services;
 using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
 
@@ -10,11 +10,14 @@ namespace Elsa.Studio.Alterations.Menu;
 /// <summary>
 /// Exposes the top-level "Alterations" menu group with sub-entries to plans/instances.
 /// </summary>
-public class AlterationsMenu(ILocalizer localizer) : IMenuProvider
+public class AlterationsMenu(ILocalizer localizer, IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
+        if (!await remoteFeatureProvider.IsEnabledOrDefaultAsync(Feature.RemoteFeatureName, cancellationToken))
+            return [];
+
         var items = new List<MenuItem>
         {
             new()
@@ -43,6 +46,6 @@ public class AlterationsMenu(ILocalizer localizer) : IMenuProvider
             }
         };
 
-        return new ValueTask<IEnumerable<MenuItem>>(items);
+        return items;
     }
 }

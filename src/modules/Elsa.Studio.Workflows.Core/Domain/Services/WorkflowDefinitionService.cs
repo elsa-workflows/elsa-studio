@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -19,7 +18,11 @@ namespace Elsa.Studio.Workflows.Domain.Services;
 /// <summary>
 /// A workflow definition service that uses a remote backend to retrieve workflow definitions.
 /// </summary>
-public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendApiClientProvider, IIdentityGenerator identityGenerator, IMediator mediator) : IWorkflowDefinitionService
+public class RemoteWorkflowDefinitionService(
+    IBackendApiClientProvider backendApiClientProvider,
+    IIdentityGenerator identityGenerator,
+    IWorkflowRootActivityTemplateProvider workflowRootActivityTemplateProvider,
+    IMediator mediator) : IWorkflowDefinitionService
 {
     /// <inheritdoc />
     public async Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default)
@@ -211,6 +214,18 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
         Action<SaveWorkflowDefinitionRequest>? configureRequest = null,
         CancellationToken cancellationToken = default)
     {
+        return await CreateNewDefinitionAsync(name, description, null, configureRequest, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(
+        string name,
+        string? description,
+        string? rootActivityTemplateKey,
+        Action<SaveWorkflowDefinitionRequest>? configureRequest = null,
+        CancellationToken cancellationToken = default)
+    {
+        var rootActivityTemplate = workflowRootActivityTemplateProvider.Find(rootActivityTemplateKey) ?? workflowRootActivityTemplateProvider.GetDefault();
         var saveRequest = new SaveWorkflowDefinitionRequest
         {
             Model = new()
@@ -221,13 +236,7 @@ public class RemoteWorkflowDefinitionService(IBackendApiClientProvider backendAp
                 ToolVersion = ToolVersion.Version,
                 IsLatest = true,
                 IsPublished = false,
-                Root = new(new Dictionary<string, JsonNode?>
-                {
-                    ["id"] = identityGenerator.GenerateId(),
-                    ["type"] = "Elsa.Flowchart",
-                    ["version"] = 1,
-                    ["name"] = "Flowchart1"
-                })
+                Root = rootActivityTemplate.CreateRoot(identityGenerator)
             }
         };
         

@@ -26,12 +26,29 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
     /// <param name="componentRef">A reference to the <see cref="FlowchartDesigner"/> component.</param>
     /// <param name="isReadOnly">Whether the graph is read-only.</param>
     /// <returns>The ID of the graph.</returns>
-    public async ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef, bool isReadOnly = false)
+    public ValueTask<X6GraphApi> CreateGraphAsync(string containerId, DotNetObjectReference<FlowchartDesigner> componentRef, bool isReadOnly = false) =>
+        CreateGraphAsync<FlowchartDesigner>(containerId, componentRef, isReadOnly);
+
+    /// <summary>
+    /// Creates a new X6 graph object and returns its API wrapper.
+    /// </summary>
+    public async ValueTask<X6GraphApi> CreateGraphAsync<TComponent>(string containerId, DotNetObjectReference<TComponent> componentRef, bool isReadOnly = false, string mode = "flowchart")
+        where TComponent : class
     {
         return await TryInvokeAsync(async module =>
         {
             var graphSettings = options.Value.GraphSettings;
-            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly, graphSettings);
+            var settings = new
+            {
+                graphSettings.Grid,
+                graphSettings.MagnetThreshold,
+                graphSettings.Panning,
+                graphSettings.Mousewheel,
+                graphSettings.ResizingEnabled,
+                Mode = mode
+            };
+
+            await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly, settings);
             return new X6GraphApi(module, serviceProvider, containerId);
         });
     }

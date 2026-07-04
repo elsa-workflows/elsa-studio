@@ -21,6 +21,15 @@ public class ConsoleLogUrlStateMapper
         if (query.TryGetValue("stream", out var stream))
             state.Filter.Stream = ParseStream(stream);
 
+        if (query.TryGetValue("text", out var text))
+            state.Filter.Query = Normalize(text);
+
+        if (query.TryGetValue("from", out var from) && DateTimeOffset.TryParse(from, out var parsedFrom))
+            state.Filter.From = parsedFrom;
+
+        if (query.TryGetValue("to", out var to) && DateTimeOffset.TryParse(to, out var parsedTo))
+            state.Filter.To = parsedTo;
+
         if (query.TryGetValue("wrap", out var wrap) && bool.TryParse(wrap, out var parsedWrap))
             state.Wrap = parsedWrap;
 
@@ -42,9 +51,9 @@ public class ConsoleLogUrlStateMapper
         {
             ["source"] = state.Filter.SourceId,
             ["stream"] = FormatStream(state.Filter.Stream),
-            ["text"] = null,
-            ["from"] = null,
-            ["to"] = null,
+            ["text"] = state.Filter.Query,
+            ["from"] = state.Filter.From?.ToString("O"),
+            ["to"] = state.Filter.To?.ToString("O"),
             ["wrap"] = FormatBool(state.Wrap),
             ["compact"] = FormatBool(state.Compact),
             ["ansi"] = FormatBool(state.Ansi),

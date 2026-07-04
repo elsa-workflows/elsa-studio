@@ -21,7 +21,7 @@ public class TimestampFilterModel
     /// <summary>
     /// Gets or sets the date to filter by.
     /// </summary>
-    public string Date { get; set; }
+    public string Date { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the time to filter by.

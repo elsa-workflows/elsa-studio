@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Shell;
@@ -20,9 +21,12 @@ using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Login.BlazorWasm.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
+using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
+using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Workflows.Dashboard.Extensions;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -90,11 +94,15 @@ services.AddCore();
 services.AddShell();
 services.AddRemoteBackend(backendApiConfig);
 
-services.AddDashboardModule();
+services.AddDashboardModule(backendApiConfig);
+services.AddWeaverModule(backendApiConfig);
 services.AddWorkflowsModule();
+services.AddWorkflowsDashboardModule();
 services.AddAlterationsModule();
 services.AddConsoleLogsModule(backendApiConfig);
+services.AddConsoleLogsDashboardModule();
 services.AddStructuredLogsModule(backendApiConfig);
+services.AddStructuredLogsDashboardModule();
 services.AddSecretsModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 

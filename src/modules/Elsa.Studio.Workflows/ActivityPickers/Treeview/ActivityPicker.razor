@@ -47,7 +47,7 @@
                             @{
                                 var item = (ActivityTreeItem)context;
                             }
-                            <MudTreeViewItem Text="@(Localizer[item.Text])"
+                            <MudTreeViewItem Text="@(Localizer[item.Text ?? string.Empty])"
                                              Icon="@(item.IconWithColor)"
                                              Visible="@item.Visible"
                                              Items="@item.Children"

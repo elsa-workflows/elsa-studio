@@ -4,8 +4,8 @@
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
-    var displayName = inputDescriptor.DisplayName;
-    var description = inputDescriptor.Description;
+    var displayName = inputDescriptor.DisplayName ?? inputDescriptor.Name;
+    var description = inputDescriptor.Description ?? string.Empty;
     var selectedValue = GetSelectedValue();
     var searchBox = _items.Count > 10;
 }

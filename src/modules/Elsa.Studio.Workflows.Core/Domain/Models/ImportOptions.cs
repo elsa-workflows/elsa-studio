@@ -25,5 +25,5 @@ public class ImportOptions
     /// <summary>
     /// Gets or sets a callback that is invoked when an error occurs during import.
     /// </summary>
-    public Func<Exception, Task> ErrorCallback { get; set; }
+    public Func<Exception, Task> ErrorCallback { get; set; } = _ => Task.CompletedTask;
 }

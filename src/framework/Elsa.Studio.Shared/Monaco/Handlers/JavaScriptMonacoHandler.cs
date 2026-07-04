@@ -24,7 +24,7 @@ public class JavaScriptMonacoHandler(IJSRuntime jsRuntime, TypeDefinitionService
         var activityTypeName = activityDescriptor?.TypeName;
         var propertyName = propertyDescriptor?.Name;
 
-        if (activityTypeName == null || workflowDefinitionId == null)
+        if (activityTypeName == null || workflowDefinitionId == null || propertyName == null)
             return;
 
         var data = await typeDefinitionService.GetTypeDefinition(workflowDefinitionId, activityTypeName, propertyName);

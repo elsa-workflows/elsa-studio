@@ -41,7 +41,7 @@ public partial class TestTab
     private DataPanelModel ActivityState { get; set; } = [];
     private DataPanelModel Outcomes { get; set; } = [];
     private DataPanelModel Output { get; set; } = [];
-    private DataPanelModel Fault { get; set; }
+    private DataPanelModel Fault { get; set; } = [];
 
     private bool HasRun { get; set; }
     private bool IsRunning { get; set; }

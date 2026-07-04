@@ -1,8 +1,34 @@
 .console-logs-page {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    height: calc(100vh - var(--mud-appbar-height));
+    min-height: 0;
+    overflow: hidden;
     padding: 16px 24px 24px;
+}
+
+.console-log-viewer {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.console-log-viewer-embedded {
+    gap: 8px;
+    padding: 8px 12px 12px;
+}
+
+.console-log-viewer-embedded .console-logs-toolbar {
+    padding: 8px 10px;
+}
+
+.console-log-viewer-embedded .console-logs-switch-actions {
+    display: none;
 }
 
 .console-logs-toolbar,
@@ -79,9 +105,10 @@
     border: 1px solid var(--mud-palette-divider);
     border-radius: 4px;
     color: #f4f4f4;
+    flex: 1 1 auto;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     font-size: .82rem;
-    min-height: 420px;
+    min-height: 0;
     overflow: auto;
     padding: 12px;
 }
@@ -104,6 +131,14 @@
 .console-log-time,
 .console-log-source {
     color: #a9b7c6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.console-log-stream,
+.console-log-flag {
+    white-space: nowrap;
 }
 
 .console-log-source-health {
@@ -146,6 +181,169 @@
 
 .console-logs-wrap .console-log-text {
     white-space: pre-wrap;
+}
+
+.ansi-bg-black {
+    background-color: var(--ansi-black, #505a64);
+}
+
+.ansi-bg-red {
+    background-color: var(--ansi-red, #9f3f43);
+}
+
+.ansi-bg-green {
+    background-color: var(--ansi-green, #2f6f46);
+}
+
+.ansi-bg-yellow {
+    background-color: var(--ansi-yellow, #8a7227);
+}
+
+.ansi-bg-blue {
+    background-color: var(--ansi-blue, #386fa7);
+}
+
+.ansi-bg-magenta {
+    background-color: var(--ansi-magenta, #795690);
+}
+
+.ansi-bg-cyan {
+    background-color: var(--ansi-cyan, #237d87);
+}
+
+.ansi-bg-white {
+    background-color: var(--ansi-white, #7c858f);
+}
+
+.ansi-bg-bright-black {
+    background-color: var(--ansi-bright-black, #68727d);
+}
+
+.ansi-bg-bright-red {
+    background-color: var(--ansi-bright-red, #c55358);
+}
+
+.ansi-bg-bright-green {
+    background-color: var(--ansi-bright-green, #3f8f5a);
+}
+
+.ansi-bg-bright-yellow {
+    background-color: var(--ansi-bright-yellow, #a08630);
+}
+
+.ansi-bg-bright-blue {
+    background-color: var(--ansi-bright-blue, #4c84bf);
+}
+
+.ansi-bg-bright-magenta {
+    background-color: var(--ansi-bright-magenta, #9668af);
+}
+
+.ansi-bg-bright-cyan {
+    background-color: var(--ansi-bright-cyan, #2f98a3);
+}
+
+.ansi-bg-bright-white {
+    background-color: var(--ansi-bright-white, #98a2ad);
+}
+
+.ansi-fg-black,
+.ansi-fg-red,
+.ansi-fg-green,
+.ansi-fg-yellow,
+.ansi-fg-blue,
+.ansi-fg-magenta,
+.ansi-fg-cyan,
+.ansi-fg-white,
+.ansi-fg-bright-black,
+.ansi-fg-bright-red,
+.ansi-fg-bright-green,
+.ansi-fg-bright-yellow,
+.ansi-fg-bright-blue,
+.ansi-fg-bright-magenta,
+.ansi-fg-bright-cyan,
+.ansi-fg-bright-white {
+    color: inherit;
+}
+
+.ansi-fg-black {
+    color: var(--ansi-black, #505a64);
+}
+
+.ansi-fg-red {
+    color: var(--ansi-red, #9f3f43);
+}
+
+.ansi-fg-green {
+    color: var(--ansi-green, #2f6f46);
+}
+
+.ansi-fg-yellow {
+    color: var(--ansi-yellow, #8a7227);
+}
+
+.ansi-fg-blue {
+    color: var(--ansi-blue, #386fa7);
+}
+
+.ansi-fg-magenta {
+    color: var(--ansi-magenta, #795690);
+}
+
+.ansi-fg-cyan {
+    color: var(--ansi-cyan, #237d87);
+}
+
+.ansi-fg-white {
+    color: var(--ansi-white, #7c858f);
+}
+
+.ansi-fg-bright-black {
+    color: var(--ansi-bright-black, #68727d);
+}
+
+.ansi-fg-bright-red {
+    color: var(--ansi-bright-red, #c55358);
+}
+
+.ansi-fg-bright-green {
+    color: var(--ansi-bright-green, #3f8f5a);
+}
+
+.ansi-fg-bright-yellow {
+    color: var(--ansi-bright-yellow, #a08630);
+}
+
+.ansi-fg-bright-blue {
+    color: var(--ansi-bright-blue, #4c84bf);
+}
+
+.ansi-fg-bright-magenta {
+    color: var(--ansi-bright-magenta, #9668af);
+}
+
+.ansi-fg-bright-cyan {
+    color: var(--ansi-bright-cyan, #2f98a3);
+}
+
+.ansi-fg-bright-white {
+    color: var(--ansi-bright-white, #98a2ad);
+}
+
+.ansi-bold {
+    font-weight: 600;
+}
+
+.ansi-italic {
+    font-style: italic;
+}
+
+.ansi-underline {
+    text-decoration: underline;
+}
+
+.ansi-inverse {
+    filter: invert(100%);
 }
 
 .console-logs-empty {

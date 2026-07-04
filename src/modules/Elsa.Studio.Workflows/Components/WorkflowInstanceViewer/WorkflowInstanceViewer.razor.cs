@@ -53,6 +53,12 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
     [Inject] private IActivityVisitor ActivityVisitor { get; set; } = null!;
 
     private Journal Journal { get; set; } = null!;
+    private IDictionary<string, object?> LeftPanelTabAttributes => new Dictionary<string, object?>
+    {
+        ["WorkflowInstanceId"] = _workflowInstance?.Id,
+        ["WorkflowDefinition"] = _workflowDefinition,
+        ["WorkflowInstance"] = _workflowInstance
+    };
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()

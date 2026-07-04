@@ -6,15 +6,16 @@
 
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
-    var displayName = $"{inputDescriptor.DisplayName} (Date)";
-    var displayTimeName = $"{inputDescriptor.DisplayName} (Time)";
+    var displayName = $"{inputDescriptor.DisplayName ?? inputDescriptor.Name} (Date)";
+    var displayTimeName = $"{inputDescriptor.DisplayName ?? inputDescriptor.Name} (Time)";
+    var description = inputDescriptor.Description ?? string.Empty;
 }
 
 <ExpressionInput EditorContext="@EditorContext">
     <ChildContent>
         <MudStack Row="true" AlignItems="AlignItems.Start">
             <MudDatePicker Label="@displayName"
-            HelperText="@EditorContext.InputDescriptor.Description"
+            HelperText="@description"
             Variant="Variant.Outlined"
             Margin="Margin.Dense"
             ReadOnly="EditorContext.IsReadOnly"
@@ -78,7 +79,7 @@
                 inputTimeValue = null;
                 showTimePicker = false;
             }
-            OnValueChanged();
+            _ = InvokeAsync(OnValueChanged);
         }
     }
     public TimeSpan? InputTimeValue
@@ -87,7 +88,7 @@
         set
         {
             inputTimeValue = value;
-            OnValueChanged();
+            _ = InvokeAsync(OnValueChanged);
         }
     }
 
@@ -106,6 +107,6 @@
     private async Task OnValueChanged()
     {
         var combinedDateTime = InputDateValue?.Date.Add(InputTimeValue ?? TimeSpan.Zero);
-        await EditorContext.UpdateValueOrLiteralExpressionAsync(combinedDateTime?.ToString());
+        await EditorContext.UpdateValueOrLiteralExpressionAsync(combinedDateTime?.ToString() ?? string.Empty);
     }
 }

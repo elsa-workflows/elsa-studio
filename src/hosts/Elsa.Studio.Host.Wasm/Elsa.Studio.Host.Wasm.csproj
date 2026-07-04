@@ -29,10 +29,13 @@
 
       <ProjectReference Include="..\..\modules\Elsa.Studio.Alterations\Elsa.Studio.Alterations.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows.Dashboard\Elsa.Studio.Workflows.Dashboard.csproj" />
     </ItemGroup>
 
 </Project>

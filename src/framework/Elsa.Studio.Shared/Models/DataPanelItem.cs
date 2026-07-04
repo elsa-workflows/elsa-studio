@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.Models;
@@ -27,4 +28,5 @@ public record DataPanelItem(
     DataPanelItemFormat Format = DataPanelItemFormat.Auto,
     string? FormatString = null,
     RenderFragment<DataPanelItemContext>? ValueTemplate = null,
+    [property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     Type? ValueComponentType = null);

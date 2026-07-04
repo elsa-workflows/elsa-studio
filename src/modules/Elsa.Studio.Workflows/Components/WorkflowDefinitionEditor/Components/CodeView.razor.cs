@@ -20,7 +20,7 @@ public partial class CodeView : IDisposable
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
     private string _applyErrorMessage = string.Empty;
-    private RateLimitedFunc<Task> _throttledValueChanged;
+    private RateLimitedFunc<Task> _throttledValueChanged = null!;
 
     [Inject] private ILocalizer Localizer { get; set; } = null!;
     [Inject] protected IUserMessageService UserMessageService { get; set; } = null!;

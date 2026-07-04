@@ -38,7 +38,7 @@
                      Variant="Variant.Filled"
                      Dense="true">
                 <MudMenuItem Icon="@Icons.Material.Outlined.Refresh"
-                             OnClick="@(() => _table?.ReloadServerData())">
+                             OnClick="ReloadTableAsync">
                     @Localizer["Refresh"]
                 </MudMenuItem>
                 <MudMenuItem Icon="@(_polling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)"
@@ -161,7 +161,7 @@
         if (!_polling) return;
         _pollingTimer = new Timer(_ =>
         {
-            _ = InvokeAsync(() => _table?.ReloadServerData());
+            _ = InvokeAsync(ReloadTableAsync);
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
 
@@ -180,8 +180,10 @@
     private void OnSearchChanged(string value)
     {
         _searchTerm = value;
-        _table?.ReloadServerData();
+        _ = ReloadTableAsync();
     }
+
+    private Task ReloadTableAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;
 
     public void Dispose() => StopPolling();
 
@@ -199,6 +201,8 @@
             };
 
             var response = await WorkflowInstanceService.ListAsync(request, ct);
+            if (response is null)
+                return new TableData<WorkflowInstanceSummary> { Items = [], TotalItems = 0 };
 
             // Fan out per-plan detail fetches in parallel after the table renders. Real plan/job
             // status comes from IAlterationsApi.GetAsync — the system workflow's Status/SubStatus is

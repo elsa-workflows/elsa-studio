@@ -22,7 +22,7 @@
             <MudSelect
                 T="BindingTargetOption"
                 Label="@Localizer[displayName]"
-                HelperText="@Localizer[outputDescriptor.Description]"
+                HelperText="@Localizer[outputDescriptor.Description ?? string.Empty]"
                 Value="@selectedValue"
                 Dense="false"
                 Variant="Variant.Outlined"

@@ -2,6 +2,7 @@ import {Model} from '@antv/x6';
 import {DagreLayout} from '@antv/layout';
 import {loadGraph} from './load-graph';
 import {graphBindings} from './graph-bindings';
+import {arrangeSequenceGraph} from './sequence-mode';
 
 const dagreLayout = new DagreLayout({
     type: 'dagre',
@@ -12,7 +13,15 @@ const dagreLayout = new DagreLayout({
 })
 
 export async function autoLayout(graphId: string, data: string | Model.FromJSONData) {
-    const {graph, interop} = graphBindings[graphId];
+    const binding = graphBindings[graphId];
+    const {graph, interop} = binding;
+
+    if (binding.mode === 'sequence') {
+        arrangeSequenceGraph(binding);
+        await interop.raiseGraphUpdated();
+        return;
+    }
+
     const model = typeof data === 'string' ? JSON.parse(data) : data;
     const newModel = dagreLayout.layout(model);
 

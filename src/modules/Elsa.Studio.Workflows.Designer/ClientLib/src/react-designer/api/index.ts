@@ -72,6 +72,10 @@ export function setSequenceOrientation(graphId: string, orientation: SequenceLay
     reactBindings[graphId]?.setSequenceOrientation(orientation);
 }
 
+export function moveSelectedReactSequenceNode(graphId: string, direction: -1 | 1): void {
+    reactBindings[graphId]?.moveSelectedSequenceNode(direction);
+}
+
 // Called by .NET after it regenerates IDs server-side
 // (ReactFlowDesigner.HandlePasteCellsRequested). Mirrors the X6 path's pasteCells.
 export function pasteReactCells(graphId: string, activityNodes: ElsaActivityNode[], edges: ElsaEdge[]): void {

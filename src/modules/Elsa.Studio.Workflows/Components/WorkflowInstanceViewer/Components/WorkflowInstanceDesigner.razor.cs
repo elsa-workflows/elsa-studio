@@ -8,8 +8,12 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.Constants;
 using Elsa.Studio.DomInterop.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Contracts;
+using Elsa.Studio.Workflows.Constants;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -40,6 +44,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private readonly Dictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new();
     private readonly Dictionary<string, ActivityExecutionRecord> _lastActivityExecutionRecordLookup = new();
     private Timer? _elapsedTimer;
+    private bool IsAlterationsEnabled { get; set; }
 
     /// The workflow instance.
     [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
@@ -71,6 +76,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     [Inject] private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = null!;
 
     private JsonObject? RootActivity => WorkflowDefinition?.Root;
     private JsonObject? SelectedActivity { get; set; }
@@ -80,6 +86,15 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
+    private IDictionary<string, object?> BottomPanelTabAttributes => new Dictionary<string, object?>
+    {
+        ["WorkflowInstanceId"] = WorkflowInstance?.Id,
+        ["WorkflowDefinition"] = WorkflowDefinition,
+        ["WorkflowInstance"] = WorkflowInstance,
+        ["SelectedActivity"] = SelectedActivity,
+        ["LastActivityExecution"] = LastActivityExecution,
+        ["VisiblePaneHeight"] = _propertiesPaneHeight
+    };
 
     private RadzenSplitterPane ActivityPropertiesPane
     {
@@ -141,6 +156,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        IsAlterationsEnabled = await RemoteFeatureProvider.IsEnabledOrDefaultAsync(RemoteFeatureNames.Alterations);
         await ActivityRegistry.EnsureLoadedAsync();
 
         if (WorkflowDefinition?.Root == null!)

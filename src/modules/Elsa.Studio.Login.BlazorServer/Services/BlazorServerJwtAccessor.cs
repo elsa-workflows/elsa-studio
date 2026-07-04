@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using Elsa.Studio.Login.Contracts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Login.BlazorServer.Services;
 
@@ -35,6 +36,10 @@ public class BlazorServerJwtAccessor : IJwtAccessor
         {
             return null;
         }
+        catch (JSDisconnectedException)
+        {
+            return null;
+        }
     }
 
     /// <inheritdoc />
@@ -48,6 +53,9 @@ public class BlazorServerJwtAccessor : IJwtAccessor
             await _localStorageService.SetItemAsStringAsync(name, token);
         }
         catch (InvalidOperationException e) when (IsJavaScriptInteropUnavailable(e))
+        {
+        }
+        catch (JSDisconnectedException)
         {
         }
     }

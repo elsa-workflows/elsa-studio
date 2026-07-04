@@ -1,9 +1,11 @@
 .structured-logs-page {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: calc(100vh - 96px);
-    padding-bottom: 16px;
+    height: calc(100vh - var(--mud-appbar-height));
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 24px;
 }
 
 .structured-logs-toolbar,
@@ -127,7 +129,8 @@
     gap: 10px;
     grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
     margin-top: 10px;
-    min-height: 440px;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .structured-logs-main-no-details {
@@ -143,7 +146,7 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 0.78rem;
     line-height: 1.42;
-    min-height: 440px;
+    min-height: 0;
     overflow: auto;
     padding: 6px 0 8px;
 }
@@ -309,7 +312,7 @@
     background: #fff;
     border: 1px solid #d7dde5;
     border-radius: 6px;
-    min-height: 440px;
+    min-height: 0;
     min-width: 0;
     overflow: auto;
     padding: 12px;

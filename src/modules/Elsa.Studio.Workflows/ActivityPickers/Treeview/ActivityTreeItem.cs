@@ -14,12 +14,12 @@ public class ActivityTreeItem : TreeItemData<string>
     /// <summary>
     /// Gets or sets the full category path for the activity
     /// </summary>
-    public string CategoryPath { get; set; }
+    public string CategoryPath { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the color of the icon as a string representation.
     /// </summary>
-    public string IconColor { get; set; }
+    public string IconColor { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets the SVG icon string with the specified color applied.
@@ -36,7 +36,7 @@ public class ActivityTreeItem : TreeItemData<string>
     /// <summary>
     /// The activity descriptor
     /// </summary>
-    public ActivityDescriptor ActivityDescriptor { get; set; }
+    public ActivityDescriptor? ActivityDescriptor { get; set; }
 
     /// <summary>
     /// The mutable list backing the <see cref="TreeItemData{T}.Children"/> property.

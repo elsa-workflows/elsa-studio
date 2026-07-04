@@ -57,9 +57,9 @@ public partial class Login
             NavigationManager.NavigateTo(string.Empty, true);
     }
 
-    private async Task<bool> ValidateCredentials(string username, string password)
+    private async Task<bool> ValidateCredentials(string? username, string? password)
     {
-        if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             return false;
 
         var result = await CredentialsValidator.ValidateCredentialsAsync(username, password);

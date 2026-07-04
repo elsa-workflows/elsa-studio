@@ -5,7 +5,7 @@
     <ChildContent>
         <MudStack AlignItems=AlignItems.Start Row=true>
             <div class="flex-1" style="min-width:0;">
-                <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName]" HelperText="@Localizer[InputDescriptor.Description]" Margin="Margin.Dense">
+                <MudField Variant="Variant.Outlined" Label="@Localizer[InputDescriptor.DisplayName ?? InputDescriptor.Name]" HelperText="@Localizer[InputDescriptor.Description ?? string.Empty]" Margin="Margin.Dense">
                     <StandaloneCodeEditor @ref="_monacoEditor"
                                           Id="@_monacoEditorId"
                                           ConstructionOptions="ConfigureMonacoEditor"

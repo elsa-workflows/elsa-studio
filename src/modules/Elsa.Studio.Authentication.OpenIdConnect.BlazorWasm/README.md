@@ -28,6 +28,8 @@ Add a package reference to your Blazor WebAssembly project:
 <PackageReference Include="Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm" />
 ```
 
+This package references `Microsoft.AspNetCore.Components.WebAssembly.Authentication`, so a separate package reference is normally not needed unless your project manages package references explicitly.
+
 ## Usage
 
 ### Basic Setup
@@ -49,9 +51,14 @@ builder.Services.AddOpenIdConnectAuth(options =>
 
 ### App.razor Configuration
 
-Ensure your `App.razor` uses `CascadingAuthenticationState` and `AuthorizeRouteView`:
+If your host uses the standard Elsa Studio shell `App` component from `Elsa.Studio.Shell`, you do not need to change `App.razor`. The shell already wraps routes in `CascadingAuthenticationState` and `AuthorizeRouteView`, and it uses the unauthorized component registered by this module.
+
+Only update `App.razor` if you replaced the standard shell router with your own custom app component. In that case, ensure your router uses `CascadingAuthenticationState` and `AuthorizeRouteView`:
 
 ```razor
+@using Microsoft.AspNetCore.Components.Authorization
+@using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Components
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
@@ -67,6 +74,21 @@ Ensure your `App.razor` uses `CascadingAuthenticationState` and `AuthorizeRouteV
 ```
 
 **Important:** The authentication pages (`/authentication/{action}`) are automatically registered by this module via the `OpenIdConnectBlazorWasmFeature`. You don't need to create an `Authentication.razor` page in your host project.
+
+### index.html Configuration
+
+Blazor WebAssembly OIDC requires Microsoft's authentication JavaScript static asset. The default Elsa Studio WASM host already includes it. If you use a custom host, add this script before `_framework/blazor.webassembly.js`:
+
+```html
+<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
+```
+
+If this script is missing, the browser console shows an error like:
+
+```text
+Could not find 'AuthenticationService.init' ('AuthenticationService' was undefined).
+```
 
 ### Configuration Options
 
@@ -86,9 +108,6 @@ builder.Services.AddOpenIdConnectAuth(options =>
     // Callback paths (relative to your app)
     options.CallbackPath = "/authentication/login-callback"; // Default
     options.SignedOutCallbackPath = "/authentication/logout-callback"; // Default
-
-    // Optional: Absolute redirect URIs (only if AppBaseUrl is set)
-    options.AppBaseUrl = "https://your-app.com"; // Only needed for absolute URIs
 
     // Discovery
     options.MetadataAddress = "https://.../.well-known/openid-configuration"; // Auto-discovered if not set
@@ -119,7 +138,7 @@ builder.Services.AddOpenIdConnectAuth(options =>
 - Use tenant-specific authority (not `/common` for production)
 - Register your app as a "Single Page Application" (SPA) in Azure AD
 - Add redirect URI: `https://your-app.com/authentication/login-callback`
-- Enable "Access tokens" and "ID tokens" under "Implicit grant and hybrid flows"
+- Do not configure a client secret for the SPA client
 - **Only include scopes for ONE resource** - Azure AD limitation (don't mix Graph scopes with custom API scopes)
 - For userinfo endpoint issues, see troubleshooting section below
 
@@ -264,23 +283,36 @@ Or use the `NavigateToLogin` component provided by this module:
 ### Complete Setup Example
 
 ```csharp
+using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Extensions;
+using Elsa.Studio.Core.BlazorWasm.Extensions;
+using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
+using Elsa.Studio.Shell.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-
-// Add Elsa Studio services
-builder.Services.AddElsaStudio(elsa =>
-{
-    elsa.AddBackend(backend => backend.Url = "https://your-elsa-api.com");
-});
 
 // Add OpenID Connect authentication
 builder.Services.AddOpenIdConnectAuth(options =>
 {
     options.Authority = "https://login.microsoftonline.com/{tenant-id}/v2.0";
     options.ClientId = "{client-id}";
-    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access", "api://your-api/scope" };
+    options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
+    options.BackendApiScopes = new[] { "api://your-api/scope" };
+    options.CallbackPath = "/authentication/login-callback";
+    options.SignedOutCallbackPath = "/authentication/logout-callback";
 });
+
+// Configure the Elsa backend HTTP client to use OIDC tokens.
+var backendApiConfig = new BackendApiConfig
+{
+    ConfigureBackendOptions = options => options.Url = new("https://your-elsa-api.com/elsa/api"),
+    ConfigureHttpClientBuilder = options => options.AuthenticationHandler = typeof(OidcAuthenticatingApiHttpMessageHandler)
+};
+
+builder.Services.AddCore();
+builder.Services.AddShell();
+builder.Services.AddRemoteBackend(backendApiConfig);
 
 await builder.Build().RunAsync();
 ```
@@ -327,10 +359,7 @@ If you need both Graph and custom API tokens, configure them separately:
 options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
 
 // Backend API scopes (for Elsa API calls)
-builder.Services.Configure<BackendApiScopeOptions>(backendOptions =>
-{
-    backendOptions.Scopes = new[] { "api://your-api/elsa-server-api" };
-});
+options.BackendApiScopes = new[] { "api://your-api/elsa-server-api" };
 ```
 
 ### Azure AD: UserInfo endpoint returns 401
@@ -341,7 +370,7 @@ builder.Services.Configure<BackendApiScopeOptions>(backendOptions =>
 
 **Solution 1 - Disable UserInfo endpoint (recommended):**
 
-The existing README for `Elsa.Studio.Authentication.OpenIdConnect` mentions setting `GetClaimsFromUserInfoEndpoint = false`, but this property doesn't exist in `OidcOptions` for Blazor WebAssembly (it's only available in Blazor Server).
+The shared `OidcOptions` model has `GetClaimsFromUserInfoEndpoint`, but the Blazor WebAssembly module relies on Microsoft's `Microsoft.AspNetCore.Components.WebAssembly.Authentication` pipeline and does not use that server-side OIDC handler option.
 
 For WASM, claims are automatically included in the ID token, so you typically don't need the UserInfo endpoint.
 
@@ -413,10 +442,8 @@ For Azure AD specifically, redirect URIs must be absolute:
 options.CallbackPath = "/authentication/login-callback";
 // Framework will use current origin: https://your-app.com/authentication/login-callback
 
-// Option 2: Set AppBaseUrl explicitly (only if needed)
-options.AppBaseUrl = "https://your-app.com";
-options.CallbackPath = "/authentication/login-callback";
-// Results in: https://your-app.com/authentication/login-callback
+// Register the exact absolute URI in your identity provider:
+// https://your-app.com/authentication/login-callback
 ```
 
 ## Security Considerations

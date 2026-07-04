@@ -9,11 +9,15 @@ import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 import {enforceMinimumNodeSize} from "./update-activity-size";
+import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrientation, withSuppressedGraphUpdated} from "./sequence-mode";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
     let lastSelectedNode: any = null;
+    const graphId = containerId;
+    const mode = settings?.mode === 'sequence' ? 'sequence' : 'flowchart';
+    const isSequenceMode = mode === 'sequence';
 
     const graph = new Graph({
         container: containerElement,
@@ -39,15 +43,15 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         },
         interacting: {
             nodeMovable: () => !readOnly,
-            arrowheadMovable: () => !readOnly,
-            edgeMovable: () => !readOnly,
-            vertexMovable: () => !readOnly,
-            vertexAddable: () => !readOnly,
-            vertexDeletable: () => !readOnly,
-            edgeLabelMovable: () => !readOnly,
-            magnetConnectable: () => !readOnly,
-            toolsAddable: () => !readOnly,
-            useEdgeTools: () => !readOnly,
+            arrowheadMovable: () => !readOnly && !isSequenceMode,
+            edgeMovable: () => !readOnly && !isSequenceMode,
+            vertexMovable: () => !readOnly && !isSequenceMode,
+            vertexAddable: () => !readOnly && !isSequenceMode,
+            vertexDeletable: () => !readOnly && !isSequenceMode,
+            edgeLabelMovable: () => !readOnly && !isSequenceMode,
+            magnetConnectable: () => !readOnly && !isSequenceMode,
+            toolsAddable: () => !readOnly && !isSequenceMode,
+            useEdgeTools: () => !readOnly && !isSequenceMode,
         },
         connecting: {
             router: 'manhattan',
@@ -76,6 +80,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 })
             },
             validateConnection({sourceMagnet, targetMagnet}) {
+                if (isSequenceMode) {
+                    return false;
+                }
+
                 if (!sourceMagnet || sourceMagnet.getAttribute('port-group') === 'in') {
                     return false
                 }
@@ -176,6 +184,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.bindKey(['meta+x', 'ctrl+x'], () => {
             const cells = graph.getSelectedCells()
             if (cells.length) {
+                if (isSequenceMode) {
+                    const binding = graphBindings[graphId];
+                    const nodes = cells.filter(cell => cell.isNode());
+                    graph.copy(nodes);
+                    withSuppressedGraphUpdated(binding, () => graph.removeCells(nodes));
+                    arrangeSequenceGraph(binding);
+                    interop.raiseGraphUpdated();
+                    return false;
+                }
+
                 graph.cut(cells)
             }
 
@@ -191,7 +209,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                     return;
 
                 const activityCells = cells.filter(x => x.shape == 'elsa-activity');
-                const edgeCells: Edge[] = cells.filter(x => x.shape == 'elsa-edge');
+                const edgeCells: Edge[] = isSequenceMode ? [] : cells.filter(x => x.shape == 'elsa-edge');
 
                 interop.raisePasteCellsRequested(activityCells, edgeCells);
             }
@@ -219,6 +237,15 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.bindKey('del', () => {
             const cells = graph.getSelectedCells()
             if (cells.length) {
+                if (isSequenceMode) {
+                    const binding = graphBindings[graphId];
+                    const nodes = cells.filter(cell => cell.isNode());
+                    withSuppressedGraphUpdated(binding, () => graph.removeCells(nodes));
+                    arrangeSequenceGraph(binding);
+                    interop.raiseGraphUpdated();
+                    return false;
+                }
+
                 graph.removeCells(cells)
             }
 
@@ -278,6 +305,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     graph.on("edge:mouseenter", ({cell}) => {
+        if (isSequenceMode) {
+            return false;
+        }
+
         cell.addTools([
             {name: "vertices"},
             {
@@ -289,6 +320,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     graph.on("edge:mouseleave", ({cell}) => {
+        if (isSequenceMode) {
+            return false;
+        }
+
         if (cell.hasTool("button-remove")) {
             cell.removeTool("button-remove");
         }
@@ -356,6 +391,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     const onGraphUpdated = async (e: any) => {
+        const binding = graphBindings[graphId];
+        if (binding?.suppressGraphUpdated && binding.suppressGraphUpdated > 0)
+            return false;
+
         await interop.raiseGraphUpdated();
         return false;
     };
@@ -400,22 +439,54 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     };
 
-    graph.on('node:moved', onGraphUpdated);
-    graph.on('node:added', onNodeAdded);
-    graph.on('node:removed', onNodeRemoved);
+    graph.on('node:moved', async () => {
+        if (!isSequenceMode)
+            return await onGraphUpdated({});
+
+        if (readOnly)
+            return false;
+
+        const binding = graphBindings[graphId];
+        arrangeSequenceGraph(binding);
+        await interop.raiseGraphUpdated();
+        return false;
+    });
+    graph.on('node:added', async e => {
+        if (!isSequenceMode)
+            return await onNodeAdded(e);
+
+        const binding = graphBindings[graphId];
+        if (binding?.suppressGraphUpdated && binding.suppressGraphUpdated > 0)
+            return false;
+
+        arrangeSequenceGraph(binding);
+        await interop.raiseGraphUpdated();
+        return false;
+    });
+    graph.on('node:removed', async e => {
+        if (!isSequenceMode)
+            return await onNodeRemoved(e);
+
+        const binding = graphBindings[graphId];
+        if (binding?.suppressGraphUpdated && binding.suppressGraphUpdated > 0)
+            return false;
+
+        arrangeSequenceGraph(binding);
+        await interop.raiseGraphUpdated();
+        return false;
+    });
     graph.on('node:change:size', onNodeSizeChanged);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
     graph.on('edge:vertexs:added', onGraphUpdated);
     graph.on('edge:vertexs:removed', onGraphUpdated);
 
-    // Register the graph.
-    const graphId = containerId;
-
     graphBindings[graphId] = {
         graphId: graphId,
         graph: graph,
-        interop: interop
+        interop: interop,
+        mode,
+        layoutOrientation: normalizeSequenceOrientation(settings?.layoutOrientation),
     };
 
     return graphId;

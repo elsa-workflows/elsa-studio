@@ -97,6 +97,11 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
+    private IDictionary<string, object?> WorkflowDefinitionEditorToolbarActionAttributes => new Dictionary<string, object?>
+    {
+        ["WorkflowDefinition"] = _workflowDefinition,
+        ["GetWorkflowDefinition"] = (Func<Task<WorkflowDefinition?>>)GetWorkflowDefinitionSnapshotAsync
+    };
 
     private DotNetObjectReference<WorkflowEditor>? _dotNetRef;
 
@@ -308,6 +313,15 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
     }
 
+    private async Task<WorkflowDefinition?> GetWorkflowDefinitionSnapshotAsync()
+    {
+        if (_workflowDefinition is null)
+            return null;
+
+        _workflowDefinition.Root = await _diagramDesigner.GetActivityAsync();
+        return _workflowDefinition;
+    }
+
     /// <summary>
     /// Refreshes the selected activity reference to point to the updated activity in the current workflow definition.
     /// This is needed after saving changes to ensure the UI displays the latest activity state.
@@ -384,6 +398,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnSaveAsClick()
     {
+        if (WorkflowDefinition is null)
+            return;
+
         var result = await WorkflowCloningService.SaveAs(WorkflowDefinition);
         if (result is null) return;
         if (result.IsSuccess) NavigationManager.NavigateTo($"workflows/definitions/{result?.Success?.WorkflowDefinition.DefinitionId}/edit");

@@ -419,7 +419,7 @@ public partial class DiagramDesignerWrapper
             var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
             var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityTypeName);
             var disabled = segment == firstSegment;
-            var activityDisplayText = activity.GetName() ?? activityDescriptor.DisplayName;
+            var activityDisplayText = activity.GetName() ?? activityDescriptor.DisplayName ?? activityDescriptor.Name;
             var breadcrumbDisplayText = activityDisplayText;
             if (!IsSelfDesignerSegment(segment))
             {
@@ -427,7 +427,7 @@ public partial class DiagramDesignerWrapper
                 var portProvider = ActivityPortService.GetProvider(portProviderContext);
                 var ports = portProvider.GetPorts(portProviderContext);
                 var embeddedPort = ports.First(x => x.Name == segment.PortName);
-                breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName}";
+                breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName ?? embeddedPort.Name}";
             }
 
             var activityBreadcrumbItem = new BreadcrumbItem(

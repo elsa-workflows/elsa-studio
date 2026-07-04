@@ -234,8 +234,8 @@
                         @DetailRow("Workflow definition", SelectedLogEvent.WorkflowDefinitionId)
                         @DetailRow("Workflow instance", SelectedLogEvent.WorkflowInstanceId)
                         @DetailRow("Correlation ID", SelectedLogEvent.CorrelationId, SetCorrelationIdAsync)
-                        @DetailRow("Trace ID", SelectedLogEvent.TraceId, SetTraceIdAsync)
-                        @DetailRow("Span ID", SelectedLogEvent.SpanId, SetSpanIdAsync)
+                        @DetailRow("Trace ID", SelectedLogEvent.TraceId, SetTraceIdAsync, OpenTelemetryHref(SelectedLogEvent, false), "OpenTelemetry")
+                        @DetailRow("Span ID", SelectedLogEvent.SpanId, SetSpanIdAsync, OpenTelemetryHref(SelectedLogEvent, true), "OpenTelemetry")
                     </dl>
                 </section>
 

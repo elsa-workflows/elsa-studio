@@ -21,6 +21,26 @@ public class ConsoleLogFilter
     public string? Query { get; set; }
 
     /// <summary>
+    /// Gets or sets the workflow instance ID scope filter.
+    /// </summary>
+    public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the activity execution instance ID scope filter.
+    /// </summary>
+    public string? ActivityInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the logical activity ID scope filter.
+    /// </summary>
+    public string? ActivityId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the activity node ID scope filter.
+    /// </summary>
+    public string? ActivityNodeId { get; set; }
+
+    /// <summary>
     /// Gets or sets the inclusive UTC start time.
     /// </summary>
     public DateTimeOffset? From { get; set; }

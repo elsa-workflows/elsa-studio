@@ -43,6 +43,16 @@ public class ConsoleLogLine
     public ConsoleLogSource Source { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the workflow instance ID scope, when captured under one.
+    /// </summary>
+    public string? WorkflowInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets backend line metadata.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Gets or sets a value indicating whether the backend truncated this line.
     /// </summary>
     [JsonPropertyName("truncated")]

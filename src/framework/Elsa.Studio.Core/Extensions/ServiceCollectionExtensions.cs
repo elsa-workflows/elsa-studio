@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
@@ -81,7 +82,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the specified <see cref="INotificationHandler"/>.
     /// </summary>
-    public static IServiceCollection AddNotificationHandler<T>(this IServiceCollection services) where T: class, INotificationHandler
+    public static IServiceCollection AddNotificationHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T: class, INotificationHandler
     {
         return services.AddScoped<INotificationHandler, T>();
     }
@@ -89,7 +90,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the specified <see cref="IUIHintHandler"/>.
     /// </summary>
-    public static IServiceCollection AddUIHintHandler<T>(this IServiceCollection services) where T : class, IUIHintHandler
+    public static IServiceCollection AddUIHintHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IUIHintHandler
     {
         return services.AddScoped<IUIHintHandler, T>();
     }
@@ -97,7 +98,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the specified <see cref="IUIFieldExtensionHandler"/>.
     /// </summary>
-    public static IServiceCollection AddUIFieldEnhancerHandler<T>(this IServiceCollection services) where T : class, IUIFieldExtensionHandler
+    public static IServiceCollection AddUIFieldEnhancerHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IUIFieldExtensionHandler
     {
         return services.AddScoped<IUIFieldExtensionHandler, T>();
     }
@@ -105,7 +106,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the specified <see cref="IUserMessageService"/>.
     /// </summary>
-    public static IServiceCollection AddUserMessageService<T>(this IServiceCollection services) where T : class, IUserMessageService
+    public static IServiceCollection AddUserMessageService<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IUserMessageService
     {
         return services.AddScoped<IUserMessageService, T>();
     }
@@ -113,7 +114,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the specified <see cref="IContentVisualizer"/>.
     /// </summary>
-    public static IServiceCollection AddContentVisualizer<T>(this IServiceCollection services) where T : class, IContentVisualizer
+    public static IServiceCollection AddContentVisualizer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services) where T : class, IContentVisualizer
     {
         return services.AddTransient<IContentVisualizer, T>();
     }

@@ -14,6 +14,7 @@ export interface GraphBinding {
     graphId: string;
     graph: Graph;
     interop: DotNetFlowchartDesigner;
+    mode?: 'flowchart' | 'sequence';
+    layoutOrientation?: 'vertical' | 'horizontal';
     suppressGraphUpdated?: number;
 }
-

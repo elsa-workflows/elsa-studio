@@ -1,6 +1,7 @@
 using Blazored.FluentValidation;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
@@ -15,6 +16,8 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 public partial class CreateWorkflowDialog
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
+    private IReadOnlyCollection<WorkflowRootActivityTemplate> _rootActivityTemplates = [];
+    private string? _selectedRootActivityTemplateKey;
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
     private FluentValidationValidator _fluentValidationValidator = null!;
@@ -24,7 +27,8 @@ public partial class CreateWorkflowDialog
     /// </summary>
     [Parameter] public string WorkflowName { get; set; } = "New workflow";
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;    
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+    [Inject] private IWorkflowRootActivityTemplateProvider WorkflowRootActivityTemplateProvider { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -32,6 +36,8 @@ public partial class CreateWorkflowDialog
         _metadataModel.Name = WorkflowName;
         _editContext = new(_metadataModel);
         _validator = new(WorkflowDefinitionService, Localizer);
+        _rootActivityTemplates = WorkflowRootActivityTemplateProvider.List();
+        _selectedRootActivityTemplateKey ??= WorkflowRootActivityTemplateProvider.GetDefault().Key;
     }
 
     private Task OnCancelClicked()
@@ -50,7 +56,27 @@ public partial class CreateWorkflowDialog
 
     private async Task OnValidSubmit()
     {
-        var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(_metadataModel.Name!, _metadataModel.Description!);
+        var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(_metadataModel.Name!, _metadataModel.Description!, _selectedRootActivityTemplateKey);
         MudDialog.Close(result);
+    }
+
+    private void SelectRootActivityTemplate(string key)
+    {
+        _selectedRootActivityTemplateKey = key;
+    }
+
+    private bool IsRootActivityTemplateSelected(WorkflowRootActivityTemplate template)
+    {
+        return string.Equals(template.Key, _selectedRootActivityTemplateKey, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetRootActivityTemplateClass(WorkflowRootActivityTemplate template)
+    {
+        return IsRootActivityTemplateSelected(template) ? "workflow-root-template workflow-root-template-selected" : "workflow-root-template";
+    }
+
+    private static string GetRootActivityTemplateIconStyle(WorkflowRootActivityTemplate template)
+    {
+        return $"color: {template.Color};";
     }
 }
