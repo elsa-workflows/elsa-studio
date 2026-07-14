@@ -11,6 +11,9 @@
 *.sln.docstates
 .DS_Store
 
+# Spec Kit's active feature pointer is local workflow state.
+.specify/feature.json
+
 # Release output from CustomElements - Wasm
 src/hosts/Elsa.Studio.Host.CustomElements/wasm 
 
