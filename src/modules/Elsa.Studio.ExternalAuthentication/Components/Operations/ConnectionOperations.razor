@@ -1,0 +1,177 @@
+@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject ISnackbar Snackbar
+@using Elsa.Studio.ExternalAuthentication.Services
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h6">Operations</MudText>
+    <MudText Typo="Typo.caption">Tests and previews use the current revision. Results are redacted and never reveal provider tokens, secrets, or unrestricted claims.</MudText>
+
+    @if (Observation is { } observation)
+    {
+        <MudAlert Severity="@ObservationSeverity(observation.Status)" Dense="true">
+            <strong>Latest test: @observation.Status</strong> — @observation.Summary
+            @if (observation.IsStale)
+            {
+                <br /><span>This observation is stale because the connection has materially changed since it was tested.</span>
+            }
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info" Dense="true">This connection has not been tested.</MudAlert>
+    }
+
+    <MudStack Row="true" Spacing="2">
+        @if (Adapter.Capabilities.SupportsTest)
+        {
+            <MudButton Variant="Variant.Outlined" Disabled="@(!_canTest || IsReadOnly || _testing)" OnClick="TestAsync">
+                @(_testing ? "Testing…" : "Test connection")
+            </MudButton>
+        }
+        @if (Adapter.Capabilities.SupportsPreview)
+        {
+            <MudButton Variant="Variant.Outlined" Disabled="@(!_canPreview || IsReadOnly || _startingPreview)" OnClick="StartPreviewAsync">
+                @(_startingPreview ? "Preparing preview…" : "Preview sign-in")
+            </MudButton>
+        }
+    </MudStack>
+
+    @if (_preview is { } preview)
+    {
+        <MudAlert Severity="Severity.Info" Dense="true">
+            Preview state expires @preview.ExpiresAt.ToLocalTime().ToString("g"). Complete the provider sign-in in a separate tab, return here, then retrieve the one-time redacted result.
+        </MudAlert>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@preview.NavigationUrl" Target="_blank" rel="noopener noreferrer">Open preview sign-in</MudButton>
+            <MudButton Variant="Variant.Outlined" Disabled="@_retrievingPreview" OnClick="RetrievePreviewAsync">
+                @(_retrievingPreview ? "Retrieving…" : "Get one-time preview result")
+            </MudButton>
+        </MudStack>
+    }
+
+    @if (_previewResult is not null)
+    {
+        <PermissionPreview Result="_previewResult.ToPreviewSignInResult()" PermissionDescriptors="PermissionDescriptors" />
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired] public ConnectionDetail Connection { get; set; } = default!;
+    [Parameter, EditorRequired] public AdapterDescriptor Adapter { get; set; } = default!;
+    [Parameter] public ICollection<PermissionDescriptor> PermissionDescriptors { get; set; } = [];
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public EventCallback<ConnectionObservation> ObservationRecorded { get; set; }
+
+    private bool _canTest;
+    private bool _canPreview;
+    private bool _testing;
+    private bool _startingPreview;
+    private bool _retrievingPreview;
+    private PreviewInitiation? _preview;
+    private string? _previewHandle;
+    private PreviewResultDocument? _previewResult;
+
+    private ConnectionObservation? Observation => _testing ? null : Connection.LatestObservation;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _canTest = await Permissions.HasAsync(ExternalAuthenticationPermissions.Test);
+        _canPreview = await Permissions.HasAsync(ExternalAuthenticationPermissions.Preview);
+    }
+
+    private async Task TestAsync()
+    {
+        _testing = true;
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+            var result = await api.TestAsync(Connection.Id, ConnectionConcurrency.ToIfMatch(Connection.Revision));
+            var observation = result.ToObservation();
+            Connection.LatestObservation = observation;
+            await ObservationRecorded.InvokeAsync(observation);
+            Snackbar.Add("Connection test completed. The result contains only redacted diagnostics.", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("The connection test could not be completed. Review the redacted server observation and try again.", Severity.Error);
+        }
+        finally
+        {
+            _testing = false;
+        }
+    }
+
+    private async Task StartPreviewAsync()
+    {
+        _startingPreview = true;
+        _previewResult = null;
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+            _preview = await api.InitiatePreviewAsync(Connection.Id, ConnectionConcurrency.ToIfMatch(Connection.Revision));
+            _previewHandle = TryGetPreviewHandle(_preview.NavigationUrl);
+            if (_previewHandle is null)
+            {
+                _preview = null;
+                Snackbar.Add("The server returned an invalid preview navigation URL.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("The preview sign-in could not be started. Verify the connection and try again.", Severity.Error);
+        }
+        finally
+        {
+            _startingPreview = false;
+        }
+    }
+
+    private async Task RetrievePreviewAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_previewHandle))
+            return;
+
+        _retrievingPreview = true;
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+            _previewResult = await api.GetPreviewResultAsync(_previewHandle);
+            _preview = null;
+            _previewHandle = null;
+            Snackbar.Add("One-time preview result retrieved. It did not create a user, credential, link, or session.", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("The one-time preview result is unavailable or has expired.", Severity.Error);
+        }
+        finally
+        {
+            _retrievingPreview = false;
+        }
+    }
+
+    internal static string? TryGetPreviewHandle(string navigationUrl)
+    {
+        if (!Uri.TryCreate(navigationUrl, UriKind.RelativeOrAbsolute, out var navigationUri))
+            return null;
+
+        var path = navigationUri.IsAbsoluteUri
+            ? navigationUri.AbsolutePath
+            : navigationUrl.Split('?', '#')[0];
+        var segments = path
+            .Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var previewsIndex = Array.FindIndex(segments, segment => string.Equals(segment, "previews", StringComparison.Ordinal));
+        return previewsIndex >= 0 && previewsIndex + 2 < segments.Length && string.Equals(segments[previewsIndex + 2], "authorize", StringComparison.Ordinal)
+            ? segments[previewsIndex + 1]
+            : null;
+    }
+
+    private static Severity ObservationSeverity(string status) => status.ToLowerInvariant() switch
+    {
+        "succeeded" => Severity.Success,
+        "warning" => Severity.Warning,
+        "failed" => Severity.Error,
+        _ => Severity.Info
+    };
+}

@@ -1,5 +1,6 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Services;
@@ -40,6 +41,7 @@ public static class ServiceCollectionExtensions
     {
         var options = new OidcOptions();
         configure(options);
+        services.AddStudioAuthenticationProviderRegistration(StudioAuthenticationProvider.OpenIdConnect);
 
         // Ensure we always request the minimal identity scopes.
         var configuredScopes = options.AuthenticationScopes?.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? Array.Empty<string>();

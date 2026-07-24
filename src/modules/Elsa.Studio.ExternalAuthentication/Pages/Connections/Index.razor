@@ -1,0 +1,157 @@
+@page "/security/external-authentication"
+@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Identity Provider Connections</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="Identity Provider Connections" />
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+        Configuration-owned connections are shown for diagnosis but can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.
+    </MudAlert>
+
+    <MudPaper Elevation="0" Class="pa-4">
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudTextField @bind-Value="_search" Label="Search connections" Immediate="true" DebounceInterval="300" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.Search" OnBlur="@(_ => ReloadAsync())" />
+            <MudSelect T="string" @bind-Value="_source" Label="Source" Clearable="true" Style="min-width: 160px" >
+                <MudSelectItem T="string" Value="@("database")">Database</MudSelectItem>
+                <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
+            </MudSelect>
+            <MudCheckBox @bind-Value="_includeArchived" Label="Include archived" />
+            <MudSpacer />
+            @if (_canCreate)
+            {
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
+            }
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (!_canRead)
+        {
+            <MudAlert Severity="Severity.Warning">You do not have permission to view identity provider connections.</MudAlert>
+        }
+        else
+        {
+            <MudTable T="ConnectionSummary" Items="_items" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Md">
+                <HeaderContent>
+                    <MudTh>Connection</MudTh>
+                    <MudTh>Scope</MudTh>
+                    <MudTh>Source</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Latest test</MudTh>
+                    <MudTh aria-label="Actions"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Connection">
+                        <MudText Typo="Typo.body2">@context.DisplayName</MudText>
+                        <MudText Typo="Typo.caption">@context.Key · @context.AdapterType</MudText>
+                        @if (context.IsDefault)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary">Default</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Scope">@context.Scope.DisplayName</MudTd>
+                    <MudTd DataLabel="Source">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">@context.Source</MudChip>
+                        @if (context.Shadowed)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">Shadowed</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@EnabledColor(context)">@(context.Archived ? "Archived" : context.EnabledIntent ? "Enabled" : "Disabled")</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@ValidityColor(context.Validity)">@context.Validity</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Latest test">
+                        @if (context.LatestObservation is { } observation)
+                        {
+                            <MudText Typo="Typo.caption">@observation.Status@(observation.IsStale ? " (stale)" : string.Empty)</MudText>
+                            <MudText Typo="Typo.caption">@observation.Summary</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption">Not tested</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => OpenAsync(context))">@(context.IsConfigurationOwned ? "View" : "Manage")</MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent><MudText>No connections match the current filters.</MudText></NoRecordsContent>
+            </MudTable>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+            </MudStack>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly List<ConnectionSummary> _items = [];
+    private string? _search;
+    private string? _source;
+    private string? _nextCursor;
+    private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
+    private bool _includeArchived;
+    private bool _loading = true;
+    private bool _canRead;
+    private bool _canCreate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canRead = await Permissions.HasAsync(ExternalAuthenticationPermissions.Read);
+        _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _nextCursor = null;
+        _paging.Replace(null);
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_paging.TryAdvance(out var cursor))
+            await LoadAsync(cursor);
+    }
+
+    private async Task LoadAsync(string? cursor = null)
+    {
+        if (!_canRead)
+        {
+            _loading = false;
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            var response = await api.ListAsync(_search, _source, archived: _includeArchived ? null : false, cursor: cursor, pageSize: 25);
+            _items.Clear();
+            _items.AddRange(response.Items);
+            _nextCursor = response.NextCursor;
+            _paging.SetNext(response.NextCursor);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void CreateAsync() => Navigation.NavigateTo("security/external-authentication/new");
+    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"security/external-authentication/{Uri.EscapeDataString(connection.Id)}");
+    private static Color EnabledColor(ConnectionSummary connection) => connection.Archived ? Color.Default : connection.EffectivelyEnabled ? Color.Success : connection.EnabledIntent ? Color.Warning : Color.Default;
+    private static Color ValidityColor(string validity) => string.Equals(validity, "valid", StringComparison.OrdinalIgnoreCase) ? Color.Success : string.Equals(validity, "invalid", StringComparison.OrdinalIgnoreCase) ? Color.Error : Color.Default;
+}

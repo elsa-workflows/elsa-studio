@@ -1,0 +1,130 @@
+@page "/login"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationLoginCoordinator LoginCoordinator
+
+<main class="elsa-external-login" aria-labelledby="external-login-heading">
+    <h1 id="external-login-heading">Sign in</h1>
+
+    @if (!string.IsNullOrWhiteSpace(LoginCoordinator.SecurityWarning))
+    {
+        <p role="status" class="elsa-external-login__security-warning">@LoginCoordinator.SecurityWarning</p>
+    }
+
+    @if (_loading)
+    {
+        <p role="status">Loading sign-in methods…</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p role="alert">@_error</p>
+        <a href="@ChooserHref">Choose another sign-in method</a>
+    }
+    else if (_methods.Count == 0)
+    {
+        <p role="status">No sign-in methods are currently available. Contact an administrator.</p>
+    }
+    else
+    {
+        @if (_methods.Any(method => string.Equals(method.Kind, "local", StringComparison.OrdinalIgnoreCase)))
+        {
+            <section aria-labelledby="local-login-heading">
+                <h2 id="local-login-heading">Elsa account</h2>
+                @if (!string.IsNullOrWhiteSpace(LoginCoordinator.LocalLoginAction))
+                {
+                    <form method="post" action="@LoginCoordinator.LocalLoginAction">
+                        <input type="hidden" name="returnPath" value="@SafeReturnPath" />
+                        <label for="external-authentication-username">User name</label>
+                        <input id="external-authentication-username" name="username" autocomplete="username" />
+                        <label for="external-authentication-password">Password</label>
+                        <input id="external-authentication-password" name="password" type="password" autocomplete="current-password" />
+                        <button type="submit">Sign in</button>
+                    </form>
+                }
+                else
+                {
+                    <form @onsubmit="SignInLocallyAsync" @onsubmit:preventDefault>
+                    <label for="external-authentication-username">User name</label>
+                    <input id="external-authentication-username" autocomplete="username" @bind="_username" />
+                    <label for="external-authentication-password">Password</label>
+                    <input id="external-authentication-password" type="password" autocomplete="current-password" @bind="_password" />
+                    <button type="submit">Sign in</button>
+                    </form>
+                }
+            </section>
+        }
+
+        @foreach (var method in _methods.Where(method => !string.Equals(method.Kind, "local", StringComparison.OrdinalIgnoreCase)))
+        {
+            <button type="button" @onclick="() => SignInExternallyAsync(method)" aria-label="Sign in with @method.DisplayName">
+                <span aria-hidden="true">@Elsa.Studio.ExternalAuthentication.Services.LoginMethodChooserState.GetAccessibleIconLabel(method.IconId)</span>
+                <span>Sign in with @method.DisplayName</span>
+            </button>
+        }
+    }
+</main>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnPath")]
+    public string? ReturnPath { get; set; }
+
+    [SupplyParameterFromQuery(Name = "choose")]
+    public bool Choose { get; set; }
+
+    private readonly HashSet<string> _attemptedMethods = new(StringComparer.Ordinal);
+    private IReadOnlyList<Elsa.Studio.ExternalAuthentication.Models.LoginMethod> _methods = [];
+    private bool _loading = true;
+    private string? _error;
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+
+    private string SafeReturnPath => Elsa.Studio.ExternalAuthentication.Services.LocalReturnPath.Normalize(ReturnPath);
+    private string ChooserHref => $"/login?choose=true&returnPath={Uri.EscapeDataString(SafeReturnPath)}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await LoginCoordinator.DiscoverAsync();
+            _methods = Elsa.Studio.ExternalAuthentication.Services.LoginMethodChooserState.Order(response.Methods);
+            var automatic = Elsa.Studio.ExternalAuthentication.Services.LoginMethodChooserState.GetAutomaticMethod(response, Choose, _attemptedMethods);
+            if (automatic is not null)
+            {
+                _attemptedMethods.Add(automatic.Key);
+                await LoginCoordinator.BeginExternalAsync(automatic, SafeReturnPath);
+            }
+        }
+        catch
+        {
+            _error = "The selected sign-in method is unavailable. Choose another method or try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SignInExternallyAsync(Elsa.Studio.ExternalAuthentication.Models.LoginMethod method)
+    {
+        try
+        {
+            _attemptedMethods.Add(method.Key);
+            await LoginCoordinator.BeginExternalAsync(method, SafeReturnPath);
+        }
+        catch
+        {
+            _error = "The selected sign-in method is unavailable. Choose another method or try again.";
+        }
+    }
+
+    private async Task SignInLocallyAsync()
+    {
+        try
+        {
+            await LoginCoordinator.BeginLocalAsync(_username, _password, SafeReturnPath);
+        }
+        catch
+        {
+            _error = "Sign-in failed. Check your credentials and try again.";
+        }
+    }
+}

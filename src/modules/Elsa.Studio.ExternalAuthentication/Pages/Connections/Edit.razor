@@ -1,0 +1,482 @@
+@page "/security/external-authentication/new"
+@page "/security/external-authentication/{ConnectionId}"
+@using System.Text.Json
+@using ApiException = Refit.ApiException
+@using Elsa.Studio.ExternalAuthentication.Services
+@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject Elsa.Studio.ExternalAuthentication.Services.ICustomConnectionEditorRegistry CustomEditors
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsNew ? "Create identity provider connection" : "Manage identity provider connection")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudStack Spacing="3">
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">Identity Provider Connections</MudButton>
+        <PageHeading Text="@(IsNew ? "Create identity provider connection" : _connection?.DisplayName ?? "Identity Provider Connection")" />
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (_connection is null || _adapter is null || _model is null)
+        {
+            <MudAlert Severity="Severity.Error">The connection or its installed adapter is unavailable.</MudAlert>
+        }
+        else
+        {
+            @if (IsNew)
+            {
+                <MudSelect T="string" Value="_adapter.Type" ValueChanged="SelectAdapterAsync" Label="Provider protocol" Required="true">
+                    @foreach (var adapter in _adapters)
+                    {
+                        <MudSelectItem T="string" Value="@adapter.Type">@adapter.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            @if (CustomEditors.TryResolve(_adapter.CustomEditor, out var customEditorType))
+            {
+                <DynamicComponent Type="customEditorType" Parameters="CustomEditorParameters" />
+            }
+            else
+            {
+                <ConnectionEditor Connection="_connection" Adapter="_adapter" Model="_model" ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)" CanConfigureUnsafeSettings="_canConfigureUnsafeSettings" Saved="SaveAsync" SecretBindingChanged="ReplaceBindingAsync" SecretBindingRemoved="RemoveBindingAsync" />
+            }
+            <MudDivider />
+            <PermissionMappingEditor @ref="_permissionMappings"
+                                     Sources="_model.PermissionGrantSources"
+                                     Descriptors="_permissionGrantSourceDescriptors"
+                                     PermissionDescriptors="_permissionDescriptors"
+                                     ActorPermissions="_actorPermissions"
+                                     CanDelegate="_canDelegatePermissions"
+                                     CanDelegateUnrestricted="_canDelegatePermissionsUnrestricted"
+                                     ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)" />
+            @if (!IsNew)
+            {
+                <MudDivider />
+                <ConnectionOperations Connection="_connection"
+                                      Adapter="_adapter"
+                                      PermissionDescriptors="_permissionDescriptors"
+                                      ObservationRecorded="OnObservationRecordedAsync" />
+            }
+            @if (!IsNew && !_connection.IsConfigurationOwned)
+            {
+                <MudDivider />
+                <MudText Typo="Typo.h6">Lifecycle</MudText>
+                <MudText Typo="Typo.caption">Lifecycle actions use the current revision and never alter the configured secret values.</MudText>
+                <MudStack Row="true" Spacing="2" Class="mt-2">
+                    @if (_connection.Archived)
+                    {
+                        <MudButton Variant="Variant.Outlined" Disabled="@(!_canArchive)" OnClick="RestoreAsync">Restore as disabled</MudButton>
+                    }
+                    else
+                    {
+                        @if (_connection.EnabledIntent)
+                        {
+                            <FinalLoginPathWarning CanOverride="_canConfigureUnsafeSettings" />
+                        }
+                        <MudButton Variant="Variant.Outlined" Disabled="@(!_canUpdate)" OnClick="ToggleEnabledAsync">@(_connection.EnabledIntent ? "Disable" : "Enable")</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@(!_canArchive)" OnClick="ArchiveAsync">Archive</MudButton>
+                    }
+                    <MudButton Variant="Variant.Outlined" OnClick="ValidateAsync">Validate</MudButton>
+                </MudStack>
+                @if (_validation is not null)
+                {
+                    <MudAlert Severity="@(_validation.Valid ? Severity.Success : Severity.Error)" Class="mt-3">
+                        @(_validation.Valid ? "The current revision is structurally valid." : "The current revision has validation errors.")
+                        @foreach (var error in _validation.Errors)
+                        {
+                            <div>@error.Field: @error.Message</div>
+                        }
+                    </MudAlert>
+                }
+            }
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Parameter] public string? ConnectionId { get; set; }
+
+    private ConnectionDetail? _connection;
+    private AdapterDescriptor? _adapter;
+    private ICollection<AdapterDescriptor> _adapters = [];
+    private ICollection<PermissionGrantSourceDescriptor> _permissionGrantSourceDescriptors = [];
+    private ICollection<PermissionDescriptor> _permissionDescriptors = [];
+    private IReadOnlySet<string> _actorPermissions = new HashSet<string>(StringComparer.Ordinal);
+    private ConnectionMutation? _model;
+    private ConnectionValidationResult? _validation;
+    private PermissionMappingEditor? _permissionMappings;
+    private bool _loading = true;
+    private bool _canCreate;
+    private bool _canUpdate;
+    private bool _canArchive;
+    private bool _canConfigureUnsafeSettings;
+    private bool _canDelegatePermissions;
+    private bool _canDelegatePermissionsUnrestricted;
+
+    private bool IsNew => string.IsNullOrWhiteSpace(ConnectionId);
+    private IDictionary<string, object> CustomEditorParameters => new Dictionary<string, object>
+    {
+        [nameof(ConnectionEditor.Connection)] = _connection!,
+        [nameof(ConnectionEditor.Adapter)] = _adapter!,
+        [nameof(ConnectionEditor.Model)] = _model!,
+        [nameof(ConnectionEditor.ReadOnly)] = IsNew ? !_canCreate : !_canUpdate || _connection?.IsConfigurationOwned == true,
+        [nameof(ConnectionEditor.CanConfigureUnsafeSettings)] = _canConfigureUnsafeSettings,
+        [nameof(ConnectionEditor.Saved)] = EventCallback.Factory.Create<ConnectionMutation>(this, SaveAsync),
+        [nameof(ConnectionEditor.SecretBindingChanged)] = EventCallback.Factory.Create<(string Field, SecretBindingMutation Binding)>(this, ReplaceBindingAsync),
+        [nameof(ConnectionEditor.SecretBindingRemoved)] = EventCallback.Factory.Create<string>(this, RemoveBindingAsync)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
+        _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
+        _canArchive = await Permissions.HasAsync(ExternalAuthenticationPermissions.Archive);
+        _canConfigureUnsafeSettings = await Permissions.HasAsync(ExternalAuthenticationPermissions.UnsafeProviderTrust);
+        _canDelegatePermissions = await Permissions.HasAsync(ExternalAuthenticationPermissions.DelegatePermissions) &&
+            await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
+        _canDelegatePermissionsUnrestricted = await Permissions.HasAsync(ExternalAuthenticationPermissions.DelegatePermissionsUnrestricted);
+        _actorPermissions = await Permissions.ListAsync();
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            _adapters = await api.GetAdaptersAsync();
+            _permissionGrantSourceDescriptors = await api.GetPermissionSourcesAsync();
+            _permissionDescriptors = await api.GetPermissionsAsync();
+            if (IsNew)
+            {
+                _adapter = _adapters.FirstOrDefault();
+                if (_adapter is null)
+                    return;
+
+                _connection = new ConnectionDetail { AdapterType = _adapter.Type, Scope = new ConnectionScope() };
+                _model = new ConnectionMutation { AdapterType = _adapter.Type, AdapterSettingsVersion = _adapter.SettingsVersion, Scope = new ConnectionScope() };
+                foreach (var field in _adapter.Fields.Where(field => !field.IsSecretBinding && field.DefaultValue is not null))
+                    _model.AdapterSettings[field.Name] = field.DefaultValue!.Value;
+                return;
+            }
+
+            _connection = await api.GetAsync(ConnectionId!);
+            _adapter = _adapters.FirstOrDefault(adapter => string.Equals(adapter.Type, _connection.AdapterType, StringComparison.Ordinal));
+            _model = ToMutation(_connection);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveAsync(ConnectionMutation mutation)
+    {
+        if (_connection is null)
+            return;
+        var permissionErrors = _permissionMappings is null ? [] : await _permissionMappings.ValidateAsync();
+        if (permissionErrors.Count > 0)
+        {
+            foreach (var error in permissionErrors)
+                Snackbar.Add(error, Severity.Error);
+            return;
+        }
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            if (IsNew)
+            {
+                if (!_canCreate)
+                    return;
+
+                var created = await api.CreateAsync(mutation);
+                Snackbar.Add("Connection draft created.", Severity.Success);
+                Navigation.NavigateTo($"security/external-authentication/{Uri.EscapeDataString(created.Id)}", replace: true);
+                return;
+            }
+
+            if (!_canUpdate || _connection.IsConfigurationOwned)
+                return;
+
+            _connection = await api.UpdateAsync(_connection.Id, mutation, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            _model = ToMutation(_connection);
+            Snackbar.Add("Connection updated.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private Task SelectAdapterAsync(string adapterType)
+    {
+        if (_connection is null || _model is null)
+            return Task.CompletedTask;
+
+        var adapter = _adapters.FirstOrDefault(item => string.Equals(item.Type, adapterType, StringComparison.Ordinal));
+        if (adapter is null)
+            return Task.CompletedTask;
+
+        _adapter = adapter;
+        ConnectionAdapterSelection.Apply(_connection, _model, adapter);
+        return Task.CompletedTask;
+    }
+
+    private async Task ReplaceBindingAsync((string Field, SecretBindingMutation Binding) change)
+    {
+        if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            await api.ReplaceSecretBindingAsync(_connection.Id, change.Field, change.Binding, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            await ReloadConnectionAsync();
+            Snackbar.Add("Secret binding replaced. The secret value was not revealed.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task RemoveBindingAsync(string field)
+    {
+        if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
+            return;
+
+        var confirmed = await Dialogs.ShowMessageBoxAsync("Remove secret binding?", "The connection will no longer reference this secret. This does not delete the underlying secret.", yesText: "Remove", cancelText: "Cancel");
+        if (confirmed != true)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            await api.RemoveSecretBindingAsync(_connection.Id, field, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            await ReloadConnectionAsync();
+            Snackbar.Add("Secret binding removed.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task ToggleEnabledAsync()
+    {
+        if (_connection is null || !_canUpdate)
+            return;
+
+        var action = _connection.EnabledIntent ? "disable" : "enable";
+        if (await Dialogs.ShowMessageBoxAsync($"{char.ToUpperInvariant(action[0])}{action[1..]} connection?", $"This changes the administrative login availability of {_connection.DisplayName}.", yesText: char.ToUpperInvariant(action[0]) + action[1..], cancelText: "Cancel") != true)
+            return;
+
+        var confirmFinalLoginPathOverride = false;
+        if (_connection.EnabledIntent && _canConfigureUnsafeSettings)
+        {
+            confirmFinalLoginPathOverride = await Dialogs.ShowMessageBoxAsync(
+                "Confirm recovery override?",
+                "Only confirm this if you have verified an independent recovery path. If this is the final normal login method, this explicit privileged override permits the change; break-glass authentication remains outside normal login discovery.",
+                yesText: "Confirm recovery override",
+                cancelText: "Cancel") == true;
+            if (!confirmFinalLoginPathOverride)
+                return;
+        }
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            if (_connection.EnabledIntent)
+            {
+                var operations = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+                await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), confirmFinalLoginPathOverride);
+            }
+            else
+                await api.EnableAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            await ReloadConnectionAsync();
+            Snackbar.Add($"Connection {action}d.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task ArchiveAsync()
+    {
+        if (_connection is null || !_canArchive)
+            return;
+
+        if (await Dialogs.ShowMessageBoxAsync("Archive connection?", "Archiving removes this connection from login discovery but preserves its identity links. You can restore it later as disabled.", yesText: "Archive", cancelText: "Cancel") != true)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            await api.ArchiveAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            await ReloadConnectionAsync();
+            Snackbar.Add("Connection archived.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (_connection is null || !_canArchive)
+            return;
+
+        if (await Dialogs.ShowMessageBoxAsync("Restore connection?", "The restored connection will remain disabled until it is validated and explicitly enabled.", yesText: "Restore", cancelText: "Cancel") != true)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            await api.RestoreAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            await ReloadConnectionAsync();
+            Snackbar.Add("Connection restored as disabled.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task ValidateAsync()
+    {
+        if (_connection is null)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            _validation = await api.ValidateAsync(_connection.Id);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task RecoverConcurrencyAsync(ManagementApiException exception)
+    {
+        var reload = await Dialogs.ShowMessageBoxAsync("Connection changed elsewhere", "Another administrator changed this connection. Reload the current version? Your unsaved changes will be discarded.", yesText: "Reload", cancelText: "Cancel");
+        if (reload == true)
+        {
+            if (ConnectionConflictRecovery.TryGetCurrent(exception, out var current))
+            {
+                _connection = current;
+                _model = ToMutation(_connection);
+            }
+            else
+            {
+                await ReloadConnectionAsync();
+            }
+        }
+    }
+
+    private async Task ReloadConnectionAsync()
+    {
+        if (_connection is null)
+            return;
+        var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+        _connection = await api.GetAsync(_connection.Id);
+        _model = ToMutation(_connection);
+    }
+
+    private Task OnObservationRecordedAsync(ConnectionObservation observation)
+    {
+        if (_connection is not null)
+            _connection.LatestObservation = observation;
+        return Task.CompletedTask;
+    }
+
+    private static ConnectionMutation ToMutation(ConnectionDetail connection) => new()
+    {
+        Key = connection.Key,
+        Scope = connection.Scope,
+        AdapterType = connection.AdapterType,
+        DisplayName = connection.DisplayName,
+        IconId = connection.IconId,
+        Order = connection.Order,
+        IsDefault = connection.IsDefault,
+        AdapterSettingsVersion = connection.AdapterSettingsVersion,
+        AdapterSettings = new Dictionary<string, JsonElement>(connection.AdapterSettings, StringComparer.Ordinal),
+        UnlinkedPolicy = connection.UnlinkedPolicy,
+        PermissionGrantSources = connection.PermissionGrantSources
+            .Select(source => new PermissionGrantSourceSelection
+            {
+                Type = source.Type,
+                SettingsVersion = source.SettingsVersion,
+                Settings = new Dictionary<string, JsonElement>(source.Settings, StringComparer.Ordinal),
+                Order = source.Order
+            })
+            .ToList(),
+        ClaimProjection = new ClaimProjection
+        {
+            AllowedClaimTypes = connection.ClaimProjection.AllowedClaimTypes.ToArray(),
+            RedactedClaimTypes = connection.ClaimProjection.RedactedClaimTypes.ToArray(),
+            MaximumClaimCount = connection.ClaimProjection.MaximumClaimCount,
+            MaximumValueLength = connection.ClaimProjection.MaximumValueLength,
+            MaximumTotalBytes = connection.ClaimProjection.MaximumTotalBytes
+        },
+        UpstreamLogoutMode = connection.UpstreamLogoutMode
+    };
+
+    private static bool IsConcurrencyConflict(ApiException exception) => ConnectionConcurrency.IsConflict(exception.StatusCode);
+    private void Back() => Navigation.NavigateTo("security/external-authentication");
+}
