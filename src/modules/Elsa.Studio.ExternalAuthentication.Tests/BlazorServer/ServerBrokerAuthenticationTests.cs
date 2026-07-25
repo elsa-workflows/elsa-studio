@@ -6,8 +6,10 @@ using Elsa.Studio.ExternalAuthentication.BlazorServer.HttpMessageHandlers;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -20,6 +22,17 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.BlazorServer;
 
 public sealed class ServerBrokerAuthenticationTests
 {
+    [Fact]
+    public void ServerCoordinator_ExposesLocalLoginPostTargetThroughInterface()
+    {
+        IExternalAuthenticationLoginCoordinator coordinator = new ServerExternalAuthenticationLoginCoordinator(
+            new UnusedAnonymousBackendApiClientProvider(),
+            new ExternalAuthenticationClientOptions(),
+            new TestNavigationManager());
+
+        Assert.Equal("/authentication/external/local-login", coordinator.LocalLoginAction);
+    }
+
     [Fact]
     public void BrokerRegistration_UsesHttpOnlySecureCookieAndServerTicketStore()
     {
@@ -117,6 +130,18 @@ public sealed class ServerBrokerAuthenticationTests
         Assert.Equal(now.AddMinutes(30), properties.ExpiresUtc);
         Assert.Equal(now.AddMinutes(5).ToString("O"), properties.GetTokenValue("access_expires_at"));
         Assert.Equal("refresh", properties.GetTokenValue("refresh_token"));
+    }
+
+    private sealed class UnusedAnonymousBackendApiClientProvider : IAnonymousBackendApiClientProvider
+    {
+        public Uri Url => new("https://backend.example");
+        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class => throw new NotSupportedException();
+    }
+
+    private sealed class TestNavigationManager : NavigationManager
+    {
+        public TestNavigationManager() => Initialize("https://studio.example/", "https://studio.example/");
+        protected override void NavigateToCore(string uri, NavigationOptions options) => throw new NotSupportedException();
     }
 
     [Fact]

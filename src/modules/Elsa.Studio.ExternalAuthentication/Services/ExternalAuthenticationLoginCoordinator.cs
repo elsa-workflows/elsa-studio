@@ -25,6 +25,7 @@ public abstract class ExternalAuthenticationLoginCoordinator : IExternalAuthenti
 {
     private readonly IAnonymousBackendApiClientProvider _anonymousBackendApiClientProvider;
     protected ExternalAuthenticationClientOptions Options { get; }
+    public virtual string? LocalLoginAction => null;
     public string? SecurityWarning => Options.SecurityWarning;
 
     protected ExternalAuthenticationLoginCoordinator(

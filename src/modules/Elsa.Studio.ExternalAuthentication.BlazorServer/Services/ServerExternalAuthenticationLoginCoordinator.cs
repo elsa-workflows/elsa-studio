@@ -13,7 +13,7 @@ public sealed class ServerExternalAuthenticationLoginCoordinator(
     ExternalAuthenticationClientOptions options,
     NavigationManager navigationManager) : ExternalAuthenticationLoginCoordinator(anonymousBackendApiClientProvider, options)
 {
-    public string? LocalLoginAction => "/authentication/external/local-login";
+    public override string? LocalLoginAction => "/authentication/external/local-login";
 
     public override Task BeginExternalAsync(LoginMethodDescriptor method, string returnPath, CancellationToken cancellationToken = default)
     {
