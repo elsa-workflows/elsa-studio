@@ -52,14 +52,21 @@
 
     @if (_previewResult is not null)
     {
-        <PermissionPreview Result="_previewResult.ToPreviewSignInResult()" PermissionDescriptors="PermissionDescriptors" />
+        <MudAlert Severity="Severity.Success" Dense="true">
+            Preview completed for @_previewResult.Issuer (@_previewResult.MaskedSubject).
+            Elsa would apply the policy decision “@_previewResult.PolicyDecision”.
+            This preview did not create or link a user, credential, or session.
+            @foreach (var warning in _previewResult.Warnings)
+            {
+                <div>@warning</div>
+            }
+        </MudAlert>
     }
 </MudStack>
 
 @code {
     [Parameter, EditorRequired] public ConnectionDetail Connection { get; set; } = default!;
     [Parameter, EditorRequired] public AdapterDescriptor Adapter { get; set; } = default!;
-    [Parameter] public ICollection<PermissionDescriptor> PermissionDescriptors { get; set; } = [];
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public EventCallback<ConnectionObservation> ObservationRecorded { get; set; }
 

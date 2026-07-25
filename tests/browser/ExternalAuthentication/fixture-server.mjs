@@ -48,7 +48,7 @@ const renderLogin = () => {
         </form>
       </section>
       <section class="external-methods" aria-label="External identity providers">
-        <button type="button" data-external aria-label="Sign in with GitHub"><span aria-hidden="true">github</span><span>Sign in with GitHub</span></button>
+        <div><span role="status">Preferred</span><button type="button" data-external aria-label="Sign in with GitHub"><span aria-hidden="true">github</span><span>Sign in with GitHub</span></button></div>
         <button type="button" data-external aria-label="Sign in with Microsoft"><span aria-hidden="true">microsoft</span><span>Sign in with Microsoft</span></button>
         <button type="button" data-external aria-label="Sign in with Contoso"><span aria-hidden="true">identity provider</span><span>Sign in with Contoso</span></button>
       </section>
@@ -69,7 +69,7 @@ const renderLogin = () => {
 const renderConnections = () => {
   document.body.innerHTML = \`
     <main aria-labelledby="connections-heading">
-      <h1 id="connections-heading">Identity Provider Connections</h1>
+      <h1 id="connections-heading">SSO connections</h1>
       <p role="status">Configuration-owned connections are read-only. Database connections can be managed here.</p>
       <label for="connection-search">Search connections</label>
       <input id="connection-search" type="search">
@@ -78,8 +78,8 @@ const renderConnections = () => {
       <label><input type="checkbox"> Include archived</label>
       <button type="button">Create connection</button>
       <table aria-label="Identity provider connections">
-        <thead><tr><th>Connection</th><th>Scope</th><th>Source</th><th>Status</th><th>Latest test</th><th aria-label="Actions"></th></tr></thead>
-        <tbody><tr><td>Contoso<br><small>contoso · openid-connect</small></td><td>Host</td><td>Database</td><td>Enabled, valid</td><td>Not tested</td><td><button type="button">Manage Contoso</button></td></tr></tbody>
+        <thead><tr><th>Connection</th><th>Source</th><th>Status</th><th>Latest test</th><th aria-label="Actions"></th></tr></thead>
+        <tbody><tr><td>Contoso<br><small>contoso · openid-connect</small></td><td>Database</td><td>Enabled, valid</td><td>Not tested</td><td><button type="button">Manage Contoso</button></td></tr></tbody>
       </table>
     </main>\`;
 };
@@ -143,7 +143,7 @@ const restore = () => {
 };
 const path = location.pathname;
 if (path === '/login') renderLogin();
-else if (path === '/security/external-authentication') renderConnections();
+else if (path === '/settings/sso-connections' || path === '/security/external-authentication') renderConnections();
 else if (path === '/security/external-authentication/identity-links') renderIdentityLinks();
 else if (path === '/__external-authentication-fixture/sign-in') signIn(new URLSearchParams(location.search));
 else if (path === '/__external-authentication-fixture/reuse-rotated-refresh-token') {

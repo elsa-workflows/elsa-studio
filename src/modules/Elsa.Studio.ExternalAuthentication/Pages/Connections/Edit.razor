@@ -1,3 +1,5 @@
+@page "/settings/sso-connections/new"
+@page "/settings/sso-connections/{ConnectionId}"
 @page "/security/external-authentication/new"
 @page "/security/external-authentication/{ConnectionId}"
 @using System.Text.Json
@@ -14,7 +16,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudStack Spacing="3">
-        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">Identity Provider Connections</MudButton>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">SSO connections</MudButton>
         <PageHeading Text="@(IsNew ? "Create identity provider connection" : _connection?.DisplayName ?? "Identity Provider Connection")" />
         @if (_loading)
         {
@@ -41,23 +43,34 @@
             }
             else
             {
-                <ConnectionEditor Connection="_connection" Adapter="_adapter" Model="_model" ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)" CanConfigureUnsafeSettings="_canConfigureUnsafeSettings" Saved="SaveAsync" SecretBindingChanged="ReplaceBindingAsync" SecretBindingRemoved="RemoveBindingAsync" />
+                <ConnectionEditor Connection="_connection"
+                                  Adapter="_adapter"
+                                  Model="_model"
+                                  ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)"
+                                  CanConfigureUnsafeSettings="_canConfigureUnsafeSettings"
+                                  CanCreateOverride="@(_canCreate && _connection.CanCreateOverride)"
+                                  ManagedSecretResolvers="_managedSecretResolvers"
+                                  ManagedSecretResolverError="ManagedSecretResolverError"
+                                  Saved="SaveAsync"
+                                  SecretBindingChanged="ReplaceBindingAsync"
+                                  ManagedSecretChanged="ReplaceManagedSecretAsync"
+                                  SecretBindingRemoved="RemoveBindingAsync"
+                                  FullOverrideRequested="StartFullOverride" />
             }
             <MudDivider />
-            <PermissionMappingEditor @ref="_permissionMappings"
-                                     Sources="_model.PermissionGrantSources"
-                                     Descriptors="_permissionGrantSourceDescriptors"
-                                     PermissionDescriptors="_permissionDescriptors"
-                                     ActorPermissions="_actorPermissions"
-                                     CanDelegate="_canDelegatePermissions"
-                                     CanDelegateUnrestricted="_canDelegatePermissionsUnrestricted"
-                                     ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)" />
+            <ConnectionPolicyEditor Value="_model.UnlinkedPolicy"
+                                    ValueChanged="@(value => _model.UnlinkedPolicy = value)"
+                                    Descriptors="_policyDescriptors"
+                                    Matchers="_matcherDescriptors"
+                                    Roles="_roleOptions"
+                                    CanSelectRoles="_canReadRoles"
+                                    RoleOptionsError="RoleOptionsError"
+                                    ReadOnly="@(!_canManagePolicies || _connection.IsConfigurationOwned)" />
             @if (!IsNew)
             {
                 <MudDivider />
                 <ConnectionOperations Connection="_connection"
                                       Adapter="_adapter"
-                                      PermissionDescriptors="_permissionDescriptors"
                                       ObservationRecorded="OnObservationRecordedAsync" />
             }
             @if (!IsNew && !_connection.IsConfigurationOwned)
@@ -65,6 +78,13 @@
                 <MudDivider />
                 <MudText Typo="Typo.h6">Lifecycle</MudText>
                 <MudText Typo="Typo.caption">Lifecycle actions use the current revision and never alter the configured secret values.</MudText>
+                @if (_connection.OverridesConfigurationConnection)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        This complete Studio override keeps shadowing deployment configuration while disabled.
+                        Archiving it reveals the configuration-owned connection; restoring it resumes shadowing in a disabled state.
+                    </MudAlert>
+                }
                 <MudStack Row="true" Spacing="2" Class="mt-2">
                     @if (_connection.Archived)
                     {
@@ -102,19 +122,23 @@
     private ConnectionDetail? _connection;
     private AdapterDescriptor? _adapter;
     private ICollection<AdapterDescriptor> _adapters = [];
-    private ICollection<PermissionGrantSourceDescriptor> _permissionGrantSourceDescriptors = [];
-    private ICollection<PermissionDescriptor> _permissionDescriptors = [];
-    private IReadOnlySet<string> _actorPermissions = new HashSet<string>(StringComparer.Ordinal);
+    private ICollection<UnlinkedIdentityPolicyDescriptor> _policyDescriptors = [];
+    private ICollection<ExternalUserMatcherDescriptor> _matcherDescriptors = [];
+    private ICollection<IdentityRoleOption> _roleOptions = [];
+    private ICollection<ManagedSecretResolverDescriptor> _managedSecretResolvers = [];
+    private string? _roleOptionsError;
+    private string? _managedSecretResolverError;
     private ConnectionMutation? _model;
     private ConnectionValidationResult? _validation;
-    private PermissionMappingEditor? _permissionMappings;
     private bool _loading = true;
     private bool _canCreate;
     private bool _canUpdate;
     private bool _canArchive;
     private bool _canConfigureUnsafeSettings;
-    private bool _canDelegatePermissions;
-    private bool _canDelegatePermissionsUnrestricted;
+    private bool _canManagePolicies;
+    private bool _canReadRoles;
+    private string? RoleOptionsError => _roleOptionsError;
+    private string? ManagedSecretResolverError => _managedSecretResolverError;
 
     private bool IsNew => string.IsNullOrWhiteSpace(ConnectionId);
     private IDictionary<string, object> CustomEditorParameters => new Dictionary<string, object>
@@ -124,9 +148,14 @@
         [nameof(ConnectionEditor.Model)] = _model!,
         [nameof(ConnectionEditor.ReadOnly)] = IsNew ? !_canCreate : !_canUpdate || _connection?.IsConfigurationOwned == true,
         [nameof(ConnectionEditor.CanConfigureUnsafeSettings)] = _canConfigureUnsafeSettings,
+        [nameof(ConnectionEditor.CanCreateOverride)] = _canCreate && _connection?.CanCreateOverride == true,
+        [nameof(ConnectionEditor.ManagedSecretResolvers)] = _managedSecretResolvers,
+        [nameof(ConnectionEditor.ManagedSecretResolverError)] = ManagedSecretResolverError ?? string.Empty,
         [nameof(ConnectionEditor.Saved)] = EventCallback.Factory.Create<ConnectionMutation>(this, SaveAsync),
         [nameof(ConnectionEditor.SecretBindingChanged)] = EventCallback.Factory.Create<(string Field, SecretBindingMutation Binding)>(this, ReplaceBindingAsync),
-        [nameof(ConnectionEditor.SecretBindingRemoved)] = EventCallback.Factory.Create<string>(this, RemoveBindingAsync)
+        [nameof(ConnectionEditor.ManagedSecretChanged)] = EventCallback.Factory.Create<(string Field, ManagedSecretMutation Secret)>(this, ReplaceManagedSecretAsync),
+        [nameof(ConnectionEditor.SecretBindingRemoved)] = EventCallback.Factory.Create<string>(this, RemoveBindingAsync),
+        [nameof(ConnectionEditor.FullOverrideRequested)] = EventCallback.Factory.Create(this, StartFullOverride)
     };
 
     protected override async Task OnInitializedAsync()
@@ -135,17 +164,16 @@
         _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
         _canArchive = await Permissions.HasAsync(ExternalAuthenticationPermissions.Archive);
         _canConfigureUnsafeSettings = await Permissions.HasAsync(ExternalAuthenticationPermissions.UnsafeProviderTrust);
-        _canDelegatePermissions = await Permissions.HasAsync(ExternalAuthenticationPermissions.DelegatePermissions) &&
-            await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
-        _canDelegatePermissionsUnrestricted = await Permissions.HasAsync(ExternalAuthenticationPermissions.DelegatePermissionsUnrestricted);
-        _actorPermissions = await Permissions.ListAsync();
-
+        _canManagePolicies = await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
+        _canReadRoles = await Permissions.HasAsync(ExternalAuthenticationPermissions.RolesRead);
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             _adapters = await api.GetAdaptersAsync();
-            _permissionGrantSourceDescriptors = await api.GetPermissionSourcesAsync();
-            _permissionDescriptors = await api.GetPermissionsAsync();
+            _policyDescriptors = await api.GetPoliciesAsync();
+            _matcherDescriptors = await api.GetUserMatchersAsync();
+            await LoadManagedSecretResolversAsync(api);
+            await LoadRoleOptionsAsync();
             if (IsNew)
             {
                 _adapter = _adapters.FirstOrDefault();
@@ -173,18 +201,53 @@
         }
     }
 
+    private async Task LoadRoleOptionsAsync()
+    {
+        if (!_canReadRoles)
+        {
+            _roleOptionsError = "You need permission to read Elsa roles before default roles can be configured.";
+            return;
+        }
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IIdentityRolesApi>();
+            var response = await api.ListAsync();
+            _roleOptions = response.Roles
+                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.Id, StringComparer.Ordinal)
+                .ToArray();
+        }
+        catch
+        {
+            _roleOptionsError = "Elsa roles could not be loaded. Default-role settings are read-only.";
+        }
+    }
+
+    private async Task LoadManagedSecretResolversAsync(IExternalAuthenticationConnectionsApi api)
+    {
+        try
+        {
+            var response = await api.GetManagedSecretResolversAsync();
+            _managedSecretResolvers = response.Items
+                .Where(x => !string.IsNullOrWhiteSpace(x.Type))
+                .OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.Type, StringComparer.Ordinal)
+                .ToArray();
+            if (_managedSecretResolvers.Count == 0)
+                _managedSecretResolverError = "Managed secret storage is not available on this Elsa server.";
+        }
+        catch
+        {
+            _managedSecretResolverError = "Managed secret storage capability could not be loaded. Use an external binding or contact the server administrator.";
+        }
+    }
+
     private async Task SaveAsync(ConnectionMutation mutation)
     {
         if (_connection is null)
             return;
-        var permissionErrors = _permissionMappings is null ? [] : await _permissionMappings.ValidateAsync();
-        if (permissionErrors.Count > 0)
-        {
-            foreach (var error in permissionErrors)
-                Snackbar.Add(error, Severity.Error);
-            return;
-        }
-
+        mutation.Scope = new ConnectionScope { Kind = "host" };
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
@@ -195,7 +258,7 @@
 
                 var created = await api.CreateAsync(mutation);
                 Snackbar.Add("Connection draft created.", Severity.Success);
-                Navigation.NavigateTo($"security/external-authentication/{Uri.EscapeDataString(created.Id)}", replace: true);
+                Navigation.NavigateTo($"settings/sso-connections/{Uri.EscapeDataString(created.Id)}", replace: true);
                 return;
             }
 
@@ -260,12 +323,44 @@
         }
     }
 
+    private async Task ReplaceManagedSecretAsync((string Field, ManagedSecretMutation Secret) change)
+    {
+        if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+            _connection = await api.ReplaceManagedSecretAsync(
+                _connection.Id,
+                change.Field,
+                change.Secret,
+                ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            _model = ToMutation(_connection);
+            Snackbar.Add("Managed secret replaced. Its value was not returned to Studio.", Severity.Success);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch
+        {
+            Snackbar.Add("The managed secret could not be replaced. The value was not retained by Studio.", Severity.Error);
+        }
+    }
+
     private async Task RemoveBindingAsync(string field)
     {
         if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
             return;
 
-        var confirmed = await Dialogs.ShowMessageBoxAsync("Remove secret binding?", "The connection will no longer reference this secret. This does not delete the underlying secret.", yesText: "Remove", cancelText: "Cancel");
+        _connection.SecretBindings.TryGetValue(field, out var binding);
+        var message = SecretBindingRemovalPrompt.GetMessage(binding);
+        var confirmed = await Dialogs.ShowMessageBoxAsync("Remove secret binding?", message, yesText: "Remove", cancelText: "Cancel");
         if (confirmed != true)
             return;
 
@@ -299,25 +394,34 @@
         if (await Dialogs.ShowMessageBoxAsync($"{char.ToUpperInvariant(action[0])}{action[1..]} connection?", $"This changes the administrative login availability of {_connection.DisplayName}.", yesText: char.ToUpperInvariant(action[0]) + action[1..], cancelText: "Cancel") != true)
             return;
 
-        var confirmFinalLoginPathOverride = false;
-        if (_connection.EnabledIntent && _canConfigureUnsafeSettings)
-        {
-            confirmFinalLoginPathOverride = await Dialogs.ShowMessageBoxAsync(
-                "Confirm recovery override?",
-                "Only confirm this if you have verified an independent recovery path. If this is the final normal login method, this explicit privileged override permits the change; break-glass authentication remains outside normal login discovery.",
-                yesText: "Confirm recovery override",
-                cancelText: "Cancel") == true;
-            if (!confirmFinalLoginPathOverride)
-                return;
-        }
-
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             if (_connection.EnabledIntent)
             {
                 var operations = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
-                await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), confirmFinalLoginPathOverride);
+                try
+                {
+                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), false, false);
+                }
+                catch (ApiException exception) when (IsFinalLoginPathGuard(exception))
+                {
+                    if (!_canConfigureUnsafeSettings)
+                    {
+                        Snackbar.Add("This is the final normal login method. Configure another recovery path before disabling it.", Severity.Error);
+                        return;
+                    }
+
+                    var confirmed = await Dialogs.ShowMessageBoxAsync(
+                        "Confirm recovery override?",
+                        "Only confirm this if you have verified an independent recovery path. This privileged override disables the final normal login method; break-glass authentication remains outside normal login discovery.",
+                        yesText: "Confirm recovery override",
+                        cancelText: "Cancel") == true;
+                    if (!confirmed)
+                        return;
+
+                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), true, false);
+                }
             }
             else
                 await api.EnableAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision));
@@ -448,12 +552,13 @@
     private static ConnectionMutation ToMutation(ConnectionDetail connection) => new()
     {
         Key = connection.Key,
-        Scope = connection.Scope,
+        Scope = new ConnectionScope { Kind = "host" },
+        OverridesConfigurationConnection = connection.OverridesConfigurationConnection,
         AdapterType = connection.AdapterType,
         DisplayName = connection.DisplayName,
         IconId = connection.IconId,
         Order = connection.Order,
-        IsDefault = connection.IsDefault,
+        IsPreferred = connection.IsPreferred,
         AdapterSettingsVersion = connection.AdapterSettingsVersion,
         AdapterSettings = new Dictionary<string, JsonElement>(connection.AdapterSettings, StringComparer.Ordinal),
         UnlinkedPolicy = connection.UnlinkedPolicy,
@@ -478,5 +583,25 @@
     };
 
     private static bool IsConcurrencyConflict(ApiException exception) => ConnectionConcurrency.IsConflict(exception.StatusCode);
-    private void Back() => Navigation.NavigateTo("security/external-authentication");
+    private static bool IsFinalLoginPathGuard(ApiException exception) =>
+        ConnectionManagementError.IsFinalLoginPathGuard(exception.StatusCode, exception.Content);
+    private void StartFullOverride()
+    {
+        if (_connection is null || _model is null || !_connection.IsConfigurationOwned || !_connection.CanCreateOverride || !_canCreate)
+            return;
+
+        _model.OverridesConfigurationConnection = true;
+        _model.Scope = new ConnectionScope { Kind = "host" };
+        _connection = new ConnectionDetail
+        {
+            Source = "database",
+            AdapterType = _connection.AdapterType,
+            AdapterSettingsVersion = _connection.AdapterSettingsVersion,
+            Scope = new ConnectionScope { Kind = "host" }
+        };
+        ConnectionId = null;
+        Snackbar.Add("A complete database-owned copy is ready. Review every field and reconfigure its secrets after saving the draft.", Severity.Info);
+    }
+
+    private void Back() => Navigation.NavigateTo("settings/sso-connections");
 }

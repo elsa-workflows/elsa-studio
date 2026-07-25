@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const surfaces = [
   { path: '/login?choose=true', name: 'login chooser' },
-  { path: '/security/external-authentication', name: 'connection management' },
+  { path: '/settings/sso-connections', name: 'connection management' },
   { path: '/security/external-authentication/identity-links', name: 'identity-link management' }
 ];
 
@@ -44,7 +44,7 @@ test('login chooser exposes deterministic text-first screen-reader semantics', a
   const main = page.getByRole('main');
   await expect(main).toHaveAttribute('aria-labelledby', 'external-login-heading');
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toHaveId('external-login-heading');
-  await expect(page.getByRole('status')).toContainText('enabled identity provider');
+  await expect(page.getByRole('status').filter({ hasText: 'enabled identity provider' })).toBeVisible();
   await expect(page.getByLabel('User name')).toHaveAttribute('autocomplete', 'username');
   await expect(page.getByLabel('Password')).toHaveAttribute('autocomplete', 'current-password');
 
@@ -55,6 +55,14 @@ test('login chooser exposes deterministic text-first screen-reader semantics', a
   await expect(externalMethods.nth(0)).toContainText('Sign in with GitHub');
   await expect(externalMethods.nth(1)).toContainText('Sign in with Microsoft');
   await expect(externalMethods.nth(2)).toContainText('Sign in with Contoso');
+});
+
+test('preferred login method is visual guidance and never starts without a user action', async ({ page }) => {
+  await page.goto('/login');
+
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('status').filter({ hasText: 'Preferred' })).toBeVisible();
+  await expect(page).not.toHaveURL(/\/authorize/);
 });
 
 test('login chooser accepts only same-origin assets and preserves a text fallback', async ({ page }) => {
@@ -74,9 +82,9 @@ test('login chooser accepts only same-origin assets and preserves a text fallbac
 });
 
 test('management surfaces expose named landmarks, filters, tables, and row actions', async ({ page }) => {
-  await page.goto('/security/external-authentication');
+  await page.goto('/settings/sso-connections');
   await expect(page.getByRole('main')).toHaveAttribute('aria-labelledby', 'connections-heading');
-  await expect(page.getByRole('heading', { level: 1, name: 'Identity Provider Connections' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'SSO connections' })).toBeVisible();
   await expect(page.getByLabel('Search connections')).toBeVisible();
   await expect(page.getByLabel('Source')).toBeVisible();
   await expect(page.getByRole('table', { name: 'Identity provider connections' })).toBeVisible();

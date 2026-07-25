@@ -78,6 +78,8 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
 
         Assert.Equal("preview-handle", _operations.LastPreviewHandle);
         Assert.Contains("did not create or link a user", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("permission projection", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("projected claims", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -165,6 +167,6 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
                 }]
             });
         public Task RevokeSessionAsync(string sessionId, RevokeExternalAuthenticationSessionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DisableWithRecoveryOverrideAsync(string connectionId, string ifMatch, bool confirmFinalLoginPathOverride, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DisableWithRecoveryOverrideAsync(string connectionId, string ifMatch, bool confirmFinalLoginPathOverride, bool revokeActiveSessions = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }

@@ -18,9 +18,12 @@
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.OpenIdConnect.BlazorServer\Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.UI\Elsa.Studio.Authentication.ElsaIdentity.UI.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.UI\Elsa.Studio.Authentication.UI.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.ExternalAuthentication\Elsa.Studio.ExternalAuthentication.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.ExternalAuthentication.BlazorServer\Elsa.Studio.ExternalAuthentication.BlazorServer.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Settings\Elsa.Studio.Settings.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Security\Elsa.Studio.Security.csproj" />
 
         <ProjectReference Include="..\..\modules\Elsa.Studio.Alterations\Elsa.Studio.Alterations.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />

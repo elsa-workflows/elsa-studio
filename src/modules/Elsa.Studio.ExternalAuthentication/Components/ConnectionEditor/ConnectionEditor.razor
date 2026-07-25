@@ -7,25 +7,35 @@
         </MudAlert>
         @if (Connection.IsConfigurationOwned)
         {
-            <MudAlert Severity="Severity.Warning" Dense="true">This connection is configuration-owned and read-only in Studio.</MudAlert>
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                This connection is configuration-owned and read-only in Studio.
+                @if (CanCreateOverride)
+                {
+                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => FullOverrideRequested.InvokeAsync())">
+                        Create full Studio override
+                    </MudButton>
+                }
+                else
+                {
+                    <div>A Studio override is unavailable because deployment policy or your permissions do not allow it.</div>
+                }
+            </MudAlert>
         }
         @if (Connection.Shadowed)
         {
             <MudAlert Severity="Severity.Warning" Dense="true">This persisted record is shadowed by deployment configuration and is not effective.</MudAlert>
         }
         <MudTextField @bind-Value="Model.DisplayName" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
-        <MudTextField @bind-Value="Model.Key" Label="Connection key" Required="true" ReadOnly="@ReadOnly" HelperText="Stable scope-local key used by Elsa." />
-        <MudSelect T="string" @bind-Value="Model.Scope.Kind" Label="Scope" Disabled="@ReadOnly">
-            <MudSelectItem T="string" Value="@("host")">Host-wide</MudSelectItem>
-            <MudSelectItem T="string" Value="@("default")">Default tenant</MudSelectItem>
-            <MudSelectItem T="string" Value="@("tenant")">Tenant</MudSelectItem>
-        </MudSelect>
-        @if (string.Equals(Model.Scope.Kind, "tenant", StringComparison.OrdinalIgnoreCase))
+        <MudTextField @bind-Value="Model.Key" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
+        @if (!string.IsNullOrWhiteSpace(Connection.CallbackUri))
         {
-            <MudTextField @bind-Value="Model.Scope.TenantId" Label="Tenant ID" Required="true" ReadOnly="@ReadOnly" />
+            <MudTextField Value="@Connection.CallbackUri"
+                          Label="Provider callback URI"
+                          ReadOnly="true"
+                          HelperText="Derived by Elsa from deployment configuration. Register this exact URI with the identity provider." />
         }
         <MudNumericField @bind-Value="Model.Order" Label="Display order" ReadOnly="@ReadOnly" />
-        <MudCheckBox @bind-Value="Model.IsDefault" Label="Use as the automatic sign-in default for this scope" Disabled="@ReadOnly" />
+        <MudCheckBox @bind-Value="Model.IsPreferred" Label="Mark as the preferred sign-in method" Disabled="@ReadOnly" />
         <MudSelect T="string" @bind-Value="Model.UpstreamLogoutMode" Label="Upstream sign-out" Disabled="@ReadOnly">
             <MudSelectItem T="string" Value="@("disabled")">Disabled</MudSelectItem>
             <MudSelectItem T="string" Value="@("userChoice")">Let the user choose</MudSelectItem>
@@ -57,7 +67,16 @@
         <MudText Typo="Typo.caption">Secret values are never displayed or sent through this editor. Replace a binding by its resolver and non-secret reference.</MudText>
         @foreach (var field in Adapter.Fields.Where(field => field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
         {
-            <SecretBindingField Field="field" Binding="@(Connection.SecretBindings.GetValueOrDefault(field.Name))" ReadOnly="@ReadOnly" OnReplace="@((binding) => SecretBindingChanged.InvokeAsync((field.Name, binding)))" OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
+            <SecretBindingField Field="field"
+                                Binding="@(Connection.SecretBindings.GetValueOrDefault(field.Name))"
+                                ReadOnly="@ReadOnly"
+                                CanManage="@(!string.IsNullOrWhiteSpace(Connection.Id))"
+                                CanRemove="@(!Connection.EnabledIntent || !field.IsRequired)"
+                                ManagedSecretResolvers="ManagedSecretResolvers"
+                                ManagedSecretResolverError="ManagedSecretResolverError"
+                                OnReplace="@((binding) => SecretBindingChanged.InvokeAsync((field.Name, binding)))"
+                                OnManagedReplace="@((secret) => ManagedSecretChanged.InvokeAsync((field.Name, secret)))"
+                                OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
         }
 
         @if (!ReadOnly)
@@ -84,9 +103,14 @@
     [Parameter, EditorRequired] public ConnectionMutation Model { get; set; } = default!;
     [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public bool CanConfigureUnsafeSettings { get; set; }
+    [Parameter] public bool CanCreateOverride { get; set; }
+    [Parameter] public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } = [];
+    [Parameter] public string? ManagedSecretResolverError { get; set; }
     [Parameter] public EventCallback<ConnectionMutation> Saved { get; set; }
     [Parameter] public EventCallback<(string Field, SecretBindingMutation Binding)> SecretBindingChanged { get; set; }
+    [Parameter] public EventCallback<(string Field, ManagedSecretMutation Secret)> ManagedSecretChanged { get; set; }
     [Parameter] public EventCallback<string> SecretBindingRemoved { get; set; }
+    [Parameter] public EventCallback FullOverrideRequested { get; set; }
 
     private readonly List<string> _validationErrors = [];
     private bool HasActiveUnsafeSettings => Adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, Model.AdapterSettings));

@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
@@ -26,6 +27,8 @@ using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Security.Extensions;
+using Elsa.Studio.Settings.Extensions;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.Extensions;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.HttpMessageHandlers;
@@ -106,7 +109,11 @@ var localizationConfig = new LocalizationConfig
 
 services.AddCore();
 services.AddShell();
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    services.AddAuthenticationUI();
 services.AddRemoteBackend(backendApiConfig);
+services.AddSettingsModule();
+services.AddSecurityModule();
 
 // Management UI remains feature-gated by the Elsa backend; broker login is activated only by the provider above.
 services.AddExternalAuthenticationModule(backendApiConfig);

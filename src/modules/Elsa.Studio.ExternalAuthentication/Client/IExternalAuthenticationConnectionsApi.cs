@@ -20,6 +20,15 @@ public interface IExternalAuthenticationConnectionsApi
     [Get("/external-authentication/descriptors/permission-sources")]
     Task<ICollection<PermissionGrantSourceDescriptor>> GetPermissionSourcesAsync(CancellationToken cancellationToken = default);
 
+    [Get("/external-authentication/descriptors/policies")]
+    Task<ICollection<UnlinkedIdentityPolicyDescriptor>> GetPoliciesAsync(CancellationToken cancellationToken = default);
+
+    [Get("/external-authentication/descriptors/user-matchers")]
+    Task<ICollection<ExternalUserMatcherDescriptor>> GetUserMatchersAsync(CancellationToken cancellationToken = default);
+
+    [Get("/external-authentication/descriptors/managed-secret-resolvers")]
+    Task<ManagedSecretResolverCatalog> GetManagedSecretResolversAsync(CancellationToken cancellationToken = default);
+
     [Get("/external-authentication/descriptors/permissions")]
     Task<ICollection<PermissionDescriptor>> GetPermissionsAsync(CancellationToken cancellationToken = default);
 
@@ -46,6 +55,9 @@ public interface IExternalAuthenticationConnectionsApi
 
     [Put("/external-authentication/connections/{connectionId}/secret-bindings/{fieldName}")]
     Task ReplaceSecretBindingAsync(string connectionId, string fieldName, [Body] SecretBindingMutation request, [Header("If-Match")] string ifMatch, CancellationToken cancellationToken = default);
+
+    [Put("/external-authentication/connections/{connectionId}/secret-bindings/{fieldName}/managed")]
+    Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, [Body] ManagedSecretMutation request, [Header("If-Match")] string ifMatch, CancellationToken cancellationToken = default);
 
     [Delete("/external-authentication/connections/{connectionId}/secret-bindings/{fieldName}")]
     Task RemoveSecretBindingAsync(string connectionId, string fieldName, [Header("If-Match")] string ifMatch, CancellationToken cancellationToken = default);

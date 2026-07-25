@@ -1,6 +1,7 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Models;
+using Elsa.Studio.Authentication.Abstractions.Models;
 
 namespace Elsa.Studio.ExternalAuthentication.Services;
 
@@ -12,7 +13,7 @@ public interface IExternalAuthenticationLoginCoordinator
     /// <summary>Optional deployment warning shown on the public login surface.</summary>
     string? SecurityWarning => null;
     ValueTask<LoginMethodsResponse> DiscoverAsync(CancellationToken cancellationToken = default);
-    Task BeginExternalAsync(LoginMethod method, string returnPath, CancellationToken cancellationToken = default);
+    Task BeginExternalAsync(LoginMethodDescriptor method, string returnPath, CancellationToken cancellationToken = default);
     Task BeginLocalAsync(string username, string password, string returnPath, CancellationToken cancellationToken = default);
 }
 
@@ -38,9 +39,9 @@ public abstract class ExternalAuthenticationLoginCoordinator : IExternalAuthenti
     {
         var api = await _anonymousBackendApiClientProvider.GetApiAsync<ILoginMethodsApi>(cancellationToken);
         var response = await api.ListAsync(Options.ClientId, cancellationToken);
-        return new(LoginMethodChooserState.Order(response.Methods), response.AutomaticMethodKey);
+        return new(LoginMethodChooserState.Order(response.Methods), response.PreferredMethodKey);
     }
 
-    public abstract Task BeginExternalAsync(LoginMethod method, string returnPath, CancellationToken cancellationToken = default);
+    public abstract Task BeginExternalAsync(LoginMethodDescriptor method, string returnPath, CancellationToken cancellationToken = default);
     public abstract Task BeginLocalAsync(string username, string password, string returnPath, CancellationToken cancellationToken = default);
 }

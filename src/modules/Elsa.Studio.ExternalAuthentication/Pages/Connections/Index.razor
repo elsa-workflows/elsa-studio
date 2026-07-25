@@ -1,13 +1,16 @@
+@page "/settings/sso-connections"
 @page "/security/external-authentication"
+@using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
 @inject NavigationManager Navigation
+@inject IDialogService Dialogs
 @inject ISnackbar Snackbar
 
-<PageTitle>Identity Provider Connections</PageTitle>
+<PageTitle>SSO connections</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Identity Provider Connections" />
+    <PageHeading Text="SSO connections" />
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
         Configuration-owned connections are shown for diagnosis but can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.
     </MudAlert>
@@ -20,6 +23,7 @@
                 <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
             </MudSelect>
             <MudCheckBox @bind-Value="_includeArchived" Label="Include archived" />
+            <MudCheckBox @bind-Value="_revokeSessionsWhenDisabling" Label="Revoke active sessions when disabling" />
             <MudSpacer />
             @if (_canCreate)
             {
@@ -40,7 +44,6 @@
             <MudTable T="ConnectionSummary" Items="_items" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Md">
                 <HeaderContent>
                     <MudTh>Connection</MudTh>
-                    <MudTh>Scope</MudTh>
                     <MudTh>Source</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh>Latest test</MudTh>
@@ -50,17 +53,20 @@
                     <MudTd DataLabel="Connection">
                         <MudText Typo="Typo.body2">@context.DisplayName</MudText>
                         <MudText Typo="Typo.caption">@context.Key · @context.AdapterType</MudText>
-                        @if (context.IsDefault)
+                        @if (context.IsPreferred)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Primary">Default</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary">Preferred</MudChip>
                         }
                     </MudTd>
-                    <MudTd DataLabel="Scope">@context.Scope.DisplayName</MudTd>
                     <MudTd DataLabel="Source">
                         <MudChip T="string" Size="Size.Small" Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">@context.Source</MudChip>
                         @if (context.Shadowed)
                         {
                             <MudChip T="string" Size="Size.Small" Color="Color.Warning">Shadowed</MudChip>
+                        }
+                        @if (context.OverridesConfigurationConnection)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Studio override</MudChip>
                         }
                     </MudTd>
                     <MudTd DataLabel="Status">
@@ -79,6 +85,12 @@
                         }
                     </MudTd>
                     <MudTd>
+                        @if (ConnectionActionAvailability.CanEnableOrDisable(context, _canUpdate))
+                        {
+                            <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => ToggleEnabledAsync(context))">
+                                @(context.EnabledIntent ? "Disable" : "Enable")
+                            </MudButton>
+                        }
                         <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => OpenAsync(context))">@(context.IsConfigurationOwned ? "View" : "Manage")</MudButton>
                     </MudTd>
                 </RowTemplate>
@@ -98,14 +110,17 @@
     private string? _nextCursor;
     private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
     private bool _includeArchived;
+    private bool _revokeSessionsWhenDisabling;
     private bool _loading = true;
     private bool _canRead;
     private bool _canCreate;
+    private bool _canUpdate;
 
     protected override async Task OnInitializedAsync()
     {
         _canRead = await Permissions.HasAsync(ExternalAuthenticationPermissions.Read);
         _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
+        _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
         await ReloadAsync();
     }
 
@@ -150,8 +165,49 @@
         }
     }
 
-    private void CreateAsync() => Navigation.NavigateTo("security/external-authentication/new");
-    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"security/external-authentication/{Uri.EscapeDataString(connection.Id)}");
+    private void CreateAsync() => Navigation.NavigateTo("settings/sso-connections/new");
+    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"settings/sso-connections/{Uri.EscapeDataString(connection.Id)}");
+    private async Task ToggleEnabledAsync(ConnectionSummary connection)
+    {
+        if (!ConnectionActionAvailability.CanEnableOrDisable(connection, _canUpdate))
+            return;
+
+        var action = connection.EnabledIntent ? "Disable" : "Enable";
+        var details = connection.EnabledIntent && _revokeSessionsWhenDisabling
+            ? " Existing external authentication sessions will also be revoked."
+            : string.Empty;
+        if (await Dialogs.ShowMessageBoxAsync(
+                $"{action} connection?",
+                $"{action} {connection.DisplayName}.{details}",
+                yesText: action,
+                cancelText: "Cancel") != true)
+            return;
+
+        try
+        {
+            if (connection.EnabledIntent)
+            {
+                var operations = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+                await operations.DisableWithRecoveryOverrideAsync(
+                    connection.Id,
+                    ConnectionConcurrency.ToIfMatch(connection.Revision),
+                    false,
+                    _revokeSessionsWhenDisabling);
+            }
+            else
+            {
+                var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+                await api.EnableAsync(connection.Id, ConnectionConcurrency.ToIfMatch(connection.Revision));
+            }
+
+            Snackbar.Add($"Connection {action.ToLowerInvariant()}d.", Severity.Success);
+            await ReloadAsync();
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
     private static Color EnabledColor(ConnectionSummary connection) => connection.Archived ? Color.Default : connection.EffectivelyEnabled ? Color.Success : connection.EnabledIntent ? Color.Warning : Color.Default;
     private static Color ValidityColor(string validity) => string.Equals(validity, "valid", StringComparison.OrdinalIgnoreCase) ? Color.Success : string.Equals(validity, "invalid", StringComparison.OrdinalIgnoreCase) ? Color.Error : Color.Default;
 }

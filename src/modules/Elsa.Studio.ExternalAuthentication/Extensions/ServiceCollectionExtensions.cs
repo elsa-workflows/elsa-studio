@@ -3,6 +3,8 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Menu;
 using Elsa.Studio.ExternalAuthentication.Services;
+using Elsa.Studio.Security.Contracts;
+using Elsa.Studio.Settings.Contracts;
 using Elsa.Studio.Models;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,10 +16,12 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IMenuProvider, ExternalAuthenticationMenu>()
+            .AddScoped<ISettingsSectionProvider, ExternalAuthenticationSettingsSectionProvider>()
+            .AddScoped<ISecurityMenuContributor, ExternalAuthenticationSecurityMenuContributor>()
             .AddScoped<IExternalAuthenticationPermissionService, ExternalAuthenticationPermissionService>()
             .AddSingleton<ICustomConnectionEditorRegistry, CustomConnectionEditorRegistry>()
             .AddRemoteApi<IExternalAuthenticationConnectionsApi>(backendApiConfig)
+            .AddRemoteApi<IIdentityRolesApi>(backendApiConfig)
             .AddRemoteApi<IExternalIdentityLinksApi>(backendApiConfig)
             .AddRemoteApi<IExternalAuthenticationOperationsApi>(backendApiConfig)
             .AddRemoteApi<ILoginMethodsApi>(backendApiConfig)

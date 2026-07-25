@@ -1,14 +1,28 @@
 using Bunit;
+using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
+using Elsa.Studio.Authentication.UI.Services;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor.Services;
 using Xunit;
-using LoginPage = Elsa.Studio.ExternalAuthentication.Pages.Login;
+using LoginPage = Elsa.Studio.Authentication.UI.Pages.Login;
 
 namespace Elsa.Studio.ExternalAuthentication.Tests.Login;
 
-public sealed class LoginChooserTests : BunitContext
+public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
 {
+    public LoginChooserTests()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddMudServices();
+        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
+    }
+
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
+
     [Fact]
     public void Ordering_IsStableAcrossLocalAndExternalMethods()
     {
@@ -23,21 +37,29 @@ public sealed class LoginChooserTests : BunitContext
     }
 
     [Fact]
-    public void AutomaticMethod_RequiresAnExternalUnattemptedDefaultAndSupportsChooserEscape()
+    public void PreferredMethod_IsVisualOnlyAndNeverStartsAutomatically()
     {
-        var response = new LoginMethodsResponse([Method("contoso", "Contoso", "external", 0, isDefault: true)], "contoso");
+        var coordinator = Register(new(
+            [Method("contoso", "Contoso", "external", 0, isDefault: true)],
+            "contoso"));
 
-        Assert.Equal("contoso", LoginMethodChooserState.GetAutomaticMethod(response, false, new HashSet<string>())?.Key);
-        Assert.Null(LoginMethodChooserState.GetAutomaticMethod(response, true, new HashSet<string>()));
-        Assert.Null(LoginMethodChooserState.GetAutomaticMethod(response, false, new HashSet<string> { "contoso" }));
+        var cut = Render<LoginPage>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Preferred", cut.Markup);
+            Assert.Contains("Sign in with Contoso", cut.Markup);
+        });
+        Assert.Equal(0, coordinator.ExternalBegins);
     }
 
     [Fact]
-    public void TrustedIcons_FallBackToTextOnlyPresentation()
+    public void TrustedIconRegistry_UsesOnlyRegistrationsAndFallsBackSafely()
     {
-        Assert.True(LoginMethodChooserState.IsTrustedIcon("github"));
-        Assert.False(LoginMethodChooserState.IsTrustedIcon("https://untrusted.example/icon.svg"));
-        Assert.Equal("identity provider", LoginMethodChooserState.GetAccessibleIconLabel("https://untrusted.example/icon.svg"));
+        var registry = new LoginMethodIconRegistry([new BuiltInLoginMethodIconProvider()]);
+
+        Assert.Equal("GitHub", registry.Resolve("github").AccessibleName);
+        Assert.Equal("Identity provider", registry.Resolve("https://untrusted.example/icon.svg").AccessibleName);
     }
 
     [Fact]
@@ -51,8 +73,9 @@ public sealed class LoginChooserTests : BunitContext
     [Fact]
     public void Chooser_RendersTextFirstLocalAndExternalMethods()
     {
-        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(new FakeCoordinator(new(
-            [Method("local", "Elsa account", "local", 0), Method("github", "GitHub", "external", 1)], null)));
+        Register(new(
+            [Method("local", "Elsa account", "local", 0), Method("github", "GitHub", "external", 1)],
+            null));
 
         var cut = Render<LoginPage>();
 
@@ -65,52 +88,24 @@ public sealed class LoginChooserTests : BunitContext
     }
 
     [Fact]
-    public void Chooser_UsesNamedLandmarksAssociatedFieldsAndDecorativeTrustedIconFallbacks()
+    public void MethodFailure_ReturnsToChooserWithSafeError()
     {
-        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(new FakeCoordinator(new(
-        [
-            Method("local", "Elsa account", "local", 0),
-            Method("github", "GitHub", "external", 1),
-            Method("contoso", "Contoso", "external", 2, iconId: "https://untrusted.example/icon.svg")
-        ], null)));
+        Register(
+            new([Method("contoso", "Contoso", "external", 0)], null),
+            throwExternal: true);
 
         var cut = Render<LoginPage>();
+        cut.WaitForAssertion(() => Assert.Contains("Sign in with Contoso", cut.Markup));
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Sign in with Contoso", StringComparison.Ordinal)).Click();
 
         cut.WaitForAssertion(() =>
-        {
-            var main = cut.Find("main");
-            Assert.Equal("external-login-heading", main.GetAttribute("aria-labelledby"));
-            Assert.Equal("Sign in", cut.Find("#external-login-heading").TextContent.Trim());
-            Assert.NotNull(cut.Find("label[for=\"external-authentication-username\"]"));
-            Assert.Equal("username", cut.Find("#external-authentication-username").GetAttribute("autocomplete"));
-            Assert.NotNull(cut.Find("label[for=\"external-authentication-password\"]"));
-            Assert.Equal("current-password", cut.Find("#external-authentication-password").GetAttribute("autocomplete"));
-
-            var externalButtons = cut.FindAll("button[aria-label^=\"Sign in with\"]");
-            Assert.Equal(["Sign in with GitHub", "Sign in with Contoso"], externalButtons.Select(button => button.GetAttribute("aria-label")));
-            Assert.All(externalButtons, button => Assert.Equal("button", button.GetAttribute("type")));
-            Assert.All(externalButtons, button => Assert.Equal("true", button.QuerySelector("[aria-hidden]")?.GetAttribute("aria-hidden")));
-            Assert.Contains("identity provider", externalButtons[1].TextContent);
-            Assert.DoesNotContain("https://untrusted.example", cut.Markup, StringComparison.Ordinal);
-        });
-    }
-
-    [Fact]
-    public void AutomaticFailure_ReturnsToChooserWithSafeError()
-    {
-        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(new FakeCoordinator(
-            new([Method("contoso", "Contoso", "external", 0, isDefault: true)], "contoso"), throwExternal: true));
-
-        var cut = Render<LoginPage>();
-
-        cut.WaitForAssertion(() => Assert.Contains("selected sign-in method is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase));
-        Assert.Contains("Choose another sign-in method", cut.Markup);
+            Assert.Contains("selected sign-in method is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
     public void NoMethods_ShowsSafeUnavailableState()
     {
-        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(new FakeCoordinator(new([], null)));
+        Register(new([], null));
 
         var cut = Render<LoginPage>();
 
@@ -120,9 +115,9 @@ public sealed class LoginChooserTests : BunitContext
     [Fact]
     public void SecurityWarning_IsVisibleWhenConfigured()
     {
-        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(new FakeCoordinator(
+        Register(
             new([Method("contoso", "Contoso", "external", 0)], null),
-            securityWarning: "Credentials are stored in this browser."));
+            securityWarning: "Credentials are stored in this browser.");
 
         var cut = Render<LoginPage>();
 
@@ -133,14 +128,77 @@ public sealed class LoginChooserTests : BunitContext
         });
     }
 
-    private static LoginMethod Method(string key, string name, string kind, int order, bool isDefault = false, string iconId = "github") =>
+    [Fact]
+    public void Chooser_UsesNamedLandmarkAndTrustedFallback()
+    {
+        Register(new(
+        [
+            Method("contoso", "Contoso", "external", 2, iconId: "https://untrusted.example/icon.svg")
+        ], null));
+
+        var cut = Render<LoginPage>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("elsa-login-heading", cut.Find("main").GetAttribute("aria-labelledby"));
+            Assert.Contains("Sign in with Contoso", cut.Markup);
+            Assert.DoesNotContain("https://untrusted.example", cut.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    private FakeCoordinator Register(
+        LoginMethodsResponse response,
+        bool throwExternal = false,
+        string? securityWarning = null)
+    {
+        var coordinator = new FakeCoordinator(response, throwExternal, securityWarning);
+        Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(coordinator);
+        Services.AddScoped<ILoginMethodCatalog, ExternalAuthenticationLoginMethodCatalog>();
+        Services.AddSingleton<ILoginMethodComponentRegistry>(
+            new LoginMethodComponentRegistry(
+            [
+                new ExternalLoginMethodComponentProvider(),
+                new BrokerLocalLoginMethodComponentProvider()
+            ]));
+        Services.AddSingleton<ILoginMethodIconRegistry>(
+            new LoginMethodIconRegistry([new BuiltInLoginMethodIconProvider()]));
+        return coordinator;
+    }
+
+    private static LoginMethodDescriptor Method(
+        string key,
+        string name,
+        string kind,
+        int order,
+        bool isDefault = false,
+        string iconId = "github") =>
         new(key, key, kind, name, iconId, order, isDefault, $"/external-authentication/authorize/{key}");
 
-    private sealed class FakeCoordinator(LoginMethodsResponse response, bool throwExternal = false, string? securityWarning = null) : IExternalAuthenticationLoginCoordinator
+    private sealed class FakeCoordinator(
+        LoginMethodsResponse response,
+        bool throwExternal = false,
+        string? securityWarning = null) : IExternalAuthenticationLoginCoordinator
     {
+        public int ExternalBegins { get; private set; }
         public string? SecurityWarning => securityWarning;
-        public ValueTask<LoginMethodsResponse> DiscoverAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(response);
-        public Task BeginExternalAsync(LoginMethod method, string returnPath, CancellationToken cancellationToken = default) => throwExternal ? Task.FromException(new InvalidOperationException()) : Task.CompletedTask;
-        public Task BeginLocalAsync(string username, string password, string returnPath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public ValueTask<LoginMethodsResponse> DiscoverAsync(CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(response);
+
+        public Task BeginExternalAsync(
+            LoginMethodDescriptor method,
+            string returnPath,
+            CancellationToken cancellationToken = default)
+        {
+            ExternalBegins++;
+            return throwExternal ? Task.FromException(new InvalidOperationException()) : Task.CompletedTask;
+        }
+
+        public Task BeginLocalAsync(
+            string username,
+            string password,
+            string returnPath,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
     }
 }

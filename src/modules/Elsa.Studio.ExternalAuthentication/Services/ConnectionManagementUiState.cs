@@ -65,3 +65,18 @@ public static class ConnectionConflictRecovery
         return exception.IsConcurrencyConflict && exception.Current is not null;
     }
 }
+
+public static class SecretBindingRemovalPrompt
+{
+    public static string GetMessage(SecretBindingState? binding) =>
+        string.Equals(binding?.Ownership, "managed", StringComparison.OrdinalIgnoreCase)
+            ? "The managed secret value and its connection binding will be deleted. This cannot be undone."
+            : "The external resolver reference will be removed from this connection. The external secret itself is not deleted.";
+}
+
+public static class ConnectionManagementError
+{
+    public static bool IsFinalLoginPathGuard(System.Net.HttpStatusCode statusCode, string? content) =>
+        statusCode == System.Net.HttpStatusCode.Conflict &&
+        content?.Contains("final_login_path_guard", StringComparison.Ordinal) == true;
+}

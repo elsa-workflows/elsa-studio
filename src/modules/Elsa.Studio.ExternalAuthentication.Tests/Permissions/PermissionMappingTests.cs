@@ -18,8 +18,8 @@ public sealed class PermissionMappingTests : BunitContext, IAsyncLifetime
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton(TimeProvider.System);
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true).SetVoidResult();
+        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
         JSInterop.Setup<int>("mudpopoverHelper.countProviders").SetResult(1);
         Render<MudPopoverProvider>();
     }

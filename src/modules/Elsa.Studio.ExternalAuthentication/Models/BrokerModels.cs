@@ -1,17 +1,8 @@
+using Elsa.Studio.Authentication.Abstractions.Models;
+
 namespace Elsa.Studio.ExternalAuthentication.Models;
 
-/// <summary>Safe, anonymous presentation data for one Elsa login method.</summary>
-public sealed record LoginMethod(
-    string Id,
-    string Key,
-    string Kind,
-    string DisplayName,
-    string? IconId,
-    int Order,
-    bool IsDefault,
-    string InitiationUri);
-
-public sealed record LoginMethodsResponse(IReadOnlyCollection<LoginMethod> Methods, string? AutomaticMethodKey);
+public sealed record LoginMethodsResponse(IReadOnlyCollection<LoginMethodDescriptor> Methods, string? PreferredMethodKey);
 
 /// <summary>All fields required by an Elsa broker authorization request.</summary>
 public sealed record BrokerAuthorizationRequest(
@@ -66,7 +57,6 @@ public sealed class ExternalAuthenticationClientOptions
     public string CallbackPath { get; set; } = "/authentication/external/callback";
     public string LogoutCallbackPath { get; set; } = "/authentication/external/logout-callback";
     public string? ClientSecret { get; set; }
-    public bool AllowAutomaticRedirect { get; set; } = true;
     public string? SecurityWarning { get; set; }
 }
 

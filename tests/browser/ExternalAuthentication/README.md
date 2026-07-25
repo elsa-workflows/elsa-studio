@@ -15,4 +15,4 @@ npx playwright install
 npm test
 ```
 
-The coverage verifies S256 PKCE and exact origin, no token/secret URL leakage, memory/session/durable storage behavior and warnings, rotating refresh/reuse revocation, callback replay, and local/upstream logout. It also runs axe against the login and management surfaces and checks keyboard-only operation, visible focus, screen-reader landmarks and labels, deterministic text-first login methods, named management actions, and same-origin presentation assets with a text fallback.
+The coverage verifies S256 PKCE and exact origin, no token/secret URL leakage, memory/session/durable storage behavior and warnings, rotating refresh/reuse revocation, callback replay, and local/upstream logout. It also runs axe against `/login`, `/settings/sso-connections`, and the Security management surfaces; checks keyboard-only operation, visible focus, screen-reader landmarks and labels, deterministic text-first login methods, named management actions, and same-origin presentation assets with a text fallback; and proves a preferred method never starts without user input.

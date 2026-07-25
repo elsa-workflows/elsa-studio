@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.Models;
@@ -31,7 +32,7 @@ public sealed class ExternalAuthenticationWasmLoginCoordinator : ExternalAuthent
     }
 
     /// <inheritdoc />
-    public override async Task BeginExternalAsync(LoginMethod method, string returnPath, CancellationToken cancellationToken = default)
+    public override async Task BeginExternalAsync(LoginMethodDescriptor method, string returnPath, CancellationToken cancellationToken = default)
     {
         var (transaction, challenge) = await pkceService.CreateAsync(returnPath, cancellationToken);
         var initiationUri = GetTrustedBrokerUri(method.InitiationUri);

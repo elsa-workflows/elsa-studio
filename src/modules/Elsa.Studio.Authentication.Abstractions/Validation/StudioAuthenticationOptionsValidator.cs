@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace Elsa.Studio.Authentication.Abstractions.Validation;
 
 /// <summary>
-/// Rejects ambiguous or incomplete direct-versus-broker authentication registrations.
+/// Rejects ambiguous or incomplete authentication registrations.
 /// </summary>
 public sealed class StudioAuthenticationOptionsValidator(
     IEnumerable<StudioAuthenticationProviderRegistration> registrations) : IValidateOptions<StudioAuthenticationOptions>
@@ -14,25 +14,23 @@ public sealed class StudioAuthenticationOptionsValidator(
     {
         var activeRegistrations = registrations
             .Select(x => x.Provider)
-            .Where(IsOpenIdConnectMode)
             .Distinct()
             .ToArray();
 
         if (activeRegistrations.Length > 1)
         {
             return ValidateOptionsResult.Fail(
-                "Direct OpenID Connect and Brokered External Authentication handlers are both registered. " +
-                "Register only the provider selected by Authentication:Provider.");
+                $"Conflicting Elsa Studio authentication modes are registered: {string.Join(", ", activeRegistrations)}. " +
+                "Register exactly one of Elsa Identity, deprecated Elsa.Studio.Login, direct OpenID Connect, or Brokered External Authentication.");
         }
 
-        if (IsOpenIdConnectMode(options.Provider) &&
-            (activeRegistrations.Length == 0 || activeRegistrations[0] != options.Provider))
+        if (activeRegistrations.Length == 0)
         {
             return ValidateOptionsResult.Fail(
-                $"Authentication:Provider selects '{options.Provider}', but its handler is not the sole active OpenID Connect authentication registration.");
+                $"Authentication:Provider selects '{options.Provider}', but no matching authentication integration is registered.");
         }
 
-        if (!IsOpenIdConnectMode(options.Provider) && activeRegistrations.Length > 0)
+        if (activeRegistrations[0] != options.Provider)
         {
             return ValidateOptionsResult.Fail(
                 $"Authentication:Provider selects '{options.Provider}', but '{activeRegistrations[0]}' handlers are also registered.");
@@ -40,7 +38,4 @@ public sealed class StudioAuthenticationOptionsValidator(
 
         return ValidateOptionsResult.Success;
     }
-
-    private static bool IsOpenIdConnectMode(StudioAuthenticationProvider provider) =>
-        provider is StudioAuthenticationProvider.OpenIdConnect or StudioAuthenticationProvider.ExternalAuthentication;
 }

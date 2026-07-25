@@ -1,5 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
+using Elsa.Studio.Security.Contracts;
 using MudBlazor;
 
 namespace Elsa.Studio.Security.Menu;
@@ -7,37 +8,34 @@ namespace Elsa.Studio.Security.Menu;
 /// <summary>
 /// Provides menu items for the security module, including users and roles management.
 /// </summary>
-public class SecurityMenu : IMenuProvider
+public class SecurityMenu(IEnumerable<ISecurityMenuContributor> contributors) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
-        var menuItems = new List<MenuItem>
-        {
+        var children = new List<MenuItem>();
+        foreach (var contributor in contributors)
+            children.AddRange(await contributor.GetMenuItemsAsync(cancellationToken));
+
+        children = children
+            .OrderBy(x => x.Order)
+            .ThenBy(x => x.Text, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(x => x.Href, StringComparer.Ordinal)
+            .ToList();
+        if (children.Count == 0)
+            return [];
+
+        return
+        [
             new()
             {
                 Icon = Icons.Material.Filled.Security,
-                Href = "security/users",
+                Href = children[0].Href,
                 Text = "Security",
                 GroupName = MenuItemGroups.Settings.Name,
-                SubMenuItems =
-                {
-                    new MenuItem
-                    {
-                        Text = "Users",
-                        Href = "security/users",
-                        Icon = Icons.Material.Filled.Person
-                    },
-                    new MenuItem
-                    {
-                        Text = "Roles",
-                        Href = "security/roles",
-                        Icon = Icons.Material.Filled.PeopleOutline
-                    }
-                }
+                Order = 950,
+                SubMenuItems = children
             }
-        };
-
-        return new ValueTask<IEnumerable<MenuItem>>(menuItems);
+        ];
     }
 }

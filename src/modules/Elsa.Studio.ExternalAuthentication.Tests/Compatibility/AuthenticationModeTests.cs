@@ -30,10 +30,10 @@ public class AuthenticationModeTests
     [Theory]
     [InlineData(StudioAuthenticationProvider.ElsaIdentity)]
     [InlineData(StudioAuthenticationProvider.ElsaLogin)]
-    public void LocalOnlyModesRemainValidWithoutOpenIdConnectHandlers(
+    public void LocalOnlyModesRemainValidWhenTheirOwnIntegrationIsRegistered(
         StudioAuthenticationProvider provider)
     {
-        var result = Validate(provider);
+        var result = Validate(provider, provider);
 
         Assert.True(result.Succeeded);
     }
@@ -49,7 +49,21 @@ public class AuthenticationModeTests
         Assert.False(result.Succeeded);
         Assert.Contains(
             result.Failures!,
-            failure => failure.Contains("both registered", StringComparison.Ordinal));
+            failure => failure.Contains("Conflicting", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DeprecatedLoginAndBrokerShellFailStartupWhenRegisteredTogether()
+    {
+        var result = Validate(
+            StudioAuthenticationProvider.ExternalAuthentication,
+            StudioAuthenticationProvider.ElsaLogin,
+            StudioAuthenticationProvider.ExternalAuthentication);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Failures!, failure =>
+            failure.Contains("ElsaLogin", StringComparison.Ordinal) &&
+            failure.Contains("ExternalAuthentication", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -62,7 +76,8 @@ public class AuthenticationModeTests
         Assert.False(result.Succeeded);
         Assert.Contains(
             result.Failures!,
-            failure => failure.Contains("not the sole active", StringComparison.Ordinal));
+            failure => failure.Contains("selects", StringComparison.Ordinal) &&
+                       failure.Contains("OpenIdConnect", StringComparison.Ordinal));
     }
 
     private static Microsoft.Extensions.Options.ValidateOptionsResult Validate(

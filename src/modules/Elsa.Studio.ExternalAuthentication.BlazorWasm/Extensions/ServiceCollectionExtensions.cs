@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ExternalAuthenticationWasmCallbackService>();
         services.AddScoped<ExternalAuthenticationWasmLogoutService>();
         services.AddScoped<IExternalAuthenticationLoginCoordinator, ExternalAuthenticationWasmLoginCoordinator>();
+        services.AddExternalAuthenticationLoginUI();
         services.AddScoped<IHttpConnectionOptionsConfigurator, ExternalAuthenticationHttpConnectionOptionsConfigurator>();
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<NavigateToExternalLogin>>();
         services.AddScoped<IFeature, ExternalAuthenticationBlazorWasmFeature>();

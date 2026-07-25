@@ -1,0 +1,50 @@
+@implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationLoginCoordinator LoginCoordinator
+
+<MudPaper Outlined="true" Class="pa-4">
+    <MudText Typo="Typo.h6">Elsa account</MudText>
+    @if (!string.IsNullOrWhiteSpace(LoginCoordinator.LocalLoginAction))
+    {
+        <form method="post" action="@LoginCoordinator.LocalLoginAction">
+            <input type="hidden" name="returnPath" value="@Context.ReturnPath" />
+            <label for="broker-local-username">User name</label>
+            <input id="broker-local-username" name="username" autocomplete="username" />
+            <label for="broker-local-password">Password</label>
+            <input id="broker-local-password" name="password" type="password" autocomplete="current-password" />
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
+        </form>
+    }
+    else
+    {
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_username" Label="User name" autocomplete="username" Required="true" />
+            <MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" autocomplete="current-password" Required="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
+        </MudForm>
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public Elsa.Studio.Authentication.Abstractions.Models.LoginMethodComponentContext Context { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+
+    private async Task SignInAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        try
+        {
+            await LoginCoordinator.BeginLocalAsync(_username, _password, Context.ReturnPath);
+        }
+        catch
+        {
+            await Context.ReportFailureAsync("Sign-in failed. Check your credentials and try again.");
+        }
+    }
+}

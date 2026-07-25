@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.AspNetCore.Components;
@@ -14,7 +15,7 @@ public sealed class ServerExternalAuthenticationLoginCoordinator(
 {
     public string? LocalLoginAction => "/authentication/external/local-login";
 
-    public override Task BeginExternalAsync(LoginMethod method, string returnPath, CancellationToken cancellationToken = default)
+    public override Task BeginExternalAsync(LoginMethodDescriptor method, string returnPath, CancellationToken cancellationToken = default)
     {
         var path = $"/authentication/external/login/{Uri.EscapeDataString(method.Key)}";
         navigationManager.NavigateTo(QueryHelpers.AddQueryString(path, "returnPath", LocalReturnPath.Normalize(returnPath)), forceLoad: true);

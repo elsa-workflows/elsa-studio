@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExternalAuthenticationTokenProvider>(provider => provider.GetRequiredService<ServerExternalAuthenticationStateProvider>());
         services.AddScoped<IHttpConnectionOptionsConfigurator, ExternalAuthenticationServerHttpConnectionOptionsConfigurator>();
         services.AddScoped<IExternalAuthenticationLoginCoordinator, ServerExternalAuthenticationLoginCoordinator>();
+        services.AddExternalAuthenticationLoginUI();
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<ChallengeToExternalLogin>>();
         services.AddAuthorizationCore();
         services.AddAuthentication(authentication =>

@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
@@ -24,6 +25,8 @@ using Elsa.Studio.Diagnostics.OpenTelemetry.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Security.Extensions;
+using Elsa.Studio.Settings.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
@@ -133,7 +136,11 @@ var localizationConfig = new LocalizationConfig
 builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
 builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    builder.Services.AddAuthenticationUI();
 builder.Services.AddRemoteBackend(backendApiConfig);
+builder.Services.AddSettingsModule();
+builder.Services.AddSecurityModule();
 
 // Management UI remains backend-feature-gated. Broker sign-in is active only when selected above.
 builder.Services.AddExternalAuthenticationModule(backendApiConfig);

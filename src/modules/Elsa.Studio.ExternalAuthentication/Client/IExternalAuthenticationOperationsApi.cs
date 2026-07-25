@@ -32,5 +32,6 @@ public interface IExternalAuthenticationOperationsApi
         string connectionId,
         [Header("If-Match")] string ifMatch,
         [Query] bool confirmFinalLoginPathOverride,
+        [Query] bool revokeActiveSessions = false,
         CancellationToken cancellationToken = default);
 }

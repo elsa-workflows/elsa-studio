@@ -17,6 +17,7 @@ public static class ExternalAuthenticationPermissions
     public const string SessionsRead = "external-authentication:sessions:read";
     public const string SessionsRevoke = "external-authentication:sessions:revoke";
     public const string UnsafeProviderTrust = "external-authentication:provider-trust:unsafe";
+    public const string RolesRead = "read:role";
 }
 
 public sealed class ConnectionScope
@@ -53,12 +54,14 @@ public class ConnectionSummary
     public string DisplayName { get; set; } = string.Empty;
     public string? IconId { get; set; }
     public int Order { get; set; }
-    public bool IsDefault { get; set; }
+    public bool IsPreferred { get; set; }
+    public bool OverridesConfigurationConnection { get; set; }
     public bool EnabledIntent { get; set; }
     public bool EffectivelyEnabled { get; set; }
     public string Validity { get; set; } = "unknown";
     public bool Shadowed { get; set; }
     public bool Archived { get; set; }
+    public bool CanCreateOverride { get; set; }
     public long Revision { get; set; }
     public string MaterialRevision { get; set; } = string.Empty;
     public ConnectionObservation? LatestObservation { get; set; }
@@ -74,6 +77,7 @@ public sealed class ListConnectionsResponse
 
 public sealed class SecretBindingState
 {
+    public string Ownership { get; set; } = "external";
     public string? ResolverType { get; set; }
     public string? Reference { get; set; }
     public string? ExpectedType { get; set; }
@@ -84,6 +88,7 @@ public sealed class SecretBindingState
 
 public sealed class ConnectionDetail : ConnectionSummary
 {
+    public string? CallbackUri { get; set; }
     public int AdapterSettingsVersion { get; set; } = 1;
     public Dictionary<string, JsonElement> AdapterSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, SecretBindingState> SecretBindings { get; set; } = new(StringComparer.Ordinal);
@@ -125,6 +130,7 @@ public sealed class ConnectionFieldDescriptor
     public ConnectionFieldVisibilityCondition? VisibleWhen { get; set; }
     public string? HelpText { get; set; }
     public bool IsRedacted { get; set; }
+    public bool IsReadOnly { get; set; }
 }
 
 public sealed class ConnectionFieldValidation
@@ -168,11 +174,12 @@ public sealed class ConnectionMutation
 {
     public string Key { get; set; } = string.Empty;
     public ConnectionScope Scope { get; set; } = new();
+    public bool OverridesConfigurationConnection { get; set; }
     public string AdapterType { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string? IconId { get; set; }
     public int Order { get; set; }
-    public bool IsDefault { get; set; }
+    public bool IsPreferred { get; set; }
     public int AdapterSettingsVersion { get; set; } = 1;
     public Dictionary<string, JsonElement> AdapterSettings { get; set; } = new(StringComparer.Ordinal);
     public PolicySelection? UnlinkedPolicy { get; set; }
@@ -216,6 +223,38 @@ public sealed class PermissionGrantSourceDescriptor
     public CustomEditorContract? CustomEditor { get; set; }
 }
 
+public sealed class UnlinkedIdentityPolicyDescriptor
+{
+    public string Type { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int SettingsVersion { get; set; }
+    public ICollection<ConnectionFieldDescriptor> Fields { get; set; } = [];
+    public CustomEditorContract? CustomEditor { get; set; }
+}
+
+public sealed class ExternalUserMatcherDescriptor
+{
+    public string Type { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int SettingsVersion { get; set; }
+    public ICollection<ConnectionFieldDescriptor> Fields { get; set; } = [];
+    public CustomEditorContract? CustomEditor { get; set; }
+    public ICollection<string> RequiredClaimTypes { get; set; } = [];
+}
+
+public sealed class IdentityRoleOptionsResponse
+{
+    public ICollection<IdentityRoleOption> Roles { get; set; } = [];
+}
+
+public sealed class IdentityRoleOption
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
+
 public sealed class PermissionDescriptor
 {
     public string Name { get; set; } = string.Empty;
@@ -246,10 +285,28 @@ public sealed class PreviewSignInResult
 
 public sealed class SecretBindingMutation
 {
+    public string Ownership { get; set; } = "external";
     public string ResolverType { get; set; } = string.Empty;
     public string Reference { get; set; } = string.Empty;
     public string? ExpectedType { get; set; }
     public string? ExpectedScope { get; set; }
+}
+
+public sealed class ManagedSecretMutation
+{
+    public string ResolverType { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+}
+
+public sealed class ManagedSecretResolverCatalog
+{
+    public ICollection<ManagedSecretResolverDescriptor> Items { get; set; } = [];
+}
+
+public sealed class ManagedSecretResolverDescriptor
+{
+    public string Type { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
 }
 
 public sealed class ManagementApiException(string message, int statusCode, ConnectionDetail? current = null) : Exception(message)
