@@ -11,10 +11,10 @@ public sealed class ExternalAuthenticationWasmOptions
     public string ClientId { get; set; } = string.Empty;
 
     /// <summary>The client-local path registered for authorization-code callbacks.</summary>
-    public string CallbackPath { get; set; } = "/authentication/external/callback";
+    public string CallbackPath { get; set; } = ExternalAuthenticationCallbackPaths.SignIn;
 
     /// <summary>The client-local path registered for logout callbacks.</summary>
-    public string LogoutCallbackPath { get; set; } = "/authentication/external/logout-callback";
+    public string LogoutCallbackPath { get; set; } = ExternalAuthenticationCallbackPaths.Logout;
 
     /// <summary>
     /// Reserved solely to detect an invalid confidential-client configuration. Public WebAssembly clients never use it.

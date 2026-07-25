@@ -21,6 +21,9 @@ builder.Services.AddExternalAuthenticationBroker(options =>
 }
 ```
 
-`ClientId` and `ClientSecret` are required. Callback values must be client-local absolute paths and must resolve at runtime to the exact absolute callback and logout callback URIs registered by the matching Elsa Authentication Client. Do not put the client secret in source-controlled configuration.
+`ClientId` and `ClientSecret` are required. The callback paths are fixed to
+`/authentication/external/callback` and `/authentication/external/logout-callback`; register
+their absolute Studio URLs with the matching Elsa Authentication Client. Custom callback paths are
+rejected at startup. Do not put the client secret in source-controlled configuration.
 
 The cookie is secure, HTTP-only, SameSite Lax, non-sliding, and has an eight-hour lifetime. Refresh credentials are never exposed to Blazor UI code or the browser.

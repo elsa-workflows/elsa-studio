@@ -21,6 +21,9 @@ builder.Services.AddExternalAuthenticationBroker(options =>
 }
 ```
 
-WebAssembly must not contain a client secret. Callback values must be client-local absolute paths and must resolve to exact absolute URIs within an allowed origin registered by the matching Elsa Authentication Client.
+WebAssembly must not contain a client secret. The callback paths are fixed to
+`/authentication/external/callback` and `/authentication/external/logout-callback`; register
+their absolute Studio URLs with the matching Elsa Authentication Client. Custom callback paths are
+rejected at startup.
 
 `Memory` is the default and loses credentials on reload, new tab, or tab close. `Session` uses tab-scoped session storage. `Durable` uses local storage beyond the browser session. Either persistent mode emits a startup security warning and increases exposure to browser script compromise.

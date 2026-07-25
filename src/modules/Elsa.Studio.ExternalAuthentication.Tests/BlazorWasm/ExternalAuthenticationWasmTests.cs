@@ -116,6 +116,19 @@ public class ExternalAuthenticationWasmTests
     }
 
     [Fact]
+    public async Task LocalBrokerTokensWithoutAnExternalSessionLifetimeRemainUsableUntilTheirAccessTokenExpires()
+    {
+        var store = new BrowserExternalAuthenticationTokenStore(new ThrowingJsRuntime(), new());
+        var broker = new RecordingBrokerApi();
+        var provider = CreateTokenProvider(store, broker);
+
+        await provider.SetAsync(new("access", "Bearer", 3600, "refresh", 0, 0));
+
+        Assert.Equal("access", await provider.GetAccessTokenAsync());
+        Assert.Equal(0, broker.ExchangeCount);
+    }
+
+    [Fact]
     public async Task MissingCredentialsRemainAnonymousWithoutPublishingAChange()
     {
         var store = new BrowserExternalAuthenticationTokenStore(new ThrowingJsRuntime(), new());
@@ -218,6 +231,20 @@ public class ExternalAuthenticationWasmTests
             options.ClientSecret = "must-not-be-in-wasm";
         }));
         Assert.Contains("must not contain", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PublicClientRejectsCustomCallbackPaths()
+    {
+        var services = new ServiceCollection();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => services.AddExternalAuthenticationBroker(options =>
+        {
+            options.ClientId = "studio";
+            options.LogoutCallbackPath = "/custom-logout-callback";
+        }));
+
+        Assert.Contains("fixed Studio callback paths", exception.Message, StringComparison.Ordinal);
     }
 
     private static ExternalAuthenticationWasmCallbackService CreateCallbackService(RecordingTransactionStore transactions) =>

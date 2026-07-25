@@ -72,6 +72,7 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         cut.FindAll("button").Single(button => button.TextContent.Contains("Preview sign-in", StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() => Assert.Contains("Open preview sign-in", cut.Markup));
         Assert.Contains("separate tab", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://elsa.example.test/external-authentication/previews/preview-handle/authorize", cut.Markup, StringComparison.Ordinal);
 
         cut.FindAll("button").Single(button => button.TextContent.Contains("Get one-time preview result", StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() => Assert.Contains("https://issuer.example.test", cut.Markup));
@@ -90,6 +91,28 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("final normal login method", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("break-glass", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("explicitly confirm", cut.Markup, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void PreviewNavigation_RequiresAnElsaBackendOriginAndOneTimeAuthorizePath()
+    {
+        var backend = new Uri("https://elsa.example.test/elsa/api/");
+
+        var accepted = ConnectionOperations.TryGetTrustedPreviewNavigation(
+            backend,
+            "/external-authentication/previews/preview-handle/authorize",
+            out var navigationUrl,
+            out var handle);
+        var rejected = ConnectionOperations.TryGetTrustedPreviewNavigation(
+            backend,
+            "https://attacker.example/external-authentication/previews/preview-handle/authorize",
+            out _,
+            out _);
+
+        Assert.True(accepted);
+        Assert.Equal("https://elsa.example.test/external-authentication/previews/preview-handle/authorize", navigationUrl);
+        Assert.Equal("preview-handle", handle);
+        Assert.False(rejected);
     }
 
     [Fact]

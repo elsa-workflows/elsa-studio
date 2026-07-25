@@ -81,6 +81,7 @@ public sealed class ExternalAuthenticationController(
     /// <summary>Starts the broker-local credential flow without putting credentials or a verifier in browser storage.</summary>
     [HttpPost("local-login")]
     [AllowAnonymous]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> LocalLogin([FromForm] string? username, [FromForm] string? password, [FromForm] string? returnPath, CancellationToken cancellationToken)
     {
         var callbackUri = AbsolutePath(options.CallbackPath);

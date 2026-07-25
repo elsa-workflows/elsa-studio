@@ -59,6 +59,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         var connection = CreateConnection();
         connection.CallbackUri = "https://elsa.example.test/external-authentication/callback/connection-1";
+        connection.PreviewCallbackUri = "https://elsa.example.test/external-authentication/previews/callback/record-1";
         var cut = Render<ConnectionEditor>(parameters => parameters
             .Add(component => component.Connection, connection)
             .Add(component => component.Adapter, CreateAdapter())
@@ -66,6 +67,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("Provider callback URI", cut.Markup, StringComparison.Ordinal);
         Assert.Contains(connection.CallbackUri, cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("Provider preview callback URI", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains(connection.PreviewCallbackUri, cut.Markup, StringComparison.Ordinal);
         Assert.DoesNotContain("Tenant ID", cut.Markup, StringComparison.Ordinal);
         Assert.DoesNotContain("Host-wide", cut.Markup, StringComparison.Ordinal);
     }
@@ -168,9 +171,6 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         connection.AdapterSettings["authority"] = System.Text.Json.JsonSerializer.SerializeToElement("https://login.example.test");
         connection.SecretBindings["clientSecret"] = new SecretBindingState
         {
-            ResolverType = "elsa-secrets",
-            Reference = "contoso-client-secret",
-            ExpectedType = "oidc-client-secret",
             IsConfigured = true,
             IsResolvable = true
         };
@@ -228,8 +228,6 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         var connection = CreateConnection();
         connection.SecretBindings["clientSecret"] = new SecretBindingState
         {
-            ResolverType = "elsa-secrets",
-            Reference = "contoso-client-secret",
             IsConfigured = true,
             IsResolvable = true
         };
@@ -257,11 +255,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             .Add(component => component.Model, CreateMutation()));
 
         Assert.Contains("cannot be removed while the connection is enabled", cut.Markup, StringComparison.OrdinalIgnoreCase);
-        Assert.True(cut.FindAll("button").Single(x => x.TextContent.Contains("Remove managed secret", StringComparison.Ordinal)).HasAttribute("disabled"));
+        Assert.True(cut.FindAll("button").Single(x => x.TextContent.Contains("Remove secret binding", StringComparison.Ordinal)).HasAttribute("disabled"));
     }
 
     [Fact]
-    public void ManagedSecret_IsWriteOnlyAndExternalBindingIsAdvanced()
+    public void ManagedSecret_IsWriteOnlyAndExternalBindingsAreNotEditableInStudio()
     {
         ManagedSecretMutation? replaced = null;
         var cut = Render<SecretBindingField>(parameters => parameters
@@ -274,7 +272,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             .Add(component => component.OnManagedReplace, EventCallback.Factory.Create<ManagedSecretMutation>(this, value => replaced = value)));
 
         Assert.Contains("Managed secret", cut.Markup, StringComparison.Ordinal);
-        Assert.Contains("Advanced: External binding", cut.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("External binding", cut.Markup, StringComparison.Ordinal);
         var password = cut.Find("input[type=password]");
         password.Change("top-secret-value");
         cut.FindAll("button").Single(x => x.TextContent.Contains("Replace managed secret", StringComparison.Ordinal)).Click();
@@ -294,7 +292,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("Managed secret storage is unavailable", cut.Markup, StringComparison.Ordinal);
         Assert.DoesNotContain("Replace managed secret", cut.Markup, StringComparison.Ordinal);
-        Assert.Contains("Advanced: External binding", cut.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("External binding", cut.Markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -657,7 +655,6 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task ReplaceSecretBindingAsync(string connectionId, string fieldName, SecretBindingMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         Task<IdentityRoleOptionsResponse> IIdentityRolesApi.ListAsync(CancellationToken cancellationToken) =>

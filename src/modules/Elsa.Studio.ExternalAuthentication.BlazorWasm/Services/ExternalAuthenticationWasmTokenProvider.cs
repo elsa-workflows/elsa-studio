@@ -87,13 +87,20 @@ public sealed class ExternalAuthenticationWasmTokenProvider(
     private static Elsa.Studio.ExternalAuthentication.BlazorWasm.Models.ExternalAuthenticationTokenSet ToTokenSet(BrokerTokenResponse response)
     {
         var now = DateTimeOffset.UtcNow;
+        var externalSessionLifetime = PositiveLifetime(response.ExternalSessionExpiresIn, response.ExpiresIn);
+        var accessLifetime = Math.Min(PositiveLifetime(response.ExpiresIn), externalSessionLifetime);
+        var refreshLifetime = response.RefreshExpiresIn > 0
+            ? Math.Min(response.RefreshExpiresIn, externalSessionLifetime)
+            : accessLifetime;
         return new(
             response.AccessToken,
             response.RefreshToken,
-            now.AddSeconds(Math.Min(response.ExpiresIn, response.ExternalSessionExpiresIn)),
-            now.AddSeconds(Math.Min(response.RefreshExpiresIn, response.ExternalSessionExpiresIn)),
-            now.AddSeconds(response.ExternalSessionExpiresIn));
+            now.AddSeconds(accessLifetime),
+            now.AddSeconds(refreshLifetime),
+            now.AddSeconds(externalSessionLifetime));
     }
+
+    private static long PositiveLifetime(long primary, long fallback = 1) => Math.Max(1, primary > 0 ? primary : fallback);
 
     private static bool RequiresRefresh(ExternalAuthenticationTokenSet tokens) =>
         IsExternalSessionExpired(tokens) ||

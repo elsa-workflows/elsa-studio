@@ -50,12 +50,19 @@ public sealed record BrokerLogoutResponse(bool Completed, string? NavigationUrl,
 /// <summary>Safe broker error returned to the client callback or token endpoint.</summary>
 public sealed record BrokerError(string Error, string Message, string CorrelationId);
 
+/// <summary>Immutable browser routes registered for Elsa Studio broker clients.</summary>
+public static class ExternalAuthenticationCallbackPaths
+{
+    public const string SignIn = "/authentication/external/callback";
+    public const string Logout = "/authentication/external/logout-callback";
+}
+
 /// <summary>Deployment-owned registration of this Studio host with the Elsa broker.</summary>
 public sealed class ExternalAuthenticationClientOptions
 {
     public string ClientId { get; set; } = string.Empty;
-    public string CallbackPath { get; set; } = "/authentication/external/callback";
-    public string LogoutCallbackPath { get; set; } = "/authentication/external/logout-callback";
+    public string CallbackPath { get; set; } = ExternalAuthenticationCallbackPaths.SignIn;
+    public string LogoutCallbackPath { get; set; } = ExternalAuthenticationCallbackPaths.Logout;
     public string? ClientSecret { get; set; }
     public string? SecurityWarning { get; set; }
 }

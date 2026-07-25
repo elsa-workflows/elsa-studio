@@ -31,12 +31,12 @@ callback URIs are derived by Elsa from deployment-owned public-origin configurat
 read-only. The override action appears only when both the actor's create permission and the
 server's `canCreateOverride` deployment capability allow it.
 
-Secret fields prefer a managed, write-only value editor when the server advertises an installed
+Secret fields use a managed, write-only value editor when the server advertises an installed
 managed-secret resolver. Studio sends the value only to the managed-secret replacement endpoint
 and clears its local input; responses contain ownership and configured/resolvable state, never the
-value. External resolver/reference bindings live under an Advanced section. When no managed
-resolver is advertised, Studio hides the managed editor and explains why. Required managed
-secrets cannot be removed while their connection remains enabled.
+value. Deployment-managed resolver/reference bindings are intentionally not displayed or editable
+in Studio. When no managed resolver is advertised, Studio hides the managed editor and explains
+why. Required managed secrets cannot be removed while their connection remains enabled.
 
 The preferred sign-in method is visual guidance only. Login never redirects automatically.
 Permission and claim mapping DTOs remain available for contract compatibility, but this release
@@ -58,4 +58,6 @@ Migrate legacy hosts by selecting `ElsaIdentity` or `ExternalAuthentication`, re
 
 The Studio module owns host-local Refit contracts under `Client/` so the independently versioned Studio packages can consume the frozen External Authentication REST shape. Generated `Elsa.Api.Client` resources expose the equivalent Core contract to other .NET clients. The Studio models intentionally mirror descriptor fields, adapter capabilities, connection operations, identity links, and session metadata.
 
-Studio sends no secret values and displays neither secret values nor binding references on read-only views. Preview, test, and session models contain only the redacted fields documented by the Core REST contract.
+Studio sends a managed secret value only to the dedicated write-only replacement endpoint and
+never displays secret values or deployment binding references. Preview, test, and session models
+contain only the redacted fields documented by the Core REST contract.

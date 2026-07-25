@@ -24,14 +24,14 @@ public static class ServiceCollectionExtensions
             throw new InvalidOperationException("External Authentication requires a configured broker client ID.");
         if (string.IsNullOrWhiteSpace(options.ClientSecret))
             throw new InvalidOperationException("Studio Server must configure a confidential broker client secret.");
-        if (!IsLocalCallback(options.CallbackPath) || !IsLocalCallback(options.LogoutCallbackPath))
-            throw new InvalidOperationException("External Authentication callbacks must be local absolute paths.");
+        ValidateCallbackPaths(options.CallbackPath, options.LogoutCallbackPath);
 
         // The registration record is an instance descriptor; AddSingleton avoids TryAddEnumerable's
         // implementation-type ambiguity while preserving validation's enumerable contract.
         services.AddSingleton(new StudioAuthenticationProviderRegistration(StudioAuthenticationProvider.ExternalAuthentication));
         services.AddScoped<IFeature, Feature>();
         services.AddHttpContextAccessor();
+        services.AddAntiforgery();
         services.AddMemoryCache();
         services.AddSingleton(options);
         services.AddSingleton<IServerExternalAuthenticationTransactionStore, ServerExternalAuthenticationTransactionStore>();
@@ -40,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ServerExternalAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<ServerExternalAuthenticationStateProvider>());
         services.AddScoped<IExternalAuthenticationTokenProvider>(provider => provider.GetRequiredService<ServerExternalAuthenticationStateProvider>());
+        services.AddScoped<IExternalAuthenticationAntiforgeryTokenProvider, ServerExternalAuthenticationAntiforgeryTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, ExternalAuthenticationServerHttpConnectionOptionsConfigurator>();
         services.AddScoped<IExternalAuthenticationLoginCoordinator, ServerExternalAuthenticationLoginCoordinator>();
         services.AddExternalAuthenticationLoginUI();
@@ -65,5 +66,13 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    private static bool IsLocalCallback(string path) => path.StartsWith("/", StringComparison.Ordinal) && !path.StartsWith("//", StringComparison.Ordinal);
+    private static void ValidateCallbackPaths(string callbackPath, string logoutCallbackPath)
+    {
+        if (!string.Equals(callbackPath, ExternalAuthenticationCallbackPaths.SignIn, StringComparison.Ordinal) ||
+            !string.Equals(logoutCallbackPath, ExternalAuthenticationCallbackPaths.Logout, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"External Authentication uses the fixed Studio callback paths '{ExternalAuthenticationCallbackPaths.SignIn}' and '{ExternalAuthenticationCallbackPaths.Logout}'.");
+        }
+    }
 }

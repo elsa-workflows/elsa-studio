@@ -53,9 +53,6 @@ public interface IExternalAuthenticationConnectionsApi
     [Post("/external-authentication/connections/{connectionId}/validate")]
     Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default);
 
-    [Put("/external-authentication/connections/{connectionId}/secret-bindings/{fieldName}")]
-    Task ReplaceSecretBindingAsync(string connectionId, string fieldName, [Body] SecretBindingMutation request, [Header("If-Match")] string ifMatch, CancellationToken cancellationToken = default);
-
     [Put("/external-authentication/connections/{connectionId}/secret-bindings/{fieldName}/managed")]
     Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, [Body] ManagedSecretMutation request, [Header("If-Match")] string ifMatch, CancellationToken cancellationToken = default);
 

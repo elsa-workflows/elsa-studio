@@ -162,7 +162,6 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task ReplaceSecretBindingAsync(string connectionId, string fieldName, SecretBindingMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }

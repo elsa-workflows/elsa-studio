@@ -72,6 +72,8 @@ public static class ServiceCollectionExtensions
 
         // Provide an OIDC-aware unauthorized component.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<NavigateToLogin>>();
+        services.AddScoped<ILoginMethodCatalog, DirectOpenIdConnectLoginMethodCatalog>();
+        services.AddScoped<ILoginMethodComponentProvider, DirectOpenIdConnectLoginMethodComponentProvider>();
 
         return services;
     }

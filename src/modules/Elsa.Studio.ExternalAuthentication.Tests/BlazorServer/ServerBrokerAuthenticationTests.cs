@@ -67,6 +67,30 @@ public sealed class ServerBrokerAuthenticationTests
     }
 
     [Fact]
+    public void ServerMode_RejectsCustomCallbackPaths()
+    {
+        var services = new ServiceCollection();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => services.AddExternalAuthenticationBroker(options =>
+        {
+            options.ClientId = "studio-server";
+            options.ClientSecret = "secret";
+            options.CallbackPath = "/custom-callback";
+        }));
+
+        Assert.Contains("fixed Studio callback paths", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LocalLogin_RequiresAnAntiforgeryToken()
+    {
+        var method = typeof(ExternalAuthenticationController).GetMethod(nameof(ExternalAuthenticationController.LocalLogin));
+
+        Assert.NotNull(method);
+        Assert.Contains(method!.GetCustomAttributes(inherit: true), attribute => attribute.GetType().Name == "ValidateAntiForgeryTokenAttribute");
+    }
+
+    [Fact]
     public void PrincipalFactory_PreservesElsaPermissionClaims()
     {
         const string token = "header.eyJzdWIiOiIxIiwicGVybWlzc2lvbnMiOlsid29ya2Zsb3dzOnJlYWQiXX0.signature";

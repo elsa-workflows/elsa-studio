@@ -125,6 +125,8 @@ public static class ServiceCollectionExtensions
 
         // Use an OIDC-aware unauthorized component that initiates a challenge.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<ChallengeToLogin>>();
+        services.AddScoped<ILoginMethodCatalog, DirectOpenIdConnectLoginMethodCatalog>();
+        services.AddScoped<ILoginMethodComponentProvider, DirectOpenIdConnectLoginMethodComponentProvider>();
         
         // HTTP client for token refresh requests with retry policy
         var retryPolicy = configureRetryPolicy?.Invoke() ?? DefaultRetryPolicy;

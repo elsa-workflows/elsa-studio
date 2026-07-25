@@ -43,7 +43,7 @@
             Preview state expires @preview.ExpiresAt.ToLocalTime().ToString("g"). Complete the provider sign-in in a separate tab, return here, then retrieve the one-time redacted result.
         </MudAlert>
         <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@preview.NavigationUrl" Target="_blank" rel="noopener noreferrer">Open preview sign-in</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@_previewNavigationUrl" Target="_blank" rel="noopener noreferrer">Open preview sign-in</MudButton>
             <MudButton Variant="Variant.Outlined" Disabled="@_retrievingPreview" OnClick="RetrievePreviewAsync">
                 @(_retrievingPreview ? "Retrieving…" : "Get one-time preview result")
             </MudButton>
@@ -76,6 +76,7 @@
     private bool _startingPreview;
     private bool _retrievingPreview;
     private PreviewInitiation? _preview;
+    private string? _previewNavigationUrl;
     private string? _previewHandle;
     private PreviewResultDocument? _previewResult;
 
@@ -117,10 +118,10 @@
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
             _preview = await api.InitiatePreviewAsync(Connection.Id, ConnectionConcurrency.ToIfMatch(Connection.Revision));
-            _previewHandle = TryGetPreviewHandle(_preview.NavigationUrl);
-            if (_previewHandle is null)
+            if (!TryGetTrustedPreviewNavigation(ApiClientProvider.Url, _preview.NavigationUrl, out _previewNavigationUrl, out _previewHandle))
             {
                 _preview = null;
+                _previewNavigationUrl = null;
                 Snackbar.Add("The server returned an invalid preview navigation URL.", Severity.Error);
             }
         }
@@ -145,6 +146,7 @@
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
             _previewResult = await api.GetPreviewResultAsync(_previewHandle);
             _preview = null;
+            _previewNavigationUrl = null;
             _previewHandle = null;
             Snackbar.Add("One-time preview result retrieved. It did not create a user, credential, link, or session.", Severity.Success);
         }
@@ -158,21 +160,38 @@
         }
     }
 
-    internal static string? TryGetPreviewHandle(string navigationUrl)
+    public static bool TryGetTrustedPreviewNavigation(Uri backend, string navigationUrl, out string? trustedNavigationUrl, out string? previewHandle)
     {
-        if (!Uri.TryCreate(navigationUrl, UriKind.RelativeOrAbsolute, out var navigationUri))
-            return null;
+        trustedNavigationUrl = null;
+        previewHandle = null;
+        if (string.IsNullOrWhiteSpace(navigationUrl) || !Uri.TryCreate(navigationUrl, UriKind.RelativeOrAbsolute, out var navigationUri))
+            return false;
 
-        var path = navigationUri.IsAbsoluteUri
-            ? navigationUri.AbsolutePath
-            : navigationUrl.Split('?', '#')[0];
-        var segments = path
+        if (!navigationUri.IsAbsoluteUri)
+        {
+            if (!navigationUrl.StartsWith("/", StringComparison.Ordinal) || navigationUrl.StartsWith("//", StringComparison.Ordinal))
+                return false;
+            navigationUri = new Uri(new Uri(backend.GetLeftPart(UriPartial.Authority)), navigationUri);
+        }
+
+        if (!SameOrigin(navigationUri, backend))
+            return false;
+
+        var segments = navigationUri.AbsolutePath
             .Split('/', StringSplitOptions.RemoveEmptyEntries);
         var previewsIndex = Array.FindIndex(segments, segment => string.Equals(segment, "previews", StringComparison.Ordinal));
-        return previewsIndex >= 0 && previewsIndex + 2 < segments.Length && string.Equals(segments[previewsIndex + 2], "authorize", StringComparison.Ordinal)
-            ? segments[previewsIndex + 1]
-            : null;
+        if (previewsIndex < 0 || previewsIndex + 2 >= segments.Length || !string.Equals(segments[previewsIndex + 2], "authorize", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(segments[previewsIndex + 1]))
+            return false;
+
+        trustedNavigationUrl = navigationUri.AbsoluteUri;
+        previewHandle = segments[previewsIndex + 1];
+        return true;
     }
+
+    private static bool SameOrigin(Uri left, Uri right) =>
+        string.Equals(left.Scheme, right.Scheme, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
+        left.Port == right.Port;
 
     private static Severity ObservationSeverity(string status) => status.ToLowerInvariant() switch
     {

@@ -78,10 +78,6 @@ public sealed class ListConnectionsResponse
 public sealed class SecretBindingState
 {
     public string Ownership { get; set; } = "external";
-    public string? ResolverType { get; set; }
-    public string? Reference { get; set; }
-    public string? ExpectedType { get; set; }
-    public string? ExpectedScope { get; set; }
     public bool IsConfigured { get; set; }
     public bool IsResolvable { get; set; }
 }
@@ -89,6 +85,7 @@ public sealed class SecretBindingState
 public sealed class ConnectionDetail : ConnectionSummary
 {
     public string? CallbackUri { get; set; }
+    public string? PreviewCallbackUri { get; set; }
     public int AdapterSettingsVersion { get; set; } = 1;
     public Dictionary<string, JsonElement> AdapterSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, SecretBindingState> SecretBindings { get; set; } = new(StringComparer.Ordinal);
@@ -281,15 +278,6 @@ public sealed class PreviewSignInResult
     public ICollection<string> Warnings { get; set; } = [];
     public string MaterialRevision { get; set; } = string.Empty;
     public DateTimeOffset ExpiresAt { get; set; }
-}
-
-public sealed class SecretBindingMutation
-{
-    public string Ownership { get; set; } = "external";
-    public string ResolverType { get; set; } = string.Empty;
-    public string Reference { get; set; } = string.Empty;
-    public string? ExpectedType { get; set; }
-    public string? ExpectedScope { get; set; }
 }
 
 public sealed class ManagedSecretMutation

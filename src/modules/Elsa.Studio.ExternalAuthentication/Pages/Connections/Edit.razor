@@ -52,7 +52,6 @@
                                   ManagedSecretResolvers="_managedSecretResolvers"
                                   ManagedSecretResolverError="ManagedSecretResolverError"
                                   Saved="SaveAsync"
-                                  SecretBindingChanged="ReplaceBindingAsync"
                                   ManagedSecretChanged="ReplaceManagedSecretAsync"
                                   SecretBindingRemoved="RemoveBindingAsync"
                                   FullOverrideRequested="StartFullOverride" />
@@ -152,7 +151,6 @@
         [nameof(ConnectionEditor.ManagedSecretResolvers)] = _managedSecretResolvers,
         [nameof(ConnectionEditor.ManagedSecretResolverError)] = ManagedSecretResolverError ?? string.Empty,
         [nameof(ConnectionEditor.Saved)] = EventCallback.Factory.Create<ConnectionMutation>(this, SaveAsync),
-        [nameof(ConnectionEditor.SecretBindingChanged)] = EventCallback.Factory.Create<(string Field, SecretBindingMutation Binding)>(this, ReplaceBindingAsync),
         [nameof(ConnectionEditor.ManagedSecretChanged)] = EventCallback.Factory.Create<(string Field, ManagedSecretMutation Secret)>(this, ReplaceManagedSecretAsync),
         [nameof(ConnectionEditor.SecretBindingRemoved)] = EventCallback.Factory.Create<string>(this, RemoveBindingAsync),
         [nameof(ConnectionEditor.FullOverrideRequested)] = EventCallback.Factory.Create(this, StartFullOverride)
@@ -239,7 +237,7 @@
         }
         catch
         {
-            _managedSecretResolverError = "Managed secret storage capability could not be loaded. Use an external binding or contact the server administrator.";
+            _managedSecretResolverError = "Managed secret storage capability could not be loaded. Contact the server administrator.";
         }
     }
 
@@ -295,32 +293,6 @@
         _adapter = adapter;
         ConnectionAdapterSelection.Apply(_connection, _model, adapter);
         return Task.CompletedTask;
-    }
-
-    private async Task ReplaceBindingAsync((string Field, SecretBindingMutation Binding) change)
-    {
-        if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
-            return;
-
-        try
-        {
-            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            await api.ReplaceSecretBindingAsync(_connection.Id, change.Field, change.Binding, ConnectionConcurrency.ToIfMatch(_connection.Revision));
-            await ReloadConnectionAsync();
-            Snackbar.Add("Secret binding replaced. The secret value was not revealed.", Severity.Success);
-        }
-        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
-        {
-            await RecoverConcurrencyAsync(exception);
-        }
-        catch (ApiException exception) when (IsConcurrencyConflict(exception))
-        {
-            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
-        }
-        catch (Exception exception)
-        {
-            Snackbar.Add(exception.Message, Severity.Error);
-        }
     }
 
     private async Task ReplaceManagedSecretAsync((string Field, ManagedSecretMutation Secret) change)

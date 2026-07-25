@@ -53,8 +53,12 @@ public static class ServiceCollectionExtensions
             throw new InvalidOperationException("External Authentication requires a configured broker client ID.");
         if (!string.IsNullOrWhiteSpace(options.ClientSecret))
             throw new InvalidOperationException("Studio WebAssembly is a public client and must not contain a broker client secret.");
-        if (!IsLocalCallback(options.CallbackPath) || !IsLocalCallback(options.LogoutCallbackPath))
-            throw new InvalidOperationException("External Authentication callbacks must be client-local absolute paths.");
+        if (!string.Equals(options.CallbackPath, ExternalAuthenticationCallbackPaths.SignIn, StringComparison.Ordinal) ||
+            !string.Equals(options.LogoutCallbackPath, ExternalAuthenticationCallbackPaths.Logout, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"External Authentication uses the fixed Studio callback paths '{ExternalAuthenticationCallbackPaths.SignIn}' and '{ExternalAuthenticationCallbackPaths.Logout}'.");
+        }
     }
 
     private static void WarnForPersistentStorage(IServiceCollection services, ExternalAuthenticationWasmOptions options)
@@ -66,8 +70,6 @@ public static class ServiceCollectionExtensions
             options.BrowserStorage,
             provider.GetRequiredService<ILogger<StorageWarningStartupTask>>()));
     }
-
-    private static bool IsLocalCallback(string path) => path.StartsWith("/", StringComparison.Ordinal) && !path.StartsWith("//", StringComparison.Ordinal);
 
     private sealed class StorageWarningStartupTask(
         ExternalAuthenticationBrowserStorageMode storageMode,

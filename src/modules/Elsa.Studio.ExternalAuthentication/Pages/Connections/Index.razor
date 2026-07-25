@@ -23,7 +23,10 @@
                 <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
             </MudSelect>
             <MudCheckBox @bind-Value="_includeArchived" Label="Include archived" />
-            <MudCheckBox @bind-Value="_revokeSessionsWhenDisabling" Label="Revoke active sessions when disabling" />
+            @if (_canRevokeSessions)
+            {
+                <MudCheckBox @bind-Value="_revokeSessionsWhenDisabling" Label="Revoke active sessions when disabling" />
+            }
             <MudSpacer />
             @if (_canCreate)
             {
@@ -115,12 +118,14 @@
     private bool _canRead;
     private bool _canCreate;
     private bool _canUpdate;
+    private bool _canRevokeSessions;
 
     protected override async Task OnInitializedAsync()
     {
         _canRead = await Permissions.HasAsync(ExternalAuthenticationPermissions.Read);
         _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
         _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
+        _canRevokeSessions = await Permissions.HasAsync(ExternalAuthenticationPermissions.SessionsRevoke);
         await ReloadAsync();
     }
 
@@ -173,7 +178,8 @@
             return;
 
         var action = connection.EnabledIntent ? "Disable" : "Enable";
-        var details = connection.EnabledIntent && _revokeSessionsWhenDisabling
+        var revokeSessions = connection.EnabledIntent && _canRevokeSessions && _revokeSessionsWhenDisabling;
+        var details = revokeSessions
             ? " Existing external authentication sessions will also be revoked."
             : string.Empty;
         if (await Dialogs.ShowMessageBoxAsync(
@@ -192,7 +198,7 @@
                     connection.Id,
                     ConnectionConcurrency.ToIfMatch(connection.Revision),
                     false,
-                    _revokeSessionsWhenDisabling);
+                    revokeSessions);
             }
             else
             {

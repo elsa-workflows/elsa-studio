@@ -17,7 +17,10 @@ public static class LocalReturnPath
 {
     public static string Normalize(string? candidate)
     {
-        if (string.IsNullOrWhiteSpace(candidate) || !candidate.StartsWith("/", StringComparison.Ordinal) || candidate.StartsWith("//", StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(candidate) ||
+            !candidate.StartsWith("/", StringComparison.Ordinal) ||
+            candidate.StartsWith("//", StringComparison.Ordinal) ||
+            candidate.Contains('\\'))
             return "/";
 
         return Uri.TryCreate(candidate, UriKind.Relative, out _) ? candidate : "/";
