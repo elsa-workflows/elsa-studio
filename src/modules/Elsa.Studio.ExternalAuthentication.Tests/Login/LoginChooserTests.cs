@@ -1,9 +1,13 @@
 using Bunit;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Models;
+using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Services;
+using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
+using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using Xunit;
@@ -17,6 +21,9 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
+        Services.AddAuthenticationUI();
+        Services.AddSingleton<IBrandingProvider, DefaultBrandingProvider>();
+        Services.AddSingleton<IClientInformationProvider, StaticClientInformationProvider>();
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
     }
 

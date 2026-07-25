@@ -2,6 +2,8 @@ using Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Options;
+using Elsa.Studio.Authentication.Themes.Extensions;
 using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
@@ -34,6 +36,7 @@ using Elsa.Studio.ExternalAuthentication.BlazorWasm.Extensions;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.HttpMessageHandlers;
 using Elsa.Studio.ExternalAuthentication.Extensions;
 using Elsa.Studio.Authentication.Abstractions.Models;
+using Microsoft.Extensions.Options;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -110,7 +113,11 @@ var localizationConfig = new LocalizationConfig
 services.AddCore();
 services.AddShell();
 if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
-    services.AddAuthenticationUI();
+{
+    services
+        .AddAuthenticationUI(configuration.GetSection(LoginThemeOptions.SectionName))
+        .AddElsaStudioLoginThemes();
+}
 services.AddRemoteBackend(backendApiConfig);
 services.AddSettingsModule();
 services.AddSecurityModule();
@@ -132,6 +139,9 @@ services.AddLocalizationModule(localizationConfig);
 
 // Build the application.
 var app = builder.Build();
+
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    _ = app.Services.GetRequiredService<IOptions<LoginThemeOptions>>().Value;
 
 await app.UseElsaLocalization();
 

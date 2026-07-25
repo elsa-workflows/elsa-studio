@@ -1,57 +1,10 @@
 @page "/login"
 @attribute [AllowAnonymous]
 @layout Elsa.Studio.Layouts.BasicLayout
-@inject IEnumerable<ILoginMethodCatalog> Catalogs
-@inject ILoginMethodComponentRegistry Components
 
-<PageTitle>Sign in</PageTitle>
+<PageTitle>@Localizer["Sign in"]</PageTitle>
 
-<main class="elsa-login-shell" aria-labelledby="elsa-login-heading">
-    <MudContainer MaxWidth="MaxWidth.Small" Class="py-12">
-        <MudPaper Outlined="true" Class="pa-8">
-            <MudText HtmlTag="h1" Typo="Typo.h4" id="elsa-login-heading">Sign in</MudText>
-            <MudText Typo="Typo.body1" Class="mt-2 mb-6">Choose a sign-in method for Elsa Studio.</MudText>
-
-            @foreach (var warning in _warnings)
-            {
-                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-4" role="status">@warning</MudAlert>
-            }
-
-            @if (_loading)
-            {
-                <MudProgressLinear Indeterminate="true" aria-label="Loading sign-in methods" />
-            }
-            else if (!string.IsNullOrWhiteSpace(_error))
-            {
-                <MudAlert Severity="Severity.Error" role="alert">@_error</MudAlert>
-            }
-            else if (_methods.Count == 0)
-            {
-                <MudAlert Severity="Severity.Warning" role="status">
-                    No sign-in methods are currently available. Contact an administrator.
-                </MudAlert>
-            }
-            else
-            {
-                <MudStack Spacing="2" aria-label="Sign-in methods">
-                    @foreach (var method in _methods)
-                    {
-                        @if (Components.TryResolve(method.Kind, out var provider))
-                        {
-                            <section aria-label="@method.DisplayName">
-                                @if (method.IsPreferred)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="mb-1">Preferred</MudChip>
-                                }
-                                <DynamicComponent Type="provider.ComponentType" Parameters="@ParametersFor(method)" />
-                            </section>
-                        }
-                    }
-                </MudStack>
-            }
-        </MudPaper>
-    </MudContainer>
-</main>
+<LoginThemeHost ReturnPath="@(ReturnPath ?? ReturnUrl)" />
 
 @code {
     [SupplyParameterFromQuery(Name = "returnPath")]
@@ -59,67 +12,4 @@
 
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
-
-    private readonly List<LoginMethodDescriptor> _methods = [];
-    private readonly List<string> _warnings = [];
-    private bool _loading = true;
-    private string? _error;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            foreach (var catalog in Catalogs)
-            {
-                var result = await catalog.ListAsync();
-                var preferredKey = result.PreferredMethodKey;
-                _methods.AddRange(result.Methods.Select(method => method with
-                {
-                    IsPreferred = method.IsPreferred ||
-                        (!string.IsNullOrWhiteSpace(preferredKey) &&
-                         string.Equals(method.Key, preferredKey, StringComparison.Ordinal))
-                }));
-                if (!string.IsNullOrWhiteSpace(result.SecurityWarning))
-                    _warnings.Add(result.SecurityWarning);
-            }
-
-            var ordered = _methods
-                .OrderBy(x => x.Order)
-                .ThenBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x.Key, StringComparer.Ordinal)
-                .ToArray();
-            _methods.Clear();
-            _methods.AddRange(ordered);
-        }
-        catch
-        {
-            _error = "Sign-in methods could not be loaded. Try again or contact an administrator.";
-        }
-        finally
-        {
-            _loading = false;
-        }
-    }
-
-    private IDictionary<string, object> ParametersFor(LoginMethodDescriptor method) =>
-        new Dictionary<string, object>
-        {
-            ["Context"] = new LoginMethodComponentContext(method, NormalizeReturnPath(ReturnPath ?? ReturnUrl), ReportFailureAsync)
-        };
-
-    private Task ReportFailureAsync(string message)
-    {
-        _error = message;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private static string NormalizeReturnPath(string? candidate)
-    {
-        if (string.IsNullOrWhiteSpace(candidate) ||
-            !candidate.StartsWith("/", StringComparison.Ordinal) ||
-            candidate.StartsWith("//", StringComparison.Ordinal))
-            return "/";
-
-        return Uri.TryCreate(candidate, UriKind.Relative, out _) ? candidate : "/";
-    }
 }

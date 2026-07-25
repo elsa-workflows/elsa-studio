@@ -1,0 +1,47 @@
+@inherits LoginThemeComponentBase
+
+<main class="classic-login-theme"
+      style="@BackgroundStyle"
+      aria-labelledby="elsa-login-heading">
+    <div class="classic-login-theme__utilities">
+        @Context.UtilityLinks
+    </div>
+
+    <div class="classic-login-theme__card">
+        <section class="classic-login-theme__brand" aria-label="@Context.Branding.ApplicationName">
+            @if (!string.IsNullOrWhiteSpace(Context.Branding.LogoUrl))
+            {
+                <img class="classic-login-theme__logo"
+                     src="@Context.Branding.LogoUrl"
+                     alt="" />
+            }
+            else if (!string.IsNullOrWhiteSpace(Context.Branding.ReverseLogoUrl))
+            {
+                <img class="classic-login-theme__logo"
+                     src="@Context.Branding.ReverseLogoUrl"
+                     alt="" />
+            }
+
+            <h1>@Context.Branding.ApplicationName</h1>
+            @if (!string.IsNullOrWhiteSpace(Context.Branding.Tagline))
+            {
+                <p>@Context.Branding.Tagline</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Context.Version))
+            {
+                <span class="classic-login-theme__version">@Context.Version</span>
+            }
+        </section>
+
+        <div class="classic-login-theme__panel">
+            @Context.LoginPanel
+        </div>
+    </div>
+</main>
+
+@code {
+    private string? BackgroundStyle =>
+        string.IsNullOrWhiteSpace(Context.Branding.ClassicBackgroundUrl)
+            ? null
+            : $"background-image: url('{Context.Branding.ClassicBackgroundUrl}')";
+}
