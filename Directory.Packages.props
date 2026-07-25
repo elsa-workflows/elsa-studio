@@ -9,7 +9,9 @@
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
+    <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="9.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" PrivateAssets="all" />
@@ -18,6 +20,7 @@
     <PackageVersion Include="MudBlazor" Version="9.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="MudBlazor.Translations" Version="2.7.0" />
     <PackageVersion Include="Radzen.Blazor" Version="9.0.5" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />

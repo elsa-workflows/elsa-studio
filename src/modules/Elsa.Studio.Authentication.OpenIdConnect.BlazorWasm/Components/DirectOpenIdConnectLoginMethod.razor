@@ -1,0 +1,18 @@
+@implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
+@using MudBlazor
+@inject NavigationManager Navigation
+
+<MudButton FullWidth="true" Variant="Variant.Outlined" Size="Size.Large" OnClick="SignInAsync">
+    Sign in with single sign-on
+</MudButton>
+
+@code {
+    [Parameter, EditorRequired]
+    public Elsa.Studio.Authentication.Abstractions.Models.LoginMethodComponentContext Context { get; set; } = default!;
+
+    private Task SignInAsync()
+    {
+        Navigation.NavigateTo("/authentication/login", forceLoad: true);
+        return Task.CompletedTask;
+    }
+}

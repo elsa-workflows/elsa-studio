@@ -149,6 +149,7 @@ FakesAssemblies/
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 node_modules/
+/tests/browser/**/test-results/
 
 # OpenCover UI analysis results
 OpenCover/

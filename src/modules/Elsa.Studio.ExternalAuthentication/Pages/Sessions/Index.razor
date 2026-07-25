@@ -1,0 +1,138 @@
+@page "/security/external-authentication/sessions"
+@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+
+<PageTitle>External Authentication Sessions</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="External Authentication Sessions" />
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+        Session administration is optional. This page shows only safe session metadata and never exposes tokens, external subjects, or claim snapshots.
+    </MudAlert>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (!_canRead)
+    {
+        <MudAlert Severity="Severity.Warning">You do not have permission to view external authentication sessions.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Outlined="true">
+            <MudStack Row="true" Spacing="2" Class="mb-3">
+                <MudTextField @bind-Value="_userId" Label="User ID" />
+                <MudTextField @bind-Value="_connectionId" Label="Connection ID" />
+                <MudSelect T="string" @bind-Value="_status" Label="Status" Clearable="true">
+                    <MudSelectItem T="string" Value="@("active")">Active</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("revoked")">Revoked</MudSelectItem>
+                </MudSelect>
+                <MudButton Variant="Variant.Outlined" OnClick="ReloadAsync">Apply filters</MudButton>
+            </MudStack>
+            <MudTable T="ExternalAuthenticationSessionSummary" Items="_sessions" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Session</MudTh>
+                    <MudTh>User / connection</MudTh>
+                    <MudTh>Activity</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh aria-label="Actions"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Session">@context.Id</MudTd>
+                    <MudTd DataLabel="User / connection">
+                        <MudText Typo="Typo.body2">@context.UserId</MudText>
+                        <MudText Typo="Typo.caption">@context.ConnectionId</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Activity">
+                        <MudText Typo="Typo.caption">Started @context.StartedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.caption">Refreshed @context.LastRefreshedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.caption">Expires @context.ExpiresAt.ToLocalTime().ToString("g")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)">@context.Status</MudChip></MudTd>
+                    <MudTd>
+                        @if (_canRevoke && !string.Equals(context.Status, "revoked", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <MudButton Color="Color.Error" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ConfirmRevokeAsync(context))">Revoke</MudButton>
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent><MudText>No external authentication sessions match the current filters.</MudText></NoRecordsContent>
+            </MudTable>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private readonly List<ExternalAuthenticationSessionSummary> _sessions = [];
+    private string? _userId;
+    private string? _connectionId;
+    private string? _status;
+    private string? _nextCursor;
+    private bool _loading = true;
+    private bool _canRead;
+    private bool _canRevoke;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canRead = await Permissions.HasAsync(ExternalAuthenticationPermissions.SessionsRead);
+        _canRevoke = await Permissions.HasAsync(ExternalAuthenticationPermissions.SessionsRevoke);
+        if (_canRead)
+            await LoadAsync();
+        _loading = false;
+    }
+
+    private async Task ReloadAsync()
+    {
+        _nextCursor = null;
+        await LoadAsync();
+    }
+
+    private Task NextPageAsync() => LoadAsync(_nextCursor);
+
+    private async Task LoadAsync(string? cursor = null)
+    {
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+            var response = await api.ListSessionsAsync(_userId, _connectionId, _status, cursor, 25);
+            _sessions.Clear();
+            _sessions.AddRange(response.Items);
+            _nextCursor = response.NextCursor;
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("External authentication sessions could not be loaded.", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmRevokeAsync(ExternalAuthenticationSessionSummary session)
+    {
+        var confirmed = await Dialogs.ShowMessageBoxAsync(
+            "Revoke external authentication session?",
+            "The user will need to authenticate again. This action cannot reveal or recover the session's tokens.",
+            yesText: "Revoke",
+            cancelText: "Cancel");
+        if (confirmed != true)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
+            await api.RevokeSessionAsync(session.Id, new RevokeExternalAuthenticationSessionRequest { Reason = "administrator_revoked" });
+            Snackbar.Add("External authentication session revoked.", Severity.Success);
+            await ReloadAsync();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("The external authentication session could not be revoked.", Severity.Error);
+        }
+    }
+
+    private static Color StatusColor(string status) => string.Equals(status, "active", StringComparison.OrdinalIgnoreCase) ? Color.Success : Color.Default;
+}

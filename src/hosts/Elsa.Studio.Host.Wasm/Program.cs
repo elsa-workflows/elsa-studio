@@ -1,6 +1,7 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
@@ -26,7 +27,13 @@ using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Security.Extensions;
+using Elsa.Studio.Settings.Extensions;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
+using Elsa.Studio.ExternalAuthentication.BlazorWasm.Extensions;
+using Elsa.Studio.ExternalAuthentication.BlazorWasm.HttpMessageHandlers;
+using Elsa.Studio.ExternalAuthentication.Extensions;
+using Elsa.Studio.Authentication.Abstractions.Models;
 
 // Build the host.
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -39,10 +46,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.RootComponents.RegisterCustomElsaStudioElements();
 
 // Choose authentication provider.
-// Supported values: "OpenIdConnect" (default) or "ElsaIdentity".
+// Supported values: "OpenIdConnect" (default), "ElsaIdentity", "ElsaLogin", or "ExternalAuthentication".
 var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
     authProvider = "OpenIdConnect";
+if (!Enum.TryParse<StudioAuthenticationProvider>(authProvider, true, out var selectedAuthProvider))
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect', 'ElsaIdentity', 'ElsaLogin', and 'ExternalAuthentication'.");
+builder.Services.AddStudioAuthenticationMode(options => options.Provider = selectedAuthProvider);
 
 Type authenticationHandler;
 
@@ -73,9 +83,16 @@ else if (authProvider.Equals("ElsaLogin", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddLoginModule().UseElsaIdentity();
     authenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
 }
+else if (authProvider.Equals("ExternalAuthentication", StringComparison.OrdinalIgnoreCase))
+{
+    // Elsa-owned broker. WebAssembly is a public client: no client secret is accepted.
+    builder.Services.AddExternalAuthenticationBroker(options =>
+        configuration.GetSection("Authentication:ExternalAuthentication").Bind(options));
+    authenticationHandler = typeof(ExternalAuthenticationAuthenticatingApiHttpMessageHandler);
+}
 else
 {
-    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaIdentity'.");
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect', 'ElsaIdentity', 'ElsaLogin', and 'ExternalAuthentication'.");
 }
 
 // Register shell services and modules.
@@ -92,7 +109,14 @@ var localizationConfig = new LocalizationConfig
 
 services.AddCore();
 services.AddShell();
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    services.AddAuthenticationUI();
 services.AddRemoteBackend(backendApiConfig);
+services.AddSettingsModule();
+services.AddSecurityModule();
+
+// Management UI remains feature-gated by the Elsa backend; broker login is activated only by the provider above.
+services.AddExternalAuthenticationModule(backendApiConfig);
 
 services.AddDashboardModule(backendApiConfig);
 services.AddWeaverModule(backendApiConfig);

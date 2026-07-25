@@ -1,0 +1,201 @@
+@page "/security/external-authentication/identity-links"
+@using Elsa.Studio.ExternalAuthentication.Services
+@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
+@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+
+<PageTitle>External Identity Links</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="External Identity Links" />
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+        Links are tenant-scoped. Elsa stores a keyed subject hash; raw external subjects and provider tokens are never returned.
+    </MudAlert>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (!_canManage)
+    {
+        <MudAlert Severity="Severity.Warning">You do not have permission to manage external identity links.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Class="pa-4 mb-4" Outlined="true">
+            <MudText Typo="Typo.h6">Create a prelink</MudText>
+            <MudText Typo="Typo.caption">The subject is sent once over TLS, transformed to a keyed hash, and never shown again.</MudText>
+            <MudStack Spacing="2" Class="mt-3">
+                <MudTextField @bind-Value="_userSearch" Label="Find Elsa user" Immediate="true" DebounceInterval="300" OnBlur="@(_ => FindUsersAsync())" />
+                <MudSelect T="string" @bind-Value="_prelink.UserId" Label="Elsa user" Required="true">
+                    @foreach (var user in _users)
+                    {
+                        <MudSelectItem T="string" Value="@user.Id">@user.DisplayName</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect T="string" @bind-Value="_prelink.ConnectionId" Label="Identity provider connection" Required="true">
+                    @foreach (var connection in _connections)
+                    {
+                        <MudSelectItem T="string" Value="@connection.Id">@connection.DisplayName (@connection.Key)</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField @bind-Value="_prelink.Issuer" Label="Issuer namespace" InputType="InputType.Url" Required="true" HelperText="For example: https://login.contoso.example" />
+                <MudTextField @bind-Value="_prelink.Subject" Label="External subject" InputType="InputType.Password" Required="true" HelperText="Accepted for this operation only; it will not be returned." />
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="PrelinkAsync">Create prelink</MudButton>
+                @foreach (var error in _prelinkErrors)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">@error</MudText>
+                }
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Class="pa-4" Outlined="true">
+            <MudStack Row="true" Spacing="2" Class="mb-3">
+                <MudTextField @bind-Value="_userIdFilter" Label="Filter by user ID" />
+                <MudTextField @bind-Value="_connectionIdFilter" Label="Filter by connection ID" />
+                <MudButton Variant="Variant.Outlined" OnClick="ReloadAsync">Apply filters</MudButton>
+            </MudStack>
+            <MudTable T="ExternalIdentityLink" Items="_links" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>User</MudTh>
+                    <MudTh>Connection</MudTh>
+                    <MudTh>External identity</MudTh>
+                    <MudTh>Activity</MudTh>
+                    <MudTh aria-label="Actions"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="User">@UserDisplay(context.UserId)</MudTd>
+                    <MudTd DataLabel="Connection">@ConnectionDisplay(context.ConnectionId)</MudTd>
+                    <MudTd DataLabel="External identity">
+                        <MudText Typo="Typo.body2">@context.Issuer</MudText>
+                        <MudText Typo="Typo.caption">@IdentityLinkUiState.SubjectDisplay(context)</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Activity">
+                        <MudText Typo="Typo.caption">Created @context.CreatedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.caption">@(context.LastSignedInAt is null ? "Never signed in" : $"Last sign-in {context.LastSignedInAt.Value.ToLocalTime():g}")</MudText>
+                    </MudTd>
+                    <MudTd>
+                        <MudButton Color="Color.Error" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ConfirmUnlinkAsync(context))">Unlink</MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent><MudText>No links match the current filters.</MudText></NoRecordsContent>
+            </MudTable>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private readonly List<ExternalIdentityLink> _links = [];
+    private readonly List<IdentityLinkUser> _users = [];
+    private readonly List<ConnectionSummary> _connections = [];
+    private readonly List<string> _prelinkErrors = [];
+    private PrelinkExternalIdentityRequest _prelink = new();
+    private string? _userSearch;
+    private string? _userIdFilter;
+    private string? _connectionIdFilter;
+    private string? _nextCursor;
+    private bool _loading = true;
+    private bool _canManage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canManage = await Permissions.HasAsync(ExternalAuthenticationPermissions.ManageLinks);
+        if (_canManage)
+        {
+            await Task.WhenAll(LoadConnectionsAsync(), FindUsersAsync());
+            await LoadLinksAsync();
+        }
+        _loading = false;
+    }
+
+    private async Task LoadConnectionsAsync()
+    {
+        var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
+        var response = await api.ListAsync(pageSize: 100);
+        _connections.Clear();
+        _connections.AddRange(response.Items);
+    }
+
+    private async Task FindUsersAsync()
+    {
+        var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
+        var response = await api.FindUsersAsync(_userSearch, pageSize: 25);
+        _users.Clear();
+        _users.AddRange(response.Items);
+    }
+
+    private async Task ReloadAsync()
+    {
+        _nextCursor = null;
+        await LoadLinksAsync();
+    }
+
+    private Task NextPageAsync() => LoadLinksAsync(_nextCursor);
+
+    private async Task LoadLinksAsync(string? cursor = null)
+    {
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
+            var response = await api.ListAsync(_userIdFilter, _connectionIdFilter, cursor, 25);
+            _links.Clear();
+            _links.AddRange(response.Items);
+            _nextCursor = response.NextCursor;
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task PrelinkAsync()
+    {
+        _prelinkErrors.Clear();
+        _prelinkErrors.AddRange(IdentityLinkUiState.Validate(_prelink));
+        if (_prelinkErrors.Count > 0)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
+            await api.PrelinkAsync(_prelink);
+            _prelink = new();
+            Snackbar.Add("External identity prelinked. The raw subject was not retained by Studio.", Severity.Success);
+            await ReloadAsync();
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task ConfirmUnlinkAsync(ExternalIdentityLink link)
+    {
+        var confirmed = await Dialogs.ShowMessageBoxAsync(
+            "Unlink external identity?",
+            "The user will no longer sign in through this external identity. The archived link record remains available to Elsa's retention policy.",
+            yesText: "Unlink",
+            cancelText: "Cancel");
+        if (confirmed != true)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
+            await api.UnlinkAsync(link.Id);
+            Snackbar.Add("External identity unlinked.", Severity.Success);
+            await ReloadAsync();
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private string UserDisplay(string userId) => _users.FirstOrDefault(x => x.Id == userId)?.DisplayName ?? userId;
+    private string ConnectionDisplay(string connectionId) => _connections.FirstOrDefault(x => x.Id == connectionId)?.DisplayName ?? connectionId;
+}
