@@ -178,6 +178,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Settings", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.UI", "src\modules\Elsa.Studio.Authentication.UI\Elsa.Studio.Authentication.UI.csproj", "{62F4EF97-E9FD-4A80-97A6-8A103D5179BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.UI.Tests", "src\modules\Elsa.Studio.Authentication.UI.Tests\Elsa.Studio.Authentication.UI.Tests.csproj", "{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.Themes", "src\modules\Elsa.Studio.Authentication.Themes\Elsa.Studio.Authentication.Themes.csproj", "{58965D8A-84DB-459B-9A46-44DFA8C6D67A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -909,6 +913,30 @@ Global
 		{62F4EF97-E9FD-4A80-97A6-8A103D5179BA}.Release|x64.Build.0 = Release|Any CPU
 		{62F4EF97-E9FD-4A80-97A6-8A103D5179BA}.Release|x86.ActiveCfg = Release|Any CPU
 		{62F4EF97-E9FD-4A80-97A6-8A103D5179BA}.Release|x86.Build.0 = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|x64.Build.0 = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Debug|x86.Build.0 = Debug|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|x64.ActiveCfg = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|x64.Build.0 = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|x86.ActiveCfg = Release|Any CPU
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1}.Release|x86.Build.0 = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|x64.Build.0 = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Debug|x86.Build.0 = Debug|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x64.ActiveCfg = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x64.Build.0 = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x86.ActiveCfg = Release|Any CPU
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -989,6 +1017,8 @@ Global
 		{19E7529C-2A04-4E0D-873E-13C6E299C1AE} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{A7608041-2203-48EC-91D9-0298EDD373F4} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{62F4EF97-E9FD-4A80-97A6-8A103D5179BA} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{58965D8A-84DB-459B-9A46-44DFA8C6D67A} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8719CC-CF87-45E1-BE1A-13842F951B28}

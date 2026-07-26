@@ -1,0 +1,243 @@
+.elsa-login-panel {
+    background: var(--elsa-login-panel-background, #fff);
+    border: var(--elsa-login-panel-border, 1px solid #d7dde6);
+    border-radius: var(--elsa-login-panel-radius, 1rem);
+    box-shadow: var(--elsa-login-panel-shadow, 0 1rem 2.5rem rgb(15 23 42 / 0.16));
+    color: var(--elsa-login-panel-color, #1f2937);
+    display: flex;
+    flex-direction: column;
+    gap: var(--elsa-login-panel-gap, 1rem);
+    inline-size: var(--elsa-login-panel-width, 100%);
+    max-inline-size: var(--elsa-login-panel-max-width, 28rem);
+    min-inline-size: 0;
+    padding: var(--elsa-login-panel-padding, 2rem);
+}
+
+.elsa-login-panel__intro {
+    color: var(--elsa-login-muted-color, #64748b);
+    margin-block-end: 0.5rem !important;
+}
+
+.elsa-login-panel__methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.elsa-login-panel__method {
+    min-inline-size: 0;
+}
+
+.elsa-login-panel__method > .mud-paper {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: inherit;
+    padding: 0 !important;
+}
+
+.elsa-login-panel__preferred {
+    margin-block-end: 0.35rem;
+}
+
+.elsa-login-panel__divider {
+    align-items: center;
+    color: var(--elsa-login-muted-color, #64748b);
+    display: flex;
+    font-size: 0.8rem;
+    gap: 0.75rem;
+    text-transform: uppercase;
+}
+
+.elsa-login-panel__divider::before,
+.elsa-login-panel__divider::after {
+    background: currentcolor;
+    content: "";
+    flex: 1;
+    height: 1px;
+    opacity: 0.25;
+}
+
+.elsa-login-panel :focus-visible {
+    outline: 3px solid var(--elsa-login-focus-color, #2563eb);
+    outline-offset: 2px;
+}
+
+.elsa-login-panel .mud-input-control:focus-within {
+    border-radius: 0.25rem;
+    outline: 3px solid var(--elsa-login-focus-color, #2563eb);
+    outline-offset: 2px;
+}
+
+.elsa-login-panel .mud-button-filled-primary {
+    background: var(--elsa-login-accent, #2563eb);
+    color: var(--elsa-login-accent-contrast, #fff);
+}
+
+.elsa-login-panel .mud-input,
+.elsa-login-panel .mud-input-slot {
+    color: inherit !important;
+}
+
+.elsa-login-panel .mud-input-label {
+    color: var(--elsa-login-muted-color, #64748b) !important;
+}
+
+.elsa-login-panel .mud-input::before {
+    border-block-end-color: color-mix(in srgb, currentcolor 48%, transparent);
+}
+
+.elsa-login-utilities {
+    align-items: center;
+    display: flex;
+}
+
+.elsa-login-utilities :focus-visible {
+    outline: 3px solid currentcolor;
+    outline-offset: 2px;
+}
+
+.elsa-login-recovery {
+    align-items: center;
+    background: linear-gradient(145deg, #eff6ff, #fff);
+    display: flex;
+    justify-content: center;
+    min-block-size: 100dvh;
+    padding: 1rem;
+}
+
+.elsa-login-recovery__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    inline-size: min(100%, 30rem);
+}
+
+@media (max-width: 640px) {
+    .elsa-login-panel {
+        --elsa-login-panel-padding: 1.5rem;
+    }
+}
+
+.classic-login-theme {
+    --elsa-login-panel-width: 100%;
+    --elsa-login-panel-max-width: none;
+    --elsa-login-panel-padding: clamp(1.75rem, 4vw, 3rem);
+    --elsa-login-panel-gap: 1rem;
+    --elsa-login-panel-radius: 0;
+    --elsa-login-panel-background: #fff;
+    --elsa-login-panel-color: #2c3036;
+    --elsa-login-panel-border: 0;
+    --elsa-login-panel-shadow: none;
+    --elsa-login-accent: #1976d2;
+    --elsa-login-accent-contrast: #fff;
+    --elsa-login-muted-color: #656b74;
+    --elsa-login-focus-color: #0d72bf;
+    align-items: flex-start;
+    background:
+        radial-gradient(circle at 14% 12%, rgb(161 211 250 / 0.8), transparent 34rem),
+        linear-gradient(145deg, #edf7ff, #fff 50%, #d7ecff);
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    min-block-size: 100dvh;
+    padding: clamp(4.75rem, 8vh, 7rem) 1rem 2rem;
+    position: relative;
+}
+
+.classic-login-theme__utilities {
+    color: #515761;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.classic-login-theme__card {
+    border-radius: 1rem;
+    box-sizing: border-box;
+    box-shadow: 0 1rem 2.25rem rgb(20 31 48 / 0.3);
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) minmax(20rem, 1fr);
+    inline-size: min(100%, 50rem);
+    overflow: hidden;
+}
+
+.classic-login-theme__brand {
+    align-items: center;
+    background: #2196ed;
+    box-sizing: border-box;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    min-block-size: 27rem;
+    padding: 2.5rem 2rem 1.75rem;
+    text-align: center;
+}
+
+.classic-login-theme__logo {
+    block-size: 3.25rem;
+    inline-size: 3.25rem;
+    object-fit: contain;
+}
+
+.classic-login-theme__brand h1 {
+    font-size: clamp(2rem, 4vw, 2.65rem);
+    font-weight: 400;
+    line-height: 1.1;
+    margin: 1.25rem 0 0.35rem;
+}
+
+.classic-login-theme__brand h1:focus {
+    outline: none;
+}
+
+.classic-login-theme__brand p {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.classic-login-theme__version {
+    font-size: 0.85rem;
+    margin-block-start: auto;
+    opacity: 0.92;
+}
+
+.classic-login-theme__panel {
+    background: #fff;
+    box-sizing: border-box;
+    min-inline-size: 0;
+}
+
+@media (max-width: 640px) {
+    .classic-login-theme {
+        align-items: center;
+        padding: 3.5rem 1rem 1rem;
+    }
+
+    .classic-login-theme__card {
+        grid-template-columns: minmax(0, 1fr);
+        max-inline-size: 30rem;
+    }
+
+    .classic-login-theme__brand {
+        min-block-size: auto;
+        padding: 1.5rem;
+    }
+
+    .classic-login-theme__brand h1 {
+        font-size: 1.75rem;
+        margin-block-start: 0.75rem;
+    }
+
+    .classic-login-theme__brand p {
+        font-size: 0.95rem;
+    }
+
+    .classic-login-theme__version {
+        margin-block-start: 0.75rem;
+    }
+}

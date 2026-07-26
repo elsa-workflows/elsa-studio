@@ -9,10 +9,8 @@
         <form method="post" action="@LoginCoordinator.LocalLoginAction">
             <input type="hidden" name="@_antiforgeryToken.FormFieldName" value="@_antiforgeryToken.RequestToken" />
             <input type="hidden" name="returnPath" value="@Context.ReturnPath" />
-            <label for="broker-local-username">User name</label>
-            <input id="broker-local-username" name="username" autocomplete="username" />
-            <label for="broker-local-password">Password</label>
-            <input id="broker-local-password" name="password" type="password" autocomplete="current-password" />
+            <MudTextField T="string" name="username" Label="User name" autocomplete="username" Required="true" />
+            <MudTextField T="string" name="password" Label="Password" InputType="InputType.Password" autocomplete="current-password" Required="true" />
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
         </form>
     }

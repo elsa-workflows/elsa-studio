@@ -2,6 +2,8 @@ using Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Options;
+using Elsa.Studio.Authentication.Themes.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
 using Elsa.Studio.Branding;
@@ -39,6 +41,7 @@ using Elsa.Studio.ExternalAuthentication.BlazorServer.HttpMessageHandlers;
 using Elsa.Studio.ExternalAuthentication.Extensions;
 using Elsa.Studio.Authentication.Abstractions.Models;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
@@ -137,7 +140,11 @@ builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
 builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
-    builder.Services.AddAuthenticationUI();
+{
+    builder.Services
+        .AddAuthenticationUI(configuration.GetSection(LoginThemeOptions.SectionName))
+        .AddElsaStudioLoginThemes();
+}
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddSettingsModule();
 builder.Services.AddSecurityModule();
@@ -188,6 +195,9 @@ builder.Services.AddSignalR(options =>
 
 // Build the application.
 var app = builder.Build();
+
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    _ = app.Services.GetRequiredService<IOptions<LoginThemeOptions>>().Value;
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

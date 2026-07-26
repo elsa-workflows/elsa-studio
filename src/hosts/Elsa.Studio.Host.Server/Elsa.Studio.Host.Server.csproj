@@ -19,6 +19,7 @@
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer\Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.UI\Elsa.Studio.Authentication.ElsaIdentity.UI.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.UI\Elsa.Studio.Authentication.UI.csproj" />
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.Themes\Elsa.Studio.Authentication.Themes.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorServer\Elsa.Studio.Login.BlazorServer.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.ExternalAuthentication\Elsa.Studio.ExternalAuthentication.csproj" />
         <ProjectReference Include="..\..\modules\Elsa.Studio.ExternalAuthentication.BlazorServer\Elsa.Studio.ExternalAuthentication.BlazorServer.csproj" />

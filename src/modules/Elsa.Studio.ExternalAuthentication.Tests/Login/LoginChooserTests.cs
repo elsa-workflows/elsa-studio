@@ -1,9 +1,13 @@
 using Bunit;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Models;
+using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Services;
+using Elsa.Studio.Branding;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
+using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using Xunit;
@@ -17,6 +21,9 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
+        Services.AddAuthenticationUI();
+        Services.AddSingleton<IBrandingProvider, DefaultBrandingProvider>();
+        Services.AddSingleton<IClientInformationProvider, StaticClientInformationProvider>();
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
     }
 
@@ -89,6 +96,29 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ServerLocalMethod_UsesStyledFieldsWithoutChangingThePostContract()
+    {
+        Services.AddSingleton<IExternalAuthenticationAntiforgeryTokenProvider>(
+            new FakeAntiforgeryTokenProvider(new("__RequestVerificationToken", "antiforgery-token")));
+        Register(
+            new([Method("local", "Elsa account", "local", 0)], null),
+            localLoginAction: "/authentication/external/local-login");
+
+        var cut = Render<LoginPage>();
+
+        cut.WaitForAssertion(() =>
+        {
+            var form = cut.Find("form[action='/authentication/external/local-login']");
+            Assert.Equal("post", form.GetAttribute("method"));
+            Assert.NotNull(form.QuerySelector("input[name='__RequestVerificationToken'][value='antiforgery-token']"));
+            Assert.NotNull(form.QuerySelector("input[name='returnPath'][value='/']"));
+            Assert.Equal(2, form.QuerySelectorAll(".mud-input-control").Length);
+            Assert.NotNull(form.QuerySelector("input[name='username'][autocomplete='username']"));
+            Assert.NotNull(form.QuerySelector("input[name='password'][type='password'][autocomplete='current-password']"));
+        });
+    }
+
+    [Fact]
     public void MethodFailure_ReturnsToChooserWithSafeError()
     {
         Register(
@@ -150,9 +180,10 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     private FakeCoordinator Register(
         LoginMethodsResponse response,
         bool throwExternal = false,
-        string? securityWarning = null)
+        string? securityWarning = null,
+        string? localLoginAction = null)
     {
-        var coordinator = new FakeCoordinator(response, throwExternal, securityWarning);
+        var coordinator = new FakeCoordinator(response, throwExternal, securityWarning, localLoginAction);
         Services.AddSingleton<IExternalAuthenticationLoginCoordinator>(coordinator);
         Services.AddScoped<ILoginMethodCatalog, ExternalAuthenticationLoginMethodCatalog>();
         Services.AddSingleton<ILoginMethodComponentRegistry>(
@@ -178,10 +209,12 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     private sealed class FakeCoordinator(
         LoginMethodsResponse response,
         bool throwExternal = false,
-        string? securityWarning = null) : IExternalAuthenticationLoginCoordinator
+        string? securityWarning = null,
+        string? localLoginAction = null) : IExternalAuthenticationLoginCoordinator
     {
         public int ExternalBegins { get; private set; }
         public string? SecurityWarning => securityWarning;
+        public string? LocalLoginAction => localLoginAction;
 
         public ValueTask<LoginMethodsResponse> DiscoverAsync(CancellationToken cancellationToken = default) =>
             ValueTask.FromResult(response);
@@ -201,5 +234,10 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             string returnPath,
             CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
+    }
+
+    private sealed class FakeAntiforgeryTokenProvider(ExternalAuthenticationAntiforgeryToken token) : IExternalAuthenticationAntiforgeryTokenProvider
+    {
+        public ExternalAuthenticationAntiforgeryToken GetToken() => token;
     }
 }

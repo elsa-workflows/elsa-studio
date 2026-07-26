@@ -31,6 +31,7 @@
       <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm\Elsa.Studio.Authentication.ElsaIdentity.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.ElsaIdentity.UI\Elsa.Studio.Authentication.ElsaIdentity.UI.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.UI\Elsa.Studio.Authentication.UI.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.Themes\Elsa.Studio.Authentication.Themes.csproj" />
 
       <ProjectReference Include="..\..\modules\Elsa.Studio.Alterations\Elsa.Studio.Alterations.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />

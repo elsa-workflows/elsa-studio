@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\framework\Elsa.Studio.Shell\Elsa.Studio.Shell.csproj"/>
+        <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.Themes\Elsa.Studio.Authentication.Themes.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Authentication.UI\Elsa.Studio.Authentication.UI.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.AI\Elsa.Studio.AI.csproj"/>
         <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj"/>
