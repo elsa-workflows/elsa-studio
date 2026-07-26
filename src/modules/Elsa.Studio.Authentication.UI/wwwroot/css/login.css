@@ -28,6 +28,12 @@
     min-inline-size: 0;
 }
 
+.elsa-login-panel__method form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
 .elsa-login-panel__method > .mud-paper {
     background: transparent;
     border: 0;
