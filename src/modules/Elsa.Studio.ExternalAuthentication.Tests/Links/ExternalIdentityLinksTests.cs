@@ -143,7 +143,15 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
             Assert.Contains("Create external identity link", _dialogProvider.Markup);
             Assert.Contains("External subject", _dialogProvider.Markup);
             Assert.Contains("type=\"password\"", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+            var dialog = _dialogProvider.FindComponent<MudDialogContainer>();
+            var options = ((IMudDialogInstance)dialog.Instance).Options;
+            Assert.True(options.CloseButton is true);
+            Assert.True(options.CloseOnEscapeKey is true);
+            Assert.NotEqual(false, options.BackdropClick);
         });
+        _dialogProvider.Find("button[aria-label='Show external subject']").Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("type=\"text\"", _dialogProvider.Find("input[autocomplete=off]").OuterHtml, StringComparison.OrdinalIgnoreCase));
+        _dialogProvider.Find("button[aria-label='Hide external subject']").Click();
         _dialogProvider.Find("input[type=password]").Change("must-not-survive-close");
         _dialogProvider.FindAll("button").Single(button => button.TextContent.Trim() == "Cancel").Click();
 
@@ -198,6 +206,11 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
             Assert.NotNull(_links.PrelinkRequest);
             var save = _dialogProvider.FindAll("button").Single(button => button.TextContent.Trim() == "Create link");
             Assert.True(save.HasAttribute("disabled"));
+            var dialog = _dialogProvider.FindComponent<MudDialogContainer>();
+            var options = ((IMudDialogInstance)dialog.Instance).Options;
+            Assert.False(options.CloseButton);
+            Assert.False(options.CloseOnEscapeKey);
+            Assert.False(options.BackdropClick);
         });
 
         _links.PrelinkCompletion.SetResult(new ExternalIdentityLink(
@@ -260,7 +273,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SupportedNotFoundStaysOpenWhenTheOriginalLinkStillExists()
+    public async Task StructuredNotFoundStaysOpenWhenTheOriginalLinkStillExists()
     {
         var cut = RenderPageWithOneLink();
         var original = _links.ListedLinks.Single();

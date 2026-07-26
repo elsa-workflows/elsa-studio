@@ -130,6 +130,7 @@
         _submitting = true;
         try
         {
+            await SetDismissalAsync(false);
             var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
             if (ExistingLink is null)
             {
@@ -140,12 +141,13 @@
                 await api.ReplaceAsync(ExistingLink.Id, (ReplaceExternalIdentityLinkRequest)_request);
             }
 
+            await FinishSubmittingAsync();
             ClearSubject();
             MudDialog.Close(DialogResult.Ok(IdentityLinkDialogOutcome.Saved));
         }
-        catch (ApiException exception) when (IsEditing && exception.StatusCode == HttpStatusCode.NotFound && IsSupportedNotFound(exception.Content))
+        catch (ApiException exception) when (IsEditing && exception.StatusCode == HttpStatusCode.NotFound && IsStructuredNotFound(exception.Content))
         {
-            await HandleSupportedNotFoundAsync();
+            await HandleStructuredNotFoundAsync();
         }
         catch (ApiException exception) when (IsEditing && exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -163,12 +165,15 @@
         }
         finally
         {
-            _submitting = false;
+            await FinishSubmittingAsync();
         }
     }
 
     private void Cancel()
     {
+        if (_submitting)
+            return;
+
         ClearSubject();
         MudDialog.Cancel();
     }
@@ -201,7 +206,7 @@
 
     public void Dispose() => ClearSubject();
 
-    private async Task HandleSupportedNotFoundAsync()
+    private async Task HandleStructuredNotFoundAsync()
     {
         try
         {
@@ -211,6 +216,7 @@
                 return;
             }
 
+            await FinishSubmittingAsync();
             ClearSubject();
             MudDialog.Close(DialogResult.Ok(IdentityLinkDialogOutcome.Stale));
         }
@@ -236,7 +242,24 @@
         return false;
     }
 
-    private static bool IsSupportedNotFound(string? content)
+    private async Task FinishSubmittingAsync()
+    {
+        if (!_submitting)
+            return;
+
+        _submitting = false;
+        await SetDismissalAsync(true);
+    }
+
+    private Task SetDismissalAsync(bool enabled) =>
+        MudDialog.SetOptionsAsync(MudDialog.Options with
+        {
+            CloseButton = enabled,
+            CloseOnEscapeKey = enabled,
+            BackdropClick = enabled
+        });
+
+    private static bool IsStructuredNotFound(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
             return false;
