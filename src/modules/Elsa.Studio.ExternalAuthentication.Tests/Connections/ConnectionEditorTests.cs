@@ -77,6 +77,54 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void TagsArrayField_AllowsAddingAValueWhenNoOptionsAreProvided()
+    {
+        var settings = new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.Ordinal)
+        {
+            ["scopes"] = System.Text.Json.JsonSerializer.SerializeToElement(Array.Empty<string>())
+        };
+        var cut = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, new ConnectionFieldDescriptor
+            {
+                Name = "scopes",
+                DisplayName = "Scopes",
+                ValueType = "string-array",
+                UiHint = "tags"
+            })
+            .Add(component => component.Settings, settings));
+
+        cut.Find("input").Input("email");
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Add", StringComparison.Ordinal)).Click();
+
+        Assert.Equal(["email"], settings["scopes"].EnumerateArray().Select(item => item.GetString()));
+    }
+
+    [Fact]
+    public async Task StringArrayField_WithAllowedValuesUsesMultiSelectAndPreservesArrayValues()
+    {
+        var settings = new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.Ordinal);
+        var field = new ConnectionFieldDescriptor
+        {
+            Name = "scopes",
+            DisplayName = "Scopes",
+            ValueType = "string-array",
+            AllowedValues = ["profile", "email"]
+        };
+        var cut = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, field)
+            .Add(component => component.Settings, settings));
+
+        var select = cut.FindComponent<MudSelect<string>>().Instance;
+        Assert.True(select.MultiSelection);
+        Assert.Equal(["profile", "email"], cut.FindComponents<MudSelectItem<string>>().Select(item => item.Instance.Value));
+
+        await cut.InvokeAsync(() => select.SelectedValuesChanged.InvokeAsync(["profile", "email"]));
+
+        Assert.Empty(DescriptorEditorState.Validate(field, settings));
+        Assert.Equal(["profile", "email"], settings["scopes"].EnumerateArray().Select(item => item.GetString()));
+    }
+
+    [Fact]
     public void PolicyEditor_UsesRoleOptionsAndFailsClosedWhenTheyAreUnavailable()
     {
         var descriptor = new UnlinkedIdentityPolicyDescriptor
