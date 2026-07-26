@@ -81,7 +81,7 @@ test('login chooser accepts only same-origin assets and preserves a text fallbac
   await expect(fallbackMethod.locator('[aria-hidden="true"]')).toHaveText('identity provider');
 });
 
-test('management surfaces expose named landmarks, filters, tables, and row actions', async ({ page }) => {
+test('management surfaces expose named landmarks, filters, tables, pagination, and row actions', async ({ page }) => {
   await page.goto('/security/external-authentication/connections');
   await expect(page.getByRole('main')).toHaveAttribute('aria-labelledby', 'connections-heading');
   await expect(page.getByRole('heading', { level: 1, name: 'Identity provider connections' })).toBeVisible();
@@ -94,9 +94,103 @@ test('management surfaces expose named landmarks, filters, tables, and row actio
   await page.goto('/security/external-authentication/identity-links');
   await expect(page.getByRole('main')).toHaveAttribute('aria-labelledby', 'identity-links-heading');
   await expect(page.getByRole('heading', { level: 1, name: 'External Identity Links' })).toBeVisible();
-  await expect(page.getByLabel('Find Elsa user')).toBeVisible();
-  await expect(page.getByLabel('Issuer namespace')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('tenant-scoped');
+  await expect(page.getByLabel('Filter by user ID')).toBeVisible();
+  await expect(page.getByLabel('Filter by connection key')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create link' })).toBeVisible();
   await expect(page.getByRole('table', { name: 'External identity links' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Actions' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Edit link for Ada Lovelace via Contoso' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Unlink Ada Lovelace from Contoso' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'External identity links pagination' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Next page' })).toBeVisible();
+  await expect(page.locator('main form')).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText(/prelink/i);
+
+  const createToolbar = page.locator('.identity-links-toolbar');
+  expect(await createToolbar.evaluate(element => getComputedStyle(element).justifyContent)).toBe('flex-end');
+});
+
+test('creating an external identity link uses a responsive, keyboard-operable dialog', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/security/external-authentication/identity-links');
+
+  const create = page.getByRole('button', { name: 'Create link' });
+  await create.click();
+
+  const dialog = page.getByRole('dialog', { name: 'Create external identity link' });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByLabel('Find Elsa user')).toBeFocused();
+  await expect(dialog.getByLabel('Elsa user', { exact: true })).toBeVisible();
+  await expect(dialog.getByLabel('Identity provider connection')).toBeVisible();
+  await expect(dialog.getByLabel('Issuer namespace')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Create link' })).toBeVisible();
+
+  const dialogBox = await dialog.boundingBox();
+  expect(dialogBox).not.toBeNull();
+  expect(dialogBox!.width).toBeLessThanOrEqual(390);
+  expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
+  expect(Math.abs(dialogBox!.x - ((390 - dialogBox!.width) / 2))).toBeLessThanOrEqual(2);
+
+  await dialog.getByLabel('External subject', { exact: true }).fill('discard-on-escape');
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(create).toBeFocused();
+  await create.click();
+  await expect(dialog.getByLabel('External subject', { exact: true })).toHaveValue('');
+  await page.keyboard.press('Escape');
+});
+
+test('editing a link replaces it through the shared dialog without retaining the raw subject', async ({ page }) => {
+  await page.goto('/security/external-authentication/identity-links');
+
+  const edit = page.getByRole('button', { name: 'Edit link for Ada Lovelace via Contoso' });
+  expect(await edit.evaluate(element => element.nextElementSibling?.getAttribute('aria-label')))
+    .toBe('Unlink Ada Lovelace from Contoso');
+  await edit.click();
+
+  const dialog = page.getByRole('dialog', { name: 'Edit external identity link' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Elsa user', { exact: true })).toHaveValue('ada');
+  await expect(dialog.getByLabel('Identity provider connection')).toHaveValue('contoso');
+  await expect(dialog.getByLabel('Issuer namespace')).toHaveValue('https://login.contoso.example');
+
+  const subject = dialog.getByLabel('External subject', { exact: true });
+  await expect(subject).toHaveValue('');
+  await expect(subject).toHaveAttribute('type', 'password');
+  await expect(subject).toHaveAttribute('required', '');
+  await expect(subject).toHaveAttribute('autocomplete', 'off');
+  await expect(dialog.getByRole('button', { name: 'Show external subject' })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Show external subject' }).click();
+  await expect(subject).toHaveAttribute('type', 'text');
+  await expect(dialog.getByRole('button', { name: 'Hide external subject' })).toBeVisible();
+
+  const warning = dialog.getByRole('alert');
+  await expect(warning).toContainText('creates a new external identity link');
+  await expect(warning).toContainText('resets its sign-in history');
+  await expect(warning).toContainText('cannot be undone');
+  await expect(dialog.getByRole('button', { name: 'Replace link' })).toBeVisible();
+
+  await subject.fill('subject-that-must-not-persist');
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(edit).toBeFocused();
+
+  await edit.click();
+  await expect(subject).toHaveValue('');
+  await expect(subject).toHaveAttribute('type', 'password');
+  await dialog.getByRole('button', { name: 'Close link dialog' }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(edit).toBeFocused();
+});
+
+test('unlink confirmation describes the sign-in consequence without an archival-retention claim', async ({ page }) => {
+  await page.goto('/security/external-authentication/identity-links');
+  await page.getByRole('button', { name: 'Unlink Ada Lovelace from Contoso' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Unlink external identity?' });
+  await expect(dialog).toContainText('will no longer sign in through this external identity');
+  await expect(dialog).not.toContainText(/archiv|retention/i);
+  await expect(dialog.getByRole('button', { name: 'Unlink' })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible();
 });
