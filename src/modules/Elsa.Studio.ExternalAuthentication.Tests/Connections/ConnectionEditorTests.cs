@@ -536,7 +536,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("SSO connections", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Identity provider connections", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Search connections", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Include archived", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
@@ -548,15 +548,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task Menu_IsVisibleOnlyWhenFeatureAndReadPermissionAreAvailable()
+    public async Task SecurityMenu_PlacesIdentityProviderConnectionsFirstWhenReadIsAllowed()
     {
-        var menu = new ExternalAuthenticationSettingsSectionProvider(new FeatureProvider(true), new PermissionService(true));
+        var menu = new ExternalAuthenticationSecurityMenuContributor(new FeatureProvider(true), new ReadOnlyPermissionService());
 
-        var visible = await menu.GetSectionsAsync();
-        var item = Assert.Single(visible, candidate => candidate.Href == "settings/sso-connections");
-        Assert.Equal("settings/sso-connections", item.Href);
+        var item = Assert.Single(await menu.GetMenuItemsAsync());
+        Assert.Equal("security/external-authentication/connections", item.Href);
+        Assert.Equal("Identity provider connections", item.Text);
+        Assert.Equal(100, item.Order);
 
-        var hidden = await new ExternalAuthenticationSettingsSectionProvider(new FeatureProvider(true), new PermissionService(false)).GetSectionsAsync();
+        var hidden = await new ExternalAuthenticationSecurityMenuContributor(new FeatureProvider(true), new PermissionService(false)).GetMenuItemsAsync();
         Assert.Empty(hidden);
     }
 
@@ -605,6 +606,15 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) => ValueTask.FromResult(allowed);
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
             ValueTask.FromResult<IReadOnlySet<string>>(allowed ? new HashSet<string>(["*"], StringComparer.Ordinal) : new HashSet<string>(StringComparer.Ordinal));
+    }
+
+    private sealed class ReadOnlyPermissionService : IExternalAuthenticationPermissionService
+    {
+        public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(permission == ExternalAuthenticationPermissions.Read);
+
+        public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult<IReadOnlySet<string>>(new HashSet<string>([ExternalAuthenticationPermissions.Read], StringComparer.Ordinal));
     }
 
     private sealed class CustomEditorRegistration(string key, int contractVersion, Type componentType) : ICustomConnectionEditorRegistration

@@ -1,7 +1,5 @@
-@page "/settings/sso-connections/new"
-@page "/settings/sso-connections/{ConnectionId}"
-@page "/security/external-authentication/new"
-@page "/security/external-authentication/{ConnectionId}"
+@page "/security/external-authentication/connections/new"
+@page "/security/external-authentication/connections/{ConnectionId}"
 @using System.Text.Json
 @using ApiException = Refit.ApiException
 @using Elsa.Studio.ExternalAuthentication.Services
@@ -16,7 +14,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudStack Spacing="3">
-        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">SSO connections</MudButton>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">Identity provider connections</MudButton>
         <PageHeading Text="@(IsNew ? "Create identity provider connection" : _connection?.DisplayName ?? "Identity Provider Connection")" />
         @if (_loading)
         {
@@ -256,7 +254,7 @@
 
                 var created = await api.CreateAsync(mutation);
                 Snackbar.Add("Connection draft created.", Severity.Success);
-                Navigation.NavigateTo($"settings/sso-connections/{Uri.EscapeDataString(created.Id)}", replace: true);
+                Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(created.Id)}", replace: true);
                 return;
             }
 
@@ -575,5 +573,5 @@
         Snackbar.Add("A complete database-owned copy is ready. Review every field and reconfigure its secrets after saving the draft.", Severity.Info);
     }
 
-    private void Back() => Navigation.NavigateTo("settings/sso-connections");
+    private void Back() => Navigation.NavigateTo("security/external-authentication/connections");
 }

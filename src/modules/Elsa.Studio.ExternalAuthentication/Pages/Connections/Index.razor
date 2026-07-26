@@ -1,5 +1,4 @@
-@page "/settings/sso-connections"
-@page "/security/external-authentication"
+@page "/security/external-authentication/connections"
 @using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
@@ -7,10 +6,10 @@
 @inject IDialogService Dialogs
 @inject ISnackbar Snackbar
 
-<PageTitle>SSO connections</PageTitle>
+<PageTitle>Identity provider connections</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="SSO connections" />
+    <PageHeading Text="Identity provider connections" />
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
         Configuration-owned connections are shown for diagnosis but can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.
     </MudAlert>
@@ -170,8 +169,8 @@
         }
     }
 
-    private void CreateAsync() => Navigation.NavigateTo("settings/sso-connections/new");
-    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"settings/sso-connections/{Uri.EscapeDataString(connection.Id)}");
+    private void CreateAsync() => Navigation.NavigateTo("security/external-authentication/connections/new");
+    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(connection.Id)}");
     private async Task ToggleEnabledAsync(ConnectionSummary connection)
     {
         if (!ConnectionActionAvailability.CanEnableOrDisable(connection, _canUpdate))

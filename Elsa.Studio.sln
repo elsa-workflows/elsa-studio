@@ -182,6 +182,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Authentication.Themes", "src\modules\Elsa.Studio.Authentication.Themes\Elsa.Studio.Authentication.Themes.csproj", "{58965D8A-84DB-459B-9A46-44DFA8C6D67A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elsa.Studio.Administration.Tests", "src\modules\Elsa.Studio.Administration.Tests\Elsa.Studio.Administration.Tests.csproj", "{CB8DF4EC-315E-4432-97CE-CD1A58981E70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -937,6 +939,18 @@ Global
 		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x64.Build.0 = Release|Any CPU
 		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x86.ActiveCfg = Release|Any CPU
 		{58965D8A-84DB-459B-9A46-44DFA8C6D67A}.Release|x86.Build.0 = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Debug|x86.Build.0 = Debug|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|x64.Build.0 = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1019,6 +1033,7 @@ Global
 		{62F4EF97-E9FD-4A80-97A6-8A103D5179BA} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{E7D2582D-C3CB-4AAB-B3FC-6496FB91FBD1} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 		{58965D8A-84DB-459B-9A46-44DFA8C6D67A} = {D66B9A40-8608-46F3-9868-625C50EACE43}
+		{CB8DF4EC-315E-4432-97CE-CD1A58981E70} = {D66B9A40-8608-46F3-9868-625C50EACE43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8719CC-CF87-45E1-BE1A-13842F951B28}

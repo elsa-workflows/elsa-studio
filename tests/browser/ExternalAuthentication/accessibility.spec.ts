@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const surfaces = [
   { path: '/login?choose=true', name: 'login chooser' },
-  { path: '/settings/sso-connections', name: 'connection management' },
+  { path: '/security/external-authentication/connections', name: 'connection management' },
   { path: '/security/external-authentication/identity-links', name: 'identity-link management' }
 ];
 
@@ -82,9 +82,9 @@ test('login chooser accepts only same-origin assets and preserves a text fallbac
 });
 
 test('management surfaces expose named landmarks, filters, tables, and row actions', async ({ page }) => {
-  await page.goto('/settings/sso-connections');
+  await page.goto('/security/external-authentication/connections');
   await expect(page.getByRole('main')).toHaveAttribute('aria-labelledby', 'connections-heading');
-  await expect(page.getByRole('heading', { level: 1, name: 'SSO connections' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Identity provider connections' })).toBeVisible();
   await expect(page.getByLabel('Search connections')).toBeVisible();
   await expect(page.getByLabel('Source')).toBeVisible();
   await expect(page.getByRole('table', { name: 'Identity provider connections' })).toBeVisible();

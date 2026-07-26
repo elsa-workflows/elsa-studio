@@ -69,7 +69,7 @@ const renderLogin = () => {
 const renderConnections = () => {
   document.body.innerHTML = \`
     <main aria-labelledby="connections-heading">
-      <h1 id="connections-heading">SSO connections</h1>
+      <h1 id="connections-heading">Identity provider connections</h1>
       <p role="status">Configuration-owned connections are read-only. Database connections can be managed here.</p>
       <label for="connection-search">Search connections</label>
       <input id="connection-search" type="search">
@@ -143,7 +143,7 @@ const restore = () => {
 };
 const path = location.pathname;
 if (path === '/login') renderLogin();
-else if (path === '/settings/sso-connections' || path === '/security/external-authentication') renderConnections();
+else if (path === '/security/external-authentication/connections') renderConnections();
 else if (path === '/security/external-authentication/identity-links') renderIdentityLinks();
 else if (path === '/__external-authentication-fixture/sign-in') signIn(new URLSearchParams(location.search));
 else if (path === '/__external-authentication-fixture/reuse-rotated-refresh-token') {
