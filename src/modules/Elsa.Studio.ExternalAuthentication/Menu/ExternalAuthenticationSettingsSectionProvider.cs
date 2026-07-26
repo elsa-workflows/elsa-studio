@@ -14,8 +14,10 @@ public sealed class ExternalAuthenticationSettingsSectionProvider(
 {
     public async ValueTask<IEnumerable<SettingsSectionDescriptor>> GetSectionsAsync(CancellationToken cancellationToken = default)
     {
-        if (!await remoteFeatures.IsEnabledOrDefaultAsync(Feature.RemoteFeatureName, cancellationToken) ||
-            !await permissions.HasAsync(ExternalAuthenticationPermissions.Read, cancellationToken))
+        var isRemoteFeatureEnabled = await remoteFeatures.IsEnabledOrDefaultAsync(Feature.RemoteFeatureName, cancellationToken);
+        var hasReadPermission = await permissions.HasAsync(ExternalAuthenticationPermissions.Read, cancellationToken);
+
+        if (!isRemoteFeatureEnabled || !hasReadPermission)
             return [];
 
         return

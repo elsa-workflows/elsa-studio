@@ -1,6 +1,7 @@
+@using Variant = MudBlazor.Variant
 @implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
-@inject Elsa.Studio.Authentication.ElsaIdentity.Contracts.IJwtAccessor JwtAccessor
-@inject Elsa.Studio.Authentication.ElsaIdentity.Contracts.ICredentialsValidator CredentialsValidator
+@inject Contracts.IJwtAccessor JwtAccessor
+@inject Contracts.ICredentialsValidator CredentialsValidator
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
@@ -15,7 +16,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Elsa.Studio.Authentication.Abstractions.Models.LoginMethodComponentContext Context { get; set; } = default!;
+    public Elsa.Studio.Authentication.Abstractions.Models.LoginMethodComponentContext Context { get; set; } = null!;
 
     private MudForm _form = default!;
     private string _username = string.Empty;

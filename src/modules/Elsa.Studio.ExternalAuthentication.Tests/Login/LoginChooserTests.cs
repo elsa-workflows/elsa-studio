@@ -1,14 +1,18 @@
 using Bunit;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Authentication.Abstractions.Models;
+using Elsa.Studio.Authentication.UI.Components;
 using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Services;
 using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
 using LoginPage = Elsa.Studio.Authentication.UI.Pages.Login;
@@ -24,6 +28,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
         Services.AddAuthenticationUI();
         Services.AddSingleton<IBrandingProvider, DefaultBrandingProvider>();
         Services.AddSingleton<IClientInformationProvider, StaticClientInformationProvider>();
+        Services.AddSingleton<ILocalizer, TestLocalizer>();
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
     }
 
@@ -50,7 +55,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             [Method("contoso", "Contoso", "external", 0, isDefault: true)],
             "contoso"));
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() =>
         {
@@ -85,7 +90,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             [Method("local", "Elsa account", "local", 0), Method("github", "GitHub", "external", 1)],
             null));
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() =>
         {
@@ -104,7 +109,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             new([Method("local", "Elsa account", "local", 0)], null),
             localLoginAction: "/authentication/external/local-login");
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() =>
         {
@@ -125,7 +130,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             new([Method("contoso", "Contoso", "external", 0)], null),
             throwExternal: true);
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
         cut.WaitForAssertion(() => Assert.Contains("Sign in with Contoso", cut.Markup));
         cut.FindAll("button").Single(x => x.TextContent.Contains("Sign in with Contoso", StringComparison.Ordinal)).Click();
 
@@ -138,7 +143,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     {
         Register(new([], null));
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() => Assert.Contains("No sign-in methods are currently available", cut.Markup));
     }
@@ -150,7 +155,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             new([Method("contoso", "Contoso", "external", 0)], null),
             securityWarning: "Credentials are stored in this browser.");
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() =>
         {
@@ -167,7 +172,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             Method("contoso", "Contoso", "external", 2, iconId: "https://untrusted.example/icon.svg")
         ], null));
 
-        var cut = Render<LoginPage>();
+        var cut = RenderLoginPage();
 
         cut.WaitForAssertion(() =>
         {
@@ -195,6 +200,14 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<ILoginMethodIconRegistry>(
             new LoginMethodIconRegistry([new BuiltInLoginMethodIconProvider()]));
         return coordinator;
+    }
+
+    private IRenderedComponent<LoginPage> RenderLoginPage()
+    {
+        Render<MudPopoverProvider>();
+        var page = Render<LoginPage>();
+        page.FindComponent<LoginThemeHost>().WaitForElement("main");
+        return page;
     }
 
     private static LoginMethodDescriptor Method(
@@ -239,5 +252,11 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     private sealed class FakeAntiforgeryTokenProvider(ExternalAuthenticationAntiforgeryToken token) : IExternalAuthenticationAntiforgeryTokenProvider
     {
         public ExternalAuthenticationAntiforgeryToken GetToken() => token;
+    }
+
+    private sealed class TestLocalizer : ILocalizer
+    {
+        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
+        public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
     }
 }
