@@ -4,17 +4,20 @@ namespace Elsa.Studio.ExternalAuthentication.Services;
 
 public static class IdentityLinkUiState
 {
-    public static IReadOnlyCollection<string> Validate(PrelinkExternalIdentityRequest request)
+    public static IReadOnlyCollection<string> Validate(ExternalIdentityLinkMutationRequest request)
     {
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(request.UserId))
             errors.Add("Select an Elsa user.");
-        if (string.IsNullOrWhiteSpace(request.ConnectionId))
+        if (string.IsNullOrWhiteSpace(request.ConnectionKey))
             errors.Add("Select an identity provider connection.");
-        if (!Uri.TryCreate(request.Issuer, UriKind.Absolute, out var issuer) || issuer.Scheme != Uri.UriSchemeHttps)
-            errors.Add("Issuer must be an absolute HTTPS URI.");
-        if (string.IsNullOrWhiteSpace(request.Subject) || request.Subject.Length > 2048)
-            errors.Add("Subject is required and must not exceed 2048 characters.");
+        if (!Uri.TryCreate(request.Issuer, UriKind.Absolute, out var issuer) ||
+            issuer.Scheme != Uri.UriSchemeHttps ||
+            !string.IsNullOrEmpty(issuer.Query) ||
+            !string.IsNullOrEmpty(issuer.Fragment))
+            errors.Add("Issuer must be an absolute HTTPS URI without a query string or fragment.");
+        if (string.IsNullOrWhiteSpace(request.Subject) || request.Subject.Length > 4096)
+            errors.Add("Subject is required and must not exceed 4096 characters.");
         return errors;
     }
 

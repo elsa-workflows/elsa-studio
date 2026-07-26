@@ -1,4 +1,5 @@
 @page "/security/external-authentication/identity-links"
+@using Elsa.Studio.ExternalAuthentication.Components.IdentityLinks
 @using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
@@ -23,40 +24,21 @@
     }
     else
     {
-        <MudPaper Class="pa-4 mb-4" Outlined="true">
-            <MudText Typo="Typo.h6">Create a prelink</MudText>
-            <MudText Typo="Typo.caption">The subject is sent once over TLS, transformed to a keyed hash, and never shown again.</MudText>
-            <MudStack Spacing="2" Class="mt-3">
-                <MudTextField @bind-Value="_userSearch" Label="Find Elsa user" Immediate="true" DebounceInterval="300" OnBlur="@(_ => FindUsersAsync())" />
-                <MudSelect T="string" @bind-Value="_prelink.UserId" Label="Elsa user" Required="true">
-                    @foreach (var user in _users)
-                    {
-                        <MudSelectItem T="string" Value="@user.Id">@user.DisplayName</MudSelectItem>
-                    }
-                </MudSelect>
-                <MudSelect T="string" @bind-Value="_prelink.ConnectionId" Label="Identity provider connection" Required="true">
-                    @foreach (var connection in _connections)
-                    {
-                        <MudSelectItem T="string" Value="@connection.Id">@connection.DisplayName (@connection.Key)</MudSelectItem>
-                    }
-                </MudSelect>
-                <MudTextField @bind-Value="_prelink.Issuer" Label="Issuer namespace" InputType="InputType.Url" Required="true" HelperText="For example: https://login.contoso.example" />
-                <MudTextField @bind-Value="_prelink.Subject" Label="External subject" InputType="InputType.Password" Required="true" HelperText="Accepted for this operation only; it will not be returned." />
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="PrelinkAsync">Create prelink</MudButton>
-                @foreach (var error in _prelinkErrors)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Error">@error</MudText>
-                }
-            </MudStack>
-        </MudPaper>
-
         <MudPaper Class="pa-4" Outlined="true">
-            <MudStack Row="true" Spacing="2" Class="mb-3">
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.End" Class="mb-3">
                 <MudTextField @bind-Value="_userIdFilter" Label="Filter by user ID" />
-                <MudTextField @bind-Value="_connectionIdFilter" Label="Filter by connection ID" />
+                <MudTextField @bind-Value="_connectionKeyFilter" Label="Filter by connection key" />
                 <MudButton Variant="Variant.Outlined" OnClick="ReloadAsync">Apply filters</MudButton>
+                <MudSpacer />
+                <MudButton
+                    Color="Color.Primary"
+                    Variant="Variant.Filled"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    OnClick="@(() => OpenLinkDialogAsync())">
+                    Create link
+                </MudButton>
             </MudStack>
-            <MudTable T="ExternalIdentityLink" Items="_links" Dense="true" Hover="true">
+            <MudTable T="ExternalIdentityLink" Items="_links" Dense="true" Hover="true" aria-label="External identity links">
                 <HeaderContent>
                     <MudTh>User</MudTh>
                     <MudTh>Connection</MudTh>
@@ -66,7 +48,7 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="User">@UserDisplay(context.UserId)</MudTd>
-                    <MudTd DataLabel="Connection">@ConnectionDisplay(context.ConnectionId)</MudTd>
+                    <MudTd DataLabel="Connection">@ConnectionDisplay(context.ConnectionKey)</MudTd>
                     <MudTd DataLabel="External identity">
                         <MudText Typo="Typo.body2">@context.Issuer</MudText>
                         <MudText Typo="Typo.caption">@IdentityLinkUiState.SubjectDisplay(context)</MudText>
@@ -76,14 +58,30 @@
                         <MudText Typo="Typo.caption">@(context.LastSignedInAt is null ? "Never signed in" : $"Last sign-in {context.LastSignedInAt.Value.ToLocalTime():g}")</MudText>
                     </MudTd>
                     <MudTd>
-                        <MudButton Color="Color.Error" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ConfirmUnlinkAsync(context))">Unlink</MudButton>
+                        <MudButton
+                            Variant="Variant.Text"
+                            Size="Size.Small"
+                            aria-label="@($"Edit link for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")"
+                            OnClick="@(() => OpenLinkDialogAsync(context))">
+                            Edit
+                        </MudButton>
+                        <MudButton
+                            Color="Color.Error"
+                            Variant="Variant.Text"
+                            Size="Size.Small"
+                            aria-label="@($"Unlink {UserDisplay(context.UserId)} from {ConnectionDisplay(context.ConnectionKey)}")"
+                            OnClick="@(() => ConfirmUnlinkAsync(context))">
+                            Unlink
+                        </MudButton>
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No links match the current filters.</MudText></NoRecordsContent>
             </MudTable>
-            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
-                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
-            </MudStack>
+            <nav aria-label="External identity links pagination">
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                    <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+                </MudStack>
+            </nav>
         </MudPaper>
     }
 </MudContainer>
@@ -92,11 +90,8 @@
     private readonly List<ExternalIdentityLink> _links = [];
     private readonly List<IdentityLinkUser> _users = [];
     private readonly List<ConnectionSummary> _connections = [];
-    private readonly List<string> _prelinkErrors = [];
-    private PrelinkExternalIdentityRequest _prelink = new();
-    private string? _userSearch;
     private string? _userIdFilter;
-    private string? _connectionIdFilter;
+    private string? _connectionKeyFilter;
     private string? _nextCursor;
     private bool _loading = true;
     private bool _canManage;
@@ -115,15 +110,20 @@
     private async Task LoadConnectionsAsync()
     {
         var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-        var response = await api.ListAsync(pageSize: 100);
         _connections.Clear();
-        _connections.AddRange(response.Items);
+        string? cursor = null;
+        do
+        {
+            var response = await api.ListAsync(shadowed: false, archived: false, cursor: cursor, pageSize: 100);
+            _connections.AddRange(response.Items.Where(x => !x.Shadowed && !x.Archived));
+            cursor = response.NextCursor;
+        } while (!string.IsNullOrWhiteSpace(cursor));
     }
 
     private async Task FindUsersAsync()
     {
         var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
-        var response = await api.FindUsersAsync(_userSearch, pageSize: 25);
+        var response = await api.FindUsersAsync(pageSize: 25);
         _users.Clear();
         _users.AddRange(response.Items);
     }
@@ -141,7 +141,7 @@
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
-            var response = await api.ListAsync(_userIdFilter, _connectionIdFilter, cursor, 25);
+            var response = await api.ListAsync(_userIdFilter, _connectionKeyFilter, cursor, 25);
             _links.Clear();
             _links.AddRange(response.Items);
             _nextCursor = response.NextCursor;
@@ -152,32 +152,55 @@
         }
     }
 
-    private async Task PrelinkAsync()
+    private async Task OpenLinkDialogAsync(ExternalIdentityLink? link = null)
     {
-        _prelinkErrors.Clear();
-        _prelinkErrors.AddRange(IdentityLinkUiState.Validate(_prelink));
-        if (_prelinkErrors.Count > 0)
+        var dialogConnections = _connections.ToList();
+        if (link is not null && dialogConnections.All(x => !string.Equals(x.Key, link.ConnectionKey, StringComparison.Ordinal)))
+        {
+            dialogConnections.Insert(0, new ConnectionSummary
+            {
+                Key = link.ConnectionKey,
+                DisplayName = ConnectionDisplay(link.ConnectionKey),
+                Validity = "unavailable"
+            });
+        }
+
+        var parameters = new DialogParameters<IdentityLinkDialog>
+        {
+            { x => x.ExistingLink, link },
+            { x => x.ExistingUser, link is null ? null : new IdentityLinkUser(link.UserId, UserDisplay(link.UserId)) },
+            { x => x.Users, _users.ToList() },
+            { x => x.Connections, dialogConnections }
+        };
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+        var title = link is null ? "Create external identity link" : "Edit external identity link";
+        var dialog = await Dialogs.ShowAsync<IdentityLinkDialog>(title, parameters, options);
+        var result = await dialog.Result;
+        if (result is not { Canceled: false, Data: IdentityLinkDialogOutcome outcome })
             return;
 
-        try
+        if (outcome == IdentityLinkDialogOutcome.Stale)
         {
-            var api = await ApiClientProvider.GetApiAsync<IExternalIdentityLinksApi>();
-            await api.PrelinkAsync(_prelink);
-            _prelink = new();
-            Snackbar.Add("External identity prelinked. The raw subject was not retained by Studio.", Severity.Success);
+            Snackbar.Add("This link no longer exists.", Severity.Warning);
             await ReloadAsync();
+            return;
         }
-        catch (Exception exception)
-        {
-            Snackbar.Add(exception.Message, Severity.Error);
-        }
+
+        Snackbar.Add(link is null ? "External identity link created." : "External identity link replaced. Sign-in history has been reset.", Severity.Success);
+        await ReloadAsync();
     }
 
     private async Task ConfirmUnlinkAsync(ExternalIdentityLink link)
     {
         var confirmed = await Dialogs.ShowMessageBoxAsync(
             "Unlink external identity?",
-            "The user will no longer sign in through this external identity. The archived link record remains available to Elsa's retention policy.",
+            "The user will no longer sign in through this external identity.",
             yesText: "Unlink",
             cancelText: "Cancel");
         if (confirmed != true)
@@ -197,5 +220,5 @@
     }
 
     private string UserDisplay(string userId) => _users.FirstOrDefault(x => x.Id == userId)?.DisplayName ?? userId;
-    private string ConnectionDisplay(string connectionId) => _connections.FirstOrDefault(x => x.Id == connectionId)?.DisplayName ?? connectionId;
+    private string ConnectionDisplay(string connectionKey) => _connections.FirstOrDefault(x => x.Key == connectionKey)?.DisplayName ?? connectionKey;
 }

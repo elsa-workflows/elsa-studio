@@ -8,7 +8,7 @@ public interface IExternalIdentityLinksApi
     [Get("/external-authentication/identity-links")]
     Task<ListExternalIdentityLinksResponse> ListAsync(
         string? userId = null,
-        string? connectionId = null,
+        string? connectionKey = null,
         string? cursor = null,
         int pageSize = 25,
         CancellationToken cancellationToken = default);
@@ -22,6 +22,9 @@ public interface IExternalIdentityLinksApi
 
     [Post("/external-authentication/identity-links")]
     Task<ExternalIdentityLink> PrelinkAsync([Body] PrelinkExternalIdentityRequest request, CancellationToken cancellationToken = default);
+
+    [Post("/external-authentication/identity-links/{linkId}/replace")]
+    Task<ExternalIdentityLink> ReplaceAsync(string linkId, [Body] ReplaceExternalIdentityLinkRequest request, CancellationToken cancellationToken = default);
 
     [Delete("/external-authentication/identity-links/{linkId}")]
     Task UnlinkAsync(string linkId, CancellationToken cancellationToken = default);
