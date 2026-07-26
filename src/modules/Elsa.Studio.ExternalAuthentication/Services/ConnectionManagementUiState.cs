@@ -1,4 +1,5 @@
 using Elsa.Studio.ExternalAuthentication.Models;
+using MudBlazor;
 
 namespace Elsa.Studio.ExternalAuthentication.Services;
 
@@ -48,6 +49,45 @@ public static class ConnectionActionAvailability
     public static bool CanMutate(ConnectionSummary connection, bool permission) => permission && !connection.IsConfigurationOwned;
     public static bool CanEnableOrDisable(ConnectionSummary connection, bool canUpdate) => !connection.Archived && CanMutate(connection, canUpdate);
     public static bool CanArchiveOrRestore(ConnectionSummary connection, bool canArchive) => CanMutate(connection, canArchive);
+}
+
+public enum ConnectionDisableDecision
+{
+    KeepActiveSessions,
+    RevokeActiveSessions
+}
+
+public static class ConnectionDisableConfirmation
+{
+    public static async Task<ConnectionDisableDecision?> ShowAsync(
+        IDialogService dialogs,
+        string connectionDisplayName,
+        bool canRevokeSessions)
+    {
+        if (!canRevokeSessions)
+        {
+            var confirmed = await dialogs.ShowMessageBoxAsync(
+                "Disable connection?",
+                $"Disable {connectionDisplayName}. Existing external authentication sessions will remain active until they expire or are separately revoked.",
+                yesText: "Disable",
+                cancelText: "Cancel");
+            return confirmed == true ? ConnectionDisableDecision.KeepActiveSessions : null;
+        }
+
+        var revokeSessions = await dialogs.ShowMessageBoxAsync(
+            "Disable connection?",
+            $"Disable {connectionDisplayName}. Existing external authentication sessions can remain active until they expire, or be revoked now. Revoked users will need to authenticate again.",
+            yesText: "Disable and revoke sessions",
+            noText: "Disable only",
+            cancelText: "Cancel");
+
+        return revokeSessions switch
+        {
+            true => ConnectionDisableDecision.RevokeActiveSessions,
+            false => ConnectionDisableDecision.KeepActiveSessions,
+            null => null
+        };
+    }
 }
 
 public static class ConnectionConcurrency

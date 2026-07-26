@@ -19,6 +19,8 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Connections;
 public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 {
     private readonly TestConnectionsApi _api = new();
+    private readonly TestOperationsApi _operations = new();
+    private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
     public ConnectionEditorTests()
     {
@@ -28,10 +30,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true).SetVoidResult();
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
         JSInterop.Setup<int>("mudpopoverHelper.countProviders").SetResult(1);
-        Services.AddSingleton<IBackendApiClientProvider>(new TestBackendApiClientProvider(_api));
+        Services.AddSingleton<IBackendApiClientProvider>(new TestBackendApiClientProvider(_api, _operations));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(new PermissionService(true));
         Services.AddSingleton<ICustomConnectionEditorRegistry>(new CustomConnectionEditorRegistry([]));
         Render<MudPopoverProvider>();
+        _dialogProvider = Render<MudDialogProvider>();
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -547,6 +550,41 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         });
     }
 
+    [Theory]
+    [InlineData("Disable and revoke sessions", true)]
+    [InlineData("Disable only", false)]
+    public void ConnectionList_RequiresAnExplicitSessionDecisionWhenConfirmingDisable(string action, bool revokeActiveSessions)
+    {
+        var connection = CreateConnection();
+        connection.EnabledIntent = true;
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Revoke active sessions when disabling", cut.Markup, StringComparison.Ordinal));
+
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Disable").Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains(action, _dialogProvider.Markup, StringComparison.Ordinal));
+        _dialogProvider.FindAll("button").Single(button => button.TextContent.Contains(action, StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.Equal(revokeActiveSessions, _operations.RevokeActiveSessions));
+    }
+
+    [Fact]
+    public void ConnectionEditor_OffersSessionRevocationWhenConfirmingDisable()
+    {
+        var connection = CreateConnection();
+        connection.EnabledIntent = true;
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Disable", cut.Markup, StringComparison.Ordinal));
+
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Disable").Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("Disable and revoke sessions", _dialogProvider.Markup, StringComparison.Ordinal));
+        _dialogProvider.FindAll("button").Single(button => button.TextContent.Contains("Disable and revoke sessions", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.True(_operations.RevokeActiveSessions));
+    }
+
     [Fact]
     public async Task SecurityMenu_PlacesIdentityProviderConnectionsFirstWhenReadIsAllowed()
     {
@@ -675,10 +713,38 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
     private sealed class TestCustomEditor : ComponentBase, IConnectionCustomEditor;
 
-    private sealed class TestBackendApiClientProvider(IExternalAuthenticationConnectionsApi api) : IBackendApiClientProvider
+    private sealed class TestBackendApiClientProvider(
+        IExternalAuthenticationConnectionsApi connectionsApi,
+        IExternalAuthenticationOperationsApi operationsApi) : IBackendApiClientProvider
     {
         public Uri Url { get; } = new("https://elsa.example.test/elsa/api/");
-        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class => ValueTask.FromResult((T)api);
+
+        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class =>
+            ValueTask.FromResult(typeof(T) == typeof(IExternalAuthenticationOperationsApi)
+                ? (T)(object)operationsApi
+                : (T)(object)connectionsApi);
+    }
+
+    private sealed class TestOperationsApi : IExternalAuthenticationOperationsApi
+    {
+        public bool? RevokeActiveSessions { get; private set; }
+
+        public Task DisableWithRecoveryOverrideAsync(
+            string connectionId,
+            string ifMatch,
+            bool confirmFinalLoginPathOverride,
+            bool revokeActiveSessions = false,
+            CancellationToken cancellationToken = default)
+        {
+            RevokeActiveSessions = revokeActiveSessions;
+            return Task.CompletedTask;
+        }
+
+        public Task<ConnectionTestResult> TestAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<PreviewResultDocument> GetPreviewResultAsync(string previewHandle, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<ListExternalAuthenticationSessionsResponse> ListSessionsAsync(string? userId = null, string? connectionId = null, string? status = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task RevokeSessionAsync(string sessionId, RevokeExternalAuthenticationSessionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     private sealed class TestConnectionsApi : IExternalAuthenticationConnectionsApi, IIdentityRolesApi

@@ -131,6 +131,7 @@
     private bool _canCreate;
     private bool _canUpdate;
     private bool _canArchive;
+    private bool _canRevokeSessions;
     private bool _canConfigureUnsafeSettings;
     private bool _canManagePolicies;
     private bool _canReadRoles;
@@ -159,6 +160,7 @@
         _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
         _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
         _canArchive = await Permissions.HasAsync(ExternalAuthenticationPermissions.Archive);
+        _canRevokeSessions = await Permissions.HasAsync(ExternalAuthenticationPermissions.SessionsRevoke);
         _canConfigureUnsafeSettings = await Permissions.HasAsync(ExternalAuthenticationPermissions.UnsafeProviderTrust);
         _canManagePolicies = await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
         _canReadRoles = await Permissions.HasAsync(ExternalAuthenticationPermissions.RolesRead);
@@ -361,18 +363,20 @@
             return;
 
         var action = _connection.EnabledIntent ? "disable" : "enable";
-        if (await Dialogs.ShowMessageBoxAsync($"{char.ToUpperInvariant(action[0])}{action[1..]} connection?", $"This changes the administrative login availability of {_connection.DisplayName}.", yesText: char.ToUpperInvariant(action[0]) + action[1..], cancelText: "Cancel") != true)
-            return;
-
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             if (_connection.EnabledIntent)
             {
+                var decision = await ConnectionDisableConfirmation.ShowAsync(Dialogs, _connection.DisplayName, _canRevokeSessions);
+                if (decision is null)
+                    return;
+                var revokeActiveSessions = decision == ConnectionDisableDecision.RevokeActiveSessions;
+
                 var operations = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
                 try
                 {
-                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), false, false);
+                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), false, revokeActiveSessions);
                 }
                 catch (ApiException exception) when (IsFinalLoginPathGuard(exception))
                 {
@@ -390,11 +394,16 @@
                     if (!confirmed)
                         return;
 
-                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), true, false);
+                    await operations.DisableWithRecoveryOverrideAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision), true, revokeActiveSessions);
                 }
             }
             else
+            {
+                if (await Dialogs.ShowMessageBoxAsync("Enable connection?", $"This changes the administrative login availability of {_connection.DisplayName}.", yesText: "Enable", cancelText: "Cancel") != true)
+                    return;
+
                 await api.EnableAsync(_connection.Id, ConnectionConcurrency.ToIfMatch(_connection.Revision));
+            }
             await ReloadConnectionAsync();
             Snackbar.Add($"Connection {action}d.", Severity.Success);
         }

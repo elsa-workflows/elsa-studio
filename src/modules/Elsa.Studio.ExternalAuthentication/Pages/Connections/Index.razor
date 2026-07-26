@@ -22,10 +22,6 @@
                 <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
             </MudSelect>
             <MudCheckBox @bind-Value="_includeArchived" Label="Include archived" />
-            @if (_canRevokeSessions)
-            {
-                <MudCheckBox @bind-Value="_revokeSessionsWhenDisabling" Label="Revoke active sessions when disabling" />
-            }
             <MudSpacer />
             @if (_canCreate)
             {
@@ -112,7 +108,6 @@
     private string? _nextCursor;
     private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
     private bool _includeArchived;
-    private bool _revokeSessionsWhenDisabling;
     private bool _loading = true;
     private bool _canRead;
     private bool _canCreate;
@@ -176,36 +171,36 @@
         if (!ConnectionActionAvailability.CanEnableOrDisable(connection, _canUpdate))
             return;
 
-        var action = connection.EnabledIntent ? "Disable" : "Enable";
-        var revokeSessions = connection.EnabledIntent && _canRevokeSessions && _revokeSessionsWhenDisabling;
-        var details = revokeSessions
-            ? " Existing external authentication sessions will also be revoked."
-            : string.Empty;
-        if (await Dialogs.ShowMessageBoxAsync(
-                $"{action} connection?",
-                $"{action} {connection.DisplayName}.{details}",
-                yesText: action,
-                cancelText: "Cancel") != true)
-            return;
-
+        var completedAction = connection.EnabledIntent ? "disabled" : "enabled";
         try
         {
             if (connection.EnabledIntent)
             {
+                var decision = await ConnectionDisableConfirmation.ShowAsync(Dialogs, connection.DisplayName, _canRevokeSessions);
+                if (decision is null)
+                    return;
+
                 var operations = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
                 await operations.DisableWithRecoveryOverrideAsync(
                     connection.Id,
                     ConnectionConcurrency.ToIfMatch(connection.Revision),
                     false,
-                    revokeSessions);
+                    decision == ConnectionDisableDecision.RevokeActiveSessions);
             }
             else
             {
+                if (await Dialogs.ShowMessageBoxAsync(
+                        "Enable connection?",
+                        $"Enable {connection.DisplayName}.",
+                        yesText: "Enable",
+                        cancelText: "Cancel") != true)
+                    return;
+
                 var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
                 await api.EnableAsync(connection.Id, ConnectionConcurrency.ToIfMatch(connection.Revision));
             }
 
-            Snackbar.Add($"Connection {action.ToLowerInvariant()}d.", Severity.Success);
+            Snackbar.Add($"Connection {completedAction}.", Severity.Success);
             await ReloadAsync();
         }
         catch (Exception exception)
