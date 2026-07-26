@@ -550,7 +550,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     [Fact]
     public async Task SecurityMenu_PlacesIdentityProviderConnectionsFirstWhenReadIsAllowed()
     {
-        var menu = new ExternalAuthenticationSecurityMenuContributor(new FeatureProvider(true), new ReadOnlyPermissionService());
+        var menu = new ExternalAuthenticationSecurityMenuContributor(
+            new FeatureProvider(true),
+            new PermissionSetService(ExternalAuthenticationPermissions.Read));
 
         var item = Assert.Single(await menu.GetMenuItemsAsync());
         Assert.Equal("security/external-authentication/connections", item.Href);
@@ -560,6 +562,51 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         var hidden = await new ExternalAuthenticationSecurityMenuContributor(new FeatureProvider(true), new PermissionService(false)).GetMenuItemsAsync();
         Assert.Empty(hidden);
     }
+
+    [Fact]
+    public async Task SecurityMenu_PreservesPermissionGatesAndOrdersIdentityAndAccessItems()
+    {
+        var menu = new ExternalAuthenticationSecurityMenuContributor(
+            new FeatureProvider(true),
+            new PermissionSetService(
+                ExternalAuthenticationPermissions.Read,
+                ExternalAuthenticationPermissions.ManageLinks,
+                ExternalAuthenticationPermissions.SessionsRead));
+
+        var items = (await menu.GetMenuItemsAsync()).ToList();
+        Assert.Equal(
+            ["Identity provider connections", "External identity links", "Authentication sessions"],
+            items.Select(x => x.Text));
+        Assert.Equal([100f, 200f, 300f], items.Select(x => x.Order));
+
+        var sessionsOnly = await new ExternalAuthenticationSecurityMenuContributor(
+                new FeatureProvider(true),
+                new PermissionSetService(ExternalAuthenticationPermissions.SessionsRead))
+            .GetMenuItemsAsync();
+        Assert.Equal("Authentication sessions", Assert.Single(sessionsOnly).Text);
+    }
+
+    [Fact]
+    public void ConnectionPages_ExposeOnlyCanonicalRoutes()
+    {
+        Assert.Equal(
+            ["/security/external-authentication/connections"],
+            RoutesFor<ConnectionIndex>());
+        Assert.Equal(
+            [
+                "/security/external-authentication/connections/new",
+                "/security/external-authentication/connections/{ConnectionId}"
+            ],
+            RoutesFor<ConnectionEdit>());
+    }
+
+    private static string[] RoutesFor<T>() =>
+        typeof(T)
+            .GetCustomAttributes(typeof(RouteAttribute), inherit: false)
+            .Cast<RouteAttribute>()
+            .Select(x => x.Template)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
     private static ConnectionDetail CreateConnection(string source = "database") => new()
     {
@@ -608,13 +655,15 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             ValueTask.FromResult<IReadOnlySet<string>>(allowed ? new HashSet<string>(["*"], StringComparer.Ordinal) : new HashSet<string>(StringComparer.Ordinal));
     }
 
-    private sealed class ReadOnlyPermissionService : IExternalAuthenticationPermissionService
+    private sealed class PermissionSetService(params string[] permissions) : IExternalAuthenticationPermissionService
     {
+        private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
+
         public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(permission == ExternalAuthenticationPermissions.Read);
+            ValueTask.FromResult(_permissions.Contains(permission));
 
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult<IReadOnlySet<string>>(new HashSet<string>([ExternalAuthenticationPermissions.Read], StringComparer.Ordinal));
+            ValueTask.FromResult(_permissions);
     }
 
     private sealed class CustomEditorRegistration(string key, int contractVersion, Type componentType) : ICustomConnectionEditorRegistration

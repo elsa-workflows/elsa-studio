@@ -1,6 +1,6 @@
-# Elsa Studio
+# Administration Navigation
 
-Canonical language for concepts shared across Elsa Studio.
+Canonical language for Elsa Studio administration navigation.
 
 ## Language
 
