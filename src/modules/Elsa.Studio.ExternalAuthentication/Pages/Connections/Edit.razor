@@ -189,6 +189,10 @@
             _adapter = _adapters.FirstOrDefault(adapter => string.Equals(adapter.Type, _connection.AdapterType, StringComparison.Ordinal));
             _model = ToMutation(_connection);
         }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
+        }
         catch (Exception exception)
         {
             Snackbar.Add(exception.Message, Severity.Error);
@@ -275,6 +279,10 @@
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
         }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
+        }
         catch (Exception exception)
         {
             Snackbar.Add(exception.Message, Severity.Error);
@@ -319,6 +327,10 @@
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
         }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception, "The managed secret could not be replaced. The value was not retained by Studio.");
+        }
         catch
         {
             Snackbar.Add("The managed secret could not be replaced. The value was not retained by Studio.", Severity.Error);
@@ -350,6 +362,10 @@
         catch (ApiException exception) when (IsConcurrencyConflict(exception))
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
         }
         catch (Exception exception)
         {
@@ -415,6 +431,10 @@
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
         }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
+        }
         catch (Exception exception)
         {
             Snackbar.Add(exception.Message, Severity.Error);
@@ -443,6 +463,10 @@
         catch (ApiException exception) when (IsConcurrencyConflict(exception))
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
         }
         catch (Exception exception)
         {
@@ -473,6 +497,10 @@
         {
             await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
         }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
+        }
         catch (Exception exception)
         {
             Snackbar.Add(exception.Message, Severity.Error);
@@ -488,6 +516,10 @@
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             _validation = await api.ValidateAsync(_connection.Id);
+        }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
         }
         catch (Exception exception)
         {
@@ -564,6 +596,13 @@
     private static bool IsConcurrencyConflict(ApiException exception) => ConnectionConcurrency.IsConflict(exception.StatusCode);
     private static bool IsFinalLoginPathGuard(ApiException exception) =>
         ConnectionManagementError.IsFinalLoginPathGuard(exception.StatusCode, exception.Content);
+    private void ShowManagementError(ApiException exception, string? prefix = null)
+    {
+        var error = ConnectionManagementError.Parse(exception.StatusCode, exception.Content, exception.Message);
+        var message = string.IsNullOrWhiteSpace(prefix) ? error.DisplayMessage : $"{prefix} {error.DisplayMessage}";
+        Snackbar.Add(message, Severity.Error);
+    }
+
     private void StartFullOverride()
     {
         if (_connection is null || _model is null || !_connection.IsConfigurationOwned || !_connection.CanCreateOverride || !_canCreate)

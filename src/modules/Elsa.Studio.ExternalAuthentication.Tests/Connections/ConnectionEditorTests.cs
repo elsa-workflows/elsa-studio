@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.Json;
 using Bunit;
 using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Contracts;
@@ -561,6 +563,53 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateShowsStructuredServerValidationDetails()
+    {
+        var adapter = CreateAdapter();
+        adapter.Fields.First().DefaultValue = JsonSerializer.SerializeToElement("https://issuer.example.test");
+        _api.Adapters = [adapter];
+        _api.CreateException = await CreateApiExceptionAsync(
+            HttpStatusCode.BadRequest,
+            """
+            {
+              "error": "validation_failed",
+              "message": "The connection is not valid for this operation.",
+              "details": {
+                "errors": [
+                  {
+                    "field": "adapterSettings.authority",
+                    "code": "invalid",
+                    "message": "Authority must use HTTPS."
+                  }
+                ],
+                "warnings": []
+              }
+            }
+            """);
+
+        var cut = Render<ConnectionEdit>();
+        cut.WaitForAssertion(() => Assert.Contains("Create identity provider connection", cut.Markup, StringComparison.Ordinal));
+        ChangeField("Display name", "Contoso");
+        ChangeField("Connection key", "contoso");
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        var snackbar = Services.GetRequiredService<ISnackbar>();
+        cut.WaitForAssertion(() =>
+        {
+            var message = Assert.Single(snackbar.ShownSnackbars).Message;
+            Assert.Contains("The connection is not valid for this operation.", message, StringComparison.Ordinal);
+            Assert.Contains("adapterSettings.authority: Authority must use HTTPS.", message, StringComparison.Ordinal);
+            Assert.DoesNotContain("Response status code does not indicate success", message, StringComparison.Ordinal);
+        });
+
+        void ChangeField(string label, string value)
+        {
+            var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
+            cut.Find($"#{fieldLabel.GetAttribute("for")}").Change(value);
+        }
+    }
+
+    [Fact]
     public void ConnectionList_UsesTheServerCursorForTheNextPage()
     {
         _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = "cursor-2" });
@@ -694,6 +743,17 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             .Order(StringComparer.Ordinal)
             .ToArray();
 
+    private static async Task<Refit.ApiException> CreateApiExceptionAsync(HttpStatusCode statusCode, string content)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://elsa.example.test/external-authentication/connections");
+        using var response = new HttpResponseMessage(statusCode)
+        {
+            RequestMessage = request,
+            Content = new StringContent(content)
+        };
+        return await Refit.ApiException.Create(request, HttpMethod.Post, response, new Refit.RefitSettings());
+    }
+
     private static ConnectionDetail CreateConnection(string source = "database") => new()
     {
         Id = "connection-1",
@@ -801,6 +861,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public List<string?> Cursors { get; } = [];
         public ConnectionDetail? GetResult { get; set; }
         public ICollection<AdapterDescriptor> Adapters { get; set; } = [];
+        public Exception? CreateException { get; set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
@@ -820,6 +881,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ConnectionDetail> CreateAsync(ConnectionMutation request, CancellationToken cancellationToken = default)
         {
             CreatedRequest = request;
+            if (CreateException is not null)
+                return Task.FromException<ConnectionDetail>(CreateException);
             return Task.FromResult(new ConnectionDetail { Id = "override-1", Key = request.Key, DisplayName = request.DisplayName, AdapterType = request.AdapterType });
         }
         public Task<ConnectionDetail> UpdateAsync(string connectionId, ConnectionMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();

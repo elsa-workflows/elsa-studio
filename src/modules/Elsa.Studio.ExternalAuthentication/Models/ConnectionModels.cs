@@ -94,7 +94,7 @@ public sealed class ConnectionDetail : ConnectionSummary
     public ClaimProjection ClaimProjection { get; set; } = new();
     public string UpstreamLogoutMode { get; set; } = "disabled";
     public ICollection<ConnectionValidationMessage> ValidationErrors { get; set; } = [];
-    public ICollection<ConnectionValidationMessage> ValidationWarnings { get; set; } = [];
+    public ICollection<string> ValidationWarnings { get; set; } = [];
 }
 
 public sealed class ConnectionValidationMessage
@@ -108,7 +108,7 @@ public sealed class ConnectionValidationResult
 {
     public bool Valid { get; set; }
     public ICollection<ConnectionValidationMessage> Errors { get; set; } = [];
-    public ICollection<ConnectionValidationMessage> Warnings { get; set; } = [];
+    public ICollection<string> Warnings { get; set; } = [];
 }
 
 public sealed class ConnectionFieldDescriptor

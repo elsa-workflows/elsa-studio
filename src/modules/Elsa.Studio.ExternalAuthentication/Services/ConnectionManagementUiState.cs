@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.Json;
 using Elsa.Studio.ExternalAuthentication.Models;
 using MudBlazor;
 
@@ -116,7 +118,131 @@ public static class SecretBindingRemovalPrompt
 
 public static class ConnectionManagementError
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+
+    public static ConnectionManagementErrorInfo Parse(HttpStatusCode statusCode, string? content, string fallbackMessage)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return ConnectionManagementErrorInfo.Fallback(statusCode, fallbackMessage);
+
+        try
+        {
+            var document = JsonSerializer.Deserialize<ManagementErrorDocument>(content, SerializerOptions);
+            if (document is null)
+                return ConnectionManagementErrorInfo.Fallback(statusCode, fallbackMessage);
+
+            var errors = ReadValidationErrors(document.Details);
+            var warnings = ReadWarnings(document.Details);
+            var conflictCode = ReadString(document.Details, "code");
+            var currentRevision = ReadInt64(document.Details, "currentRevision");
+            return new ConnectionManagementErrorInfo(
+                statusCode,
+                document.Error ?? string.Empty,
+                string.IsNullOrWhiteSpace(document.Message) ? fallbackMessage : document.Message,
+                errors,
+                warnings,
+                conflictCode,
+                currentRevision);
+        }
+        catch (JsonException)
+        {
+            return ConnectionManagementErrorInfo.Fallback(statusCode, fallbackMessage);
+        }
+    }
+
     public static bool IsFinalLoginPathGuard(System.Net.HttpStatusCode statusCode, string? content) =>
         statusCode == System.Net.HttpStatusCode.Conflict &&
-        content?.Contains("final_login_path_guard", StringComparison.Ordinal) == true;
+        string.Equals(
+            Parse(statusCode, content, string.Empty).ConflictCode,
+            "final_login_path_guard",
+            StringComparison.Ordinal);
+
+    private static IReadOnlyCollection<ConnectionValidationMessage> ReadValidationErrors(JsonElement details)
+    {
+        if (details.ValueKind != JsonValueKind.Object ||
+            !details.TryGetProperty("errors", out var errors) ||
+            errors.ValueKind != JsonValueKind.Array)
+            return [];
+
+        var result = new List<ConnectionValidationMessage>();
+        foreach (var item in errors.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object)
+                continue;
+
+            try
+            {
+                var error = item.Deserialize<ConnectionValidationMessage>(SerializerOptions);
+                if (error is not null)
+                    result.Add(error);
+            }
+            catch (JsonException)
+            {
+                // Preserve valid sibling details when a server or proxy adds a malformed entry.
+            }
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyCollection<string> ReadWarnings(JsonElement details)
+    {
+        if (details.ValueKind != JsonValueKind.Object ||
+            !details.TryGetProperty("warnings", out var warnings) ||
+            warnings.ValueKind != JsonValueKind.Array)
+            return [];
+
+        return warnings
+            .EnumerateArray()
+            .Select(item => item.ValueKind == JsonValueKind.String ? item.GetString() : null)
+            .Where(item => !string.IsNullOrWhiteSpace(item))
+            .Cast<string>()
+            .ToArray();
+    }
+
+    private static string? ReadString(JsonElement details, string propertyName) =>
+        details.ValueKind == JsonValueKind.Object &&
+        details.TryGetProperty(propertyName, out var property) &&
+        property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+
+    private static long? ReadInt64(JsonElement details, string propertyName) =>
+        details.ValueKind == JsonValueKind.Object &&
+        details.TryGetProperty(propertyName, out var property) &&
+        property.ValueKind == JsonValueKind.Number &&
+        property.TryGetInt64(out var value)
+            ? value
+            : null;
+
+    private sealed class ManagementErrorDocument
+    {
+        public string? Error { get; init; }
+        public string? Message { get; init; }
+        public JsonElement Details { get; init; }
+    }
+}
+
+public sealed record ConnectionManagementErrorInfo(
+    HttpStatusCode StatusCode,
+    string Code,
+    string Message,
+    IReadOnlyCollection<ConnectionValidationMessage> Errors,
+    IReadOnlyCollection<string> Warnings,
+    string? ConflictCode,
+    long? CurrentRevision)
+{
+    public string DisplayMessage
+    {
+        get
+        {
+            var details = Errors.Select(error => $"{error.Field}: {error.Message}")
+                .Concat(Warnings.Select(warning => $"Warning: {warning}"))
+                .ToArray();
+            return details.Length == 0 ? Message : $"{Message} {string.Join(" ", details)}";
+        }
+    }
+
+    public static ConnectionManagementErrorInfo Fallback(HttpStatusCode statusCode, string fallbackMessage) =>
+        new(statusCode, string.Empty, fallbackMessage, [], [], null, null);
 }
