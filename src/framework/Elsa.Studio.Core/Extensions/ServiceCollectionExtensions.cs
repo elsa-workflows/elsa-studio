@@ -3,10 +3,12 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
+using Elsa.Studio.Options;
 using Elsa.Studio.Services;
 using Elsa.Studio.Visualizers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Extensions;
 
@@ -18,14 +20,34 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds the core services.
     /// </summary>
-    public static IServiceCollection AddCoreInternal(this IServiceCollection services)
+    public static IServiceCollection AddCoreInternal(
+        this IServiceCollection services,
+        Action<StudioThemeOptions>? configureTheme = null)
     {
+        var themeOptions = services.AddOptions<StudioThemeOptions>();
+        if (configureTheme is not null)
+            themeOptions.Configure(configureTheme);
+        themeOptions.ValidateOnStart();
+
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<StudioThemeOptions>, StudioThemeOptionsValidator>());
+        services.TryAddScoped<IStudioThemeRegistry, StudioThemeRegistry>();
+
+        if (!services.Any(x => x.ServiceType == typeof(StudioThemeRegistrationMarker)))
+        {
+            services.AddSingleton<StudioThemeRegistrationMarker>();
+            services
+                .AddStudioThemeProvider<ClassicThemeProvider>(StudioThemeIds.Classic)
+                .AddStudioThemeProvider<WorkflowConstellationThemeProvider>(StudioThemeIds.WorkflowConstellation)
+                .AddStudioThemeProvider<WorkflowAuroraThemeProvider>(StudioThemeIds.WorkflowAurora)
+                .AddStudioThemeProvider<ExecutionTimelineThemeProvider>(StudioThemeIds.ExecutionTimeline)
+                .AddStudioThemeProvider<HumanAutomationThemeProvider>(StudioThemeIds.HumanAutomation);
+        }
+
         services
             .AddScoped<IBlazorServiceAccessor, BlazorServiceAccessor>()
             .AddScoped<IMenuService, DefaultMenuService>()
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
-            .AddScoped<IThemeProvider, DefaultThemeProvider>()
-            .AddScoped<IThemeService, DefaultThemeService>()
             .AddScoped<IAppBarService, DefaultAppBarService>()
             .AddScoped<IFeatureService, DefaultFeatureService>()
             .AddScoped<IUIHintService, DefaultUIHintService>()
@@ -40,6 +62,9 @@ public static class ServiceCollectionExtensions
             .AddUserMessageService<DefaultUserMessageService>()
             ;
 
+        services.TryAddScoped<IThemeProvider, DefaultThemeProvider>();
+        services.TryAddScoped<IThemeService, DefaultThemeService>();
+
         // Content visualizers
         services.AddContentVisualizer<JsonContentVisualizer>();
 
@@ -53,6 +78,20 @@ public static class ServiceCollectionExtensions
         // Single-flight coordinator for preventing concurrent operations.
         services.TryAddScoped<ISingleFlightCoordinator, SingleFlightCoordinator>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers an Elsa Studio theme pack.
+    /// </summary>
+    public static IServiceCollection AddStudioThemeProvider<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IServiceCollection services,
+        string id)
+        where T : class, IThemeProvider
+    {
+        services.AddScoped<T>();
+        services.AddSingleton(new StudioThemeRegistration(id, typeof(T)));
         return services;
     }
     
@@ -119,3 +158,5 @@ public static class ServiceCollectionExtensions
         return services.AddTransient<IContentVisualizer, T>();
     }
 }
+
+internal sealed class StudioThemeRegistrationMarker;

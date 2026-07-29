@@ -7,7 +7,8 @@ internal static class LoginThemeRegistrationRules
 {
     public static LoginThemeSelection ValidateAndSelect(
         IEnumerable<LoginThemeRegistration> registrations,
-        string? configuredTheme)
+        string? configuredTheme,
+        string? inheritedTheme = null)
     {
         var materialized = registrations.ToArray();
         var errors = new List<string>();
@@ -36,11 +37,25 @@ internal static class LoginThemeRegistrationRules
         }
         else
         {
+            var effectiveTheme = string.Equals(
+                configuredTheme,
+                LoginThemeIds.Inherit,
+                StringComparison.OrdinalIgnoreCase)
+                ? inheritedTheme
+                : configuredTheme;
+
+            if (string.IsNullOrWhiteSpace(effectiveTheme))
+            {
+                errors.Add("Authentication:Login:Theme is set to 'inherit', but Presentation:Theme is blank.");
+                return new(selected, errors);
+            }
+
             selected = materialized.FirstOrDefault(
-                x => string.Equals(x.Id, configuredTheme, StringComparison.OrdinalIgnoreCase));
+                x => string.Equals(x.Id, effectiveTheme, StringComparison.OrdinalIgnoreCase));
 
             if (selected is null)
-                errors.Add($"Authentication:Login:Theme selects '{configuredTheme}', but no matching login theme is registered.");
+                errors.Add(
+                    $"Authentication:Login:Theme resolves to '{effectiveTheme}', but no matching login theme is registered.");
         }
 
         return new(selected, errors);

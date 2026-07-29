@@ -21,6 +21,7 @@ using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
+using Elsa.Studio.Options;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.OpenTelemetry.Extensions;
@@ -137,7 +138,9 @@ var localizationConfig = new LocalizationConfig
 };
 
 builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
-builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
+builder.Services
+    .AddCore(options => configuration.GetSection(StudioThemeOptions.SectionName).Bind(options))
+    .Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
 {

@@ -4,6 +4,7 @@ using Elsa.Studio.Authentication.UI.Contracts;
 using Elsa.Studio.Authentication.UI.Models;
 using Elsa.Studio.Authentication.UI.Options;
 using Elsa.Studio.Authentication.UI.Services;
+using Elsa.Studio.Options;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ public static class ServiceCollectionExtensions
         if (loginThemeConfiguration is not null)
             options.Bind(loginThemeConfiguration);
         options.ValidateOnStart();
+        services.AddOptions<StudioThemeOptions>();
 
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<LoginThemeOptions>, LoginThemeOptionsValidator>());

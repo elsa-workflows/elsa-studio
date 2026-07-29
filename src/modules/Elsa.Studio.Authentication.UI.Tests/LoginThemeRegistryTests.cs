@@ -3,6 +3,7 @@ using Elsa.Studio.Authentication.UI.Extensions;
 using Elsa.Studio.Authentication.UI.Models;
 using Elsa.Studio.Authentication.UI.Options;
 using Elsa.Studio.Authentication.UI.Services;
+using Elsa.Studio.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -22,6 +23,20 @@ public class LoginThemeRegistryTests
 
         Assert.Equal("workflow-aurora", registry.Selected.Id);
         Assert.IsType<TestLoginThemeProvider>(registry.ResolveSelectedProvider());
+    }
+
+    [Fact]
+    public void Selects_the_application_theme_when_login_is_configured_to_inherit()
+    {
+        var services = CreateServices(LoginThemeIds.Inherit);
+        services.Configure<StudioThemeOptions>(options => options.Theme = "human-automation");
+        services.AddLoginThemeProvider<TestLoginThemeProvider>("human-automation");
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var registry = scope.ServiceProvider.GetRequiredService<ILoginThemeRegistry>();
+
+        Assert.Equal("human-automation", registry.Selected.Id);
     }
 
     [Fact]

@@ -4,7 +4,7 @@
     min-height: 100%;
     padding: 24px 32px 32px;
     box-sizing: border-box;
-    background: #f6f8fb;
+    background: var(--mud-palette-background);
 }
 
 .dashboard-header {
