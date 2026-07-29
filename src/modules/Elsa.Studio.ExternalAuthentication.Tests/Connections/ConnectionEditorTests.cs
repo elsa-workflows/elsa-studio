@@ -12,7 +12,6 @@ using ConnectionEdit = Elsa.Studio.ExternalAuthentication.Pages.Connections.Edit
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Extensions;
@@ -28,6 +27,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     private readonly PermissionService _permissions = new(true);
     private readonly TestCustomEditorRegistry _customEditors = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
+    private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
     public ConnectionEditorTests()
     {
@@ -40,7 +40,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IBackendApiClientProvider>(new TestBackendApiClientProvider(_api, _operations));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(_permissions);
         Services.AddSingleton<ICustomConnectionEditorRegistry>(_customEditors);
-        Render<MudPopoverProvider>();
+        _popoverProvider = Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
 
@@ -1154,8 +1154,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         var connection = CreateConnection();
         connection.EnabledIntent = true;
+        connection.EffectivelyEnabled = true;
         connection.Validity = "valid";
         connection.OverridesConfigurationConnection = true;
+        connection.IsPreferred = true;
         _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
 
         var cut = Render<ConnectionIndex>();
@@ -1165,15 +1167,116 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("Identity provider connections", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Search connections", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Include archived", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("valid", cut.Markup, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Studio override", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Ownership", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Availability", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Studio", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Overrides deployment", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Available", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Enabled · Valid", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Preferred", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                cut.FindComponents<MudChip<string>>(),
+                chip => chip.Markup.Contains("Preferred", StringComparison.Ordinal));
             Assert.NotEmpty(cut.FindAll("[aria-label=\"Actions\"]"));
             var actions = Assert.Single(cut.FindComponents<MudMenu>());
             Assert.Equal($"Actions for {connection.DisplayName}", actions.Instance.AriaLabel);
-            Assert.Contains(actions.FindComponents<MudMenuItem>(), item => item.Markup.Contains("Manage", StringComparison.Ordinal));
-            Assert.Contains(actions.FindComponents<MudMenuItem>(), item => item.Markup.Contains("Disable", StringComparison.Ordinal));
         });
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForAssertion(() =>
+        {
+            Assert.Contains("Manage", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("Disable", _popoverProvider.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_PresentsLatestTestAsASemanticStatusAndSecondarySummary()
+    {
+        const string summary = "Provider metadata was resolved.";
+        var connection = CreateConnection();
+        connection.LatestObservation = new ConnectionObservation
+        {
+            Status = "succeeded",
+            Summary = summary,
+            IsStale = true
+        };
+        var untestedConnection = CreateConnection();
+        untestedConnection.Id = "connection-2";
+        untestedConnection.DisplayName = "Untested";
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection, untestedConnection] });
+
+        var cut = Render<ConnectionIndex>();
+
+        cut.WaitForAssertion(() =>
+        {
+            var status = cut.FindComponents<MudChip<string>>()
+                .Single(chip => chip.Markup.Contains("Succeeded · Stale", StringComparison.Ordinal));
+            Assert.Equal(Color.Warning, status.Instance.Color);
+            Assert.Equal(Icons.Material.Outlined.ReportProblem, status.Instance.Icon);
+
+            var summaryText = cut.FindComponents<MudText>()
+                .Single(text => text.Markup.Contains(summary, StringComparison.Ordinal));
+            Assert.Equal(Color.Secondary, summaryText.Instance.Color);
+
+            var notTested = cut.FindComponents<MudText>()
+                .Single(text => text.Markup.Contains("Not tested", StringComparison.Ordinal));
+            Assert.Equal(Color.Secondary, notTested.Instance.Color);
+            Assert.DoesNotContain(
+                cut.FindComponents<MudChip<string>>(),
+                chip => chip.Markup.Contains("Not tested", StringComparison.Ordinal));
+        });
+    }
+
+    [Theory]
+    [InlineData("database", false, true, "Studio", "Overrides deployment")]
+    [InlineData("configuration", true, false, "Deployment", "Shadowed by Studio")]
+    [InlineData("database", true, false, "Studio", "Shadowed by deployment")]
+    [InlineData("database", false, false, "Studio", null)]
+    public void ConnectionListPresentation_DescribesOwnershipRelationships(
+        string source,
+        bool shadowed,
+        bool overridesDeployment,
+        string expectedOwnership,
+        string? expectedRelationship)
+    {
+        var connection = CreateConnection(source);
+        connection.Shadowed = shadowed;
+        connection.OverridesConfigurationConnection = overridesDeployment;
+
+        Assert.Equal(expectedOwnership, ConnectionListPresentation.OwnershipLabel(connection));
+        Assert.Equal(expectedRelationship, ConnectionListPresentation.OwnershipRelationship(connection));
+    }
+
+    [Theory]
+    [InlineData(false, false, true, true, "valid", "Available", Color.Success)]
+    [InlineData(false, false, true, false, "invalid", "Needs attention", Color.Error)]
+    [InlineData(false, false, false, false, "valid", "Disabled", Color.Default)]
+    [InlineData(true, false, true, true, "valid", "Archived", Color.Default)]
+    [InlineData(false, true, true, false, "valid", "Shadowed", Color.Warning)]
+    public void ConnectionListPresentation_SummarizesAvailability(
+        bool archived,
+        bool shadowed,
+        bool enabledIntent,
+        bool effectivelyEnabled,
+        string validity,
+        string expectedLabel,
+        Color expectedColor)
+    {
+        var connection = CreateConnection();
+        connection.Archived = archived;
+        connection.Shadowed = shadowed;
+        connection.EnabledIntent = enabledIntent;
+        connection.EffectivelyEnabled = effectivelyEnabled;
+        connection.Validity = validity;
+
+        Assert.Equal(expectedLabel, ConnectionListPresentation.AvailabilityLabel(connection));
+        Assert.Equal(expectedColor, ConnectionListPresentation.AvailabilityColor(connection));
+        Assert.False(string.IsNullOrWhiteSpace(ConnectionListPresentation.AvailabilityIcon(connection)));
+        Assert.Contains(
+            $"{ConnectionStatusPresentation.LifecycleLabel(connection)} · {ConnectionStatusPresentation.ValidityLabel(connection.Validity)}",
+            ConnectionListPresentation.AvailabilityDetailLabel(connection),
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1252,8 +1355,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Stored: Enabled", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Stored: Valid", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Studio", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Shadowed by deployment", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Shadowed", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Stored: Enabled · Valid", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("create or promote a Studio record", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("can only be changed through deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
         });
@@ -1331,7 +1436,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     [Theory]
     [InlineData("Disable and revoke sessions", true)]
     [InlineData("Disable only", false)]
-    public async Task ConnectionList_RequiresAnExplicitSessionDecisionWhenConfirmingDisable(string action, bool revokeActiveSessions)
+    public void ConnectionList_RequiresAnExplicitSessionDecisionWhenConfirmingDisable(string action, bool revokeActiveSessions)
     {
         var connection = CreateConnection();
         connection.EnabledIntent = true;
@@ -1340,8 +1445,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         var cut = Render<ConnectionIndex>();
         cut.WaitForAssertion(() => Assert.DoesNotContain("Revoke active sessions when disabling", cut.Markup, StringComparison.Ordinal));
 
-        var disable = cut.FindComponents<MudMenuItem>().Single(item => item.Markup.Contains("Disable", StringComparison.Ordinal));
-        await cut.InvokeAsync(() => disable.Instance.OnClick.InvokeAsync(new MouseEventArgs()));
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        var disable = _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Disable", StringComparison.Ordinal));
+        disable.Click();
         _dialogProvider.WaitForAssertion(() => Assert.Contains(action, _dialogProvider.Markup, StringComparison.Ordinal));
         _dialogProvider.FindAll("button").Single(button => button.TextContent.Contains(action, StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() => Assert.Equal(revokeActiveSessions, _operations.RevokeActiveSessions));

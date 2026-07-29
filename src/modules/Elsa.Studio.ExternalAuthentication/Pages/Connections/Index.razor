@@ -9,33 +9,31 @@
 <PageTitle>Identity provider connections</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Identity provider connections" />
+    <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+        <PageHeading Text="Identity provider connections" />
+        @if (_canCreate)
+        {
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
+        }
+    </MudStack>
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
         @ConfigurationGuidance
     </MudAlert>
 
-    <MudPaper Elevation="0" Class="pa-4">
-        <MudGrid Spacing="2" Class="mb-4 align-center">
-            <MudItem xs="12" sm="6" md="4">
+    <MudPaper Elevation="0" Outlined="true" Class="connection-list">
+        <MudGrid Spacing="2" Class="pa-4 align-center connection-list__toolbar">
+            <MudItem xs="12" sm="6" md="5">
                 <MudTextField T="string" Value="_search" ValueChanged="SetSearchAsync" Label="Search connections" Immediate="true" DebounceInterval="300" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.Search" />
             </MudItem>
-            <MudItem xs="12" sm="6" md="2">
+            <MudItem xs="12" sm="6" md="3">
                 <MudSelect T="string" Value="_source" ValueChanged="SetSourceAsync" Label="Source" Clearable="true">
                     <MudSelectItem T="string" Value="@("database")">Database</MudSelectItem>
                     <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12" sm="6" md="3">
+            <MudItem xs="12" sm="6" md="4">
                 <MudCheckBox T="bool" Value="_includeArchived" ValueChanged="SetIncludeArchivedAsync" Label="Include archived" />
             </MudItem>
-            @if (_canCreate)
-            {
-                <MudItem xs="12" sm="6" md="3">
-                    <MudStack Row="true" Justify="Justify.FlexEnd">
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
-                    </MudStack>
-                </MudItem>
-            }
         </MudGrid>
 
         @if (_loading)
@@ -48,49 +46,77 @@
         }
         else
         {
-            <MudTable T="ConnectionSummary" Items="_items" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Md">
+            <MudTable T="ConnectionSummary" Items="_items" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Md" Class="connection-list__table">
                 <HeaderContent>
                     <MudTh>Connection</MudTh>
-                    <MudTh>Source</MudTh>
-                    <MudTh>Status</MudTh>
+                    <MudTh>Ownership</MudTh>
+                    <MudTh>Availability</MudTh>
                     <MudTh>Latest test</MudTh>
                     <MudTh aria-label="Actions"></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Connection">
-                        <MudText Typo="Typo.body2">@context.DisplayName</MudText>
-                        <MudText Typo="Typo.caption">@context.Key · @context.AdapterType</MudText>
-                        @if (context.IsPreferred)
-                        {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Primary">Preferred</MudChip>
-                        }
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.DisplayName</MudText>
+                        <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Key · @context.AdapterType</MudText>
+                            @if (context.IsPreferred)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Primary" />
+                                <MudText Typo="Typo.caption" Color="Color.Primary">Preferred</MudText>
+                            }
+                        </MudStack>
                     </MudTd>
-                    <MudTd DataLabel="Source">
-                        <MudChip T="string" Size="Size.Small" Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">@context.Source</MudChip>
-                        @if (context.Shadowed)
-                        {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">
-                                @(context.IsConfigurationOwned ? "Shadowed by Studio" : "Shadowed by deployment")
+                    <MudTd DataLabel="Ownership">
+                        <MudStack Spacing="1" AlignItems="AlignItems.Start">
+                            <MudChip
+                                T="string"
+                                Size="Size.Small"
+                                Variant="Variant.Outlined"
+                                Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">
+                                @ConnectionListPresentation.OwnershipLabel(context)
                             </MudChip>
-                        }
-                        @if (context.OverridesConfigurationConnection)
-                        {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Studio override</MudChip>
-                        }
+                            @if (ConnectionListPresentation.OwnershipRelationship(context) is { } relationship)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@relationship</MudText>
+                            }
+                        </MudStack>
                     </MudTd>
-                    <MudTd DataLabel="Status">
-                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.LifecycleColor(context)">@ConnectionStatusPresentation.LifecycleDisplayLabel(context)</MudChip>
-                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.ValidityColor(context.Validity)">@ConnectionStatusPresentation.ValidityDisplayLabel(context)</MudChip>
+                    <MudTd DataLabel="Availability">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudIcon
+                                    Icon="@ConnectionListPresentation.AvailabilityIcon(context)"
+                                    Color="@ConnectionListPresentation.AvailabilityColor(context)"
+                                    Size="Size.Small" />
+                                <MudText Typo="Typo.body2" Class="font-weight-medium">
+                                    @ConnectionListPresentation.AvailabilityLabel(context)
+                                </MudText>
+                            </MudStack>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @ConnectionListPresentation.AvailabilityDetailLabel(context)
+                            </MudText>
+                        </MudStack>
                     </MudTd>
                     <MudTd DataLabel="Latest test">
                         @if (context.LatestObservation is { } observation)
                         {
-                            <MudText Typo="Typo.caption">@observation.Status@(observation.IsStale ? " (stale)" : string.Empty)</MudText>
-                            <MudText Typo="Typo.caption">@observation.Summary</MudText>
+                            <MudStack Spacing="1" AlignItems="AlignItems.Start">
+                                <MudChip
+                                    T="string"
+                                    Size="Size.Small"
+                                    Color="@ConnectionObservationPresentation.StatusColor(observation)"
+                                    Icon="@ConnectionObservationPresentation.StatusIcon(observation)">
+                                    @ConnectionObservationPresentation.StatusLabel(observation)
+                                </MudChip>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@observation.Summary</MudText>
+                            </MudStack>
                         }
                         else
                         {
-                            <MudText Typo="Typo.caption">Not tested</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Small" Color="Color.Default" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Not tested</MudText>
+                            </MudStack>
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
@@ -117,7 +143,7 @@
                 </RowTemplate>
                 <NoRecordsContent><MudText>No connections match the current filters.</MudText></NoRecordsContent>
             </MudTable>
-            <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3" aria-label="Connection pages">
+            <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2" Class="pa-3 connection-list__footer" aria-label="Connection pages">
                 <MudText Typo="Typo.caption">Page @_paging.PageNumber</MudText>
                 <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasPrevious || _loading)" OnClick="PreviousPageAsync">Previous page</MudButton>
                 <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasNext || _loading)" OnClick="NextPageAsync">Next page</MudButton>
@@ -141,8 +167,8 @@
     private bool _configurationOverridesAllowed;
 
     private string ConfigurationGuidance => _configurationOverridesAllowed
-        ? "Configuration-owned connections are shown for diagnosis and remain read-only. Authorized administrators can create or promote a Studio record to override deployment configuration. Enabled, valid Studio database connections become login methods without a restart."
-        : "Configuration-owned connections are shown for diagnosis and can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.";
+        ? "Deployment-owned connections are read-only. Authorized administrators can create or promote a Studio record to override them. Enabled, valid Studio connections become login methods without a restart."
+        : "Deployment-owned connections are read-only and must be changed in deployment configuration. Enabled, valid Studio connections become login methods without a restart.";
 
     protected override async Task OnInitializedAsync()
     {

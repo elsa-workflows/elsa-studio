@@ -10,7 +10,7 @@
 
     @if (Observation is { } observation)
     {
-        <MudAlert Severity="@ObservationSeverity(observation.Status)" Dense="true">
+        <MudAlert Severity="@ConnectionObservationPresentation.StatusSeverity(observation.Status)" Dense="true">
             <strong>Latest test: @observation.Status</strong> — @observation.Summary
             @if (observation.IsStale)
             {
@@ -219,12 +219,4 @@
                 .Parse(apiException.StatusCode, apiException.Content, fallbackMessage)
                 .OperationalDisplayMessage
             : fallbackMessage;
-
-    private static Severity ObservationSeverity(string status) => status.ToLowerInvariant() switch
-    {
-        "succeeded" => Severity.Success,
-        "warning" => Severity.Warning,
-        "failed" => Severity.Error,
-        _ => Severity.Info
-    };
 }

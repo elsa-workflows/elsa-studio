@@ -215,12 +215,116 @@ public static class ConnectionStatusPresentation
     public static string ValidityDisplayLabel(ConnectionSummary connection) =>
         $"{StoredPrefix(connection)}{ValidityLabel(connection.Validity)}";
 
-    private static string StoredPrefix(ConnectionSummary connection) =>
+    internal static string StoredPrefix(ConnectionSummary connection) =>
         !connection.Shadowed
             ? string.Empty
             : connection.IsConfigurationOwned
                 ? "Deployment: "
                 : "Stored: ";
+}
+
+public static class ConnectionListPresentation
+{
+    public static string OwnershipLabel(ConnectionSummary connection) =>
+        connection.IsConfigurationOwned ? "Deployment" : "Studio";
+
+    public static string? OwnershipRelationship(ConnectionSummary connection) =>
+        connection.OverridesConfigurationConnection
+            ? "Overrides deployment"
+            : connection.Shadowed
+                ? connection.IsConfigurationOwned ? "Shadowed by Studio" : "Shadowed by deployment"
+                : null;
+
+    public static string AvailabilityLabel(ConnectionSummary connection) =>
+        connection.Archived
+            ? "Archived"
+            : connection.Shadowed
+                ? "Shadowed"
+                : string.Equals(connection.Validity, "invalid", StringComparison.OrdinalIgnoreCase)
+                    ? "Needs attention"
+                    : connection.EffectivelyEnabled
+                        ? "Available"
+                        : connection.EnabledIntent
+                            ? "Not effective"
+                            : "Disabled";
+
+    public static string AvailabilityDetailLabel(ConnectionSummary connection) =>
+        $"{ConnectionStatusPresentation.StoredPrefix(connection)}{ConnectionStatusPresentation.LifecycleLabel(connection)} · {ConnectionStatusPresentation.ValidityLabel(connection.Validity)}";
+
+    public static Color AvailabilityColor(ConnectionSummary connection) =>
+        connection.Archived
+            ? Color.Default
+            : connection.Shadowed
+                ? Color.Warning
+                : string.Equals(connection.Validity, "invalid", StringComparison.OrdinalIgnoreCase)
+                    ? Color.Error
+                    : connection.EffectivelyEnabled
+                        ? Color.Success
+                        : connection.EnabledIntent
+                            ? Color.Warning
+                            : Color.Default;
+
+    public static string AvailabilityIcon(ConnectionSummary connection) =>
+        connection.Archived
+            ? Icons.Material.Outlined.Archive
+            : connection.Shadowed
+                ? Icons.Material.Outlined.WarningAmber
+                : string.Equals(connection.Validity, "invalid", StringComparison.OrdinalIgnoreCase)
+                    ? Icons.Material.Outlined.ErrorOutline
+                    : connection.EffectivelyEnabled
+                        ? Icons.Material.Outlined.CheckCircleOutline
+                        : connection.EnabledIntent
+                            ? Icons.Material.Outlined.WarningAmber
+                            : Icons.Material.Outlined.PauseCircle;
+}
+
+public static class ConnectionObservationPresentation
+{
+    public static string StatusLabel(ConnectionObservation observation)
+    {
+        var label = HumanizeStatus(observation.Status);
+        return observation.IsStale ? $"{label} · Stale" : label;
+    }
+
+    public static Color StatusColor(ConnectionObservation observation) =>
+        observation.IsStale
+            ? Color.Warning
+            : NormalizeStatus(observation.Status) switch
+            {
+                "succeeded" => Color.Success,
+                "warning" => Color.Warning,
+                "failed" => Color.Error,
+                _ => Color.Default
+            };
+
+    public static string StatusIcon(ConnectionObservation observation) =>
+        observation.IsStale
+            ? Icons.Material.Outlined.ReportProblem
+            : NormalizeStatus(observation.Status) switch
+            {
+                "succeeded" => Icons.Material.Outlined.CheckCircleOutline,
+                "warning" => Icons.Material.Outlined.WarningAmber,
+                "failed" => Icons.Material.Outlined.ErrorOutline,
+                _ => Icons.Material.Outlined.HelpOutline
+            };
+
+    public static Severity StatusSeverity(string status) => NormalizeStatus(status) switch
+    {
+        "succeeded" => Severity.Success,
+        "warning" => Severity.Warning,
+        "failed" => Severity.Error,
+        _ => Severity.Info
+    };
+
+    private static string NormalizeStatus(string? status) => status?.Trim().ToLowerInvariant() ?? string.Empty;
+
+    private static string HumanizeStatus(string? status)
+    {
+        var parts = (status ?? string.Empty).Split(['_', '-'], StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length == 0
+            ? "Unknown"
+            : string.Join(" ", parts.Select(part => char.ToUpperInvariant(part[0]) + part[1..].ToLowerInvariant()));
+    }
 }
 
 public enum ConnectionDisableDecision
