@@ -11,6 +11,7 @@ using ConnectionIndex = Elsa.Studio.ExternalAuthentication.Pages.Connections.Ind
 using ConnectionEdit = Elsa.Studio.ExternalAuthentication.Pages.Connections.Edit;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
@@ -22,6 +23,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 {
     private readonly TestConnectionsApi _api = new();
     private readonly TestOperationsApi _operations = new();
+    private readonly PermissionService _permissions = new(true);
+    private readonly TestCustomEditorRegistry _customEditors = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
     public ConnectionEditorTests()
@@ -33,8 +36,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true).SetVoidResult();
         JSInterop.Setup<int>("mudpopoverHelper.countProviders").SetResult(1);
         Services.AddSingleton<IBackendApiClientProvider>(new TestBackendApiClientProvider(_api, _operations));
-        Services.AddSingleton<IExternalAuthenticationPermissionService>(new PermissionService(true));
-        Services.AddSingleton<ICustomConnectionEditorRegistry>(new CustomConnectionEditorRegistry([]));
+        Services.AddSingleton<IExternalAuthenticationPermissionService>(_permissions);
+        Services.AddSingleton<ICustomConnectionEditorRegistry>(_customEditors);
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -261,18 +264,79 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         });
     }
 
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    public void ShadowedDatabaseConnection_PromotesTheExistingRecordOnlyWhenPermitted(bool canPromote, bool canUpdate, bool expectedAction)
+    {
+        _permissions.Allowed = canUpdate;
+        var connection = CreateConnection();
+        connection.Shadowed = true;
+        connection.CanPromoteToConfigurationOverride = canPromote;
+        connection.SecretBindings["clientSecret"] = new SecretBindingState { IsConfigured = true, IsResolvable = true };
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter(includeSecret: true)];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        cut.WaitForAssertion(() =>
+        {
+            if (expectedAction)
+                Assert.Contains("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+            else
+                Assert.DoesNotContain("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+        });
+
+        if (!expectedAction)
+            return;
+
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Make this Studio record effective", StringComparison.Ordinal)).Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("Make this Studio record effective?", _dialogProvider.Markup, StringComparison.Ordinal));
+        Assert.Null(_api.UpdatedRequest);
+
+        _dialogProvider.FindAll("button").Single(button => button.TextContent.Contains("Make record effective", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.NotNull(_api.UpdatedRequest));
+
+        Assert.Equal(connection.Id, _api.UpdatedConnectionId);
+        Assert.Equal("\"7\"", _api.UpdatedIfMatch);
+        Assert.True(_api.UpdatedRequest!.OverridesConfigurationConnection);
+        Assert.Null(_api.CreatedRequest);
+        Assert.DoesNotContain(typeof(ConnectionMutation).GetProperties(), property => property.Name == "SecretBindings");
+        Assert.True(connection.SecretBindings["clientSecret"].IsConfigured);
+    }
+
+    [Fact]
+    public void ShadowedDatabaseConnection_PromotionRemainsAvailableWithALegacyCustomEditor()
+    {
+        var connection = CreateConnection();
+        connection.Shadowed = true;
+        connection.CanPromoteToConfigurationOverride = true;
+        _api.GetResult = connection;
+        var adapter = CreateAdapter();
+        adapter.CustomEditor = new CustomEditorContract { Key = "legacy-editor", ContractVersion = 1 };
+        _api.Adapters = [adapter];
+        _customEditors.ComponentType = typeof(TestCustomEditor);
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Legacy custom editor", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+        });
+    }
+
     [Fact]
     public void ShadowedConnection_ExplainsWhyThePersistedRecordIsNotEffective()
     {
         var connection = CreateConnection();
         connection.Shadowed = true;
-        var cut = Render<ConnectionEditor>(parameters => parameters
-            .Add(component => component.Connection, connection)
-            .Add(component => component.Adapter, CreateAdapter())
-            .Add(component => component.Model, CreateMutation())
-            .Add(component => component.ReadOnly, true));
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
 
-        Assert.Contains("shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() => Assert.Contains("shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -796,9 +860,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
     private sealed class PermissionService(bool allowed) : IExternalAuthenticationPermissionService
     {
-        public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) => ValueTask.FromResult(allowed);
+        public bool Allowed { get; set; } = allowed;
+
+        public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) => ValueTask.FromResult(Allowed);
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult<IReadOnlySet<string>>(allowed ? new HashSet<string>(["*"], StringComparer.Ordinal) : new HashSet<string>(StringComparer.Ordinal));
+            ValueTask.FromResult<IReadOnlySet<string>>(Allowed ? new HashSet<string>(["*"], StringComparer.Ordinal) : new HashSet<string>(StringComparer.Ordinal));
     }
 
     private sealed class PermissionSetService(params string[] permissions) : IExternalAuthenticationPermissionService
@@ -819,7 +885,34 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Type ComponentType => componentType;
     }
 
-    private sealed class TestCustomEditor : ComponentBase, IConnectionCustomEditor;
+    private sealed class TestCustomEditor : ComponentBase, IConnectionCustomEditor
+    {
+        [Parameter] public ConnectionDetail Connection { get; set; } = default!;
+        [Parameter] public AdapterDescriptor Adapter { get; set; } = default!;
+        [Parameter] public ConnectionMutation Model { get; set; } = default!;
+        [Parameter] public bool ReadOnly { get; set; }
+        [Parameter] public bool CanConfigureUnsafeSettings { get; set; }
+        [Parameter] public bool CanCreateOverride { get; set; }
+        [Parameter] public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } = [];
+        [Parameter] public string? ManagedSecretResolverError { get; set; }
+        [Parameter] public EventCallback<ConnectionMutation> Saved { get; set; }
+        [Parameter] public EventCallback<(string Field, ManagedSecretMutation Secret)> ManagedSecretChanged { get; set; }
+        [Parameter] public EventCallback<string> SecretBindingRemoved { get; set; }
+        [Parameter] public EventCallback FullOverrideRequested { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, "Legacy custom editor");
+    }
+
+    private sealed class TestCustomEditorRegistry : ICustomConnectionEditorRegistry
+    {
+        public Type? ComponentType { get; set; }
+
+        public bool TryResolve(CustomEditorContract? contract, out Type componentType)
+        {
+            componentType = ComponentType!;
+            return contract is not null && ComponentType is not null;
+        }
+    }
 
     private sealed class TestBackendApiClientProvider(
         IExternalAuthenticationConnectionsApi connectionsApi,
@@ -863,6 +956,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public ICollection<AdapterDescriptor> Adapters { get; set; } = [];
         public Exception? CreateException { get; set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
+        public string? UpdatedConnectionId { get; private set; }
+        public ConnectionMutation? UpdatedRequest { get; private set; }
+        public string? UpdatedIfMatch { get; private set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
@@ -885,7 +981,18 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
                 return Task.FromException<ConnectionDetail>(CreateException);
             return Task.FromResult(new ConnectionDetail { Id = "override-1", Key = request.Key, DisplayName = request.DisplayName, AdapterType = request.AdapterType });
         }
-        public Task<ConnectionDetail> UpdateAsync(string connectionId, ConnectionMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<ConnectionDetail> UpdateAsync(string connectionId, ConnectionMutation request, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            UpdatedConnectionId = connectionId;
+            UpdatedRequest = request;
+            UpdatedIfMatch = ifMatch;
+            if (GetResult is null)
+                throw new NotSupportedException();
+
+            GetResult.OverridesConfigurationConnection = request.OverridesConfigurationConnection;
+            GetResult.Shadowed = false;
+            return Task.FromResult(GetResult);
+        }
         public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DisableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();

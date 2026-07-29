@@ -62,6 +62,7 @@ public class ConnectionSummary
     public bool Shadowed { get; set; }
     public bool Archived { get; set; }
     public bool CanCreateOverride { get; set; }
+    public bool CanPromoteToConfigurationOverride { get; set; }
     public long Revision { get; set; }
     public string MaterialRevision { get; set; } = string.Empty;
     public ConnectionObservation? LatestObservation { get; set; }

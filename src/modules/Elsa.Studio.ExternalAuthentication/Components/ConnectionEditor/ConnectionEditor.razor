@@ -21,10 +21,6 @@
                 }
             </MudAlert>
         }
-        @if (Connection.Shadowed)
-        {
-            <MudAlert Severity="Severity.Warning" Dense="true">This persisted record is shadowed by deployment configuration and is not effective.</MudAlert>
-        }
         <MudTextField @bind-Value="Model.DisplayName" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
         <MudTextField @bind-Value="Model.Key" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
         @if (!string.IsNullOrWhiteSpace(Connection.CallbackUri))

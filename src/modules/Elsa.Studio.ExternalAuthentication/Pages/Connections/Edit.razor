@@ -35,6 +35,18 @@
                     }
                 </MudSelect>
             }
+            @if (_connection.Shadowed)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true">
+                    This persisted record is shadowed by deployment configuration and is not effective.
+                    @if (CanPromoteCurrentConnection)
+                    {
+                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="PromoteToConfigurationOverrideAsync">
+                            Make this Studio record effective
+                        </MudButton>
+                    }
+                </MudAlert>
+            }
             @if (CustomEditors.TryResolve(_adapter.CustomEditor, out var customEditorType))
             {
                 <DynamicComponent Type="customEditorType" Parameters="CustomEditorParameters" />
@@ -139,6 +151,17 @@
     private string? ManagedSecretResolverError => _managedSecretResolverError;
 
     private bool IsNew => string.IsNullOrWhiteSpace(ConnectionId);
+    private bool CanPromoteCurrentConnection =>
+        !IsNew &&
+        _canUpdate &&
+        _connection is
+        {
+            IsConfigurationOwned: false,
+            Shadowed: true,
+            Archived: false,
+            OverridesConfigurationConnection: false,
+            CanPromoteToConfigurationOverride: true
+        };
     private IDictionary<string, object> CustomEditorParameters => new Dictionary<string, object>
     {
         [nameof(ConnectionEditor.Connection)] = _connection!,
@@ -250,26 +273,52 @@
         if (_connection is null)
             return;
         mutation.Scope = new ConnectionScope { Kind = "host" };
+
+        if (!IsNew)
+        {
+            await UpdateExistingConnectionAsync(mutation, "Connection updated.");
+            return;
+        }
+
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            if (IsNew)
-            {
-                if (!_canCreate)
-                    return;
-
-                var created = await api.CreateAsync(mutation);
-                Snackbar.Add("Connection draft created.", Severity.Success);
-                Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(created.Id)}", replace: true);
-                return;
-            }
-
-            if (!_canUpdate || _connection.IsConfigurationOwned)
+            if (!_canCreate)
                 return;
 
+            var created = await api.CreateAsync(mutation);
+            Snackbar.Add("Connection draft created.", Severity.Success);
+            Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(created.Id)}", replace: true);
+        }
+        catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
+        {
+            await RecoverConcurrencyAsync(exception);
+        }
+        catch (ApiException exception) when (IsConcurrencyConflict(exception))
+        {
+            await RecoverConcurrencyAsync(new ManagementApiException("The connection changed elsewhere.", (int)exception.StatusCode));
+        }
+        catch (ApiException exception)
+        {
+            ShowManagementError(exception);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task UpdateExistingConnectionAsync(ConnectionMutation mutation, string successMessage)
+    {
+        if (_connection is null || IsNew || !_canUpdate || _connection.IsConfigurationOwned)
+            return;
+
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             _connection = await api.UpdateAsync(_connection.Id, mutation, ConnectionConcurrency.ToIfMatch(_connection.Revision));
             _model = ToMutation(_connection);
-            Snackbar.Add("Connection updated.", Severity.Success);
+            Snackbar.Add(successMessage, Severity.Success);
         }
         catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
         {
@@ -619,6 +668,24 @@
         };
         ConnectionId = null;
         Snackbar.Add("A complete database-owned copy is ready. Review every field and reconfigure its secrets after saving the draft.", Severity.Info);
+    }
+
+    private async Task PromoteToConfigurationOverrideAsync()
+    {
+        if (_connection is null || !CanPromoteCurrentConnection)
+            return;
+
+        var confirmed = await Dialogs.ShowMessageBoxAsync(
+            "Make this Studio record effective?",
+            "This makes the existing Studio record override deployment configuration. Its configured secret bindings are preserved. While disabled, it still shadows deployment configuration; archiving it reveals the deployment connection again.",
+            yesText: "Make record effective",
+            cancelText: "Cancel") == true;
+        if (!confirmed)
+            return;
+
+        var mutation = ToMutation(_connection);
+        mutation.OverridesConfigurationConnection = true;
+        await UpdateExistingConnectionAsync(mutation, "This Studio record now overrides deployment configuration.");
     }
 
     private void Back() => Navigation.NavigateTo("security/external-authentication/connections");
