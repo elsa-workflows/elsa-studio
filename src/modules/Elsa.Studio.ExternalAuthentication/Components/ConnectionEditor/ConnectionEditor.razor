@@ -76,7 +76,7 @@
                                 CanManage="@(!string.IsNullOrWhiteSpace(Connection.Id))"
                                 CanRemove="@(!Connection.EnabledIntent || !field.IsRequired)"
                                 ManagedSecretResolvers="ManagedSecretResolvers"
-                                ManagedSecretResolverError="ManagedSecretResolverError"
+                                ManagedSecretResolverError="@ManagedSecretResolverError"
                                 OnManagedReplace="@((secret) => ManagedSecretChanged.InvokeAsync((field.Name, secret)))"
                                 OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
         }

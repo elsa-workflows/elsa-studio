@@ -60,7 +60,7 @@
                                   CanConfigureUnsafeSettings="_canConfigureUnsafeSettings"
                                   CanCreateOverride="@(_canCreate && _connection.CanCreateOverride)"
                                   ManagedSecretResolvers="_managedSecretResolvers"
-                                  ManagedSecretResolverError="ManagedSecretResolverError"
+                                  ManagedSecretResolverError="@ManagedSecretResolverError"
                                   Saved="SaveAsync"
                                   ManagedSecretChanged="ReplaceManagedSecretAsync"
                                   SecretBindingRemoved="RemoveBindingAsync"
@@ -73,7 +73,7 @@
                                     Matchers="_matcherDescriptors"
                                     Roles="_roleOptions"
                                     CanSelectRoles="_canReadRoles"
-                                    RoleOptionsError="RoleOptionsError"
+                                    RoleOptionsError="@RoleOptionsError"
                                     ReadOnly="@(!_canManagePolicies || _connection.IsConfigurationOwned)" />
             @if (!IsNew)
             {

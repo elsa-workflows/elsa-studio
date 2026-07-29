@@ -166,6 +166,57 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ConnectionPage_LoadsRoleOptionsWithoutShowingASpuriousError()
+    {
+        var descriptor = new UnlinkedIdentityPolicyDescriptor
+        {
+            Type = "create-user",
+            DisplayName = "Create user",
+            SettingsVersion = 1,
+            Fields = [new ConnectionFieldDescriptor { Name = "defaultRoleIds", DisplayName = "Default roles", ValueType = "string-array" }]
+        };
+        var connection = CreateConnection();
+        connection.UnlinkedPolicy = new PolicySelection
+        {
+            Type = descriptor.Type,
+            SettingsVersion = descriptor.SettingsVersion,
+            Settings = JsonSerializer.SerializeToElement(new { defaultRoleIds = new[] { "role-admin" } })
+        };
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+        _api.Policies = [descriptor];
+        _api.Roles = [new IdentityRoleOption { Id = "role-admin", Name = "Administrators" }];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("RoleOptionsError", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains(
+                cut.FindComponent<ConnectionPolicyEditor>().Instance.Roles,
+                role => role is { Id: "role-admin", Name: "Administrators" });
+            Assert.False(cut.FindComponents<MudSelect<string>>().Last().Instance.Disabled);
+        });
+    }
+
+    [Fact]
+    public void ConnectionPage_ShowsTheActualManagedSecretResolverError()
+    {
+        var connection = CreateConnection();
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter(includeSecret: true)];
+        _api.ManagedSecretResolvers = [];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Managed secret storage is not available on this Elsa server.", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("ManagedSecretResolverError", cut.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
     public void MatchUserPolicy_UsesMatcherDescriptorsAndHidesRawMatcherJson()
     {
         var policy = new UnlinkedIdentityPolicyDescriptor
@@ -954,6 +1005,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public List<string?> Cursors { get; } = [];
         public ConnectionDetail? GetResult { get; set; }
         public ICollection<AdapterDescriptor> Adapters { get; set; } = [];
+        public ICollection<UnlinkedIdentityPolicyDescriptor> Policies { get; set; } = [];
+        public ICollection<IdentityRoleOption> Roles { get; set; } = [];
+        public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } =
+            [new() { Type = "elsa-secrets", DisplayName = "Elsa Secrets" }];
         public Exception? CreateException { get; set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
         public string? UpdatedConnectionId { get; private set; }
@@ -969,10 +1024,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(GetResult ?? throw new NotSupportedException());
         public Task<ICollection<AdapterDescriptor>> GetAdaptersAsync(CancellationToken cancellationToken = default) => Task.FromResult(Adapters);
         public Task<ICollection<PermissionGrantSourceDescriptor>> GetPermissionSourcesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ICollection<UnlinkedIdentityPolicyDescriptor>> GetPoliciesAsync(CancellationToken cancellationToken = default) => Task.FromResult<ICollection<UnlinkedIdentityPolicyDescriptor>>([]);
+        public Task<ICollection<UnlinkedIdentityPolicyDescriptor>> GetPoliciesAsync(CancellationToken cancellationToken = default) => Task.FromResult(Policies);
         public Task<ICollection<ExternalUserMatcherDescriptor>> GetUserMatchersAsync(CancellationToken cancellationToken = default) => Task.FromResult<ICollection<ExternalUserMatcherDescriptor>>([]);
         public Task<ManagedSecretResolverCatalog> GetManagedSecretResolversAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(new ManagedSecretResolverCatalog { Items = [new ManagedSecretResolverDescriptor { Type = "elsa-secrets", DisplayName = "Elsa Secrets" }] });
+            Task.FromResult(new ManagedSecretResolverCatalog { Items = ManagedSecretResolvers });
         public Task<ICollection<PermissionDescriptor>> GetPermissionsAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionDetail> CreateAsync(ConnectionMutation request, CancellationToken cancellationToken = default)
         {
@@ -1001,6 +1056,6 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         Task<IdentityRoleOptionsResponse> IIdentityRolesApi.ListAsync(CancellationToken cancellationToken) =>
-            Task.FromResult(new IdentityRoleOptionsResponse());
+            Task.FromResult(new IdentityRoleOptionsResponse { Roles = Roles });
     }
 }
