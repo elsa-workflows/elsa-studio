@@ -2,7 +2,6 @@
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
 @inject ISnackbar Snackbar
 @using Elsa.Studio.ExternalAuthentication.Services
-@using ApiException = Refit.ApiException
 
 <MudStack Spacing="2">
     <MudText Typo="Typo.h6">Operations</MudText>
@@ -37,7 +36,7 @@
         }
         @if (Adapter.Capabilities.SupportsPreview)
         {
-            <MudButton Variant="Variant.Outlined" Disabled="@(!_canPreview || IsReadOnly || _startingPreview)" OnClick="StartPreviewAsync">
+            <MudButton Variant="Variant.Outlined" Disabled="@(!CanPreview || _startingPreview)" OnClick="StartPreviewAsync">
                 @(_startingPreview ? "Preparing preview…" : "Preview sign-in")
             </MudButton>
         }
@@ -71,9 +70,10 @@
 </MudStack>
 
 @code {
-    [Parameter, EditorRequired] public ConnectionDetail Connection { get; set; } = default!;
+    [Parameter, EditorRequired] public ConnectionSummary Connection { get; set; } = default!;
     [Parameter, EditorRequired] public AdapterDescriptor Adapter { get; set; } = default!;
     [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool StartPreviewOnLoad { get; set; }
     [Parameter] public EventCallback<ConnectionObservation> ObservationRecorded { get; set; }
 
     private bool _canTest;
@@ -86,13 +86,20 @@
     private string? _previewHandle;
     private PreviewResultDocument? _previewResult;
     private string? _operationError;
+    private bool _previewStartRequested;
 
     private ConnectionObservation? Observation => _testing ? null : Connection.LatestObservation;
+    private bool CanPreview => _canPreview && !IsReadOnly && Adapter.Capabilities.SupportsPreview;
 
     protected override async Task OnParametersSetAsync()
     {
         _canTest = await Permissions.HasAsync(ExternalAuthenticationPermissions.Test);
         _canPreview = await Permissions.HasAsync(ExternalAuthenticationPermissions.Preview);
+        if (StartPreviewOnLoad && !_previewStartRequested && CanPreview)
+        {
+            _previewStartRequested = true;
+            await StartPreviewAsync();
+        }
     }
 
     private async Task TestAsync()
@@ -101,18 +108,16 @@
         _operationError = null;
         try
         {
-            var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
-            var result = await api.TestAsync(Connection.Id, ConnectionConcurrency.ToIfMatch(Connection.Revision));
-            var observation = result.ToObservation();
+            var observation = await ConnectionOperationActions.TestConnectionAsync(ApiClientProvider, Connection);
             Connection.LatestObservation = observation;
             await ObservationRecorded.InvokeAsync(observation);
-            Snackbar.Add("Connection test completed. The result contains only redacted diagnostics.", Severity.Success);
+            Snackbar.Add(ConnectionOperationActions.TestCompletedMessage, Severity.Success);
         }
         catch (Exception exception)
         {
-            _operationError = PresentOperationError(
+            _operationError = ConnectionOperationActions.PresentError(
                 exception,
-                "The connection test failed before a diagnostic observation was recorded. Check the connection requirements and server logs, then try again.");
+                ConnectionOperationActions.TestFailedMessage);
             Snackbar.Add(_operationError, Severity.Error);
         }
         finally
@@ -123,6 +128,9 @@
 
     private async Task StartPreviewAsync()
     {
+        if (!CanPreview)
+            return;
+
         _startingPreview = true;
         _previewResult = null;
         _operationError = null;
@@ -140,7 +148,7 @@
         }
         catch (Exception exception)
         {
-            _operationError = PresentOperationError(
+            _operationError = ConnectionOperationActions.PresentError(
                 exception,
                 "Preview could not be prepared. Validate the connection and confirm the provider preview callback URI, then try again.");
             Snackbar.Add(_operationError, Severity.Error);
@@ -169,7 +177,7 @@
         }
         catch (Exception exception)
         {
-            _operationError = PresentOperationError(
+            _operationError = ConnectionOperationActions.PresentError(
                 exception,
                 "The one-time preview result is unavailable or has expired. Start a new preview and complete provider sign-in before retrieving it.");
             Snackbar.Add(_operationError, Severity.Error);
@@ -213,10 +221,4 @@
         string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
         left.Port == right.Port;
 
-    private static string PresentOperationError(Exception exception, string fallbackMessage) =>
-        exception is ApiException apiException
-            ? ConnectionManagementError
-                .Parse(apiException.StatusCode, apiException.Content, fallbackMessage)
-                .OperationalDisplayMessage
-            : fallbackMessage;
 }

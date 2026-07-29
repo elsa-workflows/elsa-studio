@@ -1158,6 +1158,14 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         connection.Validity = "valid";
         connection.OverridesConfigurationConnection = true;
         connection.IsPreferred = true;
+        _api.Adapters =
+        [
+            new AdapterDescriptor
+            {
+                Type = connection.AdapterType,
+                Capabilities = new AdapterCapabilities { SupportsTest = true, SupportsPreview = true }
+            }
+        ];
         _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
 
         var cut = Render<ConnectionIndex>();
@@ -1186,7 +1194,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _popoverProvider.WaitForAssertion(() =>
         {
             Assert.Contains("Manage", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("Test connection", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("Preview sign-in", _popoverProvider.Markup, StringComparison.Ordinal);
             Assert.Contains("Disable", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("Archive", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Equal(2, _popoverProvider.FindAll(".mud-divider").Count);
         });
     }
 
@@ -1225,6 +1237,177 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain(
                 cut.FindComponents<MudChip<string>>(),
                 chip => chip.Markup.Contains("Not tested", StringComparison.Ordinal));
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_TestConnectionRecordsTheObservationAndShowsTheRedactedSuccessMessage()
+    {
+        var connection = CreateConnection();
+        _api.Adapters =
+        [
+            new AdapterDescriptor
+            {
+                Type = connection.AdapterType,
+                Capabilities = new AdapterCapabilities { SupportsTest = true }
+            }
+        ];
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Test connection", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(connection.Id, _operations.TestedConnectionId);
+            Assert.Equal("\"7\"", _operations.TestedIfMatch);
+            Assert.Contains("Provider metadata was resolved.", cut.Markup, StringComparison.Ordinal);
+            Assert.Equal(
+                "Connection test completed. The result contains only redacted diagnostics.",
+                Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_FailedTestUsesTheSameRedactedOperationalMessageAsTheDiagnosticsPage()
+    {
+        var connection = CreateConnection();
+        _api.Adapters =
+        [
+            new AdapterDescriptor
+            {
+                Type = connection.AdapterType,
+                Capabilities = new AdapterCapabilities { SupportsTest = true }
+            }
+        ];
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+        _operations.TestException = new InvalidOperationException("provider-access-token");
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Test connection", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var message = Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message;
+            Assert.Equal(ConnectionOperationActions.TestFailedMessage, message);
+            Assert.DoesNotContain("provider-access-token", message, StringComparison.Ordinal);
+            Assert.Contains("Not tested", cut.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_ArchiveRequiresConfirmationAndReloadsTheList()
+    {
+        var connection = CreateConnection();
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+        _api.ListResults.Enqueue(new ListConnectionsResponse());
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Archive", StringComparison.Ordinal))
+            .Click();
+        _dialogProvider.WaitForAssertion(() =>
+            Assert.Contains("preserves its identity links", _dialogProvider.Markup, StringComparison.Ordinal));
+        _dialogProvider.FindAll("button")
+            .Single(button => button.TextContent.Trim() == "Archive")
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(connection.Id, _api.ArchivedConnectionId);
+            Assert.Equal("\"7\"", _api.ArchivedIfMatch);
+            Assert.Equal(2, _api.ListRequests.Count);
+            Assert.DoesNotContain(connection.DisplayName, cut.Markup, StringComparison.Ordinal);
+            Assert.Equal(
+                "Connection archived.",
+                Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_PreviewSignInPreservesTheOneTimeResultFlowInADialog()
+    {
+        var connection = CreateConnection();
+        _api.Adapters =
+        [
+            new AdapterDescriptor
+            {
+                Type = connection.AdapterType,
+                Capabilities = new AdapterCapabilities { SupportsPreview = true }
+            }
+        ];
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Preview sign-in", StringComparison.Ordinal))
+            .Click();
+
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            Assert.Equal(connection.Id, _operations.PreviewedConnectionId);
+            Assert.Equal("\"7\"", _operations.PreviewedIfMatch);
+            Assert.Contains("Open preview sign-in", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains(
+                "https://elsa.example.test/external-authentication/previews/preview-handle/authorize",
+                _dialogProvider.Markup,
+                StringComparison.Ordinal);
+        });
+
+        _dialogProvider.FindAll("button")
+            .Single(button => button.TextContent.Contains("Get one-time preview result", StringComparison.Ordinal))
+            .Click();
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            Assert.Equal("preview-handle", _operations.PreviewHandle);
+            Assert.Contains("https://issuer.example.test", _dialogProvider.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_HidesUnavailableActionsWithoutLeavingEmptyDividers()
+    {
+        _permissions.AllowedPermissions = new HashSet<string>([ExternalAuthenticationPermissions.Read], StringComparer.Ordinal);
+        var connection = CreateConnection();
+        connection.Validity = "valid";
+        _api.Adapters =
+        [
+            new AdapterDescriptor
+            {
+                Type = connection.AdapterType,
+                Capabilities = new AdapterCapabilities { SupportsTest = true, SupportsPreview = true }
+            }
+        ];
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+        _popoverProvider.WaitForAssertion(() =>
+        {
+            Assert.Contains("Manage", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Test connection", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Preview sign-in", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Enable", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Archive", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Empty(_popoverProvider.FindAll(".mud-divider"));
         });
     }
 
@@ -1476,7 +1659,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         var menu = new ExternalAuthenticationSecurityMenuContributor(
             new FeatureProvider(true),
-            new PermissionSetService(ExternalAuthenticationPermissions.Read));
+            new PermissionService(ExternalAuthenticationPermissions.Read));
 
         var item = Assert.Single(await menu.GetMenuItemsAsync());
         Assert.Equal("security/external-authentication/connections", item.Href);
@@ -1492,7 +1675,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         var menu = new ExternalAuthenticationSecurityMenuContributor(
             new FeatureProvider(true),
-            new PermissionSetService(
+            new PermissionService(
                 ExternalAuthenticationPermissions.Read,
                 ExternalAuthenticationPermissions.ManageLinks,
                 ExternalAuthenticationPermissions.SessionsRead));
@@ -1505,7 +1688,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         var sessionsOnly = await new ExternalAuthenticationSecurityMenuContributor(
                 new FeatureProvider(true),
-                new PermissionSetService(ExternalAuthenticationPermissions.SessionsRead))
+                new PermissionService(ExternalAuthenticationPermissions.SessionsRead))
             .GetMenuItemsAsync();
         Assert.Equal("Authentication sessions", Assert.Single(sessionsOnly).Text);
     }
@@ -1583,24 +1766,26 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<FeatureDescriptor>>([]);
     }
 
-    private sealed class PermissionService(bool allowed) : IExternalAuthenticationPermissionService
+    private sealed class PermissionService : IExternalAuthenticationPermissionService
     {
-        public bool Allowed { get; set; } = allowed;
+        public PermissionService(bool allowed) => Allowed = allowed;
 
-        public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) => ValueTask.FromResult(Allowed);
-        public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult<IReadOnlySet<string>>(Allowed ? new HashSet<string>(["*"], StringComparer.Ordinal) : new HashSet<string>(StringComparer.Ordinal));
-    }
+        public PermissionService(params string[] permissions)
+        {
+            Allowed = true;
+            AllowedPermissions = permissions.ToHashSet(StringComparer.Ordinal);
+        }
 
-    private sealed class PermissionSetService(params string[] permissions) : IExternalAuthenticationPermissionService
-    {
-        private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
+        public bool Allowed { get; set; }
+        public IReadOnlySet<string>? AllowedPermissions { get; set; }
 
         public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(_permissions.Contains(permission));
-
+            ValueTask.FromResult(Allowed && (AllowedPermissions is null || AllowedPermissions.Contains(permission)));
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(_permissions);
+            ValueTask.FromResult<IReadOnlySet<string>>(
+                Allowed
+                    ? AllowedPermissions ?? new HashSet<string>(["*"], StringComparer.Ordinal)
+                    : new HashSet<string>(StringComparer.Ordinal));
     }
 
     private sealed class CustomEditorRegistration(string key, int contractVersion, Type componentType) : ICustomConnectionEditorRegistration
@@ -1673,6 +1858,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     private sealed class TestOperationsApi : IExternalAuthenticationOperationsApi
     {
         public bool? RevokeActiveSessions { get; private set; }
+        public string? TestedConnectionId { get; private set; }
+        public string? TestedIfMatch { get; private set; }
+        public string? PreviewedConnectionId { get; private set; }
+        public string? PreviewedIfMatch { get; private set; }
+        public string? PreviewHandle { get; private set; }
+        public Exception? TestException { get; set; }
 
         public Task DisableWithRecoveryOverrideAsync(
             string connectionId,
@@ -1685,9 +1876,40 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             return Task.CompletedTask;
         }
 
-        public Task<ConnectionTestResult> TestAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<PreviewResultDocument> GetPreviewResultAsync(string previewHandle, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<ConnectionTestResult> TestAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            TestedConnectionId = connectionId;
+            TestedIfMatch = ifMatch;
+            if (TestException is not null)
+                throw TestException;
+            return Task.FromResult(new ConnectionTestResult
+            {
+                Status = "succeeded",
+                Summary = "Provider metadata was resolved.",
+                TestedMaterialRevision = "material-7"
+            });
+        }
+        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            PreviewedConnectionId = connectionId;
+            PreviewedIfMatch = ifMatch;
+            return Task.FromResult(new PreviewInitiation
+            {
+                NavigationUrl = "/external-authentication/previews/preview-handle/authorize",
+                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5)
+            });
+        }
+
+        public Task<PreviewResultDocument> GetPreviewResultAsync(string previewHandle, CancellationToken cancellationToken = default)
+        {
+            PreviewHandle = previewHandle;
+            return Task.FromResult(new PreviewResultDocument
+            {
+                Issuer = "https://issuer.example.test",
+                MaskedSubject = "sub•••123",
+                PolicyDecision = "would-link"
+            });
+        }
         public Task<ListExternalAuthenticationSessionsResponse> ListSessionsAsync(string? userId = null, string? connectionId = null, string? status = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RevokeSessionAsync(string sessionId, RevokeExternalAuthenticationSessionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
@@ -1716,6 +1938,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public string? UpdatedConnectionId { get; private set; }
         public ConnectionMutation? UpdatedRequest { get; private set; }
         public string? UpdatedIfMatch { get; private set; }
+        public string? ArchivedConnectionId { get; private set; }
+        public string? ArchivedIfMatch { get; private set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
@@ -1760,7 +1984,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         }
         public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DisableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            ArchivedConnectionId = connectionId;
+            ArchivedIfMatch = ifMatch;
+            return Task.CompletedTask;
+        }
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(ValidationResult);
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
