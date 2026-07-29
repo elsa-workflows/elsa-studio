@@ -28,6 +28,44 @@
     min-inline-size: 0;
 }
 
+.elsa-login-panel__external-methods {
+    background: var(--elsa-login-method-surface, #fff);
+    border: 1px solid var(--elsa-login-method-border, #d7dde6);
+    border-radius: 0.75rem;
+    box-shadow: var(--elsa-login-method-shadow, 0 0.25rem 0.75rem rgb(15 23 42 / 0.08));
+    overflow: hidden;
+}
+
+.elsa-login-panel__method--external {
+    color: var(--elsa-login-panel-color, #1f2937);
+    position: relative;
+    transition: background-color 140ms ease;
+}
+
+.elsa-login-panel__method--external:not(:last-child) {
+    border-block-end: 1px solid var(--elsa-login-method-border, #d7dde6);
+}
+
+.elsa-login-panel__method--external:hover,
+.elsa-login-panel__method--external:focus-within {
+    background: var(--elsa-login-method-hover-surface, #f4f8fd);
+}
+
+.elsa-login-panel__method--preferred {
+    background: var(--elsa-login-method-preferred-surface, #eef6ff);
+    color: var(--elsa-login-method-preferred-color, var(--elsa-login-panel-color, #1f2937));
+}
+
+.elsa-login-panel__method--preferred::before {
+    background: var(--elsa-login-method-preferred-border, var(--elsa-login-accent, #2563eb));
+    content: "";
+    inset-block: 0;
+    inset-inline-start: 0;
+    position: absolute;
+    width: 0.2rem;
+    z-index: 1;
+}
+
 .elsa-login-panel__method form {
     display: flex;
     flex-direction: column;
@@ -44,7 +82,78 @@
 }
 
 .elsa-login-panel__preferred {
+    background: var(--elsa-login-accent, #2563eb);
+    border-radius: 999px;
+    color: var(--elsa-login-accent-contrast, #fff);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.35rem 0.5rem;
+}
+
+.elsa-login-panel__method:not(.elsa-login-panel__method--external) > .elsa-login-panel__preferred {
+    display: inline-flex;
     margin-block-end: 0.35rem;
+}
+
+.elsa-login-panel__method--external > .elsa-login-panel__preferred {
+    inset-block-start: 50%;
+    inset-inline-end: 3.25rem;
+    pointer-events: none;
+    position: absolute;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.elsa-login-method-button.mud-button-root {
+    background: transparent !important;
+    border-radius: 0;
+    color: inherit;
+    inline-size: 100%;
+    min-block-size: 4.25rem;
+    padding: 0.75rem 1rem;
+    text-transform: none;
+}
+
+.elsa-login-method-button .mud-button-label {
+    align-items: center;
+    display: flex;
+    gap: 0.8rem;
+    inline-size: 100%;
+    min-inline-size: 0;
+}
+
+.elsa-login-method-button .mud-button-icon-start {
+    align-items: center;
+    background: var(--elsa-login-method-icon-surface, #eaf3fc);
+    border-radius: 50%;
+    color: var(--elsa-login-method-icon-color, var(--elsa-login-accent, #2563eb));
+    display: inline-flex;
+    flex: 0 0 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+    margin: 0;
+    width: 2.5rem;
+}
+
+.elsa-login-method-button__label {
+    flex: 1 1 auto;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    text-align: start;
+}
+
+.elsa-login-method-button .mud-button-icon-end {
+    color: var(--elsa-login-muted-color, #64748b);
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.elsa-login-panel__method--preferred .elsa-login-method-button__label {
+    padding-inline-end: 5.5rem;
 }
 
 .elsa-login-panel__divider {
@@ -140,6 +249,15 @@
     --elsa-login-accent-contrast: #fff;
     --elsa-login-muted-color: #656b74;
     --elsa-login-focus-color: #0d72bf;
+    --elsa-login-method-surface: #fff;
+    --elsa-login-method-border: #d9e1eb;
+    --elsa-login-method-hover-surface: #f3f8fd;
+    --elsa-login-method-preferred-surface: #edf6ff;
+    --elsa-login-method-preferred-border: #1976d2;
+    --elsa-login-method-preferred-color: #21405f;
+    --elsa-login-method-icon-surface: #e8f3fc;
+    --elsa-login-method-icon-color: #0d72bf;
+    --elsa-login-method-shadow: 0 0.25rem 0.75rem rgb(31 57 82 / 0.09);
     align-items: flex-start;
     background:
         radial-gradient(circle at 14% 12%, rgb(161 211 250 / 0.8), transparent 34rem),

@@ -43,9 +43,16 @@
                 </div>
             }
 
-            @foreach (var method in ExternalMethods)
+            @if (ExternalMethods.Count > 0)
             {
-                @RenderMethod(method)
+                <div class="elsa-login-panel__external-methods"
+                     role="list"
+                     aria-label="@Localizer["External sign-in methods"]">
+                    @foreach (var method in ExternalMethods)
+                    {
+                        @RenderMethod(method)
+                    }
+                </div>
             }
         </div>
     }
@@ -119,19 +126,23 @@
         if (!Components.TryResolve(method.Kind, out var provider))
             return;
 
+        var isLocal = IsLocalMethod(method);
+        var className = isLocal
+            ? "elsa-login-panel__method"
+            : $"elsa-login-panel__method elsa-login-panel__method--external{(method.IsPreferred ? " elsa-login-panel__method--preferred" : string.Empty)}";
+
         builder.OpenElement(0, "section");
-        builder.AddAttribute(1, "class", "elsa-login-panel__method");
+        builder.AddAttribute(1, "class", className);
         builder.AddAttribute(2, "aria-label", method.DisplayName);
+        if (!isLocal)
+            builder.AddAttribute(3, "role", "listitem");
 
         if (method.IsPreferred)
         {
-            builder.OpenComponent<MudChip<string>>(3);
-            builder.AddComponentParameter(4, nameof(MudChip<string>.Size), Size.Small);
-            builder.AddComponentParameter(5, nameof(MudChip<string>.Color), Color.Primary);
-            builder.AddComponentParameter(6, nameof(MudChip<string>.Class), "elsa-login-panel__preferred");
-            builder.AddComponentParameter(7, nameof(MudChip<string>.ChildContent),
-                (RenderFragment)(chipBuilder => chipBuilder.AddContent(0, Localizer["Preferred"])));
-            builder.CloseComponent();
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "class", "elsa-login-panel__preferred");
+            builder.AddContent(6, Localizer["Preferred"]);
+            builder.CloseElement();
         }
 
         builder.OpenComponent<DynamicComponent>(8);

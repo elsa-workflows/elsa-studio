@@ -1,15 +1,11 @@
 @implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
+@using Elsa.Studio.Authentication.UI.Components
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationLoginCoordinator LoginCoordinator
 @inject Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodIconRegistry Icons
 
-<MudButton FullWidth="true"
-           Variant="Variant.Outlined"
-           Size="Size.Large"
-           StartIcon="@Icon.Svg"
-           aria-label="@($"Sign in with {Context.Method.DisplayName}")"
-           OnClick="SignInAsync">
-    Sign in with @Context.Method.DisplayName
-</MudButton>
+<LoginMethodButton Method="Context.Method"
+                   Icon="@Icon.Svg"
+                   OnClick="SignInAsync" />
 
 @code {
     [Parameter, EditorRequired]

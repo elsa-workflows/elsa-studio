@@ -66,6 +66,34 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ExternalMethods_RenderAsAThemeableProviderList()
+    {
+        Register(new(
+        [
+            Method("general", "General", "external", 0, isDefault: true, iconId: "building"),
+            Method("workforce", "Workforce", "external", 1, iconId: "microsoft")
+        ], "general"));
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var list = cut.Find(".elsa-login-panel__external-methods");
+            var rows = list.QuerySelectorAll(".elsa-login-panel__method--external");
+
+            Assert.Equal(2, rows.Length);
+            Assert.All(rows, row => Assert.NotNull(row.QuerySelector("button.elsa-login-method-button")));
+            Assert.Contains("Preferred", rows[0].TextContent);
+            Assert.Equal(
+                "Sign in with General",
+                rows[0].QuerySelector("button")?.GetAttribute("aria-label"));
+            Assert.Equal(
+                "Sign in with Workforce",
+                rows[1].QuerySelector("button")?.GetAttribute("aria-label"));
+        });
+    }
+
+    [Fact]
     public void TrustedIconRegistry_UsesOnlyRegistrationsAndFallsBackSafely()
     {
         var registry = new LoginMethodIconRegistry([new BuiltInLoginMethodIconProvider()]);
@@ -132,7 +160,7 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
 
         var cut = RenderLoginPage();
         cut.WaitForAssertion(() => Assert.Contains("Sign in with Contoso", cut.Markup));
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Sign in with Contoso", StringComparison.Ordinal)).Click();
+        cut.Find("button[aria-label='Sign in with Contoso']").Click();
 
         cut.WaitForAssertion(() =>
             Assert.Contains("selected sign-in method is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase));

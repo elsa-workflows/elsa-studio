@@ -119,6 +119,15 @@ select private descendants of the shared panel:
 --elsa-login-accent-contrast
 --elsa-login-muted-color
 --elsa-login-focus-color
+--elsa-login-method-surface
+--elsa-login-method-border
+--elsa-login-method-hover-surface
+--elsa-login-method-preferred-surface
+--elsa-login-method-preferred-border
+--elsa-login-method-preferred-color
+--elsa-login-method-icon-surface
+--elsa-login-method-icon-color
+--elsa-login-method-shadow
 ```
 
 The shell localizes common text and preserves keyboard operation, visible focus,

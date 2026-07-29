@@ -1,10 +1,11 @@
 @implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
+@using Elsa.Studio.Authentication.UI.Components
 @using MudBlazor
 @inject NavigationManager Navigation
 
-<MudButton FullWidth="true" Variant="Variant.Outlined" Size="Size.Large" OnClick="SignInAsync">
-    Sign in with single sign-on
-</MudButton>
+<LoginMethodButton Method="Context.Method"
+                   Icon="@Icons.Material.Outlined.Login"
+                   OnClick="SignInAsync" />
 
 @code {
     [Parameter, EditorRequired]
