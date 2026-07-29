@@ -68,8 +68,8 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="Status">
-                        <MudChip T="string" Size="Size.Small" Color="@EnabledColor(context)">@(context.Archived ? "Archived" : context.EnabledIntent ? "Enabled" : "Disabled")</MudChip>
-                        <MudChip T="string" Size="Size.Small" Color="@ValidityColor(context.Validity)">@context.Validity</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.LifecycleColor(context)">@ConnectionStatusPresentation.LifecycleLabel(context)</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.ValidityColor(context.Validity)">@ConnectionStatusPresentation.ValidityLabel(context.Validity)</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Latest test">
                         @if (context.LatestObservation is { } observation)
@@ -208,6 +208,4 @@
             Snackbar.Add(exception.Message, Severity.Error);
         }
     }
-    private static Color EnabledColor(ConnectionSummary connection) => connection.Archived ? Color.Default : connection.EffectivelyEnabled ? Color.Success : connection.EnabledIntent ? Color.Warning : Color.Default;
-    private static Color ValidityColor(string validity) => string.Equals(validity, "valid", StringComparison.OrdinalIgnoreCase) ? Color.Success : string.Equals(validity, "invalid", StringComparison.OrdinalIgnoreCase) ? Color.Error : Color.Default;
 }

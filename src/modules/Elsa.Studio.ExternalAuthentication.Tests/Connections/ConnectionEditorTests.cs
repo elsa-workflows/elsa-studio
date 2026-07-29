@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
+using MudBlazor.Extensions;
 using MudBlazor.Services;
 using Xunit;
 
@@ -217,6 +218,131 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ConnectionPage_SeparatesManagementTasksIntoWorkspaceTabs()
+    {
+        var connection = CreateConnection();
+        connection.EnabledIntent = true;
+        connection.EffectivelyEnabled = true;
+        connection.Validity = "valid";
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(
+                ["Configuration", "Provisioning & linking", "Diagnostics"],
+                cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
+            var tabs = cut.FindComponent<MudTabs>().Instance;
+            Assert.True(tabs.KeepPanelsAlive);
+            Assert.Equal(0, tabs.GetState(component => component.ActivePanelIndex));
+            var header = cut.Find(".connection-workspace__header");
+            Assert.Contains("Effective: Studio", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("OpenID Connect settings", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("At a glance", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Open Diagnostics", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("User provisioning and linking", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Valid", cut.Markup, StringComparison.Ordinal);
+        });
+
+        cut.FindAll(".mud-tab").Single(tab => tab.TextContent.Contains("Provisioning & linking", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(1, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
+            Assert.Contains("Review configuration", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
+        });
+        cut.Find(".connection-workspace__provisioning")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Review configuration", StringComparison.Ordinal))
+            .Click();
+        cut.WaitForAssertion(() => Assert.Equal(0, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
+
+        cut.FindAll(".mud-tab").Single(tab => tab.TextContent.Contains("Diagnostics", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
+    }
+
+    [Fact]
+    public void NewConnection_UsesDraftWorkspaceWithoutDiagnostics()
+    {
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(
+                ["Configuration", "Provisioning & linking"],
+                cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
+            var header = cut.Find(".connection-workspace__header");
+            Assert.Contains("Create identity provider connection", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Draft", header.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Validate", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Provider protocol", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Diagnostics", cut.Markup, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConfigurationOwnedConnection_UsesReadOnlyWorkspaceContext()
+    {
+        var connection = CreateConnection("configuration");
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            var header = cut.Find(".connection-workspace__header");
+            Assert.Contains("Effective: Deployment", header.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Validate", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("configuration-owned and read-only", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Save changes", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Tests and previews are available under Diagnostics.", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("lifecycle actions are available", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Lifecycle", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ValidateFromWorkspaceHeader_OpensDiagnosticsWithTheResult()
+    {
+        var connection = CreateConnection();
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult
+        {
+            Valid = false,
+            Errors =
+            [
+                new ConnectionValidationMessage
+                {
+                    Field = "adapterSettings.authority",
+                    Code = "invalid",
+                    Message = "Authority could not be resolved."
+                }
+            ]
+        };
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(2, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
+            Assert.Contains("Authority could not be resolved.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
     public void MatchUserPolicy_UsesMatcherDescriptorsAndHidesRawMatcherJson()
     {
         var policy = new UnlinkedIdentityPolicyDescriptor
@@ -357,7 +483,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void ShadowedDatabaseConnection_PromotionRemainsAvailableWithALegacyCustomEditor()
+    public async Task ShadowedDatabaseConnection_PromotionRemainsAvailableWithALegacyCustomEditor()
     {
         var connection = CreateConnection();
         connection.Shadowed = true;
@@ -375,6 +501,13 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("Legacy custom editor", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
         });
+
+        var tabs = cut.FindComponent<MudTabs>();
+        var customEditor = cut.FindComponent<TestCustomEditor>().Instance;
+        await cut.InvokeAsync(() => tabs.Instance.ActivatePanelAsync(1));
+        await cut.InvokeAsync(() => tabs.Instance.ActivatePanelAsync(0));
+
+        Assert.Same(customEditor, cut.FindComponent<TestCustomEditor>().Instance);
     }
 
     [Fact]
@@ -387,7 +520,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
 
-        cut.WaitForAssertion(() => Assert.Contains("shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            var header = cut.Find(".connection-workspace__header");
+            Assert.Contains("Effective: Deployment", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Stored: Disabled", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Stored: Not validated", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Stored record not tested", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Stored record validity", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+        });
     }
 
     [Fact]
@@ -1009,6 +1151,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public ICollection<IdentityRoleOption> Roles { get; set; } = [];
         public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } =
             [new() { Type = "elsa-secrets", DisplayName = "Elsa Secrets" }];
+        public ConnectionValidationResult ValidationResult { get; set; } = new() { Valid = true };
         public Exception? CreateException { get; set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
         public string? UpdatedConnectionId { get; private set; }
@@ -1052,7 +1195,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task DisableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(ValidationResult);
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         Task<IdentityRoleOptionsResponse> IIdentityRolesApi.ListAsync(CancellationToken cancellationToken) =>

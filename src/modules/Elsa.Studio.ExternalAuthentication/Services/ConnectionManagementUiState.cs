@@ -53,6 +53,35 @@ public static class ConnectionActionAvailability
     public static bool CanArchiveOrRestore(ConnectionSummary connection, bool canArchive) => CanMutate(connection, canArchive);
 }
 
+public static class ConnectionStatusPresentation
+{
+    public static string LifecycleLabel(ConnectionSummary connection) =>
+        connection.Archived ? "Archived" : connection.EnabledIntent ? "Enabled" : "Disabled";
+
+    public static Color LifecycleColor(ConnectionSummary connection) =>
+        connection.Archived
+            ? Color.Default
+            : connection.EffectivelyEnabled
+                ? Color.Success
+                : connection.EnabledIntent
+                    ? Color.Warning
+                    : Color.Default;
+
+    public static string ValidityLabel(string validity) =>
+        string.Equals(validity, "valid", StringComparison.OrdinalIgnoreCase)
+            ? "Valid"
+            : string.Equals(validity, "invalid", StringComparison.OrdinalIgnoreCase)
+                ? "Invalid"
+                : "Not validated";
+
+    public static Color ValidityColor(string validity) =>
+        string.Equals(validity, "valid", StringComparison.OrdinalIgnoreCase)
+            ? Color.Success
+            : string.Equals(validity, "invalid", StringComparison.OrdinalIgnoreCase)
+                ? Color.Error
+                : Color.Default;
+}
+
 public enum ConnectionDisableDecision
 {
     KeepActiveSessions,
