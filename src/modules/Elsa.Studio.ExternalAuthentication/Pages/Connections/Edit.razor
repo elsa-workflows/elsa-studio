@@ -14,7 +14,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudStack Spacing="3" Class="py-4">
-        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" OnClick="Back">Identity provider connections</MudButton>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" Class="align-self-start" OnClick="Back">Identity provider connections</MudButton>
         @if (_loading)
         {
             <MudProgressLinear Indeterminate="true" />
@@ -66,10 +66,14 @@
                 </MudAlert>
             }
             <MudPaper Outlined="true">
-                <MudTabs @bind-ActivePanelIndex="_activeWorkspaceTab" Border="false" Elevation="0" KeepPanelsAlive="true" panel-class="pa-6">
+                <MudTabs @bind-ActivePanelIndex="_activeWorkspaceTab"
+                         Border="false"
+                         Elevation="0"
+                         KeepPanelsAlive="true"
+                         TabPanelsClass="pa-4 pa-sm-6">
                     <MudTabPanel Text="Configuration" Icon="@Icons.Material.Outlined.Settings">
                         <div class="connection-workspace__configuration">
-                            <MudGrid Spacing="3">
+                            <MudGrid Spacing="4">
                                 <MudItem xs="12" md="@(IsNew ? 12 : 8)">
                                     <MudStack Spacing="3">
                                         @if (IsNew)
@@ -130,15 +134,23 @@
                                                 </MudStack>
                                             </MudPaper>
                                             <MudAlert Severity="Severity.Info" Dense="true">
-                                                @if (_connection.IsConfigurationOwned)
-                                                {
-                                                    <span>Tests and previews are available under Diagnostics.</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>Tests, previews and lifecycle actions are available under Diagnostics.</span>
-                                                }
-                                                <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => _activeWorkspaceTab = 2)">Open Diagnostics</MudButton>
+                                                <MudStack Spacing="1" AlignItems="AlignItems.Start">
+                                                    @if (_connection.IsConfigurationOwned)
+                                                    {
+                                                        <MudText Typo="Typo.body2">Tests and previews are available under Diagnostics.</MudText>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudText Typo="Typo.body2">Tests, previews and lifecycle actions are available under Diagnostics.</MudText>
+                                                    }
+                                                    <MudButton Variant="Variant.Text"
+                                                               Size="Size.Small"
+                                                               StartIcon="@Icons.Material.Outlined.ArrowForward"
+                                                               Class="px-0"
+                                                               OnClick="@(() => _activeWorkspaceTab = 2)">
+                                                        Open Diagnostics
+                                                    </MudButton>
+                                                </MudStack>
                                             </MudAlert>
                                         </MudStack>
                                     </MudItem>
@@ -176,7 +188,7 @@
                     {
                         <MudTabPanel Text="Diagnostics" Icon="@Icons.Material.Outlined.Troubleshoot">
                             <div class="connection-workspace__diagnostics">
-                                <MudGrid Spacing="3">
+                                <MudGrid Spacing="4">
                                     <MudItem xs="12" md="@(_connection.IsConfigurationOwned ? 12 : 8)">
                                         <MudStack Spacing="3">
                                             <ConnectionOperations Connection="_connection"

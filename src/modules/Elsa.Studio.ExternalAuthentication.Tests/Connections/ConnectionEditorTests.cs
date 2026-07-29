@@ -236,7 +236,14 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
                 cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
             var tabs = cut.FindComponent<MudTabs>().Instance;
             Assert.True(tabs.KeepPanelsAlive);
+            Assert.Equal("pa-4 pa-sm-6", tabs.TabPanelsClass);
             Assert.Equal(0, tabs.GetState(component => component.ActivePanelIndex));
+            var tabPanels = cut.Find(".mud-tabs-panels");
+            Assert.Contains("pa-4", tabPanels.ClassList);
+            Assert.Contains("pa-sm-6", tabPanels.ClassList);
+            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__configuration"));
+            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__provisioning"));
+            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__diagnostics"));
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Effective: Studio", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("OpenID Connect settings", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
