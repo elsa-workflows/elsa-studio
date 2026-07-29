@@ -10,6 +10,7 @@ import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 import {enforceMinimumNodeSize} from "./update-activity-size";
 import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrientation, withSuppressedGraphUpdated} from "./sequence-mode";
+import {applyDesignerThemeVariables, X6DesignerTheme} from "./apply-graph-theme";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
@@ -18,6 +19,12 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const graphId = containerId;
     const mode = settings?.mode === 'sequence' ? 'sequence' : 'flowchart';
     const isSequenceMode = mode === 'sequence';
+    const theme: X6DesignerTheme | undefined = settings?.theme;
+
+    if (!theme)
+        throw new Error("An X6 designer theme is required.");
+
+    applyDesignerThemeVariables(containerElement, theme);
 
     const graph = new Graph({
         container: containerElement,
@@ -26,10 +33,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             type: settings?.grid?.type || 'dot',
             visible: settings?.grid?.visible || true,
             size: settings?.grid?.size || 10,
-            args: settings?.grid?.args || {
-                color: '#334154',
-                thickness: 1,
-            }
+            args: resolveGridArgs(settings?.grid?.args, theme.grid),
         },
         magnetThreshold: settings?.magnetThreshold || 0,
         panning: settings?.panning || {
@@ -100,8 +104,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 name: 'stroke',
                 args: {
                     attrs: {
-                        fill: '#fff',
-                        stroke: '#31d0c6',
+                        fill: 'var(--elsa-designer-port-surface)',
+                        stroke: 'var(--elsa-designer-connection-highlight)',
                         strokeWidth: 4,
                     },
                 },
@@ -111,7 +115,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 args: {
                     padding: -1,
                     attrs: {
-                        stroke: '#73d13d',
+                        stroke: 'var(--elsa-designer-embedding-highlight)',
                     },
                 },
             },
@@ -490,4 +494,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     };
 
     return graphId;
+}
+
+function resolveGridArgs(args: any, themeColor: string) {
+    if (Array.isArray(args))
+        return args.map(item => ({...item, color: item?.color || themeColor}));
+
+    return {...(args || {}), color: args?.color || themeColor};
 }

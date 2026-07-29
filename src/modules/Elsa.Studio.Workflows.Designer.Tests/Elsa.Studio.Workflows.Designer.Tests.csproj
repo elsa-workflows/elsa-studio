@@ -17,4 +17,19 @@
         <ProjectReference Include="..\Elsa.Studio.Workflows.Designer\Elsa.Studio.Workflows.Designer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\css\designer.v2.css"
+              Link="DesignerAssets\designer.v2.css"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\css\designer.v1.css"
+              Link="DesignerAssets\designer.v1.css"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\Components\ActivityWrappers\V2\ActivityWrapper.razor"
+              Link="DesignerAssets\ActivityWrapper.razor"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\Components\ActivityWrappers\V1\ActivityWrapper.razor"
+              Link="DesignerAssets\ActivityWrapperV1.razor"
+              CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

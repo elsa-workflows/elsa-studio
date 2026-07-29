@@ -21,13 +21,13 @@ export function initialize() {
                         circle: {
                             r: 5,
                             magnet: true,
-                            stroke: "#0ea5e9",
+                            stroke: "var(--elsa-designer-port-stroke)",
                             strokeWidth: 2,
-                            fill: "#fff",
+                            fill: "var(--elsa-designer-port-surface)",
                         },
                         text: {
                             fontSize: 12,
-                            fill: "#888",
+                            fill: "var(--elsa-designer-port-text)",
                         },
                     },
                     label: {
@@ -42,13 +42,13 @@ export function initialize() {
                         circle: {
                             r: 5,
                             magnet: true,
-                            stroke: "#fff",
+                            stroke: "var(--elsa-designer-port-surface)",
                             strokeWidth: 2,
-                            fill: "#0ea5e9",
+                            fill: "var(--elsa-designer-port-stroke)",
                         },
                         text: {
                             fontSize: 12,
-                            fill: "#888",
+                            fill: "var(--elsa-designer-port-text)",
                         },
                     },
                     label: {
@@ -67,7 +67,7 @@ export function initialize() {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: '#C2C8D5',
+                    stroke: 'var(--elsa-designer-edge)',
                     strokeWidth: 1,
                     targetMarker: 'classic',
                     size: 6,
@@ -83,7 +83,7 @@ export function initialize() {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: '#94a3b8',
+                    stroke: 'var(--elsa-designer-edge)',
                     strokeWidth: 2,
                     targetMarker: 'classic',
                     size: 6,
