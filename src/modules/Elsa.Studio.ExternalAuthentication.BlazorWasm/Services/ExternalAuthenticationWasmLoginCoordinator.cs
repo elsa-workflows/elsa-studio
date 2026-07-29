@@ -81,8 +81,10 @@ public sealed class ExternalAuthenticationWasmLoginCoordinator : ExternalAuthent
 
     private Uri GetTrustedBrokerUri(string value)
     {
-        if (!Uri.TryCreate(anonymousBackendApiClientProvider.Url, value, out var uri) ||
-            !SameOrigin(uri, anonymousBackendApiClientProvider.Url))
+        if (!BackendUriResolver.TryResolveSameOrigin(
+                anonymousBackendApiClientProvider.Url,
+                value,
+                out var uri))
         {
             throw new InvalidOperationException("The broker returned an initiation URI outside the configured Elsa backend origin.");
         }
@@ -93,15 +95,10 @@ public sealed class ExternalAuthenticationWasmLoginCoordinator : ExternalAuthent
     private void EnsureExactCallback(Uri callback)
     {
         var expected = GetExactCallbackUri();
-        if (!SameOrigin(callback, expected) ||
+        if (!BackendUriResolver.IsSameOrigin(callback, expected) ||
             !string.Equals(callback.AbsolutePath, expected.AbsolutePath, StringComparison.Ordinal))
         {
             throw new InvalidOperationException("The broker did not return this Studio client's exact registered callback URI.");
         }
     }
-
-    private static bool SameOrigin(Uri left, Uri right) =>
-        string.Equals(left.Scheme, right.Scheme, StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
-        left.Port == right.Port;
 }

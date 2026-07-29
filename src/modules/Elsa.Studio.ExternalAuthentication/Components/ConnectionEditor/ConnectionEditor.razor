@@ -15,14 +15,23 @@
                         Create full Studio override
                     </MudButton>
                 }
-                else
+                else if (!HasExistingStudioOverride)
                 {
                     <div>A Studio override is unavailable because deployment policy or your permissions do not allow it.</div>
                 }
+                else
+                {
+                    <div>@(ExistingStudioOverrideArchived
+                        ? "An archived Studio record already exists for this connection."
+                        : "A Studio record already exists for this connection.")</div>
+                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ExistingStudioOverrideRequested.InvokeAsync())">
+                        @(ExistingStudioOverrideArchived ? "Review and restore Studio record" : "Manage existing Studio record")
+                    </MudButton>
+                }
             </MudAlert>
         }
-        <MudTextField @bind-Value="Model.DisplayName" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
-        <MudTextField @bind-Value="Model.Key" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
+        <MudTextField T="string" Value="@Model.DisplayName" ValueChanged="SetDisplayNameAsync" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
+        <MudTextField T="string" Value="@Model.Key" ValueChanged="SetKeyAsync" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
         @if (!string.IsNullOrWhiteSpace(Connection.CallbackUri))
         {
             <MudTextField Value="@Connection.CallbackUri"
@@ -37,9 +46,9 @@
                           ReadOnly="true"
                           HelperText="Register this exact URI with the identity provider to enable administrator previews." />
         }
-        <MudNumericField @bind-Value="Model.Order" Label="Display order" ReadOnly="@ReadOnly" />
-        <MudCheckBox @bind-Value="Model.IsPreferred" Label="Mark as the preferred sign-in method" Disabled="@ReadOnly" />
-        <MudSelect T="string" @bind-Value="Model.UpstreamLogoutMode" Label="Upstream sign-out" Disabled="@ReadOnly">
+        <MudNumericField T="int" Value="@Model.Order" ValueChanged="SetOrderAsync" Label="Display order" ReadOnly="@ReadOnly" />
+        <MudCheckBox T="bool" Value="@Model.IsPreferred" ValueChanged="SetPreferredAsync" Label="Mark as the preferred sign-in method" Disabled="@ReadOnly" />
+        <MudSelect T="string" Value="@Model.UpstreamLogoutMode" ValueChanged="SetUpstreamLogoutModeAsync" Label="Upstream sign-out" Disabled="@ReadOnly">
             <MudSelectItem T="string" Value="@("disabled")">Disabled</MudSelectItem>
             <MudSelectItem T="string" Value="@("userChoice")">Let the user choose</MudSelectItem>
             <MudSelectItem T="string" Value="@("always")">Always sign out upstream</MudSelectItem>
@@ -58,7 +67,11 @@
 
         @if (HasActiveUnsafeSettings)
         {
-            <MudCheckBox @bind-Value="Model.ConfirmUnsafeSettings" Disabled="@(ReadOnly || !CanConfigureUnsafeSettings)" Label="I understand and explicitly confirm unsafe provider trust settings" />
+            <MudCheckBox T="bool"
+                         Value="@Model.ConfirmUnsafeSettings"
+                         ValueChanged="SetUnsafeSettingsConfirmationAsync"
+                         Disabled="@(ReadOnly || !CanConfigureUnsafeSettings)"
+                         Label="I understand and explicitly confirm unsafe provider trust settings" />
             @if (!CanConfigureUnsafeSettings)
             {
                 <MudText Typo="Typo.caption" Color="Color.Warning">You do not have permission to configure unsafe provider trust settings.</MudText>
@@ -66,20 +79,22 @@
         }
 
         <MudDivider />
-        <MudText Typo="Typo.h6">Secret bindings</MudText>
-        <MudText Typo="Typo.caption">Secret values are write-only and never displayed or returned to Studio. Deployment-managed external references remain read-only.</MudText>
-        @foreach (var field in Adapter.Fields.Where(field => field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
-        {
-            <SecretBindingField Field="field"
-                                Binding="@(Connection.SecretBindings.GetValueOrDefault(field.Name))"
-                                ReadOnly="@ReadOnly"
-                                CanManage="@(!string.IsNullOrWhiteSpace(Connection.Id))"
-                                CanRemove="@(!Connection.EnabledIntent || !field.IsRequired)"
-                                ManagedSecretResolvers="ManagedSecretResolvers"
-                                ManagedSecretResolverError="@ManagedSecretResolverError"
-                                OnManagedReplace="@((secret) => ManagedSecretChanged.InvokeAsync((field.Name, secret)))"
-                                OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
-        }
+        <div class="connection-editor__secrets">
+            <MudText Typo="Typo.h6">Secret bindings</MudText>
+            <MudText Typo="Typo.caption">Secret values are write-only and never displayed or returned to Studio. Deployment-managed external references remain read-only.</MudText>
+            @foreach (var field in Adapter.Fields.Where(field => field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
+            {
+                <SecretBindingField Field="field"
+                                    Binding="@(Connection.SecretBindings.GetValueOrDefault(field.Name))"
+                                    ReadOnly="@ReadOnly"
+                                    CanManage="@CanManageSecrets"
+                                    CanRemove="@(!Connection.EnabledIntent || !field.IsRequired)"
+                                    ManagedSecretResolvers="ManagedSecretResolvers"
+                                    ManagedSecretResolverError="@ManagedSecretResolverError"
+                                    OnManagedReplace="@((secret) => ManagedSecretChanged.InvokeAsync((field.Name, secret)))"
+                                    OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
+            }
+        </div>
 
         @if (!ReadOnly)
         {
@@ -106,12 +121,17 @@
     [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public bool CanConfigureUnsafeSettings { get; set; }
     [Parameter] public bool CanCreateOverride { get; set; }
+    [Parameter] public bool HasExistingStudioOverride { get; set; }
+    [Parameter] public bool ExistingStudioOverrideArchived { get; set; }
     [Parameter] public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } = [];
     [Parameter] public string? ManagedSecretResolverError { get; set; }
     [Parameter] public EventCallback<ConnectionMutation> Saved { get; set; }
     [Parameter] public EventCallback<(string Field, ManagedSecretMutation Secret)> ManagedSecretChanged { get; set; }
     [Parameter] public EventCallback<string> SecretBindingRemoved { get; set; }
     [Parameter] public EventCallback FullOverrideRequested { get; set; }
+    [Parameter] public EventCallback Changed { get; set; }
+    [Parameter] public bool CanManageSecrets { get; set; } = true;
+    [Parameter] public EventCallback ExistingStudioOverrideRequested { get; set; }
 
     private readonly List<string> _validationErrors = [];
     private bool HasActiveUnsafeSettings => Adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, Model.AdapterSettings));
@@ -120,7 +140,49 @@
     {
         if (!HasActiveUnsafeSettings)
             Model.ConfirmUnsafeSettings = false;
-        return InvokeAsync(StateHasChanged);
+        return NotifyChangedAsync();
+    }
+
+    private async Task SetDisplayNameAsync(string value)
+    {
+        Model.DisplayName = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task SetKeyAsync(string value)
+    {
+        Model.Key = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task SetOrderAsync(int value)
+    {
+        Model.Order = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task SetPreferredAsync(bool value)
+    {
+        Model.IsPreferred = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task SetUpstreamLogoutModeAsync(string value)
+    {
+        Model.UpstreamLogoutMode = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task SetUnsafeSettingsConfirmationAsync(bool value)
+    {
+        Model.ConfirmUnsafeSettings = value;
+        await NotifyChangedAsync();
+    }
+
+    private async Task NotifyChangedAsync()
+    {
+        await Changed.InvokeAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveAsync()

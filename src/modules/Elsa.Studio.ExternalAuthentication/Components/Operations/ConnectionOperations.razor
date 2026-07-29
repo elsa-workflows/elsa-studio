@@ -2,6 +2,7 @@
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
 @inject ISnackbar Snackbar
 @using Elsa.Studio.ExternalAuthentication.Services
+@using ApiException = Refit.ApiException
 
 <MudStack Spacing="2">
     <MudText Typo="Typo.h6">Operations</MudText>
@@ -22,7 +23,12 @@
         <MudAlert Severity="Severity.Info" Dense="true">This connection has not been tested.</MudAlert>
     }
 
-    <MudStack Row="true" Spacing="2">
+    @if (!string.IsNullOrWhiteSpace(_operationError))
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" aria-live="assertive">@_operationError</MudAlert>
+    }
+
+    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
         @if (Adapter.Capabilities.SupportsTest)
         {
             <MudButton Variant="Variant.Outlined" Disabled="@(!_canTest || IsReadOnly || _testing)" OnClick="TestAsync">
@@ -42,7 +48,7 @@
         <MudAlert Severity="Severity.Info" Dense="true">
             Preview state expires @preview.ExpiresAt.ToLocalTime().ToString("g"). Complete the provider sign-in in a separate tab, return here, then retrieve the one-time redacted result.
         </MudAlert>
-        <MudStack Row="true" Spacing="2">
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@_previewNavigationUrl" Target="_blank" rel="noopener noreferrer">Open preview sign-in</MudButton>
             <MudButton Variant="Variant.Outlined" Disabled="@_retrievingPreview" OnClick="RetrievePreviewAsync">
                 @(_retrievingPreview ? "Retrieving…" : "Get one-time preview result")
@@ -79,6 +85,7 @@
     private string? _previewNavigationUrl;
     private string? _previewHandle;
     private PreviewResultDocument? _previewResult;
+    private string? _operationError;
 
     private ConnectionObservation? Observation => _testing ? null : Connection.LatestObservation;
 
@@ -91,6 +98,7 @@
     private async Task TestAsync()
     {
         _testing = true;
+        _operationError = null;
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
@@ -100,9 +108,12 @@
             await ObservationRecorded.InvokeAsync(observation);
             Snackbar.Add("Connection test completed. The result contains only redacted diagnostics.", Severity.Success);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            Snackbar.Add("The connection test could not be completed. Review the redacted server observation and try again.", Severity.Error);
+            _operationError = PresentOperationError(
+                exception,
+                "The connection test failed before a diagnostic observation was recorded. Check the connection requirements and server logs, then try again.");
+            Snackbar.Add(_operationError, Severity.Error);
         }
         finally
         {
@@ -114,6 +125,7 @@
     {
         _startingPreview = true;
         _previewResult = null;
+        _operationError = null;
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
@@ -122,12 +134,16 @@
             {
                 _preview = null;
                 _previewNavigationUrl = null;
-                Snackbar.Add("The server returned an invalid preview navigation URL.", Severity.Error);
+                _operationError = "The server returned an invalid preview navigation URL. Confirm that the backend base URL and preview callback path use the same origin.";
+                Snackbar.Add(_operationError, Severity.Error);
             }
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            Snackbar.Add("The preview sign-in could not be started. Verify the connection and try again.", Severity.Error);
+            _operationError = PresentOperationError(
+                exception,
+                "Preview could not be prepared. Validate the connection and confirm the provider preview callback URI, then try again.");
+            Snackbar.Add(_operationError, Severity.Error);
         }
         finally
         {
@@ -141,6 +157,7 @@
             return;
 
         _retrievingPreview = true;
+        _operationError = null;
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationOperationsApi>();
@@ -150,9 +167,12 @@
             _previewHandle = null;
             Snackbar.Add("One-time preview result retrieved. It did not create a user, credential, link, or session.", Severity.Success);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            Snackbar.Add("The one-time preview result is unavailable or has expired.", Severity.Error);
+            _operationError = PresentOperationError(
+                exception,
+                "The one-time preview result is unavailable or has expired. Start a new preview and complete provider sign-in before retrieving it.");
+            Snackbar.Add(_operationError, Severity.Error);
         }
         finally
         {
@@ -192,6 +212,13 @@
         string.Equals(left.Scheme, right.Scheme, StringComparison.OrdinalIgnoreCase) &&
         string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
         left.Port == right.Port;
+
+    private static string PresentOperationError(Exception exception, string fallbackMessage) =>
+        exception is ApiException apiException
+            ? ConnectionManagementError
+                .Parse(apiException.StatusCode, apiException.Content, fallbackMessage)
+                .OperationalDisplayMessage
+            : fallbackMessage;
 
     private static Severity ObservationSeverity(string status) => status.ToLowerInvariant() switch
     {

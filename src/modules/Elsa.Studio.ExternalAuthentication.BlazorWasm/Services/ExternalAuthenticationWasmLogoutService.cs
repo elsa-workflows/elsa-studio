@@ -2,6 +2,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.Models;
+using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace Elsa.Studio.ExternalAuthentication.BlazorWasm.Services;
@@ -59,8 +60,10 @@ public sealed class ExternalAuthenticationWasmLogoutService(
 
     private Uri GetTrustedBrokerContinuation(string value)
     {
-        if (!Uri.TryCreate(anonymousBackendApiClientProvider.Url, value, out var uri) ||
-            !SameOrigin(uri, anonymousBackendApiClientProvider.Url) ||
+        if (!BackendUriResolver.TryResolveSameOrigin(
+                anonymousBackendApiClientProvider.Url,
+                value,
+                out var uri) ||
             !uri.AbsolutePath.Contains("/external-authentication/logout/continue/", StringComparison.Ordinal))
         {
             throw new InvalidOperationException("The broker returned an invalid logout continuation URI.");
@@ -68,9 +71,4 @@ public sealed class ExternalAuthenticationWasmLogoutService(
 
         return uri;
     }
-
-    private static bool SameOrigin(Uri left, Uri right) =>
-        string.Equals(left.Scheme, right.Scheme, StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
-        left.Port == right.Port;
 }

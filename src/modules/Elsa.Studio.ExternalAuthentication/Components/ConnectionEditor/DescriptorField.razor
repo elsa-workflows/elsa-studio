@@ -2,7 +2,15 @@
 
 @if (DescriptorEditorState.IsVisible(Field, Settings))
 {
-    @if (IsStringArray && Field.AllowedValues.Count > 0)
+    @if (IsFixedPkce)
+    {
+        <MudPaper Outlined="true" Class="pa-3 connection-editor__fixed-pkce">
+            <MudText Typo="Typo.subtitle2">@Field.DisplayName</MudText>
+            <MudText Typo="Typo.body2">S256</MudText>
+            <MudText Typo="Typo.caption">S256 PKCE is always required for the authorization-code flow and cannot be changed.</MudText>
+        </MudPaper>
+    }
+    else if (IsStringArray && Field.AllowedValues.Count > 0)
     {
         <MudSelect T="string"
                    Label="@Field.DisplayName"
@@ -13,7 +21,7 @@
                    Disabled="@IsReadOnly">
             @foreach (var allowedValue in Field.AllowedValues)
             {
-                <MudSelectItem T="string" Value="@allowedValue">@allowedValue</MudSelectItem>
+                <MudSelectItem T="string" Value="@allowedValue">@DescriptorValuePresentation.GetDisplayName(Field, allowedValue)</MudSelectItem>
             }
         </MudSelect>
     }
@@ -61,7 +69,7 @@
         <MudSelect T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetAllowedValueAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" Disabled="@IsReadOnly" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))">
             @foreach (var allowedValue in Field.AllowedValues)
             {
-                <MudSelectItem T="string" Value="@allowedValue">@allowedValue</MudSelectItem>
+                <MudSelectItem T="string" Value="@allowedValue">@DescriptorValuePresentation.GetDisplayName(Field, allowedValue)</MudSelectItem>
             }
         </MudSelect>
     }
@@ -96,6 +104,9 @@
     private bool IsReadOnly => ReadOnly || Field.IsReadOnly;
     private bool IsStringArray => string.Equals(Field.ValueType, "string-array", StringComparison.OrdinalIgnoreCase);
     private bool IsTagsField => IsStringArray && Field.AllowedValues.Count == 0 && string.Equals(Field.UiHint, "tags", StringComparison.OrdinalIgnoreCase);
+    private bool IsFixedPkce =>
+        string.Equals(Field.Name, "providerPkce", StringComparison.OrdinalIgnoreCase) ||
+        (Field.IsReadOnly && Field.Name.Contains("pkce", StringComparison.OrdinalIgnoreCase));
     private InputType InputType => string.Equals(Field.UiHint, "password", StringComparison.OrdinalIgnoreCase) ? InputType.Password : string.Equals(Field.ValueType, "uri", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.UiHint, "uri", StringComparison.OrdinalIgnoreCase) ? InputType.Url : InputType.Text;
     private int Lines => string.Equals(Field.ValueType, "json", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.ValueType, "string-array", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.UiHint, "textarea", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.UiHint, "multiline", StringComparison.OrdinalIgnoreCase) ? 4 : 1;
     private System.Text.Json.JsonElement GetValue() => Settings.TryGetValue(Field.Name, out var value) ? value : default;

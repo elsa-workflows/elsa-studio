@@ -63,6 +63,23 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void FailedTest_ExplainsThatNoObservationWasRecorded()
+    {
+        _operations.TestException = new InvalidOperationException("backend unavailable");
+        var cut = Render<ConnectionOperations>(parameters => parameters
+            .Add(component => component.Connection, CreateConnection())
+            .Add(component => component.Adapter, CreateAdapter()));
+
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Test connection", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("failed before a diagnostic observation was recorded", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Review the redacted server observation", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
+    [Fact]
     public void PreviewFlow_RequiresExplicitOneTimeResultRetrieval()
     {
         var cut = Render<ConnectionOperations>(parameters => parameters
@@ -81,6 +98,20 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("did not create or link a user", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("permission projection", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("projected claims", cut.Markup, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FailedPreview_LeavesAnActionableMessageOnTheDiagnosticsTab()
+    {
+        _operations.PreviewException = new InvalidOperationException("backend unavailable");
+        var cut = Render<ConnectionOperations>(parameters => parameters
+            .Add(component => component.Connection, CreateConnection())
+            .Add(component => component.Adapter, CreateAdapter()));
+
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Preview sign-in", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() =>
+            Assert.Contains("Preview could not be prepared", cut.Markup, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -158,15 +189,23 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
     {
         public int TestCalls { get; private set; }
         public string? LastPreviewHandle { get; private set; }
+        public Exception? TestException { get; set; }
+        public Exception? PreviewException { get; set; }
 
         public Task<ConnectionTestResult> TestAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
         {
             TestCalls++;
+            if (TestException is not null)
+                throw TestException;
             return Task.FromResult(new ConnectionTestResult { Status = "succeeded", Summary = "Provider discovery succeeded.", TestedMaterialRevision = "revision-1" });
         }
 
-        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) =>
-            Task.FromResult(new PreviewInitiation { NavigationUrl = "/external-authentication/previews/preview-handle/authorize", ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5) });
+        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            if (PreviewException is not null)
+                throw PreviewException;
+            return Task.FromResult(new PreviewInitiation { NavigationUrl = "/external-authentication/previews/preview-handle/authorize", ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5) });
+        }
 
         public Task<PreviewResultDocument> GetPreviewResultAsync(string previewHandle, CancellationToken cancellationToken = default)
         {

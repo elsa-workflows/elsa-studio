@@ -76,6 +76,13 @@ public sealed class ListConnectionsResponse
     public string? NextCursor { get; set; }
 }
 
+public sealed class ExternalAuthenticationRuntimeDescriptor
+{
+    public int ManagementContractVersion { get; set; }
+    public string ProductVersion { get; set; } = string.Empty;
+    public string InformationalVersion { get; set; } = string.Empty;
+}
+
 public sealed class SecretBindingState
 {
     public string Ownership { get; set; } = "external";

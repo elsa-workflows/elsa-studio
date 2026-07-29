@@ -32,7 +32,9 @@ public sealed class ExternalAuthenticationController(
         var state = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
         transactionStore.Store(Response, new(state, verifier, LocalReturnPath.Normalize(returnPath), DateTimeOffset.UtcNow.AddMinutes(10)));
 
-        var authorizationUri = new Uri(anonymousBackendApiClientProvider.Url, $"external-authentication/authorize/{Uri.EscapeDataString(connectionKey)}");
+        var authorizationUri = BackendUriResolver.Resolve(
+            anonymousBackendApiClientProvider.Url,
+            $"external-authentication/authorize/{Uri.EscapeDataString(connectionKey)}");
         var redirect = QueryHelpers.AddQueryString(authorizationUri.ToString(), new Dictionary<string, string?>
         {
             ["client_id"] = options.ClientId,
@@ -173,11 +175,10 @@ public sealed class ExternalAuthenticationController(
         navigationUri = default!;
         if (string.IsNullOrWhiteSpace(navigationUrl))
             return false;
-        var backend = anonymousBackendApiClientProvider.Url;
-        if (!Uri.TryCreate(backend, navigationUrl, out var candidate) ||
-            !string.Equals(candidate.Scheme, backend.Scheme, StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(candidate.Host, backend.Host, StringComparison.OrdinalIgnoreCase) ||
-            candidate.Port != backend.Port)
+        if (!BackendUriResolver.TryResolveSameOrigin(
+                anonymousBackendApiClientProvider.Url,
+                navigationUrl,
+                out var candidate))
             return false;
         navigationUri = candidate;
         return true;

@@ -11,27 +11,36 @@
 <MudContainer MaxWidth="MaxWidth.False">
     <PageHeading Text="Identity provider connections" />
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-        Configuration-owned connections are shown for diagnosis but can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.
+        @ConfigurationGuidance
     </MudAlert>
 
     <MudPaper Elevation="0" Class="pa-4">
-        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="mb-4">
-            <MudTextField @bind-Value="_search" Label="Search connections" Immediate="true" DebounceInterval="300" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.Search" OnBlur="@(_ => ReloadAsync())" />
-            <MudSelect T="string" @bind-Value="_source" Label="Source" Clearable="true" Style="min-width: 160px" >
-                <MudSelectItem T="string" Value="@("database")">Database</MudSelectItem>
-                <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
-            </MudSelect>
-            <MudCheckBox @bind-Value="_includeArchived" Label="Include archived" />
-            <MudSpacer />
+        <MudGrid Spacing="2" Class="mb-4 align-center">
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField T="string" Value="_search" ValueChanged="SetSearchAsync" Label="Search connections" Immediate="true" DebounceInterval="300" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.Search" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="2">
+                <MudSelect T="string" Value="_source" ValueChanged="SetSourceAsync" Label="Source" Clearable="true">
+                    <MudSelectItem T="string" Value="@("database")">Database</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("configuration")">Configuration</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCheckBox T="bool" Value="_includeArchived" ValueChanged="SetIncludeArchivedAsync" Label="Include archived" />
+            </MudItem>
             @if (_canCreate)
             {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
+                    </MudStack>
+                </MudItem>
             }
-        </MudStack>
+        </MudGrid>
 
         @if (_loading)
         {
-            <MudProgressLinear Indeterminate="true" />
+            <MudProgressLinear Indeterminate="true" aria-label="Loading identity provider connections" />
         }
         else if (!_canRead)
         {
@@ -60,7 +69,9 @@
                         <MudChip T="string" Size="Size.Small" Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">@context.Source</MudChip>
                         @if (context.Shadowed)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">Shadowed</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">
+                                @(context.IsConfigurationOwned ? "Shadowed by Studio" : "Shadowed by deployment")
+                            </MudChip>
                         }
                         @if (context.OverridesConfigurationConnection)
                         {
@@ -68,8 +79,8 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="Status">
-                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.LifecycleColor(context)">@ConnectionStatusPresentation.LifecycleLabel(context)</MudChip>
-                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.ValidityColor(context.Validity)">@ConnectionStatusPresentation.ValidityLabel(context.Validity)</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.LifecycleColor(context)">@ConnectionStatusPresentation.LifecycleDisplayLabel(context)</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@ConnectionStatusPresentation.ValidityColor(context.Validity)">@ConnectionStatusPresentation.ValidityDisplayLabel(context)</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Latest test">
                         @if (context.LatestObservation is { } observation)
@@ -82,20 +93,34 @@
                             <MudText Typo="Typo.caption">Not tested</MudText>
                         }
                     </MudTd>
-                    <MudTd>
-                        @if (ConnectionActionAvailability.CanEnableOrDisable(context, _canUpdate))
-                        {
-                            <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => ToggleEnabledAsync(context))">
-                                @(context.EnabledIntent ? "Disable" : "Enable")
-                            </MudButton>
-                        }
-                        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => OpenAsync(context))">@(context.IsConfigurationOwned ? "View" : "Manage")</MudButton>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudMenu
+                            Icon="@Icons.Material.Filled.MoreVert"
+                            Size="Size.Small"
+                            Dense="true"
+                            AriaLabel="@($"Actions for {context.DisplayName}")">
+                            <MudMenuItem
+                                Icon="@(context.IsConfigurationOwned ? Icons.Material.Outlined.Pageview : Icons.Material.Outlined.Edit)"
+                                OnClick="@(() => OpenAsync(context))">
+                                @(context.IsConfigurationOwned ? "View" : "Manage")
+                            </MudMenuItem>
+                            @if (ConnectionActionAvailability.CanEnableOrDisable(context, _canUpdate))
+                            {
+                                <MudMenuItem
+                                    Icon="@(context.EnabledIntent ? Icons.Material.Outlined.ToggleOff : Icons.Material.Outlined.ToggleOn)"
+                                    OnClick="@(() => ToggleEnabledAsync(context))">
+                                    @(context.EnabledIntent ? "Disable" : "Enable")
+                                </MudMenuItem>
+                            }
+                        </MudMenu>
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No connections match the current filters.</MudText></NoRecordsContent>
             </MudTable>
-            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
-                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+            <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3" aria-label="Connection pages">
+                <MudText Typo="Typo.caption">Page @_paging.PageNumber</MudText>
+                <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasPrevious || _loading)" OnClick="PreviousPageAsync">Previous page</MudButton>
+                <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasNext || _loading)" OnClick="NextPageAsync">Next page</MudButton>
             </MudStack>
         }
     </MudPaper>
@@ -105,14 +130,19 @@
     private readonly List<ConnectionSummary> _items = [];
     private string? _search;
     private string? _source;
-    private string? _nextCursor;
     private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
+    private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListRequestState _requests = new();
     private bool _includeArchived;
     private bool _loading = true;
     private bool _canRead;
     private bool _canCreate;
     private bool _canUpdate;
     private bool _canRevokeSessions;
+    private bool _configurationOverridesAllowed;
+
+    private string ConfigurationGuidance => _configurationOverridesAllowed
+        ? "Configuration-owned connections are shown for diagnosis and remain read-only. Authorized administrators can create or promote a Studio record to override deployment configuration. Enabled, valid Studio database connections become login methods without a restart."
+        : "Configuration-owned connections are shown for diagnosis and can only be changed through deployment configuration. Enabled, valid database connections become login methods without a restart.";
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,9 +155,26 @@
 
     private async Task ReloadAsync()
     {
-        _nextCursor = null;
         _paging.Replace(null);
         await LoadAsync();
+    }
+
+    private async Task SetSearchAsync(string? search)
+    {
+        _search = search;
+        await ReloadAsync();
+    }
+
+    private async Task SetSourceAsync(string? source)
+    {
+        _source = source;
+        await ReloadAsync();
+    }
+
+    private async Task SetIncludeArchivedAsync(bool includeArchived)
+    {
+        _includeArchived = includeArchived;
+        await ReloadAsync();
     }
 
     private async Task NextPageAsync()
@@ -136,31 +183,48 @@
             await LoadAsync(cursor);
     }
 
+    private async Task PreviousPageAsync()
+    {
+        if (_paging.TryGoBack(out var cursor))
+            await LoadAsync(cursor);
+    }
+
     private async Task LoadAsync(string? cursor = null)
     {
+        var request = _requests.Begin();
         if (!_canRead)
         {
-            _loading = false;
+            if (_requests.IsCurrent(request))
+                _loading = false;
             return;
         }
 
+        var search = _search;
+        var source = _source;
+        var includeArchived = _includeArchived;
         _loading = true;
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            var response = await api.ListAsync(_search, _source, archived: _includeArchived ? null : false, cursor: cursor, pageSize: 25);
+            var response = await api.ListAsync(search, source, archived: includeArchived ? null : false, cursor: cursor, pageSize: 25);
+            if (!_requests.IsCurrent(request))
+                return;
+
             _items.Clear();
             _items.AddRange(response.Items);
-            _nextCursor = response.NextCursor;
+            _configurationOverridesAllowed |= response.Items.Any(connection =>
+                connection.IsConfigurationOwned && (connection.CanCreateOverride || connection.CanPromoteToConfigurationOverride));
             _paging.SetNext(response.NextCursor);
         }
         catch (Exception exception)
         {
-            Snackbar.Add(exception.Message, Severity.Error);
+            if (_requests.IsCurrent(request))
+                Snackbar.Add(exception.Message, Severity.Error);
         }
         finally
         {
-            _loading = false;
+            if (_requests.IsCurrent(request))
+                _loading = false;
         }
     }
 

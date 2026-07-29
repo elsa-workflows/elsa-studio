@@ -256,7 +256,7 @@ public sealed class ServerBrokerAuthenticationTests
     }
 
     [Fact]
-    public async Task UpstreamLogout_UsesOnlyBackendNavigationAndProtectsTheReturnPath()
+    public async Task UpstreamLogout_PreservesBackendPathAndProtectsTheReturnPath()
     {
         var ticket = CreateCurrentTicket();
         var authentication = new RecordingAuthenticationService(ticket);
@@ -272,7 +272,7 @@ public sealed class ServerBrokerAuthenticationTests
         var result = await controller.Logout("upstream", "/workflows", CancellationToken.None);
 
         var redirect = Assert.IsType<RedirectResult>(result);
-        Assert.Equal("https://elsa.example.test/external-authentication/logout/continue/opaque", redirect.Url);
+        Assert.Equal("https://elsa.example.test/elsa/api/external-authentication/logout/continue/opaque", redirect.Url);
         Assert.Equal("logout", transactions.Stored!.Purpose);
         Assert.Equal("/workflows", transactions.Stored.ReturnPath);
 
@@ -297,6 +297,36 @@ public sealed class ServerBrokerAuthenticationTests
 
         Assert.Equal("/workflows", Assert.IsType<LocalRedirectResult>(result).Url);
         Assert.Null(transactions.Stored);
+    }
+
+    [Fact]
+    public void Login_PreservesBackendPathWhenBaseUrlHasNoTrailingSlash()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("studio.example.test");
+        var options = Options();
+        var anonymous = new FakeAnonymousBackendApiClientProvider(
+            url: new Uri("https://elsa.example.test/elsa/api"));
+        var state = new ServerExternalAuthenticationStateProvider(
+            new HttpContextAccessor { HttpContext = context },
+            anonymous,
+            new ServerExternalAuthenticationRefreshCoordinator(),
+            options);
+        var controller = CreateController(
+            context,
+            anonymous,
+            new FakeTransactionStore(new("unused", "", "/", DateTimeOffset.UtcNow.AddMinutes(1))),
+            state,
+            options);
+
+        var result = controller.Login("keycloak-workforce", "/");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var redirectUri = new Uri(redirect.Url!);
+        Assert.Equal(
+            "/elsa/api/external-authentication/authorize/keycloak-workforce",
+            redirectUri.AbsolutePath);
     }
 
     private static ExternalAuthenticationClientOptions Options() => new() { ClientId = "studio-server", ClientSecret = "secret" };
@@ -349,9 +379,11 @@ public sealed class ServerBrokerAuthenticationTests
         }
     }
 
-    private sealed class FakeAnonymousBackendApiClientProvider(IExternalAuthenticationBrokerApi? broker = null) : IAnonymousBackendApiClientProvider
+    private sealed class FakeAnonymousBackendApiClientProvider(
+        IExternalAuthenticationBrokerApi? broker = null,
+        Uri? url = null) : IAnonymousBackendApiClientProvider
     {
-        public Uri Url { get; } = new("https://elsa.example.test/elsa/api/");
+        public Uri Url { get; } = url ?? new("https://elsa.example.test/elsa/api/");
         public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class =>
             ValueTask.FromResult((T)(object)(broker ?? new FakeBrokerApi()));
     }
