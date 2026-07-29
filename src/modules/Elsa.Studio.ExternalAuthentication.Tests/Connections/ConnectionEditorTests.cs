@@ -1132,21 +1132,82 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = "cursor-2" });
         _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [new ConnectionSummary { Id = "connection-2", Key = "next", DisplayName = "Next", AdapterType = "custom" }], NextCursor = null });
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = "cursor-2" });
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [new ConnectionSummary { Id = "connection-2", Key = "next", DisplayName = "Next", AdapterType = "custom" }], NextCursor = null });
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = "cursor-2" });
 
         var cut = Render<ConnectionIndex>();
         cut.WaitForAssertion(() => Assert.Contains("Contoso", cut.Markup));
-        Assert.Contains("Page 1", cut.Markup, StringComparison.Ordinal);
-        var previousPage = cut.FindAll("button").Single(button => button.TextContent.Contains("Previous page", StringComparison.Ordinal));
+        var pager = cut.Find(".mud-table-pagination");
+        Assert.Contains("Rows Per Page", pager.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Page 1", pager.TextContent, StringComparison.Ordinal);
+        var firstPage = pager.QuerySelector("button[aria-label=\"First page\"]")!;
+        var previousPage = pager.QuerySelector("button[aria-label=\"Previous page\"]")!;
+        var nextPage = pager.QuerySelector("button[aria-label=\"Next page\"]")!;
+        Assert.True(firstPage.HasAttribute("disabled"));
         Assert.True(previousPage.HasAttribute("disabled"));
-        cut.FindAll("button").Single(button => button.TextContent.Contains("Next page", StringComparison.Ordinal)).Click();
+        Assert.False(nextPage.HasAttribute("disabled"));
+        nextPage.Click();
         cut.WaitForAssertion(() =>
         {
             Assert.Contains("Next", cut.Markup);
-            Assert.Contains("Page 2", cut.Markup, StringComparison.Ordinal);
-            Assert.False(cut.FindAll("button").Single(button => button.TextContent.Contains("Previous page", StringComparison.Ordinal)).HasAttribute("disabled"));
+            var nextPager = cut.Find(".mud-table-pagination");
+            Assert.Contains("Page 2", nextPager.TextContent, StringComparison.Ordinal);
+            Assert.False(nextPager.QuerySelector("button[aria-label=\"First page\"]")!.HasAttribute("disabled"));
+            Assert.False(nextPager.QuerySelector("button[aria-label=\"Previous page\"]")!.HasAttribute("disabled"));
+            Assert.True(nextPager.QuerySelector("button[aria-label=\"Next page\"]")!.HasAttribute("disabled"));
+            Assert.Null(nextPager.QuerySelector("button[aria-label=\"Last page\"]"));
         });
 
-        Assert.Equal([null, "cursor-2"], _api.Cursors);
+        cut.Find("button[aria-label=\"Previous page\"]").Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Contoso", cut.Markup, StringComparison.Ordinal);
+            var previousPager = cut.Find(".mud-table-pagination");
+            Assert.Contains("Page 1", previousPager.TextContent, StringComparison.Ordinal);
+            Assert.True(previousPager.QuerySelector("button[aria-label=\"Previous page\"]")!.HasAttribute("disabled"));
+        });
+
+        cut.Find("button[aria-label=\"Next page\"]").Click();
+        cut.WaitForAssertion(() => Assert.Contains("Page 2", cut.Find(".mud-table-pagination").TextContent, StringComparison.Ordinal));
+        cut.Find("button[aria-label=\"First page\"]").Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Contoso", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Page 1", cut.Find(".mud-table-pagination").TextContent, StringComparison.Ordinal);
+        });
+
+        Assert.Equal([null, "cursor-2", null, "cursor-2", null], _api.Cursors);
+    }
+
+    [Fact]
+    public async Task ConnectionList_ChangingPageSizeResetsTheCursorChain()
+    {
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = "cursor-2" });
+        _api.ListResults.Enqueue(new ListConnectionsResponse
+        {
+            Items = [new ConnectionSummary { Id = "connection-2", Key = "next", DisplayName = "Next", AdapterType = "custom" }],
+            NextCursor = "cursor-3"
+        });
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [CreateConnection()], NextCursor = null });
+
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains("Contoso", cut.Markup, StringComparison.Ordinal));
+        cut.Find("button[aria-label=\"Next page\"]").Click();
+        cut.WaitForAssertion(() => Assert.Contains("Next", cut.Markup, StringComparison.Ordinal));
+
+        var pageSize = cut.FindComponent<MudSelect<int>>().Instance;
+        Assert.Equal([10, 25, 50, 100], cut.FindComponents<MudSelectItem<int>>().Select(item => item.Instance.Value));
+        await cut.InvokeAsync(() => pageSize.ValueChanged.InvokeAsync(25));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Contoso", cut.Markup, StringComparison.Ordinal);
+            Assert.True(cut.Find("button[aria-label=\"First page\"]").HasAttribute("disabled"));
+            Assert.Equal(
+                [(null, 10), ("cursor-2", 10), (null, 25)],
+                _api.ListRequests.Select(request => (request.Cursor, request.PageSize)));
+        });
     }
 
     [Fact]
@@ -1502,15 +1563,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         var cut = Render<ConnectionIndex>();
         cut.WaitForAssertion(() => Assert.Single(_api.ListRequests));
-        cut.FindAll("button").Single(button => button.TextContent.Contains("Next page", StringComparison.Ordinal)).Click();
+        cut.Find("button[aria-label=\"Next page\"]").Click();
         cut.WaitForAssertion(() => Assert.Equal(2, _api.ListRequests.Count));
-        Assert.Contains("Page 2", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("Page 2", cut.Find(".mud-table-pagination").TextContent, StringComparison.Ordinal);
 
         var source = cut.FindComponent<MudSelect<string>>().Instance;
         await cut.InvokeAsync(() => source.ValueChanged.InvokeAsync("database"));
         cut.WaitForAssertion(() => Assert.Equal("database", _api.ListRequests[2].Source));
         Assert.Null(_api.ListRequests[2].Cursor);
-        Assert.Contains("Page 1", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("Page 1", cut.Find(".mud-table-pagination").TextContent, StringComparison.Ordinal);
+        Assert.True(cut.Find("button[aria-label=\"First page\"]").HasAttribute("disabled"));
 
         var includeArchived = cut.FindComponent<MudCheckBox<bool>>().Instance;
         await cut.InvokeAsync(() => includeArchived.ValueChanged.InvokeAsync(true));
@@ -1944,14 +2006,14 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
             Cursors.Add(cursor);
-            ListRequests.Add(new ListRequest(search, source, archived, cursor));
+            ListRequests.Add(new ListRequest(search, source, archived, cursor, pageSize));
             if (PendingListResults.TryDequeue(out var pending))
                 return pending;
 
             return Task.FromResult(ListResults.Dequeue());
         }
 
-        public sealed record ListRequest(string? Search, string? Source, bool? Archived, string? Cursor);
+        public sealed record ListRequest(string? Search, string? Source, bool? Archived, string? Cursor, int PageSize);
 
         public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(GetResult ?? throw new NotSupportedException());
         public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default) =>

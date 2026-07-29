@@ -1,4 +1,5 @@
 @page "/security/external-authentication/connections"
+@using Elsa.Studio.ExternalAuthentication.Components.Pagination
 @using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
@@ -175,11 +176,16 @@
                 </RowTemplate>
                 <NoRecordsContent><MudText>No connections match the current filters.</MudText></NoRecordsContent>
             </MudTable>
-            <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2" Class="pa-3 connection-list__footer" aria-label="Connection pages">
-                <MudText Typo="Typo.caption">Page @_paging.PageNumber</MudText>
-                <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasPrevious || _loading)" OnClick="PreviousPageAsync">Previous page</MudButton>
-                <MudButton Variant="Variant.Outlined" Disabled="@(!_paging.HasNext || _loading)" OnClick="NextPageAsync">Next page</MudButton>
-            </MudStack>
+            <CursorTablePager
+                PageNumber="_paging.PageNumber"
+                PageSize="_pageSize"
+                HasPrevious="_paging.HasPrevious"
+                HasNext="_paging.HasNext"
+                Loading="_loading"
+                PageSizeChanged="SetPageSizeAsync"
+                FirstPage="ReloadAsync"
+                PreviousPage="PreviousPageAsync"
+                NextPage="NextPageAsync" />
         }
     </MudPaper>
 </MudContainer>
@@ -189,6 +195,7 @@
     private readonly Dictionary<string, AdapterDescriptor> _adapters = new(StringComparer.OrdinalIgnoreCase);
     private string? _search;
     private string? _source;
+    private int _pageSize = 10;
     private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
     private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListRequestState _requests = new();
     private bool _includeArchived;
@@ -262,6 +269,15 @@
         await ReloadAsync();
     }
 
+    private async Task SetPageSizeAsync(int pageSize)
+    {
+        if (_pageSize == pageSize)
+            return;
+
+        _pageSize = pageSize;
+        await ReloadAsync();
+    }
+
     private async Task NextPageAsync()
     {
         if (_paging.TryAdvance(out var cursor))
@@ -291,7 +307,7 @@
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            var response = await api.ListAsync(search, source, archived: includeArchived ? null : false, cursor: cursor, pageSize: 25);
+            var response = await api.ListAsync(search, source, archived: includeArchived ? null : false, cursor: cursor, pageSize: _pageSize);
             if (!_requests.IsCurrent(request))
                 return;
 
