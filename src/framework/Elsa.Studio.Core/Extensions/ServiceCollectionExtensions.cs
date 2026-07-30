@@ -29,11 +29,10 @@ public static class ServiceCollectionExtensions
             themeOptions.Configure(configureTheme);
         themeOptions.ValidateOnStart();
 
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IValidateOptions<StudioThemeOptions>, StudioThemeOptionsValidator>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<StudioThemeOptions>, StudioThemeOptionsValidator>());
         services.TryAddScoped<IStudioThemeRegistry, StudioThemeRegistry>();
 
-        if (!services.Any(x => x.ServiceType == typeof(StudioThemeRegistrationMarker)))
+        if (services.All(x => x.ServiceType != typeof(StudioThemeRegistrationMarker)))
         {
             services.AddSingleton<StudioThemeRegistrationMarker>();
             services
