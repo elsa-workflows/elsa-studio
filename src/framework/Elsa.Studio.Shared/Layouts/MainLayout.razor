@@ -14,10 +14,12 @@
                        aria-label="Toggle navigation"
                        OnClick="@DrawerToggle"/>
         <MudSpacer/>
-        @foreach (var appBarItem in AppBarService.AppBarComponents)
-        {
-            @appBarItem
-        }
+        <div class="studio-appbar__actions">
+            @foreach (var appBarItem in AppBarService.AppBarComponents)
+            {
+                @appBarItem
+            }
+        </div>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen"
                Elevation="0"
