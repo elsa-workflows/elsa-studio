@@ -226,13 +226,13 @@ public static class ConnectionStatusPresentation
 public static class ConnectionListPresentation
 {
     public static string OwnershipLabel(ConnectionSummary connection) =>
-        connection.IsConfigurationOwned ? "Deployment" : "Studio";
+        connection.IsConfigurationOwned ? "Deployment" : "Database";
 
     public static string? OwnershipRelationship(ConnectionSummary connection) =>
         connection.OverridesConfigurationConnection
             ? "Overrides deployment"
             : connection.Shadowed
-                ? connection.IsConfigurationOwned ? "Shadowed by Studio" : "Shadowed by deployment"
+                ? connection.IsConfigurationOwned ? "Shadowed by Database" : "Shadowed by deployment"
                 : null;
 
     public static string AvailabilityLabel(ConnectionSummary connection) =>

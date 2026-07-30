@@ -60,7 +60,7 @@
                 <MudAlert Severity="Severity.Warning" Dense="true" aria-live="polite">
                     @if (_connection.IsConfigurationOwned)
                     {
-                        <span>This deployment-defined connection is shadowed by an effective Studio override.</span>
+                        <span>This deployment-defined connection is shadowed by an effective Database override.</span>
                     }
                     else
                     {
@@ -68,7 +68,7 @@
                         @if (CanPromoteCurrentConnection)
                         {
                             <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="PromoteToConfigurationOverrideAsync">
-                                Make this Studio record effective
+                                Make this Database record effective
                             </MudButton>
                         }
                     }
@@ -102,10 +102,10 @@
                                             {
                                                 <MudAlert Severity="Severity.Info" Dense="true">
                                                     @(_existingStudioOverrideArchived
-                                                        ? "An archived Studio record already exists for this connection."
-                                                        : "A Studio record already exists for this connection.")
+                                                        ? "An archived Database record already exists for this connection."
+                                                        : "A Database record already exists for this connection.")
                                                     <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="ManageExistingStudioOverride">
-                                                        @(_existingStudioOverrideArchived ? "Review and restore Studio record" : "Manage existing Studio record")
+                                                        @(_existingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
                                                     </MudButton>
                                                 </MudAlert>
                                             }
@@ -226,7 +226,7 @@
                                             else if (_runtimeDescriptorUnavailable)
                                             {
                                                 <MudAlert Severity="Severity.Warning" Dense="true" aria-live="polite">
-                                                    Backend runtime details are unavailable. If Studio was just upgraded, restart the backend and verify that both applications use compatible builds.
+                                                    Backend runtime details are unavailable. If Elsa Studio was just upgraded, restart the backend and verify that both applications use compatible builds.
                                                 </MudAlert>
                                             }
                                             <ConnectionOperations Connection="_connection"
@@ -254,7 +254,7 @@
                                                     @if (_connection.OverridesConfigurationConnection)
                                                     {
                                                         <MudAlert Severity="Severity.Info" Dense="true">
-                                                            This complete Studio override keeps shadowing deployment configuration while disabled.
+                                                            This complete Database override keeps shadowing deployment configuration while disabled.
                                                             Archiving it reveals the configuration-owned connection; restoring it resumes shadowing in a disabled state.
                                                         </MudAlert>
                                                     }
@@ -330,9 +330,9 @@
         ? $"{ShadowedRecordLabel("test", "Last test")}: {observation.Status} · {observation.ObservedAt.ToLocalTime():g}"
         : _connection?.Shadowed == true ? ShadowedRecordLabel("not tested", "Not tested") : "Not tested";
     private string EffectiveSourceLabel => _connection?.Shadowed == true
-        ? _connection.IsConfigurationOwned ? "Studio" : "Deployment"
-        : _connection?.IsConfigurationOwned == true ? "Deployment" : "Studio";
-    private string RecordSourceLabel => _connection?.IsConfigurationOwned == true ? "Deployment configuration" : "Studio database";
+        ? _connection.IsConfigurationOwned ? "Database" : "Deployment"
+        : _connection?.IsConfigurationOwned == true ? "Deployment" : "Database";
+    private string RecordSourceLabel => _connection?.IsConfigurationOwned == true ? "Deployment configuration" : "Database";
     private string LifecycleStatusLabel => ConnectionStatusPresentation.LifecycleDisplayLabel(_connection!);
     private string ValidityStatusLabel => ConnectionStatusPresentation.ValidityDisplayLabel(_connection!);
     private string ValidityHeading => _connection?.Shadowed == true
@@ -646,7 +646,7 @@
                 ConnectionConcurrency.ToIfMatch(_connection.Revision));
             _model = ToMutation(_connection);
             _isDirty = false;
-            Snackbar.Add("Managed secret replaced. Its value was not returned to Studio.", Severity.Success);
+            Snackbar.Add("Managed secret replaced. Its value was not returned to Elsa Studio.", Severity.Success);
         }
         catch (ManagementApiException exception) when (exception.IsConcurrencyConflict)
         {
@@ -658,11 +658,11 @@
         }
         catch (ApiException exception)
         {
-            ShowManagementError(exception, "The managed secret could not be replaced. The value was not retained by Studio.");
+            ShowManagementError(exception, "The managed secret could not be replaced. The value was not retained by Elsa Studio.");
         }
         catch
         {
-            Snackbar.Add("The managed secret could not be replaced. The value was not retained by Studio.", Severity.Error);
+            Snackbar.Add("The managed secret could not be replaced. The value was not retained by Elsa Studio.", Severity.Error);
         }
     }
 
@@ -979,7 +979,7 @@
         };
         ConnectionId = null;
         _isDirty = true;
-        Snackbar.Add("A complete database-owned copy is ready. Review every field and reconfigure its secrets after saving the draft.", Severity.Info);
+        Snackbar.Add("A complete Database-owned copy is ready. Review every field and reconfigure its secrets after saving the draft.", Severity.Info);
     }
 
     private async Task PromoteToConfigurationOverrideAsync()
@@ -988,8 +988,8 @@
             return;
 
         var confirmed = await Dialogs.ShowMessageBoxAsync(
-            "Make this Studio record effective?",
-            "This makes the existing Studio record override deployment configuration. Its configured secret bindings are preserved. While disabled, it still shadows deployment configuration; archiving it reveals the deployment connection again.",
+            "Make this Database record effective?",
+            "This makes the existing Database record override deployment configuration. Its configured secret bindings are preserved. While disabled, it still shadows deployment configuration; archiving it reveals the deployment connection again.",
             yesText: "Make record effective",
             cancelText: "Cancel") == true;
         if (!confirmed)
@@ -997,7 +997,7 @@
 
         var mutation = ToMutation(_connection);
         mutation.OverridesConfigurationConnection = true;
-        await UpdateExistingConnectionAsync(mutation, "This Studio record now overrides deployment configuration.");
+        await UpdateExistingConnectionAsync(mutation, "This Database record now overrides deployment configuration.");
     }
 
     private void Back() => Navigation.NavigateTo("security/external-authentication/connections");

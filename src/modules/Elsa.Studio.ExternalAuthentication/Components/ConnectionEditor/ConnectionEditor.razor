@@ -8,24 +8,24 @@
         @if (Connection.IsConfigurationOwned)
         {
             <MudAlert Severity="Severity.Warning" Dense="true">
-                This connection is configuration-owned and read-only in Studio.
+                This connection is configuration-owned and read-only in Elsa Studio.
                 @if (CanCreateOverride)
                 {
                     <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => FullOverrideRequested.InvokeAsync())">
-                        Create full Studio override
+                        Create full Database override
                     </MudButton>
                 }
                 else if (!HasExistingStudioOverride)
                 {
-                    <div>A Studio override is unavailable because deployment policy or your permissions do not allow it.</div>
+                    <div>A Database override is unavailable because deployment policy or your permissions do not allow it.</div>
                 }
                 else
                 {
                     <div>@(ExistingStudioOverrideArchived
-                        ? "An archived Studio record already exists for this connection."
-                        : "A Studio record already exists for this connection.")</div>
+                        ? "An archived Database record already exists for this connection."
+                        : "A Database record already exists for this connection.")</div>
                     <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ExistingStudioOverrideRequested.InvokeAsync())">
-                        @(ExistingStudioOverrideArchived ? "Review and restore Studio record" : "Manage existing Studio record")
+                        @(ExistingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
                     </MudButton>
                 }
             </MudAlert>
@@ -81,7 +81,7 @@
         <MudDivider />
         <div class="connection-editor__secrets">
             <MudText Typo="Typo.h6">Secret bindings</MudText>
-            <MudText Typo="Typo.caption">Secret values are write-only and never displayed or returned to Studio. Deployment-managed external references remain read-only.</MudText>
+            <MudText Typo="Typo.caption">Secret values are write-only and never displayed or returned to Elsa Studio. Deployment-managed external references remain read-only.</MudText>
             @foreach (var field in Adapter.Fields.Where(field => field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
             {
                 <SecretBindingField Field="field"

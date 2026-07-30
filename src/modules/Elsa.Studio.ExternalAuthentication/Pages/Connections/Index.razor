@@ -210,8 +210,8 @@
     private bool _configurationOverridesAllowed;
 
     private string ConfigurationGuidance => _configurationOverridesAllowed
-        ? "Deployment-owned connections are read-only. Authorized administrators can create or promote a Studio record to override them. Enabled, valid Studio connections become login methods without a restart."
-        : "Deployment-owned connections are read-only and must be changed in deployment configuration. Enabled, valid Studio connections become login methods without a restart.";
+        ? "Deployment-owned connections are read-only. Authorized administrators can create or promote a Database record to override them. Enabled, valid Database connections become login methods without a restart."
+        : "Deployment-owned connections are read-only and must be changed in deployment configuration. Enabled, valid Database connections become login methods without a restart.";
 
     protected override async Task OnInitializedAsync()
     {

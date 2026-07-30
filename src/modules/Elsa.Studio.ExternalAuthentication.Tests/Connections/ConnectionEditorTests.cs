@@ -60,7 +60,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("configuration-owned and read-only", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("override is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Create full Studio override", cut.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("Create full Database override", cut.Markup, StringComparison.Ordinal);
         Assert.DoesNotContain("Save changes", cut.Markup, StringComparison.Ordinal);
     }
 
@@ -246,10 +246,14 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__provisioning"));
             Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__diagnostics"));
             var header = cut.Find(".connection-workspace__header");
-            Assert.Contains("Effective: Studio", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("OpenID Connect settings", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.Contains("At a glance", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Open Diagnostics", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            var configuration = cut.Find(".connection-workspace__configuration");
+            Assert.Contains("Effective: Database", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("OpenID Connect settings", configuration.TextContent, StringComparison.Ordinal);
+            Assert.Contains("At a glance", configuration.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Effective source", configuration.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Record source", configuration.TextContent, StringComparison.Ordinal);
+            Assert.Equal(2, configuration.TextContent.Split("Database", StringSplitOptions.None).Length - 1);
+            Assert.Contains("Open Diagnostics", configuration.TextContent, StringComparison.Ordinal);
             Assert.Contains("User provisioning and linking", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
             Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
@@ -542,9 +546,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.Adapters = [CreateAdapter(includeSecret: true)];
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Create full Studio override", cut.Markup, StringComparison.Ordinal));
+        cut.WaitForAssertion(() => Assert.Contains("Create full Database override", cut.Markup, StringComparison.Ordinal));
 
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Create full Studio override", StringComparison.Ordinal)).Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Create full Database override", StringComparison.Ordinal)).Click();
         Assert.True(cut.FindComponent<Microsoft.AspNetCore.Components.Routing.NavigationLock>().Instance.ConfirmExternalNavigation);
         cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() => Assert.NotNull(_api.CreatedRequest));
@@ -591,16 +595,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             if (expectedAction)
-                Assert.Contains("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+                Assert.Contains("Make this Database record effective", cut.Markup, StringComparison.Ordinal);
             else
-                Assert.DoesNotContain("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+                Assert.DoesNotContain("Make this Database record effective", cut.Markup, StringComparison.Ordinal);
         });
 
         if (!expectedAction)
             return;
 
-        cut.FindAll("button").Single(button => button.TextContent.Contains("Make this Studio record effective", StringComparison.Ordinal)).Click();
-        _dialogProvider.WaitForAssertion(() => Assert.Contains("Make this Studio record effective?", _dialogProvider.Markup, StringComparison.Ordinal));
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Make this Database record effective", StringComparison.Ordinal)).Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("Make this Database record effective?", _dialogProvider.Markup, StringComparison.Ordinal));
         Assert.Null(_api.UpdatedRequest);
 
         _dialogProvider.FindAll("button").Single(button => button.TextContent.Contains("Make record effective", StringComparison.Ordinal)).Click();
@@ -631,7 +635,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Contains("Legacy custom editor", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Make this Studio record effective", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Make this Database record effective", cut.Markup, StringComparison.Ordinal);
         });
 
         var tabs = cut.FindComponent<MudTabs>();
@@ -738,10 +742,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("deployment-defined connection is shadowed by an effective Studio override", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("deployment-defined connection is shadowed by an effective Database override", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("persisted record is shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
             var header = cut.Find(".connection-workspace__header");
-            Assert.Contains("Effective: Studio", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Effective: Database", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Deployment: Enabled", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Deployment: Valid", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Deployment record validity", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
@@ -1238,7 +1242,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("Include archived", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Ownership", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Availability", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Studio", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Database", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Overrides deployment", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Available", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Enabled · Valid", cut.Markup, StringComparison.Ordinal);
@@ -1473,10 +1477,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("database", false, true, "Studio", "Overrides deployment")]
-    [InlineData("configuration", true, false, "Deployment", "Shadowed by Studio")]
-    [InlineData("database", true, false, "Studio", "Shadowed by deployment")]
-    [InlineData("database", false, false, "Studio", null)]
+    [InlineData("database", false, true, "Database", "Overrides deployment")]
+    [InlineData("configuration", true, false, "Deployment", "Shadowed by Database")]
+    [InlineData("database", true, false, "Database", "Shadowed by deployment")]
+    [InlineData("database", false, false, "Database", null)]
     public void ConnectionListPresentation_DescribesOwnershipRelationships(
         string source,
         bool shadowed,
@@ -1600,11 +1604,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Studio", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Database", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Shadowed by deployment", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Shadowed", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Stored: Enabled · Valid", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("create or promote a Studio record", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("create or promote a Database record", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("can only be changed through deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
         });
     }
@@ -1634,11 +1638,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Manage existing Studio record", cut.Markup, StringComparison.Ordinal);
-            Assert.DoesNotContain("Create full Studio override", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Manage existing Database record", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Create full Database override", cut.Markup, StringComparison.Ordinal);
         });
 
-        cut.FindAll("button").Single(button => button.TextContent.Contains("Manage existing Studio record", StringComparison.Ordinal)).Click();
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Manage existing Database record", StringComparison.Ordinal)).Click();
         Assert.EndsWith("/security/external-authentication/connections/stored-override", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
     }
 
@@ -1672,9 +1676,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Null(_api.ListRequests.Single().Archived);
-            Assert.Contains("archived Studio record already exists", cut.Markup, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Review and restore Studio record", cut.Markup, StringComparison.Ordinal);
-            Assert.DoesNotContain("Create full Studio override", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("archived Database record already exists", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Review and restore Database record", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Create full Database override", cut.Markup, StringComparison.Ordinal);
         });
     }
 
