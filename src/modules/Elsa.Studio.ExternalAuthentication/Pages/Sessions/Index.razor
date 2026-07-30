@@ -4,17 +4,17 @@
 @inject IDialogService Dialogs
 @inject ISnackbar Snackbar
 
-<PageTitle>External Authentication Sessions</PageTitle>
+<PageTitle>External authentication sessions</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="External Authentication Sessions" />
+    <PageHeading Text="External authentication sessions" />
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
         Session administration is optional. This page shows only safe session metadata and never exposes tokens, external subjects, or claim snapshots.
     </MudAlert>
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" />
+        <MudProgressLinear Indeterminate="true" aria-label="Loading external authentication sessions" />
     }
     else if (!_canRead)
     {
@@ -22,17 +22,35 @@
     }
     else
     {
-        <MudPaper Class="pa-4" Outlined="true">
-            <MudStack Row="true" Spacing="2" Class="mb-3">
-                <MudTextField @bind-Value="_userId" Label="User ID" />
-                <MudTextField @bind-Value="_connectionId" Label="Connection ID" />
-                <MudSelect T="string" @bind-Value="_status" Label="Status" Clearable="true">
-                    <MudSelectItem T="string" Value="@("active")">Active</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("revoked")">Revoked</MudSelectItem>
-                </MudSelect>
-                <MudButton Variant="Variant.Outlined" OnClick="ReloadAsync">Apply filters</MudButton>
-            </MudStack>
-            <MudTable T="ExternalAuthenticationSessionSummary" Items="_sessions" Dense="true" Hover="true">
+        <MudPaper Elevation="0" Outlined="true" Class="session-list">
+            <MudGrid Spacing="2" Class="pa-4 align-center session-list__toolbar">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="_userId" Label="User ID" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="_connectionId" Label="Connection ID" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" @bind-Value="_status" Label="Status" Clearable="true">
+                        <MudSelectItem T="string" Value="@("active")">Active</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("revoked")">Revoked</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.FilterAlt" OnClick="ReloadAsync">Apply filters</MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+            <MudTable
+                T="ExternalAuthenticationSessionSummary"
+                Items="_sessions"
+                Dense="true"
+                Hover="true"
+                Elevation="0"
+                Breakpoint="Breakpoint.Md"
+                Class="session-list__table"
+                aria-label="External authentication sessions">
                 <HeaderContent>
                     <MudTh>Session</MudTh>
                     <MudTh>User / connection</MudTh>
@@ -41,27 +59,42 @@
                     <MudTh aria-label="Actions"></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Session">@context.Id</MudTd>
+                    <MudTd DataLabel="Session">
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Id</MudText>
+                    </MudTd>
                     <MudTd DataLabel="User / connection">
-                        <MudText Typo="Typo.body2">@context.UserId</MudText>
-                        <MudText Typo="Typo.caption">@context.ConnectionId</MudText>
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.UserId</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ConnectionId</MudText>
                     </MudTd>
                     <MudTd DataLabel="Activity">
-                        <MudText Typo="Typo.caption">Started @context.StartedAt.ToLocalTime().ToString("g")</MudText>
-                        <MudText Typo="Typo.caption">Refreshed @context.LastRefreshedAt.ToLocalTime().ToString("g")</MudText>
-                        <MudText Typo="Typo.caption">Expires @context.ExpiresAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.body2">Refreshed @context.LastRefreshedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Started @context.StartedAt.ToLocalTime().ToString("g") · Expires @context.ExpiresAt.ToLocalTime().ToString("g")</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)">@context.Status</MudChip></MudTd>
-                    <MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip
+                            T="string"
+                            Size="Size.Small"
+                            Color="@StatusColor(context.Status)"
+                            Icon="@StatusIcon(context.Status)">
+                            @StatusLabel(context.Status)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
                         @if (_canRevoke && !string.Equals(context.Status, "revoked", StringComparison.OrdinalIgnoreCase))
                         {
-                            <MudButton Color="Color.Error" Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ConfirmRevokeAsync(context))">Revoke</MudButton>
+                            <MudMenu
+                                Icon="@Icons.Material.Filled.MoreVert"
+                                Size="Size.Small"
+                                Dense="true"
+                                AriaLabel="@($"Actions for session {context.Id}")">
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => ConfirmRevokeAsync(context))">Revoke</MudMenuItem>
+                            </MudMenu>
                         }
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No external authentication sessions match the current filters.</MudText></NoRecordsContent>
             </MudTable>
-            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-3 session-list__footer" aria-label="External authentication session pages">
                 <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
             </MudStack>
         </MudPaper>
@@ -134,5 +167,22 @@
         }
     }
 
-    private static Color StatusColor(string status) => string.Equals(status, "active", StringComparison.OrdinalIgnoreCase) ? Color.Success : Color.Default;
+    private static string StatusLabel(string status) =>
+        string.Equals(status, "active", StringComparison.OrdinalIgnoreCase)
+            ? "Active"
+            : string.Equals(status, "revoked", StringComparison.OrdinalIgnoreCase)
+                ? "Revoked"
+                : string.IsNullOrWhiteSpace(status)
+                    ? "Unknown"
+                    : char.ToUpperInvariant(status[0]) + status[1..].ToLowerInvariant();
+
+    private static Color StatusColor(string status) =>
+        string.Equals(status, "active", StringComparison.OrdinalIgnoreCase) ? Color.Success : Color.Default;
+
+    private static string StatusIcon(string status) =>
+        string.Equals(status, "active", StringComparison.OrdinalIgnoreCase)
+            ? Icons.Material.Outlined.CheckCircleOutline
+            : string.Equals(status, "revoked", StringComparison.OrdinalIgnoreCase)
+                ? Icons.Material.Outlined.Cancel
+                : Icons.Material.Outlined.HelpOutline;
 }

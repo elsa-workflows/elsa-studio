@@ -25,6 +25,12 @@
     --elsa-login-method-icon-surface: rgb(124 179 255 / 0.12);
     --elsa-login-method-icon-color: var(--elsa-login-focus-color);
     --elsa-login-method-shadow: 0 0.75rem 1.75rem rgb(0 4 18 / 0.16);
+    --elsa-control-surface: rgb(2 12 30 / 0.5);
+    --elsa-control-surface-hover: rgb(124 179 255 / 0.09);
+    --elsa-control-surface-disabled: rgb(2 12 30 / 0.28);
+    --elsa-control-border: rgb(173 197 241 / 0.34);
+    --elsa-control-border-hover: rgb(173 197 241 / 0.58);
+    --elsa-control-focus: var(--elsa-login-focus-color);
     background: #06132d;
     box-sizing: border-box;
     color: #f8fafc;
@@ -191,6 +197,11 @@
     --elsa-login-method-icon-surface: rgb(25 118 210 / 0.09);
     --elsa-login-method-icon-color: #1769c4;
     --elsa-login-method-shadow: 0 0.5rem 1.25rem rgb(91 68 45 / 0.1);
+    --elsa-control-surface: rgb(37 43 51 / 0.035);
+    --elsa-control-surface-hover: rgb(25 118 210 / 0.055);
+    --elsa-control-surface-disabled: rgb(37 43 51 / 0.055);
+    --elsa-control-border: rgb(102 112 133 / 0.32);
+    --elsa-control-border-hover: rgb(72 82 96 / 0.52);
     background: #f6efe8;
     color: #222a35;
 }

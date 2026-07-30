@@ -6,6 +6,7 @@ using Elsa.Studio.ExternalAuthentication.Models;
 using SessionsIndex = Elsa.Studio.ExternalAuthentication.Pages.Sessions.Index;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
 
@@ -14,6 +15,7 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Operations;
 public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
 {
     private readonly OperationsApi _operations = new();
+    private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
     public OperationsUiTests()
     {
@@ -21,7 +23,7 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<IBackendApiClientProvider>(new BackendApiClientProvider(_operations));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(new PermissionService());
-        Render<MudBlazor.MudPopoverProvider>();
+        _popoverProvider = Render<MudPopoverProvider>();
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -156,6 +158,16 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("connection-1", cut.Markup);
         Assert.DoesNotContain("provider-access-token", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("external-subject", cut.Markup, StringComparison.OrdinalIgnoreCase);
+
+        var status = cut.FindComponents<MudChip<string>>()
+            .Single(chip => chip.Markup.Contains("Active", StringComparison.Ordinal));
+        Assert.Equal(Color.Success, status.Instance.Color);
+        Assert.Equal(Icons.Material.Outlined.CheckCircleOutline, status.Instance.Icon);
+
+        var actions = Assert.Single(cut.FindComponents<MudMenu>());
+        Assert.Equal("Actions for session session-1", actions.Instance.AriaLabel);
+        cut.Find("button[aria-label='Actions for session session-1']").Click();
+        _popoverProvider.WaitForAssertion(() => Assert.Contains("Revoke", _popoverProvider.Markup, StringComparison.Ordinal));
     }
 
     private static ConnectionDetail CreateConnection() => new()

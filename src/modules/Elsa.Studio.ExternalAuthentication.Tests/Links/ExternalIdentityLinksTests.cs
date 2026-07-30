@@ -20,6 +20,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
     private readonly LinksApi _links = new();
     private readonly ConnectionsApi _connections = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
+    private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
     public ExternalIdentityLinksTests()
     {
@@ -29,7 +30,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IBackendApiClientProvider>(new ApiProvider(_links, _connections));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(
             new PermissionService(ExternalAuthenticationPermissions.ManageLinks));
-        Render<MudPopoverProvider>();
+        _popoverProvider = Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
 
@@ -64,10 +65,20 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
             Assert.Contains("Contoso", cut.Markup);
             Assert.Contains("https://login.contoso.example", cut.Markup);
             Assert.Contains("00u…cdef", cut.Markup);
+            Assert.Contains("Never signed in", cut.Markup);
             Assert.DoesNotContain("type=\"password\"", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.Contains(cut.FindAll("button"), button => button.TextContent.Trim() == "Create link");
             Assert.DoesNotContain("Create a prelink", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("never returned", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            var actions = Assert.Single(cut.FindComponents<MudMenu>());
+            Assert.Equal("Actions for workflow-admin via Contoso", actions.Instance.AriaLabel);
+        });
+
+        cut.Find("button[aria-label='Actions for workflow-admin via Contoso']").Click();
+        _popoverProvider.WaitForAssertion(() =>
+        {
+            Assert.Contains("Edit", _popoverProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("Unlink", _popoverProvider.Markup, StringComparison.Ordinal);
         });
     }
 
@@ -155,14 +166,10 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         _dialogProvider.Find("input[type=password]").Change("must-not-survive-close");
         _dialogProvider.FindAll("button").Single(button => button.TextContent.Trim() == "Cancel").Click();
 
-        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Edit").Click();
-        _dialogProvider.WaitForAssertion(() =>
-        {
-            Assert.Contains("Edit external identity link", _dialogProvider.Markup);
-            Assert.Contains("resets its sign-in history", _dialogProvider.Markup);
-            Assert.Contains("https://login.contoso.example", _dialogProvider.Markup);
-            Assert.Equal(string.Empty, _dialogProvider.Find("input[type=password]").GetAttribute("value") ?? string.Empty);
-        });
+        OpenEditDialog(cut);
+        Assert.Contains("resets its sign-in history", _dialogProvider.Markup);
+        Assert.Contains("https://login.contoso.example", _dialogProvider.Markup);
+        Assert.Equal(string.Empty, _dialogProvider.Find("input[type=password]").GetAttribute("value") ?? string.Empty);
         _dialogProvider.Find("input[type=password]").Change("replacement-subject");
         _dialogProvider.Find("form").Submit();
 
@@ -355,7 +362,10 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
 
     private void OpenEditDialog(IRenderedComponent<IdentityLinksPage> cut)
     {
-        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Edit").Click();
+        cut.Find("button[aria-label^='Actions for ']").Click();
+        var edit = _popoverProvider.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Contains("Edit", StringComparison.Ordinal));
+        edit.Click();
         _dialogProvider.WaitForAssertion(() => Assert.Contains("Edit external identity link", _dialogProvider.Markup));
     }
 

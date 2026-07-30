@@ -6,17 +6,29 @@
 @inject IDialogService Dialogs
 @inject ISnackbar Snackbar
 
-<PageTitle>External Identity Links</PageTitle>
+<PageTitle>External identity links</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="External Identity Links" />
+    <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+        <PageHeading Text="External identity links" />
+        @if (_canManage)
+        {
+            <MudButton
+                Color="Color.Primary"
+                Variant="Variant.Filled"
+                StartIcon="@Icons.Material.Filled.Add"
+                OnClick="@(() => OpenLinkDialogAsync())">
+                Create link
+            </MudButton>
+        }
+    </MudStack>
     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
         Links are tenant-scoped. Elsa stores a keyed subject hash; raw external subjects and provider tokens are never returned.
     </MudAlert>
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" />
+        <MudProgressLinear Indeterminate="true" aria-label="Loading external identity links" />
     }
     else if (!_canManage)
     {
@@ -24,21 +36,29 @@
     }
     else
     {
-        <MudPaper Class="pa-4" Outlined="true">
-            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.End" Class="mb-3">
-                <MudTextField @bind-Value="_userIdFilter" Label="Filter by user ID" />
-                <MudTextField @bind-Value="_connectionKeyFilter" Label="Filter by connection key" />
-                <MudButton Variant="Variant.Outlined" OnClick="ReloadAsync">Apply filters</MudButton>
-                <MudSpacer />
-                <MudButton
-                    Color="Color.Primary"
-                    Variant="Variant.Filled"
-                    StartIcon="@Icons.Material.Filled.Add"
-                    OnClick="@(() => OpenLinkDialogAsync())">
-                    Create link
-                </MudButton>
-            </MudStack>
-            <MudTable T="ExternalIdentityLink" Items="_links" Dense="true" Hover="true" aria-label="External identity links">
+        <MudPaper Elevation="0" Outlined="true" Class="identity-link-list">
+            <MudGrid Spacing="2" Class="pa-4 align-center identity-link-list__toolbar">
+                <MudItem xs="12" sm="6" md="5">
+                    <MudTextField @bind-Value="_userIdFilter" Label="Filter by user ID" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="5">
+                    <MudTextField @bind-Value="_connectionKeyFilter" Label="Filter by connection key" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="2">
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.FilterAlt" OnClick="ReloadAsync">Apply filters</MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+            <MudTable
+                T="ExternalIdentityLink"
+                Items="_links"
+                Dense="true"
+                Hover="true"
+                Elevation="0"
+                Breakpoint="Breakpoint.Md"
+                Class="identity-link-list__table"
+                aria-label="External identity links">
                 <HeaderContent>
                     <MudTh>User</MudTh>
                     <MudTh>Connection</MudTh>
@@ -47,38 +67,44 @@
                     <MudTh aria-label="Actions"></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="User">@UserDisplay(context.UserId)</MudTd>
-                    <MudTd DataLabel="Connection">@ConnectionDisplay(context.ConnectionKey)</MudTd>
+                    <MudTd DataLabel="User">
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@UserDisplay(context.UserId)</MudText>
+                        @if (!string.Equals(UserDisplay(context.UserId), context.UserId, StringComparison.Ordinal))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.UserId</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Connection">
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@ConnectionDisplay(context.ConnectionKey)</MudText>
+                        @if (!string.Equals(ConnectionDisplay(context.ConnectionKey), context.ConnectionKey, StringComparison.Ordinal))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ConnectionKey</MudText>
+                        }
+                    </MudTd>
                     <MudTd DataLabel="External identity">
                         <MudText Typo="Typo.body2">@context.Issuer</MudText>
-                        <MudText Typo="Typo.caption">@IdentityLinkUiState.SubjectDisplay(context)</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@IdentityLinkUiState.SubjectDisplay(context)</MudText>
                     </MudTd>
                     <MudTd DataLabel="Activity">
-                        <MudText Typo="Typo.caption">Created @context.CreatedAt.ToLocalTime().ToString("g")</MudText>
-                        <MudText Typo="Typo.caption">@(context.LastSignedInAt is null ? "Never signed in" : $"Last sign-in {context.LastSignedInAt.Value.ToLocalTime():g}")</MudText>
+                        <MudText Typo="Typo.body2">@(context.LastSignedInAt is null ? "Never signed in" : $"Last sign-in {context.LastSignedInAt.Value.ToLocalTime():g}")</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Created @context.CreatedAt.ToLocalTime().ToString("g")</MudText>
                     </MudTd>
-                    <MudTd>
-                        <MudButton
-                            Variant="Variant.Text"
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudMenu
+                            Icon="@Icons.Material.Filled.MoreVert"
                             Size="Size.Small"
-                            aria-label="@($"Edit link for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")"
-                            OnClick="@(() => OpenLinkDialogAsync(context))">
-                            Edit
-                        </MudButton>
-                        <MudButton
-                            Color="Color.Error"
-                            Variant="Variant.Text"
-                            Size="Size.Small"
-                            aria-label="@($"Unlink {UserDisplay(context.UserId)} from {ConnectionDisplay(context.ConnectionKey)}")"
-                            OnClick="@(() => ConfirmUnlinkAsync(context))">
-                            Unlink
-                        </MudButton>
+                            Dense="true"
+                            AriaLabel="@($"Actions for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")">
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenLinkDialogAsync(context))">Edit</MudMenuItem>
+                            <MudDivider />
+                            <MudMenuItem Icon="@Icons.Material.Outlined.LinkOff" OnClick="@(() => ConfirmUnlinkAsync(context))">Unlink</MudMenuItem>
+                        </MudMenu>
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No links match the current filters.</MudText></NoRecordsContent>
             </MudTable>
             <nav aria-label="External identity links pagination">
-                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-3 identity-link-list__footer">
                     <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
                 </MudStack>
             </nav>

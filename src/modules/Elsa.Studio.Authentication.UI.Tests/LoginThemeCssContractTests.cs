@@ -15,6 +15,16 @@ public sealed class LoginThemeCssContractTests
         "--elsa-login-method-shadow"
     ];
 
+    private static readonly string[] LoginControlTokens =
+    [
+        "--elsa-control-surface",
+        "--elsa-control-surface-hover",
+        "--elsa-control-surface-disabled",
+        "--elsa-control-border",
+        "--elsa-control-border-hover",
+        "--elsa-control-focus"
+    ];
+
     [Fact]
     public void LoginMethodTokens_ArePublicAndSupportedByBuiltInThemeFamilies()
     {
@@ -42,6 +52,64 @@ public sealed class LoginThemeCssContractTests
 
         foreach (var token in LoginMethodTokens)
             Assert.Contains($"{token}:", humanAutomationTheme, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LoginThemes_OverrideTheSharedControlPalette()
+    {
+        var classicCss = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "wwwroot", "css", "login.css");
+        var modernCss = ReadModernThemeCss();
+        var readme = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "README.md");
+        var classicTheme = GetRuleText(classicCss, ".classic-login-theme");
+        var modernTheme = GetRuleText(modernCss, ".modern-login-theme");
+        var humanAutomationTheme = GetRuleText(
+            modernCss,
+            ".modern-login-theme[data-theme=\"human-automation\"]");
+
+        foreach (var token in LoginControlTokens)
+        {
+            Assert.Contains(token, readme, StringComparison.Ordinal);
+            Assert.Contains($"{token}:", classicTheme, StringComparison.Ordinal);
+            Assert.Contains($"{token}:", modernTheme, StringComparison.Ordinal);
+        }
+
+        foreach (var token in LoginControlTokens.Where(x => x != "--elsa-control-focus"))
+            Assert.Contains($"{token}:", humanAutomationTheme, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClassicUnifiedTheme_UsesUnifiedIdentityGatewayComposition()
+    {
+        var classicCss = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "wwwroot", "css", "login.css");
+        var classicRazor = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicUnifiedLoginTheme.razor");
+        var cardRule = GetRuleText(classicCss, ".classic-login-theme__card");
+
+        Assert.Contains("classic-login-theme__handoff", classicRazor, StringComparison.Ordinal);
+        Assert.Contains("classic-login-theme__footer", classicRazor, StringComparison.Ordinal);
+        Assert.Contains("inline-size: min(100%, 32.5rem)", cardRule, StringComparison.Ordinal);
+        Assert.DoesNotContain("grid-template-columns", cardRule, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClassicThemeFamily_ProvidesNamedUnifiedAndBrandCanvasPresentations()
+    {
+        var classicCss = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "wwwroot", "css", "login.css");
+        var unifiedRazor = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicUnifiedLoginTheme.razor");
+        var brandCanvasRazor = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicBrandCanvasLoginTheme.razor");
+
+        Assert.Contains("classic-login-theme__handoff", unifiedRazor, StringComparison.Ordinal);
+        Assert.Contains("classic-brand-canvas-login-theme__statement", brandCanvasRazor, StringComparison.Ordinal);
+        Assert.Contains("classic-brand-canvas-login-theme__route", brandCanvasRazor, StringComparison.Ordinal);
+        Assert.Contains(".classic-brand-canvas-login-theme__signin", classicCss, StringComparison.Ordinal);
+        Assert.Contains(".classic-brand-canvas-login-theme__card", classicCss, StringComparison.Ordinal);
+        Assert.Contains("@media (max-width: 820px)", classicCss, StringComparison.Ordinal);
     }
 
     private static string ReadModernThemeCss() =>

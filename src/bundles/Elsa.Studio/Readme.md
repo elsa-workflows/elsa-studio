@@ -14,7 +14,8 @@ This is a bundle package that includes the following packages:
 
 The dashboard package provides the shell. Workflow and diagnostics dashboard widgets are registered by their companion modules only when the selected backend advertises the matching dashboard shell features.
 
-`Elsa.Studio.Authentication.UI` provides the shared login-theme framework and
-the default `classic` theme. `Elsa.Studio.Authentication.Themes` packages the
-optional first-party modern presentations; applications register them with
-`AddElsaStudioLoginThemes()`.
+`Elsa.Studio.Authentication.UI` provides the shared login-theme framework, the
+default `classic`/`classic-unified` presentation, and the optional
+`classic-brand-canvas` presentation. `Elsa.Studio.Authentication.Themes`
+packages the optional first-party modern presentations; applications register
+them with `AddElsaStudioLoginThemes()`.

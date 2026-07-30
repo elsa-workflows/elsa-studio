@@ -9,6 +9,8 @@ public static class LoginThemeIds
 {
     public const string Inherit = "inherit";
     public const string Classic = StudioThemeIds.Classic;
+    public const string ClassicUnified = "classic-unified";
+    public const string ClassicBrandCanvas = "classic-brand-canvas";
     public const string WorkflowConstellation = StudioThemeIds.WorkflowConstellation;
     public const string WorkflowAurora = StudioThemeIds.WorkflowAurora;
     public const string ExecutionTimeline = StudioThemeIds.ExecutionTimeline;

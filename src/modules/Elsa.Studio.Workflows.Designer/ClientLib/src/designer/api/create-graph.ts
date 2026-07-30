@@ -59,6 +59,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         },
         connecting: {
             router: 'manhattan',
+            allowMulti: true,
             connector: {
                 name: 'rounded',
                 args: {

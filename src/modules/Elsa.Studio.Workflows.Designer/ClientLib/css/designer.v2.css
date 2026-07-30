@@ -165,6 +165,14 @@
     fill: var(--elsa-designer-port-text);
 }
 
+.elsa-flowchart-diagram-designer-v2 .elsa-designer-port-circle {
+    transition: r 120ms ease-out;
+}
+
+.elsa-flowchart-diagram-designer-v2 .x6-port:hover .elsa-designer-port-circle {
+    r: 8px;
+}
+
 .elsa-sequence-diagram-designer .x6-port {
     display: none;
 }

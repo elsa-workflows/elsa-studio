@@ -13,6 +13,17 @@
     height: 100%
 }
 
+:root {
+    --elsa-control-surface: color-mix(in srgb, var(--mud-palette-background-gray) 58%, var(--mud-palette-surface));
+    --elsa-control-surface-hover: color-mix(in srgb, var(--mud-palette-primary) 3%, var(--elsa-control-surface));
+    --elsa-control-surface-disabled: color-mix(in srgb, var(--mud-palette-action-disabled-background) 35%, var(--mud-palette-surface));
+    --elsa-control-border: var(--mud-palette-lines-inputs);
+    --elsa-control-border-hover: color-mix(in srgb, var(--mud-palette-text-primary) 42%, var(--mud-palette-lines-inputs));
+    --elsa-control-focus: var(--mud-palette-primary);
+    --elsa-control-error: var(--mud-palette-error);
+    --elsa-control-radius: var(--mud-default-borderradius);
+}
+
 .elsa-studio-shell {
     --elsa-space-1: 0.25rem;
     --elsa-space-2: 0.5rem;
@@ -31,6 +42,95 @@
     --elsa-radius-md: calc(var(--mud-default-borderradius) + 2px);
     background: var(--elsa-canvas);
     color: var(--elsa-text);
+}
+
+/*****************************************************
+* Elsa form controls
+******************************************************/
+.mud-input.mud-input-text,
+.mud-input.mud-input-filled,
+.mud-input.mud-input-outlined:not(.activity-ports .mud-input) {
+    background: var(--elsa-control-surface);
+    border-radius: var(--elsa-control-radius);
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.mud-input.mud-input-text,
+.mud-input.mud-input-filled {
+    border: 1px solid var(--elsa-control-border);
+    padding-inline: var(--elsa-space-3, 0.75rem);
+}
+
+.mud-input.mud-input-underline::before,
+.mud-input.mud-input-underline::after {
+    border-block-end: 0 !important;
+}
+
+.mud-input-control > .mud-input-control-input-container >
+.mud-input-label-inputcontrol:not(.mud-input-label-outlined):not(.mud-input-label-filled) {
+    inset-inline-start: var(--elsa-space-3, 0.75rem);
+    max-inline-size: calc(100% - 1.5rem);
+}
+
+.mud-input.mud-input-outlined:not(.activity-ports .mud-input) > .mud-input-outlined-border {
+    border-color: var(--elsa-control-border);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .mud-input.mud-input-text:not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover,
+    .mud-input.mud-input-filled:not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover,
+    .mud-input.mud-input-outlined:not(.activity-ports .mud-input):not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover {
+        background: var(--elsa-control-surface-hover);
+    }
+
+    .mud-input.mud-input-text:not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover,
+    .mud-input.mud-input-filled:not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover {
+        border-color: var(--elsa-control-border-hover);
+    }
+
+    .mud-input.mud-input-outlined:not(.activity-ports .mud-input):not(.mud-disabled):not(.mud-readonly):not(:focus-within):hover >
+    .mud-input-outlined-border {
+        border-color: var(--elsa-control-border-hover);
+    }
+}
+
+.mud-input.mud-input-text:focus-within,
+.mud-input.mud-input-filled:focus-within,
+.mud-input.mud-input-outlined:not(.activity-ports .mud-input):focus-within {
+    background: var(--elsa-control-surface);
+    border-color: var(--elsa-control-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--elsa-control-focus) 18%, transparent);
+}
+
+.mud-input.mud-input-outlined:not(.activity-ports .mud-input):focus-within > .mud-input-outlined-border {
+    border-color: var(--elsa-control-focus);
+}
+
+.mud-input.mud-input-text.mud-input-error,
+.mud-input.mud-input-filled.mud-input-error {
+    border-color: var(--elsa-control-error);
+}
+
+.mud-input.mud-input-text.mud-input-error:focus-within,
+.mud-input.mud-input-filled.mud-input-error:focus-within,
+.mud-input.mud-input-outlined.mud-input-error:not(.activity-ports .mud-input):focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--elsa-control-error) 18%, transparent);
+}
+
+.mud-input.mud-disabled,
+.mud-input.mud-readonly {
+    background: var(--elsa-control-surface-disabled);
+}
+
+.mud-input.mud-disabled {
+    border-color: var(--mud-palette-action-disabled);
+}
+
+.mud-input.mud-disabled > .mud-input-outlined-border {
+    border-color: var(--mud-palette-action-disabled);
 }
 
 .studio-appbar {

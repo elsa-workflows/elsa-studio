@@ -2,7 +2,7 @@
 
 Status: Approved baseline
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 ## Direction
 
@@ -119,6 +119,69 @@ The approved reference is Concept 2, “Connection Workspace,” selected on
   “Review configuration.”
 - In informational callouts, stack explanatory copy above the action with an
   8px gap. Do not append a button directly to a sentence.
+
+## Secret Detail Workspace Pattern
+
+The approved reference is the Secrets detail page implemented on 2026-07-30.
+Use this pattern for detail pages that combine immutable identity, editable
+metadata, lifecycle context, and a sensitive operational action.
+
+### Page composition
+
+- Use `MudContainer MaxWidth="MaxWidth.Large"` and a `MudStack Spacing="3"`
+  with `py-4`.
+- Keep the back action at natural width with `align-self-start`.
+- Present the resource icon, display name, technical name, status, type, store,
+  and version in one compact outlined header.
+- Use the primary color for resource identity and routine actions. Reserve
+  success, warning, and error colors for lifecycle meaning.
+- Technical identifiers may be long: use a monospace treatment,
+  `overflow-wrap: anywhere`, and wrapping header chips.
+
+### Task separation
+
+- Use an outlined tab workspace when overview and mutation tasks have different
+  risk or cognitive load.
+- Keep identity, description, metadata, and lifecycle summary under Overview.
+- Put credential replacement and optional expiry under Rotation.
+- Use `KeepPanelsAlive="true"` and
+  `TabPanelsClass="pa-4 pa-sm-6"` so transient form values survive task
+  navigation and every panel receives the same responsive inset.
+- Use `MudGrid Spacing="4"` with an 8/4 main-to-supporting column split on
+  desktop and a single-column stack on narrow screens.
+
+### Operational context
+
+- Provide one secondary “At a glance” outlined surface for status, current
+  version, store, and expiry.
+- Explain rotation outcomes before the form. Never imply that a stored secret
+  value can be retrieved or displayed.
+- Pair mutation controls with the current version and expiry context needed to
+  evaluate the action.
+- Keep routine rotation visually primary but contained within its own task.
+
+### Destructive actions
+
+- Name the action directly, such as “Revoke secret”; avoid a generic
+  “Danger zone” heading when a more precise label exists.
+- Separate destructive actions from routine mutations by task, spacing, and an
+  error-semantic border rather than a decorative background.
+- Explain the operational consequence immediately before the destructive
+  button.
+- Keep the destructive button at natural width and require confirmation before
+  executing the action.
+
+### Responsive and theme behavior
+
+- At narrow widths, stack metadata columns, supporting context, date/time
+  controls, and action groups without horizontal scrolling.
+- Keep short action labels on one line; allow technical names and status chips
+  to wrap.
+- Use theme tokens and outlined surfaces so the same structure works in light
+  and dark modes without page-specific color overrides.
+- Verify Overview and Rotation independently at desktop and mobile widths,
+  including long technical names, focus order, disabled time-before-date
+  behavior, and semantic lifecycle colors.
 
 ## Defaults to Avoid
 

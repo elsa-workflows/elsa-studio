@@ -116,14 +116,6 @@ public partial class ActivityPicker
         _expanded = !_expanded;
     }
 
-    private void OnItemDoubleClick(ActivityTreeItem item)
-    {
-        if (item.Children?.Any() == true)
-        {
-            item.Expanded = !item.Expanded;
-        }
-    }
-
     private Task<bool> MatchesName(ActivityTreeItem item)
     {
         if (string.IsNullOrEmpty(item.CategoryPath) && string.IsNullOrEmpty(item.Text))

@@ -103,7 +103,7 @@ or copied login logic, and cosmetic runtime failure does not block sign-in.
 the supplied 3.7.0 reference, including pale waves, split card, blue branding,
 utilities, version, growth for multiple methods, and narrow collapse.
 
-- [x] T026 [US4] Build the ordinary registered classic theme in `src/modules/Elsa.Studio.Authentication.UI/Components/Themes/ClassicLoginTheme.razor`
+- [x] T026 [US4] Build the ordinary registered Classic Unified theme in `src/modules/Elsa.Studio.Authentication.UI/Components/Themes/ClassicUnifiedLoginTheme.razor`
 - [x] T027 [US4] Add responsive classic composition and branding treatment in `src/modules/Elsa.Studio.Authentication.UI/wwwroot/css/login.css`
 - [x] T028 [US4] Project host branding and client version into the context in `src/modules/Elsa.Studio.Authentication.UI/Services/LoginThemeContextFactory.cs`
 - [x] T029 [US4] Verify classic background and branding fallback assets under `src/framework/Elsa.Studio.Shell/wwwroot/img/`
@@ -147,7 +147,7 @@ and localization across all themes.
 semantic application identity, utility visibility, shared labels/states, and
 classic version output in all appropriate themes.
 
-- [x] T040 [US6] Apply projected light/reverse logos, application name, and tagline in `src/modules/Elsa.Studio.Authentication.UI/Components/Themes/ClassicLoginTheme.razor`
+- [x] T040 [US6] Apply projected light/reverse logos, application name, and tagline in `src/modules/Elsa.Studio.Authentication.UI/Components/Themes/ClassicUnifiedLoginTheme.razor`
 - [x] T041 [US6] Apply the same projected branding contract in `src/modules/Elsa.Studio.Authentication.Themes/Components/ModernLoginThemeFrame.razor`
 - [x] T042 [US6] Localize shared headings, states, divider, and utility labels through `ILocalizer` in `src/modules/Elsa.Studio.Authentication.UI/Components/LoginPanel.razor` and `src/modules/Elsa.Studio.Authentication.UI/Components/LoginUtilityLinks.razor`
 

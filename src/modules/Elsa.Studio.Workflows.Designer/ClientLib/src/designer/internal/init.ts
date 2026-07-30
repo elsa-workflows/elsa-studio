@@ -3,6 +3,18 @@ import {createActivityElement} from "./create-activity-element";
 import {Activity} from "../models";
 
 export function initialize() {
+    const createPortInteractionAttrs = () => ({
+        port: {
+            magnet: true,
+        },
+        hitArea: {
+            r: 12,
+            fill: "transparent",
+            stroke: "transparent",
+            pointerEvents: "all",
+            cursor: "crosshair",
+        },
+    });
 
     Shape.HTML.register({
         shape: "elsa-activity",
@@ -13,17 +25,36 @@ export function initialize() {
             const activityStats = cell.prop('activityStats');
             return createActivityElement(activity, false, selectedPort, activityStats);
         },
+        portMarkup: [
+            {
+                tagName: "g",
+                selector: "port",
+                children: [
+                    {
+                        tagName: "circle",
+                        selector: "hitArea",
+                        className: "elsa-designer-port-hit-area",
+                    },
+                    {
+                        tagName: "circle",
+                        selector: "circle",
+                        className: "elsa-designer-port-circle",
+                    },
+                ],
+            },
+        ],
         ports: {
             groups: {
                 in: {
                     position: "left",
                     attrs: {
+                        ...createPortInteractionAttrs(),
                         circle: {
                             r: 5,
-                            magnet: true,
                             stroke: "var(--elsa-designer-port-stroke)",
                             strokeWidth: 2,
                             fill: "var(--elsa-designer-port-surface)",
+                            pointerEvents: "none",
                         },
                         text: {
                             fontSize: 12,
@@ -39,12 +70,13 @@ export function initialize() {
                 out: {
                     position: "right",
                     attrs: {
+                        ...createPortInteractionAttrs(),
                         circle: {
                             r: 5,
-                            magnet: true,
                             stroke: "var(--elsa-designer-port-surface)",
                             strokeWidth: 2,
                             fill: "var(--elsa-designer-port-stroke)",
+                            pointerEvents: "none",
                         },
                         text: {
                             fontSize: 12,

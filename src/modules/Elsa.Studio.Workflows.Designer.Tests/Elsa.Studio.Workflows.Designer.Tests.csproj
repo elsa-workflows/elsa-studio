@@ -30,6 +30,12 @@
         <None Include="..\Elsa.Studio.Workflows.Designer\Components\ActivityWrappers\V1\ActivityWrapper.razor"
               Link="DesignerAssets\ActivityWrapperV1.razor"
               CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\internal\init.ts"
+              Link="DesignerAssets\init.ts"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\create-graph.ts"
+              Link="DesignerAssets\create-graph.ts"
+              CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

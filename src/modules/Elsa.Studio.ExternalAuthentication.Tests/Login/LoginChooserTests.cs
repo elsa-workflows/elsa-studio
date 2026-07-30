@@ -10,6 +10,7 @@ using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -164,6 +165,27 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
             Assert.Contains("selected sign-in method is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void LocalSignInFailureFromTheServer_IsPresentedWhileKeepingMethodsAvailableForRetry()
+    {
+        Register(new(
+        [
+            Method("local", "Elsa account", "local", 0),
+            Method("contoso", "Contoso", "external", 1)
+        ], null));
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/login?choose=true&error=sign_in_failed");
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var error = cut.Find("[role='alert']");
+            Assert.Contains("Sign-in failed", error.TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Elsa account", cut.Markup);
+            Assert.NotNull(cut.Find("button[aria-label='Sign in with Contoso']"));
+        });
     }
 
     [Fact]

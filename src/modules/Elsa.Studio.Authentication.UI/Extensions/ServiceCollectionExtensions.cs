@@ -43,7 +43,10 @@ public static class ServiceCollectionExtensions
         if (!services.Any(x => x.ServiceType == typeof(AuthenticationUiRegistrationMarker)))
         {
             services.AddSingleton<AuthenticationUiRegistrationMarker>();
-            services.AddLoginTheme<ClassicLoginTheme>(LoginThemeIds.Classic);
+            services
+                .AddLoginTheme<ClassicUnifiedLoginTheme>(LoginThemeIds.Classic)
+                .AddLoginTheme<ClassicUnifiedLoginTheme>(LoginThemeIds.ClassicUnified)
+                .AddLoginTheme<ClassicBrandCanvasLoginTheme>(LoginThemeIds.ClassicBrandCanvas);
         }
 
         return services;

@@ -69,13 +69,41 @@ public class LoginThemeRegistryTests
     }
 
     [Fact]
-    public void AddAuthenticationUI_can_be_called_more_than_once_without_duplicate_classic_registration()
+    public void AddAuthenticationUI_registers_each_classic_presentation_once_when_called_more_than_once()
     {
         var services = new ServiceCollection();
         services.AddAuthenticationUI();
         services.AddAuthenticationUI();
 
-        Assert.Single(services, x => x.ServiceType == typeof(LoginThemeRegistration));
+        var registrations = services
+            .Where(x => x.ServiceType == typeof(LoginThemeRegistration))
+            .Select(x => Assert.IsType<LoginThemeRegistration>(x.ImplementationInstance))
+            .ToArray();
+
+        Assert.Equal(3, registrations.Length);
+        Assert.Contains(registrations, x => x.Id == LoginThemeIds.Classic);
+        Assert.Contains(registrations, x => x.Id == LoginThemeIds.ClassicUnified);
+        Assert.Contains(registrations, x => x.Id == LoginThemeIds.ClassicBrandCanvas);
+        Assert.Equal(
+            registrations.Single(x => x.Id == LoginThemeIds.Classic).ProviderType,
+            registrations.Single(x => x.Id == LoginThemeIds.ClassicUnified).ProviderType);
+        Assert.NotEqual(
+            registrations.Single(x => x.Id == LoginThemeIds.Classic).ProviderType,
+            registrations.Single(x => x.Id == LoginThemeIds.ClassicBrandCanvas).ProviderType);
+    }
+
+    [Theory]
+    [InlineData(LoginThemeIds.ClassicUnified)]
+    [InlineData(LoginThemeIds.ClassicBrandCanvas)]
+    public void Selects_each_named_classic_presentation(string theme)
+    {
+        var services = CreateServices(theme);
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var registry = scope.ServiceProvider.GetRequiredService<ILoginThemeRegistry>();
+
+        Assert.Equal(theme, registry.Selected.Id);
     }
 
     [Fact]

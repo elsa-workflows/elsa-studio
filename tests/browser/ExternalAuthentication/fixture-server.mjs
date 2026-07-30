@@ -24,9 +24,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #6b7280; padding: .5rem; text-align: left; }
 .external-methods { display: flex; flex-direction: column; align-items: flex-start; margin-top: 1rem; }
-.identity-links-toolbar { display: flex; justify-content: flex-end; margin: 1rem 0; }
+.page-heading { align-items: center; display: flex; flex-wrap: wrap; justify-content: space-between; }
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
 .filters label { min-width: 14rem; }
+.row-actions { position: relative; }
+.row-actions [role="menu"] { background: #fff; border: 1px solid #6b7280; display: grid; position: absolute; right: 0; z-index: 1; }
+.row-actions [role="menu"][hidden] { display: none; }
 dialog { border: 1px solid #6b7280; border-radius: .5rem; box-shadow: 0 .5rem 2rem rgb(0 0 0 / .25); box-sizing: border-box; color: inherit; max-width: calc(100vw - 2rem); padding: 1.25rem; width: min(38rem, calc(100vw - 2rem)); }
 dialog::backdrop { background: rgb(0 0 0 / .45); }
 .dialog-header { align-items: start; display: flex; justify-content: space-between; gap: 1rem; }
@@ -96,9 +99,8 @@ const renderConnections = () => {
 const renderIdentityLinks = () => {
   document.body.innerHTML = \`
     <main aria-labelledby="identity-links-heading">
-      <h1 id="identity-links-heading">External Identity Links</h1>
+      <div class="page-heading"><h1 id="identity-links-heading">External identity links</h1><button id="create-link" type="button">Create link</button></div>
       <p role="alert">Links are tenant-scoped. Elsa stores a keyed subject hash; raw external subjects and provider tokens are never returned.</p>
-      <div class="identity-links-toolbar"><button id="create-link" type="button">Create link</button></div>
       <section aria-label="External identity link filters" class="filters">
         <label for="user-filter">Filter by user ID<input id="user-filter"></label>
         <label for="connection-filter">Filter by connection key<input id="connection-filter"></label>
@@ -106,7 +108,7 @@ const renderIdentityLinks = () => {
       </section>
       <table aria-label="External identity links">
         <thead><tr><th>User</th><th>Connection</th><th>External identity</th><th>Activity</th><th aria-label="Actions"></th></tr></thead>
-        <tbody><tr><td>Ada Lovelace</td><td>Contoso</td><td>https://login.contoso.example<br><small>Subject hash · …8f42</small></td><td>Last sign-in 2026-07-25</td><td><button id="edit-ada-link" type="button" aria-label="Edit link for Ada Lovelace via Contoso">Edit</button><button id="unlink-ada-link" type="button" aria-label="Unlink Ada Lovelace from Contoso">Unlink</button></td></tr></tbody>
+        <tbody><tr><td>Ada Lovelace</td><td>Contoso</td><td>https://login.contoso.example<br><small>Subject hash · …8f42</small></td><td>Last sign-in 2026-07-25</td><td><div class="row-actions"><button id="ada-link-actions" type="button" aria-label="Actions for Ada Lovelace via Contoso" aria-haspopup="menu" aria-expanded="false">⋮</button><div id="ada-link-menu" role="menu" hidden><button id="edit-ada-link" type="button" role="menuitem">Edit</button><button id="unlink-ada-link" type="button" role="menuitem">Unlink</button></div></div></td></tr></tbody>
       </table>
       <nav aria-label="External identity links pagination"><button type="button" disabled>Previous page</button><span aria-current="page">Page 1</span><button type="button">Next page</button></nav>
     </main>\`;
@@ -142,6 +144,8 @@ const renderIdentityLinks = () => {
   const save = dialog.querySelector('#save-link');
   const subject = dialog.querySelector('#link-subject');
   const toggleSubject = dialog.querySelector('#toggle-link-subject');
+  const actionsTrigger = document.querySelector('#ada-link-actions');
+  const actionsMenu = document.querySelector('#ada-link-menu');
   const resetDialog = () => {
     form.reset();
     subject.type = 'password';
@@ -172,15 +176,33 @@ const renderIdentityLinks = () => {
     dialog.querySelector('#find-link-user').focus();
   };
   document.querySelector('#create-link').onclick = event => openDialog('create', event.currentTarget);
-  document.querySelector('#edit-ada-link').onclick = event => openDialog('edit', event.currentTarget);
+  actionsTrigger.onclick = () => {
+    actionsMenu.hidden = false;
+    actionsTrigger.setAttribute('aria-expanded', 'true');
+    actionsMenu.querySelector('[role="menuitem"]').focus();
+  };
+  document.querySelector('#edit-ada-link').onclick = () => {
+    actionsMenu.hidden = true;
+    actionsTrigger.setAttribute('aria-expanded', 'false');
+    openDialog('edit', actionsTrigger);
+  };
   document.querySelector('#unlink-ada-link').onclick = event => {
+    actionsMenu.hidden = true;
+    actionsTrigger.setAttribute('aria-expanded', 'false');
     const confirmation = document.createElement('dialog');
     confirmation.setAttribute('aria-labelledby', 'unlink-dialog-heading');
     confirmation.innerHTML = '<form method="dialog"><h2 id="unlink-dialog-heading">Unlink external identity?</h2><p>The user will no longer sign in through this external identity.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button value="unlink">Unlink</button></div></form>';
     document.body.append(confirmation);
-    confirmation.onclose = () => { confirmation.remove(); event.currentTarget.focus(); };
+    confirmation.onclose = () => { confirmation.remove(); actionsTrigger.focus(); };
     confirmation.showModal();
   };
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !actionsMenu.hidden) {
+      actionsMenu.hidden = true;
+      actionsTrigger.setAttribute('aria-expanded', 'false');
+      actionsTrigger.focus();
+    }
+  });
   dialog.querySelector('#close-link-dialog').onclick = closeDialog;
   dialog.querySelector('#cancel-link-dialog').onclick = closeDialog;
   dialog.addEventListener('cancel', () => window.setTimeout(resetDialog));

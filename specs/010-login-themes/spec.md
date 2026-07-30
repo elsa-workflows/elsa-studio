@@ -147,7 +147,7 @@ As a user, I receive visually rich artwork without delaying login, leaking reque
 
 - **FR-001**: The system MUST select one application-wide login theme from deployment configuration at startup.
 - **FR-002**: The system MUST use `classic` when no theme is configured.
-- **FR-003**: The system MUST provide the stable built-in identifiers `classic`, `workflow-constellation`, `workflow-aurora`, `execution-timeline`, and `human-automation`.
+- **FR-003**: The system MUST provide the stable built-in identifiers `classic`, `classic-unified`, `classic-brand-canvas`, `workflow-constellation`, `workflow-aurora`, `execution-timeline`, and `human-automation`. `classic` MUST remain a compatibility alias for `classic-unified`.
 - **FR-004**: The system MUST reject unknown configured theme identifiers during startup.
 - **FR-005**: The system MUST reject duplicate registered theme identifiers during startup.
 - **FR-006**: Theme identifiers MUST resolve consistently without depending on registration order.
