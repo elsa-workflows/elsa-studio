@@ -47,7 +47,16 @@
         }
         else
         {
-            <MudTable T="ConnectionSummary" Items="_items" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Md" Class="connection-list__table">
+            <MudTable
+                T="ConnectionSummary"
+                Items="_items"
+                Dense="true"
+                Hover="true"
+                Elevation="0"
+                Breakpoint="Breakpoint.Md"
+                RowStyle="cursor: pointer;"
+                OnRowClick="OnRowClick"
+                Class="connection-list__table">
                 <HeaderContent>
                     <MudTh>Connection</MudTh>
                     <MudTh>Ownership</MudTh>
@@ -57,7 +66,16 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Connection">
-                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.DisplayName</MudText>
+                        <span @onclick:stopPropagation="true">
+                            <MudLink
+                                Href="@ConnectionUrl(context)"
+                                Color="Color.Inherit"
+                                Underline="Underline.Hover"
+                                Class="font-weight-medium"
+                                aria-label="@($"Manage {context.DisplayName}")">
+                                @context.DisplayName
+                            </MudLink>
+                        </span>
                         <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Spacing="1">
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Key · @context.AdapterType</MudText>
                             @if (context.IsPreferred)
@@ -121,57 +139,59 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudMenu
-                            Icon="@Icons.Material.Filled.MoreVert"
-                            Size="Size.Small"
-                            Dense="true"
-                            AriaLabel="@($"Actions for {context.DisplayName}")">
-                            <MudMenuItem
-                                Icon="@(context.IsConfigurationOwned ? Icons.Material.Outlined.Pageview : Icons.Material.Outlined.Edit)"
-                                OnClick="@(() => OpenAsync(context))">
-                                @(context.IsConfigurationOwned ? "View" : "Manage")
-                            </MudMenuItem>
-                            @if (HasDiagnosticsActions(context) || HasLifecycleActions(context))
-                            {
-                                <MudDivider />
-                            }
-                            @if (CanTestConnection(context))
-                            {
+                        <div @onclick:stopPropagation="true">
+                            <MudMenu
+                                Icon="@Icons.Material.Filled.MoreVert"
+                                Size="Size.Small"
+                                Dense="true"
+                                AriaLabel="@($"Actions for {context.DisplayName}")">
                                 <MudMenuItem
-                                    Icon="@Icons.Material.Outlined.CheckCircle"
-                                    OnClick="@(() => TestConnectionAsync(context))">
-                                    Test connection
+                                    Icon="@(context.IsConfigurationOwned ? Icons.Material.Outlined.Pageview : Icons.Material.Outlined.Edit)"
+                                    OnClick="@(() => OpenAsync(context))">
+                                    @(context.IsConfigurationOwned ? "View" : "Manage")
                                 </MudMenuItem>
-                            }
-                            @if (CanPreviewSignIn(context))
-                            {
-                                <MudMenuItem
-                                    Icon="@Icons.Material.Outlined.Login"
-                                    OnClick="@(() => PreviewSignInAsync(context))">
-                                    Preview sign-in
-                                </MudMenuItem>
-                            }
-                            @if (HasDiagnosticsActions(context) && HasLifecycleActions(context))
-                            {
-                                <MudDivider />
-                            }
-                            @if (ConnectionActionAvailability.CanEnableOrDisable(context, _canUpdate))
-                            {
-                                <MudMenuItem
-                                    Icon="@(context.EnabledIntent ? Icons.Material.Outlined.ToggleOff : Icons.Material.Outlined.ToggleOn)"
-                                    OnClick="@(() => ToggleEnabledAsync(context))">
-                                    @(context.EnabledIntent ? "Disable" : "Enable")
-                                </MudMenuItem>
-                            }
-                            @if (CanArchiveConnection(context))
-                            {
-                                <MudMenuItem
-                                    Icon="@Icons.Material.Outlined.Archive"
-                                    OnClick="@(() => ArchiveAsync(context))">
-                                    Archive
-                                </MudMenuItem>
-                            }
-                        </MudMenu>
+                                @if (HasDiagnosticsActions(context) || HasLifecycleActions(context))
+                                {
+                                    <MudDivider />
+                                }
+                                @if (CanTestConnection(context))
+                                {
+                                    <MudMenuItem
+                                        Icon="@Icons.Material.Outlined.CheckCircle"
+                                        OnClick="@(() => TestConnectionAsync(context))">
+                                        Test connection
+                                    </MudMenuItem>
+                                }
+                                @if (CanPreviewSignIn(context))
+                                {
+                                    <MudMenuItem
+                                        Icon="@Icons.Material.Outlined.Login"
+                                        OnClick="@(() => PreviewSignInAsync(context))">
+                                        Preview sign-in
+                                    </MudMenuItem>
+                                }
+                                @if (HasDiagnosticsActions(context) && HasLifecycleActions(context))
+                                {
+                                    <MudDivider />
+                                }
+                                @if (ConnectionActionAvailability.CanEnableOrDisable(context, _canUpdate))
+                                {
+                                    <MudMenuItem
+                                        Icon="@(context.EnabledIntent ? Icons.Material.Outlined.ToggleOff : Icons.Material.Outlined.ToggleOn)"
+                                        OnClick="@(() => ToggleEnabledAsync(context))">
+                                        @(context.EnabledIntent ? "Disable" : "Enable")
+                                    </MudMenuItem>
+                                }
+                                @if (CanArchiveConnection(context))
+                                {
+                                    <MudMenuItem
+                                        Icon="@Icons.Material.Outlined.Archive"
+                                        OnClick="@(() => ArchiveAsync(context))">
+                                        Archive
+                                    </MudMenuItem>
+                                }
+                            </MudMenu>
+                        </div>
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No connections match the current filters.</MudText></NoRecordsContent>
@@ -330,7 +350,14 @@
     }
 
     private void CreateAsync() => Navigation.NavigateTo("security/external-authentication/connections/new");
-    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(connection.Id)}");
+    private static string ConnectionUrl(ConnectionSummary connection) => $"security/external-authentication/connections/{Uri.EscapeDataString(connection.Id)}";
+    private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo(ConnectionUrl(connection));
+    private void OnRowClick(TableRowClickEventArgs<ConnectionSummary> args)
+    {
+        if (args.Item is not null)
+            OpenAsync(args.Item);
+    }
+
     private bool CanTestConnection(ConnectionSummary connection) =>
         _canTest &&
         _adapters.TryGetValue(connection.AdapterType, out var adapter) &&

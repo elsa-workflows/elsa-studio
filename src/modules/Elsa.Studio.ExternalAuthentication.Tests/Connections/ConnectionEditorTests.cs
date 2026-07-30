@@ -1268,6 +1268,40 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ConnectionList_ClickingARowOpensTheManageScreen()
+    {
+        var connection = CreateConnection();
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        var manageLink = cut.Find($"a[aria-label=\"Manage {connection.DisplayName}\"]");
+        Assert.Equal($"security/external-authentication/connections/{connection.Id}", manageLink.GetAttribute("href"));
+        cut.Find("tbody tr").Click();
+
+        Assert.EndsWith(
+            $"/security/external-authentication/connections/{connection.Id}",
+            Services.GetRequiredService<NavigationManager>().Uri,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ConnectionList_ActionsMenuDoesNotTriggerTheRowAction()
+    {
+        var connection = CreateConnection();
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [connection] });
+        var navigation = Services.GetRequiredService<NavigationManager>();
+        var initialUri = navigation.Uri;
+        var cut = Render<ConnectionIndex>();
+        cut.WaitForAssertion(() => Assert.Contains(connection.DisplayName, cut.Markup, StringComparison.Ordinal));
+
+        cut.Find($"button[aria-label=\"Actions for {connection.DisplayName}\"]").Click();
+
+        _popoverProvider.WaitForAssertion(() => Assert.Contains("Manage", _popoverProvider.Markup, StringComparison.Ordinal));
+        Assert.Equal(initialUri, navigation.Uri);
+    }
+
+    [Fact]
     public void ConnectionList_PresentsLatestTestAsASemanticStatusAndSecondarySummary()
     {
         const string summary = "Provider metadata was resolved.";
