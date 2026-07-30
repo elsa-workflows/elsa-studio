@@ -478,6 +478,108 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SuccessfulValidation_RefreshesStatusAndEnablesTheConnection()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(validated);
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult { Valid = true };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+        var displayNameLabel = cut.FindAll("label").Single(element => element.TextContent.Contains("Display name", StringComparison.Ordinal));
+        cut.Find($"#{displayNameLabel.GetAttribute("for")}").Change("Unsaved display name");
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(initial.Id, _api.ValidatedConnectionId);
+            Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
+            Assert.Equal("Unsaved display name", cut.FindComponent<ConnectionEditor>().Instance.Model.DisplayName);
+            Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            var enable = cut.Find(".connection-workspace__diagnostics")
+                .QuerySelectorAll("button")
+                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
+            Assert.False(enable.HasAttribute("disabled"));
+        });
+    }
+
+    [Fact]
+    public void Validation_WhenStatusRefreshFails_DoesNotPresentUnverifiedSuccess()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "valid";
+        _api.GetResults.Enqueue(initial);
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult { Valid = true };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
+            Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            var enable = cut.Find(".connection-workspace__diagnostics")
+                .QuerySelectorAll("button")
+                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
+            Assert.True(enable.HasAttribute("disabled"));
+        });
+    }
+
+    [Fact]
+    public void ValidationOfAChangedRevision_DoesNotEnableTheConnection()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "valid";
+        var changed = CreateConnection();
+        changed.Validity = "valid";
+        changed.Revision = initial.Revision + 1;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(changed);
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult { Valid = true };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
+            Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.Contains(
+                "changed while it was being validated",
+                Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message,
+                StringComparison.Ordinal);
+            var enable = cut.Find(".connection-workspace__diagnostics")
+                .QuerySelectorAll("button")
+                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
+            Assert.True(enable.HasAttribute("disabled"));
+        });
+    }
+
+    [Fact]
     public void MatchUserPolicy_UsesMatcherDescriptorsAndHidesRawMatcherJson()
     {
         var policy = new UnlinkedIdentityPolicyDescriptor
@@ -2018,6 +2120,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         public Queue<ListConnectionsResponse> ListResults { get; } = new();
         public Queue<Task<ListConnectionsResponse>> PendingListResults { get; } = new();
+        public Queue<ConnectionDetail> GetResults { get; } = new();
+        public List<string> GetRequests { get; } = [];
         public List<ListRequest> ListRequests { get; } = [];
         public List<string?> Cursors { get; } = [];
         public ConnectionDetail? GetResult { get; set; }
@@ -2040,6 +2144,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public string? UpdatedIfMatch { get; private set; }
         public string? ArchivedConnectionId { get; private set; }
         public string? ArchivedIfMatch { get; private set; }
+        public string? ValidatedConnectionId { get; private set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
@@ -2053,7 +2158,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         public sealed record ListRequest(string? Search, string? Source, bool? Archived, string? Cursor, int PageSize);
 
-        public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(GetResult ?? throw new NotSupportedException());
+        public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default)
+        {
+            GetRequests.Add(connectionId);
+            return Task.FromResult(GetResults.TryDequeue(out var result) ? result : GetResult ?? throw new NotSupportedException());
+        }
         public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Runtime ?? throw new NotSupportedException());
         public Task<ICollection<AdapterDescriptor>> GetAdaptersAsync(CancellationToken cancellationToken = default) => Task.FromResult(Adapters);
@@ -2091,7 +2200,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             return Task.CompletedTask;
         }
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default) => Task.FromResult(ValidationResult);
+        public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default)
+        {
+            ValidatedConnectionId = connectionId;
+            return Task.FromResult(ValidationResult);
+        }
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         Task<IdentityRoleOptionsResponse> IIdentityRolesApi.ListAsync(CancellationToken cancellationToken) =>

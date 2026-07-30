@@ -844,8 +844,22 @@
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            _validation = await api.ValidateAsync(CurrentConnectionId);
+            _validation = null;
+            _connection.Validity = "unknown";
+            _connection.ValidationErrors = [];
+            _connection.ValidationWarnings = [];
+            var validation = await api.ValidateAsync(CurrentConnectionId);
             _activeWorkspaceTab = 2;
+            var refreshed = await api.GetAsync(CurrentConnectionId);
+            if (refreshed.Revision != _connection.Revision)
+            {
+                Snackbar.Add("The connection changed while it was being validated. Reload it before validating again.", Severity.Warning);
+                return;
+            }
+            _validation = validation;
+            _connection.Validity = refreshed.Validity;
+            _connection.ValidationErrors = refreshed.ValidationErrors;
+            _connection.ValidationWarnings = refreshed.ValidationWarnings;
         }
         catch (ApiException exception)
         {
