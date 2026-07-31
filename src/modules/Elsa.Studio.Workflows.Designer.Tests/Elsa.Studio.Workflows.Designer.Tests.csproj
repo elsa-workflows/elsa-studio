@@ -36,6 +36,12 @@
         <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\create-graph.ts"
               Link="DesignerAssets\create-graph.ts"
               CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\calculate-activity-size.ts"
+              Link="DesignerAssets\calculate-activity-size.ts"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\update-activity-size.ts"
+              Link="DesignerAssets\update-activity-size.ts"
+              CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

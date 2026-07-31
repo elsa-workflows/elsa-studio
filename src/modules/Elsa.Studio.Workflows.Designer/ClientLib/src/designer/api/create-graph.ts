@@ -9,6 +9,7 @@ import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 import {enforceMinimumNodeSize} from "./update-activity-size";
+import {getActivityMeasurementScopeClass} from "./calculate-activity-size";
 import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrientation, withSuppressedGraphUpdated} from "./sequence-mode";
 import {applyDesignerThemeVariables, X6DesignerTheme} from "./apply-graph-theme";
 
@@ -20,6 +21,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const mode = settings?.mode === 'sequence' ? 'sequence' : 'flowchart';
     const isSequenceMode = mode === 'sequence';
     const theme: X6DesignerTheme | undefined = settings?.theme;
+    const measurementScopeClass = getActivityMeasurementScopeClass(containerElement);
 
     if (!theme)
         throw new Error("An X6 designer theme is required.");
@@ -434,7 +436,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         if (node) {
             isEnforcingMinSize = true;
             try {
-                await enforceMinimumNodeSize(node);
+                await enforceMinimumNodeSize(node, measurementScopeClass);
             } finally {
                 isEnforcingMinSize = false;
             }

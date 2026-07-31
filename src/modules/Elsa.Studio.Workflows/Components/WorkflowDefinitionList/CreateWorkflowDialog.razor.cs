@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -63,6 +64,12 @@ public partial class CreateWorkflowDialog
     private void SelectRootActivityTemplate(string key)
     {
         _selectedRootActivityTemplateKey = key;
+    }
+
+    private void OnRootActivityTemplateKeyDown(KeyboardEventArgs args, string key)
+    {
+        if (args.Key is "Enter" or " " || args.Code == "Space")
+            SelectRootActivityTemplate(key);
     }
 
     private bool IsRootActivityTemplateSelected(WorkflowRootActivityTemplate template)

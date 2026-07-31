@@ -4,11 +4,11 @@
 {
     @if (IsFixedPkce)
     {
-        <MudPaper Outlined="true" Class="pa-3 connection-editor__fixed-pkce">
-            <MudText Typo="Typo.subtitle2">@Field.DisplayName</MudText>
-            <MudText Typo="Typo.body2">S256</MudText>
-            <MudText Typo="Typo.caption">S256 PKCE is always required for the authorization-code flow and cannot be changed.</MudText>
-        </MudPaper>
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" AlignItems="AlignItems.Baseline" Class="connection-editor__fixed-pkce">
+            <MudText Typo="Typo.subtitle2">@Field.DisplayName:</MudText>
+            <MudText Typo="Typo.body2">S256 required</MudText>
+            <MudText Typo="Typo.caption">The authorization-code flow always uses S256 and this value cannot be changed.</MudText>
+        </MudStack>
     }
     else if (IsStringArray && Field.AllowedValues.Count > 0)
     {

@@ -101,8 +101,8 @@ public class DashboardWidgetRegistrationTests
 
         AssertDescriptor<DashboardWorkflowMetricsWidget>(descriptors, "dashboard.workflow.metrics", DashboardWidgetZones.Metrics, 100, "WorkflowInstances");
         AssertDescriptor<DashboardNeedsAttentionWidget>(descriptors, "dashboard.needs-attention", DashboardWidgetZones.Findings, 100, null);
-        AssertDescriptor<DashboardTrendWidget>(descriptors, "dashboard.workflow.trend", DashboardWidgetZones.PrimaryPanels, 100, "WorkflowTrends");
-        AssertDescriptor<DashboardRecentActivityWidget>(descriptors, "dashboard.workflow.recent-activity", DashboardWidgetZones.PrimaryPanels, 200, "RecentActivity");
+        AssertDescriptor<DashboardTrendWidget>(descriptors, "dashboard.workflow.trend", DashboardWidgetZones.Trend, 100, "WorkflowTrends");
+        AssertDescriptor<DashboardRecentActivityWidget>(descriptors, "dashboard.workflow.recent-activity", DashboardWidgetZones.Activity, 100, "RecentActivity");
         AssertDescriptor<DashboardWorkflowHotspotsWidget>(descriptors, "dashboard.workflow.hotspots", DashboardWidgetZones.SecondaryPanels, 100, "WorkflowHotspots");
         AssertDescriptor<StructuredLogsDashboardWidget>(descriptors, "diagnostics.structured-logs", DashboardWidgetZones.DiagnosticsStatus, 100, "Diagnostics.StructuredLogs");
         AssertDescriptor<ConsoleLogsDashboardWidget>(descriptors, "diagnostics.console-logs", DashboardWidgetZones.DiagnosticsStatus, 200, "Diagnostics.ConsoleLogs");

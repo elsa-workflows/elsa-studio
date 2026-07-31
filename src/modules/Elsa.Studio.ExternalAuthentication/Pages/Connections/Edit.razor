@@ -14,7 +14,7 @@
 <PageTitle>@(IsNew ? "Create identity provider connection" : "Manage identity provider connection")</PageTitle>
 <NavigationLock ConfirmExternalNavigation="@_isDirty" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
 
-<MudContainer MaxWidth="MaxWidth.Large">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="connection-workspace">
     <MudStack Spacing="3" Class="py-4">
         <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" Class="align-self-start" OnClick="Back">Identity provider connections</MudButton>
         @if (_loading)
@@ -60,7 +60,13 @@
                 <MudAlert Severity="Severity.Warning" Dense="true" aria-live="polite">
                     @if (_connection.IsConfigurationOwned)
                     {
-                        <span>This deployment-defined connection is shadowed by an effective Database override.</span>
+                        <span>This deployment-defined connection is read-only and shadowed by an effective Database override.</span>
+                        @if (!string.IsNullOrWhiteSpace(_existingStudioOverrideId))
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="ManageExistingStudioOverride">
+                                @(_existingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
+                            </MudButton>
+                        }
                     }
                     else
                     {
@@ -74,6 +80,34 @@
                     }
                 </MudAlert>
             }
+            else if (_connection.IsConfigurationOwned)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" aria-live="polite" Class="connection-workspace__ownership">
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2">This deployment-owned connection is read-only in Elsa Studio.</MudText>
+                        <MudSpacer />
+                        @if (CanCreateFullOverride)
+                        {
+                            <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="StartFullOverride">Create full Database override</MudButton>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_existingStudioOverrideId))
+                        {
+                            <MudText Typo="Typo.caption">
+                                @(_existingStudioOverrideArchived
+                                    ? "An archived Database record already exists for this connection."
+                                    : "A Database record already exists for this connection.")
+                            </MudText>
+                            <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="ManageExistingStudioOverride">
+                                @(_existingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption">A Database override is unavailable under the current policy or permissions.</MudText>
+                        }
+                    </MudStack>
+                </MudAlert>
+            }
             <MudPaper Outlined="true">
                 <MudTabs @bind-ActivePanelIndex="_activeWorkspaceTab"
                          Border="false"
@@ -82,115 +116,66 @@
                          AlwaysShowScrollButtons="false"
                          MinimumTabWidth="100"
                          TabPanelsClass="pa-4 pa-sm-6">
-                    <MudTabPanel Text="Settings">
-                        <div class="connection-workspace__configuration">
-                            <MudGrid Spacing="3">
-                                <MudItem xs="12" md="@(IsNew ? 12 : 8)">
-                                    <MudStack Spacing="3">
-                                        @if (IsNew)
-                                        {
-                                            <MudSelect T="string"
-                                                       Value="_adapter.Type"
-                                                       ValueChanged="SelectAdapterAsync"
-                                                       Label="Provider protocol"
-                                                       Required="true"
-                                                       Variant="Variant.Outlined"
-                                                       Margin="Margin.Dense">
-                                                @foreach (var adapter in _adapters)
-                                                {
-                                                    <MudSelectItem T="string" Value="@adapter.Type">@adapter.DisplayName</MudSelectItem>
-                                                }
-                                            </MudSelect>
-                                        }
-                                        @if (CustomEditors.TryResolve(_adapter.CustomEditor, out var customEditorType))
-                                        {
-                                            @if (!string.IsNullOrWhiteSpace(_existingStudioOverrideId))
-                                            {
-                                                <MudAlert Severity="Severity.Info" Dense="true">
-                                                    @(_existingStudioOverrideArchived
-                                                        ? "An archived Database record already exists for this connection."
-                                                        : "A Database record already exists for this connection.")
-                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="ManageExistingStudioOverride">
-                                                        @(_existingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
-                                                    </MudButton>
-                                                </MudAlert>
-                                            }
-                                            <DynamicComponent Type="customEditorType" Parameters="GetCustomEditorParameters(customEditorType)" />
-                                        }
-                                        else
-                                        {
-                                            <ConnectionEditor Connection="_connection"
-                                                              Adapter="_adapter"
-                                                              Model="_model"
-                                                              ReadOnly="@(IsNew ? !_canCreate : !_canUpdate || _connection.IsConfigurationOwned)"
-                                                              CanConfigureUnsafeSettings="_canConfigureUnsafeSettings"
-                                                              CanCreateOverride="@CanCreateFullOverride"
-                                                              HasExistingStudioOverride="@(!string.IsNullOrWhiteSpace(_existingStudioOverrideId))"
-                                                              ExistingStudioOverrideArchived="_existingStudioOverrideArchived"
-                                                              ManagedSecretResolvers="_managedSecretResolvers"
-                                                              ManagedSecretResolverError="@ManagedSecretResolverError"
-                                                              Saved="SaveAsync"
-                                                              Changed="MarkDirty"
-                                                              CanManageSecrets="@(!IsNew)"
-                                                              ManagedSecretChanged="ReplaceManagedSecretAsync"
-                                                              SecretBindingRemoved="RemoveBindingAsync"
-                                                              FullOverrideRequested="StartFullOverride"
-                                                              ExistingStudioOverrideRequested="ManageExistingStudioOverride" />
-                                        }
-                                    </MudStack>
-                                </MudItem>
-                                @if (!IsNew)
+                    <MudTabPanel Text="General">
+                        <div class="connection-workspace__general">
+                            <MudStack Spacing="3">
+                                @if (IsNew)
                                 {
-                                    <MudItem xs="12" md="4">
-                                        <MudStack Spacing="2">
-                                            <MudPaper Outlined="true" Class="pa-4">
-                                                <MudStack Spacing="2">
-                                                    <MudText Typo="Typo.h6">At a glance</MudText>
-                                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Justify="Justify.SpaceBetween">
-                                                        <MudText Typo="Typo.caption">Effective source</MudText>
-                                                        <MudText Typo="Typo.body2">@EffectiveSourceLabel</MudText>
-                                                    </MudStack>
-                                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Justify="Justify.SpaceBetween">
-                                                        <MudText Typo="Typo.caption">Record source</MudText>
-                                                        <MudText Typo="Typo.body2">@RecordSourceLabel</MudText>
-                                                    </MudStack>
-                                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Justify="Justify.SpaceBetween">
-                                                        <MudText Typo="Typo.caption">@ValidityHeading</MudText>
-                                                        <MudText Typo="Typo.body2">@ConnectionStatusPresentation.ValidityLabel(_connection.Validity)</MudText>
-                                                    </MudStack>
-                                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Justify="Justify.SpaceBetween">
-                                                        <MudText Typo="Typo.caption">Provisioning policy</MudText>
-                                                        <MudText Typo="Typo.body2">@ProvisioningPolicyLabel</MudText>
-                                                    </MudStack>
-                                                    <MudDivider />
-                                                    <MudText Typo="Typo.caption">@LatestTestLabel</MudText>
-                                                </MudStack>
-                                            </MudPaper>
-                                            <MudAlert Severity="Severity.Info" Dense="true">
-                                                <MudStack Spacing="1" AlignItems="AlignItems.Start">
-                                                    @if (_connection.IsConfigurationOwned)
-                                                    {
-                                                        <MudText Typo="Typo.body2">Tests and previews are available under Diagnostics.</MudText>
-                                                    }
-                                                    else
-                                                    {
-                                                        <MudText Typo="Typo.body2">Tests, previews and lifecycle actions are available under Diagnostics.</MudText>
-                                                    }
-                                                    <MudButton Variant="Variant.Text"
-                                                               Size="Size.Small"
-                                                               StartIcon="@Icons.Material.Outlined.ArrowForward"
-                                                               Class="px-0"
-                                                               OnClick="@(() => _activeWorkspaceTab = 2)">
-                                                        Open Diagnostics
-                                                    </MudButton>
-                                                </MudStack>
-                                            </MudAlert>
-                                        </MudStack>
-                                    </MudItem>
+                                    <MudSelect T="string"
+                                               Value="_adapter.Type"
+                                               ValueChanged="SelectAdapterAsync"
+                                               Label="Provider protocol"
+                                               Required="true"
+                                               Variant="Variant.Outlined"
+                                               Margin="Margin.Dense">
+                                        @foreach (var adapter in _adapters)
+                                        {
+                                            <MudSelectItem T="string" Value="@adapter.Type">@adapter.DisplayName</MudSelectItem>
+                                        }
+                                    </MudSelect>
                                 }
-                            </MudGrid>
+                                @if (_customEditorType is not null)
+                                {
+                                    <DynamicComponent Type="_customEditorType" Parameters="GetCustomEditorParameters(_customEditorType)" />
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption">Provider protocol, scopes and secret bindings are managed under Provider.</MudText>
+                                    <ConnectionEditor @ref="_generalEditor"
+                                                      Connection="_connection"
+                                                      Adapter="_adapter"
+                                                      Model="_model"
+                                                      Section="ConnectionEditorSection.General"
+                                                      ShowActions="false"
+                                                      ShowContext="false"
+                                                      ReadOnly="@EditorReadOnly"
+                                                      Changed="MarkDirty" />
+                                }
+                            </MudStack>
                         </div>
                     </MudTabPanel>
+                    @if (_customEditorType is null)
+                    {
+                        <MudTabPanel Text="Provider">
+                            <div class="connection-workspace__provider">
+                                <ConnectionEditor @ref="_providerEditor"
+                                                  Connection="_connection"
+                                                  Adapter="_adapter"
+                                                  Model="_model"
+                                                  Section="ConnectionEditorSection.Provider"
+                                                  ShowActions="false"
+                                                  ShowContext="false"
+                                                  ReadOnly="@EditorReadOnly"
+                                                  CanConfigureUnsafeSettings="_canConfigureUnsafeSettings"
+                                                  ManagedSecretResolvers="_managedSecretResolvers"
+                                                  ManagedSecretResolverError="@ManagedSecretResolverError"
+                                                  Changed="MarkDirty"
+                                                  CanManageSecrets="@(!IsNew)"
+                                                  ManagedSecretChanged="ReplaceManagedSecretAsync"
+                                                  SecretBindingRemoved="RemoveBindingAsync" />
+                            </div>
+                        </MudTabPanel>
+                    }
                     <MudTabPanel Text="Provisioning">
                         <div class="connection-workspace__provisioning">
                             <MudStack Spacing="3">
@@ -202,14 +187,6 @@
                                                         CanSelectRoles="_canReadRoles"
                                                         RoleOptionsError="@RoleOptionsError"
                                                         ReadOnly="@(!_canManagePolicies || _connection.IsConfigurationOwned)" />
-                                @if (CanSaveConnection)
-                                {
-                                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center">
-                                        <MudText Typo="Typo.caption">Connection and provisioning changes are saved together.</MudText>
-                                        <MudSpacer />
-                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _activeWorkspaceTab = 0)">Review configuration</MudButton>
-                                    </MudStack>
-                                }
                             </MudStack>
                         </div>
                     </MudTabPanel>
@@ -290,6 +267,19 @@
                         </MudTabPanel>
                     }
                 </MudTabs>
+                @if (CanSaveConnection && _customEditorType is null)
+                {
+                    <div class="connection-workspace__actions pa-4 pa-sm-6" role="group" aria-label="Connection form actions">
+                        <MudStack Row="true" Spacing="2" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center">
+                            <MudButton OnClick="Back">Cancel</MudButton>
+                            <MudButton Color="Color.Primary"
+                                       Disabled="@(!_isDirty || !WorkspaceIsValid)"
+                                       OnClick="SaveWorkspaceAsync">
+                                Save changes
+                            </MudButton>
+                        </MudStack>
+                    </div>
+                }
             </MudPaper>
         }
     </MudStack>
@@ -321,40 +311,37 @@
     private bool _canReadRoles;
     private int _activeWorkspaceTab;
     private bool _isDirty;
+    private ConnectionEditor? _generalEditor;
+    private ConnectionEditor? _providerEditor;
+    private Type? _customEditorType;
     private string? _loadedConnectionId;
     private string? RoleOptionsError => _roleOptionsError;
     private string? ManagedSecretResolverError => _managedSecretResolverError;
     private string ConnectionMetadata => IsNew
         ? _adapter?.DisplayName ?? "Select a provider protocol"
-        : $"{_connection?.Key} · {_adapter?.DisplayName} · {LatestTestLabel}";
+        : $"{_connection?.Key} · {_adapter?.DisplayName}";
     private string ConnectionTitle => IsNew
         ? "Create identity provider connection"
         : string.IsNullOrWhiteSpace(_connection?.DisplayName)
             ? string.IsNullOrWhiteSpace(_model?.DisplayName) ? "Identity provider connection" : _model.DisplayName
             : _connection.DisplayName;
-    private string LatestTestLabel => _connection?.LatestObservation is { } observation
-        ? $"{ShadowedRecordLabel("test", "Last test")}: {observation.Status} · {observation.ObservedAt.ToLocalTime():g}"
-        : _connection?.Shadowed == true ? ShadowedRecordLabel("not tested", "Not tested") : "Not tested";
     private string EffectiveSourceLabel => _connection?.Shadowed == true
         ? _connection.IsConfigurationOwned ? "Database" : "Deployment"
         : _connection?.IsConfigurationOwned == true ? "Deployment" : "Database";
-    private string RecordSourceLabel => _connection?.IsConfigurationOwned == true ? "Deployment configuration" : "Database";
     private string LifecycleStatusLabel => ConnectionStatusPresentation.LifecycleDisplayLabel(_connection!);
     private string ValidityStatusLabel => ConnectionStatusPresentation.ValidityDisplayLabel(_connection!);
-    private string ValidityHeading => _connection?.Shadowed == true
-        ? _connection.IsConfigurationOwned ? "Deployment record validity" : "Stored record validity"
-        : "Validity";
-    private string ShadowedRecordLabel(string suffix, string fallback) =>
-        _connection?.Shadowed != true
-            ? fallback
-            : $"{(_connection.IsConfigurationOwned ? "Deployment record" : "Stored record")} {suffix}";
-    private string ProvisioningPolicyLabel =>
-        _model?.UnlinkedPolicy is { } selection
-            ? _policyDescriptors.FirstOrDefault(descriptor => string.Equals(descriptor.Type, selection.Type, StringComparison.Ordinal))?.DisplayName ?? selection.Type
-            : "Not configured";
-
     private bool IsNew => string.IsNullOrWhiteSpace(ConnectionId);
     private bool CanSaveConnection => _connection?.IsConfigurationOwned != true && (IsNew ? _canCreate : _canUpdate);
+    private bool EditorReadOnly => IsNew ? !_canCreate : !_canUpdate || _connection?.IsConfigurationOwned == true;
+    private bool WorkspaceIsValid =>
+        _model is not null &&
+        _adapter is not null &&
+        !string.IsNullOrWhiteSpace(_model.DisplayName) &&
+        !string.IsNullOrWhiteSpace(_model.Key) &&
+        !_adapter.Fields.SelectMany(descriptor => DescriptorEditorState.Validate(descriptor, _model.AdapterSettings)).Any() &&
+        (!_adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, _model.AdapterSettings)) ||
+         _canConfigureUnsafeSettings && _model.ConfirmUnsafeSettings);
+    private int DiagnosticsTabIndex => _customEditorType is null ? 3 : 2;
     private bool CanToggleEnabled => _connection is not null && ConnectionActionAvailability.CanEnableOrDisable(_connection, _canUpdate);
     private string CurrentConnectionId => ConnectionId ?? _connection?.Id ?? string.Empty;
     private bool CanPromoteCurrentConnection =>
@@ -368,6 +355,14 @@
             OverridesConfigurationConnection: false,
             CanPromoteToConfigurationOverride: true
         };
+
+    private void ResolveCustomEditor()
+    {
+        _customEditorType = null;
+        if (_adapter is not null && CustomEditors.TryResolve(_adapter.CustomEditor, out var customEditorType))
+            _customEditorType = customEditorType;
+    }
+
     private IDictionary<string, object> GetCustomEditorParameters(Type customEditorType)
     {
         var parameters = new Dictionary<string, object>
@@ -416,6 +411,7 @@
                 if (_adapter is null)
                     return;
 
+                ResolveCustomEditor();
                 _connection = new ConnectionDetail { AdapterType = _adapter.Type, Scope = new ConnectionScope() };
                 _model = new ConnectionMutation { AdapterType = _adapter.Type, AdapterSettingsVersion = _adapter.SettingsVersion, Scope = new ConnectionScope() };
                 ConnectionAdapterSelection.ApplyDefaults(_model, _adapter);
@@ -424,6 +420,7 @@
 
             _connection = await api.GetAsync(ConnectionId!);
             _adapter = _adapters.FirstOrDefault(adapter => string.Equals(adapter.Type, _connection.AdapterType, StringComparison.Ordinal));
+            ResolveCustomEditor();
             _model = ToMutation(_connection);
             _loadedConnectionId = ConnectionId;
             await FindExistingStudioOverrideAsync(api);
@@ -452,6 +449,7 @@
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
             _connection = await api.GetAsync(ConnectionId!);
             _adapter = _adapters.FirstOrDefault(adapter => string.Equals(adapter.Type, _connection.AdapterType, StringComparison.Ordinal));
+            ResolveCustomEditor();
             _model = ToMutation(_connection);
             _validation = null;
             _isDirty = false;
@@ -550,6 +548,26 @@
         }
     }
 
+    private async Task SaveWorkspaceAsync()
+    {
+        if (_model is null || _generalEditor is null || _providerEditor is null || !CanSaveConnection)
+            return;
+
+        if (!await _generalEditor.ValidateAsync())
+        {
+            _activeWorkspaceTab = 0;
+            return;
+        }
+
+        if (!await _providerEditor.ValidateAsync())
+        {
+            _activeWorkspaceTab = 1;
+            return;
+        }
+
+        await SaveAsync(_model);
+    }
+
     private async Task SaveAsync(ConnectionMutation mutation)
     {
         if (_connection is null)
@@ -632,6 +650,7 @@
             return Task.CompletedTask;
 
         _adapter = adapter;
+        ResolveCustomEditor();
         ConnectionAdapterSelection.Apply(_connection, _model, adapter);
         _isDirty = true;
         return Task.CompletedTask;
@@ -855,7 +874,7 @@
             _connection.ValidationErrors = [];
             _connection.ValidationWarnings = [];
             var validation = await api.ValidateAsync(CurrentConnectionId);
-            _activeWorkspaceTab = 2;
+            _activeWorkspaceTab = DiagnosticsTabIndex;
             var refreshed = await api.GetAsync(CurrentConnectionId);
             if (refreshed.Revision != _connection.Revision)
             {

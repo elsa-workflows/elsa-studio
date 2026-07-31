@@ -277,10 +277,19 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ManagedSecretResolvers = [];
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        cut.WaitForAssertion(() => Assert.Equal(
+            "Managed secret storage is not available on this Elsa server.",
+            cut.FindComponents<ConnectionEditor>()
+                .Single(component => component.Instance.Section == ConnectionEditorSection.Provider)
+                .Instance.ManagedSecretResolverError));
+        cut.FindAll(".mud-tab").Single(tab => tab.TextContent.Contains("Provider", StringComparison.Ordinal)).Click();
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Managed secret storage is not available on this Elsa server.", cut.Markup, StringComparison.Ordinal);
+            var field = cut.FindComponent<SecretBindingField>().Instance;
+            Assert.False(field.ReadOnly);
+            Assert.True(field.CanManage);
+            Assert.Equal("Managed secret storage is not available on this Elsa server.", field.ManagedSecretResolverError);
             Assert.DoesNotContain("ManagedSecretResolverError", cut.Markup, StringComparison.Ordinal);
         });
     }
@@ -300,7 +309,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(
-                ["Settings", "Provisioning", "Diagnostics"],
+                ["General", "Provider", "Provisioning", "Diagnostics"],
                 cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
             var tabs = cut.FindComponent<MudTabs>().Instance;
             Assert.True(tabs.KeepPanelsAlive);
@@ -309,39 +318,129 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             var tabPanels = cut.Find(".mud-tabs-panels");
             Assert.Contains("pa-4", tabPanels.ClassList);
             Assert.Contains("pa-sm-6", tabPanels.ClassList);
-            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__configuration"));
+            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__general"));
+            Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__provider"));
             Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__provisioning"));
             Assert.NotNull(tabPanels.QuerySelector(".connection-workspace__diagnostics"));
             var header = cut.Find(".connection-workspace__header");
-            var configuration = cut.Find(".connection-workspace__configuration");
+            var general = cut.Find(".connection-workspace__general");
+            var provider = cut.Find(".connection-workspace__provider");
             Assert.Contains("Effective: Database", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("OpenID Connect settings", configuration.TextContent, StringComparison.Ordinal);
-            Assert.Contains("At a glance", configuration.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Effective source", configuration.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Record source", configuration.TextContent, StringComparison.Ordinal);
-            Assert.Equal(2, configuration.TextContent.Split("Database", StringSplitOptions.None).Length - 1);
-            Assert.Contains("Open Diagnostics", configuration.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Display name", general.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("OpenID Connect settings", general.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Secret bindings", general.TextContent, StringComparison.Ordinal);
+            Assert.Contains("OpenID Connect settings", provider.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Effective source", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Record source", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Open Diagnostics", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("User provisioning and linking", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
             Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Valid", cut.Markup, StringComparison.Ordinal);
+            var actions = cut.Find(".connection-workspace__actions");
+            Assert.Contains("pa-4", actions.ClassList);
+            Assert.Contains("pa-sm-6", actions.ClassList);
+            var actionButtons = actions.QuerySelectorAll("button");
+            Assert.Equal(["Cancel", "Save changes"], actionButtons.Select(button => button.TextContent.Trim()));
+            Assert.All(actionButtons, button =>
+            {
+                Assert.Contains("mud-button-text", button.ClassList);
+                Assert.DoesNotContain("mud-button-outlined", button.ClassList);
+                Assert.DoesNotContain("mud-button-filled", button.ClassList);
+            });
+            var saveButton = actionButtons.Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal));
+            Assert.Contains("mud-button-text-primary", saveButton.ClassList);
+            Assert.True(saveButton.HasAttribute("disabled"));
         });
 
         cut.FindAll(".mud-tab").Single(tab => tab.TextContent.Contains("Provisioning", StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() =>
         {
-            Assert.Equal(1, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
+            Assert.Equal(2, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
             Assert.Equal(1, cut.Find(".connection-workspace__provisioning").TextContent.Split("User provisioning and linking", StringSplitOptions.None).Length - 1);
-            Assert.Contains("Review configuration", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
         });
-        cut.Find(".connection-workspace__provisioning")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Review configuration", StringComparison.Ordinal))
-            .Click();
-        cut.WaitForAssertion(() => Assert.Equal(0, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
 
         cut.FindAll(".mud-tab").Single(tab => tab.TextContent.Contains("Diagnostics", StringComparison.Ordinal)).Click();
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
+        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
+    }
+
+    [Fact]
+    public void ConnectionWorkspace_UsesTheWideCanvasAndEnablesItsCompactSaveActionAfterAnEdit()
+    {
+        var connection = CreateConnection();
+        connection.AdapterSettings["authority"] = JsonSerializer.SerializeToElement("https://login.example.test");
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(MaxWidth.ExtraLarge, cut.FindComponent<MudContainer>().Instance.MaxWidth);
+            var actions = cut.Find(".connection-workspace__actions");
+            Assert.Equal(2, actions.QuerySelectorAll("button").Length);
+            Assert.True(actions.QuerySelectorAll("button")
+                .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
+                .HasAttribute("disabled"));
+        });
+
+        var displayNameLabel = cut.FindAll("label").Single(element => element.TextContent.Contains("Display name", StringComparison.Ordinal));
+        cut.Find($"#{displayNameLabel.GetAttribute("for")}").Change("Updated connection");
+
+        cut.WaitForAssertion(() => Assert.False(cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
+            .HasAttribute("disabled")));
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.NotNull(_api.UpdatedRequest));
+        Assert.Equal("Updated connection", _api.UpdatedRequest!.DisplayName);
+    }
+
+    [Fact]
+    public void NewConnection_KeepsDraftSecretGuidanceInsideTheProviderTask()
+    {
+        _api.Adapters = [CreateAdapter(includeSecret: true)];
+
+        var cut = Render<ConnectionEdit>();
+
+        cut.WaitForAssertion(() =>
+        {
+            var provider = cut.Find(".connection-workspace__provider");
+            Assert.Equal(1, provider.TextContent.Split("Save the connection draft before configuring secrets.", StringSplitOptions.None).Length - 1);
+            Assert.Empty(cut.FindComponents<SecretBindingField>());
+            Assert.DoesNotContain("Secret bindings", cut.Find(".connection-workspace__general").TextContent, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConnectionWorkspace_EnablesSaveOnlyWhenDirtyAndStructurallyValid()
+    {
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".connection-workspace__actions")));
+
+        ChangeField("Display name", "Contoso");
+        ChangeField("Connection key", "contoso");
+        Assert.True(SaveButton().HasAttribute("disabled"));
+
+        ChangeField("Authority", "https://login.example.test");
+        cut.WaitForAssertion(() => Assert.False(SaveButton().HasAttribute("disabled")));
+
+        void ChangeField(string label, string value)
+        {
+            var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
+            cut.Find($"#{fieldLabel.GetAttribute("for")}").Change(value);
+        }
+
+        AngleSharp.Dom.IElement SaveButton() => cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -354,14 +453,15 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(
-                ["Settings", "Provisioning"],
+                ["General", "Provider", "Provisioning"],
                 cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Create identity provider connection", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Draft", header.TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Validate", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Provider protocol", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Provider protocol", cut.Find(".connection-workspace__general").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Diagnostics", cut.Markup, StringComparison.Ordinal);
+            Assert.NotNull(cut.Find(".connection-workspace__actions"));
             var providerProtocol = cut.FindComponents<MudSelect<string>>()
                 .Single(field => string.Equals(field.Instance.Label, "Provider protocol", StringComparison.Ordinal));
             AssertOutlinedDense(providerProtocol.Instance.Variant, providerProtocol.Instance.Margin);
@@ -404,13 +504,15 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            var editor = cut.FindComponent<ConnectionEditor>().Instance;
+            var editor = cut.FindComponents<ConnectionEditor>()
+                .Single(component => component.Instance.Section == ConnectionEditorSection.Provider)
+                .Instance;
             Assert.Equal("client_secret_basic", DescriptorEditorState.ToDisplayString(editor.Model.AdapterSettings["clientAuthenticationMethod"]));
             Assert.Equal("discovery", DescriptorEditorState.ToDisplayString(editor.Model.AdapterSettings["mode"]));
             Assert.False(cut.FindComponent<Microsoft.AspNetCore.Components.Routing.NavigationLock>().Instance.ConfirmExternalNavigation);
-            Assert.Contains("Discovery URL", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Client secret (basic authentication)", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Discovery", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Discovery URL", cut.Find(".connection-workspace__provider").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Client secret (basic authentication)", cut.Find(".connection-workspace__provider").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Discovery", cut.Find(".connection-workspace__provider").TextContent, StringComparison.Ordinal);
         });
     }
 
@@ -473,7 +575,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void SavedConnection_AllowsManagedSecretConfiguration()
+    public async Task SavedConnection_AllowsManagedSecretConfiguration()
     {
         var connection = CreateConnection();
         _api.GetResult = connection;
@@ -481,6 +583,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ManagedSecretResolvers = [new ManagedSecretResolverDescriptor { Type = "elsa-secrets", DisplayName = "Elsa Secrets" }];
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        await cut.InvokeAsync(() => cut.FindComponent<MudTabs>().Instance.ActivatePanelAsync(1));
 
         cut.WaitForAssertion(() =>
         {
@@ -504,10 +607,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Effective: Deployment", header.TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Validate", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("configuration-owned and read-only", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("Save changes", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Tests and previews are available under Diagnostics.", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
-            Assert.DoesNotContain("lifecycle actions are available", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.Contains("deployment-owned connection is read-only", cut.Find(".connection-workspace__ownership").TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.Empty(cut.FindAll(".connection-workspace__actions"));
+            Assert.DoesNotContain("Save changes", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Open Diagnostics", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Lifecycle", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
         });
@@ -542,7 +646,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Equal(2, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
+            Assert.Equal(3, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
             Assert.Contains("Authority could not be resolved.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
         });
     }
@@ -808,6 +912,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("Legacy custom editor", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Make this Database record effective", cut.Markup, StringComparison.Ordinal);
+            Assert.Equal(
+                ["General", "Provisioning", "Diagnostics"],
+                cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
+            Assert.DoesNotContain("Provider", cut.FindComponents<MudTabPanel>().Select(panel => panel.Instance.Text));
         });
 
         var tabs = cut.FindComponent<MudTabs>();
@@ -854,7 +962,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
         var tabs = cut.FindComponent<MudTabs>();
-        await cut.InvokeAsync(() => tabs.Instance.ActivatePanelAsync(2));
+        await cut.InvokeAsync(() => tabs.Instance.ActivatePanelAsync(3));
 
         cut.WaitForAssertion(() =>
         {
@@ -881,8 +989,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("Effective: Deployment", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Stored: Disabled", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Stored: Not validated", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Stored record not tested", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Stored record validity", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("Stored record not tested", header.TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
         });
     }
 
@@ -914,13 +1022,13 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("deployment-defined connection is shadowed by an effective Database override", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("deployment-defined connection is read-only and shadowed by an effective Database override", cut.Markup, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("persisted record is shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Effective: Database", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Deployment: Enabled", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Deployment: Valid", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Deployment record validity", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
         });
     }
 
@@ -1487,6 +1595,24 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
                 "security/external-authentication/connections/deployment-keycloak",
                 shadowedLink.GetAttribute("href"),
                 StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ConnectionList_DoesNotPresentAnActiveShadowRelationshipWhenTheServerOmitsIt()
+    {
+        var deployment = CreateConnection("configuration");
+        deployment.Id = "deployment-keycloak";
+        deployment.DisplayName = "Keycloak General";
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [deployment] });
+
+        var cut = Render<ConnectionIndex>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains(deployment.DisplayName, cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Shadows", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Shadowed by", cut.Markup, StringComparison.Ordinal);
         });
     }
 

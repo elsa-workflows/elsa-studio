@@ -1,7 +1,7 @@
 .dashboard-trend-chart-frame {
     width: 100%;
     min-width: 0;
-    height: 340px;
+    height: 260px;
 }
 
 .dashboard-trend-chart-frame ::deep .dashboard-trend-chart {
@@ -22,6 +22,6 @@
 
 @media (max-width: 720px) {
     .dashboard-trend-chart-frame {
-        height: 300px;
+        height: 260px;
     }
 }
