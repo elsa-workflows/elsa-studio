@@ -235,6 +235,17 @@ public static class ConnectionListPresentation
                 ? connection.IsConfigurationOwned ? "Shadowed by Database" : "Shadowed by deployment"
                 : null;
 
+    public static ConnectionReference? GetShadowingConnection(ConnectionSummary connection) =>
+        IsValidRelationshipReference(connection, connection.ShadowedBy) ? connection.ShadowedBy : null;
+
+    public static IReadOnlyList<ConnectionReference> GetShadowedConnections(ConnectionSummary connection) =>
+        connection.Shadows
+            .Where(reference => IsValidRelationshipReference(connection, reference))
+            .ToArray();
+
+    public static string ShadowedConnectionsRelationship(ConnectionSummary connection) =>
+        connection.OverridesConfigurationConnection ? "Overrides" : "Shadows";
+
     public static string AvailabilityLabel(ConnectionSummary connection) =>
         connection.Archived
             ? "Archived"
@@ -276,6 +287,12 @@ public static class ConnectionListPresentation
                         : connection.EnabledIntent
                             ? Icons.Material.Outlined.WarningAmber
                             : Icons.Material.Outlined.PauseCircle;
+
+    private static bool IsValidRelationshipReference(ConnectionSummary connection, ConnectionReference? reference) =>
+        reference is not null &&
+        !string.IsNullOrWhiteSpace(reference.Id) &&
+        !string.IsNullOrWhiteSpace(reference.DisplayName) &&
+        !string.Equals(connection.Id, reference.Id, StringComparison.Ordinal);
 }
 
 public static class ConnectionObservationPresentation

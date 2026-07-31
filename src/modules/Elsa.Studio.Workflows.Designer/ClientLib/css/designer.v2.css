@@ -63,16 +63,6 @@
     border-radius: 4px;
 }
 
-.elsa-flowchart-diagram-designer-v2 .elsa-activity::before {
-    content: "";
-    position: absolute;
-    inset-block: 8px;
-    inset-inline-start: 0;
-    width: 4px;
-    background-color: var(--elsa-activity-accent, var(--mud-palette-primary));
-    border-radius: 0 2px 2px 0;
-}
-
 .elsa-flowchart-diagram-designer-v2 .elsa-activity.is-starting-point {
     background-color: var(--elsa-designer-node-surface);
     background-color: color-mix(
@@ -80,12 +70,12 @@
         var(--elsa-activity-accent, var(--mud-palette-primary)) 8%,
         var(--elsa-designer-node-surface)
     );
-}
-
-.elsa-flowchart-diagram-designer-v2 .elsa-activity.is-starting-point::before {
-    inset-block: 0;
-    width: 4px;
-    border-radius: 0;
+    border-color: var(--elsa-activity-accent, var(--mud-palette-primary));
+    box-shadow: inset 0 0 0 1px color-mix(
+        in srgb,
+        var(--elsa-activity-accent, var(--mud-palette-primary)) 56%,
+        transparent
+    );
 }
 
 .elsa-flowchart-diagram-designer-v2 .activity-icon {
@@ -165,8 +155,30 @@
     fill: var(--elsa-designer-port-text);
 }
 
+.elsa-flowchart-diagram-designer-v2 .elsa-designer-port-dock {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+        transform 120ms ease-out,
+        fill 120ms ease-out,
+        stroke 120ms ease-out;
+}
+
 .elsa-flowchart-diagram-designer-v2 .elsa-designer-port-circle {
-    transition: r 120ms ease-out;
+    transition:
+        r 120ms ease-out,
+        fill 120ms ease-out,
+        stroke 120ms ease-out;
+}
+
+.elsa-flowchart-diagram-designer-v2 .x6-port:hover .elsa-designer-port-dock {
+    fill: color-mix(
+        in srgb,
+        var(--elsa-designer-port-stroke) 10%,
+        var(--elsa-designer-node-surface)
+    );
+    stroke: var(--elsa-designer-port-stroke);
+    transform: scale(1.08);
 }
 
 .elsa-flowchart-diagram-designer-v2 .x6-port:hover .elsa-designer-port-circle {

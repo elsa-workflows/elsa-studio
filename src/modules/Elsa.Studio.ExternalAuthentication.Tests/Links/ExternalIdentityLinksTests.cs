@@ -72,6 +72,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
             Assert.Contains("never returned", cut.Markup, StringComparison.OrdinalIgnoreCase);
             var actions = Assert.Single(cut.FindComponents<MudMenu>());
             Assert.Equal("Actions for workflow-admin via Contoso", actions.Instance.AriaLabel);
+            Assert.Contains("aria-label=\"Edit identity link for workflow-admin via Contoso\"", cut.Markup, StringComparison.Ordinal);
         });
 
         cut.Find("button[aria-label='Actions for workflow-admin via Contoso']").Click();
@@ -79,6 +80,21 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("Edit", _popoverProvider.Markup, StringComparison.Ordinal);
             Assert.Contains("Unlink", _popoverProvider.Markup, StringComparison.Ordinal);
+        });
+        Assert.DoesNotContain("Edit external identity link", _dialogProvider.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClickingALinkRowOpensTheEditDialog()
+    {
+        var cut = RenderPageWithOneLink();
+
+        cut.Find("tbody tr").Click();
+
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            Assert.Contains("Edit external identity link", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("https://login.contoso.example", _dialogProvider.Markup, StringComparison.Ordinal);
         });
     }
 

@@ -84,6 +84,71 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void GenericEditor_UsesTheOutlinedDenseMudBlazorFieldTreatment()
+    {
+        var cut = Render<ConnectionEditor>(parameters => parameters
+            .Add(component => component.Connection, CreateConnection())
+            .Add(component => component.Adapter, CreateAdapter())
+            .Add(component => component.Model, CreateMutation()));
+
+        Assert.All(cut.FindComponents<MudTextField<string>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
+        Assert.All(cut.FindComponents<MudNumericField<int>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
+        Assert.All(cut.FindComponents<MudSelect<string>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
+    }
+
+    [Fact]
+    public void DescriptorFields_UseTheOutlinedDenseMudBlazorFieldTreatment()
+    {
+        var settings = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+
+        var text = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, new ConnectionFieldDescriptor
+            {
+                Name = "description",
+                DisplayName = "Description",
+                UiHint = "multiline"
+            })
+            .Add(component => component.Settings, settings));
+        var integer = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, new ConnectionFieldDescriptor
+            {
+                Name = "order",
+                DisplayName = "Order",
+                ValueType = "integer"
+            })
+            .Add(component => component.Settings, settings));
+        var number = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, new ConnectionFieldDescriptor
+            {
+                Name = "weight",
+                DisplayName = "Weight",
+                ValueType = "number"
+            })
+            .Add(component => component.Settings, settings));
+        var select = Render<DescriptorField>(parameters => parameters
+            .Add(component => component.Field, new ConnectionFieldDescriptor
+            {
+                Name = "mode",
+                DisplayName = "Mode",
+                AllowedValues = ["discovery", "manual"]
+            })
+            .Add(component => component.Settings, settings));
+
+        var textField = text.FindComponent<MudTextField<string>>().Instance;
+        Assert.Equal(4, textField.Lines);
+        AssertOutlinedDense(textField.Variant, textField.Margin);
+        var integerField = integer.FindComponent<MudNumericField<int?>>().Instance;
+        AssertOutlinedDense(integerField.Variant, integerField.Margin);
+        var numberField = number.FindComponent<MudNumericField<decimal?>>().Instance;
+        AssertOutlinedDense(numberField.Variant, numberField.Margin);
+        var selectField = select.FindComponent<MudSelect<string>>().Instance;
+        AssertOutlinedDense(selectField.Variant, selectField.Margin);
+    }
+
+    [Fact]
     public void TagsArrayField_AllowsAddingAValueWhenNoOptionsAreProvided()
     {
         var settings = new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.Ordinal)
@@ -157,6 +222,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         var roleSelect = cut.FindComponents<MudSelect<string>>().Last().Instance;
         Assert.True(roleSelect.MultiSelection);
         Assert.False(roleSelect.Disabled);
+        Assert.All(cut.FindComponents<MudSelect<string>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
         Assert.DoesNotContain("Enter role IDs", cut.Markup, StringComparison.OrdinalIgnoreCase);
 
         cut.Render(parameters => parameters
@@ -295,6 +362,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("Validate", header.TextContent, StringComparison.Ordinal);
             Assert.Contains("Provider protocol", cut.Find(".connection-workspace__configuration").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Diagnostics", cut.Markup, StringComparison.Ordinal);
+            var providerProtocol = cut.FindComponents<MudSelect<string>>()
+                .Single(field => string.Equals(field.Instance.Label, "Provider protocol", StringComparison.Ordinal));
+            AssertOutlinedDense(providerProtocol.Instance.Variant, providerProtocol.Instance.Margin);
         });
     }
 
@@ -905,6 +975,10 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("Managed secret", cut.Markup, StringComparison.Ordinal);
         Assert.DoesNotContain("External binding", cut.Markup, StringComparison.Ordinal);
+        Assert.All(cut.FindComponents<MudTextField<string>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
+        Assert.All(cut.FindComponents<MudSelect<string>>(), field =>
+            AssertOutlinedDense(field.Instance.Variant, field.Instance.Margin));
         var password = cut.Find("input[type=password]");
         password.Change("top-secret-value");
         cut.FindAll("button").Single(x => x.TextContent.Contains("Replace managed secret", StringComparison.Ordinal)).Click();
@@ -1370,6 +1444,53 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ConnectionList_NamesAndLinksBothSidesOfAShadowRelationship()
+    {
+        var deployment = CreateConnection("configuration");
+        deployment.Id = "deployment-keycloak";
+        deployment.DisplayName = "Keycloak General";
+        deployment.Shadowed = true;
+        deployment.ShadowedBy = new ConnectionReference
+        {
+            Id = "database-keycloak",
+            DisplayName = "Keycloak",
+            Source = "database"
+        };
+        var database = CreateConnection();
+        database.Id = "database-keycloak";
+        database.DisplayName = "Keycloak";
+        database.OverridesConfigurationConnection = true;
+        database.Shadows =
+        [
+            new ConnectionReference
+            {
+                Id = deployment.Id,
+                DisplayName = deployment.DisplayName,
+                Source = "configuration"
+            }
+        ];
+        _api.ListResults.Enqueue(new ListConnectionsResponse { Items = [database, deployment] });
+
+        var cut = Render<ConnectionIndex>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Shadowed by", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Overrides", cut.Markup, StringComparison.Ordinal);
+            var shadowingLink = cut.Find("a[aria-label=\"Manage shadowing connection Keycloak\"]");
+            Assert.EndsWith(
+                "security/external-authentication/connections/database-keycloak",
+                shadowingLink.GetAttribute("href"),
+                StringComparison.Ordinal);
+            var shadowedLink = cut.Find("a[aria-label=\"Manage shadowed connection Keycloak General\"]");
+            Assert.EndsWith(
+                "security/external-authentication/connections/deployment-keycloak",
+                shadowedLink.GetAttribute("href"),
+                StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
     public void ConnectionList_ClickingARowOpensTheManageScreen()
     {
         var connection = CreateConnection();
@@ -1630,6 +1751,21 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Equal(expectedOwnership, ConnectionListPresentation.OwnershipLabel(connection));
         Assert.Equal(expectedRelationship, ConnectionListPresentation.OwnershipRelationship(connection));
+    }
+
+    [Fact]
+    public void ConnectionListPresentation_RejectsIncompleteAndSelfReferentialRelationshipMetadata()
+    {
+        var connection = CreateConnection();
+        connection.ShadowedBy = new ConnectionReference { Id = connection.Id, DisplayName = "Self" };
+        connection.Shadows =
+        [
+            new ConnectionReference { Id = "missing-name" },
+            new ConnectionReference { Id = "deployment", DisplayName = "Deployment connection" }
+        ];
+
+        Assert.Null(ConnectionListPresentation.GetShadowingConnection(connection));
+        Assert.Equal("deployment", Assert.Single(ConnectionListPresentation.GetShadowedConnections(connection)).Id);
     }
 
     [Theory]
@@ -1961,6 +2097,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         AdapterType = "openid-connect",
         DisplayName = "Contoso"
     };
+
+    private static void AssertOutlinedDense(Variant variant, Margin margin)
+    {
+        Assert.Equal(Variant.Outlined, variant);
+        Assert.Equal(Margin.Dense, margin);
+    }
 
     private sealed class FeatureProvider(bool enabled) : IRemoteFeatureProvider
     {

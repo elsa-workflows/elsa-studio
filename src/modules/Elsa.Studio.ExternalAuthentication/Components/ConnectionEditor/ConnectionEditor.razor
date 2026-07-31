@@ -30,25 +30,29 @@
                 }
             </MudAlert>
         }
-        <MudTextField T="string" Value="@Model.DisplayName" ValueChanged="SetDisplayNameAsync" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
-        <MudTextField T="string" Value="@Model.Key" ValueChanged="SetKeyAsync" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
+        <MudTextField T="string" Value="@Model.DisplayName" ValueChanged="SetDisplayNameAsync" Label="Display name" Required="true" ReadOnly="@ReadOnly" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField T="string" Value="@Model.Key" ValueChanged="SetKeyAsync" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." Variant="Variant.Outlined" Margin="Margin.Dense" />
         @if (!string.IsNullOrWhiteSpace(Connection.CallbackUri))
         {
             <MudTextField Value="@Connection.CallbackUri"
                           Label="Provider callback URI"
                           ReadOnly="true"
-                          HelperText="Derived by Elsa from deployment configuration. Register this exact URI with the identity provider." />
+                          HelperText="Derived by Elsa from deployment configuration. Register this exact URI with the identity provider."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
         }
         @if (!string.IsNullOrWhiteSpace(Connection.PreviewCallbackUri))
         {
             <MudTextField Value="@Connection.PreviewCallbackUri"
                           Label="Provider preview callback URI"
                           ReadOnly="true"
-                          HelperText="Register this exact URI with the identity provider to enable administrator previews." />
+                          HelperText="Register this exact URI with the identity provider to enable administrator previews."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
         }
-        <MudNumericField T="int" Value="@Model.Order" ValueChanged="SetOrderAsync" Label="Display order" ReadOnly="@ReadOnly" />
+        <MudNumericField T="int" Value="@Model.Order" ValueChanged="SetOrderAsync" Label="Display order" ReadOnly="@ReadOnly" Variant="Variant.Outlined" Margin="Margin.Dense" />
         <MudCheckBox T="bool" Value="@Model.IsPreferred" ValueChanged="SetPreferredAsync" Label="Mark as the preferred sign-in method" Disabled="@ReadOnly" />
-        <MudSelect T="string" Value="@Model.UpstreamLogoutMode" ValueChanged="SetUpstreamLogoutModeAsync" Label="Upstream sign-out" Disabled="@ReadOnly">
+        <MudSelect T="string" Value="@Model.UpstreamLogoutMode" ValueChanged="SetUpstreamLogoutModeAsync" Label="Upstream sign-out" Disabled="@ReadOnly" Variant="Variant.Outlined" Margin="Margin.Dense">
             <MudSelectItem T="string" Value="@("disabled")">Disabled</MudSelectItem>
             <MudSelectItem T="string" Value="@("userChoice")">Let the user choose</MudSelectItem>
             <MudSelectItem T="string" Value="@("always")">Always sign out upstream</MudSelectItem>

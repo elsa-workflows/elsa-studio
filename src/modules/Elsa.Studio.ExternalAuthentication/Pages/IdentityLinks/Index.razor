@@ -57,6 +57,8 @@
                 Hover="true"
                 Elevation="0"
                 Breakpoint="Breakpoint.Md"
+                RowStyle="cursor: pointer;"
+                OnRowClick="OnRowClick"
                 Class="identity-link-list__table"
                 aria-label="External identity links">
                 <HeaderContent>
@@ -68,7 +70,16 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="User">
-                        <MudText Typo="Typo.body2" Class="font-weight-medium">@UserDisplay(context.UserId)</MudText>
+                        <span @onclick:stopPropagation="true">
+                            <MudLink
+                                OnClick="@(_ => OpenLinkDialogAsync(context))"
+                                Color="Color.Inherit"
+                                Underline="Underline.Hover"
+                                Class="font-weight-medium"
+                                aria-label="@($"Edit identity link for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")">
+                                @UserDisplay(context.UserId)
+                            </MudLink>
+                        </span>
                         @if (!string.Equals(UserDisplay(context.UserId), context.UserId, StringComparison.Ordinal))
                         {
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@context.UserId</MudText>
@@ -90,15 +101,17 @@
                         <MudText Typo="Typo.caption" Color="Color.Secondary">Created @context.CreatedAt.ToLocalTime().ToString("g")</MudText>
                     </MudTd>
                     <MudTd DataLabel="Actions" Style="text-align: right;">
-                        <MudMenu
-                            Icon="@Icons.Material.Filled.MoreVert"
-                            Size="Size.Small"
-                            Dense="true"
-                            AriaLabel="@($"Actions for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")">
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenLinkDialogAsync(context))">Edit</MudMenuItem>
-                            <MudDivider />
-                            <MudMenuItem Icon="@Icons.Material.Outlined.LinkOff" OnClick="@(() => ConfirmUnlinkAsync(context))">Unlink</MudMenuItem>
-                        </MudMenu>
+                        <div @onclick:stopPropagation="true">
+                            <MudMenu
+                                Icon="@Icons.Material.Filled.MoreVert"
+                                Size="Size.Small"
+                                Dense="true"
+                                AriaLabel="@($"Actions for {UserDisplay(context.UserId)} via {ConnectionDisplay(context.ConnectionKey)}")">
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenLinkDialogAsync(context))">Edit</MudMenuItem>
+                                <MudDivider />
+                                <MudMenuItem Icon="@Icons.Material.Outlined.LinkOff" OnClick="@(() => ConfirmUnlinkAsync(context))">Unlink</MudMenuItem>
+                            </MudMenu>
+                        </div>
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent><MudText>No links match the current filters.</MudText></NoRecordsContent>
@@ -161,6 +174,12 @@
     }
 
     private Task NextPageAsync() => LoadLinksAsync(_nextCursor);
+
+    private async Task OnRowClick(TableRowClickEventArgs<ExternalIdentityLink> args)
+    {
+        if (args.Item is not null)
+            await OpenLinkDialogAsync(args.Item);
+    }
 
     private async Task LoadLinksAsync(string? cursor = null)
     {

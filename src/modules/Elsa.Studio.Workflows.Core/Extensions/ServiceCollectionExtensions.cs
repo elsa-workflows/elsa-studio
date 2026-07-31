@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IStorageDriverService, RemoteStorageDriverService>()
             .AddScoped<IServerInformationProvider, RemoteServerInformationProvider>()
             .AddScoped<IVariableTypeService, RemoteVariableTypeService>()
+            .AddScoped<IOutputConverterService, RemoteOutputConverterService>()
             .AddScoped<IWorkflowActivationStrategyService, RemoteWorkflowActivationStrategyService>()
             .AddScoped<ILogPersistenceStrategyService, RemoteLogPersistenceStrategyService>()
             .AddScoped<IIncidentStrategiesProvider, RemoteIncidentStrategiesProvider>()

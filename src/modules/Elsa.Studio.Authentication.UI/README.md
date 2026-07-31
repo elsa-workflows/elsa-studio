@@ -30,8 +30,10 @@ and changes require an application restart. Missing configuration selects
 `classic`. Blank, unknown, and duplicate case-insensitive IDs fail startup with
 an actionable options error.
 
-This package includes two Classic presentations:
+This package includes three Classic presentations:
 
+- `classic-refined-split` — a balanced split layout with a dedicated brand
+  context panel and focused sign-in stage.
 - `classic-unified` — the compact, unified identity gateway card.
 - `classic-brand-canvas` — a spacious brand canvas with a dedicated sign-in
   stage.

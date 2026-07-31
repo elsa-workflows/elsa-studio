@@ -10,7 +10,9 @@
                Value="@SelectedType"
                ValueChanged="SelectAsync"
                Label="Unlinked identity policy"
-               Disabled="@ReadOnly">
+               Disabled="@ReadOnly"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense">
         <MudSelectItem T="string" Value="@("inherit")">Use deployment default</MudSelectItem>
         @foreach (var descriptor in AvailableDescriptors)
         {
@@ -35,7 +37,9 @@
                            ValueChanged="SelectMatcherAsync"
                            Label="User matcher"
                            Required="true"
-                           Disabled="@ReadOnly">
+                           Disabled="@ReadOnly"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense">
                     @foreach (var matcher in Matchers)
                     {
                         <MudSelectItem T="string" Value="@matcher.Type">@matcher.DisplayName</MudSelectItem>
@@ -66,7 +70,9 @@
                            Value="@(GetStringSetting("noMatchAction"))"
                            ValueChanged="SetNoMatchActionAsync"
                            Label="When no user matches"
-                           Disabled="@ReadOnly">
+                           Disabled="@ReadOnly"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense">
                     <MudSelectItem T="string" Value="@("reject")">Reject sign-in</MudSelectItem>
                     <MudSelectItem T="string" Value="@("create-user")">Create an Elsa user</MudSelectItem>
                 </MudSelect>
@@ -83,7 +89,9 @@
                            MultiSelection="true"
                            SelectedValues="@GetSelectedRoleIds()"
                            SelectedValuesChanged="SetSelectedRoleIdsAsync"
-                           Disabled="@(ReadOnly || !CanSelectRoles || !string.IsNullOrWhiteSpace(RoleOptionsError))">
+                           Disabled="@(ReadOnly || !CanSelectRoles || !string.IsNullOrWhiteSpace(RoleOptionsError))"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense">
                     @foreach (var role in Roles)
                     {
                         <MudSelectItem T="string" Value="@role.Id">@role.Name</MudSelectItem>

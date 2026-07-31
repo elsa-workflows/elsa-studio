@@ -89,7 +89,13 @@
                                     <MudStack Spacing="3">
                                         @if (IsNew)
                                         {
-                                            <MudSelect T="string" Value="_adapter.Type" ValueChanged="SelectAdapterAsync" Label="Provider protocol" Required="true">
+                                            <MudSelect T="string"
+                                                       Value="_adapter.Type"
+                                                       ValueChanged="SelectAdapterAsync"
+                                                       Label="Provider protocol"
+                                                       Required="true"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense">
                                                 @foreach (var adapter in _adapters)
                                                 {
                                                     <MudSelectItem T="string" Value="@adapter.Type">@adapter.DisplayName</MudSelectItem>

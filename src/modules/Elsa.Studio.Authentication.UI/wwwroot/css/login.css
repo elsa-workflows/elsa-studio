@@ -423,6 +423,191 @@
     }
 }
 
+.classic-login-theme.classic-refined-split-login-theme {
+    --elsa-login-panel-padding: 2.75rem 3rem;
+}
+
+.classic-refined-split-login-theme__card {
+    background: var(--mud-palette-surface, #fff);
+    border: 1px solid var(--mud-palette-lines-default, #d7dde6);
+    border-radius: 1rem;
+    box-shadow: 0 1rem 2.5rem rgb(15 23 42 / 0.16);
+    display: grid;
+    grid-template-columns: 18.75rem minmax(27.5rem, 33.75rem);
+    inline-size: min(100%, 52.5rem);
+    min-block-size: 38rem;
+    overflow: hidden;
+}
+
+.classic-refined-split-login-theme__brand {
+    background:
+        radial-gradient(
+            circle at 14% 14%,
+            color-mix(in srgb, var(--elsa-login-accent) 18%, transparent),
+            transparent 14rem),
+        linear-gradient(
+            160deg,
+            color-mix(in srgb, var(--elsa-login-accent) 10%, var(--mud-palette-surface, #fff)),
+            color-mix(in srgb, var(--elsa-login-accent) 16%, var(--mud-palette-surface, #fff)));
+    border-inline-end: 1px solid color-mix(in srgb, var(--elsa-login-accent) 18%, transparent);
+    box-sizing: border-box;
+    color: var(--mud-palette-text-primary, #1f2937);
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 2rem 1.75rem;
+    position: relative;
+}
+
+.classic-refined-split-login-theme__brand::after {
+    background: var(--elsa-login-accent);
+    block-size: 4.5rem;
+    content: "";
+    inline-size: 0.25rem;
+    inset-block-start: 7.25rem;
+    inset-inline-end: -0.125rem;
+    position: absolute;
+}
+
+.classic-refined-split-login-theme__brand::before {
+    background: var(--mud-palette-surface, #fff);
+    block-size: 0.75rem;
+    border: 0.1875rem solid var(--elsa-login-accent);
+    border-radius: 50%;
+    box-sizing: border-box;
+    content: "";
+    inline-size: 0.75rem;
+    inset-block-start: 9.125rem;
+    inset-inline-end: -0.375rem;
+    position: absolute;
+    z-index: 1;
+}
+
+.classic-refined-split-login-theme__brand-lockup {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+    min-inline-size: 0;
+}
+
+.classic-refined-split-login-theme__logo {
+    block-size: 3.5rem;
+    inline-size: 3.5rem;
+    object-fit: contain;
+}
+
+.classic-refined-split-login-theme__brand-copy {
+    min-inline-size: 0;
+}
+
+.classic-refined-split-login-theme__brand-name {
+    font-size: 1.75rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.classic-refined-split-login-theme__brand-copy p {
+    color: var(--mud-palette-text-secondary, #64748b);
+    font-size: 0.75rem;
+    font-weight: 550;
+    line-height: 1.35;
+    margin: 0.25rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.classic-refined-split-login-theme__statement {
+    color: var(--mud-palette-text-primary, #1f2937);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 3rem 0 0;
+    max-inline-size: 13.125rem;
+}
+
+.classic-refined-split-login-theme__context {
+    border-block-start: 1px solid color-mix(in srgb, var(--elsa-login-accent) 18%, transparent);
+    display: grid;
+    gap: 0.5rem;
+    margin-block-start: auto;
+    padding-block-start: 1.25rem;
+}
+
+.classic-refined-split-login-theme__context strong {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.classic-refined-split-login-theme__context span {
+    color: var(--mud-palette-text-secondary, #64748b);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+}
+
+.classic-refined-split-login-theme__version {
+    font-variant-numeric: tabular-nums;
+}
+
+.classic-refined-split-login-theme__panel {
+    align-items: center;
+    background: var(--mud-palette-surface, #fff);
+    box-sizing: border-box;
+    display: flex;
+    min-inline-size: 0;
+}
+
+.classic-refined-split-login-theme__panel > .elsa-login-panel {
+    margin: 0 auto;
+}
+
+@media (max-width: 820px) {
+    .classic-login-theme.classic-refined-split-login-theme {
+        --elsa-login-panel-padding: 2rem;
+    }
+
+    .classic-refined-split-login-theme__card {
+        grid-template-columns: minmax(0, 1fr);
+        inline-size: min(100%, 32.5rem);
+        min-block-size: 0;
+    }
+
+    .classic-refined-split-login-theme__brand {
+        border-block-end: 1px solid color-mix(in srgb, var(--elsa-login-accent) 18%, transparent);
+        border-inline-end: 0;
+        padding: 1.5rem;
+    }
+
+    .classic-refined-split-login-theme__brand-lockup {
+        align-items: center;
+        flex-direction: row;
+        gap: 0.875rem;
+    }
+
+    .classic-refined-split-login-theme__logo {
+        block-size: 2.75rem;
+        flex: 0 0 2.75rem;
+        inline-size: 2.75rem;
+    }
+
+    .classic-refined-split-login-theme__brand-name {
+        font-size: 1.3125rem;
+    }
+
+    .classic-refined-split-login-theme__statement,
+    .classic-refined-split-login-theme__context,
+    .classic-refined-split-login-theme__brand::before,
+    .classic-refined-split-login-theme__brand::after {
+        display: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .classic-login-theme.classic-refined-split-login-theme {
+        --elsa-login-panel-padding: 1.5rem;
+        align-items: flex-start;
+    }
+}
+
 .classic-login-theme.classic-brand-canvas-login-theme {
     --elsa-login-panel-padding: 2.5rem;
     align-items: stretch;

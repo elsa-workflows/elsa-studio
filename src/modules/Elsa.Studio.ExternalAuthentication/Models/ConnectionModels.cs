@@ -44,6 +44,13 @@ public sealed class ConnectionObservation
     public string Summary { get; set; } = string.Empty;
 }
 
+public sealed class ConnectionReference
+{
+    public string Id { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Source { get; set; } = string.Empty;
+}
+
 public class ConnectionSummary
 {
     public string Id { get; set; } = string.Empty;
@@ -60,6 +67,8 @@ public class ConnectionSummary
     public bool EffectivelyEnabled { get; set; }
     public string Validity { get; set; } = "unknown";
     public bool Shadowed { get; set; }
+    public ConnectionReference? ShadowedBy { get; set; }
+    public ICollection<ConnectionReference> Shadows { get; set; } = [];
     public bool Archived { get; set; }
     public bool CanCreateOverride { get; set; }
     public bool CanPromoteToConfigurationOverride { get; set; }

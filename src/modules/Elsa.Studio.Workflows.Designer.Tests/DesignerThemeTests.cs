@@ -26,7 +26,7 @@ public class DesignerThemeTests
 
         var theme = X6DesignerTheme.FromPalette(palette);
 
-        Assert.Equal("#233041ff", theme.Grid);
+        Assert.Equal("#405064ff", theme.Grid);
         Assert.Equal("#405064ff", theme.Edge);
         Assert.Equal("#18212bff", theme.PortSurface);
         Assert.Equal("#66a9ffff", theme.PortStroke);

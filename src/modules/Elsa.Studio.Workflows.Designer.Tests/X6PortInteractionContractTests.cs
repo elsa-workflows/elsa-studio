@@ -22,6 +22,10 @@ public sealed class X6PortInteractionContractTests
         Assert.Matches(
             new Regex("port:\\s*\\{[^}]*magnet:\\s*true", RegexOptions.CultureInvariant),
             portRegistration);
+        Assert.Contains("selector: \"dock\"", portRegistration, StringComparison.Ordinal);
+        Assert.Matches(
+            new Regex("dock:\\s*\\{[^}]*width:\\s*14[^}]*height:\\s*24", RegexOptions.CultureInvariant),
+            portRegistration);
         Assert.Contains("selector: \"circle\"", portRegistration, StringComparison.Ordinal);
         Assert.Matches(
             new Regex("circle:\\s*\\{[^}]*r:\\s*[5-9]", RegexOptions.CultureInvariant),
@@ -33,11 +37,22 @@ public sealed class X6PortInteractionContractTests
         Assert.Matches(
             new Regex("\\.x6-port:hover \\.elsa-designer-port-circle\\s*\\{[^}]*r:\\s*(?:[6-9]|1\\d)px", RegexOptions.CultureInvariant),
             designerStyles);
+        Assert.Contains(".x6-port:hover .elsa-designer-port-dock", designerStyles, StringComparison.Ordinal);
 
         // A source port must remain connectable and accept another outgoing edge after one has
         // already been created from it.
         Assert.Contains("magnetConnectable: () => !readOnly && !isSequenceMode", graphCreation, StringComparison.Ordinal);
         Assert.Contains("allowMulti: true", graphCreation, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ActivityNodes_UseDockedPortsWithoutAHandleLikeAccentBar()
+    {
+        var designerStyles = ReadAsset("designer.v2.css");
+
+        Assert.DoesNotContain(".elsa-activity::before", designerStyles, StringComparison.Ordinal);
+        Assert.Contains(".elsa-activity.is-starting-point", designerStyles, StringComparison.Ordinal);
+        Assert.Contains("border-color: var(--elsa-activity-accent", designerStyles, StringComparison.Ordinal);
     }
 
     private static string ReadAsset(string name) =>

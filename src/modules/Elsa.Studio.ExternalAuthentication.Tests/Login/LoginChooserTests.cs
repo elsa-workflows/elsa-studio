@@ -149,6 +149,11 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             Assert.Equal(2, form.QuerySelectorAll(".mud-input-control").Length);
             Assert.NotNull(form.QuerySelector("input[name='username'][autocomplete='username']"));
             Assert.NotNull(form.QuerySelector("input[name='password'][type='password'][autocomplete='current-password']"));
+            Assert.All(cut.FindComponents<MudTextField<string>>(), field =>
+            {
+                Assert.Equal(Variant.Outlined, field.Instance.Variant);
+                Assert.Equal(Margin.Dense, field.Instance.Margin);
+            });
         });
     }
 

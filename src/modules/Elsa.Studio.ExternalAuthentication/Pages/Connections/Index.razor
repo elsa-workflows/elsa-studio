@@ -94,7 +94,43 @@
                                 Color="@(context.IsConfigurationOwned ? Color.Info : Color.Default)">
                                 @ConnectionListPresentation.OwnershipLabel(context)
                             </MudChip>
-                            @if (ConnectionListPresentation.OwnershipRelationship(context) is { } relationship)
+                            @if (ConnectionListPresentation.GetShadowingConnection(context) is { } shadowingConnection)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Shadowed by
+                                    <span @onclick:stopPropagation="true">
+                                        <MudLink
+                                            Href="@ConnectionUrl(shadowingConnection.Id)"
+                                            Underline="Underline.Hover"
+                                            aria-label="@($"Manage shadowing connection {shadowingConnection.DisplayName}")">
+                                            @shadowingConnection.DisplayName
+                                        </MudLink>
+                                    </span>
+                                </MudText>
+                            }
+                            else if (ConnectionListPresentation.GetShadowedConnections(context) is { Count: > 0 } shadowedConnections)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @ConnectionListPresentation.ShadowedConnectionsRelationship(context)
+                                    @for (var index = 0; index < shadowedConnections.Count; index++)
+                                    {
+                                        if (index > 0)
+                                        {
+                                            <span>, </span>
+                                        }
+                                        var shadowedConnection = shadowedConnections[index];
+                                        <span @onclick:stopPropagation="true">
+                                            <MudLink
+                                                Href="@ConnectionUrl(shadowedConnection.Id)"
+                                                Underline="Underline.Hover"
+                                                aria-label="@($"Manage shadowed connection {shadowedConnection.DisplayName}")">
+                                                @shadowedConnection.DisplayName
+                                            </MudLink>
+                                        </span>
+                                    }
+                                </MudText>
+                            }
+                            else if (ConnectionListPresentation.OwnershipRelationship(context) is { } relationship)
                             {
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@relationship</MudText>
                             }
@@ -350,7 +386,8 @@
     }
 
     private void CreateAsync() => Navigation.NavigateTo("security/external-authentication/connections/new");
-    private static string ConnectionUrl(ConnectionSummary connection) => $"security/external-authentication/connections/{Uri.EscapeDataString(connection.Id)}";
+    private static string ConnectionUrl(ConnectionSummary connection) => ConnectionUrl(connection.Id);
+    private static string ConnectionUrl(string connectionId) => $"security/external-authentication/connections/{Uri.EscapeDataString(connectionId)}";
     private void OpenAsync(ConnectionSummary connection) => Navigation.NavigateTo(ConnectionUrl(connection));
     private void OnRowClick(TableRowClickEventArgs<ConnectionSummary> args)
     {

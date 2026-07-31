@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
             services
                 .AddLoginTheme<ClassicUnifiedLoginTheme>(LoginThemeIds.Classic)
                 .AddLoginTheme<ClassicUnifiedLoginTheme>(LoginThemeIds.ClassicUnified)
+                .AddLoginTheme<ClassicRefinedSplitLoginTheme>(LoginThemeIds.ClassicRefinedSplit)
                 .AddLoginTheme<ClassicBrandCanvasLoginTheme>(LoginThemeIds.ClassicBrandCanvas);
         }
 

@@ -22,6 +22,10 @@
     --elsa-control-focus: var(--mud-palette-primary);
     --elsa-control-error: var(--mud-palette-error);
     --elsa-control-radius: var(--mud-default-borderradius);
+    --elsa-secondary-button-surface: color-mix(in srgb, var(--mud-palette-primary) 4%, var(--mud-palette-surface));
+    --elsa-secondary-button-surface-hover: color-mix(in srgb, var(--mud-palette-primary) 9%, var(--mud-palette-surface));
+    --elsa-secondary-button-border: color-mix(in srgb, var(--mud-palette-primary) 22%, var(--mud-palette-divider));
+    --elsa-secondary-button-border-hover: color-mix(in srgb, var(--mud-palette-primary) 42%, var(--mud-palette-divider));
 }
 
 .elsa-studio-shell {
@@ -131,6 +135,48 @@
 
 .mud-input.mud-disabled > .mud-input-outlined-border {
     border-color: var(--mud-palette-action-disabled);
+}
+
+/*****************************************************
+* Elsa secondary actions
+******************************************************/
+.mud-button-root.mud-button-outlined.mud-button-outlined-default {
+    background: var(--elsa-secondary-button-surface);
+    border-color: var(--elsa-secondary-button-border);
+    box-shadow: none;
+    color: var(--mud-palette-text-primary);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .mud-button-root.mud-button-outlined.mud-button-outlined-default:not(.mud-disabled):not([disabled]):hover {
+        background: var(--elsa-secondary-button-surface-hover);
+        border-color: var(--elsa-secondary-button-border-hover);
+        color: var(--mud-palette-primary);
+    }
+}
+
+.mud-button-root.mud-button-outlined.mud-button-outlined-default:not(.mud-disabled):not([disabled]):focus-visible {
+    background: var(--elsa-secondary-button-surface-hover);
+    border-color: var(--elsa-secondary-button-border-hover);
+    color: var(--mud-palette-primary);
+    outline: 2px solid color-mix(in srgb, var(--mud-palette-primary) 58%, transparent);
+    outline-offset: 2px;
+}
+
+.mud-button-root.mud-button-outlined.mud-button-outlined-default:not(.mud-disabled):not([disabled]):active {
+    background: color-mix(in srgb, var(--mud-palette-primary) 13%, var(--mud-palette-surface));
+    border-color: var(--mud-palette-primary);
+}
+
+.mud-button-root.mud-button-outlined.mud-button-outlined-default:is(.mud-disabled, [disabled]) {
+    background: var(--mud-palette-action-disabled-background);
+    border-color: transparent;
 }
 
 .studio-appbar {

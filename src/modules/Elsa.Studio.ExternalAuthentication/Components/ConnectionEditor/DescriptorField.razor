@@ -18,7 +18,9 @@
                    MultiSelection="true"
                    SelectedValues="@GetStringArray()"
                    SelectedValuesChanged="SetStringArrayAsync"
-                   Disabled="@IsReadOnly">
+                   Disabled="@IsReadOnly"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense">
             @foreach (var allowedValue in Field.AllowedValues)
             {
                 <MudSelectItem T="string" Value="@allowedValue">@DescriptorValuePresentation.GetDisplayName(Field, allowedValue)</MudSelectItem>
@@ -35,7 +37,9 @@
                               Label="@Field.DisplayName"
                               HelperText="@TagsHelpText"
                               ReadOnly="@IsReadOnly"
-                              Immediate="true" />
+                              Immediate="true"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
                 <MudButton Variant="Variant.Outlined"
                            StartIcon="@Icons.Material.Filled.Add"
                            Disabled="@(IsReadOnly || string.IsNullOrWhiteSpace(_pendingArrayValue))"
@@ -62,11 +66,11 @@
     }
     else if (IsStringArray)
     {
-        <MudTextField T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetTextAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Lines="@Lines" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))" />
+        <MudTextField T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetTextAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Lines="@Lines" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))" Variant="Variant.Outlined" Margin="Margin.Dense" />
     }
     else if (Field.AllowedValues.Count > 0)
     {
-        <MudSelect T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetAllowedValueAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" Disabled="@IsReadOnly" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))">
+        <MudSelect T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetAllowedValueAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" Disabled="@IsReadOnly" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))" Variant="Variant.Outlined" Margin="Margin.Dense">
             @foreach (var allowedValue in Field.AllowedValues)
             {
                 <MudSelectItem T="string" Value="@allowedValue">@DescriptorValuePresentation.GetDisplayName(Field, allowedValue)</MudSelectItem>
@@ -79,15 +83,15 @@
     }
     else if (string.Equals(Field.ValueType, "integer", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.ValueType, "int", StringComparison.OrdinalIgnoreCase))
     {
-        <MudNumericField T="int?" Value="@DescriptorEditorState.GetInteger(Settings, Field.Name)" ValueChanged="@SetIntegerAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Validation="@(new Func<int?, IEnumerable<string>>(ValidateInteger))" />
+        <MudNumericField T="int?" Value="@DescriptorEditorState.GetInteger(Settings, Field.Name)" ValueChanged="@SetIntegerAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Validation="@(new Func<int?, IEnumerable<string>>(ValidateInteger))" Variant="Variant.Outlined" Margin="Margin.Dense" />
     }
     else if (string.Equals(Field.ValueType, "number", StringComparison.OrdinalIgnoreCase) || string.Equals(Field.ValueType, "decimal", StringComparison.OrdinalIgnoreCase))
     {
-        <MudNumericField T="decimal?" Value="@DescriptorEditorState.GetNumber(Settings, Field.Name)" ValueChanged="@SetNumberAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Validation="@(new Func<decimal?, IEnumerable<string>>(ValidateNumber))" />
+        <MudNumericField T="decimal?" Value="@DescriptorEditorState.GetNumber(Settings, Field.Name)" ValueChanged="@SetNumberAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" Validation="@(new Func<decimal?, IEnumerable<string>>(ValidateNumber))" Variant="Variant.Outlined" Margin="Margin.Dense" />
     }
     else
     {
-        <MudTextField T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetTextAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" InputType="@InputType" Lines="@Lines" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))" />
+        <MudTextField T="string" Value="@DescriptorEditorState.ToDisplayString(GetValue())" ValueChanged="@SetTextAsync" Label="@Field.DisplayName" HelperText="@HelpText" Required="@Field.IsRequired" ReadOnly="@IsReadOnly" InputType="@InputType" Lines="@Lines" Validation="@(new Func<string?, IEnumerable<string>>(ValidateString))" Variant="Variant.Outlined" Margin="Margin.Dense" />
     }
 }
 

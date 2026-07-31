@@ -21,7 +21,7 @@ public sealed record X6DesignerTheme(
     /// </summary>
     public static X6DesignerTheme FromPalette(Palette palette) =>
         new(
-            ToHex(palette.BackgroundGray),
+            ToHex(palette.LinesDefault),
             ToHex(palette.LinesDefault),
             ToHex(palette.Surface),
             ToHex(palette.Primary),

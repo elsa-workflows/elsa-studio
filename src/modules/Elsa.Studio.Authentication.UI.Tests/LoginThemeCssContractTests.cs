@@ -95,21 +95,56 @@ public sealed class LoginThemeCssContractTests
     }
 
     [Fact]
-    public void ClassicThemeFamily_ProvidesNamedUnifiedAndBrandCanvasPresentations()
+    public void ClassicThemeFamily_ProvidesNamedRefinedSplitUnifiedAndBrandCanvasPresentations()
     {
         var classicCss = ReadRepositoryFile(
             "src", "modules", "Elsa.Studio.Authentication.UI", "wwwroot", "css", "login.css");
+        var refinedSplitRazor = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicRefinedSplitLoginTheme.razor");
         var unifiedRazor = ReadRepositoryFile(
             "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicUnifiedLoginTheme.razor");
         var brandCanvasRazor = ReadRepositoryFile(
             "src", "modules", "Elsa.Studio.Authentication.UI", "Components", "Themes", "ClassicBrandCanvasLoginTheme.razor");
 
+        Assert.Contains("classic-refined-split-login-theme__brand", refinedSplitRazor, StringComparison.Ordinal);
+        Assert.Contains("classic-refined-split-login-theme__context", refinedSplitRazor, StringComparison.Ordinal);
+        Assert.Contains(".classic-refined-split-login-theme__card", classicCss, StringComparison.Ordinal);
+        Assert.Contains(".classic-refined-split-login-theme__panel", classicCss, StringComparison.Ordinal);
         Assert.Contains("classic-login-theme__handoff", unifiedRazor, StringComparison.Ordinal);
         Assert.Contains("classic-brand-canvas-login-theme__statement", brandCanvasRazor, StringComparison.Ordinal);
         Assert.Contains("classic-brand-canvas-login-theme__route", brandCanvasRazor, StringComparison.Ordinal);
         Assert.Contains(".classic-brand-canvas-login-theme__signin", classicCss, StringComparison.Ordinal);
         Assert.Contains(".classic-brand-canvas-login-theme__card", classicCss, StringComparison.Ordinal);
         Assert.Contains("@media (max-width: 820px)", classicCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuiltInCredentialLoginMethods_UseOutlinedDenseMudBlazorFields()
+    {
+        var components = new[]
+        {
+            ReadRepositoryFile(
+                "src", "modules", "Elsa.Studio.Authentication.ElsaIdentity.UI", "Components", "ElsaIdentityLoginMethod.razor"),
+            ReadRepositoryFile(
+                "src", "modules", "Elsa.Studio.ExternalAuthentication", "Components", "LoginMethods", "BrokerLocalLoginMethod.razor")
+        };
+
+        foreach (var component in components)
+        {
+            var fields = System.Text.RegularExpressions.Regex.Matches(
+                    component,
+                    @"<MudTextField\b[\s\S]*?/>",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+                .Select(match => match.Value)
+                .ToArray();
+
+            Assert.NotEmpty(fields);
+            Assert.All(fields, field =>
+            {
+                Assert.Contains("Variant=\"Variant.Outlined\"", field, StringComparison.Ordinal);
+                Assert.Contains("Margin=\"Margin.Dense\"", field, StringComparison.Ordinal);
+            });
+        }
     }
 
     private static string ReadModernThemeCss() =>

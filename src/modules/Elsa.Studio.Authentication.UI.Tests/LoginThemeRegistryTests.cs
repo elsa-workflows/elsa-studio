@@ -80,20 +80,25 @@ public class LoginThemeRegistryTests
             .Select(x => Assert.IsType<LoginThemeRegistration>(x.ImplementationInstance))
             .ToArray();
 
-        Assert.Equal(3, registrations.Length);
+        Assert.Equal(4, registrations.Length);
         Assert.Contains(registrations, x => x.Id == LoginThemeIds.Classic);
         Assert.Contains(registrations, x => x.Id == LoginThemeIds.ClassicUnified);
+        Assert.Contains(registrations, x => x.Id == LoginThemeIds.ClassicRefinedSplit);
         Assert.Contains(registrations, x => x.Id == LoginThemeIds.ClassicBrandCanvas);
         Assert.Equal(
             registrations.Single(x => x.Id == LoginThemeIds.Classic).ProviderType,
             registrations.Single(x => x.Id == LoginThemeIds.ClassicUnified).ProviderType);
         Assert.NotEqual(
             registrations.Single(x => x.Id == LoginThemeIds.Classic).ProviderType,
+            registrations.Single(x => x.Id == LoginThemeIds.ClassicRefinedSplit).ProviderType);
+        Assert.NotEqual(
+            registrations.Single(x => x.Id == LoginThemeIds.ClassicRefinedSplit).ProviderType,
             registrations.Single(x => x.Id == LoginThemeIds.ClassicBrandCanvas).ProviderType);
     }
 
     [Theory]
     [InlineData(LoginThemeIds.ClassicUnified)]
+    [InlineData(LoginThemeIds.ClassicRefinedSplit)]
     [InlineData(LoginThemeIds.ClassicBrandCanvas)]
     public void Selects_each_named_classic_presentation(string theme)
     {

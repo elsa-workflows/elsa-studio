@@ -1,21 +1,23 @@
 <div class="mud-table-pagination">
     <MudToolBar Gutters="false" Class="mud-table-pagination-toolbar">
         <MudSpacer />
-        <MudText Typo="Typo.caption" Class="mud-table-pagination-caption">Rows Per Page</MudText>
-        <MudSelect
-            T="int"
-            Value="PageSize"
-            ValueChanged="PageSizeChanged"
-            Disabled="Loading"
-            Dense="true"
-            Variant="Variant.Text"
-            Class="mud-table-pagination-select"
-            aria-label="Rows per page">
-            @foreach (var option in PageSizeOptions)
-            {
-                <MudSelectItem T="int" Value="option">@option</MudSelectItem>
-            }
-        </MudSelect>
+        <div class="mud-table-pagination-display">
+            <MudText Typo="Typo.caption" Class="mud-table-pagination-caption">Rows Per Page</MudText>
+            <MudSelect
+                T="int"
+                Value="PageSize"
+                ValueChanged="PageSizeChanged"
+                Disabled="Loading"
+                Dense="true"
+                Variant="Variant.Text"
+                Class="mud-table-pagination-select"
+                aria-label="Rows per page">
+                @foreach (var option in PageSizeOptions)
+                {
+                    <MudSelectItem T="int" Value="option">@option</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
         <MudText Typo="Typo.caption" Class="mud-table-pagination-information">Page @PageNumber</MudText>
         <div class="mud-table-pagination-actions">
             <MudIconButton

@@ -2,6 +2,7 @@ using Bunit;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Components.Operations;
+using Elsa.Studio.ExternalAuthentication.Components.Sessions;
 using Elsa.Studio.ExternalAuthentication.Models;
 using SessionsIndex = Elsa.Studio.ExternalAuthentication.Pages.Sessions.Index;
 using Elsa.Studio.ExternalAuthentication.Services;
@@ -15,6 +16,7 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Operations;
 public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
 {
     private readonly OperationsApi _operations = new();
+    private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
     private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
     public OperationsUiTests()
@@ -24,6 +26,7 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IBackendApiClientProvider>(new BackendApiClientProvider(_operations));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(new PermissionService());
         _popoverProvider = Render<MudPopoverProvider>();
+        _dialogProvider = Render<MudDialogProvider>();
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -158,6 +161,7 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("connection-1", cut.Markup);
         Assert.DoesNotContain("provider-access-token", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("external-subject", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("aria-label=\"View session session-1\"", cut.Markup, StringComparison.Ordinal);
 
         var status = cut.FindComponents<MudChip<string>>()
             .Single(chip => chip.Markup.Contains("Active", StringComparison.Ordinal));
@@ -168,6 +172,29 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Equal("Actions for session session-1", actions.Instance.AriaLabel);
         cut.Find("button[aria-label='Actions for session session-1']").Click();
         _popoverProvider.WaitForAssertion(() => Assert.Contains("Revoke", _popoverProvider.Markup, StringComparison.Ordinal));
+        Assert.Empty(_dialogProvider.FindComponents<ExternalAuthenticationSessionDetailsDialog>());
+    }
+
+    [Fact]
+    public void SessionsPage_RowClickOpensSafeSessionDetails()
+    {
+        var cut = Render<SessionsIndex>();
+        cut.WaitForAssertion(() => Assert.Contains("session-1", cut.Markup));
+
+        cut.Find("tbody tr").Click();
+
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            Assert.Single(_dialogProvider.FindComponents<ExternalAuthenticationSessionDetailsDialog>());
+            Assert.Contains("Authentication session details", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("session-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("user-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("tenant-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("connection-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("safe session metadata only", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("provider-access-token", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("external-subject", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     private static ConnectionDetail CreateConnection() => new()

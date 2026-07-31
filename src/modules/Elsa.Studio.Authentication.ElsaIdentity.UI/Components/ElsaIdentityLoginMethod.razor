@@ -8,8 +8,19 @@
 <MudPaper Outlined="true" Class="pa-4">
     <MudText Typo="Typo.h6">Elsa account</MudText>
     <MudForm @ref="_form">
-        <MudTextField @bind-Value="_username" Label="User name" autocomplete="username" Required="true" />
-        <MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" autocomplete="current-password" Required="true" />
+        <MudTextField @bind-Value="_username"
+                      Label="User name"
+                      autocomplete="username"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_password"
+                      Label="Password"
+                      InputType="InputType.Password"
+                      autocomplete="current-password"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense" />
         <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
     </MudForm>
 </MudPaper>
