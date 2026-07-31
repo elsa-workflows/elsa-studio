@@ -4,12 +4,14 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
-    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-preview1" />
+    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-preview.5397" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
+    <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="9.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" PrivateAssets="all" />
@@ -38,7 +40,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.24" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.24" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.24" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.JSInterop" Version="8.0.24" />
     <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="9.0.16" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
@@ -57,7 +59,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.16" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.18" />
     <PackageVersion Include="Microsoft.JSInterop" Version="9.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="9.0.16" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
@@ -76,7 +78,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.JSInterop" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="10.0.8" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
