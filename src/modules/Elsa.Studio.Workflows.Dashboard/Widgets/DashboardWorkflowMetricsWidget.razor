@@ -47,14 +47,14 @@
         _ => "Last 24 hours"
     };
 
-    private RenderFragment<OperationalHealthMetric> MetricContent => metric => @<>
+    private RenderFragment<OperationalHealthMetric> MetricContent => metric => @<text>
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
             <MudText Typo="Typo.overline">@metric.Label</MudText>
             <MudIcon Icon="@metric.Icon" Size="Size.Small" Color="@metric.Color" />
         </MudStack>
         <MudText Typo="Typo.h5" Color="@metric.Color" Class="dashboard-operational-health-value">@metric.Value</MudText>
         <MudText Typo="Typo.caption" Class="dashboard-operational-health-caption">@metric.Caption</MudText>
-    </>;
+    </text>;
 
     private sealed record OperationalHealthMetric(string Label, string Value, string Caption, string Icon, Color Color, string? Href = null)
     {

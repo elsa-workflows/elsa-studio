@@ -185,17 +185,13 @@
 }
 
 .studio-appbar__actions {
-    display: contents;
-}
-
-.elsa-studio-shell[data-elsa-theme="classic"] .studio-appbar__actions {
     display: flex;
     align-items: center;
     gap: var(--elsa-space-1);
     color: var(--elsa-text-muted);
 }
 
-.elsa-studio-shell[data-elsa-theme="classic"] .studio-appbar__actions :is(.mud-icon-button, .mud-button-root) {
+.studio-appbar__actions :is(.mud-icon-button, .mud-button-root) {
     color: var(--elsa-text-muted);
     border: 1px solid transparent;
     border-radius: var(--elsa-radius-sm);
@@ -205,18 +201,18 @@
         color 120ms ease;
 }
 
-.elsa-studio-shell[data-elsa-theme="classic"] .studio-appbar__actions .mud-button-outlined {
-    background: color-mix(in srgb, var(--elsa-surface-inset) 55%, transparent);
-    border-color: color-mix(in srgb, var(--elsa-border) 70%, transparent);
+.studio-appbar__actions .mud-button-outlined {
+    background: color-mix(in srgb, var(--elsa-surface-inset) 32%, transparent);
+    border-color: color-mix(in srgb, var(--elsa-border) 42%, transparent);
 }
 
-.elsa-studio-shell[data-elsa-theme="classic"] .studio-appbar__actions :is(.mud-icon-button, .mud-button-root):not(.mud-disabled):not([disabled]):hover {
+.studio-appbar__actions :is(.mud-icon-button, .mud-button-root):not(.mud-disabled):not([disabled]):hover {
     color: var(--elsa-text);
     background: color-mix(in srgb, var(--elsa-accent) 5%, var(--elsa-surface));
     border-color: color-mix(in srgb, var(--elsa-accent) 14%, transparent);
 }
 
-.elsa-studio-shell[data-elsa-theme="classic"] .studio-appbar__actions :is(.mud-icon-button, .mud-button-root):focus-visible {
+.studio-appbar__actions :is(.mud-icon-button, .mud-button-root):focus-visible {
     color: var(--elsa-text);
     outline: 2px solid color-mix(in srgb, var(--elsa-accent) 58%, transparent);
     outline-offset: 2px;
@@ -258,7 +254,8 @@
 
 .studio-nav__group-label {
     display: block;
-    padding: var(--elsa-space-6) var(--elsa-space-3) var(--elsa-space-2);
+    padding-block: var(--elsa-space-6) var(--elsa-space-2);
+    padding-inline: var(--elsa-space-4) var(--elsa-space-3);
     color: var(--elsa-text-muted);
     font-weight: 700;
     letter-spacing: 0.08em;

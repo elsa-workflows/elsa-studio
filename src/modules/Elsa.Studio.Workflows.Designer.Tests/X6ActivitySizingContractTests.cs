@@ -26,6 +26,15 @@ public sealed class X6ActivitySizingContractTests
         Assert.Contains("measurementScopeClass", calculation, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ManualResize_EnforcesAndPersistsSizeOnlyAfterTheGestureCompletes()
+    {
+        var graphCreation = ReadAsset("create-graph.ts");
+
+        Assert.Contains("graph.on('node:resized', onNodeResizeCompleted)", graphCreation, StringComparison.Ordinal);
+        Assert.DoesNotContain("graph.on('node:change:size'", graphCreation, StringComparison.Ordinal);
+    }
+
     private static string ReadAsset(string name) =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "DesignerAssets", name));
 }

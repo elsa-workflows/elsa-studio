@@ -416,31 +416,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     };
 
-    // Track if we're currently enforcing minimum size to prevent infinite loops
-    let isEnforcingMinSize = false;
-    
-    const onNodeSizeChanged = async (e: any) => {
-        // Prevent infinite loop when we programmatically resize after enforcing minimum
-        if (isEnforcingMinSize) {
-            return false;
-        }
-        
-        // Skip graph update when size was changed programmatically (e.g., from updateActivitySize during initial render).
-        // This prevents unwanted auto-saves when the server returns different sizes than what the Studio calculated.
+    const onNodeResizeCompleted = async (e: any) => {
+        // Honor graph-level suppression during internal graph mutations.
         const binding = graphBindings[graphId];
         if (binding?.suppressGraphUpdated > 0) {
             return false;
         }
         
         const node = e.node || e.cell;
-        if (node) {
-            isEnforcingMinSize = true;
-            try {
-                await enforceMinimumNodeSize(node, measurementScopeClass);
-            } finally {
-                isEnforcingMinSize = false;
-            }
-        }
+        if (node)
+            await enforceMinimumNodeSize(node, measurementScopeClass);
         
         await interop.raiseGraphUpdated();
         return false;
@@ -482,7 +467,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         await interop.raiseGraphUpdated();
         return false;
     });
-    graph.on('node:change:size', onNodeSizeChanged);
+    // The Transform plugin emits `node:change:size` for every pointer movement. Waiting for
+    // `node:resized` avoids racing X6's active gesture with asynchronous minimum-size
+    // enforcement and Blazor graph updates.
+    graph.on('node:resized', onNodeResizeCompleted);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
     graph.on('edge:vertexs:added', onGraphUpdated);
