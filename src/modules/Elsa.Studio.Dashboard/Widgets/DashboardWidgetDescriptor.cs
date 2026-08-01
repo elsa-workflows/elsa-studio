@@ -55,7 +55,11 @@ public record DashboardWidgetContext(
 public static class DashboardWidgetZones
 {
     public const string Metrics = "metrics";
+    public const string Trend = "trend";
+    public const string Activity = "activity";
     public const string Findings = "findings";
+
+    // Legacy zones remain rendered by the shell so independently deployed companion modules continue to work.
     public const string PrimaryPanels = "primary-panels";
     public const string SecondaryPanels = "secondary-panels";
     public const string DiagnosticsStatus = "diagnostics-status";
