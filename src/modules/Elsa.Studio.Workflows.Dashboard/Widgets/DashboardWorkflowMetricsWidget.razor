@@ -3,27 +3,37 @@
 @if (Context.Snapshot != null)
 {
     var metrics = Context.Snapshot.Overview.WorkflowInstances;
+    var healthMetrics = new[]
+    {
+        new OperationalHealthMetric("Running", DashboardMetricFormatter.Count(metrics.Running), "Current active instances", Icons.Material.Outlined.PlayCircle, Color.Info, DashboardNavigationTargetMapper.ForMetric("running")),
+        new OperationalHealthMetric("Completed", DashboardMetricFormatter.Count(metrics.Completed), RangeCaption, Icons.Material.Outlined.CheckCircle, Color.Success),
+        new OperationalHealthMetric("Faulted", DashboardMetricFormatter.Count(metrics.Faulted), RangeCaption, Icons.Material.Outlined.ErrorOutline, metrics.Faulted > 0 ? Color.Error : Color.Default, DashboardNavigationTargetMapper.ForMetric("faulted")),
+        new OperationalHealthMetric("Suspended", DashboardMetricFormatter.Count(metrics.Suspended), "Current suspended instances", Icons.Material.Outlined.PauseCircle, metrics.Suspended > 0 ? Color.Warning : Color.Default, DashboardNavigationTargetMapper.ForMetric("suspended")),
+        new OperationalHealthMetric("Avg duration", DashboardMetricFormatter.Duration(metrics.AverageDuration), RangeCaption, Icons.Material.Outlined.Timer, Color.Default),
+        new OperationalHealthMetric("Needs attention", DashboardMetricFormatter.Count(Context.Snapshot.NeedsAttention.Findings.Count), "Prioritized findings", Icons.Material.Outlined.ReportProblem, Context.Snapshot.NeedsAttention.Findings.Count > 0 ? Color.Warning : Color.Success)
+    };
 
-    <MudGrid Spacing="2" Class="dashboard-metrics" Style="@DashboardStyles.MetricGrid">
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Running" Value="@DashboardMetricFormatter.Count(metrics.Running)" Caption="Current active instances" Icon="@Icons.Material.Outlined.PlayCircle" Color="Color.Info" Href="@DashboardNavigationTargetMapper.ForMetric("running")" />
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Completed" Value="@DashboardMetricFormatter.Count(metrics.Completed)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" />
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Faulted" Value="@DashboardMetricFormatter.Count(metrics.Faulted)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.ErrorOutline" Color="@(metrics.Faulted > 0 ? Color.Error : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("faulted")" />
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Suspended" Value="@DashboardMetricFormatter.Count(metrics.Suspended)" Caption="Current suspended instances" Icon="@Icons.Material.Outlined.PauseCircle" Color="@(metrics.Suspended > 0 ? Color.Warning : Color.Default)" Href="@DashboardNavigationTargetMapper.ForMetric("suspended")" />
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Avg duration" Value="@DashboardMetricFormatter.Duration(metrics.AverageDuration)" Caption="@RangeCaption" Icon="@Icons.Material.Outlined.Timer" Color="Color.Default" />
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4" lg="2">
-            <DashboardMetricCard Label="Needs attention" Value="@DashboardMetricFormatter.Count(Context.Snapshot.NeedsAttention.Findings.Count)" Caption="Prioritized findings" Icon="@Icons.Material.Outlined.ReportProblem" Color="@(Context.Snapshot.NeedsAttention.Findings.Count > 0 ? Color.Warning : Color.Success)" />
-        </MudItem>
-    </MudGrid>
+    <MudPaper Outlined="true" Elevation="0" Class="dashboard-operational-health">
+        <MudText Typo="Typo.subtitle1" Class="dashboard-operational-health-heading">Operational health</MudText>
+
+        <div class="dashboard-operational-health-metrics">
+            @foreach (var metric in healthMetrics)
+            {
+                <div class="dashboard-operational-health-metric">
+                    @if (!string.IsNullOrWhiteSpace(metric.Href))
+                    {
+                        <MudLink Href="@metric.Href" Underline="Underline.None" Class="dashboard-operational-health-link" aria-label="@metric.AriaLabel">
+                            @MetricContent(metric)
+                        </MudLink>
+                    }
+                    else
+                    {
+                        @MetricContent(metric)
+                    }
+                </div>
+            }
+        </div>
+    </MudPaper>
 }
 
 @code {
@@ -36,4 +46,18 @@
         DashboardRangeKeys.SevenDays => "Last 7 days",
         _ => "Last 24 hours"
     };
+
+    private RenderFragment<OperationalHealthMetric> MetricContent => metric => @<text>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+            <MudText Typo="Typo.overline">@metric.Label</MudText>
+            <MudIcon Icon="@metric.Icon" Size="Size.Small" Color="@metric.Color" />
+        </MudStack>
+        <MudText Typo="Typo.h5" Color="@metric.Color" Class="dashboard-operational-health-value">@metric.Value</MudText>
+        <MudText Typo="Typo.caption" Class="dashboard-operational-health-caption">@metric.Caption</MudText>
+    </text>;
+
+    private sealed record OperationalHealthMetric(string Label, string Value, string Caption, string Icon, Color Color, string? Href = null)
+    {
+        public string AriaLabel => $"{Label}: {Value}. {Caption}";
+    }
 }

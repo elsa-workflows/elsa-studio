@@ -17,10 +17,13 @@ Dashboard widgets are contributed through `DashboardWidgetDescriptor`:
 Supported zones are:
 
 - `DashboardWidgetZones.Metrics`: top-level KPI bands and compact counters
+- `DashboardWidgetZones.Trend`: full-width execution charts and time-series panels
+- `DashboardWidgetZones.Activity`: primary activity tables in the 8/12 operational column
 - `DashboardWidgetZones.Findings`: prioritized status and attention panels
-- `DashboardWidgetZones.PrimaryPanels`: wide charts or primary operational panels
-- `DashboardWidgetZones.SecondaryPanels`: supporting tables and activity panels
-- `DashboardWidgetZones.DiagnosticsStatus`: diagnostics status cards and health panels
+- `DashboardWidgetZones.SecondaryPanels`: supporting panels in the 4/12 operational column
+- `DashboardWidgetZones.DiagnosticsStatus`: diagnostics status cards in the equal-width diagnostics row
+
+`PrimaryPanels` is retained as a legacy zone and is rendered with the trend row so independently deployed companion modules remain visible. New widgets should use `Trend`, `Activity`, `Findings`, `SecondaryPanels`, or `DiagnosticsStatus` according to their operational role.
 
 ## Remote-Gated Registration
 

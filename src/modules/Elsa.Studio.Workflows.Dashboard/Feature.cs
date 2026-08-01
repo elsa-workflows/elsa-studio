@@ -14,8 +14,8 @@ public class Feature(IDashboardWidgetRegistry widgetRegistry) : FeatureBase
     {
         widgetRegistry.Add(new("dashboard.workflow.metrics", DashboardWidgetZones.Metrics, 100, typeof(DashboardWorkflowMetricsWidget), "Workflow metrics", PayloadKind: "WorkflowInstances"));
         widgetRegistry.Add(new("dashboard.needs-attention", DashboardWidgetZones.Findings, 100, typeof(DashboardNeedsAttentionWidget), "Needs attention"));
-        widgetRegistry.Add(new("dashboard.workflow.trend", DashboardWidgetZones.PrimaryPanels, 100, typeof(DashboardTrendWidget), "Workflow trends", PayloadKind: "WorkflowTrends"));
-        widgetRegistry.Add(new("dashboard.workflow.recent-activity", DashboardWidgetZones.PrimaryPanels, 200, typeof(DashboardRecentActivityWidget), "Recent activity", PayloadKind: "RecentActivity"));
+        widgetRegistry.Add(new("dashboard.workflow.trend", DashboardWidgetZones.Trend, 100, typeof(DashboardTrendWidget), "Workflow trends", PayloadKind: "WorkflowTrends"));
+        widgetRegistry.Add(new("dashboard.workflow.recent-activity", DashboardWidgetZones.Activity, 100, typeof(DashboardRecentActivityWidget), "Recent activity", PayloadKind: "RecentActivity"));
         widgetRegistry.Add(new("dashboard.workflow.hotspots", DashboardWidgetZones.SecondaryPanels, 100, typeof(DashboardWorkflowHotspotsWidget), "Workflow hotspots", PayloadKind: "WorkflowHotspots"));
 
         return base.InitializeAsync(cancellationToken);
