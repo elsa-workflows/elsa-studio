@@ -36,6 +36,7 @@
       <ProjectReference Include="..\..\modules\Elsa.Studio.Alterations\Elsa.Studio.Alterations.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Dashboard\Elsa.Studio.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard\Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard\Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard\Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Localization.BlazorWasm\Elsa.Studio.Localization.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
