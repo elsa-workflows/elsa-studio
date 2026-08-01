@@ -193,6 +193,20 @@ metadata, lifecycle context, and a sensitive operational action.
   the supporting surfaces needed for context.
 - One-off CSS for spacing: use MudBlazor spacing and responsive utilities first.
 
+## Diagnostics Content
+
+- Diagnostics should contain actionable information only: what failed or is at
+  risk, why it happened, and what the operator can do next.
+- Status summaries and diagnostic details must use the same authoritative
+  result. Never show a valid/invalid badge that the Diagnostics view cannot
+  explain.
+- Omit implementation metadata such as management-contract and backend versions
+  unless it directly affects compatibility or the recommended action. Put
+  support-only metadata behind progressive disclosure or in an export.
+- Keep successful results concise. Show correlation identifiers and other
+  troubleshooting metadata as secondary, copyable details rather than primary
+  content.
+
 ## Review Checklist
 
 - Check desktop and narrow layouts.
