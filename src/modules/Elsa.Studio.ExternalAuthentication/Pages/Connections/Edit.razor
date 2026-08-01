@@ -197,34 +197,53 @@
                                 <MudGrid Spacing="3">
                                     <MudItem xs="12" md="@(_connection.IsConfigurationOwned ? 12 : 8)">
                                         <MudStack Spacing="3">
-                                            @if (_runtimeDescriptor is not null)
-                                            {
-                                                <MudPaper Outlined="true" Class="pa-3">
-                                                    <MudText Typo="Typo.body2">
-                                                        Management contract v@_runtimeDescriptor.ManagementContractVersion · Backend @_runtimeDescriptor.ProductVersion
-                                                    </MudText>
-                                                    <MudText Typo="Typo.caption">@_runtimeDescriptor.InformationalVersion</MudText>
-                                                </MudPaper>
-                                            }
-                                            else if (_runtimeDescriptorUnavailable)
-                                            {
-                                                <MudAlert Severity="Severity.Warning" Dense="true" aria-live="polite">
-                                                    Backend runtime details are unavailable. If Elsa Studio was just upgraded, restart the backend and verify that both applications use compatible builds.
-                                                </MudAlert>
-                                            }
                                             <ConnectionOperations Connection="_connection"
                                                                   Adapter="_adapter"
                                                                   ObservationRecorded="OnObservationRecordedAsync" />
-                                            @if (_validation is not null)
-                                            {
-                                                <MudAlert Severity="@(_validation.Valid ? Severity.Success : Severity.Error)">
-                                                    @(_validation.Valid ? "The current revision is structurally valid." : "The current revision has validation errors.")
-                                                    @foreach (var error in _validation.Errors)
+                                            <MudStack Spacing="2">
+                                                <MudText Typo="Typo.h6">Validation</MudText>
+                                                <MudAlert Severity="@CurrentValiditySeverity" Dense="true" aria-live="polite">
+                                                    <MudText Typo="Typo.body2">@CurrentValiditySummary</MudText>
+                                                    @if (CurrentValidationErrors.Count > 0)
                                                     {
-                                                        <div>@error.Field: @error.Message</div>
+                                                        <ul class="ma-0 mt-2 pl-4">
+                                                            @foreach (var error in CurrentValidationErrors)
+                                                            {
+                                                                <li>
+                                                                    @if (ValidationMessageIncludesField(error))
+                                                                    {
+                                                                        @error.Message
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <strong>@GetValidationFieldLabel(error.Field):</strong> @error.Message
+                                                                    }
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                    else if (CurrentRevisionIsInvalid)
+                                                    {
+                                                        <MudText Typo="Typo.caption" Class="mt-2">
+                                                            @(_validation is null
+                                                                ? "Select Validate to refresh the diagnostic details for this revision."
+                                                                : "The backend did not return validation details for this revision.")
+                                                        </MudText>
                                                     }
                                                 </MudAlert>
-                                            }
+                                                @if (CurrentValidationWarnings.Count > 0)
+                                                {
+                                                    <MudAlert Severity="Severity.Warning" Dense="true">
+                                                        <MudText Typo="Typo.body2">Validation warnings</MudText>
+                                                        <ul class="ma-0 mt-2 pl-4">
+                                                            @foreach (var warning in CurrentValidationWarnings)
+                                                            {
+                                                                <li>@warning</li>
+                                                            }
+                                                        </ul>
+                                                    </MudAlert>
+                                                }
+                                            </MudStack>
                                         </MudStack>
                                     </MudItem>
                                     @if (!_connection.IsConfigurationOwned)
@@ -295,8 +314,6 @@
     private ICollection<ExternalUserMatcherDescriptor> _matcherDescriptors = [];
     private ICollection<IdentityRoleOption> _roleOptions = [];
     private ICollection<ManagedSecretResolverDescriptor> _managedSecretResolvers = [];
-    private ExternalAuthenticationRuntimeDescriptor? _runtimeDescriptor;
-    private bool _runtimeDescriptorUnavailable;
     private string? _roleOptionsError;
     private string? _managedSecretResolverError;
     private ConnectionMutation? _model;
@@ -341,6 +358,49 @@
         !_adapter.Fields.SelectMany(descriptor => DescriptorEditorState.Validate(descriptor, _model.AdapterSettings)).Any() &&
         (!_adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, _model.AdapterSettings)) ||
          _canConfigureUnsafeSettings && _model.ConfirmUnsafeSettings);
+    private bool CurrentRevisionIsValid => string.Equals(_connection?.Validity, "valid", StringComparison.OrdinalIgnoreCase);
+    private bool CurrentRevisionIsInvalid => string.Equals(_connection?.Validity, "invalid", StringComparison.OrdinalIgnoreCase);
+    private IReadOnlyCollection<ConnectionValidationMessage> CurrentValidationErrors =>
+        (_connection?.ValidationErrors ?? [])
+        .Concat(CurrentRevisionIsValid ? [] : _validation?.Errors ?? [])
+        .GroupBy(error => (error.Field, error.Code, error.Message))
+        .Select(group => group.First())
+        .ToArray();
+    private IReadOnlyCollection<string> CurrentValidationWarnings =>
+        (_connection?.ValidationWarnings ?? [])
+        .Concat(_validation?.Warnings ?? [])
+        .Where(warning => !string.IsNullOrWhiteSpace(warning))
+        .Distinct(StringComparer.Ordinal)
+        .ToArray();
+    private Severity CurrentValiditySeverity => CurrentRevisionIsInvalid
+        ? Severity.Error
+        : CurrentRevisionIsValid
+            ? Severity.Success
+            : CurrentValidationErrors.Count > 0
+                ? Severity.Error
+                : Severity.Info;
+    private string CurrentValiditySummary => CurrentRevisionIsInvalid
+        ? "The current revision is invalid."
+        : CurrentRevisionIsValid
+            ? "The current revision is valid."
+            : CurrentValidationErrors.Count > 0
+                ? "Validation found issues, but the current revision status could not be confirmed."
+                : "The current revision has not been validated.";
+    private string GetValidationFieldLabel(string field)
+    {
+        if (string.IsNullOrWhiteSpace(field))
+            return "Connection";
+
+        var fieldName = field.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? field;
+        return fieldName switch
+        {
+            "displayName" => "Display name",
+            "key" => "Connection key",
+            _ => _adapter?.Fields.FirstOrDefault(descriptor => string.Equals(descriptor.Name, fieldName, StringComparison.Ordinal))?.DisplayName ?? field
+        };
+    }
+    private bool ValidationMessageIncludesField(ConnectionValidationMessage error) =>
+        error.Message.StartsWith(GetValidationFieldLabel(error.Field), StringComparison.OrdinalIgnoreCase);
     private int DiagnosticsTabIndex => _customEditorType is null ? 3 : 2;
     private bool CanToggleEnabled => _connection is not null && ConnectionActionAvailability.CanEnableOrDisable(_connection, _canUpdate);
     private string CurrentConnectionId => ConnectionId ?? _connection?.Id ?? string.Empty;
@@ -399,7 +459,6 @@
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionsApi>();
-            await LoadRuntimeDescriptorAsync(api);
             _adapters = await api.GetAdaptersAsync();
             _policyDescriptors = await api.GetPoliciesAsync();
             _matcherDescriptors = await api.GetUserMatchersAsync();
@@ -491,20 +550,6 @@
 
     private void ManageExistingStudioOverride() =>
         Navigation.NavigateTo($"security/external-authentication/connections/{Uri.EscapeDataString(_existingStudioOverrideId!)}");
-
-    private async Task LoadRuntimeDescriptorAsync(IExternalAuthenticationConnectionsApi api)
-    {
-        try
-        {
-            _runtimeDescriptor = await api.GetRuntimeAsync();
-            _runtimeDescriptorUnavailable = false;
-        }
-        catch
-        {
-            _runtimeDescriptor = null;
-            _runtimeDescriptorUnavailable = true;
-        }
-    }
 
     private async Task LoadRoleOptionsAsync()
     {

@@ -30,10 +30,11 @@
     else if (IsTagsField)
     {
         <MudStack Spacing="1">
-            <MudStack Row="true" AlignItems="AlignItems.End">
+            <MudStack Row="true" AlignItems="AlignItems.Start">
                 <MudTextField T="string"
                               Value="@_pendingArrayValue"
                               ValueChanged="@SetPendingArrayValue"
+                              OnKeyDown="@OnPendingArrayValueKeyDownAsync"
                               Label="@Field.DisplayName"
                               HelperText="@TagsHelpText"
                               ReadOnly="@IsReadOnly"
@@ -102,7 +103,7 @@
     [Parameter] public EventCallback Changed { get; set; }
 
     private string? HelpText => Field.HelpText ?? Field.Description;
-    private string TagsHelpText => string.IsNullOrWhiteSpace(HelpText) ? "Enter a value, then select Add." : $"{HelpText} Enter a value, then select Add.";
+    private string TagsHelpText => string.IsNullOrWhiteSpace(HelpText) ? "Enter a value, then press Enter or select Add." : $"{HelpText} Enter a value, then press Enter or select Add.";
     private string? _inputError;
     private string _pendingArrayValue = string.Empty;
     private bool IsReadOnly => ReadOnly || Field.IsReadOnly;
@@ -168,6 +169,9 @@
     }
 
     private void SetPendingArrayValue(string value) => _pendingArrayValue = value;
+
+    private Task OnPendingArrayValueKeyDownAsync(KeyboardEventArgs args) =>
+        args.Key == "Enter" ? AddStringArrayValueAsync() : Task.CompletedTask;
 
     private async Task AddStringArrayValueAsync()
     {

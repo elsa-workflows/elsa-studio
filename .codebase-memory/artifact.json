@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "5507cc87d174cfe48b75e36ce09f585d52d6d6ca",
-    "indexed_at": "2026-08-01T22:07:12Z",
+    "commit": "56f34e546bd5c453ce28f6bc0261b0e58a82cded",
+    "indexed_at": "2026-08-01T22:07:51Z",
     "project": "Users-sipke-Projects-Elsa-elsa-studio",
     "nodes": 14611,
     "edges": 36157,
     "original_size": 38207488,
-    "compressed_size": 5687292,
+    "compressed_size": 5687283,
     "compression_level": 3
 }

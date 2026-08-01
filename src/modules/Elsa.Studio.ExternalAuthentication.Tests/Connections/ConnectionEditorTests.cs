@@ -151,22 +151,22 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     [Fact]
     public void TagsArrayField_AllowsAddingAValueWhenNoOptionsAreProvided()
     {
-        var settings = new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.Ordinal)
-        {
-            ["scopes"] = System.Text.Json.JsonSerializer.SerializeToElement(Array.Empty<string>())
-        };
-        var cut = Render<DescriptorField>(parameters => parameters
-            .Add(component => component.Field, new ConnectionFieldDescriptor
-            {
-                Name = "scopes",
-                DisplayName = "Scopes",
-                ValueType = "string-array",
-                UiHint = "tags"
-            })
-            .Add(component => component.Settings, settings));
+        var (cut, settings) = RenderTagsArrayField();
 
         cut.Find("input").Input("email");
         cut.FindAll("button").Single(button => button.TextContent.Contains("Add", StringComparison.Ordinal)).Click();
+
+        Assert.Equal(["email"], settings["scopes"].EnumerateArray().Select(item => item.GetString()));
+        Assert.Equal(AlignItems.Start, cut.FindComponents<MudStack>().Single(stack => stack.Instance.Row).Instance.AlignItems);
+    }
+
+    [Fact]
+    public void TagsArrayField_AddsPendingValueWhenEnterIsPressed()
+    {
+        var (cut, settings) = RenderTagsArrayField();
+
+        cut.Find("input").Input("email");
+        cut.Find("input").KeyDown(Key.Enter);
 
         Assert.Equal(["email"], settings["scopes"].EnumerateArray().Select(item => item.GetString()));
     }
@@ -652,6 +652,75 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void InvalidConnection_ShowsAuthoritativeReasonsInDiagnosticsWithoutRevalidation()
+    {
+        var connection = CreateConnection();
+        connection.Validity = "invalid";
+        connection.ValidationErrors =
+        [
+            new ConnectionValidationMessage
+            {
+                Field = "adapterSettings.authority",
+                Code = "invalid",
+                Message = "Authority could not be resolved."
+            }
+        ];
+        connection.ValidationWarnings = ["Provider metadata omitted an optional capability."];
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Invalid", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            var diagnostics = cut.Find(".connection-workspace__diagnostics").TextContent;
+            Assert.Contains("The current revision is invalid.", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("Authority could not be resolved.", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("Provider metadata omitted an optional capability.", diagnostics, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void ValidationResponseCannotContradictAuthoritativeRevisionStatus()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        var invalid = CreateConnection();
+        invalid.Validity = "invalid";
+        invalid.ValidationErrors =
+        [
+            new ConnectionValidationMessage
+            {
+                Field = "adapterSettings.authority",
+                Code = "invalid",
+                Message = "Authority could not be resolved."
+            }
+        ];
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(invalid);
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult { Valid = true };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Invalid", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            var diagnostics = cut.Find(".connection-workspace__diagnostics").TextContent;
+            Assert.Contains("The current revision is invalid.", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("Authority could not be resolved.", diagnostics, StringComparison.Ordinal);
+            Assert.DoesNotContain("structurally valid", diagnostics, StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
+    [Fact]
     public void SuccessfulValidation_RefreshesStatusAndEnablesTheConnection()
     {
         var initial = CreateConnection();
@@ -679,7 +748,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
             Assert.Equal("Unsaved display name", cut.FindComponent<ConnectionEditor>().Instance.Model.DisplayName);
             Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
-            Assert.Contains("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.Contains("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             var enable = cut.Find(".connection-workspace__diagnostics")
                 .QuerySelectorAll("button")
                 .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
@@ -708,7 +777,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         {
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
             Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
-            Assert.DoesNotContain("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             var enable = cut.Find(".connection-workspace__diagnostics")
                 .QuerySelectorAll("button")
                 .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
@@ -741,7 +810,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         {
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
             Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
-            Assert.DoesNotContain("The current revision is structurally valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.DoesNotContain("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.Contains(
                 "changed while it was being validated",
                 Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message,
@@ -948,27 +1017,20 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task Diagnostics_ShowsTheBackendManagementContractAndBuild()
+    public async Task Diagnostics_OmitsBackendBuildMetadataAndDoesNotLoadIt()
     {
         var connection = CreateConnection();
         _api.GetResult = connection;
         _api.Adapters = [CreateAdapter()];
-        _api.Runtime = new ExternalAuthenticationRuntimeDescriptor
-        {
-            ManagementContractVersion = 1,
-            ProductVersion = "3.8.0",
-            InformationalVersion = "3.8.0+abcdef"
-        };
-
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
         var tabs = cut.FindComponent<MudTabs>();
         await cut.InvokeAsync(() => tabs.Instance.ActivatePanelAsync(3));
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Management contract v1", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Backend 3.8.0", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("3.8.0+abcdef", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Management contract", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("Backend test", cut.Markup, StringComparison.Ordinal);
+            Assert.Equal(0, _api.RuntimeRequests);
         });
     }
 
@@ -2190,6 +2252,25 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         return await Refit.ApiException.Create(request, HttpMethod.Post, response, new Refit.RefitSettings());
     }
 
+    private (IRenderedComponent<DescriptorField> Component, Dictionary<string, JsonElement> Settings) RenderTagsArrayField()
+    {
+        var settings = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["scopes"] = JsonSerializer.SerializeToElement(Array.Empty<string>())
+        };
+        var component = Render<DescriptorField>(parameters => parameters
+            .Add(field => field.Field, new ConnectionFieldDescriptor
+            {
+                Name = "scopes",
+                DisplayName = "Scopes",
+                ValueType = "string-array",
+                UiHint = "tags"
+            })
+            .Add(field => field.Settings, settings));
+
+        return (component, settings);
+    }
+
     private static ConnectionDetail CreateConnection(string source = "database") => new()
     {
         Id = "connection-1",
@@ -2404,6 +2485,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public ICollection<IdentityRoleOption> Roles { get; set; } = [];
         public ICollection<ManagedSecretResolverDescriptor> ManagedSecretResolvers { get; set; } =
             [new() { Type = "elsa-secrets", DisplayName = "Elsa Secrets" }];
+        public int RuntimeRequests { get; private set; }
         public ConnectionValidationResult ValidationResult { get; set; } = new() { Valid = true };
         public Exception? CreateException { get; set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
@@ -2431,8 +2513,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             GetRequests.Add(connectionId);
             return Task.FromResult(GetResults.TryDequeue(out var result) ? result : GetResult ?? throw new NotSupportedException());
         }
-        public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(Runtime ?? throw new NotSupportedException());
+        public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default)
+        {
+            RuntimeRequests++;
+            return Task.FromResult(Runtime ?? throw new NotSupportedException());
+        }
         public Task<ICollection<AdapterDescriptor>> GetAdaptersAsync(CancellationToken cancellationToken = default) => Task.FromResult(Adapters);
         public Task<ICollection<PermissionGrantSourceDescriptor>> GetPermissionSourcesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ICollection<UnlinkedIdentityPolicyDescriptor>> GetPoliciesAsync(CancellationToken cancellationToken = default) => Task.FromResult(Policies);
