@@ -16,8 +16,7 @@ See [the Studio migration guide](../../../docs/migrations/external-authenticatio
 The shared module contributes:
 
 - `/login` is owned by `Elsa.Studio.Authentication.UI`; this module contributes local-broker and external-provider methods.
-- `/settings/sso-connections` for connection management.
-- `/security/external-authentication` remains a compatibility alias for connection management.
+- `/security/external-authentication/connections` for identity provider connection management.
 - `/security/external-authentication/identity-links` for tenant-scoped prelink and unlink operations.
 - `/security/external-authentication/sessions` for optional session list and revocation.
 

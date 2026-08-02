@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.Extensions;
 using Elsa.Studio.ExternalAuthentication.BlazorWasm.Models;
@@ -208,7 +209,7 @@ public class ExternalAuthenticationWasmTests
     {
         var store = new BrowserExternalAuthenticationTokenStore(new ThrowingJsRuntime(), new());
         await store.SetAsync(Tokens());
-        var broker = new RecordingBrokerApi { LogoutResponse = new(false, "/elsa/api/external-authentication/logout/continue/one-time", null) };
+        var broker = new RecordingBrokerApi { LogoutResponse = new(false, "/external-authentication/logout/continue/one-time", null) };
         var tokenProvider = CreateTokenProvider(store, broker);
         var navigation = new TestNavigationManager();
         var service = new ExternalAuthenticationWasmLogoutService(new FakeAnonymousBackendApiClientProvider(broker), tokenProvider, navigation, Options());
@@ -219,6 +220,40 @@ public class ExternalAuthenticationWasmTests
         Assert.StartsWith("Bearer ", broker.LogoutAuthorization, StringComparison.Ordinal);
         Assert.Null(await store.GetAsync());
         Assert.Equal("https://elsa.example/elsa/api/external-authentication/logout/continue/one-time", navigation.LastNavigation);
+    }
+
+    [Fact]
+    public async Task ExternalLoginPreservesBackendPathWhenBaseUrlHasNoTrailingSlash()
+    {
+        var broker = new RecordingBrokerApi();
+        var backend = new FakeAnonymousBackendApiClientProvider(
+            broker,
+            new Uri("https://elsa.example/elsa/api"));
+        var navigation = new TestNavigationManager();
+        var pkce = new BrowserExternalAuthenticationPkceService(
+            new BrowserStorageJsRuntime(),
+            new RecordingTransactionStore(null));
+        var coordinator = new ExternalAuthenticationWasmLoginCoordinator(
+            backend,
+            pkce,
+            navigation,
+            Options());
+        var method = new LoginMethodDescriptor(
+            "keycloak-workforce",
+            "keycloak-workforce",
+            "external",
+            "Keycloak",
+            null,
+            0,
+            false,
+            "/external-authentication/authorize/keycloak-workforce");
+
+        await coordinator.BeginExternalAsync(method, "/");
+
+        Assert.StartsWith(
+            "https://elsa.example/elsa/api/external-authentication/authorize/keycloak-workforce?",
+            navigation.LastNavigation,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -301,9 +336,11 @@ public class ExternalAuthenticationWasmTests
         }
     }
 
-    private sealed class FakeAnonymousBackendApiClientProvider(IExternalAuthenticationBrokerApi broker) : IAnonymousBackendApiClientProvider
+    private sealed class FakeAnonymousBackendApiClientProvider(
+        IExternalAuthenticationBrokerApi broker,
+        Uri? url = null) : IAnonymousBackendApiClientProvider
     {
-        public Uri Url { get; } = new("https://elsa.example/elsa/api/");
+        public Uri Url { get; } = url ?? new("https://elsa.example/elsa/api/");
         public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class => new((T)broker);
     }
 

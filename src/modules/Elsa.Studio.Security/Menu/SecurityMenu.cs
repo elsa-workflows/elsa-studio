@@ -29,11 +29,11 @@ public class SecurityMenu(IEnumerable<ISecurityMenuContributor> contributors) : 
         [
             new()
             {
-                Icon = Icons.Material.Filled.Security,
+                Icon = Icons.Material.Filled.ManageAccounts,
                 Href = children[0].Href,
-                Text = "Security",
-                GroupName = MenuItemGroups.Settings.Name,
-                Order = 950,
+                Text = "Identity & access",
+                GroupName = MenuItemGroups.Administration.Name,
+                Order = 100,
                 SubMenuItems = children
             }
         ];

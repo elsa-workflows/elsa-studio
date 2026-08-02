@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.BlazorServer.Services;
 using Elsa.Studio.ExternalAuthentication.Client;
@@ -20,6 +21,9 @@ public sealed class ExternalAuthenticationController(
     ServerExternalAuthenticationStateProvider authenticationStateProvider,
     ExternalAuthenticationClientOptions options) : Controller
 {
+    private const string SignInPurpose = "sign-in";
+    private const string LocalSignInPurpose = "local-sign-in";
+
     [HttpGet("login/{connectionKey}")]
     [AllowAnonymous]
     public IActionResult Login(string connectionKey, [FromQuery] string? returnPath)
@@ -32,7 +36,9 @@ public sealed class ExternalAuthenticationController(
         var state = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
         transactionStore.Store(Response, new(state, verifier, LocalReturnPath.Normalize(returnPath), DateTimeOffset.UtcNow.AddMinutes(10)));
 
-        var authorizationUri = new Uri(anonymousBackendApiClientProvider.Url, $"external-authentication/authorize/{Uri.EscapeDataString(connectionKey)}");
+        var authorizationUri = BackendUriResolver.Resolve(
+            anonymousBackendApiClientProvider.Url,
+            $"external-authentication/authorize/{Uri.EscapeDataString(connectionKey)}");
         var redirect = QueryHelpers.AddQueryString(authorizationUri.ToString(), new Dictionary<string, string?>
         {
             ["client_id"] = options.ClientId,
@@ -51,15 +57,19 @@ public sealed class ExternalAuthenticationController(
     public async Task<IActionResult> Callback([FromQuery] string? code, [FromQuery] string? state, [FromQuery] string? error, CancellationToken cancellationToken)
     {
         if (!transactionStore.TryTake(Request, Response, out var transaction) ||
-            !string.Equals(transaction.Purpose, "sign-in", StringComparison.Ordinal) ||
+            transaction.Purpose is not (SignInPurpose or LocalSignInPurpose) ||
             string.IsNullOrWhiteSpace(state) || !StateMatches(state, transaction.State))
             return Redirect(ChooserUrl("/"));
 
+        var failureCode = transaction.Purpose == LocalSignInPurpose
+            ? LoginFailureCodes.SignInFailed
+            : LoginFailureCodes.ExternalSignInFailed;
+
         if (!string.IsNullOrWhiteSpace(error))
-            return Redirect(ChooserUrl(transaction.ReturnPath));
+            return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
 
         if (string.IsNullOrWhiteSpace(code))
-            return Redirect(ChooserUrl(transaction.ReturnPath));
+            return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
 
         try
         {
@@ -74,7 +84,7 @@ public sealed class ExternalAuthenticationController(
         }
         catch
         {
-            return Redirect(ChooserUrl(transaction.ReturnPath));
+            return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
         }
     }
 
@@ -87,7 +97,12 @@ public sealed class ExternalAuthenticationController(
         var callbackUri = AbsolutePath(options.CallbackPath);
         var verifier = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(48));
         var state = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
-        var transaction = new ServerExternalAuthenticationTransaction(state, verifier, LocalReturnPath.Normalize(returnPath), DateTimeOffset.UtcNow.AddMinutes(10));
+        var transaction = new ServerExternalAuthenticationTransaction(
+            state,
+            verifier,
+            LocalReturnPath.Normalize(returnPath),
+            DateTimeOffset.UtcNow.AddMinutes(10),
+            LocalSignInPurpose);
         transactionStore.Store(Response, transaction);
 
         try
@@ -104,12 +119,12 @@ public sealed class ExternalAuthenticationController(
                 password ?? string.Empty,
                 state), cancellationToken);
             if (!Uri.TryCreate(response.RedirectUri, UriKind.Absolute, out var redirectUri) || !string.Equals(redirectUri.GetLeftPart(UriPartial.Path), callbackUri, StringComparison.Ordinal))
-                return Redirect(ChooserUrl(transaction.ReturnPath));
+                return Redirect(ChooserUrl(transaction.ReturnPath, LoginFailureCodes.SignInFailed));
             return Redirect(redirectUri.PathAndQuery);
         }
         catch
         {
-            return Redirect(ChooserUrl(transaction.ReturnPath));
+            return Redirect(ChooserUrl(transaction.ReturnPath, LoginFailureCodes.SignInFailed));
         }
     }
 
@@ -159,7 +174,19 @@ public sealed class ExternalAuthenticationController(
     }
 
     private string AbsolutePath(string path) => $"{Request.Scheme}://{Request.Host}{path}";
-    private string ChooserUrl(string? returnPath) => QueryHelpers.AddQueryString("/login", new Dictionary<string, string?> { ["choose"] = "true", ["returnPath"] = LocalReturnPath.Normalize(returnPath) });
+    private string ChooserUrl(string? returnPath, string? error = null)
+    {
+        var query = new Dictionary<string, string?>
+        {
+            ["choose"] = "true",
+            ["returnPath"] = LocalReturnPath.Normalize(returnPath)
+        };
+
+        if (!string.IsNullOrWhiteSpace(error))
+            query["error"] = error;
+
+        return QueryHelpers.AddQueryString("/login", query);
+    }
 
     private string? BasicAuthorization()
     {
@@ -173,11 +200,10 @@ public sealed class ExternalAuthenticationController(
         navigationUri = default!;
         if (string.IsNullOrWhiteSpace(navigationUrl))
             return false;
-        var backend = anonymousBackendApiClientProvider.Url;
-        if (!Uri.TryCreate(backend, navigationUrl, out var candidate) ||
-            !string.Equals(candidate.Scheme, backend.Scheme, StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(candidate.Host, backend.Host, StringComparison.OrdinalIgnoreCase) ||
-            candidate.Port != backend.Port)
+        if (!BackendUriResolver.TryResolveSameOrigin(
+                anonymousBackendApiClientProvider.Url,
+                navigationUrl,
+                out var candidate))
             return false;
         navigationUri = candidate;
         return true;

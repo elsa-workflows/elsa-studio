@@ -18,6 +18,17 @@ public sealed class ExternalAuthenticationSecurityMenuContributor(
             return [];
 
         var items = new List<MenuItem>();
+        if (await permissions.HasAsync(ExternalAuthenticationPermissions.Read, cancellationToken))
+        {
+            items.Add(new()
+            {
+                Icon = Icons.Material.Filled.AdminPanelSettings,
+                Href = "security/external-authentication/connections",
+                Text = "Identity provider connections",
+                Order = 100
+            });
+        }
+
         if (await permissions.HasAsync(ExternalAuthenticationPermissions.ManageLinks, cancellationToken))
         {
             items.Add(new()
@@ -25,7 +36,7 @@ public sealed class ExternalAuthenticationSecurityMenuContributor(
                 Icon = Icons.Material.Filled.Link,
                 Href = "security/external-authentication/identity-links",
                 Text = "External identity links",
-                Order = 100
+                Order = 200
             });
         }
 
@@ -36,7 +47,7 @@ public sealed class ExternalAuthenticationSecurityMenuContributor(
                 Icon = Icons.Material.Filled.Devices,
                 Href = "security/external-authentication/sessions",
                 Text = "Authentication sessions",
-                Order = 200
+                Order = 300
             });
         }
 

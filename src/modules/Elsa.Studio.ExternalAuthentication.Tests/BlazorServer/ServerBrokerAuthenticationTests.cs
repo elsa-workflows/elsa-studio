@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using Elsa.Studio.ExternalAuthentication.BlazorServer.Extensions;
 using Elsa.Studio.ExternalAuthentication.BlazorServer.Services;
@@ -15,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System.Net;
 using Xunit;
 
 namespace Elsa.Studio.ExternalAuthentication.Tests.BlazorServer;
@@ -104,6 +104,34 @@ public sealed class ServerBrokerAuthenticationTests
     }
 
     [Fact]
+    public async Task LocalLogin_WhenTheBrokerRejectsCredentials_RedirectsToChooserWithASafeErrorOutcome()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("studio.example.test");
+        var options = new ExternalAuthenticationClientOptions { ClientId = "studio-server", ClientSecret = "secret" };
+        var anonymous = new FakeAnonymousBackendApiClientProvider(new FakeBrokerApi(throwsOnLocalAuthorization: true));
+        var stateProvider = new ServerExternalAuthenticationStateProvider(
+            new HttpContextAccessor { HttpContext = context },
+            anonymous,
+            new ServerExternalAuthenticationRefreshCoordinator(),
+            options);
+        var controller = CreateController(
+            context,
+            anonymous,
+            new FakeTransactionStore(new("state", "verifier", "/workflows", DateTimeOffset.UtcNow.AddMinutes(1))),
+            stateProvider,
+            options);
+
+        var result = await controller.LocalLogin("admin", "wrong-password", "/workflows", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Contains("choose=true", redirect.Url);
+        Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
+        Assert.Contains("error=sign_in_failed", redirect.Url);
+    }
+
+    [Fact]
     public void PrincipalFactory_PreservesElsaPermissionClaims()
     {
         const string token = "header.eyJzdWIiOiIxIiwicGVybWlzc2lvbnMiOlsid29ya2Zsb3dzOnJlYWQiXX0.signature";
@@ -162,6 +190,33 @@ public sealed class ServerBrokerAuthenticationTests
         var redirect = Assert.IsType<RedirectResult>(result);
         Assert.Contains("choose=true", redirect.Url);
         Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
+        Assert.Contains("error=external_sign_in_failed", redirect.Url);
+    }
+
+    [Fact]
+    public async Task LocalLoginCallbackError_ReturnsToChooserWithASafeErrorOutcome()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("studio.example.test");
+        var accessor = new HttpContextAccessor { HttpContext = context };
+        var options = new ExternalAuthenticationClientOptions { ClientId = "studio-server", ClientSecret = "secret" };
+        var anonymous = new FakeAnonymousBackendApiClientProvider();
+        var stateProvider = new ServerExternalAuthenticationStateProvider(
+            accessor,
+            anonymous,
+            new ServerExternalAuthenticationRefreshCoordinator(),
+            options);
+        var transactionStore = new FakeTransactionStore(
+            new("state", "verifier", "/workflows", DateTimeOffset.UtcNow.AddMinutes(1), "local-sign-in"));
+        var controller = CreateController(context, anonymous, transactionStore, stateProvider, options);
+
+        var result = await controller.Callback(code: null, state: "state", error: "access_denied", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Contains("choose=true", redirect.Url);
+        Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
+        Assert.Contains("error=sign_in_failed", redirect.Url);
     }
 
     [Fact]
@@ -256,7 +311,7 @@ public sealed class ServerBrokerAuthenticationTests
     }
 
     [Fact]
-    public async Task UpstreamLogout_UsesOnlyBackendNavigationAndProtectsTheReturnPath()
+    public async Task UpstreamLogout_PreservesBackendPathAndProtectsTheReturnPath()
     {
         var ticket = CreateCurrentTicket();
         var authentication = new RecordingAuthenticationService(ticket);
@@ -272,7 +327,7 @@ public sealed class ServerBrokerAuthenticationTests
         var result = await controller.Logout("upstream", "/workflows", CancellationToken.None);
 
         var redirect = Assert.IsType<RedirectResult>(result);
-        Assert.Equal("https://elsa.example.test/external-authentication/logout/continue/opaque", redirect.Url);
+        Assert.Equal("https://elsa.example.test/elsa/api/external-authentication/logout/continue/opaque", redirect.Url);
         Assert.Equal("logout", transactions.Stored!.Purpose);
         Assert.Equal("/workflows", transactions.Stored.ReturnPath);
 
@@ -297,6 +352,36 @@ public sealed class ServerBrokerAuthenticationTests
 
         Assert.Equal("/workflows", Assert.IsType<LocalRedirectResult>(result).Url);
         Assert.Null(transactions.Stored);
+    }
+
+    [Fact]
+    public void Login_PreservesBackendPathWhenBaseUrlHasNoTrailingSlash()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("studio.example.test");
+        var options = Options();
+        var anonymous = new FakeAnonymousBackendApiClientProvider(
+            url: new Uri("https://elsa.example.test/elsa/api"));
+        var state = new ServerExternalAuthenticationStateProvider(
+            new HttpContextAccessor { HttpContext = context },
+            anonymous,
+            new ServerExternalAuthenticationRefreshCoordinator(),
+            options);
+        var controller = CreateController(
+            context,
+            anonymous,
+            new FakeTransactionStore(new("unused", "", "/", DateTimeOffset.UtcNow.AddMinutes(1))),
+            state,
+            options);
+
+        var result = controller.Login("keycloak-workforce", "/");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var redirectUri = new Uri(redirect.Url!);
+        Assert.Equal(
+            "/elsa/api/external-authentication/authorize/keycloak-workforce",
+            redirectUri.AbsolutePath);
     }
 
     private static ExternalAuthenticationClientOptions Options() => new() { ClientId = "studio-server", ClientSecret = "secret" };
@@ -349,20 +434,28 @@ public sealed class ServerBrokerAuthenticationTests
         }
     }
 
-    private sealed class FakeAnonymousBackendApiClientProvider(IExternalAuthenticationBrokerApi? broker = null) : IAnonymousBackendApiClientProvider
+    private sealed class FakeAnonymousBackendApiClientProvider(
+        IExternalAuthenticationBrokerApi? broker = null,
+        Uri? url = null) : IAnonymousBackendApiClientProvider
     {
-        public Uri Url { get; } = new("https://elsa.example.test/elsa/api/");
+        public Uri Url { get; } = url ?? new("https://elsa.example.test/elsa/api/");
         public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class =>
             ValueTask.FromResult((T)(object)(broker ?? new FakeBrokerApi()));
     }
 
-    private sealed class FakeBrokerApi(TimeSpan? delay = null, bool throwsOnExchange = false) : IExternalAuthenticationBrokerApi
+    private sealed class FakeBrokerApi(
+        TimeSpan? delay = null,
+        bool throwsOnExchange = false,
+        bool throwsOnLocalAuthorization = false) : IExternalAuthenticationBrokerApi
     {
         public BrokerTokenRequest? ExchangeRequest { get; private set; }
         public string? ExchangeAuthorization { get; private set; }
         public int ExchangeCalls { get; private set; }
         public BrokerLogoutResponse? LogoutResult { get; init; }
-        public Task<LocalBrokerAuthorizationResponse> AuthorizeLocalAsync(LocalBrokerAuthorizationRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<LocalBrokerAuthorizationResponse> AuthorizeLocalAsync(LocalBrokerAuthorizationRequest request, CancellationToken cancellationToken = default) =>
+            throwsOnLocalAuthorization
+                ? Task.FromException<LocalBrokerAuthorizationResponse>(new HttpRequestException())
+                : Task.FromException<LocalBrokerAuthorizationResponse>(new NotSupportedException());
         public async Task<BrokerTokenResponse> ExchangeAsync(BrokerTokenRequest request, string? authorization = null, CancellationToken cancellationToken = default)
         {
             ExchangeRequest = request;

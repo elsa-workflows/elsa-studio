@@ -6,4 +6,5 @@ namespace Elsa.Studio.Authentication.Abstractions.Models;
 public static class LoginFailureCodes
 {
     public const string SignInFailed = "sign_in_failed";
+    public const string ExternalSignInFailed = "external_sign_in_failed";
 }

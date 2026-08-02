@@ -10,6 +10,7 @@ using Elsa.Studio.ExternalAuthentication.Models;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -63,6 +64,34 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             Assert.Contains("Sign in with Contoso", cut.Markup);
         });
         Assert.Equal(0, coordinator.ExternalBegins);
+    }
+
+    [Fact]
+    public void ExternalMethods_RenderAsAThemeableProviderList()
+    {
+        Register(new(
+        [
+            Method("general", "General", "external", 0, isDefault: true, iconId: "building"),
+            Method("workforce", "Workforce", "external", 1, iconId: "microsoft")
+        ], "general"));
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var list = cut.Find(".elsa-login-panel__external-methods");
+            var rows = list.QuerySelectorAll(".elsa-login-panel__method--external");
+
+            Assert.Equal(2, rows.Length);
+            Assert.All(rows, row => Assert.NotNull(row.QuerySelector("button.elsa-login-method-button")));
+            Assert.Contains("Preferred", rows[0].TextContent);
+            Assert.Equal(
+                "Sign in with General",
+                rows[0].QuerySelector("button")?.GetAttribute("aria-label"));
+            Assert.Equal(
+                "Sign in with Workforce",
+                rows[1].QuerySelector("button")?.GetAttribute("aria-label"));
+        });
     }
 
     [Fact]
@@ -120,6 +149,11 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             Assert.Equal(2, form.QuerySelectorAll(".mud-input-control").Length);
             Assert.NotNull(form.QuerySelector("input[name='username'][autocomplete='username']"));
             Assert.NotNull(form.QuerySelector("input[name='password'][type='password'][autocomplete='current-password']"));
+            Assert.All(cut.FindComponents<MudTextField<string>>(), field =>
+            {
+                Assert.Equal(Variant.Outlined, field.Instance.Variant);
+                Assert.Equal(Margin.Dense, field.Instance.Margin);
+            });
         });
     }
 
@@ -132,10 +166,51 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
 
         var cut = RenderLoginPage();
         cut.WaitForAssertion(() => Assert.Contains("Sign in with Contoso", cut.Markup));
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Sign in with Contoso", StringComparison.Ordinal)).Click();
+        cut.Find("button[aria-label='Sign in with Contoso']").Click();
 
         cut.WaitForAssertion(() =>
             Assert.Contains("selected sign-in method is unavailable", cut.Markup, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void LocalSignInFailureFromTheServer_IsPresentedWhileKeepingMethodsAvailableForRetry()
+    {
+        Register(new(
+        [
+            Method("local", "Elsa account", "local", 0),
+            Method("contoso", "Contoso", "external", 1)
+        ], null));
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/login?choose=true&error=sign_in_failed");
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var error = cut.Find("[role='alert']");
+            Assert.Contains("Sign-in failed", error.TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Elsa account", cut.Markup);
+            Assert.NotNull(cut.Find("button[aria-label='Sign in with Contoso']"));
+        });
+    }
+
+    [Fact]
+    public void ExternalSignInFailureFromTheServer_IsPresentedWhileKeepingOtherMethodsAvailable()
+    {
+        Register(new(
+        [
+            Method("contoso", "Contoso", "external", 0),
+            Method("github", "GitHub", "external", 1)
+        ], null));
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/login?choose=true&error=external_sign_in_failed");
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var error = cut.Find("[role='alert']");
+            Assert.Contains("External sign-in failed", error.TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.NotNull(cut.Find("button[aria-label='Sign in with GitHub']"));
+        });
     }
 
     [Fact]
