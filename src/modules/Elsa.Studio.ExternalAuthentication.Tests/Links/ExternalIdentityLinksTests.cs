@@ -330,6 +330,19 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task SecurityMenuUsesTheConnectionRouteAvailableAtThisBoundary()
+    {
+        var menu = new ExternalAuthenticationSecurityMenuContributor(
+            new FeatureProvider(),
+            new PermissionService(ExternalAuthenticationPermissions.Read));
+
+        var item = Assert.Single(await menu.GetMenuItemsAsync());
+
+        Assert.Equal("security/external-authentication", item.Href);
+        Assert.Equal("Identity provider connections", item.Text);
+    }
+
+    [Fact]
     public void PrelinkValidationRequiresAnHttpsIssuerAndNeverNeedsRoleOrPermissionData()
     {
         var request = new PrelinkExternalIdentityRequest

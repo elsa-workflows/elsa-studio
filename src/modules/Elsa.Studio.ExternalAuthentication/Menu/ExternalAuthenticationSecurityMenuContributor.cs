@@ -23,7 +23,7 @@ public sealed class ExternalAuthenticationSecurityMenuContributor(
             items.Add(new()
             {
                 Icon = Icons.Material.Filled.AdminPanelSettings,
-                Href = "security/external-authentication/connections",
+                Href = "security/external-authentication",
                 Text = "Identity provider connections",
                 Order = 100
             });
