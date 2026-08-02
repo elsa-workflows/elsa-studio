@@ -285,6 +285,156 @@ public sealed class OutputsTabConverterTests : BunitContext, IAsyncLifetime
         Assert.Equal("custom", _activity["result"]!["converter"]!["settings"]!["format"]!.GetValue<string>());
     }
 
+    [Fact]
+    public async Task CompletionAfterDisposalDoesNotMutateTheActivity()
+    {
+        _activity["result"]!.AsObject()["converter"] = new JsonObject
+        {
+            ["id"] = "sample.to-text",
+            ["settings"] = new JsonObject { ["format"] = "custom" }
+        };
+        var releaseRequest = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        CancellationToken requestCancellationToken = default;
+        _converterService.Handler = async (sourceType, destinationType, cancellationToken) =>
+        {
+            if (destinationType == "String")
+                return [CreateDescriptor("sample.to-text", sourceType, destinationType)];
+
+            requestCancellationToken = cancellationToken;
+            await releaseRequest.Task;
+            return [];
+        };
+        var updates = 0;
+        var cut = RenderOutputsTab(
+            workflowDefinition: new WorkflowDefinition
+            {
+                Variables =
+                [
+                    new Variable { Id = "result", Name = "Result", TypeName = "String" },
+                    new Variable { Id = "count", Name = "Count", TypeName = "Integer" }
+                ]
+            },
+            onActivityUpdated: _ =>
+            {
+                updates++;
+                return Task.CompletedTask;
+            });
+        var bindingTarget = cut.FindComponent<MudSelect<BindingTargetOption>>();
+
+        var destinationChange = cut.InvokeAsync(() => bindingTarget.Instance.ValueChanged.InvokeAsync(
+            new BindingTargetOption("Count", "count", "Integer", false)));
+        cut.WaitForAssertion(() => Assert.Equal(2, _converterService.Requests.Count));
+        cut.Instance.Dispose();
+
+        Assert.True(requestCancellationToken.IsCancellationRequested);
+        releaseRequest.SetResult();
+        await destinationChange;
+        Assert.Equal("sample.to-text", _activity["result"]!["converter"]!["id"]!.GetValue<string>());
+        Assert.Equal(1, updates);
+    }
+
+    [Fact]
+    public async Task ChangingTypePairsHidesStaleDescriptorsWhileLoading()
+    {
+        var newPairStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseNewPair = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _converterService.Handler = async (sourceType, destinationType, _) =>
+        {
+            if (destinationType == "String")
+                return [CreateDescriptor("sample.to-text", sourceType, destinationType)];
+
+            newPairStarted.TrySetResult();
+            await releaseNewPair.Task;
+            return [CreateDescriptor("sample.to-number", sourceType, destinationType)];
+        };
+        var cut = RenderOutputsTab(workflowDefinition: new WorkflowDefinition
+        {
+            Variables =
+            [
+                new Variable { Id = "result", Name = "Result", TypeName = "String" },
+                new Variable { Id = "count", Name = "Count", TypeName = "Integer" }
+            ]
+        });
+        var bindingTarget = cut.FindComponent<MudSelect<BindingTargetOption>>();
+
+        var destinationChange = cut.InvokeAsync(() => bindingTarget.Instance.ValueChanged.InvokeAsync(
+            new BindingTargetOption("Count", "count", "Integer", false)));
+        await newPairStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Empty(cut.FindComponents<MudSelect<string>>());
+        releaseNewPair.SetResult();
+        await destinationChange;
+        cut.WaitForAssertion(() =>
+        {
+            var option = Assert.Single(cut.FindComponents<MudSelectItem<string>>(), item => item.Instance.Value == "sample.to-number");
+            Assert.NotNull(option);
+            Assert.DoesNotContain(cut.FindComponents<MudSelectItem<string>>(), item => item.Instance.Value == "sample.to-text");
+        });
+    }
+
+    [Fact]
+    public async Task FailedTypePairRequestKeepsPersistedConverterButHidesStaleDescriptors()
+    {
+        _activity["result"]!.AsObject()["converter"] = new JsonObject { ["id"] = "sample.to-text" };
+        _converterService.Handler = (sourceType, destinationType, _) => destinationType == "String"
+            ? Task.FromResult<ICollection<OutputConverterDescriptor>>([CreateDescriptor("sample.to-text", sourceType, destinationType)])
+            : Task.FromException<ICollection<OutputConverterDescriptor>>(new InvalidOperationException());
+        var cut = RenderOutputsTab(workflowDefinition: new WorkflowDefinition
+        {
+            Variables =
+            [
+                new Variable { Id = "result", Name = "Result", TypeName = "String" },
+                new Variable { Id = "count", Name = "Count", TypeName = "Integer" }
+            ]
+        });
+        var bindingTarget = cut.FindComponent<MudSelect<BindingTargetOption>>();
+
+        await cut.InvokeAsync(() => bindingTarget.Instance.ValueChanged.InvokeAsync(
+            new BindingTargetOption("Count", "count", "Integer", false)));
+
+        Assert.Empty(cut.FindComponents<MudSelect<string>>());
+        Assert.Equal("sample.to-text", _activity["result"]!["converter"]!["id"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task SwitchingConvertersDiscardsOldSettingsAndUsesNewDefaults()
+    {
+        using var schema = JsonDocument.Parse("""
+            {"type":"object","properties":{"format":{"type":"string","default":"new-default"}}}
+            """);
+        _activity["result"]!.AsObject()["converter"] = new JsonObject
+        {
+            ["id"] = "sample.first",
+            ["settings"] = new JsonObject { ["obsolete"] = true }
+        };
+        _converterService.Descriptors =
+        [
+            CreateDescriptor("sample.first", "Source", "String"),
+            CreateDescriptor("sample.second", "Source", "String", schema.RootElement.Clone())
+        ];
+        var cut = RenderOutputsTab();
+        cut.WaitForState(() => cut.FindComponents<MudSelect<string>>().Count == 1);
+
+        await cut.InvokeAsync(() => cut.FindComponent<MudSelect<string>>().Instance.ValueChanged.InvokeAsync("sample.second"));
+
+        var settings = _activity["result"]!["converter"]!["settings"]!.AsObject();
+        Assert.Equal("new-default", settings["format"]!.GetValue<string>());
+        Assert.False(settings.ContainsKey("obsolete"));
+    }
+
+    private static OutputConverterDescriptor CreateDescriptor(
+        string id,
+        string sourceType,
+        string destinationType,
+        JsonElement? settingsSchema = null) => new()
+    {
+        Id = id,
+        SourceTypeName = sourceType,
+        ResultTypeName = destinationType,
+        DisplayName = id,
+        SettingsSchema = settingsSchema
+    };
+
     private IRenderedComponent<OutputsTab> RenderOutputsTab(
         WorkflowDefinition? workflowDefinition = null,
         bool readOnly = false,

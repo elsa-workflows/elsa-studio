@@ -28,6 +28,7 @@ public partial class OutputsTab
     private readonly Dictionary<ConverterRequestKey, Task<IReadOnlyCollection<OutputConverterDescriptor>>> _converterRequests = [];
     private readonly object _converterCacheLock = new();
     private readonly CancellationTokenSource _disposeCancellationTokenSource = new();
+    private volatile bool _disposed;
 
     /// <summary>
     /// The workflow definition.
@@ -172,6 +173,9 @@ public partial class OutputsTab
 
     private async Task LoadConvertersAsync(OutputDescriptor outputDescriptor, BindingTargetOption? target, bool clearIncompatibleConverter)
     {
+        if (_disposed)
+            return;
+
         var state = GetConverterState(outputDescriptor);
         var requestVersion = state.BeginRequest();
 
@@ -189,10 +193,13 @@ public partial class OutputsTab
             return;
         }
 
+        if (state.LoadedKey != requestKey)
+            state.Reset();
+
         try
         {
             var descriptors = await GetConvertersAsync(requestKey);
-            if (requestVersion != state.RequestVersion)
+            if (_disposed || requestVersion != state.RequestVersion)
                 return;
 
             state.Descriptors = descriptors;
@@ -217,6 +224,10 @@ public partial class OutputsTab
     /// <inheritdoc />
     public void Dispose()
     {
+        if (_disposed)
+            return;
+
+        _disposed = true;
         _disposeCancellationTokenSource.Cancel();
         _disposeCancellationTokenSource.Dispose();
     }
@@ -254,8 +265,11 @@ public partial class OutputsTab
                 requestKey.DestinationType,
                 _disposeCancellationTokenSource.Token)).ToArray();
 
-            lock (_converterCacheLock)
-                _converterCache[requestKey] = descriptors;
+            if (!_disposed)
+            {
+                lock (_converterCacheLock)
+                    _converterCache[requestKey] = descriptors;
+            }
 
             completion.TrySetResult(descriptors);
         }
@@ -279,7 +293,7 @@ public partial class OutputsTab
 
     private async Task ClearIncompatibleConverterAsync(OutputDescriptor outputDescriptor, OutputConverterState state)
     {
-        if (IsCurrentConverterCompatible(outputDescriptor, state))
+        if (_disposed || IsCurrentConverterCompatible(outputDescriptor, state))
             return;
 
         var propertyName = outputDescriptor.Name.Camelize();
@@ -345,7 +359,7 @@ public partial class OutputsTab
 
     private async Task RaiseActivityUpdatedAsync(JsonObject activity)
     {
-        if (OnActivityUpdated != null)
+        if (!_disposed && OnActivityUpdated != null)
             await OnActivityUpdated(activity);
     }
 
