@@ -215,6 +215,14 @@ builder.Services.AddExternalAuthenticationBroker(options =>
 
 `ClientId` and `ClientSecret` are both required — Studio Server refuses to start as a public client. Keep the secret out of source-controlled configuration.
 
+The sample Server host therefore defaults to `ElsaIdentity`. To opt into the broker without changing checked-in configuration, provide the provider and secret through environment variables, for example:
+
+```bash
+Authentication__Provider=ExternalAuthentication \
+Authentication__ExternalAuthentication__ClientSecret="<deployment-secret>" \
+dotnet run --project src/hosts/Elsa.Studio.Host.Server
+```
+
 Cookie: `ElsaStudio.ExternalAuthentication`, HTTP-only, `Secure` always, `SameSite=Lax`, non-sliding, 8-hour lifetime, backed by the server-side ticket store.
 
 ### Blazor WebAssembly (public client)
