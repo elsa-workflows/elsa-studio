@@ -338,7 +338,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
 
         var item = Assert.Single(await menu.GetMenuItemsAsync());
 
-        Assert.Equal("security/external-authentication", item.Href);
+        Assert.Equal("security/external-authentication/connections", item.Href);
         Assert.Equal("Identity provider connections", item.Text);
     }
 
