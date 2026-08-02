@@ -51,13 +51,17 @@ public class RemoteFeatureProvider(
             {
                 var response = await api.ListAsync(cancellationToken);
                 _catalog = response.Items.ToArray();
+                return _catalog;
             }
-            catch (ApiException e) when (e.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            catch (ApiException e) when (e.StatusCode is HttpStatusCode.NotFound)
             {
                 _catalog = [];
+                return _catalog;
             }
-
-            return _catalog;
+            catch (ApiException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                return [];
+            }
         }
         finally
         {

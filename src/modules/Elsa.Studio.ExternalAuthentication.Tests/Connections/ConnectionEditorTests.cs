@@ -1479,7 +1479,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             new PermissionSetService(ExternalAuthenticationPermissions.Read));
 
         var item = Assert.Single(await menu.GetMenuItemsAsync());
-        Assert.Equal("security/external-authentication/connections", item.Href);
+        Assert.Equal("security/external-authentication", item.Href);
         Assert.Equal("Identity provider connections", item.Text);
         Assert.Equal(100, item.Order);
 

@@ -7,19 +7,13 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Connections;
 public class ConnectionModelCompatibilityTests
 {
     [Fact]
-    public void Validation_warnings_preserve_the_release_contract()
+    public void Validation_warnings_use_the_management_contract_shape()
     {
         const string payload = """
             {
               "valid": true,
               "errors": [],
-              "warnings": [
-                {
-                  "field": "issuer",
-                  "code": "legacy_issuer",
-                  "message": "Review the configured issuer."
-                }
-              ]
+              "warnings": ["Review the configured issuer."]
             }
             """;
 
@@ -27,9 +21,6 @@ public class ConnectionModelCompatibilityTests
             payload,
             new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        var warning = Assert.Single(result!.Warnings);
-        Assert.Equal("issuer", warning.Field);
-        Assert.Equal("legacy_issuer", warning.Code);
-        Assert.Equal("Review the configured issuer.", warning.Message);
+        Assert.Equal("Review the configured issuer.", Assert.Single(result!.Warnings));
     }
 }
