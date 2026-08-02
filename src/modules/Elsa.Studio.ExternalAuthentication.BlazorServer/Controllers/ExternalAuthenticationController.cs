@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace Elsa.Studio.ExternalAuthentication.BlazorServer.Controllers;
 
@@ -19,10 +20,21 @@ public sealed class ExternalAuthenticationController(
     IAnonymousBackendApiClientProvider anonymousBackendApiClientProvider,
     IServerExternalAuthenticationTransactionStore transactionStore,
     ServerExternalAuthenticationStateProvider authenticationStateProvider,
-    ExternalAuthenticationClientOptions options) : Controller
+    ExternalAuthenticationClientOptions options,
+    ILogger<ExternalAuthenticationController> logger) : Controller
 {
     private const string SignInPurpose = "sign-in";
     private const string LocalSignInPurpose = "local-sign-in";
+    private static readonly EventId CallbackTransactionUnavailable = new(1001, nameof(CallbackTransactionUnavailable));
+    private static readonly EventId CallbackPurposeRejected = new(1002, nameof(CallbackPurposeRejected));
+    private static readonly EventId CallbackBrokerFailure = new(1003, nameof(CallbackBrokerFailure));
+    private static readonly EventId CallbackStateRejected = new(1004, nameof(CallbackStateRejected));
+    private static readonly EventId CallbackCodeMissing = new(1005, nameof(CallbackCodeMissing));
+    private static readonly EventId CallbackCompletionFailed = new(1006, nameof(CallbackCompletionFailed));
+    private static readonly EventId LocalAuthorizationRedirectRejected = new(1101, nameof(LocalAuthorizationRedirectRejected));
+    private static readonly EventId LocalAuthorizationFailed = new(1102, nameof(LocalAuthorizationFailed));
+    private static readonly EventId UpstreamLogoutFailed = new(1201, nameof(UpstreamLogoutFailed));
+    private static readonly EventId LogoutCallbackRejected = new(1202, nameof(LogoutCallbackRejected));
 
     [HttpGet("login/{connectionKey}")]
     [AllowAnonymous]
@@ -56,20 +68,62 @@ public sealed class ExternalAuthenticationController(
     [AllowAnonymous]
     public async Task<IActionResult> Callback([FromQuery] string? code, [FromQuery] string? state, [FromQuery] string? error, CancellationToken cancellationToken)
     {
-        if (!transactionStore.TryTake(Request, Response, out var transaction) ||
-            transaction.Purpose is not (SignInPurpose or LocalSignInPurpose) ||
-            string.IsNullOrWhiteSpace(state) || !StateMatches(state, transaction.State))
+        if (!transactionStore.TryTake(Request, Response, out var transaction))
+        {
+            logger.LogWarning(
+                CallbackTransactionUnavailable,
+                "External authentication callback rejected because the one-time transaction was missing, expired, or invalid. TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+                HttpContext.TraceIdentifier,
+                BrokerCorrelationId());
             return Redirect(ChooserUrl("/"));
+        }
+
+        if (transaction.Purpose is not (SignInPurpose or LocalSignInPurpose))
+        {
+            logger.LogWarning(
+                CallbackPurposeRejected,
+                "External authentication callback rejected because the transaction purpose was invalid. TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+                HttpContext.TraceIdentifier,
+                BrokerCorrelationId());
+            return Redirect(ChooserUrl("/"));
+        }
 
         var failureCode = transaction.Purpose == LocalSignInPurpose
             ? LoginFailureCodes.SignInFailed
             : LoginFailureCodes.ExternalSignInFailed;
 
         if (!string.IsNullOrWhiteSpace(error))
+        {
+            if (!string.IsNullOrWhiteSpace(state) && !StateMatches(state, transaction.State))
+            {
+                LogCallbackStateRejected();
+                return Redirect(ChooserUrl("/"));
+            }
+
+            logger.LogWarning(
+                CallbackBrokerFailure,
+                "External authentication broker reported a sign-in failure. FailureCode: {FailureCode}; TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+                failureCode,
+                HttpContext.TraceIdentifier,
+                BrokerCorrelationId());
             return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
+        }
+
+        if (string.IsNullOrWhiteSpace(state) || !StateMatches(state, transaction.State))
+        {
+            LogCallbackStateRejected();
+            return Redirect(ChooserUrl("/"));
+        }
 
         if (string.IsNullOrWhiteSpace(code))
+        {
+            logger.LogWarning(
+                CallbackCodeMissing,
+                "External authentication callback rejected because the completion code was missing. TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+                HttpContext.TraceIdentifier,
+                BrokerCorrelationId());
             return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
+        }
 
         try
         {
@@ -82,8 +136,14 @@ public sealed class ExternalAuthenticationController(
             await authenticationStateProvider.SignInAsync(HttpContext, principal, tokens, cancellationToken);
             return LocalRedirect(LocalReturnPath.Normalize(transaction.ReturnPath));
         }
-        catch
+        catch (Exception exception)
         {
+            logger.LogError(
+                CallbackCompletionFailed,
+                exception,
+                "External authentication callback failed while completing the broker exchange or creating the Studio session. TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+                HttpContext.TraceIdentifier,
+                BrokerCorrelationId());
             return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));
         }
     }
@@ -119,11 +179,22 @@ public sealed class ExternalAuthenticationController(
                 password ?? string.Empty,
                 state), cancellationToken);
             if (!Uri.TryCreate(response.RedirectUri, UriKind.Absolute, out var redirectUri) || !string.Equals(redirectUri.GetLeftPart(UriPartial.Path), callbackUri, StringComparison.Ordinal))
+            {
+                logger.LogWarning(
+                    LocalAuthorizationRedirectRejected,
+                    "External authentication local sign-in rejected an invalid broker redirect. TraceIdentifier: {TraceIdentifier}",
+                    HttpContext.TraceIdentifier);
                 return Redirect(ChooserUrl(transaction.ReturnPath, LoginFailureCodes.SignInFailed));
+            }
             return Redirect(redirectUri.PathAndQuery);
         }
-        catch
+        catch (Exception exception)
         {
+            logger.LogError(
+                LocalAuthorizationFailed,
+                exception,
+                "External authentication local sign-in failed while contacting the broker. TraceIdentifier: {TraceIdentifier}",
+                HttpContext.TraceIdentifier);
             return Redirect(ChooserUrl(transaction.ReturnPath, LoginFailureCodes.SignInFailed));
         }
     }
@@ -155,8 +226,13 @@ public sealed class ExternalAuthenticationController(
                 }
             }
         }
-        catch
+        catch (Exception exception)
         {
+            logger.LogWarning(
+                UpstreamLogoutFailed,
+                exception,
+                "External authentication upstream logout failed; Studio will continue with local sign-out. TraceIdentifier: {TraceIdentifier}",
+                HttpContext.TraceIdentifier);
             // Local sign-out is still safe and must not depend on upstream availability.
         }
 
@@ -169,7 +245,13 @@ public sealed class ExternalAuthenticationController(
     public IActionResult LogoutCallback()
     {
         if (!transactionStore.TryTake(Request, Response, out var transaction) || !string.Equals(transaction.Purpose, "logout", StringComparison.Ordinal))
+        {
+            logger.LogWarning(
+                LogoutCallbackRejected,
+                "External authentication logout callback rejected because the one-time transaction was missing, expired, or invalid. TraceIdentifier: {TraceIdentifier}",
+                HttpContext.TraceIdentifier);
             return LocalRedirect("/");
+        }
         return LocalRedirect(LocalReturnPath.Normalize(transaction.ReturnPath));
     }
 
@@ -207,6 +289,23 @@ public sealed class ExternalAuthenticationController(
             return false;
         navigationUri = candidate;
         return true;
+    }
+
+    private void LogCallbackStateRejected() => logger.LogWarning(
+        CallbackStateRejected,
+        "External authentication callback rejected because the state was missing or did not match. TraceIdentifier: {TraceIdentifier}; BrokerCorrelationId: {BrokerCorrelationId}",
+        HttpContext.TraceIdentifier,
+        BrokerCorrelationId());
+
+    private string BrokerCorrelationId()
+    {
+        var value = Request.Query["correlation_id"].ToString();
+        if (value.Length is 0 or > 128)
+            return "not-provided";
+
+        return value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_')
+            ? value
+            : "invalid";
     }
 
     private static bool StateMatches(string supplied, string expected)

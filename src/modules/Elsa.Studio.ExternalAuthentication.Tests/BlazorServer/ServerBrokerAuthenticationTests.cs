@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -111,6 +113,7 @@ public sealed class ServerBrokerAuthenticationTests
         context.Request.Host = new HostString("studio.example.test");
         var options = new ExternalAuthenticationClientOptions { ClientId = "studio-server", ClientSecret = "secret" };
         var anonymous = new FakeAnonymousBackendApiClientProvider(new FakeBrokerApi(throwsOnLocalAuthorization: true));
+        var logger = new RecordingLogger<ExternalAuthenticationController>();
         var stateProvider = new ServerExternalAuthenticationStateProvider(
             new HttpContextAccessor { HttpContext = context },
             anonymous,
@@ -121,7 +124,8 @@ public sealed class ServerBrokerAuthenticationTests
             anonymous,
             new FakeTransactionStore(new("state", "verifier", "/workflows", DateTimeOffset.UtcNow.AddMinutes(1))),
             stateProvider,
-            options);
+            options,
+            logger);
 
         var result = await controller.LocalLogin("admin", "wrong-password", "/workflows", CancellationToken.None);
 
@@ -129,6 +133,11 @@ public sealed class ServerBrokerAuthenticationTests
         Assert.Contains("choose=true", redirect.Url);
         Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
         Assert.Contains("error=sign_in_failed", redirect.Url);
+        var log = Assert.Single(logger.Entries, entry => entry.EventId.Name == "LocalAuthorizationFailed");
+        Assert.Equal(LogLevel.Error, log.Level);
+        Assert.IsType<HttpRequestException>(log.Exception);
+        Assert.DoesNotContain("admin", log.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("wrong-password", log.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -172,25 +181,73 @@ public sealed class ServerBrokerAuthenticationTests
         protected override void NavigateToCore(string uri, NavigationOptions options) => throw new NotSupportedException();
     }
 
-    [Fact]
-    public async Task ProviderError_AfterValidState_ReturnsToTheTrustedChooserPath()
+    [Theory]
+    [InlineData("state", true)]
+    [InlineData(null, true)]
+    [InlineData("wrong-state", false)]
+    public async Task ProviderError_WithTrustedTransaction_ReturnsToTheTrustedChooserPath(string? callbackState, bool isTrustedCallback)
     {
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("studio.example.test");
+        context.Request.QueryString = new QueryString("?correlation_id=broker-123");
         var accessor = new HttpContextAccessor { HttpContext = context };
         var options = new ExternalAuthenticationClientOptions { ClientId = "studio-server", ClientSecret = "secret" };
         var anonymous = new FakeAnonymousBackendApiClientProvider();
         var stateProvider = new ServerExternalAuthenticationStateProvider(accessor, anonymous, new ServerExternalAuthenticationRefreshCoordinator(), options);
         var transactionStore = new FakeTransactionStore(new("state", "verifier", "/workflows", DateTimeOffset.UtcNow.AddMinutes(1)));
-        var controller = CreateController(context, anonymous, transactionStore, stateProvider, options);
+        var logger = new RecordingLogger<ExternalAuthenticationController>();
+        var controller = CreateController(context, anonymous, transactionStore, stateProvider, options, logger);
 
-        var result = await controller.Callback(code: null, state: "state", error: "access_denied", CancellationToken.None);
+        var result = await controller.Callback(code: null, state: callbackState, error: "access_denied", CancellationToken.None);
 
         var redirect = Assert.IsType<RedirectResult>(result);
+        if (!isTrustedCallback)
+        {
+            Assert.Equal("/login?choose=true&returnPath=%2F", redirect.Url);
+            Assert.Contains(logger.Entries, entry => entry.EventId.Name == "CallbackStateRejected" && entry.Level == LogLevel.Warning);
+            return;
+        }
+
         Assert.Contains("choose=true", redirect.Url);
         Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
         Assert.Contains("error=external_sign_in_failed", redirect.Url);
+        var log = Assert.Single(logger.Entries, entry => entry.EventId.Name == "CallbackBrokerFailure");
+        Assert.Equal(LogLevel.Warning, log.Level);
+        Assert.Contains("broker-123", log.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("access_denied", log.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Callback_WhenBrokerExchangeFails_LogsTheFailureWithoutCallbackSecrets()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("studio.example.test");
+        context.Request.QueryString = new QueryString("?correlation_id=broker-123");
+        var options = new ExternalAuthenticationClientOptions { ClientId = "studio-server", ClientSecret = "secret" };
+        var anonymous = new FakeAnonymousBackendApiClientProvider(new FakeBrokerApi(throwsOnExchange: true));
+        var stateProvider = new ServerExternalAuthenticationStateProvider(
+            new HttpContextAccessor { HttpContext = context },
+            anonymous,
+            new ServerExternalAuthenticationRefreshCoordinator(),
+            options);
+        var transactionStore = new FakeTransactionStore(
+            new("sensitive-state", "sensitive-verifier", "/workflows", DateTimeOffset.UtcNow.AddMinutes(1)));
+        var logger = new RecordingLogger<ExternalAuthenticationController>();
+        var controller = CreateController(context, anonymous, transactionStore, stateProvider, options, logger);
+
+        var result = await controller.Callback("sensitive-completion-code", "sensitive-state", error: null, CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Contains("error=external_sign_in_failed", redirect.Url);
+        var log = Assert.Single(logger.Entries, entry => entry.EventId.Name == "CallbackCompletionFailed");
+        Assert.Equal(LogLevel.Error, log.Level);
+        Assert.IsType<HttpRequestException>(log.Exception);
+        Assert.Contains("broker-123", log.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("sensitive-completion-code", log.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("sensitive-state", log.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("sensitive-verifier", log.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -227,7 +284,8 @@ public sealed class ServerBrokerAuthenticationTests
         services.AddAuthentication(ServerExternalAuthenticationStateProvider.Scheme)
             .AddCookie(ServerExternalAuthenticationStateProvider.Scheme);
         using var serviceProvider = services.BuildServiceProvider();
-        var context = new DefaultHttpContext { RequestServices = serviceProvider };
+        using var callbackScope = serviceProvider.CreateScope();
+        var context = new DefaultHttpContext { RequestServices = callbackScope.ServiceProvider };
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("studio.example.test");
         var accessor = new HttpContextAccessor { HttpContext = context };
@@ -245,6 +303,19 @@ public sealed class ServerBrokerAuthenticationTests
         Assert.Equal("completion-code", broker.ExchangeRequest.Code);
         Assert.Equal("verifier", broker.ExchangeRequest.CodeVerifier);
         Assert.Equal("Basic c3R1ZGlvLXNlcnZlcjpzZWNyZXQ=", broker.ExchangeAuthorization);
+
+        var setCookie = Assert.Single(context.Response.Headers.SetCookie);
+        var cookie = setCookie!.Split(';', 2)[0];
+        using var redirectedScope = serviceProvider.CreateScope();
+        var redirectedContext = new DefaultHttpContext { RequestServices = redirectedScope.ServiceProvider };
+        redirectedContext.Request.Scheme = "https";
+        redirectedContext.Request.Host = new HostString("studio.example.test");
+        redirectedContext.Request.Headers.Cookie = cookie;
+
+        var authentication = await redirectedContext.AuthenticateAsync(ServerExternalAuthenticationStateProvider.Scheme);
+
+        Assert.True(authentication.Succeeded, authentication.Failure?.ToString() ?? "Authentication returned no result.");
+        Assert.True(authentication.Principal!.Identity!.IsAuthenticated);
     }
 
     [Fact]
@@ -418,10 +489,27 @@ public sealed class ServerBrokerAuthenticationTests
         IAnonymousBackendApiClientProvider anonymous,
         IServerExternalAuthenticationTransactionStore transactionStore,
         ServerExternalAuthenticationStateProvider stateProvider,
-        ExternalAuthenticationClientOptions options) => new(anonymous, transactionStore, stateProvider, options)
+        ExternalAuthenticationClientOptions options,
+        ILogger<ExternalAuthenticationController>? logger = null) => new(anonymous, transactionStore, stateProvider, options, logger ?? NullLogger<ExternalAuthenticationController>.Instance)
     {
         ControllerContext = new ControllerContext { HttpContext = context }
     };
+
+    private sealed record LogEntry(LogLevel Level, EventId EventId, string Message, Exception? Exception);
+
+    private sealed class RecordingLogger<T> : ILogger<T>
+    {
+        public List<LogEntry> Entries { get; } = [];
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter) =>
+            Entries.Add(new(logLevel, eventId, formatter(state, exception), exception));
+    }
 
     private sealed class FakeTransactionStore(ServerExternalAuthenticationTransaction transaction) : IServerExternalAuthenticationTransactionStore
     {
