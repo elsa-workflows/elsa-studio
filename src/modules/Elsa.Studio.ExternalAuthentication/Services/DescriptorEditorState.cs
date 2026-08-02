@@ -116,8 +116,14 @@ public static class DescriptorEditorState
             errors.Add($"{field.DisplayName} must be at most {maximum} characters.");
         if (!string.IsNullOrWhiteSpace(validation.Pattern) && !Regex.IsMatch(text, validation.Pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250)))
             errors.Add($"{field.DisplayName} has an invalid format.");
-        if (field.AllowedValues.Count > 0 && !field.AllowedValues.Contains(text, StringComparer.Ordinal))
-            errors.Add($"{field.DisplayName} must use one of the allowed values.");
+        if (field.AllowedValues.Count > 0)
+        {
+            var usesAllowedValues = value.ValueKind == JsonValueKind.Array
+                ? value.EnumerateArray().All(item => item.ValueKind == JsonValueKind.String && field.AllowedValues.Contains(item.GetString()!, StringComparer.Ordinal))
+                : field.AllowedValues.Contains(text, StringComparer.Ordinal);
+            if (!usesAllowedValues)
+                errors.Add($"{field.DisplayName} must use only allowed values.");
+        }
         if (string.Equals(field.ValueType, "uri", StringComparison.OrdinalIgnoreCase) && (!Uri.TryCreate(text, UriKind.Absolute, out var uri) || (!string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) && !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))))
             errors.Add($"{field.DisplayName} must be an absolute HTTP or HTTPS URI.");
         return errors;

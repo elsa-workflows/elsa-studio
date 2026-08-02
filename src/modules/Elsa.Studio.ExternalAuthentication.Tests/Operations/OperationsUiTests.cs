@@ -2,10 +2,12 @@ using Bunit;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Components.Operations;
+using Elsa.Studio.ExternalAuthentication.Components.Sessions;
 using Elsa.Studio.ExternalAuthentication.Models;
 using SessionsIndex = Elsa.Studio.ExternalAuthentication.Pages.Sessions.Index;
 using Elsa.Studio.ExternalAuthentication.Services;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
 
@@ -14,6 +16,8 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Operations;
 public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
 {
     private readonly OperationsApi _operations = new();
+    private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
+    private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
     public OperationsUiTests()
     {
@@ -21,7 +25,8 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<IBackendApiClientProvider>(new BackendApiClientProvider(_operations));
         Services.AddSingleton<IExternalAuthenticationPermissionService>(new PermissionService());
-        Render<MudBlazor.MudPopoverProvider>();
+        _popoverProvider = Render<MudPopoverProvider>();
+        _dialogProvider = Render<MudDialogProvider>();
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -63,6 +68,23 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void FailedTest_ExplainsThatNoObservationWasRecorded()
+    {
+        _operations.TestException = new InvalidOperationException("backend unavailable");
+        var cut = Render<ConnectionOperations>(parameters => parameters
+            .Add(component => component.Connection, CreateConnection())
+            .Add(component => component.Adapter, CreateAdapter()));
+
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Test connection", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("failed before a diagnostic observation was recorded", cut.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Review the redacted server observation", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
+    [Fact]
     public void PreviewFlow_RequiresExplicitOneTimeResultRetrieval()
     {
         var cut = Render<ConnectionOperations>(parameters => parameters
@@ -81,6 +103,20 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("did not create or link a user", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("permission projection", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("projected claims", cut.Markup, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FailedPreview_LeavesAnActionableMessageOnTheDiagnosticsTab()
+    {
+        _operations.PreviewException = new InvalidOperationException("backend unavailable");
+        var cut = Render<ConnectionOperations>(parameters => parameters
+            .Add(component => component.Connection, CreateConnection())
+            .Add(component => component.Adapter, CreateAdapter()));
+
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Preview sign-in", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() =>
+            Assert.Contains("Preview could not be prepared", cut.Markup, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -125,6 +161,40 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
         Assert.Contains("connection-1", cut.Markup);
         Assert.DoesNotContain("provider-access-token", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("external-subject", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("aria-label=\"View session session-1\"", cut.Markup, StringComparison.Ordinal);
+
+        var status = cut.FindComponents<MudChip<string>>()
+            .Single(chip => chip.Markup.Contains("Active", StringComparison.Ordinal));
+        Assert.Equal(Color.Success, status.Instance.Color);
+        Assert.Equal(Icons.Material.Outlined.CheckCircleOutline, status.Instance.Icon);
+
+        var actions = Assert.Single(cut.FindComponents<MudMenu>());
+        Assert.Equal("Actions for session session-1", actions.Instance.AriaLabel);
+        cut.Find("button[aria-label='Actions for session session-1']").Click();
+        _popoverProvider.WaitForAssertion(() => Assert.Contains("Revoke", _popoverProvider.Markup, StringComparison.Ordinal));
+        Assert.Empty(_dialogProvider.FindComponents<ExternalAuthenticationSessionDetailsDialog>());
+    }
+
+    [Fact]
+    public void SessionsPage_RowClickOpensSafeSessionDetails()
+    {
+        var cut = Render<SessionsIndex>();
+        cut.WaitForAssertion(() => Assert.Contains("session-1", cut.Markup));
+
+        cut.Find("tbody tr").Click();
+
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            Assert.Single(_dialogProvider.FindComponents<ExternalAuthenticationSessionDetailsDialog>());
+            Assert.Contains("Authentication session details", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("session-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("user-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("tenant-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("connection-1", _dialogProvider.Markup, StringComparison.Ordinal);
+            Assert.Contains("safe session metadata only", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("provider-access-token", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("external-subject", _dialogProvider.Markup, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     private static ConnectionDetail CreateConnection() => new()
@@ -158,15 +228,23 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
     {
         public int TestCalls { get; private set; }
         public string? LastPreviewHandle { get; private set; }
+        public Exception? TestException { get; set; }
+        public Exception? PreviewException { get; set; }
 
         public Task<ConnectionTestResult> TestAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
         {
             TestCalls++;
+            if (TestException is not null)
+                throw TestException;
             return Task.FromResult(new ConnectionTestResult { Status = "succeeded", Summary = "Provider discovery succeeded.", TestedMaterialRevision = "revision-1" });
         }
 
-        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) =>
-            Task.FromResult(new PreviewInitiation { NavigationUrl = "/external-authentication/previews/preview-handle/authorize", ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5) });
+        public Task<PreviewInitiation> InitiatePreviewAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            if (PreviewException is not null)
+                throw PreviewException;
+            return Task.FromResult(new PreviewInitiation { NavigationUrl = "/external-authentication/previews/preview-handle/authorize", ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(5) });
+        }
 
         public Task<PreviewResultDocument> GetPreviewResultAsync(string previewHandle, CancellationToken cancellationToken = default)
         {
