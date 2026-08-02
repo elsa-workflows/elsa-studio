@@ -14,6 +14,9 @@ public interface IExternalAuthenticationConnectionsApi
     [Get("/external-authentication/connections/{connectionId}")]
     Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default);
 
+    [Get("/external-authentication/descriptors/runtime")]
+    Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default);
+
     [Get("/external-authentication/descriptors/adapters")]
     Task<ICollection<AdapterDescriptor>> GetAdaptersAsync(CancellationToken cancellationToken = default);
 

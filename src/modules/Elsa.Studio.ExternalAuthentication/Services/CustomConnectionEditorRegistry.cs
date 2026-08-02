@@ -17,6 +17,15 @@ public interface ICustomConnectionEditorRegistration
 /// </summary>
 public interface IConnectionCustomEditor : IComponent;
 
+/// <summary>
+/// Opts a custom connection editor into notifying its host when it has unsaved changes.
+/// Implementations must expose <see cref="Changed"/> as a Blazor parameter.
+/// </summary>
+public interface IConnectionCustomEditorWithChangeTracking : IConnectionCustomEditor
+{
+    EventCallback Changed { get; set; }
+}
+
 public interface ICustomConnectionEditorRegistry
 {
     bool TryResolve(CustomEditorContract? contract, out Type componentType);
@@ -45,6 +54,7 @@ public sealed class CustomConnectionEditorRegistry(IEnumerable<ICustomConnection
         {
             if (string.IsNullOrWhiteSpace(registration.Key) || registration.ContractVersion <= 0 || !typeof(IConnectionCustomEditor).IsAssignableFrom(registration.ComponentType))
                 throw new InvalidOperationException("Custom connection editor registrations require a non-empty key, positive contract version, and an IConnectionCustomEditor component type.");
+
         }
 
         var duplicates = validated.GroupBy(registration => (registration.Key, registration.ContractVersion)).FirstOrDefault(group => group.Count() > 1);

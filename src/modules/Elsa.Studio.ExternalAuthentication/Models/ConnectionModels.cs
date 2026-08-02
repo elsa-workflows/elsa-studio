@@ -44,6 +44,13 @@ public sealed class ConnectionObservation
     public string Summary { get; set; } = string.Empty;
 }
 
+public sealed class ConnectionReference
+{
+    public string Id { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Source { get; set; } = string.Empty;
+}
+
 public class ConnectionSummary
 {
     public string Id { get; set; } = string.Empty;
@@ -60,8 +67,11 @@ public class ConnectionSummary
     public bool EffectivelyEnabled { get; set; }
     public string Validity { get; set; } = "unknown";
     public bool Shadowed { get; set; }
+    public ConnectionReference? ShadowedBy { get; set; }
+    public ICollection<ConnectionReference> Shadows { get; set; } = [];
     public bool Archived { get; set; }
     public bool CanCreateOverride { get; set; }
+    public bool CanPromoteToConfigurationOverride { get; set; }
     public long Revision { get; set; }
     public string MaterialRevision { get; set; } = string.Empty;
     public ConnectionObservation? LatestObservation { get; set; }
@@ -73,6 +83,13 @@ public sealed class ListConnectionsResponse
 {
     public ICollection<ConnectionSummary> Items { get; set; } = [];
     public string? NextCursor { get; set; }
+}
+
+public sealed class ExternalAuthenticationRuntimeDescriptor
+{
+    public int ManagementContractVersion { get; set; }
+    public string ProductVersion { get; set; } = string.Empty;
+    public string InformationalVersion { get; set; } = string.Empty;
 }
 
 public sealed class SecretBindingState
@@ -94,7 +111,7 @@ public sealed class ConnectionDetail : ConnectionSummary
     public ClaimProjection ClaimProjection { get; set; } = new();
     public string UpstreamLogoutMode { get; set; } = "disabled";
     public ICollection<ConnectionValidationMessage> ValidationErrors { get; set; } = [];
-    public ICollection<ConnectionValidationMessage> ValidationWarnings { get; set; } = [];
+    public ICollection<string> ValidationWarnings { get; set; } = [];
 }
 
 public sealed class ConnectionValidationMessage
@@ -108,7 +125,7 @@ public sealed class ConnectionValidationResult
 {
     public bool Valid { get; set; }
     public ICollection<ConnectionValidationMessage> Errors { get; set; } = [];
-    public ICollection<ConnectionValidationMessage> Warnings { get; set; } = [];
+    public ICollection<string> Warnings { get; set; } = [];
 }
 
 public sealed class ConnectionFieldDescriptor
