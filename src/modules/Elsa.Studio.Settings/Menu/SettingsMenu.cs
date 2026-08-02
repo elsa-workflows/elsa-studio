@@ -19,7 +19,7 @@ public sealed class SettingsMenu(ISettingsSectionRegistry registry) : IMenuProvi
             Href = "settings",
             Match = Microsoft.AspNetCore.Components.Routing.NavLinkMatch.Prefix,
             Text = "Settings",
-            GroupName = MenuItemGroups.Settings.Name,
+            GroupName = MenuItemGroups.Administration.Name,
             Order = 900,
             SubMenuItems =
             {

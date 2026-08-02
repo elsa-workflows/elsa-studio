@@ -40,6 +40,8 @@ public sealed class SettingsCompositionTests : BunitContext, IAsyncLifetime
         Assert.Equal(["alpha", "zulu"], ordered.Select(x => x.Id));
 
         var menu = Assert.Single(await new SettingsMenu(registry).GetMenuItemsAsync());
+        Assert.Equal(MenuItemGroups.Administration.Name, menu.GroupName);
+        Assert.Equal(900, menu.Order);
         Assert.Equal(["Overview", "Alpha", "Zulu"], menu.SubMenuItems.Select(x => x.Text));
 
         var page = Render<SettingsPage>();
