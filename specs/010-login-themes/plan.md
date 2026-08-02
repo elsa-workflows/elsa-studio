@@ -76,7 +76,9 @@ src/
 │   │   │   ├── LoginThemeErrorBoundary.cs
 │   │   │   ├── LoginThemeRecovery.razor
 │   │   │   ├── LoginUtilityLinks.razor
-│   │   │   └── Themes/ClassicLoginTheme.razor
+│   │   │   └── Themes/
+│   │   │       ├── ClassicUnifiedLoginTheme.razor
+│   │   │       └── ClassicBrandCanvasLoginTheme.razor
 │   │   ├── Contracts/
 │   │   ├── Extensions/ServiceCollectionExtensions.cs
 │   │   ├── Models/

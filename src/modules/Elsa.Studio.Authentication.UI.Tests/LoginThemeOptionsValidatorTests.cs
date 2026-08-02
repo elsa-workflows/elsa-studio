@@ -2,6 +2,8 @@ using Elsa.Studio.Authentication.UI.Contracts;
 using Elsa.Studio.Authentication.UI.Models;
 using Elsa.Studio.Authentication.UI.Options;
 using Elsa.Studio.Authentication.UI.Services;
+using Elsa.Studio.Options;
+using Microsoft.Extensions.Options;
 
 namespace Elsa.Studio.Authentication.UI.Tests;
 
@@ -23,6 +25,39 @@ public class LoginThemeOptionsValidatorTests
             .Validate(null, new LoginThemeOptions { Theme = "WORKFLOW-AURORA" });
 
         Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public void Resolves_inherited_theme_from_the_application_presentation()
+    {
+        var validator = new LoginThemeOptionsValidator(
+            [new LoginThemeRegistration("human-automation", typeof(TestLoginThemeProvider))],
+            Microsoft.Extensions.Options.Options.Create(
+                new StudioThemeOptions { Theme = "HUMAN-AUTOMATION" }));
+
+        var result = validator.Validate(
+            null,
+            new LoginThemeOptions { Theme = LoginThemeIds.Inherit });
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public void Rejects_inherited_theme_without_a_matching_login_presentation()
+    {
+        var validator = new LoginThemeOptionsValidator(
+            [new LoginThemeRegistration("classic", typeof(TestLoginThemeProvider))],
+            Microsoft.Extensions.Options.Options.Create(
+                new StudioThemeOptions { Theme = "human-automation" }));
+
+        var result = validator.Validate(
+            null,
+            new LoginThemeOptions { Theme = LoginThemeIds.Inherit });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(
+            result.Failures!,
+            failure => failure.Contains("resolves to 'human-automation'", StringComparison.Ordinal));
     }
 
     [Theory]

@@ -9,8 +9,21 @@
         <form method="post" action="@LoginCoordinator.LocalLoginAction">
             <input type="hidden" name="@_antiforgeryToken.FormFieldName" value="@_antiforgeryToken.RequestToken" />
             <input type="hidden" name="returnPath" value="@Context.ReturnPath" />
-            <MudTextField T="string" name="username" Label="User name" autocomplete="username" Required="true" />
-            <MudTextField T="string" name="password" Label="Password" InputType="InputType.Password" autocomplete="current-password" Required="true" />
+            <MudTextField T="string"
+                          name="username"
+                          Label="User name"
+                          autocomplete="username"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+            <MudTextField T="string"
+                          name="password"
+                          Label="Password"
+                          InputType="InputType.Password"
+                          autocomplete="current-password"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
         </form>
     }
@@ -21,8 +34,19 @@
     else
     {
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_username" Label="User name" autocomplete="username" Required="true" />
-            <MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" autocomplete="current-password" Required="true" />
+            <MudTextField @bind-Value="_username"
+                          Label="User name"
+                          autocomplete="username"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+            <MudTextField @bind-Value="_password"
+                          Label="Password"
+                          InputType="InputType.Password"
+                          autocomplete="current-password"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
         </MudForm>
     }

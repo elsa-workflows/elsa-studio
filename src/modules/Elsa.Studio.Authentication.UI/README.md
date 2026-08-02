@@ -30,8 +30,17 @@ and changes require an application restart. Missing configuration selects
 `classic`. Blank, unknown, and duplicate case-insensitive IDs fail startup with
 an actionable options error.
 
-`classic` is built into this package and follows the Elsa Studio 3.7.0 visual
-language. The optional `Elsa.Studio.Authentication.Themes` package provides:
+This package includes three Classic presentations:
+
+- `classic-refined-split` — a balanced split layout with a dedicated brand
+  context panel and focused sign-in stage.
+- `classic-unified` — the compact, unified identity gateway card.
+- `classic-brand-canvas` — a spacious brand canvas with a dedicated sign-in
+  stage.
+
+`classic` remains the default and a compatibility alias for
+`classic-unified`. The optional `Elsa.Studio.Authentication.Themes` package
+provides:
 
 - `workflow-constellation`
 - `workflow-aurora`
@@ -119,6 +128,23 @@ select private descendants of the shared panel:
 --elsa-login-accent-contrast
 --elsa-login-muted-color
 --elsa-login-focus-color
+--elsa-login-method-surface
+--elsa-login-method-border
+--elsa-login-method-hover-surface
+--elsa-login-method-preferred-surface
+--elsa-login-method-preferred-border
+--elsa-login-method-preferred-color
+--elsa-login-method-icon-surface
+--elsa-login-method-icon-color
+--elsa-login-method-shadow
+--elsa-control-surface
+--elsa-control-surface-hover
+--elsa-control-surface-disabled
+--elsa-control-border
+--elsa-control-border-hover
+--elsa-control-focus
+--elsa-control-error
+--elsa-control-radius
 ```
 
 The shell localizes common text and preserves keyboard operation, visible focus,

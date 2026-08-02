@@ -22,9 +22,11 @@ Configure one stable identifier:
 }
 ```
 
-Supported first-party IDs are `classic`, `workflow-constellation`,
-`workflow-aurora`, `execution-timeline`, and `human-automation`. Omitting
-`Theme` selects `classic`. Restart the application after changing it.
+Supported first-party IDs are `classic`, `classic-unified`,
+`classic-brand-canvas`, `workflow-constellation`, `workflow-aurora`,
+`execution-timeline`, and `human-automation`. `classic` is a compatibility
+alias for `classic-unified`; omitting `Theme` selects it. Restart the
+application after changing the setting.
 
 ## Register a component theme
 

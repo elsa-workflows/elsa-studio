@@ -13,7 +13,8 @@ public sealed class LoginThemeOptions
     public const string SectionName = "Authentication:Login";
 
     /// <summary>
-    /// Gets or sets the stable identifier of the selected login theme.
+    /// Gets or sets the stable identifier of the selected login theme. Use
+    /// <c>inherit</c> to follow the application-wide presentation theme.
     /// </summary>
     public string Theme { get; set; } = LoginThemeIds.Classic;
 }
