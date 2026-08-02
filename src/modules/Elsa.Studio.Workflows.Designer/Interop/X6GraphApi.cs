@@ -38,10 +38,10 @@ public class X6GraphApi
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
 
     /// <summary>
-    /// Sets the grid color.
+    /// Applies the active Elsa theme to the X6 graph.
     /// </summary>
-    /// <param name="color">The color.</param>
-    public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
+    public async Task ApplyThemeAsync(X6DesignerTheme theme) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("applyGraphTheme", _containerId, theme));
 
     /// <summary>
     /// Adds a node to the graph.

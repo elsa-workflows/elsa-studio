@@ -323,7 +323,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 
@@ -410,7 +409,7 @@ public partial class WorkflowDefinitionList
         {
             options.SnackbarVariant = Variant.Filled;
             options.CloseAfterNavigation = failedResultCount > 0;
-            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 3000;
+            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 5000;
         });
         Reload();
     }
@@ -444,7 +443,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 

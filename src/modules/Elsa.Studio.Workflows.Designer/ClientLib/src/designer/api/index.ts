@@ -1,4 +1,5 @@
 export * from './add-activity-node';
+export * from './apply-graph-theme';
 export * from './calculate-activity-size';
 export * from './center-content';
 export * from './create-graph';
@@ -10,7 +11,6 @@ export * from './read-graph';
 export * from './raise-activity-selected';
 export * from './raise-activity-embedded-port-selected';
 export * from './select-activity';
-export * from './set-grid-color';
 export * from './sequence-commands';
 export * from './update-activity';
 export * from './update-activity-size';

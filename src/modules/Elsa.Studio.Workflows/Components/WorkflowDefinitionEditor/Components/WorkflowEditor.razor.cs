@@ -424,7 +424,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
             if (response.ConsumingWorkflowCount > 0)
             {
-                UserMessageService.ShowSnackbarTextMessage(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success, options => options.VisibleStateDuration = 3000);
+                UserMessageService.ShowSnackbarTextMessage(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success);
             }
         }));
     }
@@ -542,7 +542,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         {
             snackbarOptions.SnackbarVariant = Variant.Filled;
             snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
-            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 5000;
         }
     }
 

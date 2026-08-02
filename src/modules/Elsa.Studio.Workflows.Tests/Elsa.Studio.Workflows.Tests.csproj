@@ -8,6 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AngleSharp" />
+        <PackageReference Include="bunit" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
@@ -15,6 +17,18 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\hosts\Elsa.Studio.Host.Server\Pages\_Host.cshtml"
+              Link="HostAssets\ServerHost.cshtml"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\hosts\Elsa.Studio.Host.Wasm\wwwroot\index.html"
+              Link="HostAssets\WasmHost.html"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\hosts\Elsa.Studio.Host.HostedWasm\Pages\_Host.cshtml"
+              Link="HostAssets\HostedWasmHost.cshtml"
+              CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

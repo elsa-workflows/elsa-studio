@@ -1,4 +1,4 @@
-import {calculateActivitySize} from "./calculate-activity-size";
+import {calculateActivitySize, getActivityMeasurementScopeClass} from "./calculate-activity-size";
 import {Activity, Size} from "../models";
 import {graphBindings} from "./graph-bindings";
 import {Node} from "@antv/x6";
@@ -14,6 +14,7 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
 
     // Get container element.
     const container = wrapper.closest('.graph-container');
+    const measurementScopeClass = getActivityMeasurementScopeClass(wrapper);
 
     // Get graph ID.
     const graphId = container.id;
@@ -26,7 +27,7 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
     const activity = typeof activityModel === 'string' ? JSON.parse(activityModel) : activityModel;
 
     // Calculate the size of the activity.
-    const rect = await calculateActivitySize(activity, portCount);
+    const rect = await calculateActivitySize(activity, portCount, measurementScopeClass);
     let width = rect.width;
     let height = rect.height;
 
@@ -68,7 +69,7 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
  * @param node The X6 node to enforce minimum size on
  * @returns true if the size was adjusted, false otherwise
  */
-export async function enforceMinimumNodeSize(node: Node): Promise<boolean> {
+export async function enforceMinimumNodeSize(node: Node, measurementScopeClass = ''): Promise<boolean> {
     const activity: Activity = node.data;
     
     if (!activity) {
@@ -79,7 +80,7 @@ export async function enforceMinimumNodeSize(node: Node): Promise<boolean> {
     const portCount = node.ports?.items?.length ?? 0;
 
     // Calculate the minimum size based on content and port count
-    const minSize = await calculateActivitySize(activity, portCount);
+    const minSize = await calculateActivitySize(activity, portCount, measurementScopeClass);
     const currentSize = node.size();
     
     let needsResize = false;
