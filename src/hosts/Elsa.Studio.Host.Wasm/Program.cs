@@ -14,6 +14,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorWasm.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
+using Elsa.Studio.Options;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -110,7 +111,7 @@ var localizationConfig = new LocalizationConfig
     ConfigureLocalizationOptions = options => configuration.GetSection("Localization").Bind(options),
 };
 
-services.AddCore();
+services.AddCore(options => configuration.GetSection(StudioThemeOptions.SectionName).Bind(options));
 services.AddShell();
 if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
 {
