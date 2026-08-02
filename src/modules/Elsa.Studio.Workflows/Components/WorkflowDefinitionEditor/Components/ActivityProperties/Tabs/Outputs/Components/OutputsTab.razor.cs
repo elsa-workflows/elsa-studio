@@ -214,7 +214,7 @@ public partial class OutputsTab
         }
         catch (Exception)
         {
-            if (requestVersion != state.RequestVersion)
+            if (_disposed || requestVersion != state.RequestVersion)
                 return;
 
             state.Reset();
@@ -224,10 +224,14 @@ public partial class OutputsTab
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed)
-            return;
+        lock (_converterCacheLock)
+        {
+            if (_disposed)
+                return;
 
-        _disposed = true;
+            _disposed = true;
+        }
+
         _disposeCancellationTokenSource.Cancel();
         _disposeCancellationTokenSource.Dispose();
     }
@@ -238,6 +242,9 @@ public partial class OutputsTab
         Task<IReadOnlyCollection<OutputConverterDescriptor>> request;
         lock (_converterCacheLock)
         {
+            if (_disposed)
+                return Task.FromCanceled<IReadOnlyCollection<OutputConverterDescriptor>>(new CancellationToken(true));
+
             if (_converterCache.TryGetValue(requestKey, out var cachedDescriptors))
                 return Task.FromResult(cachedDescriptors);
 
@@ -265,9 +272,9 @@ public partial class OutputsTab
                 requestKey.DestinationType,
                 _disposeCancellationTokenSource.Token)).ToArray();
 
-            if (!_disposed)
+            lock (_converterCacheLock)
             {
-                lock (_converterCacheLock)
+                if (!_disposed)
                     _converterCache[requestKey] = descriptors;
             }
 
