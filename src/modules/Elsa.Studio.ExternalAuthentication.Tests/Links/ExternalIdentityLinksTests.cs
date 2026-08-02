@@ -504,7 +504,6 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         }
 
         public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ICollection<AdapterDescriptor>> GetAdaptersAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ICollection<PermissionGrantSourceDescriptor>> GetPermissionSourcesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ICollection<UnlinkedIdentityPolicyDescriptor>> GetPoliciesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
