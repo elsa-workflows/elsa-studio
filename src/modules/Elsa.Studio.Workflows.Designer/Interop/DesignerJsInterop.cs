@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
 using Microsoft.Extensions.Options;
@@ -12,7 +14,11 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// <summary>
 /// Provides access to the designer JavaScript module.
 /// </summary>
-public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> options, IServiceProvider serviceProvider) : JsInteropBase(jsRuntime)
+public class DesignerJsInterop(
+    IJSRuntime jsRuntime,
+    IOptions<DesignerOptions> options,
+    IServiceProvider serviceProvider,
+    IThemeService themeService) : JsInteropBase(jsRuntime)
 {
     /// <summary>
     /// Provides the string.
@@ -45,7 +51,8 @@ public class DesignerJsInterop(IJSRuntime jsRuntime, IOptions<DesignerOptions> o
                 graphSettings.Panning,
                 graphSettings.Mousewheel,
                 graphSettings.ResizingEnabled,
-                Mode = mode
+                Mode = mode,
+                Theme = X6DesignerTheme.FromPalette(themeService.CurrentPalette)
             };
 
             await module.InvokeAsync<string>("createGraph", containerId, componentRef, isReadOnly, settings);

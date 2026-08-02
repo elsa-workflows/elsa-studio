@@ -9,7 +9,9 @@ import {DotNetComponentRef, graphBindings} from "./graph-bindings";
 import {DotNetFlowchartDesigner} from "./dotnet-flowchart-designer";
 import {Activity} from "../models";
 import {enforceMinimumNodeSize} from "./update-activity-size";
+import {getActivityMeasurementScopeClass} from "./calculate-activity-size";
 import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrientation, withSuppressedGraphUpdated} from "./sequence-mode";
+import {applyDesignerThemeVariables, X6DesignerTheme} from "./apply-graph-theme";
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
@@ -18,6 +20,13 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const graphId = containerId;
     const mode = settings?.mode === 'sequence' ? 'sequence' : 'flowchart';
     const isSequenceMode = mode === 'sequence';
+    const theme: X6DesignerTheme | undefined = settings?.theme;
+    const measurementScopeClass = getActivityMeasurementScopeClass(containerElement);
+
+    if (!theme)
+        throw new Error("An X6 designer theme is required.");
+
+    applyDesignerThemeVariables(containerElement, theme);
 
     const graph = new Graph({
         container: containerElement,
@@ -26,10 +35,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             type: settings?.grid?.type || 'dot',
             visible: settings?.grid?.visible || true,
             size: settings?.grid?.size || 10,
-            args: settings?.grid?.args || {
-                color: '#334154',
-                thickness: 1,
-            }
+            args: resolveGridArgs(settings?.grid?.args, theme.grid),
         },
         magnetThreshold: settings?.magnetThreshold || 0,
         panning: settings?.panning || {
@@ -55,6 +61,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         },
         connecting: {
             router: 'manhattan',
+            allowMulti: true,
             connector: {
                 name: 'rounded',
                 args: {
@@ -100,8 +107,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 name: 'stroke',
                 args: {
                     attrs: {
-                        fill: '#fff',
-                        stroke: '#31d0c6',
+                        fill: 'var(--elsa-designer-port-surface)',
+                        stroke: 'var(--elsa-designer-connection-highlight)',
                         strokeWidth: 4,
                     },
                 },
@@ -111,7 +118,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 args: {
                     padding: -1,
                     attrs: {
-                        stroke: '#73d13d',
+                        stroke: 'var(--elsa-designer-embedding-highlight)',
                     },
                 },
             },
@@ -409,31 +416,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     };
 
-    // Track if we're currently enforcing minimum size to prevent infinite loops
-    let isEnforcingMinSize = false;
-    
-    const onNodeSizeChanged = async (e: any) => {
-        // Prevent infinite loop when we programmatically resize after enforcing minimum
-        if (isEnforcingMinSize) {
-            return false;
-        }
-        
-        // Skip graph update when size was changed programmatically (e.g., from updateActivitySize during initial render).
-        // This prevents unwanted auto-saves when the server returns different sizes than what the Studio calculated.
+    const onNodeResizeCompleted = async (e: any) => {
+        // Honor graph-level suppression during internal graph mutations.
         const binding = graphBindings[graphId];
         if (binding?.suppressGraphUpdated > 0) {
             return false;
         }
         
         const node = e.node || e.cell;
-        if (node) {
-            isEnforcingMinSize = true;
-            try {
-                await enforceMinimumNodeSize(node);
-            } finally {
-                isEnforcingMinSize = false;
-            }
-        }
+        if (node)
+            await enforceMinimumNodeSize(node, measurementScopeClass);
         
         await interop.raiseGraphUpdated();
         return false;
@@ -475,7 +467,10 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         await interop.raiseGraphUpdated();
         return false;
     });
-    graph.on('node:change:size', onNodeSizeChanged);
+    // The Transform plugin emits `node:change:size` for every pointer movement. Waiting for
+    // `node:resized` avoids racing X6's active gesture with asynchronous minimum-size
+    // enforcement and Blazor graph updates.
+    graph.on('node:resized', onNodeResizeCompleted);
     graph.on('edge:removed', onGraphUpdated);
     graph.on('edge:connected', onGraphUpdated);
     graph.on('edge:vertexs:added', onGraphUpdated);
@@ -490,4 +485,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     };
 
     return graphId;
+}
+
+function resolveGridArgs(args: any, themeColor: string) {
+    if (Array.isArray(args))
+        return args.map(item => ({...item, color: item?.color || themeColor}));
+
+    return {...(args || {}), color: args?.color || themeColor};
 }

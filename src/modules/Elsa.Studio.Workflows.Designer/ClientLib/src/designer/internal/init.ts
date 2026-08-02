@@ -3,6 +3,18 @@ import {createActivityElement} from "./create-activity-element";
 import {Activity} from "../models";
 
 export function initialize() {
+    const createPortInteractionAttrs = () => ({
+        port: {
+            magnet: true,
+        },
+        hitArea: {
+            r: 12,
+            fill: "transparent",
+            stroke: "transparent",
+            pointerEvents: "all",
+            cursor: "crosshair",
+        },
+    });
 
     Shape.HTML.register({
         shape: "elsa-activity",
@@ -13,21 +25,57 @@ export function initialize() {
             const activityStats = cell.prop('activityStats');
             return createActivityElement(activity, false, selectedPort, activityStats);
         },
+        portMarkup: [
+            {
+                tagName: "g",
+                selector: "port",
+                children: [
+                    {
+                        tagName: "circle",
+                        selector: "hitArea",
+                        className: "elsa-designer-port-hit-area",
+                    },
+                    {
+                        tagName: "rect",
+                        selector: "dock",
+                        className: "elsa-designer-port-dock",
+                    },
+                    {
+                        tagName: "circle",
+                        selector: "circle",
+                        className: "elsa-designer-port-circle",
+                    },
+                ],
+            },
+        ],
         ports: {
             groups: {
                 in: {
                     position: "left",
                     attrs: {
+                        ...createPortInteractionAttrs(),
+                        dock: {
+                            x: -7,
+                            y: -12,
+                            width: 14,
+                            height: 24,
+                            rx: 7,
+                            ry: 7,
+                            fill: "var(--elsa-designer-node-surface)",
+                            stroke: "var(--elsa-designer-node-border)",
+                            strokeWidth: 1,
+                            pointerEvents: "none",
+                        },
                         circle: {
                             r: 5,
-                            magnet: true,
-                            stroke: "#0ea5e9",
+                            stroke: "var(--elsa-designer-port-stroke)",
                             strokeWidth: 2,
-                            fill: "#fff",
+                            fill: "var(--elsa-designer-port-surface)",
+                            pointerEvents: "none",
                         },
                         text: {
                             fontSize: 12,
-                            fill: "#888",
+                            fill: "var(--elsa-designer-port-text)",
                         },
                     },
                     label: {
@@ -39,16 +87,29 @@ export function initialize() {
                 out: {
                     position: "right",
                     attrs: {
+                        ...createPortInteractionAttrs(),
+                        dock: {
+                            x: -7,
+                            y: -12,
+                            width: 14,
+                            height: 24,
+                            rx: 7,
+                            ry: 7,
+                            fill: "var(--elsa-designer-node-surface)",
+                            stroke: "var(--elsa-designer-node-border)",
+                            strokeWidth: 1,
+                            pointerEvents: "none",
+                        },
                         circle: {
                             r: 5,
-                            magnet: true,
-                            stroke: "#fff",
+                            stroke: "var(--elsa-designer-port-surface)",
                             strokeWidth: 2,
-                            fill: "#0ea5e9",
+                            fill: "var(--elsa-designer-port-stroke)",
+                            pointerEvents: "none",
                         },
                         text: {
                             fontSize: 12,
-                            fill: "#888",
+                            fill: "var(--elsa-designer-port-text)",
                         },
                     },
                     label: {
@@ -67,7 +128,7 @@ export function initialize() {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: '#C2C8D5',
+                    stroke: 'var(--elsa-designer-edge)',
                     strokeWidth: 1,
                     targetMarker: 'classic',
                     size: 6,
@@ -83,7 +144,7 @@ export function initialize() {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: '#94a3b8',
+                    stroke: 'var(--elsa-designer-edge)',
                     strokeWidth: 2,
                     targetMarker: 'classic',
                     size: 6,
