@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -23,6 +24,10 @@ public partial class OutputsTab
     private ICollection<BindingTargetOption> _bindingTargetOptions = new List<BindingTargetOption>();
     private IDictionary<string, VariableTypeDescriptor> _variableTypes = new Dictionary<string, VariableTypeDescriptor>();
     private readonly IDictionary<string, OutputConverterState> _converterStates = new Dictionary<string, OutputConverterState>();
+    private readonly Dictionary<ConverterRequestKey, IReadOnlyCollection<OutputConverterDescriptor>> _converterCache = [];
+    private readonly Dictionary<ConverterRequestKey, Task<IReadOnlyCollection<OutputConverterDescriptor>>> _converterRequests = [];
+    private readonly object _converterCacheLock = new();
+    private readonly CancellationTokenSource _disposeCancellationTokenSource = new();
 
     /// <summary>
     /// The workflow definition.
@@ -86,13 +91,15 @@ public partial class OutputsTab
         _bindingTargetGroups = bindingTargetGroups;
         _bindingTargetOptions = variableBindingTargets.Concat(outputBindingTargets).ToList();
 
-        foreach (var outputDescriptor in OutputDescriptors)
+        var converterLoads = OutputDescriptors.Select(outputDescriptor =>
         {
             var propertyName = outputDescriptor.Name.Camelize();
             var binding = Activity.GetProperty<ActivityOutput>(propertyName);
             var target = _bindingTargetOptions.FirstOrDefault(x => x.Value == binding?.MemoryReference?.Id);
-            await LoadConvertersAsync(outputDescriptor, target, clearIncompatibleConverter: false);
-        }
+            return LoadConvertersAsync(outputDescriptor, target, clearIncompatibleConverter: false);
+        });
+
+        await Task.WhenAll(converterLoads);
     }
 
     private async Task OnBindingChanged(BindingTargetOption? bindingTargetOption, OutputDescriptor outputDescriptor)
@@ -136,9 +143,10 @@ public partial class OutputsTab
         else
         {
             var existingConverter = binding["converter"] as JsonObject;
-            var settings = existingConverter?["id"]?.GetValue<string>() == converterId
-                ? existingConverter["settings"]?.DeepClone()
-                : new JsonObject();
+            var isSameConverter = existingConverter?["id"]?.GetValue<string>() == converterId;
+            var settings = isSameConverter
+                ? existingConverter!["settings"]?.DeepClone()
+                : CreateDefaultSettings(GetConverterState(outputDescriptor).Descriptors.FirstOrDefault(x => x.Id == converterId)?.SettingsSchema);
             binding["converter"] = new JsonObject
             {
                 ["id"] = converterId,
@@ -165,8 +173,7 @@ public partial class OutputsTab
     private async Task LoadConvertersAsync(OutputDescriptor outputDescriptor, BindingTargetOption? target, bool clearIncompatibleConverter)
     {
         var state = GetConverterState(outputDescriptor);
-        var cancellationToken = state.BeginRequest();
-        var requestVersion = state.RequestVersion;
+        var requestVersion = state.BeginRequest();
 
         if (target == null)
         {
@@ -174,28 +181,28 @@ public partial class OutputsTab
             return;
         }
 
+        var requestKey = new ConverterRequestKey(outputDescriptor.TypeName, target.DeclaredTypeName);
+        if (state.LoadedKey == requestKey && state.IsAvailable)
+        {
+            if (clearIncompatibleConverter)
+                await ClearIncompatibleConverterAsync(outputDescriptor, state);
+            return;
+        }
+
         try
         {
-            var descriptors = await OutputConverterService.GetOutputConvertersAsync(outputDescriptor.TypeName, target.DeclaredTypeName, cancellationToken);
+            var descriptors = await GetConvertersAsync(requestKey);
             if (requestVersion != state.RequestVersion)
                 return;
 
             state.Descriptors = descriptors;
             state.IsAvailable = true;
+            state.LoadedKey = requestKey;
 
-            if (clearIncompatibleConverter && !IsCurrentConverterCompatible(outputDescriptor, state))
-            {
-                var propertyName = outputDescriptor.Name.Camelize();
-                var binding = Activity.GetProperty<JsonObject>(propertyName);
-                binding?.Remove("converter");
-                if (binding != null)
-                {
-                    Activity.SetProperty(binding, propertyName);
-                    await RaiseActivityUpdatedAsync(Activity);
-                }
-            }
+            if (clearIncompatibleConverter)
+                await ClearIncompatibleConverterAsync(outputDescriptor, state);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (_disposeCancellationTokenSource.IsCancellationRequested)
         {
         }
         catch (Exception)
@@ -210,8 +217,99 @@ public partial class OutputsTab
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var state in _converterStates.Values)
-            state.Dispose();
+        _disposeCancellationTokenSource.Cancel();
+        _disposeCancellationTokenSource.Dispose();
+    }
+
+    private Task<IReadOnlyCollection<OutputConverterDescriptor>> GetConvertersAsync(ConverterRequestKey requestKey)
+    {
+        TaskCompletionSource<IReadOnlyCollection<OutputConverterDescriptor>> completion;
+        Task<IReadOnlyCollection<OutputConverterDescriptor>> request;
+        lock (_converterCacheLock)
+        {
+            if (_converterCache.TryGetValue(requestKey, out var cachedDescriptors))
+                return Task.FromResult(cachedDescriptors);
+
+            if (_converterRequests.TryGetValue(requestKey, out var existingRequest))
+                return existingRequest;
+
+            completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            request = completion.Task;
+            _converterRequests[requestKey] = request;
+        }
+
+        _ = CompleteConverterRequestAsync(requestKey, request, completion);
+        return request;
+    }
+
+    private async Task CompleteConverterRequestAsync(
+        ConverterRequestKey requestKey,
+        Task<IReadOnlyCollection<OutputConverterDescriptor>> request,
+        TaskCompletionSource<IReadOnlyCollection<OutputConverterDescriptor>> completion)
+    {
+        try
+        {
+            var descriptors = (await OutputConverterService.GetOutputConvertersAsync(
+                requestKey.SourceType,
+                requestKey.DestinationType,
+                _disposeCancellationTokenSource.Token)).ToArray();
+
+            lock (_converterCacheLock)
+                _converterCache[requestKey] = descriptors;
+
+            completion.TrySetResult(descriptors);
+        }
+        catch (OperationCanceledException exception)
+        {
+            completion.TrySetCanceled(exception.CancellationToken);
+        }
+        catch (Exception exception)
+        {
+            completion.TrySetException(exception);
+        }
+        finally
+        {
+            lock (_converterCacheLock)
+            {
+                if (_converterRequests.TryGetValue(requestKey, out var currentRequest) && currentRequest == request)
+                    _converterRequests.Remove(requestKey);
+            }
+        }
+    }
+
+    private async Task ClearIncompatibleConverterAsync(OutputDescriptor outputDescriptor, OutputConverterState state)
+    {
+        if (IsCurrentConverterCompatible(outputDescriptor, state))
+            return;
+
+        var propertyName = outputDescriptor.Name.Camelize();
+        var binding = Activity.GetProperty<JsonObject>(propertyName);
+        binding?.Remove("converter");
+        if (binding != null)
+        {
+            Activity.SetProperty(binding, propertyName);
+            await RaiseActivityUpdatedAsync(Activity);
+        }
+    }
+
+    private static JsonObject CreateDefaultSettings(JsonElement? settingsSchema)
+    {
+        var settings = new JsonObject();
+        if (settingsSchema is not { ValueKind: JsonValueKind.Object } schema ||
+            !schema.TryGetProperty("type", out var type) || type.GetString() != "object" ||
+            !schema.TryGetProperty("properties", out var properties) || properties.ValueKind != JsonValueKind.Object)
+            return settings;
+
+        foreach (var property in properties.EnumerateObject())
+        {
+            if (property.Value.ValueKind != JsonValueKind.Object)
+                return new JsonObject();
+
+            if (property.Value.TryGetProperty("default", out var defaultValue))
+                settings[property.Name] = JsonNode.Parse(defaultValue.GetRawText());
+        }
+
+        return settings;
     }
 
     private OutputConverterState GetConverterState(OutputDescriptor outputDescriptor)
@@ -251,33 +349,26 @@ public partial class OutputsTab
             await OnActivityUpdated(activity);
     }
 
-    private sealed class OutputConverterState : IDisposable
-    {
-        private CancellationTokenSource? _cancellationTokenSource;
+    private readonly record struct ConverterRequestKey(string SourceType, string DestinationType);
 
-        public ICollection<OutputConverterDescriptor> Descriptors { get; set; } = [];
+    private sealed class OutputConverterState
+    {
+        public IReadOnlyCollection<OutputConverterDescriptor> Descriptors { get; set; } = [];
         public bool IsAvailable { get; set; }
         public int RequestVersion { get; set; }
+        public ConverterRequestKey? LoadedKey { get; set; }
 
-        public CancellationToken BeginRequest()
+        public int BeginRequest()
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = new();
             RequestVersion++;
-            return _cancellationTokenSource.Token;
+            return RequestVersion;
         }
 
         public void Reset()
         {
             Descriptors = [];
             IsAvailable = false;
-        }
-
-        public void Dispose()
-        {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
+            LoadedKey = null;
         }
     }
 }

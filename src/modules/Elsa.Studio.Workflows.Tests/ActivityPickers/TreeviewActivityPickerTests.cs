@@ -49,11 +49,11 @@ public sealed class TreeviewActivityPickerTests : BunitContext, IAsyncLifetime
 
         category.Find(".mud-treeview-item-label").Click();
 
-        Assert.True(category.Instance.Expanded);
+        cut.WaitForAssertion(() => Assert.True(cut.FindComponents<MudTreeViewItem<string>>().Single(item => item.Instance.Text == "Flow").Instance.Expanded));
 
-        category.Find(".mud-treeview-item-label").Click();
+        cut.FindComponents<MudTreeViewItem<string>>().Single(item => item.Instance.Text == "Flow").Find(".mud-treeview-item-label").Click();
 
-        Assert.False(category.Instance.Expanded);
+        cut.WaitForAssertion(() => Assert.False(cut.FindComponents<MudTreeViewItem<string>>().Single(item => item.Instance.Text == "Flow").Instance.Expanded));
 #pragma warning restore MUD0012
     }
 

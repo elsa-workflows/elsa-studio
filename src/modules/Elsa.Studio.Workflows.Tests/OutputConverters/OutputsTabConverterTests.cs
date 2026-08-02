@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Bunit;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
@@ -67,6 +68,7 @@ public sealed class OutputsTabConverterTests : BunitContext, IAsyncLifetime
         Assert.Equal("Source", binding["typeName"]!.GetValue<string>());
         Assert.Equal("result", binding["memoryReference"]!["id"]!.GetValue<string>());
         Assert.Equal("sample.to-text", binding["converter"]!["id"]!.GetValue<string>());
+        Assert.Empty(binding["converter"]!["settings"]!.AsObject());
 
         await cut.InvokeAsync(() => converter.Instance.ValueChanged.InvokeAsync(string.Empty));
 
@@ -117,7 +119,177 @@ public sealed class OutputsTabConverterTests : BunitContext, IAsyncLifetime
         Assert.All(cut.FindComponents<MudSelect<string>>(), select => Assert.True(select.Instance.Disabled));
     }
 
-    private IRenderedComponent<OutputsTab> RenderOutputsTab(WorkflowDefinition? workflowDefinition = null, bool readOnly = false) => Render<OutputsTab>(parameters => parameters
+    [Fact]
+    public void OutputsWithTheSameTypePairShareOneRequest()
+    {
+        _activity["summary"] = new JsonObject
+        {
+            ["typeName"] = "Source",
+            ["memoryReference"] = new JsonObject { ["id"] = "result" }
+        };
+
+        RenderOutputsTab(outputs:
+        [
+            new OutputDescriptor { Name = "Result", TypeName = "Source", DisplayName = "Result" },
+            new OutputDescriptor { Name = "Summary", TypeName = "Source", DisplayName = "Summary" }
+        ]);
+
+        Assert.Equal([("Source", "String")], _converterService.Requests);
+    }
+
+    [Fact]
+    public async Task DistinctTypePairsStartConcurrently()
+    {
+        var allRequestsStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseRequests = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _converterService.Handler = async (_, _, _) =>
+        {
+            if (_converterService.Requests.Count == 2)
+                allRequestsStarted.TrySetResult();
+
+            await releaseRequests.Task;
+            return [];
+        };
+        _activity["summary"] = new JsonObject
+        {
+            ["typeName"] = "OtherSource",
+            ["memoryReference"] = new JsonObject { ["id"] = "result" }
+        };
+
+        var cut = RenderOutputsTab(outputs:
+        [
+            new OutputDescriptor { Name = "Result", TypeName = "Source", DisplayName = "Result" },
+            new OutputDescriptor { Name = "Summary", TypeName = "OtherSource", DisplayName = "Summary" }
+        ]);
+
+        await allRequestsStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(2, _converterService.Requests.Count);
+        releaseRequests.SetResult();
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindComponents<MudSelect<string>>().Count));
+    }
+
+    [Fact]
+    public void UnchangedParametersReuseTheSuccessfulRequest()
+    {
+        var cut = RenderOutputsTab();
+        cut.WaitForAssertion(() => Assert.Single(_converterService.Requests));
+
+        cut.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, cut.Instance.WorkflowDefinition)
+            .Add(x => x.Activity, cut.Instance.Activity)
+            .Add(x => x.ActivityDescriptor, cut.Instance.ActivityDescriptor)
+            .Add(x => x.OnActivityUpdated, cut.Instance.OnActivityUpdated));
+
+        Assert.Single(_converterService.Requests);
+    }
+
+    [Fact]
+    public async Task SwitchingTargetsWithTheSameDeclaredTypeReusesTheRequest()
+    {
+        var cut = RenderOutputsTab(workflowDefinition: new WorkflowDefinition
+        {
+            Variables =
+            [
+                new Variable { Id = "result", Name = "Result", TypeName = "String" },
+                new Variable { Id = "summary", Name = "Summary", TypeName = "String" }
+            ]
+        });
+        var bindingTarget = cut.FindComponent<MudSelect<BindingTargetOption>>();
+
+        await cut.InvokeAsync(() => bindingTarget.Instance.ValueChanged.InvokeAsync(new BindingTargetOption("Summary", "summary", "String", false)));
+
+        Assert.Single(_converterService.Requests);
+    }
+
+    [Fact]
+    public void FailedRequestsAreRetried()
+    {
+        _converterService.Exception = new InvalidOperationException();
+        var cut = RenderOutputsTab();
+        Assert.Single(_converterService.Requests);
+
+        _converterService.Exception = null;
+        cut.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, cut.Instance.WorkflowDefinition)
+            .Add(x => x.Activity, cut.Instance.Activity)
+            .Add(x => x.ActivityDescriptor, cut.Instance.ActivityDescriptor)
+            .Add(x => x.OnActivityUpdated, cut.Instance.OnActivityUpdated));
+
+        cut.WaitForAssertion(() => Assert.Equal(2, _converterService.Requests.Count));
+    }
+
+    [Fact]
+    public void EmptyResultsAreCached()
+    {
+        var cut = RenderOutputsTab(workflowDefinition: new WorkflowDefinition
+        {
+            Variables = [new Variable { Id = "result", Name = "Result", TypeName = "Integer" }]
+        });
+        cut.WaitForAssertion(() => Assert.Single(_converterService.Requests));
+
+        cut.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, cut.Instance.WorkflowDefinition)
+            .Add(x => x.Activity, cut.Instance.Activity)
+            .Add(x => x.ActivityDescriptor, cut.Instance.ActivityDescriptor)
+            .Add(x => x.OnActivityUpdated, cut.Instance.OnActivityUpdated));
+
+        Assert.Single(_converterService.Requests);
+    }
+
+    [Fact]
+    public async Task SelectingAConverterPersistsTopLevelSchemaDefaults()
+    {
+        using var schema = JsonDocument.Parse("""
+            {"type":"object","properties":{"format":{"type":"string","default":"compact"},"precision":{"type":"integer","default":2},"enabled":{"type":"boolean","default":true}}}
+            """);
+        _converterService.Descriptors =
+        [
+            new OutputConverterDescriptor
+            {
+                Id = "sample.to-text",
+                SourceTypeName = "Source",
+                ResultTypeName = "String",
+                SettingsSchema = schema.RootElement.Clone()
+            }
+        ];
+        var updates = 0;
+        var cut = RenderOutputsTab(onActivityUpdated: _ =>
+        {
+            updates++;
+            return Task.CompletedTask;
+        });
+        cut.WaitForState(() => cut.FindComponents<MudSelect<string>>().Count == 1);
+
+        await cut.InvokeAsync(() => cut.FindComponent<MudSelect<string>>().Instance.ValueChanged.InvokeAsync("sample.to-text"));
+
+        var settings = _activity["result"]!["converter"]!["settings"]!.AsObject();
+        Assert.Equal("compact", settings["format"]!.GetValue<string>());
+        Assert.Equal(2, settings["precision"]!.GetValue<int>());
+        Assert.True(settings["enabled"]!.GetValue<bool>());
+        Assert.Equal(1, updates);
+    }
+
+    [Fact]
+    public async Task ReselectingAConverterPreservesItsSettings()
+    {
+        _activity["result"]!.AsObject()["converter"] = new JsonObject
+        {
+            ["id"] = "sample.to-text",
+            ["settings"] = new JsonObject { ["format"] = "custom" }
+        };
+        var cut = RenderOutputsTab();
+        cut.WaitForState(() => cut.FindComponents<MudSelect<string>>().Count == 1);
+
+        await cut.InvokeAsync(() => cut.FindComponent<MudSelect<string>>().Instance.ValueChanged.InvokeAsync("sample.to-text"));
+
+        Assert.Equal("custom", _activity["result"]!["converter"]!["settings"]!["format"]!.GetValue<string>());
+    }
+
+    private IRenderedComponent<OutputsTab> RenderOutputsTab(
+        WorkflowDefinition? workflowDefinition = null,
+        bool readOnly = false,
+        IReadOnlyCollection<OutputDescriptor>? outputs = null,
+        Func<JsonObject, Task>? onActivityUpdated = null) => Render<OutputsTab>(parameters => parameters
         .AddCascadingValue<IWorkspace>(new WorkspaceStub(readOnly))
         .Add(x => x.WorkflowDefinition, workflowDefinition ?? new WorkflowDefinition
         {
@@ -126,9 +298,9 @@ public sealed class OutputsTabConverterTests : BunitContext, IAsyncLifetime
         .Add(x => x.Activity, _activity)
         .Add(x => x.ActivityDescriptor, new ActivityDescriptor
         {
-            Outputs = [new OutputDescriptor { Name = "Result", TypeName = "Source", DisplayName = "Result" }]
+            Outputs = outputs ?? [new OutputDescriptor { Name = "Result", TypeName = "Source", DisplayName = "Result" }]
         })
-        .Add(x => x.OnActivityUpdated, (Func<JsonObject, Task>)(_ => Task.CompletedTask)));
+        .Add(x => x.OnActivityUpdated, onActivityUpdated ?? (_ => Task.CompletedTask)));
 
     private sealed class VariableTypeServiceStub : IVariableTypeService
     {
@@ -140,18 +312,24 @@ public sealed class OutputsTabConverterTests : BunitContext, IAsyncLifetime
     {
         public ICollection<(string SourceType, string DestinationType)> Requests { get; } = [];
         public Exception? Exception { get; set; }
+        public Func<string, string, CancellationToken, Task<ICollection<OutputConverterDescriptor>>>? Handler { get; set; }
+        public ICollection<OutputConverterDescriptor>? Descriptors { get; set; }
 
         public Task<ICollection<OutputConverterDescriptor>> GetOutputConvertersAsync(string sourceType, string destinationType, CancellationToken cancellationToken = default)
         {
             Requests.Add((sourceType, destinationType));
+            if (Handler != null)
+                return Handler(sourceType, destinationType, cancellationToken);
+
             if (Exception != null)
                 throw Exception;
 
             if (destinationType == "Integer")
                 return Task.FromResult<ICollection<OutputConverterDescriptor>>([]);
 
-            return Task.FromResult<ICollection<OutputConverterDescriptor>>(
-            [
+            return Task.FromResult(Descriptors ??
+                (ICollection<OutputConverterDescriptor>)
+                [
                 new OutputConverterDescriptor
                 {
                     Id = "sample.to-text",
