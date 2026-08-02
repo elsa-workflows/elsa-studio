@@ -178,3 +178,5 @@ src/samples/react/workflow-definition-editor-sample/workflow-definition-editor-a
 
 src/wrappers/.npmrc
 .vs
+
+.codebase-memory/
