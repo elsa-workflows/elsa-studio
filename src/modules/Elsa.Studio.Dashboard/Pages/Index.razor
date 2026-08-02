@@ -64,25 +64,23 @@
     {
         <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Metrics)" Context="@WidgetContext" />
 
-        <MudGrid Spacing="2" Class="dashboard-main-grid" Style="@DashboardStyles.MainGrid">
-            <MudItem xs="12" lg="4">
-                <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Findings)" Context="@WidgetContext" />
-            </MudItem>
-            <MudItem xs="12" lg="8">
-                <MudStack Spacing="2">
-                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.PrimaryPanels)" Context="@WidgetContext" />
-                </MudStack>
-            </MudItem>
-            <MudItem xs="12" lg="8">
-                <MudStack Spacing="2">
-                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.DiagnosticsStatus)" Context="@WidgetContext" />
-                </MudStack>
-            </MudItem>
-            <MudItem xs="12" lg="4">
-                <MudStack Spacing="2">
-                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.SecondaryPanels)" Context="@WidgetContext" />
-                </MudStack>
-            </MudItem>
-        </MudGrid>
+        <MudStack Spacing="2" Class="dashboard-main-stack">
+            <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Trend)" Context="@WidgetContext" />
+            <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.PrimaryPanels)" Context="@WidgetContext" />
+
+            <MudGrid Spacing="2" Class="dashboard-activity-grid">
+                <MudItem xs="12" lg="8">
+                    <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Activity)" Context="@WidgetContext" />
+                </MudItem>
+                <MudItem xs="12" lg="4">
+                    <MudStack Spacing="2">
+                        <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.Findings)" Context="@WidgetContext" />
+                        <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.SecondaryPanels)" Context="@WidgetContext" />
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+
+            <DashboardWidgetZone Widgets="@GetWidgets(DashboardWidgetZones.DiagnosticsStatus)" Context="@WidgetContext" Class="dashboard-diagnostics-grid" ItemClass="dashboard-diagnostics-grid-item" />
+        </MudStack>
     }
 </MudContainer>
