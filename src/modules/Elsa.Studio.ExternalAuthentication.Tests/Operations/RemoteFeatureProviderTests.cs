@@ -46,7 +46,7 @@ public class RemoteFeatureProviderTests
     public async Task AuthenticationFailures_AreRetried(HttpStatusCode statusCode)
     {
         var api = new FeaturesApi();
-        api.Responses.Enqueue(() => Task.FromException<ListResponse<FeatureDescriptor>>(CreateApiException(statusCode)));
+        api.Responses.Enqueue(_ => Task.FromException<ListResponse<FeatureDescriptor>>(CreateApiException(statusCode)));
         var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
 
         Assert.False(await provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
@@ -58,7 +58,7 @@ public class RemoteFeatureProviderTests
     public async Task MissingCatalog_IsCached()
     {
         var api = new FeaturesApi();
-        api.Responses.Enqueue(() => Task.FromException<ListResponse<FeatureDescriptor>>(CreateApiException(HttpStatusCode.NotFound)));
+        api.Responses.Enqueue(_ => Task.FromException<ListResponse<FeatureDescriptor>>(CreateApiException(HttpStatusCode.NotFound)));
         var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
 
         Assert.False(await provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
@@ -70,12 +70,41 @@ public class RemoteFeatureProviderTests
     public async Task CancelledCatalogRequest_IsRetried()
     {
         var api = new FeaturesApi();
-        api.Responses.Enqueue(() => Task.FromCanceled<ListResponse<FeatureDescriptor>>(new CancellationToken(true)));
+        api.Responses.Enqueue(async cancellationToken =>
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new InvalidOperationException("The cancellation token should stop this request.");
+        });
         var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
+        using var cancellationTokenSource = new CancellationTokenSource();
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
+        var cancelledCheck = provider.IsEnabledAsync("Elsa.ExternalAuthentication", cancellationTokenSource.Token);
+        cancellationTokenSource.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelledCheck);
         Assert.True(await provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
         Assert.Equal(2, api.ListCalls);
+    }
+
+    [Fact]
+    public async Task ConcurrentFeatureChecks_ShareOneCatalogRequest()
+    {
+        var responseReady = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var api = new FeaturesApi();
+        api.Responses.Enqueue(async _ =>
+        {
+            await responseReady.Task;
+            return FeaturesApi.InstalledFeatures;
+        });
+        var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
+
+        var firstCheck = provider.IsEnabledAsync("Elsa.ExternalAuthentication");
+        var secondCheck = provider.IsEnabledAsync("Elsa.ExternalAuthentication");
+
+        Assert.Equal(1, api.ListCalls);
+        responseReady.SetResult();
+        Assert.All(await Task.WhenAll(firstCheck, secondCheck), Assert.True);
+        Assert.Equal(1, api.ListCalls);
     }
 
     private static ApiException CreateApiException(HttpStatusCode statusCode)
@@ -95,7 +124,11 @@ public class RemoteFeatureProviderTests
 
     private sealed class FeaturesApi : IFeaturesApi
     {
-        public Queue<Func<Task<ListResponse<FeatureDescriptor>>>> Responses { get; } = new();
+        public static ListResponse<FeatureDescriptor> InstalledFeatures { get; } = new(
+            [new FeatureDescriptor { FullName = "Elsa.ExternalAuthentication" }],
+            1);
+
+        public Queue<Func<CancellationToken, Task<ListResponse<FeatureDescriptor>>>> Responses { get; } = new();
         public int GetCalls { get; private set; }
         public int ListCalls { get; private set; }
 
@@ -109,11 +142,9 @@ public class RemoteFeatureProviderTests
         {
             ListCalls++;
             if (Responses.TryDequeue(out var response))
-                return response();
+                return response(cancellationToken);
 
-            return Task.FromResult(new ListResponse<FeatureDescriptor>(
-                [new FeatureDescriptor { FullName = "Elsa.ExternalAuthentication" }],
-                1));
+            return Task.FromResult(InstalledFeatures);
         }
     }
 
