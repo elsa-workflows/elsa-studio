@@ -27,6 +27,36 @@ public sealed class ConnectionContractTests
     }
 
     [Fact]
+    public void ConnectionSummaryDeserializesNamedShadowRelationships()
+    {
+        var connection = JsonSerializer.Deserialize<ConnectionSummary>(
+            """
+            {
+              "id": "deployment-keycloak",
+              "shadowed": true,
+              "shadowedBy": {
+                "id": "database-keycloak",
+                "displayName": "Keycloak",
+                "source": "database"
+              },
+              "shadows": [
+                {
+                  "id": "legacy-keycloak",
+                  "displayName": "Legacy Keycloak",
+                  "source": "configuration"
+                }
+              ]
+            }
+            """,
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        Assert.NotNull(connection);
+        Assert.Equal("database-keycloak", connection.ShadowedBy?.Id);
+        Assert.Equal("Keycloak", connection.ShadowedBy?.DisplayName);
+        Assert.Equal("legacy-keycloak", Assert.Single(connection.Shadows).Id);
+    }
+
+    [Fact]
     public void ValidationResultDeserializesStringWarnings()
     {
         var result = JsonSerializer.Deserialize<ConnectionValidationResult>(

@@ -318,5 +318,5 @@ public sealed class ManagementApiException(string message, int statusCode, Conne
 {
     public int StatusCode { get; } = statusCode;
     public ConnectionDetail? Current { get; } = current;
-    public bool IsConcurrencyConflict => StatusCode is 409 or 412;
+    public bool IsConcurrencyConflict => StatusCode == 412;
 }
