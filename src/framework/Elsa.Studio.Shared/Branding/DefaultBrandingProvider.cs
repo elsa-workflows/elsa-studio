@@ -29,7 +29,7 @@ public class DefaultBrandingProvider : IBrandingProvider
     public virtual string AppNameWithVersion => $"{AppName} {ToolVersion.GetDisplayVersion()}";
 
     /// <inheritdoc />
-    public virtual string AppTagline => "You’re in Charge Now";
+    public virtual string AppTagline => "Build Workflows. Run Anything.";
 
     /// <inheritdoc />
     public virtual string LogoUrl => GetLogoUrl(false);
