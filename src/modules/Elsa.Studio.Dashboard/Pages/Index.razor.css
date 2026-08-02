@@ -4,7 +4,7 @@
     min-height: 100%;
     padding: 24px 32px 32px;
     box-sizing: border-box;
-    background: #f6f8fb;
+    background: var(--mud-palette-background);
 }
 
 .dashboard-header {
@@ -64,7 +64,11 @@
     margin-top: 6px;
 }
 
-.dashboard-main-grid {
+.dashboard-main-stack {
+    margin-top: 8px;
+}
+
+.dashboard-activity-grid {
     margin-top: 0;
 }
 
@@ -77,7 +81,7 @@
 }
 
 .dashboard-shell ::deep .dashboard-chart-panel {
-    min-height: 294px;
+    min-height: 320px;
 }
 
 .dashboard-shell ::deep .dashboard-finding-list {
