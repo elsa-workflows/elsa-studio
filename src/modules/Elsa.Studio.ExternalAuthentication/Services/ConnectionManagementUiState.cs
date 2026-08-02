@@ -226,14 +226,25 @@ public static class ConnectionStatusPresentation
 public static class ConnectionListPresentation
 {
     public static string OwnershipLabel(ConnectionSummary connection) =>
-        connection.IsConfigurationOwned ? "Deployment" : "Studio";
+        connection.IsConfigurationOwned ? "Deployment" : "Database";
 
     public static string? OwnershipRelationship(ConnectionSummary connection) =>
         connection.OverridesConfigurationConnection
             ? "Overrides deployment"
             : connection.Shadowed
-                ? connection.IsConfigurationOwned ? "Shadowed by Studio" : "Shadowed by deployment"
+                ? connection.IsConfigurationOwned ? "Shadowed by Database" : "Shadowed by deployment"
                 : null;
+
+    public static ConnectionReference? GetShadowingConnection(ConnectionSummary connection) =>
+        IsValidRelationshipReference(connection, connection.ShadowedBy) ? connection.ShadowedBy : null;
+
+    public static IReadOnlyList<ConnectionReference> GetShadowedConnections(ConnectionSummary connection) =>
+        connection.Shadows
+            .Where(reference => IsValidRelationshipReference(connection, reference))
+            .ToArray();
+
+    public static string ShadowedConnectionsRelationship(ConnectionSummary connection) =>
+        connection.OverridesConfigurationConnection ? "Overrides" : "Shadows";
 
     public static string AvailabilityLabel(ConnectionSummary connection) =>
         connection.Archived
@@ -276,6 +287,12 @@ public static class ConnectionListPresentation
                         : connection.EnabledIntent
                             ? Icons.Material.Outlined.WarningAmber
                             : Icons.Material.Outlined.PauseCircle;
+
+    private static bool IsValidRelationshipReference(ConnectionSummary connection, ConnectionReference? reference) =>
+        reference is not null &&
+        !string.IsNullOrWhiteSpace(reference.Id) &&
+        !string.IsNullOrWhiteSpace(reference.DisplayName) &&
+        !string.Equals(connection.Id, reference.Id, StringComparison.Ordinal);
 }
 
 public static class ConnectionObservationPresentation
@@ -369,7 +386,7 @@ public static class ConnectionDisableConfirmation
 public static class ConnectionConcurrency
 {
     public static string ToIfMatch(long revision) => $"\"{revision}\"";
-    public static bool IsConflict(System.Net.HttpStatusCode statusCode) => statusCode is System.Net.HttpStatusCode.Conflict or System.Net.HttpStatusCode.PreconditionFailed;
+    public static bool IsConflict(System.Net.HttpStatusCode statusCode) => statusCode == System.Net.HttpStatusCode.PreconditionFailed;
 }
 
 public static class ConnectionConflictRecovery
@@ -519,10 +536,16 @@ public sealed record ConnectionManagementErrorInfo(
     {
         get
         {
+            var message = ConflictCode switch
+            {
+                "configuration_preferred_connection" => "A configuration-owned connection is already the preferred sign-in method. Clear Preferred on this connection before enabling it, or override the existing preferred connection instead.",
+                "default_connection_conflict" => "Another database connection is already the preferred sign-in method. Clear Preferred on one of the connections before enabling this one.",
+                _ => Message
+            };
             var details = Errors.Select(error => $"{error.Field}: {error.Message}")
                 .Concat(Warnings.Select(warning => $"Warning: {warning}"))
                 .ToArray();
-            return details.Length == 0 ? Message : $"{Message} {string.Join(" ", details)}";
+            return details.Length == 0 ? message : $"{message} {string.Join(" ", details)}";
         }
     }
 

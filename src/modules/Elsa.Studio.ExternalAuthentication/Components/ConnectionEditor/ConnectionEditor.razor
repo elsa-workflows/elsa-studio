@@ -2,107 +2,68 @@
 
 <MudForm @ref="_form">
     <MudStack Spacing="3">
-        <MudAlert Severity="Severity.Info" Dense="true">
-            Upstream Client Registration settings belong to this provider connection. Elsa Authentication Client settings remain deployment-owned and are not editable here.
-        </MudAlert>
-        @if (Connection.IsConfigurationOwned)
+        @if (ShowContext)
         {
-            <MudAlert Severity="Severity.Warning" Dense="true">
-                This connection is configuration-owned and read-only in Studio.
-                @if (CanCreateOverride)
-                {
-                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => FullOverrideRequested.InvokeAsync())">
-                        Create full Studio override
-                    </MudButton>
-                }
-                else if (!HasExistingStudioOverride)
-                {
-                    <div>A Studio override is unavailable because deployment policy or your permissions do not allow it.</div>
-                }
-                else
-                {
-                    <div>@(ExistingStudioOverrideArchived
-                        ? "An archived Studio record already exists for this connection."
-                        : "A Studio record already exists for this connection.")</div>
-                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ExistingStudioOverrideRequested.InvokeAsync())">
-                        @(ExistingStudioOverrideArchived ? "Review and restore Studio record" : "Manage existing Studio record")
-                    </MudButton>
-                }
+            <MudAlert Severity="Severity.Info" Dense="true">
+                Upstream Client Registration settings belong to this provider connection. Elsa Authentication Client settings remain deployment-owned and are not editable here.
             </MudAlert>
-        }
-        <MudTextField T="string" Value="@Model.DisplayName" ValueChanged="SetDisplayNameAsync" Label="Display name" Required="true" ReadOnly="@ReadOnly" />
-        <MudTextField T="string" Value="@Model.Key" ValueChanged="SetKeyAsync" Label="Connection key" Required="true" ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))" HelperText="Immutable after creation." />
-        @if (!string.IsNullOrWhiteSpace(Connection.CallbackUri))
-        {
-            <MudTextField Value="@Connection.CallbackUri"
-                          Label="Provider callback URI"
-                          ReadOnly="true"
-                          HelperText="Derived by Elsa from deployment configuration. Register this exact URI with the identity provider." />
-        }
-        @if (!string.IsNullOrWhiteSpace(Connection.PreviewCallbackUri))
-        {
-            <MudTextField Value="@Connection.PreviewCallbackUri"
-                          Label="Provider preview callback URI"
-                          ReadOnly="true"
-                          HelperText="Register this exact URI with the identity provider to enable administrator previews." />
-        }
-        <MudNumericField T="int" Value="@Model.Order" ValueChanged="SetOrderAsync" Label="Display order" ReadOnly="@ReadOnly" />
-        <MudCheckBox T="bool" Value="@Model.IsPreferred" ValueChanged="SetPreferredAsync" Label="Mark as the preferred sign-in method" Disabled="@ReadOnly" />
-        <MudSelect T="string" Value="@Model.UpstreamLogoutMode" ValueChanged="SetUpstreamLogoutModeAsync" Label="Upstream sign-out" Disabled="@ReadOnly">
-            <MudSelectItem T="string" Value="@("disabled")">Disabled</MudSelectItem>
-            <MudSelectItem T="string" Value="@("userChoice")">Let the user choose</MudSelectItem>
-            <MudSelectItem T="string" Value="@("always")">Always sign out upstream</MudSelectItem>
-        </MudSelect>
-
-        <MudDivider />
-        <MudText Typo="Typo.h6">@Adapter.DisplayName settings</MudText>
-        @foreach (var field in Adapter.Fields.Where(field => !field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
-        {
-            <DescriptorField Field="field" Settings="Model.AdapterSettings" ReadOnly="@ReadOnly" Changed="@OnAdapterSettingsChangedAsync" />
-            @if (DescriptorEditorState.IsUnsafeSettingActive(field, Model.AdapterSettings))
+            @if (Connection.IsConfigurationOwned)
             {
-                <MudAlert Severity="Severity.Warning" Dense="true">This provider trust setting can weaken authentication safety. It requires explicit confirmation and the provider-trust permission.</MudAlert>
+                <MudAlert Severity="Severity.Warning" Dense="true">
+                    This connection is configuration-owned and read-only in Elsa Studio.
+                    @if (CanCreateOverride)
+                    {
+                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => FullOverrideRequested.InvokeAsync())">
+                            Create full Database override
+                        </MudButton>
+                    }
+                    else if (!HasExistingStudioOverride)
+                    {
+                        <div>A Database override is unavailable because deployment policy or your permissions do not allow it.</div>
+                    }
+                    else
+                    {
+                        <div>@(ExistingStudioOverrideArchived
+                            ? "An archived Database record already exists for this connection."
+                            : "A Database record already exists for this connection.")</div>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => ExistingStudioOverrideRequested.InvokeAsync())">
+                            @(ExistingStudioOverrideArchived ? "Review and restore Database record" : "Manage existing Database record")
+                        </MudButton>
+                    }
+                </MudAlert>
             }
         }
 
-        @if (HasActiveUnsafeSettings)
+        @if (IncludesGeneral)
         {
-            <MudCheckBox T="bool"
-                         Value="@Model.ConfirmUnsafeSettings"
-                         ValueChanged="SetUnsafeSettingsConfirmationAsync"
-                         Disabled="@(ReadOnly || !CanConfigureUnsafeSettings)"
-                         Label="I understand and explicitly confirm unsafe provider trust settings" />
-            @if (!CanConfigureUnsafeSettings)
-            {
-                <MudText Typo="Typo.caption" Color="Color.Warning">You do not have permission to configure unsafe provider trust settings.</MudText>
-            }
+            <ConnectionGeneralFields Connection="Connection"
+                                     Model="Model"
+                                     ReadOnly="ReadOnly"
+                                     Changed="NotifyChangedAsync" />
         }
 
-        <MudDivider />
-        <div class="connection-editor__secrets">
-            <MudText Typo="Typo.h6">Secret bindings</MudText>
-            <MudText Typo="Typo.caption">Secret values are write-only and never displayed or returned to Studio. Deployment-managed external references remain read-only.</MudText>
-            @foreach (var field in Adapter.Fields.Where(field => field.IsSecretBinding && DescriptorEditorState.IsVisible(field, Model.AdapterSettings)))
-            {
-                <SecretBindingField Field="field"
-                                    Binding="@(Connection.SecretBindings.GetValueOrDefault(field.Name))"
-                                    ReadOnly="@ReadOnly"
-                                    CanManage="@CanManageSecrets"
-                                    CanRemove="@(!Connection.EnabledIntent || !field.IsRequired)"
-                                    ManagedSecretResolvers="ManagedSecretResolvers"
-                                    ManagedSecretResolverError="@ManagedSecretResolverError"
-                                    OnManagedReplace="@((secret) => ManagedSecretChanged.InvokeAsync((field.Name, secret)))"
-                                    OnRemove="@(() => SecretBindingRemoved.InvokeAsync(field.Name))" />
-            }
-        </div>
+        @if (IncludesProvider)
+        {
+            <ConnectionProviderFields Connection="Connection"
+                                      Adapter="Adapter"
+                                      Model="Model"
+                                      ReadOnly="ReadOnly"
+                                      CanConfigureUnsafeSettings="CanConfigureUnsafeSettings"
+                                      CanManageSecrets="CanManageSecrets"
+                                      ManagedSecretResolvers="ManagedSecretResolvers"
+                                      ManagedSecretResolverError="@ManagedSecretResolverError"
+                                      ManagedSecretChanged="ManagedSecretChanged"
+                                      SecretBindingRemoved="SecretBindingRemoved"
+                                      Changed="NotifyChangedAsync" />
+        }
 
-        @if (!ReadOnly)
+        @if (ShowActions && !ReadOnly)
         {
             <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">Save changes</MudButton>
         }
         @if (_validationErrors.Count > 0)
         {
-            <MudAlert Severity="Severity.Error">
+            <MudAlert Severity="Severity.Error" Class="connection-editor__validation" aria-live="polite">
                 @foreach (var error in _validationErrors)
                 {
                     <div>@error</div>
@@ -132,67 +93,40 @@
     [Parameter] public EventCallback Changed { get; set; }
     [Parameter] public bool CanManageSecrets { get; set; } = true;
     [Parameter] public EventCallback ExistingStudioOverrideRequested { get; set; }
+    [Parameter] public ConnectionEditorSection Section { get; set; } = ConnectionEditorSection.All;
+    [Parameter] public bool ShowActions { get; set; } = true;
+    [Parameter] public bool ShowContext { get; set; } = true;
 
     private readonly List<string> _validationErrors = [];
+    private bool IncludesGeneral => Section is ConnectionEditorSection.All or ConnectionEditorSection.General;
+    private bool IncludesProvider => Section is ConnectionEditorSection.All or ConnectionEditorSection.Provider;
     private bool HasActiveUnsafeSettings => Adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, Model.AdapterSettings));
 
-    private Task OnAdapterSettingsChangedAsync()
+    public async Task<bool> ValidateAsync()
     {
-        if (!HasActiveUnsafeSettings)
-            Model.ConfirmUnsafeSettings = false;
-        return NotifyChangedAsync();
-    }
+        await _form.Validate();
+        _validationErrors.Clear();
+        if (IncludesProvider)
+        {
+            _validationErrors.AddRange(Adapter.Fields.SelectMany(field => DescriptorEditorState.Validate(field, Model.AdapterSettings)));
+            if (HasActiveUnsafeSettings && (!CanConfigureUnsafeSettings || !Model.ConfirmUnsafeSettings))
+                _validationErrors.Add("Unsafe provider trust settings require the dedicated permission and explicit confirmation.");
+        }
 
-    private async Task SetDisplayNameAsync(string value)
-    {
-        Model.DisplayName = value;
-        await NotifyChangedAsync();
-    }
-
-    private async Task SetKeyAsync(string value)
-    {
-        Model.Key = value;
-        await NotifyChangedAsync();
-    }
-
-    private async Task SetOrderAsync(int value)
-    {
-        Model.Order = value;
-        await NotifyChangedAsync();
-    }
-
-    private async Task SetPreferredAsync(bool value)
-    {
-        Model.IsPreferred = value;
-        await NotifyChangedAsync();
-    }
-
-    private async Task SetUpstreamLogoutModeAsync(string value)
-    {
-        Model.UpstreamLogoutMode = value;
-        await NotifyChangedAsync();
-    }
-
-    private async Task SetUnsafeSettingsConfirmationAsync(bool value)
-    {
-        Model.ConfirmUnsafeSettings = value;
-        await NotifyChangedAsync();
+        await InvokeAsync(StateHasChanged);
+        return _form.IsValid && _validationErrors.Count == 0;
     }
 
     private async Task NotifyChangedAsync()
     {
+        _validationErrors.Clear();
         await Changed.InvokeAsync();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveAsync()
     {
-        await _form.Validate();
-        _validationErrors.Clear();
-        _validationErrors.AddRange(Adapter.Fields.SelectMany(field => DescriptorEditorState.Validate(field, Model.AdapterSettings)));
-        if (HasActiveUnsafeSettings && (!CanConfigureUnsafeSettings || !Model.ConfirmUnsafeSettings))
-            _validationErrors.Add("Unsafe provider trust settings require the dedicated permission and explicit confirmation.");
-        if (_form.IsValid && _validationErrors.Count == 0)
+        if (await ValidateAsync())
             await Saved.InvokeAsync(Model);
     }
 }
