@@ -15,17 +15,24 @@ services
     .AddElsaStudioLoginThemes();
 ```
 
-Choose one stable ID at deployment time and restart the application:
+Choose one stable ID at deployment time and restart the application. To follow
+the application-wide `Presentation:Theme`, select `inherit`:
 
 ```json
 {
+  "Presentation": {
+    "Theme": "human-automation"
+  },
   "Authentication": {
     "Login": {
-      "Theme": "workflow-constellation"
+      "Theme": "inherit"
     }
   }
 }
 ```
+
+An explicit login theme ID remains supported when the authentication surface
+should differ from the authenticated application.
 
 | ID | Concept |
 | --- | --- |

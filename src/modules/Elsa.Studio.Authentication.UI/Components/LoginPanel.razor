@@ -1,5 +1,6 @@
 @inject IEnumerable<ILoginMethodCatalog> Catalogs
 @inject ILoginMethodComponentRegistry Components
+@inject NavigationManager Navigation
 
 <section class="elsa-login-panel" aria-labelledby="elsa-login-heading">
     <MudText HtmlTag="h2" Typo="Typo.h4" id="elsa-login-heading">
@@ -14,13 +15,14 @@
         <MudAlert Severity="Severity.Warning" Dense="true" role="status">@warning</MudAlert>
     }
 
+    @if (!string.IsNullOrWhiteSpace(VisibleError))
+    {
+        <MudAlert Severity="Severity.Error" role="alert">@VisibleError</MudAlert>
+    }
+
     @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" aria-label="@Localizer["Loading sign-in methods"]" />
-    }
-    else if (!string.IsNullOrWhiteSpace(_error))
-    {
-        <MudAlert Severity="Severity.Error" role="alert">@_error</MudAlert>
     }
     else if (_methods.Count == 0)
     {
@@ -43,9 +45,16 @@
                 </div>
             }
 
-            @foreach (var method in ExternalMethods)
+            @if (ExternalMethods.Count > 0)
             {
-                @RenderMethod(method)
+                <div class="elsa-login-panel__external-methods"
+                     role="list"
+                     aria-label="@Localizer["External sign-in methods"]">
+                    @foreach (var method in ExternalMethods)
+                    {
+                        @RenderMethod(method)
+                    }
+                </div>
             }
         </div>
     }
@@ -62,6 +71,9 @@
     private readonly List<string> _warnings = [];
     private bool _loading = true;
     private string? _error;
+    private string? _initialError;
+
+    private string? VisibleError => _error ?? _initialError;
 
     private IReadOnlyList<LoginMethodDescriptor> LocalMethods =>
         _methods.Where(IsLocalMethod).ToArray();
@@ -71,6 +83,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _initialError = ResolveInitialError();
         var catalogFailures = 0;
 
         foreach (var catalog in Catalogs)
@@ -119,19 +132,23 @@
         if (!Components.TryResolve(method.Kind, out var provider))
             return;
 
+        var isLocal = IsLocalMethod(method);
+        var className = isLocal
+            ? "elsa-login-panel__method"
+            : $"elsa-login-panel__method elsa-login-panel__method--external{(method.IsPreferred ? " elsa-login-panel__method--preferred" : string.Empty)}";
+
         builder.OpenElement(0, "section");
-        builder.AddAttribute(1, "class", "elsa-login-panel__method");
+        builder.AddAttribute(1, "class", className);
         builder.AddAttribute(2, "aria-label", method.DisplayName);
+        if (!isLocal)
+            builder.AddAttribute(3, "role", "listitem");
 
         if (method.IsPreferred)
         {
-            builder.OpenComponent<MudChip<string>>(3);
-            builder.AddComponentParameter(4, nameof(MudChip<string>.Size), Size.Small);
-            builder.AddComponentParameter(5, nameof(MudChip<string>.Color), Color.Primary);
-            builder.AddComponentParameter(6, nameof(MudChip<string>.Class), "elsa-login-panel__preferred");
-            builder.AddComponentParameter(7, nameof(MudChip<string>.ChildContent),
-                (RenderFragment)(chipBuilder => chipBuilder.AddContent(0, Localizer["Preferred"])));
-            builder.CloseComponent();
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "class", "elsa-login-panel__preferred");
+            builder.AddContent(6, Localizer["Preferred"]);
+            builder.CloseElement();
         }
 
         builder.OpenComponent<DynamicComponent>(8);
@@ -151,6 +168,29 @@
     {
         _error = message;
         return InvokeAsync(StateHasChanged);
+    }
+
+    private string? ResolveInitialError()
+    {
+        var error = ReadQueryParameter(Navigation.ToAbsoluteUri(Navigation.Uri), "error");
+        return string.Equals(error, LoginFailureCodes.SignInFailed, StringComparison.OrdinalIgnoreCase)
+            ? Localizer["Sign-in failed. Check your credentials and try again."].Value
+            : null;
+    }
+
+    private static string? ReadQueryParameter(Uri uri, string name)
+    {
+        foreach (var segment in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = segment.Split('=', 2);
+            if (string.Equals(
+                    System.Net.WebUtility.UrlDecode(parts[0]),
+                    name,
+                    StringComparison.OrdinalIgnoreCase))
+                return parts.Length == 2 ? System.Net.WebUtility.UrlDecode(parts[1]) : string.Empty;
+        }
+
+        return null;
     }
 
     private static bool IsLocalMethod(LoginMethodDescriptor method) =>
