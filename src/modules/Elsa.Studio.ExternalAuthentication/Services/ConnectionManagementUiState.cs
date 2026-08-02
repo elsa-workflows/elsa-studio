@@ -386,7 +386,7 @@ public static class ConnectionDisableConfirmation
 public static class ConnectionConcurrency
 {
     public static string ToIfMatch(long revision) => $"\"{revision}\"";
-    public static bool IsConflict(System.Net.HttpStatusCode statusCode) => statusCode is System.Net.HttpStatusCode.Conflict or System.Net.HttpStatusCode.PreconditionFailed;
+    public static bool IsConflict(System.Net.HttpStatusCode statusCode) => statusCode == System.Net.HttpStatusCode.PreconditionFailed;
 }
 
 public static class ConnectionConflictRecovery
@@ -536,10 +536,16 @@ public sealed record ConnectionManagementErrorInfo(
     {
         get
         {
+            var message = ConflictCode switch
+            {
+                "configuration_preferred_connection" => "A configuration-owned connection is already the preferred sign-in method. Clear Preferred on this connection before enabling it, or override the existing preferred connection instead.",
+                "default_connection_conflict" => "Another database connection is already the preferred sign-in method. Clear Preferred on one of the connections before enabling this one.",
+                _ => Message
+            };
             var details = Errors.Select(error => $"{error.Field}: {error.Message}")
                 .Concat(Warnings.Select(warning => $"Warning: {warning}"))
                 .ToArray();
-            return details.Length == 0 ? Message : $"{Message} {string.Join(" ", details)}";
+            return details.Length == 0 ? message : $"{message} {string.Join(" ", details)}";
         }
     }
 

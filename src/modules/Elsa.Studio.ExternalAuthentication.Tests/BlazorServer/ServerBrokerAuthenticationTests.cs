@@ -190,6 +190,7 @@ public sealed class ServerBrokerAuthenticationTests
         var redirect = Assert.IsType<RedirectResult>(result);
         Assert.Contains("choose=true", redirect.Url);
         Assert.Contains("returnPath=%2Fworkflows", redirect.Url);
+        Assert.Contains("error=external_sign_in_failed", redirect.Url);
     }
 
     [Fact]

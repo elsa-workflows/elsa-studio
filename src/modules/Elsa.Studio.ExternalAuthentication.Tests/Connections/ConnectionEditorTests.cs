@@ -158,6 +158,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         Assert.Equal(["email"], settings["scopes"].EnumerateArray().Select(item => item.GetString()));
         Assert.Equal(AlignItems.Start, cut.FindComponents<MudStack>().Single(stack => stack.Instance.Row).Instance.AlignItems);
+        Assert.Contains("mt-1", cut.FindComponent<MudButton>().Instance.Class?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? []);
     }
 
     [Fact]
@@ -335,7 +336,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("Record source", cut.Markup, StringComparison.Ordinal);
             Assert.DoesNotContain("Open Diagnostics", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("User provisioning and linking", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Provider connectivity", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Valid", cut.Markup, StringComparison.Ordinal);
             var actions = cut.Find(".connection-workspace__actions");
@@ -612,7 +613,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("Save changes", cut.Markup, StringComparison.Ordinal);
             Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
             Assert.DoesNotContain("Open Diagnostics", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Operations", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Provider connectivity", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Lifecycle", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
         });
     }
@@ -721,6 +722,63 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void MissingSecretValidation_ExplainsConnectivityAndNavigatesToProviderRepair()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        initial.LatestObservation = new ConnectionObservation
+        {
+            Status = "succeeded",
+            Summary = "Provider metadata was resolved."
+        };
+        var invalid = CreateConnection();
+        invalid.Validity = "invalid";
+        invalid.LatestObservation = initial.LatestObservation;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(invalid);
+        _api.Adapters = [CreateAdapter(includeSecret: true)];
+        _api.ValidationResult = new ConnectionValidationResult
+        {
+            Valid = false,
+            Errors =
+            [
+                new ConnectionValidationMessage
+                {
+                    Field = "secretBindings.clientSecret",
+                    Code = "required",
+                    Message = "A required secret binding is missing."
+                }
+            ]
+        };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__header")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var diagnostics = cut.Find(".connection-workspace__diagnostics").TextContent;
+            Assert.Contains("Provider connectivity", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("Configuration validation", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("Client secret", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("A required secret binding is missing.", diagnostics, StringComparison.Ordinal);
+            Assert.Contains("does not verify complete connection configuration", diagnostics, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Review secret binding", diagnostics, StringComparison.Ordinal);
+        });
+
+        cut.Find(".connection-workspace__diagnostics")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Review secret binding", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex)));
+    }
+
+    [Fact]
     public void SuccessfulValidation_RefreshesStatusAndEnablesTheConnection()
     {
         var initial = CreateConnection();
@@ -819,6 +877,37 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
                 .QuerySelectorAll("button")
                 .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
             Assert.True(enable.HasAttribute("disabled"));
+        });
+    }
+
+    [Fact]
+    public async Task EnableDomainConflict_ShowsItsActionableReasonInsteadOfAConcurrencyDialog()
+    {
+        var connection = CreateConnection();
+        connection.Validity = "valid";
+        connection.IsPreferred = true;
+        _api.GetResult = connection;
+        _api.Adapters = [CreateAdapter()];
+        _api.EnableException = await CreateApiExceptionAsync(
+            HttpStatusCode.Conflict,
+            """{"error":"conflict","message":"The requested connection change conflicts with current state.","details":{"code":"configuration_preferred_connection"}}""");
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Enable", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal));
+
+        cut.Find(".connection-workspace__diagnostics")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Trim() == "Enable")
+            .Click();
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("Enable connection?", _dialogProvider.Markup, StringComparison.Ordinal));
+        _dialogProvider.FindAll("button").Single(button => button.TextContent.Trim() == "Enable").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("Connection changed elsewhere", _dialogProvider.Markup, StringComparison.Ordinal);
+            var snackbar = Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+            Assert.Contains("preferred", snackbar.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("clear", snackbar.Message, StringComparison.OrdinalIgnoreCase);
         });
     }
 
@@ -1389,6 +1478,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         Assert.False(ConnectionActionAvailability.CanEnableOrDisable(database, true));
         Assert.Equal("\"17\"", ConnectionConcurrency.ToIfMatch(17));
         Assert.True(ConnectionConcurrency.IsConflict(System.Net.HttpStatusCode.PreconditionFailed));
+        Assert.False(ConnectionConcurrency.IsConflict(System.Net.HttpStatusCode.Conflict));
         var changedElsewhere = new ManagementApiException("changed", 412, CreateConnection());
         Assert.True(ConnectionConflictRecovery.TryGetCurrent(changedElsewhere, out var recovered));
         Assert.Equal("connection-1", recovered.Id);
@@ -1653,6 +1743,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
                 shadowingLink.GetAttribute("href"),
                 StringComparison.Ordinal);
             var shadowedLink = cut.Find("a[aria-label=\"Manage shadowed connection Keycloak General\"]");
+            Assert.Contains("Overrides Keycloak General", shadowedLink.ParentElement!.ParentElement!.TextContent, StringComparison.Ordinal);
             Assert.EndsWith(
                 "security/external-authentication/connections/deployment-keycloak",
                 shadowedLink.GetAttribute("href"),
@@ -2495,6 +2586,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public string? ArchivedConnectionId { get; private set; }
         public string? ArchivedIfMatch { get; private set; }
         public string? ValidatedConnectionId { get; private set; }
+        public Exception? EnableException { get; set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
@@ -2544,7 +2636,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             GetResult.Shadowed = false;
             return Task.FromResult(GetResult);
         }
-        public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) =>
+            EnableException is null ? Task.CompletedTask : Task.FromException(EnableException);
         public Task DisableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
         {

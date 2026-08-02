@@ -4,13 +4,13 @@
 @using Elsa.Studio.ExternalAuthentication.Services
 
 <MudStack Spacing="2">
-    <MudText Typo="Typo.h6">Operations</MudText>
-    <MudText Typo="Typo.caption">Tests and previews use the current revision. Results are redacted and never reveal provider tokens, secrets, or unrestricted claims.</MudText>
+    <MudText Typo="Typo.h6">Provider connectivity</MudText>
+    <MudText Typo="Typo.caption">Tests provider reachability for the current revision. A successful test does not verify complete connection configuration or client authentication. Results are redacted.</MudText>
 
     @if (Observation is { } observation)
     {
         <MudAlert Severity="@ConnectionObservationPresentation.StatusSeverity(observation.Status)" Dense="true">
-            <strong>Latest test: @observation.Status</strong> — @observation.Summary
+            <strong>Connectivity test: @observation.Status</strong> — @observation.Summary
             @if (observation.IsStale)
             {
                 <br /><span>This observation is stale because the connection has materially changed since it was tested.</span>

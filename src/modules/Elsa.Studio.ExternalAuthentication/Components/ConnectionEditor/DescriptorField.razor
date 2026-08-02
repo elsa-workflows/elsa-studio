@@ -43,6 +43,7 @@
                               Margin="Margin.Dense" />
                 <MudButton Variant="Variant.Outlined"
                            StartIcon="@Icons.Material.Filled.Add"
+                           Class="mt-1"
                            Disabled="@(IsReadOnly || string.IsNullOrWhiteSpace(_pendingArrayValue))"
                            OnClick="AddStringArrayValueAsync">
                     Add

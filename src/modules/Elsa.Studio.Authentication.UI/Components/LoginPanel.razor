@@ -173,9 +173,11 @@
     private string? ResolveInitialError()
     {
         var error = ReadQueryParameter(Navigation.ToAbsoluteUri(Navigation.Uri), "error");
-        return string.Equals(error, LoginFailureCodes.SignInFailed, StringComparison.OrdinalIgnoreCase)
-            ? Localizer["Sign-in failed. Check your credentials and try again."].Value
-            : null;
+        if (string.Equals(error, LoginFailureCodes.SignInFailed, StringComparison.OrdinalIgnoreCase))
+            return Localizer["Sign-in failed. Check your credentials and try again."].Value;
+        if (string.Equals(error, LoginFailureCodes.ExternalSignInFailed, StringComparison.OrdinalIgnoreCase))
+            return Localizer["External sign-in failed. Try again or choose another sign-in method."].Value;
+        return null;
     }
 
     private static string? ReadQueryParameter(Uri uri, string name)

@@ -111,7 +111,7 @@
                             else if (ConnectionListPresentation.GetShadowedConnections(context) is { Count: > 0 } shadowedConnections)
                             {
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @ConnectionListPresentation.ShadowedConnectionsRelationship(context)
+                                    @($"{ConnectionListPresentation.ShadowedConnectionsRelationship(context)} ")
                                     @for (var index = 0; index < shadowedConnections.Count; index++)
                                     {
                                         if (index > 0)

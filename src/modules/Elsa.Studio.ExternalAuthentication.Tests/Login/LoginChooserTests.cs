@@ -194,6 +194,26 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ExternalSignInFailureFromTheServer_IsPresentedWhileKeepingOtherMethodsAvailable()
+    {
+        Register(new(
+        [
+            Method("contoso", "Contoso", "external", 0),
+            Method("github", "GitHub", "external", 1)
+        ], null));
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/login?choose=true&error=external_sign_in_failed");
+
+        var cut = RenderLoginPage();
+
+        cut.WaitForAssertion(() =>
+        {
+            var error = cut.Find("[role='alert']");
+            Assert.Contains("External sign-in failed", error.TextContent, StringComparison.OrdinalIgnoreCase);
+            Assert.NotNull(cut.Find("button[aria-label='Sign in with GitHub']"));
+        });
+    }
+
+    [Fact]
     public void NoMethods_ShowsSafeUnavailableState()
     {
         Register(new([], null));

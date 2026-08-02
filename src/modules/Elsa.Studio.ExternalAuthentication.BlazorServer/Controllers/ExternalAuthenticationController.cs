@@ -63,7 +63,7 @@ public sealed class ExternalAuthenticationController(
 
         var failureCode = transaction.Purpose == LocalSignInPurpose
             ? LoginFailureCodes.SignInFailed
-            : null;
+            : LoginFailureCodes.ExternalSignInFailed;
 
         if (!string.IsNullOrWhiteSpace(error))
             return Redirect(ChooserUrl(transaction.ReturnPath, failureCode));

@@ -201,7 +201,7 @@
                                                                   Adapter="_adapter"
                                                                   ObservationRecorded="OnObservationRecordedAsync" />
                                             <MudStack Spacing="2">
-                                                <MudText Typo="Typo.h6">Validation</MudText>
+                                                <MudText Typo="Typo.h6">Configuration validation</MudText>
                                                 <MudAlert Severity="@CurrentValiditySeverity" Dense="true" aria-live="polite">
                                                     <MudText Typo="Typo.body2">@CurrentValiditySummary</MudText>
                                                     @if (CurrentValidationErrors.Count > 0)
@@ -229,6 +229,16 @@
                                                                 ? "Select Validate to refresh the diagnostic details for this revision."
                                                                 : "The backend did not return validation details for this revision.")
                                                         </MudText>
+                                                    }
+                                                    @if (CanReviewProviderSettings)
+                                                    {
+                                                        <MudButton Variant="Variant.Outlined"
+                                                                   Color="Color.Error"
+                                                                   Size="Size.Small"
+                                                                   Class="mt-2"
+                                                                   OnClick="ReviewProviderSettings">
+                                                            @ProviderRepairActionLabel
+                                                        </MudButton>
                                                     }
                                                 </MudAlert>
                                                 @if (CurrentValidationWarnings.Count > 0)
@@ -401,6 +411,17 @@
     }
     private bool ValidationMessageIncludesField(ConnectionValidationMessage error) =>
         error.Message.StartsWith(GetValidationFieldLabel(error.Field), StringComparison.OrdinalIgnoreCase);
+    private bool CanReviewProviderSettings =>
+        _customEditorType is null && CurrentValidationErrors.Any(IsProviderValidationError);
+    private string ProviderRepairActionLabel =>
+        CurrentValidationErrors.Any(error => error.Field.StartsWith("secretBindings.", StringComparison.Ordinal))
+            ? "Review secret binding"
+            : "Review provider settings";
+    private static bool IsProviderValidationError(ConnectionValidationMessage error) =>
+        error.Field.StartsWith("secretBindings.", StringComparison.Ordinal) ||
+        error.Field.StartsWith("adapterSettings.", StringComparison.Ordinal) ||
+        string.Equals(error.Field, "adapterType", StringComparison.Ordinal);
+    private void ReviewProviderSettings() => _activeWorkspaceTab = 1;
     private int DiagnosticsTabIndex => _customEditorType is null ? 3 : 2;
     private bool CanToggleEnabled => _connection is not null && ConnectionActionAvailability.CanEnableOrDisable(_connection, _canUpdate);
     private string CurrentConnectionId => ConnectionId ?? _connection?.Id ?? string.Empty;
