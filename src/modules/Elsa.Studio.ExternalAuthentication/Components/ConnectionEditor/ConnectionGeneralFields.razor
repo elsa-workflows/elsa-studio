@@ -17,7 +17,7 @@
                       Label="Connection key"
                       Required="true"
                       ReadOnly="@(ReadOnly || !string.IsNullOrWhiteSpace(Connection.Id))"
-                      HelperText="Immutable after creation."
+                      HelperText="Stable identifier used in sign-in URLs and configuration. Suggested from the display name and cannot be changed after creation."
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense" />
     </MudItem>
@@ -82,9 +82,16 @@
     [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public EventCallback Changed { get; set; }
 
+    private string? _suggestedKey;
+
     private async Task SetDisplayNameAsync(string value)
     {
         Model.DisplayName = value;
+        if (string.IsNullOrWhiteSpace(Model.Key) || string.Equals(Model.Key, _suggestedKey, StringComparison.Ordinal))
+        {
+            _suggestedKey = SuggestConnectionKey(value);
+            Model.Key = _suggestedKey;
+        }
         await Changed.InvokeAsync();
     }
 
@@ -111,4 +118,7 @@
         Model.UpstreamLogoutMode = value;
         await Changed.InvokeAsync();
     }
+
+    private static string SuggestConnectionKey(string displayName) =>
+        System.Text.RegularExpressions.Regex.Replace(displayName.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
 }

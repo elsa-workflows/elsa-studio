@@ -491,6 +491,34 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ConnectionKey_ExplainsItsUsageAndImmutability()
+    {
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+
+        Assert.Contains("Stable identifier used in sign-in URLs and configuration. Suggested from the display name and cannot be changed after creation.", cut.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NewConnection_SuggestsAKeyUntilTheUserOverridesIt()
+    {
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Keycloak Workforce");
+        cut.WaitForAssertion(() => Assert.Equal("keycloak-workforce", FieldValue(cut, "Connection key")));
+
+        ChangeField(cut, "Display name", "Contoso Workforce");
+        cut.WaitForAssertion(() => Assert.Equal("contoso-workforce", FieldValue(cut, "Connection key")));
+
+        ChangeField(cut, "Connection key", "workforce-sso");
+        ChangeField(cut, "Display name", "Renamed Workforce");
+
+        cut.WaitForAssertion(() => Assert.Equal("workforce-sso", FieldValue(cut, "Connection key")));
+    }
+
+    [Fact]
     public void NewConnection_CanSaveIncompleteDraftBeforeConfiguringRequiredSecretBindings()
     {
         _api.Adapters = [CreateAdapter(includeSecret: true)];
@@ -2796,6 +2824,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     {
         var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
         cut.Find($"#{fieldLabel.GetAttribute("for")}").Change(value);
+    }
+
+    private static string? FieldValue(IRenderedComponent<ConnectionEdit> cut, string label)
+    {
+        var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
+        return cut.Find($"#{fieldLabel.GetAttribute("for")}").GetAttribute("value");
     }
 
     private sealed class FeatureProvider(bool enabled) : IRemoteFeatureProvider
