@@ -1,12 +1,12 @@
 <MudAlert Severity="Severity.Warning" Dense="true">
-    <strong>Recovery protection:</strong> disabling this connection could remove the final normal login method for this scope. Elsa will reject that change unless an independent deployment-owned break-glass method, local sign-in, another valid method, or a privileged confirmed override is available. Break-glass authentication is deliberately not listed on the normal login chooser.
+    <strong>Recovery protection:</strong> Disabling this connection may leave this scope without a normal sign-in method. Elsa blocks the change unless another sign-in or deployment-owned break-glass path is available.
     @if (CanOverride)
     {
-        <br /><span>Administrators with unsafe-provider-trust permission can explicitly confirm the recovery override in the disable dialog.</span>
+        <br /><span>You can confirm a recovery override in the disable dialog.</span>
     }
     else
     {
-        <br /><span>You do not have the privileged recovery-override permission.</span>
+        <br /><span>You cannot override this protection.</span>
     }
 </MudAlert>
 

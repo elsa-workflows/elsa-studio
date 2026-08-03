@@ -124,9 +124,17 @@ public sealed class OperationsUiTests : BunitContext, IAsyncLifetime
     {
         var cut = Render<FinalLoginPathWarning>(parameters => parameters.Add(component => component.CanOverride, true));
 
-        Assert.Contains("final normal login method", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("without a normal sign-in method", cut.Markup, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("break-glass", cut.Markup, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("explicitly confirm", cut.Markup, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("confirm a recovery override", cut.Markup, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FinalLoginPathWarning_ExplainsWhenRecoveryOverrideIsUnavailable()
+    {
+        var cut = Render<FinalLoginPathWarning>();
+
+        Assert.Contains("cannot override this protection", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
