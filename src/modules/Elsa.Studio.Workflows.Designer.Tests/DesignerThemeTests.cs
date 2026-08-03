@@ -26,7 +26,7 @@ public class DesignerThemeTests
 
         var theme = X6DesignerTheme.FromPalette(palette);
 
-        Assert.Equal("#405064ff", theme.Grid);
+        Assert.Equal("#aab6c46b", theme.Grid);
         Assert.Equal("#405064ff", theme.Edge);
         Assert.Equal("#18212bff", theme.PortSurface);
         Assert.Equal("#66a9ffff", theme.PortStroke);
@@ -42,6 +42,21 @@ public class DesignerThemeTests
         var gridArgs = new X6GridArgs();
 
         Assert.Null(gridArgs.Color);
+    }
+
+    [Fact]
+    public void GridTheme_ShouldBePersistedAcrossX6ViewportUpdates()
+    {
+        var graphCreation = ReadAsset("create-graph.ts");
+        var themeApplication = ReadAsset("apply-graph-theme.ts");
+        var gridOptions = ReadAsset("grid-options.ts");
+
+        Assert.Contains("gridOptions = createDesignerGridOptions(settings?.grid)", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("gridOptions,", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("graph.drawGrid(resolveDesignerGridOptions(gridOptions, theme.grid))", themeApplication, StringComparison.Ordinal);
+        Assert.Contains("visible: settings?.visible ?? true", gridOptions, StringComparison.Ordinal);
+        Assert.Contains("size: settings?.size ?? 10", gridOptions, StringComparison.Ordinal);
+        Assert.Contains("item?.color ?? themeColor", gridOptions, StringComparison.Ordinal);
     }
 
     [Fact]

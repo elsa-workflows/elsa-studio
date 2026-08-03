@@ -8,23 +8,23 @@ public sealed class X6PortInteractionContractTests
     [Fact]
     public void ActivityPorts_UseLargerMagneticHitTargetsWithoutAVisibleDock()
     {
-        var portRegistration = ReadAsset("init.ts");
+        var portRegistration = ReadAsset("designer-ports.ts");
         var graphCreation = ReadAsset("create-graph.ts");
         var designerStyles = ReadAsset("designer.v2.css");
 
         // A transparent circle makes the magnetic target substantially easier to acquire without
         // changing the normal, compact port appearance.
-        Assert.Contains("selector: \"hitArea\"", portRegistration, StringComparison.Ordinal);
+        Assert.Contains("selector: 'hitArea'", portRegistration, StringComparison.Ordinal);
         Assert.Matches(
             new Regex("hitArea:\\s*\\{[^}]*r:\\s*(?:1[2-9]|[2-9]\\d)", RegexOptions.CultureInvariant),
             portRegistration);
-        Assert.Contains("selector: \"port\"", portRegistration, StringComparison.Ordinal);
+        Assert.Contains("selector: 'port'", portRegistration, StringComparison.Ordinal);
         Assert.Matches(
             new Regex("port:\\s*\\{[^}]*magnet:\\s*true", RegexOptions.CultureInvariant),
             portRegistration);
-        Assert.DoesNotContain("selector: \"dock\"", portRegistration, StringComparison.Ordinal);
+        Assert.DoesNotContain("selector: 'dock'", portRegistration, StringComparison.Ordinal);
         Assert.DoesNotContain(".elsa-designer-port-dock", designerStyles, StringComparison.Ordinal);
-        Assert.Contains("selector: \"circle\"", portRegistration, StringComparison.Ordinal);
+        Assert.Contains("selector: 'circle'", portRegistration, StringComparison.Ordinal);
         Assert.Matches(
             new Regex("circle:\\s*\\{[^}]*r:\\s*[5-9]", RegexOptions.CultureInvariant),
             portRegistration);
@@ -38,7 +38,7 @@ public sealed class X6PortInteractionContractTests
 
         // A source port must remain connectable and accept another outgoing edge after one has
         // already been created from it.
-        Assert.Contains("magnetConnectable: () => !readOnly && !isSequenceMode", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("magnetConnectable: () => !readOnly && modePolicy.allowsConnections", graphCreation, StringComparison.Ordinal);
         Assert.Contains("allowMulti: true", graphCreation, StringComparison.Ordinal);
     }
 

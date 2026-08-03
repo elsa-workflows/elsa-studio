@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Shared.Components;
@@ -49,29 +50,27 @@ public class StateMachineDesignerWrapperTests
     }
 
     [Fact]
-    public void IsTransitionSelected_WhenTransitionIdentitiesAreDuplicated_SelectsOnlyMatchingOccurrence()
+    public void CanvasProjection_WhenTransitionIdentitiesAreDuplicated_AssignsDistinctVisualIds()
     {
-        var firstTransition = new StateMachineTransitionEdge { Name = "Review", From = "Pending", To = "Approved" };
-        var selectedTransition = new StateMachineTransitionEdge { Name = "Review", From = "Pending", To = "Approved" };
-        var graph = new StateMachineGraph
+        var activity = new JsonObject
         {
-            Transitions =
+            ["states"] = new JsonArray
             {
-                firstTransition,
-                selectedTransition
+                new JsonObject { ["name"] = "Pending" },
+                new JsonObject { ["name"] = "Approved" }
+            },
+            ["transitions"] = new JsonArray
+            {
+                new JsonObject { ["name"] = "Review", ["from"] = "Pending", ["to"] = "Approved" },
+                new JsonObject { ["name"] = "Review", ["from"] = "Pending", ["to"] = "Approved" }
             }
         };
-        var wrapper = new StateMachineDesignerWrapper();
-        var wrapperType = typeof(StateMachineDesignerWrapper);
-        wrapperType.GetField("_graph", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(wrapper, graph);
-        wrapperType.GetField("_selectedTransition", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(wrapper, selectedTransition);
-        var method = wrapperType.GetMethod("IsTransitionSelected", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var validator = new StateMachineValidator();
+        var session = new StateMachineEditorSession(new StateMachineMapper(validator), validator, activity);
+        var transitions = session.ProjectCanvas().Transitions;
 
-        var firstSelected = (bool)method.Invoke(wrapper, [firstTransition])!;
-        var secondSelected = (bool)method.Invoke(wrapper, [selectedTransition])!;
-
-        Assert.False(firstSelected);
-        Assert.True(secondSelected);
+        Assert.Equal(2, transitions.Count);
+        Assert.NotEqual(transitions[0].VisualId, transitions[1].VisualId);
     }
 
     [Fact]

@@ -5,8 +5,14 @@
     --elsa-designer-node-border: var(--mud-palette-lines-default);
     --elsa-designer-node-text: var(--mud-palette-text-primary);
     --elsa-designer-node-muted: var(--mud-palette-text-secondary);
+    --elsa-designer-node-accent: var(--mud-palette-primary);
+    --elsa-designer-node-initial: var(--mud-palette-info);
+    --elsa-designer-node-current: var(--mud-palette-success);
     --elsa-designer-accent-foreground: var(--mud-palette-primary-text);
     --elsa-designer-edge: var(--mud-palette-lines-default);
+    --elsa-designer-edge-label-surface: var(--mud-palette-surface);
+    --elsa-designer-edge-label-border: var(--mud-palette-lines-default);
+    --elsa-designer-edge-label-text: var(--mud-palette-text-secondary);
     --elsa-designer-selection: var(--mud-palette-primary);
     --elsa-designer-port-surface: var(--mud-palette-surface);
     --elsa-designer-port-stroke: var(--mud-palette-primary);

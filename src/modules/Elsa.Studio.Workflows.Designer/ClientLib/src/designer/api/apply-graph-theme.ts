@@ -1,4 +1,5 @@
 import {graphBindings} from "./graph-bindings";
+import {resolveDesignerGridOptions} from "./grid-options";
 
 export interface X6DesignerTheme {
     grid: string;
@@ -12,9 +13,9 @@ export interface X6DesignerTheme {
 }
 
 export function applyGraphTheme(graphId: string, theme: X6DesignerTheme) {
-    const {graph} = graphBindings[graphId];
+    const {graph, gridOptions} = graphBindings[graphId];
     applyDesignerThemeVariables(graph.container, theme);
-    graph.grid.update({color: theme.grid});
+    graph.drawGrid(resolveDesignerGridOptions(gridOptions, theme.grid));
 }
 
 export function applyDesignerThemeVariables(element: HTMLElement, theme: X6DesignerTheme) {

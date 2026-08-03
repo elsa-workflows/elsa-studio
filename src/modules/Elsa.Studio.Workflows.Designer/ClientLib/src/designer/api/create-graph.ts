@@ -12,16 +12,21 @@ import {enforceMinimumNodeSize} from "./update-activity-size";
 import {getActivityMeasurementScopeClass} from "./calculate-activity-size";
 import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrientation, withSuppressedGraphUpdated} from "./sequence-mode";
 import {applyDesignerThemeVariables, X6DesignerTheme} from "./apply-graph-theme";
+import {createDesignerGridOptions, resolveDesignerGridOptions} from "./grid-options";
+import {ActivityShape, FlowchartEdgeShape, getDesignerModePolicy, resolveDesignerMode} from './designer-mode';
+import {applyStateMachineNodeAccessibility} from '../internal/state-machine-accessibility';
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
     const interop = new DotNetFlowchartDesigner(componentRef);
     let lastSelectedNode: any = null;
     const graphId = containerId;
-    const mode = settings?.mode === 'sequence' ? 'sequence' : 'flowchart';
-    const isSequenceMode = mode === 'sequence';
+    const mode = resolveDesignerMode(settings?.mode);
+    const modePolicy = getDesignerModePolicy(mode);
+    const isSequenceMode = modePolicy.arrangesSequence;
     const theme: X6DesignerTheme | undefined = settings?.theme;
     const measurementScopeClass = getActivityMeasurementScopeClass(containerElement);
+    const gridOptions = createDesignerGridOptions(settings?.grid);
 
     if (!theme)
         throw new Error("An X6 designer theme is required.");
@@ -31,12 +36,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     const graph = new Graph({
         container: containerElement,
         autoResize: true,
-        grid: {
-            type: settings?.grid?.type || 'dot',
-            visible: settings?.grid?.visible || true,
-            size: settings?.grid?.size || 10,
-            args: resolveGridArgs(settings?.grid?.args, theme.grid),
-        },
+        grid: resolveDesignerGridOptions(gridOptions, theme.grid),
         magnetThreshold: settings?.magnetThreshold || 0,
         panning: settings?.panning || {
             enabled: true,
@@ -49,15 +49,15 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         },
         interacting: {
             nodeMovable: () => !readOnly,
-            arrowheadMovable: () => !readOnly && !isSequenceMode,
-            edgeMovable: () => !readOnly && !isSequenceMode,
-            vertexMovable: () => !readOnly && !isSequenceMode,
-            vertexAddable: () => !readOnly && !isSequenceMode,
-            vertexDeletable: () => !readOnly && !isSequenceMode,
-            edgeLabelMovable: () => !readOnly && !isSequenceMode,
-            magnetConnectable: () => !readOnly && !isSequenceMode,
-            toolsAddable: () => !readOnly && !isSequenceMode,
-            useEdgeTools: () => !readOnly && !isSequenceMode,
+            arrowheadMovable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            edgeMovable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            vertexMovable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            vertexAddable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            vertexDeletable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            edgeLabelMovable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            magnetConnectable: () => !readOnly && modePolicy.allowsConnections,
+            toolsAddable: () => !readOnly && modePolicy.allowsInteractiveEdges,
+            useEdgeTools: () => !readOnly && modePolicy.allowsInteractiveEdges,
         },
         connecting: {
             router: 'manhattan',
@@ -77,7 +77,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             },
             createEdge() {
                 return graph.createEdge({
-                    shape: 'elsa-edge',
+                    shape: modePolicy.defaultEdgeShape,
                     attrs: {
                         line: {
                             strokeDasharray: '5 5',
@@ -87,7 +87,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 })
             },
             validateConnection({sourceMagnet, targetMagnet}) {
-                if (isSequenceMode) {
+                if (!modePolicy.allowsConnections) {
                     return false;
                 }
 
@@ -132,6 +132,9 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 if (args.key == 'tools')
                     return false;
 
+                if (args.options?.sequenceLayout)
+                    return false;
+
                 const supportedEvents = ['cell:added', 'cell:removed', 'cell:change:*'];
                 return supportedEvents.indexOf(e) >= 0;
             },
@@ -173,13 +176,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.use(
             new Transform({
                 resizing: {
-                    enabled: settings?.resizingEnabled ?? true,
+                    enabled: modePolicy.usesActivityInteractions && (settings?.resizingEnabled ?? true),
                 }
             })
         );
 
         // Copy the cells in the graph to the internal clipboard with Ctrl+C.
         graph.bindKey(['ctrl+c', 'meta+c'], () => {
+            if (!modePolicy.usesActivityInteractions)
+                return false;
+
             const cells = graph.getSelectedCells()
             if (cells.length) {
                 graph.copy(cells)
@@ -189,6 +195,9 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         });
 
         graph.bindKey(['meta+x', 'ctrl+x'], () => {
+            if (!modePolicy.usesActivityInteractions)
+                return false;
+
             const cells = graph.getSelectedCells()
             if (cells.length) {
                 if (isSequenceMode) {
@@ -215,8 +224,11 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
                 if (cells.length == 0)
                     return;
 
-                const activityCells = cells.filter(x => x.shape == 'elsa-activity');
-                const edgeCells: Edge[] = isSequenceMode ? [] : cells.filter(x => x.shape == 'elsa-edge');
+                if (!modePolicy.usesActivityInteractions)
+                    return false;
+
+                const activityCells = cells.filter(x => x.shape == ActivityShape);
+                const edgeCells: Edge[] = isSequenceMode ? [] : cells.filter(x => x.shape == FlowchartEdgeShape);
 
                 interop.raisePasteCellsRequested(activityCells, edgeCells);
             }
@@ -244,6 +256,13 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         graph.bindKey('del', () => {
             const cells = graph.getSelectedCells()
             if (cells.length) {
+                if (mode === 'stateMachine') {
+                    const cell = cells[0];
+                    const kind = cell.isNode() ? 'state' : 'transition';
+                    void interop.raiseStateMachineDeleteRequested(kind, cell.id);
+                    return false;
+                }
+
                 if (isSequenceMode) {
                     const binding = graphBindings[graphId];
                     const nodes = cells.filter(cell => cell.isNode());
@@ -312,7 +331,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     graph.on("edge:mouseenter", ({cell}) => {
-        if (isSequenceMode) {
+        if (!modePolicy.allowsInteractiveEdges) {
             return false;
         }
 
@@ -327,7 +346,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     graph.on("edge:mouseleave", ({cell}) => {
-        if (isSequenceMode) {
+        if (!modePolicy.allowsInteractiveEdges) {
             return false;
         }
 
@@ -339,6 +358,14 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
     graph.on('node:click', async args => {
         const {e, node} = args;
+
+        if (!modePolicy.usesActivityInteractions) {
+            if (!graph.isSelected(node))
+                graph.select(node);
+
+            return;
+        }
+
         const activity: Activity = node.data;
         const activityId = activity.id;
         const activityElementId = `activity-${activityId}`;
@@ -386,6 +413,9 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
     });
 
     graph.on('node:dblclick', async args => {
+        if (!modePolicy.usesActivityInteractions)
+            return;
+
         const {node} = args;
         const activity: Activity = node.data;
         await interop.raiseActivityDoubleClick(activity);
@@ -393,8 +423,30 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
     graph.on('node:selected', async args => {
         const {node} = args;
+        if (mode === 'stateMachine') {
+            if (graphBindings[graphId]?.suppressSelectionCallbacks)
+                return;
+
+            const data = node.getData();
+            if (data?.kind === 'missing-state' && data.transitionVisualId) {
+                await interop.raiseStateMachineTransitionSelected(data.transitionVisualId);
+                return;
+            }
+
+            await interop.raiseStateMachineStateSelected(node.id);
+            return;
+        }
+
+        if (!modePolicy.usesActivityInteractions)
+            return;
+
         const activity: Activity = node.data;
         await interop.raiseActivitySelected(activity);
+    });
+
+    graph.on('edge:selected', async ({edge}) => {
+        if (mode === 'stateMachine' && !graphBindings[graphId]?.suppressSelectionCallbacks)
+            await interop.raiseStateMachineTransitionSelected(edge.id);
     });
 
     const onGraphUpdated = async (e: any) => {
@@ -424,7 +476,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         }
         
         const node = e.node || e.cell;
-        if (node)
+        if (node && modePolicy.enforcesActivityMinimumSize)
             await enforceMinimumNodeSize(node, measurementScopeClass);
         
         await interop.raiseGraphUpdated();
@@ -444,6 +496,13 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         return false;
     });
     graph.on('node:added', async e => {
+        if (mode === 'stateMachine') {
+            const node = e.node || e.cell;
+            // X6 emits node:added before its SVG view is guaranteed to be mounted.
+            // Defer one frame so the accessibility attributes land on the actual node view.
+            requestAnimationFrame(() => applyStateMachineNodeAccessibility(graph, node));
+        }
+
         if (!isSequenceMode)
             return await onNodeAdded(e);
 
@@ -482,14 +541,8 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         interop: interop,
         mode,
         layoutOrientation: normalizeSequenceOrientation(settings?.layoutOrientation),
+        gridOptions,
     };
 
     return graphId;
-}
-
-function resolveGridArgs(args: any, themeColor: string) {
-    if (Array.isArray(args))
-        return args.map(item => ({...item, color: item?.color || themeColor}));
-
-    return {...(args || {}), color: args?.color || themeColor};
 }

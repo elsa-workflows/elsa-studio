@@ -1,23 +1,13 @@
 import {Graph, Shape} from '@antv/x6';
 import {createActivityElement} from "./create-activity-element";
 import {Activity} from "../models";
+import {ActivityShape, FlowchartEdgeShape, SequenceEdgeShape} from '../api/designer-mode';
+import {createDesignerPortGroups, designerPortMarkup} from './designer-ports';
+import {registerStateMachineShapes} from './state-machine-shapes';
 
 export function initialize() {
-    const createPortInteractionAttrs = () => ({
-        port: {
-            magnet: true,
-        },
-        hitArea: {
-            r: 12,
-            fill: "transparent",
-            stroke: "transparent",
-            pointerEvents: "all",
-            cursor: "crosshair",
-        },
-    });
-
     Shape.HTML.register({
-        shape: "elsa-activity",
+        shape: ActivityShape,
         effect: ["data", "activityStats"],
         html(cell) {
             const activity: Activity = cell.getData();
@@ -25,76 +15,14 @@ export function initialize() {
             const activityStats = cell.prop('activityStats');
             return createActivityElement(activity, false, selectedPort, activityStats);
         },
-        portMarkup: [
-            {
-                tagName: "g",
-                selector: "port",
-                children: [
-                    {
-                        tagName: "circle",
-                        selector: "hitArea",
-                        className: "elsa-designer-port-hit-area",
-                    },
-                    {
-                        tagName: "circle",
-                        selector: "circle",
-                        className: "elsa-designer-port-circle",
-                    },
-                ],
-            },
-        ],
+        portMarkup: designerPortMarkup,
         ports: {
-            groups: {
-                in: {
-                    position: "left",
-                    attrs: {
-                        ...createPortInteractionAttrs(),
-                        circle: {
-                            r: 5,
-                            stroke: "var(--elsa-designer-port-stroke)",
-                            strokeWidth: 2,
-                            fill: "var(--elsa-designer-port-surface)",
-                            pointerEvents: "none",
-                        },
-                        text: {
-                            fontSize: 12,
-                            fill: "var(--elsa-designer-port-text)",
-                        },
-                    },
-                    label: {
-                        position: {
-                            name: "outside",
-                        },
-                    },
-                },
-                out: {
-                    position: "right",
-                    attrs: {
-                        ...createPortInteractionAttrs(),
-                        circle: {
-                            r: 5,
-                            stroke: "var(--elsa-designer-port-surface)",
-                            strokeWidth: 2,
-                            fill: "var(--elsa-designer-port-stroke)",
-                            pointerEvents: "none",
-                        },
-                        text: {
-                            fontSize: 12,
-                            fill: "var(--elsa-designer-port-text)",
-                        },
-                    },
-                    label: {
-                        position: {
-                            name: "outside",
-                        },
-                    },
-                },
-            },
+            groups: createDesignerPortGroups(),
         }
     });
 
     Graph.registerEdge(
-        'elsa-edge',
+        FlowchartEdgeShape,
         {
             inherit: 'edge',
             attrs: {
@@ -110,7 +38,7 @@ export function initialize() {
     );
 
     Graph.registerEdge(
-        'elsa-sequence-edge',
+        SequenceEdgeShape,
         {
             inherit: 'edge',
             attrs: {
@@ -133,5 +61,7 @@ export function initialize() {
         },
         true,
     );
+
+    registerStateMachineShapes();
 
 }

@@ -16,12 +16,14 @@ public sealed record X6DesignerTheme(
     string ConnectionHighlight,
     string EmbeddingHighlight)
 {
+    private const double GridOpacity = 0.42;
+
     /// <summary>
     /// Creates an X6 theme from the active MudBlazor palette.
     /// </summary>
     public static X6DesignerTheme FromPalette(Palette palette) =>
         new(
-            ToHex(palette.LinesDefault),
+            ToHex(palette.TextSecondary.SetAlpha(GridOpacity)),
             ToHex(palette.LinesDefault),
             ToHex(palette.Surface),
             ToHex(palette.Primary),

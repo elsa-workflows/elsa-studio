@@ -1,0 +1,129 @@
+@using Elsa.Studio.Workflows.Designer.Models
+@using Elsa.Studio.Localization
+@namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation
+@inject ILocalizer Localizer
+
+<section class="state-machine-inspector" aria-labelledby="@HeadingId">
+    <header class="state-machine-inspector__header">
+        <div>
+            <p class="state-machine-inspector__eyebrow">@Localizer["Inspector"]</p>
+            <h3 id="@HeadingId">@Localizer["State"]</h3>
+        </div>
+        @if (State != null && !IsReadOnly)
+        {
+            <button class="state-machine-inspector__button state-machine-inspector__button--danger"
+                    type="button"
+                    @onclick="() => DeleteRequested.InvokeAsync()">
+                @Localizer["Delete"]
+            </button>
+        }
+    </header>
+
+    @if (State == null)
+    {
+        <p class="state-machine-inspector__empty">@Localizer["Select a state in the diagram or outline to inspect it."]</p>
+    }
+    else
+    {
+        <div class="state-machine-inspector__summary" aria-label="@Localizer["State status"]">
+            <strong>@StateMachinePresentationFormatter.DisplayValue(State.Name)</strong>
+            @if (State.IsTerminal)
+            {
+                <span class="state-machine-inspector__badge">@Localizer["Terminal"]</span>
+            }
+            @if (State.Entry != null)
+            {
+                <span class="state-machine-inspector__badge">@Localizer["Entry"]</span>
+            }
+            @if (State.Exit != null)
+            {
+                <span class="state-machine-inspector__badge">@Localizer["Exit"]</span>
+            }
+        </div>
+
+        <div class="state-machine-inspector__fields">
+            <div class="state-machine-inspector__field">
+                <label for="@NameId">@Localizer["Name"]</label>
+                <input id="@NameId"
+                       class="state-machine-inspector__control"
+                       value="@State.Name"
+                       disabled="@IsReadOnly"
+                       @onchange="ChangeNameAsync" />
+            </div>
+
+            @RenderSlot("entry", Localizer["Entry"], State.Entry)
+            @RenderSlot("exit", Localizer["Exit"], State.Exit)
+        </div>
+
+        @if (ValidationIssues.Count > 0)
+        {
+            <div class="state-machine-inspector__issues" role="alert" aria-label="@Localizer["State validation issues"]">
+                @foreach (var issue in ValidationIssues)
+                {
+                    <p><strong>@issue.Severity:</strong> @Localizer[issue.Message]</p>
+                }
+            </div>
+        }
+    }
+</section>
+
+@code {
+    private readonly string _id = $"state-machine-state-inspector-{Guid.NewGuid():N}";
+
+    [Parameter] public StateMachineStateNode? State { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public IReadOnlyCollection<StateMachineValidationIssue> ValidationIssues { get; set; } = [];
+    [Parameter] public EventCallback<string> NameChanged { get; set; }
+    [Parameter] public EventCallback<StateMachineSlotValueChange> SlotChanged { get; set; }
+    [Parameter] public EventCallback<string> SlotCleared { get; set; }
+    [Parameter] public EventCallback<string> SlotDropRequested { get; set; }
+    [Parameter] public EventCallback DeleteRequested { get; set; }
+
+    private string HeadingId => $"{_id}-heading";
+    private string NameId => $"{_id}-name";
+
+    private Task ChangeNameAsync(ChangeEventArgs args) => NameChanged.InvokeAsync(args.Value?.ToString() ?? "");
+
+    private RenderFragment RenderSlot(string slotName, string label, System.Text.Json.Nodes.JsonNode? value) => builder =>
+    {
+        var fieldId = $"{_id}-{slotName}";
+        var helpId = $"{fieldId}-help";
+        var sequence = 0;
+
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "state-machine-inspector__field");
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "state-machine-inspector__field-heading");
+        builder.OpenElement(sequence++, "label");
+        builder.AddAttribute(sequence++, "for", fieldId);
+        builder.AddContent(sequence++, label);
+        builder.CloseElement();
+        if (!IsReadOnly)
+        {
+            builder.OpenElement(sequence++, "button");
+            builder.AddAttribute(sequence++, "type", "button");
+            builder.AddAttribute(sequence++, "class", "state-machine-inspector__button");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SlotCleared.InvokeAsync(slotName)));
+            builder.AddContent(sequence++, Localizer["Clear"]);
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+        builder.OpenElement(sequence++, "textarea");
+        builder.AddAttribute(sequence++, "id", fieldId);
+        builder.AddAttribute(sequence++, "class", "state-machine-inspector__control state-machine-inspector__control--code");
+        builder.AddAttribute(sequence++, "aria-describedby", helpId);
+        builder.AddAttribute(sequence++, "disabled", IsReadOnly);
+        builder.AddAttribute(sequence++, "value", StateMachinePresentationFormatter.JsonSlot(value));
+        builder.AddAttribute(sequence++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, args => SlotChanged.InvokeAsync(new(slotName, args.Value?.ToString()))));
+        builder.AddAttribute(sequence++, "ondragover", EventCallback.Factory.Create<DragEventArgs>(this, _ => Task.CompletedTask));
+        builder.AddEventPreventDefaultAttribute(sequence++, "ondragover", true);
+        builder.AddAttribute(sequence++, "ondrop", EventCallback.Factory.Create<DragEventArgs>(this, _ => SlotDropRequested.InvokeAsync(slotName)));
+        builder.CloseElement();
+        builder.OpenElement(sequence++, "p");
+        builder.AddAttribute(sequence++, "id", helpId);
+        builder.AddAttribute(sequence++, "class", "state-machine-inspector__help");
+        builder.AddContent(sequence++, Localizer["Enter activity JSON or drop an activity here."]);
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+}

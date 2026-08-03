@@ -27,17 +27,21 @@ export function arrangeSequenceGraph(binding: GraphBinding, orderedNodes?: Node<
     const nodes = orderedNodes ?? sortSequenceNodes(graph.getNodes(), binding);
 
     withSuppressedGraphUpdated(binding, () => {
-        nodes.forEach((node, index) => {
-            node.setPosition(
-                isHorizontalSequence(binding)
-                    ? {x: index * SequenceGap, y: 0}
-                    : {x: 0, y: index * SequenceGap},
-                {silent: true},
-            );
-        });
+        graph.batchUpdate('sequence-layout', () => {
+            const mutationOptions = {sequenceLayout: true};
 
-        graph.getEdges().forEach(edge => graph.removeCell(edge, {silent: true}));
-        buildSequenceEdges(graph, nodes).forEach(edge => graph.addEdge(edge, {silent: true}));
+            nodes.forEach((node, index) => {
+                node.setPosition(
+                    isHorizontalSequence(binding)
+                        ? {x: index * SequenceGap, y: 0}
+                        : {x: 0, y: index * SequenceGap},
+                    mutationOptions,
+                );
+            });
+
+            graph.getEdges().forEach(edge => graph.removeCell(edge, mutationOptions));
+            buildSequenceEdges(graph, nodes).forEach(edge => graph.addEdge(edge, mutationOptions));
+        });
     });
 }
 

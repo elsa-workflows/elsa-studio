@@ -3,92 +3,87 @@ using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.Designer;
+using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Contracts;
 using Elsa.Studio.Workflows.Designer.Models;
-using Elsa.Studio.Workflows.DiagramDesigners;
+using Elsa.Studio.Workflows.Designer.Services;
+using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
 
 /// <summary>
-/// Displays and edits a StateMachine activity graph.
+/// Coordinates State Machine semantics, X6 visuals, and Blazor inspectors.
 /// </summary>
 public partial class StateMachineDesignerWrapper
 {
-    private StateMachineGraph? _graph;
+    private StateMachineEditorSession? _session;
+    private StateMachineCanvasGraph? _canvasGraph;
+    private StateMachineCanvas? _canvas;
     private IDictionary<string, ActivityStats>? _activityStats;
-    private string? _selectedStateName;
-    private StateMachineTransitionEdge? _selectedTransition;
-    private string? _selectedActivityId;
-    private string? _selectedSlotName;
-    private string _newStateName = "";
-    private string _newTransitionName = "";
-    private string? _newTransitionFrom;
-    private string? _newTransitionTo;
-    private bool _zoomToFit = true;
-    private bool _centerContent;
     private JsonObject? _loadedParameterStateMachine;
     private IDictionary<string, ActivityStats>? _loadedParameterActivityStats;
+    private string? _selectedStateId;
+    private string? _selectedTransitionId;
+    private string? _selectedActivityId;
+    private string? _selectedSlotName;
+    private string? _pendingDeleteStateId;
+    private string _newStateName = "";
+    private string _newTransitionName = "";
+    private string? _newTransitionFromId;
+    private string? _newTransitionToId;
+    private bool _showOutline;
+    private bool _processingCanvasChange;
 
-    /// <summary>
-    /// Gets or sets the StateMachine activity to display.
-    /// </summary>
     [Parameter] public JsonObject StateMachine { get; set; } = [];
-
-    /// <summary>
-    /// Gets or sets activity execution stats.
-    /// </summary>
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the designer is read-only.
-    /// </summary>
     [Parameter] public bool IsReadOnly { get; set; }
-
-    /// <summary>
-    /// Gets or sets the callback invoked when the root activity or an embedded slot activity is selected.
-    /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
-
-    /// <summary>
-    /// Gets or sets the callback invoked when the graph changes.
-    /// </summary>
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
     [Inject] private IIdentityGenerator IdentityGenerator { get; set; } = null!;
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
     [Inject] private IStateMachineMapper StateMachineMapper { get; set; } = null!;
+    [Inject] private StateMachineValidator StateMachineValidator { get; set; } = null!;
 
-    /// <inheritdoc />
+    private StateMachineStateNode? SelectedState =>
+        _session != null && _selectedStateId != null ? TryGetState(_selectedStateId) : null;
+
+    private StateMachineTransitionEdge? SelectedTransition =>
+        _session != null && _selectedTransitionId != null ? TryGetTransition(_selectedTransitionId) : null;
+
     protected override void OnParametersSet()
     {
         if (ReferenceEquals(StateMachine, _loadedParameterStateMachine) && ReferenceEquals(ActivityStats, _loadedParameterActivityStats))
             return;
 
+        // The parent echoes a freshly exported JsonObject after GraphUpdated. Treat an
+        // equivalent activity as an acknowledgement so session-only canvas geometry and
+        // the current selection survive that render cycle.
+        if (_session?.CanExport == true && JsonNode.DeepEquals(StateMachine, _session.Export()))
+        {
+            TrackParameterState(StateMachine, ActivityStats);
+            _activityStats = ActivityStats;
+            return;
+        }
+
         TrackParameterState(StateMachine, ActivityStats);
-        LoadGraph(StateMachine, ActivityStats);
+        LoadSession(StateMachine, ActivityStats);
     }
 
-    /// <summary>
-    /// Loads the specified StateMachine activity.
-    /// </summary>
     public Task LoadStateMachineAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStats = null)
     {
         TrackParameterState(activity, activityStats);
-        LoadGraph(activity, activityStats);
+        LoadSession(activity, activityStats);
         return InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>
-    /// Updates the root StateMachine activity or an embedded slot activity.
-    /// </summary>
     public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         if (IsReadOnly)
@@ -96,450 +91,223 @@ public partial class StateMachineDesignerWrapper
 
         if (string.Equals(StateMachine.GetId(), id, StringComparison.Ordinal))
         {
-            TrackParameterState(activity, _activityStats);
-            LoadGraph(activity, _activityStats);
+            await LoadStateMachineAsync(activity, _activityStats);
             if (GraphUpdated.HasDelegate)
                 await GraphUpdated.InvokeAsync();
-
-            await InvokeAsync(StateHasChanged);
             return;
         }
 
         if (TryUpdateSlotActivity(id, activity))
-        {
-            await ApplyGraphChangesAsync();
-            return;
-        }
-
-        await InvokeAsync(StateHasChanged);
+            await ApplySessionChangesAsync();
     }
 
-    /// <summary>
-    /// Updates activity execution stats.
-    /// </summary>
     public Task UpdateActivityStatsAsync(string id, ActivityStats stats)
     {
         _activityStats ??= new Dictionary<string, ActivityStats>();
         _activityStats[id] = stats;
         ActivityStats = _activityStats;
-        return InvokeAsync(StateHasChanged);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Selects the root activity, an embedded slot activity by id or nodeId, or a state by name.
-    /// </summary>
     public async Task SelectActivityAsync(string id)
     {
+        if (_session == null)
+            return;
+
         if (string.Equals(StateMachine.GetId(), id, StringComparison.Ordinal))
         {
-            _selectedStateName = null;
-            _selectedTransition = null;
-            _selectedSlotName = null;
-            await SelectRootActivityForPropertiesAsync();
-            await InvokeAsync(StateHasChanged);
+            await SelectCanvasAsync();
             return;
         }
 
-        if (TryFindSlotActivity(id, out var slotActivity, out var state, out var transition, out var slotName))
+        if (TryFindSlotActivity(id, out var activity, out var state, out var transition, out var slotName))
         {
-            _selectedStateName = state?.Name;
-            _selectedTransition = transition;
+            _selectedStateId = state == null ? null : _session.GetStateVisualId(state);
+            _selectedTransitionId = transition == null ? null : _session.GetTransitionVisualId(transition);
             _selectedSlotName = slotName;
-            await SelectSlotActivityForPropertiesAsync(slotActivity);
-
-            await InvokeAsync(StateHasChanged);
+            await SelectSlotActivityForPropertiesAsync(activity);
             return;
         }
 
-        _selectedStateName = _graph?.States.FirstOrDefault(x => string.Equals(x.Name, id, StringComparison.Ordinal))?.Name;
-        _selectedTransition = null;
-        _selectedSlotName = null;
-        if (_selectedStateName != null)
-            await SelectRootActivityForPropertiesAsync();
-        await InvokeAsync(StateHasChanged);
+        var stateMatch = _session.Graph.States.FirstOrDefault(x => string.Equals(x.Name, id, StringComparison.Ordinal));
+        if (stateMatch != null)
+            await SelectStateAsync(stateMatch);
     }
 
-    /// <summary>
-    /// Reads the root StateMachine activity.
-    /// </summary>
     public Task<JsonObject> ReadRootActivityAsync()
     {
-        if (_graph == null)
+        if (_session == null)
             return Task.FromResult(StateMachine);
 
-        if (HasStructuralValidationErrors(_graph))
-            throw new DiagramDesignerValidationException("Cannot read the StateMachine activity because the graph has structural validation errors.");
-
-        var activity = MapCurrentGraph();
-        var validationGraph = StateMachineMapper.Map(activity);
-        _graph.ValidationIssues = validationGraph.ValidationIssues;
-
-        if (HasValidationErrors(validationGraph))
-            throw new DiagramDesignerValidationException("Cannot read the StateMachine activity because the graph has validation errors.");
-
-        return Task.FromResult(activity);
+        try
+        {
+            return Task.FromResult(_session.Export());
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new DiagramDesignerValidationException(ex.Message);
+        }
     }
 
-    /// <summary>
-    /// Applies the fit layout density.
-    /// </summary>
-    public Task ZoomToFitAsync()
-    {
-        _zoomToFit = true;
-        _centerContent = false;
-        return InvokeAsync(StateHasChanged);
-    }
+    public Task ZoomToFitAsync() => _canvas?.ZoomToFitAsync() ?? Task.CompletedTask;
+    public Task CenterContentAsync() => _canvas?.CenterContentAsync() ?? Task.CompletedTask;
 
-    /// <summary>
-    /// Centers the graph content.
-    /// </summary>
-    public Task CenterContentAsync()
+    private void LoadSession(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
     {
-        _zoomToFit = false;
-        _centerContent = true;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private void LoadGraph(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
-    {
-        var selectedTransition = _selectedTransition;
-        var selectedTransitionIdentityIndex = GetTransitionIdentityIndex(_graph, selectedTransition);
-        var newTransitionFrom = _newTransitionFrom;
-        var newTransitionTo = _newTransitionTo;
         StateMachine = activity;
         ActivityStats = activityStats;
         _activityStats = activityStats;
-        _graph = StateMachineMapper.Map(activity);
-
-        var stateNames = _graph.States.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        _newTransitionFrom = !string.IsNullOrWhiteSpace(newTransitionFrom) && stateNames.Contains(newTransitionFrom) ? newTransitionFrom : _graph.States.FirstOrDefault()?.Name;
-        _newTransitionTo = !string.IsNullOrWhiteSpace(newTransitionTo) && stateNames.Contains(newTransitionTo) ? newTransitionTo : _graph.States.Skip(1).FirstOrDefault()?.Name ?? _newTransitionFrom;
-        _selectedTransition = selectedTransition != null
-            ? FindSameTransition(_graph, selectedTransition, selectedTransitionIdentityIndex)
-            : null;
+        _session = new(StateMachineMapper, StateMachineValidator, activity);
+        _canvasGraph = _session.ProjectCanvas();
+        _selectedStateId = null;
+        _selectedTransitionId = null;
+        _pendingDeleteStateId = null;
+        SetNewTransitionDefaults();
     }
 
-    private async Task SelectStateAsync(StateMachineStateNode state)
+    private async Task ApplySessionChangesAsync()
     {
-        _selectedStateName = state.Name;
-        _selectedTransition = null;
-        _selectedSlotName = null;
-        await SelectRootActivityForPropertiesAsync();
-    }
+        if (_session == null)
+            return;
 
-    private async Task SelectTransitionAsync(StateMachineTransitionEdge transition)
-    {
-        _selectedTransition = transition;
-        _selectedStateName = null;
-        _selectedSlotName = null;
-        await SelectRootActivityForPropertiesAsync();
+        _canvasGraph = _session.ProjectCanvas();
+        SetNewTransitionDefaults();
+
+        if (_session.CanExport)
+        {
+            if (GraphUpdated.HasDelegate)
+                await GraphUpdated.InvokeAsync();
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddStateAsync()
     {
-        if (IsReadOnly || _graph == null)
+        if (IsReadOnly || _session == null)
             return;
 
-        var stateName = GetUniqueStateName(_graph, _newStateName);
-        var state = new StateMachineStateNode
-        {
-            Name = stateName,
-            Source = new JsonObject { ["name"] = stateName }
-        };
-
-        _graph.States.Add(state);
-        _graph.InitialState ??= stateName;
-        _graph.CurrentState ??= stateName;
+        var name = StateMachineDesignerNames.GetUniqueStateName(_session.Graph, _newStateName);
+        _selectedStateId = _session.AddState(name);
+        _selectedTransitionId = null;
         _newStateName = "";
-        _selectedStateName = stateName;
-        _selectedTransition = null;
-        _selectedSlotName = null;
-        await ApplyGraphChangesAsync();
-    }
-
-    private async Task DeleteSelectedStateAsync()
-    {
-        if (IsReadOnly || _graph == null || SelectedState == null)
-            return;
-
-        var stateName = SelectedState.Name;
-        _graph.States.Remove(SelectedState);
-
-        foreach (var transition in _graph.Transitions.Where(x =>
-                     string.Equals(x.From, stateName, StringComparison.Ordinal) ||
-                     string.Equals(x.To, stateName, StringComparison.Ordinal)).ToList())
-        {
-            _graph.Transitions.Remove(transition);
-        }
-
-        if (string.Equals(_graph.InitialState, stateName, StringComparison.Ordinal))
-            _graph.InitialState = _graph.States.FirstOrDefault()?.Name;
-
-        if (string.Equals(_graph.CurrentState, stateName, StringComparison.Ordinal))
-            _graph.CurrentState = _graph.States.FirstOrDefault()?.Name;
-
-        _selectedStateName = _graph.States.FirstOrDefault()?.Name;
-        _selectedTransition = null;
-        _selectedSlotName = null;
-        _selectedActivityId = null;
-        await ApplyGraphChangesAsync();
-        await SelectRootActivityForPropertiesAsync();
-    }
-
-    private async Task RenameSelectedStateAsync(ChangeEventArgs e)
-    {
-        var selectedState = SelectedState;
-        if (IsReadOnly || _graph == null || selectedState == null)
-            return;
-
-        var oldName = selectedState.Name;
-        var newName = GetUniqueStateName(_graph, e.Value?.ToString() ?? "", selectedState);
-
-        if (string.Equals(oldName, newName, StringComparison.Ordinal))
-            return;
-
-        selectedState.Name = newName;
-        _selectedStateName = newName;
-
-        foreach (var transition in _graph.Transitions)
-        {
-            if (string.Equals(transition.From, oldName, StringComparison.Ordinal))
-                transition.From = newName;
-
-            if (string.Equals(transition.To, oldName, StringComparison.Ordinal))
-                transition.To = newName;
-        }
-
-        if (string.Equals(_graph.InitialState, oldName, StringComparison.Ordinal))
-            _graph.InitialState = newName;
-
-        if (string.Equals(_graph.CurrentState, oldName, StringComparison.Ordinal))
-            _graph.CurrentState = newName;
-
-        await ApplyGraphChangesAsync();
+        await ApplySessionChangesAsync();
     }
 
     private async Task AddTransitionAsync()
     {
-        if (IsReadOnly || _graph == null || string.IsNullOrWhiteSpace(_newTransitionFrom) || string.IsNullOrWhiteSpace(_newTransitionTo))
+        if (IsReadOnly || _session == null || _newTransitionFromId == null || _newTransitionToId == null)
             return;
 
-        var transitionName = GetUniqueTransitionName(_graph, _newTransitionName);
-
-        var transition = new StateMachineTransitionEdge
-        {
-            Name = transitionName,
-            DisplayName = transitionName,
-            From = _newTransitionFrom,
-            To = _newTransitionTo,
-            Source = new JsonObject
-            {
-                ["name"] = transitionName,
-                ["displayName"] = transitionName,
-                ["from"] = _newTransitionFrom,
-                ["to"] = _newTransitionTo
-            }
-        };
-
-        _graph.Transitions.Add(transition);
-        _selectedTransition = transition;
-        _selectedStateName = null;
-        _selectedSlotName = null;
+        var name = StateMachineDesignerNames.GetUniqueTransitionName(_session.Graph, _newTransitionName);
+        _selectedTransitionId = _session.AddTransition(_newTransitionFromId, _newTransitionToId, name, name);
+        _selectedStateId = null;
         _newTransitionName = "";
-        await ApplyGraphChangesAsync();
+        await ApplySessionChangesAsync();
     }
 
-    private async Task DeleteSelectedTransitionAsync()
+    private Task SetInitialStateAsync(ChangeEventArgs args) => MutateAsync(() => _session!.SetInitialState(NormalizeOptional(args.Value)));
+    private Task SetCurrentStateAsync(ChangeEventArgs args) => MutateAsync(() => _session!.SetCurrentState(NormalizeOptional(args.Value)));
+
+    private async Task RenameSelectedStateAsync(string name)
     {
-        if (IsReadOnly || _graph == null || _selectedTransition == null)
+        if (_session == null || _selectedStateId == null || IsReadOnly)
             return;
 
-        _graph.Transitions.Remove(_selectedTransition);
-        _selectedTransition = _graph.Transitions.FirstOrDefault();
-        _selectedSlotName = null;
-        _selectedActivityId = null;
-        await ApplyGraphChangesAsync();
-        await SelectRootActivityForPropertiesAsync();
+        var unique = StateMachineDesignerNames.GetUniqueStateName(_session.Graph, name, SelectedState);
+        _session.RenameState(_selectedStateId, unique);
+        await ApplySessionChangesAsync();
     }
 
-    private async Task SetInitialStateAsync(ChangeEventArgs e)
+    private Task SetTransitionNameAsync(string? value) =>
+        MutateAsync(() => _session!.SetTransitionName(_selectedTransitionId!, StateMachineDesignerNames.GetUniqueTransitionName(_session!.Graph, value, SelectedTransition, true)));
+
+    private Task SetTransitionDisplayNameAsync(string? value) => MutateAsync(() => _session!.SetTransitionDisplayName(_selectedTransitionId!, value));
+
+    private Task SetTransitionFromAsync(string stateName) => SetSelectedTransitionEndpointAsync(stateName, true);
+    private Task SetTransitionToAsync(string stateName) => SetSelectedTransitionEndpointAsync(stateName, false);
+
+    private async Task SetSelectedTransitionEndpointAsync(string stateName, bool source)
     {
-        if (_graph == null || IsReadOnly)
+        if (_session == null || _selectedTransitionId == null || SelectedTransition == null || IsReadOnly)
             return;
 
-        _graph.InitialState = NormalizeOptionalStateName(e.Value);
-        await ApplyGraphChangesAsync();
+        var state = _session.Graph.States.FirstOrDefault(x => string.Equals(x.Name, stateName, StringComparison.Ordinal));
+        if (state == null)
+            return;
+
+        var stateId = _session.GetStateVisualId(state);
+        if (source)
+            _session.SetTransitionSource(_selectedTransitionId, stateId);
+        else
+            _session.SetTransitionTarget(_selectedTransitionId, stateId);
+        await ApplySessionChangesAsync();
     }
 
-    private async Task SetCurrentStateAsync(ChangeEventArgs e)
+    private async Task SetStateSlotAsync(StateMachineSlotValueChange change)
     {
-        if (_graph == null || IsReadOnly)
+        if (_session == null || _selectedStateId == null || IsReadOnly)
             return;
 
-        _graph.CurrentState = NormalizeOptionalStateName(e.Value);
-        await ApplyGraphChangesAsync();
+        _session.SetStateSlot(_selectedStateId, ParseStateSlot(change.SlotName), ParseJsonSlot(change.Value, change.SlotName));
+        await ApplySessionChangesAndRefreshSlotAsync(change.SlotName, true);
     }
 
-    private async Task SetTransitionFromAsync(ChangeEventArgs e)
+    private async Task SetTransitionSlotAsync(StateMachineSlotValueChange change)
     {
-        if (_selectedTransition == null || IsReadOnly)
+        if (_session == null || _selectedTransitionId == null || IsReadOnly)
             return;
 
-        _selectedTransition.From = e.Value?.ToString() ?? "";
-        await ApplyGraphChangesAsync();
-    }
-
-    private async Task SetTransitionToAsync(ChangeEventArgs e)
-    {
-        if (_selectedTransition == null || IsReadOnly)
-            return;
-
-        _selectedTransition.To = e.Value?.ToString() ?? "";
-        await ApplyGraphChangesAsync();
-    }
-
-    private async Task SetTransitionNameAsync(ChangeEventArgs e)
-    {
-        if (_selectedTransition == null || IsReadOnly || _graph == null)
-            return;
-
-        _selectedTransition.Name = GetUniqueTransitionName(_graph, e.Value?.ToString(), _selectedTransition, true);
-        await ApplyGraphChangesAsync();
-    }
-
-    private async Task SetTransitionDisplayNameAsync(ChangeEventArgs e)
-    {
-        if (_selectedTransition == null || IsReadOnly)
-            return;
-
-        _selectedTransition.DisplayName = NormalizeOptionalString(e.Value);
-        await ApplyGraphChangesAsync();
-    }
-
-    private async Task SetStateSlotAsync(string slotName, ChangeEventArgs e)
-    {
-        if (SelectedState == null || IsReadOnly)
-            return;
-
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
-        var node = ParseJsonSlot(e.Value?.ToString(), slotName);
-        SetStateSlot(SelectedState, slotName, node);
-
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null, slotName);
-    }
-
-    private async Task SetTransitionSlotAsync(string slotName, ChangeEventArgs e)
-    {
-        if (_selectedTransition == null || IsReadOnly)
-            return;
-
-        var value = e.Value?.ToString();
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
-        JsonNode? node = null;
-
-        switch (slotName)
-        {
-            case "trigger":
-                node = ParseJsonSlot(value, slotName);
-                _selectedTransition.Trigger = node;
-                break;
-            case "condition":
-                node = ParseJsonSlot(value, slotName);
-                _selectedTransition.Condition = node;
-                break;
-            case "action":
-                node = ParseJsonSlot(value, slotName);
-                _selectedTransition.Action = node;
-                break;
-        }
-
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity || IsSelectableSlotActivity(node), () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null, slotName);
+        _session.SetTransitionSlot(_selectedTransitionId, ParseTransitionSlot(change.SlotName), ParseJsonSlot(change.Value, change.SlotName));
+        await ApplySessionChangesAndRefreshSlotAsync(change.SlotName, true);
     }
 
     private async Task ClearStateSlotAsync(string slotName)
     {
-        if (SelectedState == null || IsReadOnly)
+        if (_session == null || _selectedStateId == null || IsReadOnly)
             return;
-
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetStateSlot(SelectedState, slotName));
-        SetStateSlot(SelectedState, slotName, null);
-
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => null);
+        _session.SetStateSlot(_selectedStateId, ParseStateSlot(slotName), null);
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, false);
     }
 
     private async Task ClearTransitionSlotAsync(string slotName)
     {
-        if (_selectedTransition == null || IsReadOnly)
+        if (_session == null || _selectedTransitionId == null || IsReadOnly)
             return;
-
-        var refreshSelectedActivity = IsSelectedSlotActivity(GetTransitionSlot(_selectedTransition, slotName));
-        switch (slotName)
-        {
-            case "trigger":
-                _selectedTransition.Trigger = null;
-                break;
-            case "condition":
-                _selectedTransition.Condition = null;
-                break;
-            case "action":
-                _selectedTransition.Action = null;
-                break;
-        }
-
-        await ApplyGraphChangesAndRefreshSelectionAsync(refreshSelectedActivity, () => null);
-    }
-
-    private void OnSlotDragOver(DragEventArgs e)
-    {
-        e.DataTransfer.DropEffect = !IsReadOnly && DragDropManager.Payload is ActivityDescriptor ? "move" : "none";
+        _session.SetTransitionSlot(_selectedTransitionId, ParseTransitionSlot(slotName), null);
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, false);
     }
 
     private async Task OnStateSlotDropAsync(string slotName)
     {
-        if (IsReadOnly || SelectedState == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
+        if (IsReadOnly || _session == null || _selectedStateId == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
         var activity = CreateSlotActivity(descriptor);
-
-        SetStateSlot(SelectedState, slotName, activity);
-
+        _session.SetStateSlot(_selectedStateId, ParseStateSlot(slotName), activity);
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => SelectedState != null ? GetStateSlot(SelectedState, slotName) : null, slotName);
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
     }
 
     private async Task OnTransitionSlotDropAsync(string slotName)
     {
-        if (IsReadOnly || _selectedTransition == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || DragDropManager.Payload is not ActivityDescriptor descriptor || slotName == "condition")
             return;
 
         var activity = CreateSlotActivity(descriptor);
-
-        switch (slotName)
-        {
-            case "trigger":
-                _selectedTransition.Trigger = activity;
-                break;
-            case "action":
-                _selectedTransition.Action = activity;
-                break;
-        }
-
+        _session.SetTransitionSlot(_selectedTransitionId, ParseTransitionSlot(slotName), activity);
         DragDropManager.Payload = null;
-        await ApplyGraphChangesAndRefreshSelectionAsync(true, () => _selectedTransition != null ? GetTransitionSlot(_selectedTransition, slotName) : null, slotName);
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
     }
 
-    private async Task ApplyGraphChangesAndRefreshSelectionAsync(bool refreshSelectedActivity, Func<JsonNode?> getReplacementSlot, string? slotName = null)
+    private async Task ApplySessionChangesAndRefreshSlotAsync(string slotName, bool selectSlot)
     {
-        await ApplyGraphChangesAsync();
-
-        if (!refreshSelectedActivity)
-            return;
-
-        if (getReplacementSlot() is JsonObject replacementActivity && replacementActivity.IsActivity())
+        await ApplySessionChangesAsync();
+        var slot = SelectedState != null ? GetStateSlot(SelectedState, slotName) : SelectedTransition != null ? GetTransitionSlot(SelectedTransition, slotName) : null;
+        if (selectSlot && slot is JsonObject activity && activity.IsActivity())
         {
             _selectedSlotName = slotName;
-            await SelectSlotActivityForPropertiesAsync(replacementActivity);
+            await SelectSlotActivityForPropertiesAsync(activity);
         }
         else
         {
@@ -548,195 +316,341 @@ public partial class StateMachineDesignerWrapper
         }
     }
 
-    private async Task ApplyGraphChangesAsync()
+    private async Task SelectStateByVisualIdAsync(string visualId)
     {
-        if (_graph == null)
+        if (_session == null || TryGetState(visualId) == null)
             return;
-
-        if (HasStructuralValidationErrors(_graph))
-        {
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-
-        var activity = MapCurrentGraph();
-        var validationGraph = StateMachineMapper.Map(activity);
-        _graph.ValidationIssues = validationGraph.ValidationIssues;
-
-        if (HasValidationErrors(validationGraph))
-        {
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-
-        LoadGraph(activity, _activityStats);
-
-        if (GraphUpdated.HasDelegate)
-            await GraphUpdated.InvokeAsync();
-
+        _selectedStateId = visualId;
+        _selectedTransitionId = null;
+        _pendingDeleteStateId = null;
+        await SelectRootActivityForPropertiesAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private string GetCanvasClass() =>
-        _zoomToFit ? "state-machine-designer__canvas state-machine-designer__canvas--fit" : "state-machine-designer__canvas";
-
-    private string GetStateClass(StateMachineStateNode state)
+    private async Task SelectTransitionByVisualIdAsync(string visualId)
     {
-        var className = "state-machine-designer__state";
-
-        if (IsStateSelected(state))
-            className += " state-machine-designer__state--selected";
-
-        if (state.IsTerminal)
-            className += " state-machine-designer__state--terminal";
-
-        return className;
+        if (_session == null || TryGetTransition(visualId) == null)
+            return;
+        _selectedTransitionId = visualId;
+        _selectedStateId = null;
+        _pendingDeleteStateId = null;
+        await SelectRootActivityForPropertiesAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private string GetStateAriaPressed(StateMachineStateNode state) => ToAriaPressed(IsStateSelected(state));
-
-    private string GetTransitionClass(StateMachineTransitionEdge transition)
+    private async Task SelectStateAsync(StateMachineStateNode state)
     {
-        var className = "state-machine-designer__transition";
-
-        if (IsTransitionSelected(transition))
-            className += " state-machine-designer__transition--selected";
-
-        if (string.IsNullOrWhiteSpace(transition.From) || string.IsNullOrWhiteSpace(transition.To))
-            className += " state-machine-designer__transition--invalid";
-
-        return className;
+        if (_session == null) return;
+        await SelectStateByVisualIdAsync(_session.GetStateVisualId(state));
+        if (!_showOutline && _canvas != null) await _canvas.SelectCellAsync(_selectedStateId!, true);
     }
 
-    private string GetTransitionAriaPressed(StateMachineTransitionEdge transition) => ToAriaPressed(IsTransitionSelected(transition));
+    private async Task SelectTransitionAsync(StateMachineTransitionEdge transition)
+    {
+        if (_session == null) return;
+        await SelectTransitionByVisualIdAsync(_session.GetTransitionVisualId(transition));
+        if (!_showOutline && _canvas != null) await _canvas.SelectCellAsync(_selectedTransitionId!, false);
+    }
 
-    private bool IsStateSelected(StateMachineStateNode state) =>
-        string.Equals(state.Name, _selectedStateName, StringComparison.Ordinal);
+    private async Task SelectCanvasAsync()
+    {
+        _selectedStateId = null;
+        _selectedTransitionId = null;
+        _pendingDeleteStateId = null;
+        await SelectRootActivityForPropertiesAsync();
+        await InvokeAsync(StateHasChanged);
+    }
 
-    private bool IsTransitionSelected(StateMachineTransitionEdge transition) =>
-        _selectedTransition != null &&
-        (ReferenceEquals(transition, _selectedTransition) ||
-         (IsSameTransition(transition, _selectedTransition) &&
-          GetTransitionIdentityIndex(_graph, transition) == GetTransitionIdentityIndex(_graph, _selectedTransition)));
+    private async Task ReconcileCanvasAsync(JsonElement graphJson)
+    {
+        if (_session == null || IsReadOnly || _processingCanvasChange || !graphJson.TryGetProperty("cells", out var cells))
+            return;
 
-    private static string ToAriaPressed(bool value) => value ? "true" : "false";
+        _processingCanvasChange = true;
+        try
+        {
+            var seenTransitions = new HashSet<string>(StringComparer.Ordinal);
+            var semanticChanged = false;
 
-    private static string GetIssueClass(StateMachineValidationIssue issue) =>
-        issue.Severity == StateMachineValidationSeverity.Error
-            ? "state-machine-designer__issue state-machine-designer__issue--error"
-            : "state-machine-designer__issue state-machine-designer__issue--warning";
+            foreach (var cell in cells.EnumerateArray())
+            {
+                var shape = GetString(cell, "shape");
+                var id = GetString(cell, "id");
+                if (id == null) continue;
 
-    private static string DisplayValue(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+                if (shape == "elsa-state-machine-state" && TryGetState(id) != null && cell.TryGetProperty("position", out var position))
+                {
+                    _session.SetStatePosition(id, GetDouble(position, "x"), GetDouble(position, "y"));
+                    continue;
+                }
 
-    private static string GetTransitionDisplayText(StateMachineTransitionEdge transition) =>
-        DisplayValue(NormalizeOptionalString(transition.DisplayName) ?? transition.Name);
+                if (shape != "elsa-state-machine-transition") continue;
+                if (!TryGetEndpointCell(cell, "source", out var sourceId) || !TryGetEndpointCell(cell, "target", out var targetId)) continue;
 
-    private IEnumerable<StateMachineTransitionEdge> GetOutgoingTransitions(StateMachineStateNode state) =>
-        _graph?.Transitions.Where(x => string.Equals(x.From, state.Name, StringComparison.Ordinal)) ?? [];
+                var existing = TryGetTransition(id);
+                if (existing == null)
+                {
+                    if (IsSyntheticStateId(sourceId) || IsSyntheticStateId(targetId))
+                        continue;
 
-    private StateMachineStateNode? SelectedState =>
-        _graph?.States.FirstOrDefault(x => string.Equals(x.Name, _selectedStateName, StringComparison.Ordinal));
+                    var name = StateMachineDesignerNames.GetUniqueTransitionName(_session.Graph);
+                    _selectedTransitionId = _session.AddTransition(sourceId, targetId, name, name);
+                    seenTransitions.Add(_selectedTransitionId);
+                    _selectedStateId = null;
+                    semanticChanged = true;
+                    continue;
+                }
+
+                seenTransitions.Add(id);
+                var projected = _session.ProjectCanvas().Transitions.First(x => x.VisualId == id);
+                if (!IsSyntheticStateId(sourceId) && !string.Equals(projected.SourceStateVisualId, sourceId, StringComparison.Ordinal))
+                {
+                    _session.SetTransitionSource(id, sourceId);
+                    semanticChanged = true;
+                }
+                if (!IsSyntheticStateId(targetId) && !string.Equals(projected.TargetStateVisualId, targetId, StringComparison.Ordinal))
+                {
+                    _session.SetTransitionTarget(id, targetId);
+                    semanticChanged = true;
+                }
+
+                _session.SetTransitionVertices(id, ReadVertices(cell));
+            }
+
+            var removedTransitionIds = _session.ProjectCanvas().Transitions
+                .Select(x => x.VisualId)
+                .Where(id => !seenTransitions.Contains(id))
+                .ToList();
+            foreach (var transitionId in removedTransitionIds)
+            {
+                _session.DeleteTransition(transitionId);
+                if (_selectedTransitionId == transitionId) _selectedTransitionId = null;
+                semanticChanged = true;
+            }
+
+            if (semanticChanged)
+                await ApplySessionChangesAsync();
+        }
+        finally
+        {
+            _processingCanvasChange = false;
+        }
+    }
+
+    private Task HandleDeleteRequestAsync(StateMachineDeleteRequest request) =>
+        request.Kind == "state" ? RequestDeleteStateAsync(request.VisualId) : DeleteTransitionAsync(request.VisualId);
+
+    private Task RequestDeleteSelectedStateAsync() => _selectedStateId == null ? Task.CompletedTask : RequestDeleteStateAsync(_selectedStateId);
+
+    private async Task RequestDeleteStateAsync(string visualId)
+    {
+        if (IsReadOnly || _session == null || TryGetState(visualId) == null) return;
+        if (GetConnectedTransitionCount(visualId) == 0)
+        {
+            _session.DeleteState(visualId);
+            _selectedStateId = null;
+            await ApplySessionChangesAsync();
+            return;
+        }
+
+        _pendingDeleteStateId = visualId;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ConfirmDeleteStateAsync()
+    {
+        if (_session == null || _pendingDeleteStateId == null) return;
+        _session.DeleteState(_pendingDeleteStateId);
+        _pendingDeleteStateId = null;
+        _selectedStateId = null;
+        _selectedTransitionId = null;
+        await ApplySessionChangesAsync();
+    }
+
+    private void CancelDeleteState() => _pendingDeleteStateId = null;
+
+    private Task DeleteSelectedTransitionAsync() => _selectedTransitionId == null ? Task.CompletedTask : DeleteTransitionAsync(_selectedTransitionId);
+
+    private async Task DeleteTransitionAsync(string visualId)
+    {
+        if (IsReadOnly || _session == null || TryGetTransition(visualId) == null) return;
+        _session.DeleteTransition(visualId);
+        if (_selectedTransitionId == visualId) _selectedTransitionId = null;
+        await ApplySessionChangesAsync();
+    }
+
+    private Task MutateAsync(Action mutation)
+    {
+        if (IsReadOnly || _session == null) return Task.CompletedTask;
+        mutation();
+        return ApplySessionChangesAsync();
+    }
+
+    private async Task AutoLayoutAsync()
+    {
+        if (_canvas != null) await _canvas.AutoLayoutAsync();
+    }
+
+    private void ShowDiagram() => _showOutline = false;
+    private void ShowOutline() => _showOutline = true;
+
+    private async Task SelectIssueAsync(StateMachineValidationIssue issue)
+    {
+        if (_session == null || string.IsNullOrWhiteSpace(issue.Target)) return;
+        var state = _session.Graph.States.FirstOrDefault(x => IsIssueForTarget(issue, GetStateIssueTarget(x)));
+        if (state != null)
+        {
+            await SelectStateAsync(state);
+            return;
+        }
+
+        var transition = _session.Graph.Transitions.FirstOrDefault(x => IsIssueForTarget(issue, GetTransitionIssueTarget(x)));
+        if (transition != null)
+            await SelectTransitionAsync(transition);
+    }
+
+    private void SetNewTransitionDefaults()
+    {
+        if (_canvasGraph == null || _canvasGraph.States.Count == 0)
+        {
+            _newTransitionFromId = null;
+            _newTransitionToId = null;
+            return;
+        }
+
+        var ids = _canvasGraph.States.Select(x => x.VisualId).ToHashSet(StringComparer.Ordinal);
+        if (_newTransitionFromId == null || !ids.Contains(_newTransitionFromId)) _newTransitionFromId = _canvasGraph.States[0].VisualId;
+        if (_newTransitionToId == null || !ids.Contains(_newTransitionToId)) _newTransitionToId = _canvasGraph.States.ElementAtOrDefault(1)?.VisualId ?? _newTransitionFromId;
+    }
+
+    private string? GetStateVisualIdByName(string? name)
+    {
+        if (_session == null || string.IsNullOrWhiteSpace(name)) return null;
+        var matches = _session.Graph.States.Where(x => string.Equals(x.Name, name, StringComparison.Ordinal)).ToList();
+        return matches.Count == 1 ? _session.GetStateVisualId(matches[0]) : null;
+    }
+
+    private StateMachineStateNode? TryGetState(string visualId)
+    {
+        try { return _session?.GetState(visualId); }
+        catch (KeyNotFoundException) { return null; }
+    }
+
+    private StateMachineTransitionEdge? TryGetTransition(string visualId)
+    {
+        try { return _session?.GetTransition(visualId); }
+        catch (KeyNotFoundException) { return null; }
+    }
+
+    private int GetConnectedTransitionCount(string visualId)
+    {
+        var state = TryGetState(visualId);
+        return state == null || _session == null ? 0 : _session.Graph.Transitions.Count(x => x.From == state.Name || x.To == state.Name);
+    }
+
+    private IReadOnlyCollection<StateMachineValidationIssue> GetSelectedStateIssues() =>
+        _session == null || SelectedState == null
+            ? []
+            : _session.ValidationIssues.Where(x => IsIssueForTarget(x, GetStateIssueTarget(SelectedState))).ToList();
+
+    private IReadOnlyCollection<StateMachineValidationIssue> GetSelectedTransitionIssues() =>
+        _session == null || SelectedTransition == null
+            ? []
+            : _session.ValidationIssues.Where(x => IsIssueForTarget(x, GetTransitionIssueTarget(SelectedTransition))).ToList();
+
+    private static string GetStateIssueTarget(StateMachineStateNode state) =>
+        string.IsNullOrWhiteSpace(state.Name) ? "state" : state.Name;
+
+    private static string GetTransitionIssueTarget(StateMachineTransitionEdge transition) =>
+        NormalizeOptional(transition.DisplayName) ?? NormalizeOptional(transition.Name) ?? $"{transition.From}->{transition.To}";
+
+    private static bool IsIssueForTarget(StateMachineValidationIssue issue, string target) =>
+        string.Equals(issue.Target, target, StringComparison.Ordinal) ||
+        issue.Target?.StartsWith($"{target}.", StringComparison.Ordinal) == true;
 
     private async Task SelectRootActivityForPropertiesAsync()
     {
-        _selectedActivityId = GetActivitySelectionId(StateMachine);
+        var activity = _session?.CanExport == true ? _session.Export() : StateMachine;
+        _selectedActivityId = GetActivitySelectionId(activity);
         _selectedSlotName = null;
-
-        if (ActivitySelected.HasDelegate)
-            await ActivitySelected.InvokeAsync(StateMachine);
+        if (ActivitySelected.HasDelegate) await ActivitySelected.InvokeAsync(activity);
     }
 
     private async Task SelectSlotActivityForPropertiesAsync(JsonObject activity)
     {
         _selectedActivityId = GetActivitySelectionId(activity);
-
-        if (ActivitySelected.HasDelegate)
-            await ActivitySelected.InvokeAsync(activity);
+        if (ActivitySelected.HasDelegate) await ActivitySelected.InvokeAsync(activity);
     }
 
-    private bool IsSelectedSlotActivity(JsonNode? slot) =>
-        slot is JsonObject activity &&
-        _selectedActivityId != null &&
-        (string.Equals(activity.GetId(), _selectedActivityId, StringComparison.Ordinal) ||
-         string.Equals(activity.GetNodeId(), _selectedActivityId, StringComparison.Ordinal));
-
-    private static bool IsSelectableSlotActivity(JsonNode? slot) =>
-        slot is JsonObject activity && activity.IsActivity();
-
-    private static string? GetActivitySelectionId(JsonObject activity) =>
-        NormalizeOptionalString(activity.GetId()) ?? NormalizeOptionalString(activity.GetNodeId());
-
-    private static JsonNode? GetStateSlot(StateMachineStateNode state, string slotName) =>
-        slotName == "entry" ? state.Entry : state.Exit;
-
-    private static void SetStateSlot(StateMachineStateNode state, string slotName, JsonNode? slot)
+    private JsonObject CreateSlotActivity(ActivityDescriptor descriptor)
     {
-        if (slotName == "entry")
-            state.Entry = slot;
-        else
-            state.Exit = slot;
-    }
-
-    private static JsonNode? GetTransitionSlot(StateMachineTransitionEdge transition, string slotName) =>
-        slotName switch
+        var activityId = IdentityGenerator.GenerateId();
+        var activity = new JsonObject
         {
-            "trigger" => transition.Trigger,
-            "condition" => transition.Condition,
-            "action" => transition.Action,
-            _ => null
+            ["id"] = activityId,
+            ["nodeId"] = $"{StateMachine.GetNodeId()}:{activityId}",
+            ["name"] = ActivityNameGenerator.GenerateNextName(GetIndexedSlotActivities().ToList(), descriptor),
+            ["type"] = descriptor.TypeName,
+            ["version"] = descriptor.Version
         };
-
-    private static string GetUniqueStateName(StateMachineGraph graph, string requestedName, StateMachineStateNode? excludedState = null) =>
-        StateMachineDesignerNames.GetUniqueStateName(graph, requestedName, excludedState);
-
-    private static string? GetUniqueTransitionName(StateMachineGraph graph, string? requestedName = null, StateMachineTransitionEdge? excludedTransition = null, bool allowNull = false) =>
-        StateMachineDesignerNames.GetUniqueTransitionName(graph, requestedName, excludedTransition, allowNull);
-
-    private static bool IsSameTransition(StateMachineTransitionEdge left, StateMachineTransitionEdge right) =>
-        string.Equals(left.Name, right.Name, StringComparison.Ordinal) &&
-        string.Equals(left.From, right.From, StringComparison.Ordinal) &&
-        string.Equals(left.To, right.To, StringComparison.Ordinal);
-
-    private static int? GetTransitionIdentityIndex(StateMachineGraph? graph, StateMachineTransitionEdge? transition)
-    {
-        if (graph == null || transition == null)
-            return null;
-
-        int? firstMatchIndex = null;
-        var identityIndex = 0;
-
-        foreach (var candidate in graph.Transitions.Where(x => IsSameTransition(x, transition)))
-        {
-            firstMatchIndex ??= identityIndex;
-
-            if (ReferenceEquals(candidate, transition))
-                return identityIndex;
-
-            identityIndex++;
-        }
-
-        return firstMatchIndex;
+        foreach (var property in descriptor.ConstructionProperties)
+            activity.SetProperty(JsonSerializer.SerializeToNode(property.Value), property.Key.Camelize());
+        return activity;
     }
 
-    private static StateMachineTransitionEdge? FindSameTransition(StateMachineGraph graph, StateMachineTransitionEdge transition, int? identityIndex)
+    private IEnumerable<JsonObject> GetIndexedSlotActivities()
     {
-        var matches = graph.Transitions.Where(x => IsSameTransition(x, transition)).ToList();
+        if (_session == null) yield break;
+        var slots = _session.Graph.States.SelectMany(x => new[] { x.Entry, x.Exit })
+            .Concat(_session.Graph.Transitions.SelectMany(x => new[] { x.Trigger, x.Action }));
+        foreach (var slot in slots)
+            if (slot is JsonObject activity && activity.IsActivity()) yield return activity;
+    }
 
-        if (identityIndex is { } index && index >= 0 && index < matches.Count)
-            return matches[index];
+    private bool TryFindSlotActivity(string id, out JsonObject activity, out StateMachineStateNode? state, out StateMachineTransitionEdge? transition, out string? slotName)
+    {
+        if (_session != null)
+        {
+            foreach (var candidate in _session.Graph.States)
+            {
+                if (TryMatchSlotActivity(candidate.Entry, id, out activity)) { state = candidate; transition = null; slotName = "entry"; return true; }
+                if (TryMatchSlotActivity(candidate.Exit, id, out activity)) { state = candidate; transition = null; slotName = "exit"; return true; }
+            }
+            foreach (var candidate in _session.Graph.Transitions)
+            {
+                if (TryMatchSlotActivity(candidate.Trigger, id, out activity)) { state = null; transition = candidate; slotName = "trigger"; return true; }
+                if (TryMatchSlotActivity(candidate.Action, id, out activity)) { state = null; transition = candidate; slotName = "action"; return true; }
+            }
+        }
+        activity = []; state = null; transition = null; slotName = null; return false;
+    }
 
-        return matches.FirstOrDefault();
+    private bool TryUpdateSlotActivity(string id, JsonObject replacement)
+    {
+        if (_session == null) return false;
+        foreach (var state in _session.Graph.States)
+        {
+            if (IsSlotActivityMatch(state.Entry, id, replacement)) { _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Entry, replacement); return true; }
+            if (IsSlotActivityMatch(state.Exit, id, replacement)) { _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Exit, replacement); return true; }
+        }
+        foreach (var transition in _session.Graph.Transitions)
+        {
+            if (IsSlotActivityMatch(transition.Trigger, id, replacement)) { _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Trigger, replacement); return true; }
+            if (IsSlotActivityMatch(transition.Action, id, replacement)) { _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Action, replacement); return true; }
+        }
+        return false;
+    }
+
+    private void TrackParameterState(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    {
+        _loadedParameterStateMachine = activity;
+        _loadedParameterActivityStats = activityStats;
     }
 
     private static JsonNode? ParseJsonSlot(string? value, string slotName)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        try
-        {
-            return JsonNode.Parse(value);
-        }
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        try { return JsonNode.Parse(value); }
         catch
         {
             return new JsonObject
@@ -748,222 +662,57 @@ public partial class StateMachineDesignerWrapper
         }
     }
 
-    private static string FormatJsonSlot(JsonNode? node) =>
-        node is JsonObject obj && StateMachineDesignerConstants.IsInvalidJsonSlotMarker(obj)
-            ? obj[InvalidJsonSlotSourceProperty]?.GetValue<string>() ?? ""
-            : node?.ToJsonString(new() { WriteIndented = true }) ?? "";
-
-    private JsonObject CreateSlotActivity(ActivityDescriptor descriptor)
+    private static StateMachineStateSlot ParseStateSlot(string name) => name == "entry" ? StateMachineStateSlot.Entry : StateMachineStateSlot.Exit;
+    private static StateMachineTransitionSlot ParseTransitionSlot(string name) => name switch
     {
-        var activityId = IdentityGenerator.GenerateId();
-        var activities = GetIndexedSlotActivities().ToList();
-        var activity = new JsonObject
-        {
-            ["id"] = activityId,
-            ["nodeId"] = $"{StateMachine.GetNodeId()}:{activityId}",
-            ["name"] = ActivityNameGenerator.GenerateNextName(activities, descriptor),
-            ["type"] = descriptor.TypeName,
-            ["version"] = descriptor.Version
-        };
+        "trigger" => StateMachineTransitionSlot.Trigger,
+        "condition" => StateMachineTransitionSlot.Condition,
+        _ => StateMachineTransitionSlot.Action
+    };
 
-        foreach (var property in descriptor.ConstructionProperties)
-        {
-            var valueNode = JsonSerializer.SerializeToNode(property.Value);
-            activity.SetProperty(valueNode, property.Key.Camelize());
-        }
-
-        return activity;
-    }
-
-    private void TrackParameterState(JsonObject activity, IDictionary<string, ActivityStats>? activityStats)
+    private static JsonNode? GetStateSlot(StateMachineStateNode state, string name) => name == "entry" ? state.Entry : state.Exit;
+    private static JsonNode? GetTransitionSlot(StateMachineTransitionEdge transition, string name) => name switch
     {
-        _loadedParameterStateMachine = activity;
-        _loadedParameterActivityStats = activityStats;
-    }
-
-    private JsonObject MapCurrentGraph()
-    {
-        _graph!.Activity = (JsonObject)StateMachine.DeepClone();
-        return StateMachineMapper.Map(_graph);
-    }
-
-    private static bool HasValidationErrors(StateMachineGraph graph) =>
-        graph.ValidationIssues.Any(x => x.Severity == StateMachineValidationSeverity.Error);
-
-    private static bool HasStructuralValidationErrors(StateMachineGraph graph) =>
-        graph.ValidationIssues.Any(x =>
-            x.Severity == StateMachineValidationSeverity.Error &&
-            x.Code is InvalidStateCollectionCode or InvalidTransitionCollectionCode or InvalidStateItemCode or InvalidTransitionItemCode);
-
-    private IEnumerable<JsonObject> GetIndexedSlotActivities()
-    {
-        if (_graph == null)
-            yield break;
-
-        var slots = _graph.States.SelectMany(x => new[] { x.Entry, x.Exit })
-            .Concat(_graph.Transitions.SelectMany(x => new[] { x.Trigger, x.Action }));
-
-        foreach (var slot in slots)
-        {
-            if (slot is JsonObject activity && activity.IsActivity())
-                yield return activity;
-        }
-    }
-
-    private bool TryFindSlotActivity(
-        string id,
-        out JsonObject activity,
-        out StateMachineStateNode? state,
-        out StateMachineTransitionEdge? transition,
-        out string? slotName)
-    {
-        if (_graph != null)
-        {
-            foreach (var candidateState in _graph.States)
-            {
-                if (TryMatchSlotActivity(candidateState.Entry, id, out activity))
-                {
-                    state = candidateState;
-                    transition = null;
-                    slotName = "entry";
-                    return true;
-                }
-
-                if (TryMatchSlotActivity(candidateState.Exit, id, out activity))
-                {
-                    state = candidateState;
-                    transition = null;
-                    slotName = "exit";
-                    return true;
-                }
-            }
-
-            foreach (var candidateTransition in _graph.Transitions)
-            {
-                if (TryMatchSlotActivity(candidateTransition.Trigger, id, out activity))
-                {
-                    state = null;
-                    transition = candidateTransition;
-                    slotName = "trigger";
-                    return true;
-                }
-
-                if (TryMatchSlotActivity(candidateTransition.Action, id, out activity))
-                {
-                    state = null;
-                    transition = candidateTransition;
-                    slotName = "action";
-                    return true;
-                }
-            }
-        }
-
-        activity = [];
-        state = null;
-        transition = null;
-        slotName = null;
-        return false;
-    }
-
-    private bool TryUpdateSlotActivity(string id, JsonObject activity)
-    {
-        if (_graph == null)
-            return false;
-
-        if (string.Equals(id, _selectedActivityId, StringComparison.Ordinal) && TryUpdateSelectedSlotActivity(activity))
-            return true;
-
-        foreach (var state in _graph.States)
-        {
-            if (IsSlotActivityMatch(state.Entry, id, activity))
-            {
-                state.Entry = activity.DeepClone();
-                return true;
-            }
-
-            if (IsSlotActivityMatch(state.Exit, id, activity))
-            {
-                state.Exit = activity.DeepClone();
-                return true;
-            }
-        }
-
-        foreach (var transition in _graph.Transitions)
-        {
-            if (IsSlotActivityMatch(transition.Trigger, id, activity))
-            {
-                transition.Trigger = activity.DeepClone();
-                return true;
-            }
-
-            if (IsSlotActivityMatch(transition.Action, id, activity))
-            {
-                transition.Action = activity.DeepClone();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool IsSlotActivityMatch(JsonNode? slot, string id, JsonObject replacement) =>
-        slot is JsonObject obj && obj.IsActivity() &&
-        (ReferenceEquals(obj, replacement) ||
-         string.Equals(obj.GetId(), id, StringComparison.Ordinal) ||
-         string.Equals(obj.GetNodeId(), id, StringComparison.Ordinal));
-
-    private bool TryUpdateSelectedSlotActivity(JsonObject activity)
-    {
-        if (_selectedSlotName == null)
-            return false;
-
-        var clone = activity.DeepClone();
-
-        if (SelectedState != null)
-        {
-            SetStateSlot(SelectedState, _selectedSlotName, clone);
-            return true;
-        }
-
-        if (_selectedTransition != null)
-        {
-            switch (_selectedSlotName)
-            {
-                case "trigger":
-                    _selectedTransition.Trigger = clone;
-                    return true;
-                case "action":
-                    _selectedTransition.Action = clone;
-                    return true;
-            }
-        }
-
-        return false;
-    }
+        "trigger" => transition.Trigger,
+        "condition" => transition.Condition,
+        "action" => transition.Action,
+        _ => null
+    };
 
     private static bool TryMatchSlotActivity(JsonNode? slot, string id, out JsonObject activity)
     {
-        if (slot is JsonObject obj && obj.IsActivity() &&
-            (string.Equals(obj.GetId(), id, StringComparison.Ordinal) ||
-             string.Equals(obj.GetNodeId(), id, StringComparison.Ordinal)))
-        {
-            activity = obj;
-            return true;
-        }
+        if (slot is JsonObject obj && obj.IsActivity() && (obj.GetId() == id || obj.GetNodeId() == id)) { activity = obj; return true; }
+        activity = []; return false;
+    }
 
-        activity = [];
+    private static bool IsSlotActivityMatch(JsonNode? slot, string id, JsonObject replacement) =>
+        slot is JsonObject obj && obj.IsActivity() && (ReferenceEquals(obj, replacement) || obj.GetId() == id || obj.GetNodeId() == id);
+
+    private static string? GetActivitySelectionId(JsonObject activity) => NormalizeOptional(activity.GetId()) ?? NormalizeOptional(activity.GetNodeId());
+    private static string? NormalizeOptional(object? value) => string.IsNullOrWhiteSpace(value?.ToString()) ? null : value.ToString();
+    private static string DisplayValue(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    private string GetViewButtonClass(bool outline) => _showOutline == outline ? "state-machine-designer__view-button state-machine-designer__view-button--active" : "state-machine-designer__view-button";
+    private static string ToAriaPressed(bool value) => value ? "true" : "false";
+    private static string GetIssueClass(StateMachineValidationIssue issue) => issue.Severity == StateMachineValidationSeverity.Error ? "state-machine-designer__issue state-machine-designer__issue--error" : "state-machine-designer__issue";
+
+    private static string? GetString(JsonElement element, string property) => element.TryGetProperty(property, out var value) ? value.GetString() : null;
+    private static double GetDouble(JsonElement element, string property) => element.TryGetProperty(property, out var value) && value.TryGetDouble(out var number) ? number : 0;
+    private static bool TryGetEndpointCell(JsonElement edge, string endpoint, out string cellId)
+    {
+        if (edge.TryGetProperty(endpoint, out var value) && value.TryGetProperty("cell", out var cell))
+        {
+            cellId = cell.GetString() ?? "";
+            return cellId.Length > 0;
+        }
+        cellId = "";
         return false;
     }
 
-    private static string? NormalizeOptionalStateName(object? value)
+    private static IReadOnlyList<StateMachineCanvasPosition> ReadVertices(JsonElement edge)
     {
-        var stateName = value?.ToString();
-        return string.IsNullOrWhiteSpace(stateName) ? null : stateName;
+        if (!edge.TryGetProperty("vertices", out var vertices) || vertices.ValueKind != JsonValueKind.Array) return [];
+        return vertices.EnumerateArray().Select(x => new StateMachineCanvasPosition(GetDouble(x, "x"), GetDouble(x, "y"))).ToList();
     }
 
-    private static string? NormalizeOptionalString(object? value)
-    {
-        var text = value?.ToString();
-        return string.IsNullOrWhiteSpace(text) ? null : text;
-    }
+    private static bool IsSyntheticStateId(string id) => id.StartsWith("missing-", StringComparison.Ordinal);
 }
