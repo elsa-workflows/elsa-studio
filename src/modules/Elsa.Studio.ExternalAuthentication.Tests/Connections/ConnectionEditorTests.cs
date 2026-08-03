@@ -516,6 +516,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         ChangeField(cut, "Display name", "Renamed Workforce");
 
         cut.WaitForAssertion(() => Assert.Equal("workforce-sso", FieldValue(cut, "Connection key")));
+
+        ChangeField(cut, "Connection key", string.Empty);
+        ChangeField(cut, "Display name", "Another Workforce");
+
+        cut.WaitForAssertion(() => Assert.Equal(string.Empty, FieldValue(cut, "Connection key")));
     }
 
     [Fact]
@@ -2820,16 +2825,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             .Single(button => button.TextContent.Contains("Re-check configuration", StringComparison.Ordinal))
             .Click();
 
-    private static void ChangeField(IRenderedComponent<ConnectionEdit> cut, string label, string value)
-    {
-        var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
-        cut.Find($"#{fieldLabel.GetAttribute("for")}").Change(value);
-    }
+    private static void ChangeField(IRenderedComponent<ConnectionEdit> cut, string label, string value) =>
+        FindField(cut, label).Change(value);
 
-    private static string? FieldValue(IRenderedComponent<ConnectionEdit> cut, string label)
+    private static string? FieldValue(IRenderedComponent<ConnectionEdit> cut, string label) =>
+        FindField(cut, label).GetAttribute("value");
+
+    private static AngleSharp.Dom.IElement FindField(IRenderedComponent<ConnectionEdit> cut, string label)
     {
         var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
-        return cut.Find($"#{fieldLabel.GetAttribute("for")}").GetAttribute("value");
+        return cut.Find($"#{fieldLabel.GetAttribute("for")}");
     }
 
     private sealed class FeatureProvider(bool enabled) : IRemoteFeatureProvider

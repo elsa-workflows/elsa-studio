@@ -83,11 +83,12 @@
     [Parameter] public EventCallback Changed { get; set; }
 
     private string? _suggestedKey;
+    private bool _keyWasEdited;
 
     private async Task SetDisplayNameAsync(string value)
     {
         Model.DisplayName = value;
-        if (string.IsNullOrWhiteSpace(Model.Key) || string.Equals(Model.Key, _suggestedKey, StringComparison.Ordinal))
+        if (!_keyWasEdited && (string.IsNullOrWhiteSpace(Model.Key) || string.Equals(Model.Key, _suggestedKey, StringComparison.Ordinal)))
         {
             _suggestedKey = SuggestConnectionKey(value);
             Model.Key = _suggestedKey;
@@ -98,6 +99,7 @@
     private async Task SetKeyAsync(string value)
     {
         Model.Key = value;
+        _keyWasEdited = true;
         await Changed.InvokeAsync();
     }
 
