@@ -313,7 +313,7 @@
                             <MudButton Disabled="@_activating" OnClick="Back">Cancel</MudButton>
                             @if (IsNew)
                             {
-                                <MudButton Disabled="@(_activating || !_isDirty || !WorkspaceIsValid)"
+                                <MudButton Disabled="@(_activating || !_isDirty || !DraftWorkspaceIsValid)"
                                            OnClick="SaveWorkspaceAsync">
                                     Save as draft
                                 </MudButton>
@@ -446,14 +446,16 @@
                 ? "Activate"
                 : "Check and activate";
     private bool EditorReadOnly => IsNew ? !_canCreate : !_canUpdate || _connection?.IsConfigurationOwned == true;
-    private bool WorkspaceIsValid =>
+    private bool DraftWorkspaceIsValid =>
         _model is not null &&
         _adapter is not null &&
         !string.IsNullOrWhiteSpace(_model.DisplayName) &&
         !string.IsNullOrWhiteSpace(_model.Key) &&
-        !_adapter.Fields.SelectMany(descriptor => DescriptorEditorState.Validate(descriptor, _model.AdapterSettings)).Any() &&
         (!_adapter.Fields.Any(descriptor => DescriptorEditorState.IsUnsafeSettingActive(descriptor, _model.AdapterSettings)) ||
          _canConfigureUnsafeSettings && _model.ConfirmUnsafeSettings);
+    private bool WorkspaceIsValid =>
+        DraftWorkspaceIsValid &&
+        !_adapter!.Fields.SelectMany(descriptor => DescriptorEditorState.Validate(descriptor, _model!.AdapterSettings)).Any();
     private bool CurrentRevisionIsValid => string.Equals(_connection?.Validity, "valid", StringComparison.OrdinalIgnoreCase);
     private bool CurrentRevisionIsInvalid => string.Equals(_connection?.Validity, "invalid", StringComparison.OrdinalIgnoreCase);
     private IReadOnlyCollection<ConnectionValidationMessage> CurrentValidationErrors =>
@@ -702,10 +704,21 @@
 
     private async Task SaveWorkspaceAsync()
     {
-        if (_model is null || !CanSaveConnection || !await ValidateWorkspaceAsync())
+        if (_model is null || !CanSaveConnection || !await ValidateSaveAsync())
             return;
 
         await SaveAsync(_model);
+    }
+
+    private async Task<bool> ValidateSaveAsync()
+    {
+        if (!IsNew)
+            return await ValidateWorkspaceAsync();
+
+        if (_generalEditor is null)
+            return false;
+
+        return await _generalEditor.ValidateAsync();
     }
 
     private async Task<bool> ValidateWorkspaceAsync()

@@ -491,6 +491,32 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void NewConnection_CanSaveIncompleteDraftBeforeConfiguringRequiredSecretBindings()
+    {
+        _api.Adapters = [CreateAdapter(includeSecret: true)];
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+
+        cut.WaitForAssertion(() =>
+        {
+            var actions = cut.Find(".connection-workspace__actions").QuerySelectorAll("button");
+            Assert.False(actions.Single(button => button.TextContent.Contains("Save as draft", StringComparison.Ordinal)).HasAttribute("disabled"));
+            Assert.True(actions.Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal)).HasAttribute("disabled"));
+        });
+
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save as draft", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.NotNull(_api.CreatedRequest));
+        Assert.Null(_api.ValidatedConnectionId);
+        Assert.Null(_api.EnabledConnectionId);
+    }
+
+    [Fact]
     public void ConnectionWorkspace_EnablesSaveOnlyWhenDirtyAndStructurallyValid()
     {
         _api.Adapters = [CreateAdapter()];
