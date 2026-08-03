@@ -6,7 +6,7 @@ namespace Elsa.Studio.Workflows.Designer.Tests;
 public sealed class X6PortInteractionContractTests
 {
     [Fact]
-    public void ActivityPorts_UseLargerMagneticHitTargetsAndHoverExpansion()
+    public void ActivityPorts_UseLargerMagneticHitTargetsWithoutAVisibleDock()
     {
         var portRegistration = ReadAsset("init.ts");
         var graphCreation = ReadAsset("create-graph.ts");
@@ -22,10 +22,8 @@ public sealed class X6PortInteractionContractTests
         Assert.Matches(
             new Regex("port:\\s*\\{[^}]*magnet:\\s*true", RegexOptions.CultureInvariant),
             portRegistration);
-        Assert.Contains("selector: \"dock\"", portRegistration, StringComparison.Ordinal);
-        Assert.Matches(
-            new Regex("dock:\\s*\\{[^}]*width:\\s*14[^}]*height:\\s*24", RegexOptions.CultureInvariant),
-            portRegistration);
+        Assert.DoesNotContain("selector: \"dock\"", portRegistration, StringComparison.Ordinal);
+        Assert.DoesNotContain(".elsa-designer-port-dock", designerStyles, StringComparison.Ordinal);
         Assert.Contains("selector: \"circle\"", portRegistration, StringComparison.Ordinal);
         Assert.Matches(
             new Regex("circle:\\s*\\{[^}]*r:\\s*[5-9]", RegexOptions.CultureInvariant),
@@ -37,7 +35,6 @@ public sealed class X6PortInteractionContractTests
         Assert.Matches(
             new Regex("\\.x6-port:hover \\.elsa-designer-port-circle\\s*\\{[^}]*r:\\s*(?:[6-9]|1\\d)px", RegexOptions.CultureInvariant),
             designerStyles);
-        Assert.Contains(".x6-port:hover .elsa-designer-port-dock", designerStyles, StringComparison.Ordinal);
 
         // A source port must remain connectable and accept another outgoing edge after one has
         // already been created from it.

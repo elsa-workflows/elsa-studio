@@ -155,30 +155,11 @@
     fill: var(--elsa-designer-port-text);
 }
 
-.elsa-flowchart-diagram-designer-v2 .elsa-designer-port-dock {
-    transform-box: fill-box;
-    transform-origin: center;
-    transition:
-        transform 120ms ease-out,
-        fill 120ms ease-out,
-        stroke 120ms ease-out;
-}
-
 .elsa-flowchart-diagram-designer-v2 .elsa-designer-port-circle {
     transition:
         r 120ms ease-out,
         fill 120ms ease-out,
         stroke 120ms ease-out;
-}
-
-.elsa-flowchart-diagram-designer-v2 .x6-port:hover .elsa-designer-port-dock {
-    fill: color-mix(
-        in srgb,
-        var(--elsa-designer-port-stroke) 10%,
-        var(--elsa-designer-node-surface)
-    );
-    stroke: var(--elsa-designer-port-stroke);
-    transform: scale(1.08);
 }
 
 .elsa-flowchart-diagram-designer-v2 .x6-port:hover .elsa-designer-port-circle {

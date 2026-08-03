@@ -36,11 +36,6 @@ export function initialize() {
                         className: "elsa-designer-port-hit-area",
                     },
                     {
-                        tagName: "rect",
-                        selector: "dock",
-                        className: "elsa-designer-port-dock",
-                    },
-                    {
                         tagName: "circle",
                         selector: "circle",
                         className: "elsa-designer-port-circle",
@@ -54,18 +49,6 @@ export function initialize() {
                     position: "left",
                     attrs: {
                         ...createPortInteractionAttrs(),
-                        dock: {
-                            x: -7,
-                            y: -12,
-                            width: 14,
-                            height: 24,
-                            rx: 7,
-                            ry: 7,
-                            fill: "var(--elsa-designer-node-surface)",
-                            stroke: "var(--elsa-designer-node-border)",
-                            strokeWidth: 1,
-                            pointerEvents: "none",
-                        },
                         circle: {
                             r: 5,
                             stroke: "var(--elsa-designer-port-stroke)",
@@ -88,18 +71,6 @@ export function initialize() {
                     position: "right",
                     attrs: {
                         ...createPortInteractionAttrs(),
-                        dock: {
-                            x: -7,
-                            y: -12,
-                            width: 14,
-                            height: 24,
-                            rx: 7,
-                            ry: 7,
-                            fill: "var(--elsa-designer-node-surface)",
-                            stroke: "var(--elsa-designer-node-border)",
-                            strokeWidth: 1,
-                            pointerEvents: "none",
-                        },
                         circle: {
                             r: 5,
                             stroke: "var(--elsa-designer-port-surface)",
