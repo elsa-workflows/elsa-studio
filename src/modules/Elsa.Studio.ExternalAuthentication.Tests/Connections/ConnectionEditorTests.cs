@@ -337,8 +337,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("Open Diagnostics", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("User provisioning and linking", cut.Find(".connection-workspace__provisioning").TextContent, StringComparison.Ordinal);
             Assert.Contains("Provider connectivity", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
-            Assert.Contains("Enabled", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("Valid", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Available for sign-in", cut.Markup, StringComparison.Ordinal);
             var actions = cut.Find(".connection-workspace__actions");
             Assert.Contains("pa-4", actions.ClassList);
             Assert.Contains("pa-sm-6", actions.ClassList);
@@ -367,39 +366,112 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void ConnectionWorkspace_UsesTheWideCanvasAndEnablesItsCompactSaveActionAfterAnEdit()
+    public void DisabledConnection_SaveAndActivateUpdatesChecksAndActivatesTheRevision()
     {
-        var connection = CreateConnection();
-        connection.AdapterSettings["authority"] = JsonSerializer.SerializeToElement("https://login.example.test");
-        _api.GetResult = connection;
+        var initial = CreateConnection();
+        initial.AdapterSettings["authority"] = JsonSerializer.SerializeToElement("https://login.example.test");
+        var updated = CreateConnection();
+        updated.Revision = initial.Revision + 1;
+        updated.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Revision = updated.Revision;
+        validated.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Revision = updated.Revision + 1;
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(validated);
+        _api.GetResults.Enqueue(enabled);
+        _api.GetResult = updated;
         _api.Adapters = [CreateAdapter()];
 
-        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
 
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(MaxWidth.ExtraLarge, cut.FindComponent<MudContainer>().Instance.MaxWidth);
             var actions = cut.Find(".connection-workspace__actions");
             Assert.Equal(2, actions.QuerySelectorAll("button").Length);
-            Assert.True(actions.QuerySelectorAll("button")
-                .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
+            Assert.False(actions.QuerySelectorAll("button")
+                .Single(button => button.TextContent.Contains("Check and activate", StringComparison.Ordinal))
                 .HasAttribute("disabled"));
         });
 
         var displayNameLabel = cut.FindAll("label").Single(element => element.TextContent.Contains("Display name", StringComparison.Ordinal));
         cut.Find($"#{displayNameLabel.GetAttribute("for")}").Change("Updated connection");
 
-        cut.WaitForAssertion(() => Assert.False(cut.Find(".connection-workspace__actions")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
-            .HasAttribute("disabled")));
+        cut.WaitForAssertion(() => Assert.Contains("Save and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
         cut.Find(".connection-workspace__actions")
             .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal))
+            .Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal))
             .Click();
 
-        cut.WaitForAssertion(() => Assert.NotNull(_api.UpdatedRequest));
+        cut.WaitForAssertion(() => Assert.Equal(initial.Id, _api.EnabledConnectionId));
         Assert.Equal("Updated connection", _api.UpdatedRequest!.DisplayName);
+        Assert.Equal(initial.Id, _api.ValidatedConnectionId);
+        Assert.Equal(ConnectionConcurrency.ToIfMatch(validated.Revision), _api.EnabledIfMatch);
+    }
+
+    [Fact]
+    public void ValidDisabledConnection_ActivatesWithoutRepeatingValidation()
+    {
+        var valid = CreateConnection();
+        valid.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(valid);
+        _api.GetResults.Enqueue(enabled);
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, valid.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Trim() == "Activate")
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(valid.Id, _api.EnabledConnectionId));
+        Assert.Null(_api.ValidatedConnectionId);
+        Assert.Equal(ConnectionConcurrency.ToIfMatch(valid.Revision), _api.EnabledIfMatch);
+    }
+
+    [Fact]
+    public void ValidationWarningsDoNotAddAnotherActivationPrompt()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        validated.ValidationWarnings = ["Provider metadata omitted an optional capability."];
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        enabled.ValidationWarnings = validated.ValidationWarnings;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(validated);
+        _api.GetResults.Enqueue(enabled);
+        _api.Adapters = [CreateAdapter()];
+        _api.ValidationResult = new ConnectionValidationResult
+        {
+            Valid = true,
+            Warnings = validated.ValidationWarnings
+        };
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Check and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Check and activate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(initial.Id, _api.EnabledConnectionId));
+        Assert.DoesNotContain("Activate", _dialogProvider.Markup, StringComparison.Ordinal);
+        Assert.Contains("Provider metadata omitted an optional capability.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -441,7 +513,295 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         AngleSharp.Dom.IElement SaveButton() => cut.Find(".connection-workspace__actions")
             .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal));
+            .Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void NewConnection_SaveAndActivateMakesTheValidatedRevisionAvailable()
+    {
+        var created = CreateConnection();
+        created.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        _api.Adapters = [CreateAdapter()];
+        _api.CreateResult = created;
+        var enabled = CreateConnection();
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(validated);
+        _api.GetResults.Enqueue(enabled);
+
+        var cut = Render<ConnectionEdit>();
+        cut.WaitForAssertion(() => Assert.Contains("Save and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(created.Id, _api.EnabledConnectionId));
+        Assert.NotNull(_api.CreatedRequest);
+        Assert.Equal(created.Id, _api.ValidatedConnectionId);
+        Assert.Equal(ConnectionConcurrency.ToIfMatch(validated.Revision), _api.EnabledIfMatch);
+
+    }
+
+    [Fact]
+    public void NewConnection_SaveAsDraftDoesNotValidateOrEnable()
+    {
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+        cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Save as draft", StringComparison.Ordinal))
+            .Click();
+
+        cut.WaitForAssertion(() => Assert.NotNull(_api.CreatedRequest));
+        Assert.Null(_api.ValidatedConnectionId);
+        Assert.Null(_api.EnabledConnectionId);
+
+    }
+
+    [Fact]
+    public void CreateOnlyUserCanSaveADraftButCannotActivateIt()
+    {
+        _permissions.AllowedPermissions = new HashSet<string>([ExternalAuthenticationPermissions.Create], StringComparer.Ordinal);
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+
+        cut.WaitForAssertion(() =>
+        {
+            var actions = cut.Find(".connection-workspace__actions").QuerySelectorAll("button");
+            Assert.False(actions.Single(button => button.TextContent.Contains("Save as draft", StringComparison.Ordinal)).HasAttribute("disabled"));
+            Assert.True(actions.Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal)).HasAttribute("disabled"));
+        });
+
+    }
+
+    [Fact]
+    public async Task NewConnection_InvalidActivationKeepsARecoverableDraftAndOpensDiagnostics()
+    {
+        var created = CreateConnection();
+        created.Validity = "unknown";
+        var invalid = CreateConnection();
+        invalid.Validity = "invalid";
+        invalid.ValidationErrors =
+        [
+            new ConnectionValidationMessage
+            {
+                Field = "adapterSettings.authority",
+                Code = "invalid",
+                Message = "Authority could not be resolved."
+            }
+        ];
+        _api.Adapters = [CreateAdapter()];
+        _api.CreateResult = created;
+        _api.GetResults.Enqueue(invalid);
+        _api.GetResult = invalid;
+        _api.ValidationResult = new ConnectionValidationResult { Valid = false, Errors = invalid.ValidationErrors };
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+        await cut.InvokeAsync(() => cut.FindAll("button").Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal)).Click());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(3, cut.FindComponent<MudTabs>().Instance.GetState(component => component.ActivePanelIndex));
+            Assert.Contains("Authority could not be resolved.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
+        });
+        Assert.Null(_api.EnabledConnectionId);
+        Assert.EndsWith($"/security/external-authentication/connections/{created.Id}", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
+
+    }
+
+    [Fact]
+    public async Task NewConnection_EnableFailureKeepsTheValidRevisionAvailableForDirectRetry()
+    {
+        var created = CreateConnection();
+        created.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.Adapters = [CreateAdapter()];
+        _api.CreateResult = created;
+        _api.GetResults.Enqueue(validated);
+        _api.GetResult = validated;
+        _api.EnableException = new InvalidOperationException("Enable failed.");
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+        await cut.InvokeAsync(() => cut.FindAll("button").Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal)).Click());
+
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        Assert.Equal(1, _api.ValidationRequests);
+        Assert.Equal(1, _api.EnableRequests);
+
+        _api.EnableException = null;
+        _api.GetResults.Enqueue(enabled);
+        await cut.InvokeAsync(() => cut.Find(".connection-workspace__actions")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Trim() == "Activate")
+            .Click());
+
+        cut.WaitForAssertion(() => Assert.Equal(2, _api.EnableRequests));
+        Assert.Equal(1, _api.ValidationRequests);
+
+    }
+
+    [Fact]
+    public async Task ActivationDisablesNavigationAndDuplicateSubmissionWhileChecksAreRunning()
+    {
+        var created = CreateConnection();
+        created.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        var pendingValidation = new TaskCompletionSource<ConnectionValidationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _api.Adapters = [CreateAdapter()];
+        _api.CreateResult = created;
+        _api.PendingValidation = pendingValidation;
+        _api.GetResults.Enqueue(validated);
+        _api.GetResults.Enqueue(enabled);
+
+        var cut = Render<ConnectionEdit>();
+        ChangeField(cut, "Display name", "Contoso");
+        ChangeField(cut, "Connection key", "contoso");
+        ChangeField(cut, "Authority", "https://login.example.test");
+        var activation = cut.InvokeAsync(() => cut.FindAll("button")
+            .Single(button => button.TextContent.Contains("Save and activate", StringComparison.Ordinal))
+            .Click());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Checking configuration", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
+            Assert.All(cut.Find(".connection-workspace__actions").QuerySelectorAll("button"), button => Assert.True(button.HasAttribute("disabled")));
+            Assert.True(cut.FindComponent<Microsoft.AspNetCore.Components.Routing.NavigationLock>().Instance.ConfirmExternalNavigation);
+        });
+
+        pendingValidation.SetResult(new ConnectionValidationResult { Valid = true });
+        await activation;
+        Assert.Equal(1, _api.CreateRequests);
+        Assert.Equal(1, _api.ValidationRequests);
+        cut.WaitForAssertion(() => Assert.Equal(1, _api.EnableRequests));
+    }
+
+    [Fact]
+    public void ActivationDoesNotReportSuccessWhenTheAuthoritativeConnectionIsNotEffective()
+    {
+        var valid = CreateConnection();
+        valid.Validity = "valid";
+        var ineffective = CreateConnection();
+        ineffective.Validity = "valid";
+        ineffective.EnabledIntent = true;
+        ineffective.EffectivelyEnabled = false;
+        _api.GetResults.Enqueue(valid);
+        _api.GetResults.Enqueue(ineffective);
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, valid.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Trim() == "Activate").Click();
+
+        cut.WaitForAssertion(() => Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars));
+        var snackbar = Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+        Assert.DoesNotContain("available for sign-in.", snackbar.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("not available for sign-in", snackbar.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Retry activation", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
+
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(enabled);
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Contains("Retry activation", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(2, _api.EnableRequests));
+        Assert.Equal(0, _api.ValidationRequests);
+    }
+
+    [Fact]
+    public void ActivationOfAChangedRevisionNeverCallsEnable()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        var changed = CreateConnection();
+        changed.Validity = "valid";
+        changed.Revision = initial.Revision + 1;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(changed);
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Check and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Contains("Check and activate", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars));
+        Assert.Equal(0, _api.EnableRequests);
+        Assert.Contains("changed while it was being checked", Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void PostEnableRefreshFailureNeverReportsActivationSuccess()
+    {
+        var valid = CreateConnection();
+        valid.Validity = "valid";
+        _api.GetResult = valid;
+        _api.GetExceptionAfterRequest = 2;
+        _api.GetException = new HttpRequestException("Refresh failed.");
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, valid.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Trim() == "Activate").Click();
+
+        cut.WaitForAssertion(() => Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars));
+        var snackbar = Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+        Assert.Contains("could not confirm", snackbar.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Connection is available", snackbar.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Trim() == "Activate").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void AmbiguousEnableFailureReconcilesAuthoritativeSuccess()
+    {
+        var valid = CreateConnection();
+        valid.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(valid);
+        _api.GetResults.Enqueue(enabled);
+        _api.EnableException = new HttpRequestException("The response was lost.");
+        _api.Adapters = [CreateAdapter()];
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, valid.Id));
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Trim() == "Activate").Click();
+
+        cut.WaitForAssertion(() => Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars));
+        Assert.Contains("available for sign-in", Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -619,7 +979,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void ValidateFromWorkspaceHeader_OpensDiagnosticsWithTheResult()
+    public void RecheckFromDiagnosticsOpensDiagnosticsWithTheResult()
     {
         var connection = CreateConnection();
         _api.GetResult = connection;
@@ -638,12 +998,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             ]
         };
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
-
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        cut.WaitForAssertion(() => Assert.Contains("Re-check configuration", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal));
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
@@ -674,7 +1030,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Invalid", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Needs attention", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
             var diagnostics = cut.Find(".connection-workspace__diagnostics").TextContent;
             Assert.Contains("The current revision is invalid.", diagnostics, StringComparison.Ordinal);
             Assert.Contains("Authority could not be resolved.", diagnostics, StringComparison.Ordinal);
@@ -704,16 +1060,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ValidationResult = new ConnectionValidationResult { Valid = true };
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
-
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        cut.WaitForAssertion(() => Assert.Contains("Re-check configuration", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal));
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Invalid", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Needs attention", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
             var diagnostics = cut.Find(".connection-workspace__diagnostics").TextContent;
             Assert.Contains("The current revision is invalid.", diagnostics, StringComparison.Ordinal);
             Assert.Contains("Authority could not be resolved.", diagnostics, StringComparison.Ordinal);
@@ -752,12 +1104,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         };
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Validate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
-
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        cut.WaitForAssertion(() => Assert.Contains("Re-check configuration", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal));
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
@@ -791,26 +1139,20 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ValidationResult = new ConnectionValidationResult { Valid = true };
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+        cut.WaitForAssertion(() => Assert.Contains("Draft — not available", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
         var displayNameLabel = cut.FindAll("label").Single(element => element.TextContent.Contains("Display name", StringComparison.Ordinal));
         cut.Find($"#{displayNameLabel.GetAttribute("for")}").Change("Unsaved display name");
 
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(initial.Id, _api.ValidatedConnectionId);
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
             Assert.Equal("Unsaved display name", cut.FindComponent<ConnectionEditor>().Instance.Model.DisplayName);
-            Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Ready to activate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
             Assert.Contains("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
-            var enable = cut.Find(".connection-workspace__diagnostics")
-                .QuerySelectorAll("button")
-                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
-            Assert.False(enable.HasAttribute("disabled"));
+            Assert.Contains("Save and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
         });
     }
 
@@ -824,22 +1166,16 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ValidationResult = new ConnectionValidationResult { Valid = true };
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+        cut.WaitForAssertion(() => Assert.Contains("Ready to activate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
 
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
-            Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Draft — not available", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
-            var enable = cut.Find(".connection-workspace__diagnostics")
-                .QuerySelectorAll("button")
-                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
-            Assert.True(enable.HasAttribute("disabled"));
+            Assert.Contains("Check and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
         });
     }
 
@@ -857,26 +1193,20 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         _api.ValidationResult = new ConnectionValidationResult { Valid = true };
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
+        cut.WaitForAssertion(() => Assert.Contains("Ready to activate", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal));
 
-        cut.Find(".connection-workspace__header")
-            .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Contains("Validate", StringComparison.Ordinal))
-            .Click();
+        RecheckConfiguration(cut);
 
         cut.WaitForAssertion(() =>
         {
             Assert.Equal([initial.Id, initial.Id], _api.GetRequests);
-            Assert.Contains("Not validated", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
+            Assert.Contains("Draft — not available", cut.Find(".connection-workspace__header").TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("The current revision is valid.", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal);
             Assert.Contains(
                 "changed while it was being validated",
                 Assert.Single(Services.GetRequiredService<ISnackbar>().ShownSnackbars).Message,
                 StringComparison.Ordinal);
-            var enable = cut.Find(".connection-workspace__diagnostics")
-                .QuerySelectorAll("button")
-                .Single(button => button.TextContent.Contains("Enable", StringComparison.Ordinal));
-            Assert.True(enable.HasAttribute("disabled"));
+            Assert.Contains("Check and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
         });
     }
 
@@ -893,14 +1223,12 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             """{"error":"conflict","message":"The requested connection change conflicts with current state.","details":{"code":"configuration_preferred_connection"}}""");
 
         var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, connection.Id));
-        cut.WaitForAssertion(() => Assert.Contains("Enable", cut.Find(".connection-workspace__diagnostics").TextContent, StringComparison.Ordinal));
+        cut.WaitForAssertion(() => Assert.Contains("Activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal));
 
-        cut.Find(".connection-workspace__diagnostics")
+        cut.Find(".connection-workspace__actions")
             .QuerySelectorAll("button")
-            .Single(button => button.TextContent.Trim() == "Enable")
+            .Single(button => button.TextContent.Trim() == "Activate")
             .Click();
-        _dialogProvider.WaitForAssertion(() => Assert.Contains("Enable connection?", _dialogProvider.Markup, StringComparison.Ordinal));
-        _dialogProvider.FindAll("button").Single(button => button.TextContent.Trim() == "Enable").Click();
 
         cut.WaitForAssertion(() =>
         {
@@ -984,7 +1312,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
 
         cut.FindAll("button").Single(x => x.TextContent.Contains("Create full Database override", StringComparison.Ordinal)).Click();
         Assert.True(cut.FindComponent<Microsoft.AspNetCore.Components.Routing.NavigationLock>().Instance.ConfirmExternalNavigation);
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save as draft", StringComparison.Ordinal)).Click();
         cut.WaitForAssertion(() => Assert.NotNull(_api.CreatedRequest));
 
         Assert.True(_api.CreatedRequest!.OverridesConfigurationConnection);
@@ -1085,6 +1413,38 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SavedDisabledConnectionWithLegacyCustomEditorRunsCombinedActivation()
+    {
+        var initial = CreateConnection();
+        initial.Validity = "unknown";
+        var validated = CreateConnection();
+        validated.Validity = "valid";
+        var enabled = CreateConnection();
+        enabled.Validity = "valid";
+        enabled.EnabledIntent = true;
+        enabled.EffectivelyEnabled = true;
+        _api.GetResults.Enqueue(initial);
+        _api.GetResults.Enqueue(validated);
+        _api.GetResults.Enqueue(enabled);
+        var adapter = CreateAdapter();
+        adapter.CustomEditor = new CustomEditorContract { Key = "legacy-editor", ContractVersion = 1 };
+        _api.Adapters = [adapter];
+        _customEditors.ComponentType = typeof(TestCustomEditor);
+
+        var cut = Render<ConnectionEdit>(parameters => parameters.Add(component => component.ConnectionId, initial.Id));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Legacy custom editor", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Check and activate", cut.Find(".connection-workspace__actions").TextContent, StringComparison.Ordinal);
+        });
+        cut.Find(".connection-workspace__actions").QuerySelectorAll("button").Single(button => button.TextContent.Contains("Check and activate", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(initial.Id, _api.EnabledConnectionId));
+        Assert.Equal(initial.Id, _api.ValidatedConnectionId);
+    }
+
+    [Fact]
     public async Task ChangeTrackingCustomEditor_MarksConnectionAsDirty()
     {
         var connection = CreateConnection();
@@ -1138,8 +1498,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Effective: Deployment", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Stored: Disabled", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Stored: Not validated", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Draft — not available", header.TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("Stored record not tested", header.TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
         });
@@ -1177,8 +1536,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("persisted record is shadowed by deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
             var header = cut.Find(".connection-workspace__header");
             Assert.Contains("Effective: Database", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Deployment: Enabled", header.TextContent, StringComparison.Ordinal);
-            Assert.Contains("Deployment: Valid", header.TextContent, StringComparison.Ordinal);
+            Assert.Contains("Not available for sign-in", header.TextContent, StringComparison.Ordinal);
             Assert.DoesNotContain("At a glance", cut.Markup, StringComparison.Ordinal);
         });
     }
@@ -1549,7 +1907,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.Contains("Create identity provider connection", cut.Markup, StringComparison.Ordinal));
         ChangeField("Display name", "Contoso");
         ChangeField("Connection key", "contoso");
-        cut.FindAll("button").Single(button => button.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+        cut.FindAll("button").Single(button => button.TextContent.Contains("Save as draft", StringComparison.Ordinal)).Click();
 
         var snackbar = Services.GetRequiredService<ISnackbar>();
         cut.WaitForAssertion(() =>
@@ -2402,6 +2760,18 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         Assert.Equal(Margin.Dense, margin);
     }
 
+    private static void RecheckConfiguration(IRenderedComponent<ConnectionEdit> cut) =>
+        cut.Find(".connection-workspace__diagnostics")
+            .QuerySelectorAll("button")
+            .Single(button => button.TextContent.Contains("Re-check configuration", StringComparison.Ordinal))
+            .Click();
+
+    private static void ChangeField(IRenderedComponent<ConnectionEdit> cut, string label, string value)
+    {
+        var fieldLabel = cut.FindAll("label").Single(element => element.TextContent.Contains(label, StringComparison.Ordinal));
+        cut.Find($"#{fieldLabel.GetAttribute("for")}").Change(value);
+    }
+
     private sealed class FeatureProvider(bool enabled) : IRemoteFeatureProvider
     {
         public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default) => Task.FromResult(enabled && featureName == Feature.RemoteFeatureName);
@@ -2565,6 +2935,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public List<ListRequest> ListRequests { get; } = [];
         public List<string?> Cursors { get; } = [];
         public ConnectionDetail? GetResult { get; set; }
+        public Exception? GetException { get; set; }
+        public int GetExceptionAfterRequest { get; set; } = int.MaxValue;
         public ExternalAuthenticationRuntimeDescriptor? Runtime { get; set; } = new()
         {
             ManagementContractVersion = 1,
@@ -2579,6 +2951,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public int RuntimeRequests { get; private set; }
         public ConnectionValidationResult ValidationResult { get; set; } = new() { Valid = true };
         public Exception? CreateException { get; set; }
+        public ConnectionDetail? CreateResult { get; set; }
+        public int CreateRequests { get; private set; }
         public ConnectionMutation? CreatedRequest { get; private set; }
         public string? UpdatedConnectionId { get; private set; }
         public ConnectionMutation? UpdatedRequest { get; private set; }
@@ -2587,6 +2961,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public string? ArchivedIfMatch { get; private set; }
         public string? ValidatedConnectionId { get; private set; }
         public Exception? EnableException { get; set; }
+        public string? EnabledConnectionId { get; private set; }
+        public string? EnabledIfMatch { get; private set; }
+        public int EnableRequests { get; private set; }
+        public int ValidationRequests { get; private set; }
+        public TaskCompletionSource<ConnectionValidationResult>? PendingValidation { get; set; }
 
         public Task<ListConnectionsResponse> ListAsync(string? search = null, string? source = null, string? scope = null, string? adapterType = null, bool? enabled = null, bool? valid = null, bool? shadowed = null, bool? archived = null, string? cursor = null, int pageSize = 25, CancellationToken cancellationToken = default)
         {
@@ -2603,6 +2982,8 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ConnectionDetail> GetAsync(string connectionId, CancellationToken cancellationToken = default)
         {
             GetRequests.Add(connectionId);
+            if (GetRequests.Count >= GetExceptionAfterRequest && GetException is not null)
+                return Task.FromException<ConnectionDetail>(GetException);
             return Task.FromResult(GetResults.TryDequeue(out var result) ? result : GetResult ?? throw new NotSupportedException());
         }
         public Task<ExternalAuthenticationRuntimeDescriptor> GetRuntimeAsync(CancellationToken cancellationToken = default)
@@ -2619,10 +3000,11 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task<ICollection<PermissionDescriptor>> GetPermissionsAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionDetail> CreateAsync(ConnectionMutation request, CancellationToken cancellationToken = default)
         {
+            CreateRequests++;
             CreatedRequest = request;
             if (CreateException is not null)
                 return Task.FromException<ConnectionDetail>(CreateException);
-            return Task.FromResult(new ConnectionDetail { Id = "override-1", Key = request.Key, DisplayName = request.DisplayName, AdapterType = request.AdapterType });
+            return Task.FromResult(CreateResult ?? new ConnectionDetail { Id = "override-1", Key = request.Key, DisplayName = request.DisplayName, AdapterType = request.AdapterType });
         }
         public Task<ConnectionDetail> UpdateAsync(string connectionId, ConnectionMutation request, string ifMatch, CancellationToken cancellationToken = default)
         {
@@ -2636,8 +3018,13 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             GetResult.Shadowed = false;
             return Task.FromResult(GetResult);
         }
-        public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) =>
-            EnableException is null ? Task.CompletedTask : Task.FromException(EnableException);
+        public Task EnableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            EnableRequests++;
+            EnabledConnectionId = connectionId;
+            EnabledIfMatch = ifMatch;
+            return EnableException is null ? Task.CompletedTask : Task.FromException(EnableException);
+        }
         public Task DisableAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task ArchiveAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default)
         {
@@ -2648,8 +3035,9 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
         public Task RestoreAsync(string connectionId, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ConnectionValidationResult> ValidateAsync(string connectionId, CancellationToken cancellationToken = default)
         {
+            ValidationRequests++;
             ValidatedConnectionId = connectionId;
-            return Task.FromResult(ValidationResult);
+            return PendingValidation?.Task ?? Task.FromResult(ValidationResult);
         }
         public Task<ConnectionDetail> ReplaceManagedSecretAsync(string connectionId, string fieldName, ManagedSecretMutation request, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveSecretBindingAsync(string connectionId, string fieldName, string ifMatch, CancellationToken cancellationToken = default) => throw new NotSupportedException();
