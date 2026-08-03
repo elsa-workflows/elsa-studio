@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Validators;
@@ -16,7 +16,6 @@ public partial class CloneWorkflowDialog
     private readonly WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
    
     /// <summary>
     /// The name of the workflow to create.
@@ -43,7 +42,7 @@ public partial class CloneWorkflowDialog
 
     private async Task OnSubmitClicked()
     {
-        if(!await _fluentValidationValidator.ValidateAsync())
+        if(!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();

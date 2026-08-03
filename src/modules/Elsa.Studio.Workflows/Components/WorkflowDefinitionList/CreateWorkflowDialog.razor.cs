@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -20,7 +20,6 @@ public partial class CreateWorkflowDialog
     private string? _selectedRootActivityTemplateKey;
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
    
     /// <summary>
     /// The name of the workflow to create.
@@ -48,7 +47,7 @@ public partial class CreateWorkflowDialog
 
     private async Task OnSubmitClicked()
     {
-        if(!await _fluentValidationValidator.ValidateAsync())
+        if(!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();
