@@ -4,6 +4,7 @@ import {GraphBinding} from './graph-bindings';
 export type SequenceLayoutOrientation = 'vertical' | 'horizontal';
 
 const SequenceNodeGap = 64;
+const SequenceMinimumStride = 160;
 
 export function normalizeSequenceOrientation(value?: string | null): SequenceLayoutOrientation {
     return value === 'horizontal' ? 'horizontal' : 'vertical';
@@ -43,7 +44,8 @@ export function arrangeSequenceGraph(binding: GraphBinding, orderedNodes?: Node<
                     mutationOptions,
                 );
 
-                offset += (horizontal ? size.width : size.height) + SequenceNodeGap;
+                const nodeExtent = horizontal ? size.width : size.height;
+                offset += Math.max(SequenceMinimumStride, nodeExtent + SequenceNodeGap);
             });
 
             graph.getEdges().forEach(edge => graph.removeCell(edge, mutationOptions));

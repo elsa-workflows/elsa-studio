@@ -478,6 +478,9 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
         const node = e.node || e.cell;
         if (node && modePolicy.enforcesActivityMinimumSize)
             await enforceMinimumNodeSize(node, measurementScopeClass);
+
+        if (isSequenceMode)
+            arrangeSequenceGraph(binding);
         
         await interop.raiseGraphUpdated();
         return false;

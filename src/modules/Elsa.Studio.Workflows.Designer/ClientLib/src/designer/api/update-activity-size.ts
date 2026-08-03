@@ -2,6 +2,7 @@ import {calculateActivitySize, getActivityMeasurementScopeClass} from "./calcula
 import {Activity, Size} from "../models";
 import {graphBindings} from "./graph-bindings";
 import {Node} from "@antv/x6";
+import {arrangeSequenceGraph} from "./sequence-mode";
 
 export async function updateActivitySize(elementId: string, activityModel: Activity | string, size?: Size, portCount?: number) {
     // Get wrapper element.
@@ -57,6 +58,8 @@ export async function updateActivitySize(elementId: string, activityModel: Activ
         graphBinding.suppressGraphUpdated = (graphBinding.suppressGraphUpdated || 0) + 1;
         try {
             node.size(width, height);
+            if (graphBinding.mode === 'sequence')
+                arrangeSequenceGraph(graphBinding);
         } finally {
             graphBinding.suppressGraphUpdated = Math.max(0, (graphBinding.suppressGraphUpdated || 0) - 1);
         }
