@@ -1,6 +1,6 @@
 .workflow-root-template {
     cursor: pointer;
-    padding: 12px 16px;
+    padding: 16px 20px;
     transition: border-color 120ms ease, background-color 120ms ease;
 }
 
