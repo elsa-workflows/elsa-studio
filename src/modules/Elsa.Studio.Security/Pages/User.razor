@@ -1,0 +1,154 @@
+@page "/security/users/new"
+@page "/security/users/{Id}"
+@inherits StudioComponentBase
+
+<PageTitle>@PageTitleText</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudStack Spacing="3" Class="py-4">
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   Class="align-self-start"
+                   Href="security/users">
+            Users
+        </MudButton>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" aria-label="Loading user" />
+        }
+        else if (!string.IsNullOrWhiteSpace(_loadError))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_loadError</MudAlert>
+        }
+        else
+        {
+            <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+                <div>
+                    <MudText Typo="Typo.h4" HtmlTag="h1">@PageTitleText</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@PageDescription</MudText>
+                </div>
+                <MudStack Row="true" Spacing="1">
+                    <MudButton Variant="Variant.Text" Href="security/users" Disabled="@_saving">Cancel</MudButton>
+                    @if (CanSave)
+                    {
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="SaveAsync"
+                                   Disabled="@_saving">
+                            @(_saving ? "Saving..." : SaveLabel)
+                        </MudButton>
+                    }
+                </MudStack>
+            </MudStack>
+
+            @if (!CanSave)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">You can view this user, but you do not have permission to save changes.</MudAlert>
+            }
+
+            <MudPaper Outlined="true" Class="pa-4 pa-sm-6">
+                <MudForm @ref="_form">
+                    <MudStack Spacing="4">
+                        <div>
+                            <MudText Typo="Typo.h6" HtmlTag="h2">Account</MudText>
+                            <MudText Typo="Typo.caption">The username is the stable identity used to sign in to Elsa.</MudText>
+                        </div>
+
+                        <MudTextField @bind-Value="_name"
+                                      Label="Username"
+                                      Required="true"
+                                      RequiredError="Enter a username."
+                                      ReadOnly="@(!IsNew)"
+                                      Disabled="@(_saving || !CanSave)"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense" />
+
+                        @if (!IsNew)
+                        {
+                            <MudTextField Value="@Id"
+                                          Label="User ID"
+                                          ReadOnly="true"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense" />
+                        }
+
+                        <MudDivider />
+
+                        <div>
+                            <MudText Typo="Typo.h6" HtmlTag="h2">Roles</MudText>
+                            <MudText Typo="Typo.caption">Roles group the permissions this user receives.</MudText>
+                        </div>
+
+                        <MudSelect T="string"
+                                   Label="Assigned roles"
+                                   MultiSelection="true"
+                                   SelectedValues="_selectedRoles"
+                                   SelectedValuesChanged="OnSelectedRolesChanged"
+                                   Disabled="@(_saving || !CanSave || !CanReadRoles)"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense">
+                            @foreach (var role in _roleOptions)
+                            {
+                                <MudSelectItem T="string" Value="@role.Id">@role.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                        @if (!CanReadRoles)
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+                                Role assignment is unavailable because you do not have permission to view roles.
+                            </MudAlert>
+                        }
+
+                        <MudDivider />
+
+                        <div>
+                            <MudText Typo="Typo.h6" HtmlTag="h2">@PasswordHeading</MudText>
+                            <MudText Typo="Typo.caption">@CredentialGuidance</MudText>
+                        </div>
+
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="_password"
+                                              Label="@PasswordLabel"
+                                              InputType="InputType.Password"
+                                              Disabled="@(_saving || !CanSave)"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Dense" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="_passwordConfirmation"
+                                              Label="Confirm password"
+                                              InputType="InputType.Password"
+                                              Validation="@((string? value) => ValidatePasswordConfirmation(value))"
+                                              Disabled="@(_saving || !CanSave)"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Dense" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudStack>
+                </MudForm>
+            </MudPaper>
+
+            @if (!IsNew && CanDelete)
+            {
+                <MudPaper Outlined="true" Class="pa-4">
+                    <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+                        <div>
+                            <MudText Typo="Typo.h6" HtmlTag="h2">Delete user</MudText>
+                            <MudText Typo="Typo.caption">Permanently removes this user when no installed module still references it.</MudText>
+                        </div>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Outlined.Delete"
+                                   Disabled="@_saving"
+                                   OnClick="DeleteAsync">
+                            Delete user
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+            }
+        }
+    </MudStack>
+</MudContainer>

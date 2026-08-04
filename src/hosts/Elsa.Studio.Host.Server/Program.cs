@@ -151,7 +151,7 @@ if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
 }
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.AddSettingsModule();
-builder.Services.AddSecurityModule();
+builder.Services.AddSecurityModule(backendApiConfig);
 
 // Management UI remains backend-feature-gated. Broker sign-in is active only when selected above.
 builder.Services.AddExternalAuthenticationModule(backendApiConfig);

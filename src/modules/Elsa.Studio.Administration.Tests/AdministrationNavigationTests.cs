@@ -6,6 +6,8 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Secrets.Menu;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Menu;
+using Elsa.Studio.Security.Models;
+using Elsa.Studio.Security.Services;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -57,6 +59,32 @@ public class AdministrationNavigationTests
         Assert.Equal(100, item.Order);
     }
 
+    [Fact]
+    public async Task IdentityMenu_UsesReadPermissionsAndCoreIdentityOrdering()
+    {
+        Assert.Equal("Elsa.Identity.ShellFeatures.Identity", Elsa.Studio.Security.Feature.RemoteFeatureName);
+
+        var contributor = new IdentitySecurityMenuContributor(
+            new EnabledRemoteFeatureProvider(),
+            new TestIdentityPermissionService(IdentityPermissions.ReadUser, IdentityPermissions.ReadRole));
+
+        var items = (await contributor.GetMenuItemsAsync()).ToList();
+
+        Assert.Collection(items,
+            user =>
+            {
+                Assert.Equal("Users", user.Text);
+                Assert.Equal("security/users", user.Href);
+                Assert.Equal(10, user.Order);
+            },
+            role =>
+            {
+                Assert.Equal("Roles", role.Text);
+                Assert.Equal("security/roles", role.Href);
+                Assert.Equal(20, role.Order);
+            });
+    }
+
     private sealed class TestLocalizer : ILocalizer
     {
         public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
@@ -74,5 +102,16 @@ public class AdministrationNavigationTests
         public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default) => new([
             new MenuItem { Href = "security/test", Text = "Test" }
         ]);
+    }
+
+    private sealed class TestIdentityPermissionService(params string[] permissions) : IIdentityPermissionService
+    {
+        private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
+
+        public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
+            new(_permissions.Contains(permission));
+
+        public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
+            new(_permissions);
     }
 }

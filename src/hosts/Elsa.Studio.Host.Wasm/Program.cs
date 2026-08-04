@@ -123,7 +123,7 @@ if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
 }
 services.AddRemoteBackend(backendApiConfig);
 services.AddSettingsModule();
-services.AddSecurityModule();
+services.AddSecurityModule(backendApiConfig);
 
 // Management UI remains feature-gated by the Elsa backend; broker login is activated only by the provider above.
 services.AddExternalAuthenticationModule(backendApiConfig);
