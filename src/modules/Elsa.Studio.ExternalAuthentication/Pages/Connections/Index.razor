@@ -1,8 +1,8 @@
 @page "/security/external-authentication/connections"
 @using Elsa.Studio.ExternalAuthentication.Components.Pagination
 @using Elsa.Studio.ExternalAuthentication.Services
-@inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
-@inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject Contracts.IBackendApiClientProvider ApiClientProvider
+@inject IExternalAuthenticationPermissionService Permissions
 @inject NavigationManager Navigation
 @inject IDialogService Dialogs
 @inject ISnackbar Snackbar
@@ -17,9 +17,6 @@
             <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateAsync">Create connection</MudButton>
         }
     </MudStack>
-    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-        @ConfigurationGuidance
-    </MudAlert>
 
     <MudPaper Elevation="0" Outlined="true" Class="connection-list">
         <MudGrid Spacing="2" Class="pa-4 align-center connection-list__toolbar">
@@ -252,8 +249,8 @@
     private string? _search;
     private string? _source;
     private int _pageSize = 10;
-    private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListPagingState _paging = new();
-    private readonly Elsa.Studio.ExternalAuthentication.Services.ConnectionListRequestState _requests = new();
+    private readonly ConnectionListPagingState _paging = new();
+    private readonly ConnectionListRequestState _requests = new();
     private bool _includeArchived;
     private bool _loading = true;
     private bool _canRead;
@@ -264,10 +261,6 @@
     private bool _canPreview;
     private bool _canRevokeSessions;
     private bool _configurationOverridesAllowed;
-
-    private string ConfigurationGuidance => _configurationOverridesAllowed
-        ? "Deployment-owned connections are read-only. Authorized administrators can create or promote a Database record to override them. Enabled, valid Database connections become login methods without a restart."
-        : "Deployment-owned connections are read-only and must be changed in deployment configuration. Enabled, valid Database connections become login methods without a restart.";
 
     protected override async Task OnInitializedAsync()
     {

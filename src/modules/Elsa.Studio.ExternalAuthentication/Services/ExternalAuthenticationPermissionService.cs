@@ -1,4 +1,3 @@
-using Elsa.Studio.ExternalAuthentication.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Elsa.Studio.ExternalAuthentication.Services;
