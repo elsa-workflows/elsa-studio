@@ -2558,7 +2558,7 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void ConnectionList_LabelsShadowedDatabaseStateAsStoredAndExplainsOverrideAvailability()
+    public void ConnectionList_LabelsShadowedDatabaseStateAsStored()
     {
         var connection = CreateConnection();
         connection.Shadowed = true;
@@ -2576,8 +2576,6 @@ public sealed class ConnectionEditorTests : BunitContext, IAsyncLifetime
             Assert.Contains("Shadowed by deployment", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Shadowed", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("Stored: Enabled · Valid", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("create or promote a Database record", cut.Markup, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("can only be changed through deployment configuration", cut.Markup, StringComparison.OrdinalIgnoreCase);
         });
     }
 

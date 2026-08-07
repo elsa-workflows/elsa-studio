@@ -260,7 +260,6 @@
     private bool _canTest;
     private bool _canPreview;
     private bool _canRevokeSessions;
-    private bool _configurationOverridesAllowed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -362,8 +361,6 @@
 
             _items.Clear();
             _items.AddRange(response.Items);
-            _configurationOverridesAllowed |= response.Items.Any(connection =>
-                connection.IsConfigurationOwned && (connection.CanCreateOverride || connection.CanPromoteToConfigurationOverride));
             _paging.SetNext(response.NextCursor);
         }
         catch (Exception exception)
