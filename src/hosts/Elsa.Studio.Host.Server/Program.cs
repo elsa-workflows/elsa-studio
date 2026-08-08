@@ -49,6 +49,10 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+// Per-developer overrides (auth provider, client secrets, backend URL, ...) belong here, not in appsettings.json.
+// The file is git-ignored, so the shipped defaults stay runnable out of the box.
+configuration.AddJsonFile("appsettings.Local.json", true, true);
+
 // Register Razor services.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(options =>

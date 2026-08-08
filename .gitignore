@@ -160,6 +160,10 @@ OpenCover/
 # Local History for Visual Studio
 .localhistory/
 
+# Per-developer host configuration overrides (auth provider, client secrets, backend URL, ...).
+# Keeps the shipped appsettings.json defaults intact.
+appsettings.Local.json
+
 src/modules/**/wwwroot/
 src/framework/**/wwwroot/
 !src/modules/Elsa.Studio.Authentication.UI/wwwroot/
