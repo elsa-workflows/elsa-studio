@@ -16,6 +16,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="..\..\testing\BunitTestDefaults.cs" Link="BunitTestDefaults.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Elsa.Studio.Workflows\Elsa.Studio.Workflows.csproj" />
     </ItemGroup>
 
