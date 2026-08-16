@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Models;
 using Elsa.Studio.Security.Services;
@@ -20,6 +21,7 @@ public partial class Roles
 
     [Inject] private IBackendApiClientProvider ApiClientProvider { get; set; } = default!;
     [Inject] private IIdentityPermissionService PermissionService { get; set; } = default!;
+    [Inject] private IClipboard Clipboard { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -100,6 +102,12 @@ public partial class Roles
         {
             _deletingIds.Remove(role.Id);
         }
+    }
+
+    protected async Task CopyRoleIdAsync(string roleId)
+    {
+        await Clipboard.CopyText(roleId);
+        Snackbar.Add("Role ID copied.", Severity.Success);
     }
 
     protected static IEnumerable<string> Preview(ICollection<string> values) =>

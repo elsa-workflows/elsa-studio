@@ -60,6 +60,7 @@
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>Name</MudTh>
+                    <MudTh>Role ID</MudTh>
                     <MudTh>Permissions</MudTh>
                     <MudTh>Scope</MudTh>
                     <MudTh><span class="mud-sr-only">Actions</span></MudTh>
@@ -75,10 +76,9 @@
                                 @context.Name
                             </MudLink>
                         </span>
-                        @if (!string.Equals(context.Id, context.Name, StringComparison.Ordinal))
-                        {
-                            <MudText Typo="Typo.caption">@context.Id</MudText>
-                        }
+                    </MudTd>
+                    <MudTd DataLabel="Role ID">
+                        <IdentityIdCell Value="@context.Id" Label="Role" OnCopy="@(() => CopyRoleIdAsync(context.Id))" />
                     </MudTd>
                     <MudTd DataLabel="Permissions">
                         @if (context.Permissions.Count == 0)

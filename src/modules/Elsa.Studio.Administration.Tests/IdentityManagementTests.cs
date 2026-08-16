@@ -78,7 +78,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             var row = cut.Find("tbody tr");
             Assert.Contains("User ID", cut.Markup);
             Assert.Equal("alice", row.QuerySelector("td[data-label='Name']")?.TextContent.Trim());
-            Assert.Equal("user-with-a-long-id", row.QuerySelector("td[data-label='User ID'] .user-id-value")?.TextContent.Trim());
+            Assert.Equal("user-with-a-long-id", row.QuerySelector("td[data-label='User ID'] .identity-id-value")?.TextContent.Trim());
             Assert.DoesNotContain("user-with-a-long-id", row.QuerySelector("td[data-label='Name']")?.TextContent);
         });
 
@@ -102,11 +102,31 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("read:user", cut.Markup);
             Assert.Contains("No permissions", cut.Markup);
+            Assert.Contains("Role ID", cut.Markup);
             Assert.Contains("Edit role admin", cut.Markup);
             Assert.Contains("Open role admin", cut.Markup);
             Assert.Equal(Breakpoint.Md, cut.FindComponent<MudTable<RoleSummary>>().Instance.Breakpoint);
             Assert.Empty(cut.FindAll("td[data-label='Name']")[0].QuerySelectorAll(".mud-typography-caption"));
         });
+    }
+
+    [Fact]
+    public async Task RoleList_PresentsRoleIdSeparatelyAndCopiesTheFullValue()
+    {
+        _roles.Roles = [new() { Id = "workflow-manager", Name = "Workflow Manager", Permissions = ["read:user"] }];
+
+        var cut = Render<RolesPage>();
+        cut.WaitForAssertion(() =>
+        {
+            var row = cut.Find("tbody tr");
+            Assert.Equal("Workflow Manager", row.QuerySelector("td[data-label='Name']")?.TextContent.Trim());
+            Assert.Equal("workflow-manager", row.QuerySelector("td[data-label='Role ID'] .identity-id-value")?.TextContent.Trim());
+            Assert.DoesNotContain("workflow-manager", row.QuerySelector("td[data-label='Name']")?.TextContent);
+        });
+
+        await cut.InvokeAsync(() => cut.Find("button[aria-label='Copy role ID workflow-manager']").Click());
+
+        Assert.Equal("workflow-manager", _clipboard.LastCopiedText);
     }
 
     [Fact]
