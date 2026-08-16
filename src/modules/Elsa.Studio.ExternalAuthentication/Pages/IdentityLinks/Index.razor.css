@@ -17,6 +17,6 @@
     vertical-align: middle;
 }
 
-.identity-link-list ::deep .mud-table-body .mud-table-cell:nth-child(3) {
+.identity-link-list ::deep .identity-link-list__external-identity {
     overflow-wrap: anywhere;
 }

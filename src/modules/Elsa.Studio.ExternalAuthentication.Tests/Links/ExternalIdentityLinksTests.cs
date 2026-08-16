@@ -2,6 +2,7 @@ using System.Net;
 using Bunit;
 using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.ExternalAuthentication.Client;
 using Elsa.Studio.ExternalAuthentication.Components.IdentityLinks;
 using Elsa.Studio.ExternalAuthentication.Menu;
@@ -19,6 +20,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
 {
     private readonly LinksApi _links = new();
     private readonly ConnectionsApi _connections = new();
+    private readonly Clipboard _clipboard = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
     private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
 
@@ -28,6 +30,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton(TimeProvider.System);
         Services.AddSingleton<IBackendApiClientProvider>(new ApiProvider(_links, _connections));
+        Services.AddSingleton<IClipboard>(_clipboard);
         Services.AddSingleton<IExternalAuthenticationPermissionService>(
             new PermissionService(ExternalAuthenticationPermissions.ManageLinks));
         _popoverProvider = Render<MudPopoverProvider>();
@@ -38,7 +41,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
     async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
 
     [Fact]
-    public void LinkPageIsListOnlyUntilCreateLinkIsOpened()
+    public async Task LinkPageIsListOnlyUntilCreateLinkIsOpened()
     {
         _links.ListResults.Enqueue(new(
         [
@@ -62,6 +65,7 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Contains("workflow-admin", cut.Markup);
+            Assert.Contains("User ID", cut.Markup);
             Assert.Contains("Contoso", cut.Markup);
             Assert.Contains("https://login.contoso.example", cut.Markup);
             Assert.Contains("00u…cdef", cut.Markup);
@@ -73,7 +77,14 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
             var actions = Assert.Single(cut.FindComponents<MudMenu>());
             Assert.Equal("Actions for workflow-admin via Contoso", actions.Instance.AriaLabel);
             Assert.Contains("aria-label=\"Edit identity link for workflow-admin via Contoso\"", cut.Markup, StringComparison.Ordinal);
+            var row = cut.Find("tbody tr");
+            Assert.Equal("workflow-admin", row.QuerySelector("td[data-label='User']")?.TextContent.Trim());
+            Assert.Equal("user-1", row.QuerySelector("td[data-label='User ID'] .identity-id-value")?.TextContent.Trim());
+            Assert.DoesNotContain("user-1", row.QuerySelector("td[data-label='User']")?.TextContent);
         });
+
+        await cut.InvokeAsync(() => cut.Find("button[aria-label='Copy user ID user-1']").Click());
+        Assert.Equal("user-1", _clipboard.LastCopiedText);
 
         cut.Find("button[aria-label='Actions for workflow-admin via Contoso']").Click();
         _popoverProvider.WaitForAssertion(() =>
@@ -527,6 +538,17 @@ public sealed class ExternalIdentityLinksTests : BunitContext, IAsyncLifetime
         private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
         public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) => ValueTask.FromResult(_permissions.Contains(permission));
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(_permissions);
+    }
+
+    private sealed class Clipboard : IClipboard
+    {
+        public string? LastCopiedText { get; private set; }
+
+        public Task CopyText(string text, CancellationToken cancellationToken = default)
+        {
+            LastCopiedText = text;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FeatureProvider : IRemoteFeatureProvider

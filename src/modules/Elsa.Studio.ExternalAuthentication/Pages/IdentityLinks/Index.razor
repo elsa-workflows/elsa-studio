@@ -3,6 +3,7 @@
 @using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationPermissionService Permissions
+@inject Elsa.Studio.DomInterop.Contracts.IClipboard Clipboard
 @inject IDialogService Dialogs
 @inject ISnackbar Snackbar
 
@@ -63,6 +64,7 @@
                 aria-label="External identity links">
                 <HeaderContent>
                     <MudTh>User</MudTh>
+                    <MudTh>User ID</MudTh>
                     <MudTh>Connection</MudTh>
                     <MudTh>External identity</MudTh>
                     <MudTh>Activity</MudTh>
@@ -80,10 +82,9 @@
                                 @UserDisplay(context.UserId)
                             </MudLink>
                         </span>
-                        @if (!string.Equals(UserDisplay(context.UserId), context.UserId, StringComparison.Ordinal))
-                        {
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.UserId</MudText>
-                        }
+                    </MudTd>
+                    <MudTd DataLabel="User ID">
+                        <IdentityIdCell Value="@context.UserId" Label="User" OnCopy="@(() => CopyUserIdAsync(context.UserId))" />
                     </MudTd>
                     <MudTd DataLabel="Connection">
                         <MudText Typo="Typo.body2" Class="font-weight-medium">@ConnectionDisplay(context.ConnectionKey)</MudText>
@@ -92,7 +93,7 @@
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ConnectionKey</MudText>
                         }
                     </MudTd>
-                    <MudTd DataLabel="External identity">
+                    <MudTd DataLabel="External identity" Class="identity-link-list__external-identity">
                         <MudText Typo="Typo.body2">@context.Issuer</MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">@IdentityLinkUiState.SubjectDisplay(context)</MudText>
                     </MudTd>
@@ -266,4 +267,10 @@
 
     private string UserDisplay(string userId) => _users.FirstOrDefault(x => x.Id == userId)?.DisplayName ?? userId;
     private string ConnectionDisplay(string connectionKey) => _connections.FirstOrDefault(x => x.Key == connectionKey)?.DisplayName ?? connectionKey;
+
+    private async Task CopyUserIdAsync(string userId)
+    {
+        await Clipboard.CopyText(userId);
+        Snackbar.Add("User ID copied.", Severity.Success);
+    }
 }
