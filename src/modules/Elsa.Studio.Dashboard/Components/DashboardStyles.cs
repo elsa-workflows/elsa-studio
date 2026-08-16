@@ -2,7 +2,7 @@ namespace Elsa.Studio.Dashboard.Components;
 
 public static class DashboardStyles
 {
-    public const string Shell = "width:100%; max-width:none; min-height:100%; padding:24px 32px 32px; box-sizing:border-box; background:#f6f8fb;";
+    public const string Shell = "width:100%; max-width:none; min-height:100%; padding:24px 32px 32px; box-sizing:border-box; background:var(--mud-palette-background);";
     public const string Header = "gap:12px 16px; margin-bottom:14px;";
     public const string MetricGrid = "margin-bottom:8px;";
     public const string MainGrid = "margin-top:0;";
@@ -15,6 +15,6 @@ public static class DashboardStyles
     public const string CardLink = "color:inherit; display:block; height:100%;";
     public const string FindingList = "margin:-6px;";
     public const string FindingRow = "width:100%; min-width:0;";
-    public const string ChartPanel = "min-height:396px; padding:14px; border-radius:8px; background:var(--mud-palette-surface);";
+    public const string ChartPanel = "min-height:320px; padding:14px; border-radius:8px; background:var(--mud-palette-surface);";
     public const string DiagnosticsBlock = "border:1px solid var(--mud-palette-lines-default); border-radius:8px; padding:12px;";
 }
