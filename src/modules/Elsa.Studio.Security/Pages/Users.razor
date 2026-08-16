@@ -28,6 +28,7 @@
             }
 
             <MudTable T="UserSummary"
+                      Class="user-list"
                       Items="@FilteredUsers"
                       Loading="@_loading"
                       Dense="true"
@@ -60,6 +61,7 @@
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>Name</MudTh>
+                    <MudTh>User ID</MudTh>
                     <MudTh>Roles</MudTh>
                     <MudTh>Scope</MudTh>
                     <MudTh><span class="mud-sr-only">Actions</span></MudTh>
@@ -75,7 +77,22 @@
                                 @context.Name
                             </MudLink>
                         </span>
-                        <MudText Typo="Typo.caption">@context.Id</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="User ID" Class="user-id-cell">
+                        <div @onclick:stopPropagation="true">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="user-id-content">
+                                <MudTooltip Text="@context.Id" Delay="500">
+                                    <span class="user-id-value">@context.Id</span>
+                                </MudTooltip>
+                                <MudTooltip Text="Copy user ID" Delay="500">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy"
+                                                   Size="Size.Small"
+                                                   Class="user-id-copy"
+                                                   OnClick="@(() => CopyUserIdAsync(context.Id))"
+                                                   aria-label="@($"Copy user ID {context.Id}")" />
+                                </MudTooltip>
+                            </MudStack>
+                        </div>
                     </MudTd>
                     <MudTd DataLabel="Roles">
                         @if (context.Roles.Count == 0)

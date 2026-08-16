@@ -22,6 +22,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
     private readonly UsersApi _users = new();
     private readonly RolesApi _roles = new();
     private readonly PermissionService _permissionService = new("*");
+    private readonly Clipboard _clipboard = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
     public IdentityManagementTests()
@@ -30,7 +31,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<IBackendApiClientProvider>(new ApiProvider(_users, _roles));
         Services.AddSingleton<IIdentityPermissionService>(_permissionService);
-        Services.AddSingleton<IClipboard>(new Clipboard());
+        Services.AddSingleton<IClipboard>(_clipboard);
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -64,6 +65,26 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("alice", cut.Markup);
             Assert.Contains("bob", cut.Markup);
         });
+    }
+
+    [Fact]
+    public async Task UserList_PresentsUserIdSeparatelyAndCopiesTheFullValue()
+    {
+        _users.Users = [new() { Id = "user-with-a-long-id", Name = "alice", Roles = ["admin"] }];
+
+        var cut = Render<UsersPage>();
+        cut.WaitForAssertion(() =>
+        {
+            var row = cut.Find("tbody tr");
+            Assert.Contains("User ID", cut.Markup);
+            Assert.Equal("alice", row.QuerySelector("td[data-label='Name']")?.TextContent.Trim());
+            Assert.Equal("user-with-a-long-id", row.QuerySelector("td[data-label='User ID'] .user-id-value")?.TextContent.Trim());
+            Assert.DoesNotContain("user-with-a-long-id", row.QuerySelector("td[data-label='Name']")?.TextContent);
+        });
+
+        await cut.InvokeAsync(() => cut.Find("button[aria-label='Copy user ID user-with-a-long-id']").Click());
+
+        Assert.Equal("user-with-a-long-id", _clipboard.LastCopiedText);
     }
 
     [Fact]
@@ -407,7 +428,13 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
 
     private sealed class Clipboard : IClipboard
     {
-        public Task CopyText(string text, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public string? LastCopiedText { get; private set; }
+
+        public Task CopyText(string text, CancellationToken cancellationToken = default)
+        {
+            LastCopiedText = text;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class UsersApi : IUsersApi
