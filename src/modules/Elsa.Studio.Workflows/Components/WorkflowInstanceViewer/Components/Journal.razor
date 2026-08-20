@@ -44,16 +44,14 @@
                 var activityIcon = displaySettings?.Icon;
                 var timeMetric = context.TimeMetric;
                 
-                // UX Logic: prioritize activity name (e.g., "WriteLine1") for visual correlation with designer
-                // Fall back to custom display name, then to technical name for uniqueness
+                // UX Logic: prioritize the custom display text the user entered for the activity, to correlate to what the designer shows on the node.
+                // Fall back to the activity name (e.g., "WriteLine1"), then to the activity type for uniqueness.
                 var designerActivityName = GetActivityName?.Invoke(record.ActivityId);
                 var customDisplayName = GetCustomActivityName?.Invoke(record.ActivityId);
                 var typeName = activityDescriptor?.DisplayName ?? record.ActivityType;
                 
-                // Hierarchy: Activity Name > Custom Display Name > Activity Type
-                var displayName = !string.IsNullOrWhiteSpace(designerActivityName) 
-                    ? designerActivityName 
-                    : (!string.IsNullOrWhiteSpace(customDisplayName) ? customDisplayName : typeName);
+                // Hierarchy: Custom Display Text > Activity Name > Activity Type
+                var displayName = ActivityLabelResolver.Resolve(customDisplayName, designerActivityName, typeName);
                 
                 var bgClass = SelectedEntry != null && journalEntry.Record.Id == SelectedEntry.Record.Id ? "gray lighten-3 rounded" : "";
                 var statusColor =
