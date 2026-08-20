@@ -521,7 +521,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
+    private void StartElapsedTimer()
+    {
+        if (!EnablePolling)
+            return;
+
+        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
+    }
 
     private void StopElapsedTimer()
     {
