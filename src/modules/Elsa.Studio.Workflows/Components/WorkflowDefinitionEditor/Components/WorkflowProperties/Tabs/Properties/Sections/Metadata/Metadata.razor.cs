@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contracts;
@@ -14,7 +14,6 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.W
 public partial class Metadata
 {
     private readonly WorkflowMetadataModel _model = new();
-    private FluentValidationValidator _fluentValidationValidator = default!;
     private WorkflowPropertiesModelValidator _validator = default!;
     private EditContext _editContext = default!;
 
@@ -42,7 +41,7 @@ public partial class Metadata
 
     private async Task ValidateForm()
     {
-        if (!await _fluentValidationValidator.ValidateAsync())
+        if (!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();

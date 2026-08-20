@@ -6,7 +6,7 @@
 <MudDialog>
     <DialogContent>
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
-            <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
+            <FluentValidator Validator="_validator"/>
             <MudStack>
                 <MudTextField Label="@Localizer["Name"]" @bind-Value="_inputModel.Name" For="@(() => _inputModel.Name)" HelperText="@Localizer["The name of the new label."]" Variant="Variant.Outlined" />
                 <MudTextField Label="@Localizer["Description"]" @bind-Value="_inputModel.Description" For="@(() => _inputModel.Description)" HelperText="@Localizer["A brief description of the label."]" Lines="3" Variant="Variant.Outlined"/>
