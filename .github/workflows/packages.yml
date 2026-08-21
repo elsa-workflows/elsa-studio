@@ -151,10 +151,25 @@ jobs:
 
       - name: Publish npm packages to feedz.io
         run: |
+          # npm has no --skip-duplicate. Re-publishing a version that already exists
+          # (e.g. when a release is re-created for the same tag) returns EPUBLISHCONFLICT,
+          # which is not a failure for us. Every other error still fails the job.
+          status=0
           for file in ./elsa-studio-npm-packages/*.tgz
           do
-            npm publish "$file" --access public
+            echo "Publishing $file"
+            if output=$(npm publish "$file" --access public 2>&1); then
+              echo "$output"
+            else
+              echo "$output"
+              if echo "$output" | grep -qiE 'EPUBLISHCONFLICT|cannot publish over'; then
+                echo "::notice::$file is already published at this version - skipping"
+              else
+                status=1
+              fi
+            fi
           done
+          exit $status
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
 
@@ -166,10 +181,25 @@ jobs:
 
       - name: Publish npm react packages to feedz.io
         run: |
+          # npm has no --skip-duplicate. Re-publishing a version that already exists
+          # (e.g. when a release is re-created for the same tag) returns EPUBLISHCONFLICT,
+          # which is not a failure for us. Every other error still fails the job.
+          status=0
           for file in ./elsa-studio-npm-react-packages/*.tgz
           do
-            npm publish "$file" --access public
+            echo "Publishing $file"
+            if output=$(npm publish "$file" --access public 2>&1); then
+              echo "$output"
+            else
+              echo "$output"
+              if echo "$output" | grep -qiE 'EPUBLISHCONFLICT|cannot publish over'; then
+                echo "::notice::$file is already published at this version - skipping"
+              else
+                status=1
+              fi
+            fi
           done
+          exit $status
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
   
