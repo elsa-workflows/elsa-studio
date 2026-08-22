@@ -220,9 +220,11 @@ jobs:
           registry-url: ${{ env.npm_feed_npm }}
 
       # npm's OIDC trusted publishing requires npm >= 11.5.1, which is newer than the
-      # npm bundled with any current Node LTS, so upgrade it explicitly.
+      # npm bundled with any current Node LTS, so upgrade it explicitly. Pinned to the
+      # 11.x line rather than `latest` so a future npm major cannot change publish
+      # behaviour without a deliberate bump here.
       - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       - name: Download npm Packages
         uses: actions/download-artifact@v4
