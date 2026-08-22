@@ -209,12 +209,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    permissions:
+      contents: read
+      id-token: write # Required: lets this job request the OIDC token npmjs.com exchanges for publish rights.
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.12.1
+          node-version: 22
           registry-url: ${{ env.npm_feed_npm }}
+
+      # npm's OIDC trusted publishing requires npm >= 11.5.1, which is newer than the
+      # npm bundled with any current Node LTS, so upgrade it explicitly.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
 
       - name: Download npm Packages
         uses: actions/download-artifact@v4
@@ -222,13 +230,16 @@ jobs:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
 
-      - run: |
+      # No NODE_AUTH_TOKEN: publish rights come from the trusted publisher configured
+      # on npmjs.com for elsa-workflows/elsa-studio + packages.yml. Kept strict (unlike
+      # the feedz job) because this path has never published successfully -- an auth
+      # failure here must stay loud.
+      - name: Publish npm packages to npmjs.com
+        run: |
           for file in ./elsa-studio-npm-packages/*.tgz
           do
             npm publish "$file" --access public
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
       - name: Download npm react Packages
         uses: actions/download-artifact@v4
@@ -236,13 +247,12 @@ jobs:
           name: elsa-studio-npm-react-packages
           path: elsa-studio-npm-react-packages
 
-      - run: |
+      - name: Publish npm react packages to npmjs.com
+        run: |
           for file in ./elsa-studio-npm-react-packages/*.tgz
           do
             npm publish "$file" --access public
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
   publish_nuget_preview_feedzio:
     name: Publish nuget packages to feedz.io
