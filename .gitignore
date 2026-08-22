@@ -26,8 +26,11 @@ mono_crash.*
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
+# Build output only. Left unanchored these also matched documentation paths such
+# as docs/images/releases/, which were then silently excluded from commits.
+# [Bb]in/ and [Oo]bj/ are already ignored below.
+/[Rr]elease/
+/[Rr]eleases/
 x64/
 x86/
 [Aa][Rr][Mm]/

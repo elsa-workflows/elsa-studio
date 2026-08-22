@@ -6,6 +6,8 @@
     "url": "git+https://github.com/elsa-workflows/elsa-studio.git"
   },
   "type": "module",
+  "description": "React wrapper for Elsa Studio, exposing the Blazor WebAssembly workflow designer as React components.",
+  "license": "MIT",
   "files": [
     "dist"
   ],
