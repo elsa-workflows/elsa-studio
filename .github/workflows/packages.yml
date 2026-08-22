@@ -238,9 +238,19 @@ jobs:
       # failure here must stay loud.
       - name: Publish npm packages to npmjs.com
         run: |
+          # npm 11 refuses to publish a prerelease without an explicit dist-tag, so it
+          # cannot silently move `latest` to an rc. Derive the tag from each tarball's
+          # own version: prereleases go to `next`, stable versions to `latest`.
           for file in ./elsa-studio-npm-packages/*.tgz
           do
-            npm publish "$file" --access public
+            version=$(tar -xzOf "$file" package/package.json \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+            case "$version" in
+              *-*) tag=next ;;
+              *)   tag=latest ;;
+            esac
+            echo "Publishing $file ($version) with --tag $tag"
+            npm publish "$file" --access public --tag "$tag"
           done
 
       - name: Download npm react Packages
@@ -251,9 +261,19 @@ jobs:
 
       - name: Publish npm react packages to npmjs.com
         run: |
+          # npm 11 refuses to publish a prerelease without an explicit dist-tag, so it
+          # cannot silently move `latest` to an rc. Derive the tag from each tarball's
+          # own version: prereleases go to `next`, stable versions to `latest`.
           for file in ./elsa-studio-npm-react-packages/*.tgz
           do
-            npm publish "$file" --access public
+            version=$(tar -xzOf "$file" package/package.json \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+            case "$version" in
+              *-*) tag=next ;;
+              *)   tag=latest ;;
+            esac
+            echo "Publishing $file ($version) with --tag $tag"
+            npm publish "$file" --access public --tag "$tag"
           done
 
   publish_nuget_preview_feedzio:
