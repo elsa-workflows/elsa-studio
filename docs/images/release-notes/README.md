@@ -1,6 +1,6 @@
-# Elsa Studio 3.8.0-rc1 — release note images
+# Elsa Studio release note images
 
-Screenshots of Studio 3.8.0-rc1 running against elsa-core 3.8.0-rc1, seeded with three
+Screenshots of Elsa Studio running against a matching elsa-core build, seeded with three
 workflows producing completed, faulted and suspended instances. Captured headless at
 1600px wide with a device scale factor of 2, then framed with window chrome.
 
@@ -18,5 +18,12 @@ workflows producing completed, faulted and suspended instances. Captured headles
 | 10-users.png | User management (`/security/users`) |
 | 11-workflow-list.png | Workflow definitions list |
 
-Note: this folder is deliberately not under `docs/images/releases/`, because the
-repository `.gitignore` ignores `[Rr]eleases/` and would silently exclude it.
+Two things to know about this path:
+
+- It is deliberately not `docs/images/releases/`. That was ignored by the repository
+  `.gitignore` pattern `[Rr]eleases/`, which silently excluded the whole folder. The
+  pattern is now root-anchored, but this path avoids the question entirely.
+- The folder carries no version. Release-note image URLs are pinned to the release
+  branch (for example `release/3.8.0`), so the branch supplies the version and each
+  release line keeps its own images. Refresh these in place for a new release on the
+  same line.
