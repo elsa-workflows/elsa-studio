@@ -35,6 +35,7 @@
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login.BlazorWasm\Elsa.Studio.Login.BlazorWasm.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Login\Elsa.Studio.Login.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Secrets\Elsa.Studio.Secrets.csproj" />
+      <ProjectReference Include="..\..\modules\Elsa.Studio.UserTasks\Elsa.Studio.UserTasks.csproj" />
       <ProjectReference Include="..\..\modules\Elsa.Studio.Workflows.Dashboard\Elsa.Studio.Workflows.Dashboard.csproj" />
     </ItemGroup>
 
