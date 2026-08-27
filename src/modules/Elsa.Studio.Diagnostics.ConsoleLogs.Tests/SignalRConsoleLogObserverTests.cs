@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Models;
@@ -65,7 +66,7 @@ public class SignalRConsoleLogObserverTests
     private class TestBackendApiClientProvider(Uri url) : IBackendApiClientProvider
     {
         public Uri Url { get; } = url;
-        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class => throw new NotSupportedException();
+        public ValueTask<T> GetApiAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(CancellationToken cancellationToken = default) where T : class => throw new NotSupportedException();
     }
 
     private class NoopConnectionOptionsConfigurator : IHttpConnectionOptionsConfigurator
