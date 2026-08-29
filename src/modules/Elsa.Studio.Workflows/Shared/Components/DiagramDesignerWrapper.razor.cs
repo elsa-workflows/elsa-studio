@@ -78,6 +78,12 @@ public partial class DiagramDesignerWrapper
     private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
 
     [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private IWorkflowRootActivityTemplateProvider WorkflowRootActivityTemplateProvider { get; set; } = null!;
+
+    [Inject]
     private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
 
     [Inject]
@@ -486,7 +492,7 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
-        if (!IsDesignerActivity(activity))
+        if (!HasDiagramDesigner(activity))
             return;
 
         var segment = new ActivityPathSegment(
@@ -549,46 +555,28 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
-            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
-
-            // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
-            if (
-                embeddedActivityTypeName != "Elsa.Flowchart"
-                && embeddedActivityTypeName != "Elsa.StateMachine"
-                && embeddedActivityTypeName != "Elsa.Workflow"
-            )
+            if (!HasDiagramDesigner(embeddedActivity))
             {
                 if (ActivitySelected.HasDelegate)
                     await ActivitySelected.InvokeAsync(embeddedActivity);
                 return;
             }
-
-            // If the embedded activity type is a flowchart, state machine, or workflow, we can display it in the designer.
         }
         else
         {
-            if (!IsReadOnly)
-            {
-                var embeddedActivityId = IdentityGenerator.GenerateId();
-                // Create a flowchart and embed it into the activity.
-                embeddedActivity = new(new Dictionary<string, JsonNode?>
-                {
-                    ["id"] = embeddedActivityId,
-                    ["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivityId}",
-                    ["type"] = "Elsa.Flowchart",
-                    ["version"] = 1,
-                    ["name"] = "Flowchart1",
-                });
-
-                portProvider.AssignPort(args.PortName, embeddedActivity, new(activityDescriptor, activity));
-
-                // Update the graph in the designer.
-                await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
-            }
-            else
-            {
+            if (IsReadOnly)
                 return;
-            }
+
+            var template = await SelectRootActivityTemplateAsync(portProvider, portProviderContext, portName);
+            if (template == null)
+                return;
+
+            embeddedActivity = template.CreateRoot(IdentityGenerator);
+            embeddedActivity["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivity.GetId()}";
+            portProvider.AssignPort(args.PortName, embeddedActivity, portProviderContext);
+
+            // Update the graph only after the user confirms the branch type.
+            await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
         }
 
         // Create a new path segment of the container activity and push it onto the stack.
@@ -666,8 +654,43 @@ public partial class DiagramDesignerWrapper
 
     private static bool IsSelfDesignerSegment(ActivityPathSegment segment) => segment.PortName == SelfDesignerPortName;
 
-    private static bool IsDesignerActivity(JsonObject activity) =>
-        activity.GetTypeName() is "Elsa.Flowchart" or "Elsa.StateMachine";
+    private bool HasDiagramDesigner(JsonObject activity)
+    {
+        var designerActivity = activity.GetTypeName() == "Elsa.Workflow" ? activity.GetRoot() : activity;
+        return designerActivity != null && DiagramDesignerService.HasDiagramDesigner(designerActivity);
+    }
+
+    private async Task<WorkflowRootActivityTemplate?> SelectRootActivityTemplateAsync(
+        IActivityPortProvider portProvider,
+        PortProviderContext portProviderContext,
+        string portName)
+    {
+        var currentContainerType = GetCurrentContainerActivityOrRoot().GetTypeName();
+        var selectedTemplateKey = WorkflowRootActivityTemplateProvider.Find(currentContainerType)?.Key
+                                  ?? WorkflowRootActivityTemplateProvider.GetDefault().Key;
+        var portDisplayName = portProvider.GetPorts(portProviderContext)
+            .FirstOrDefault(x => x.Name == portName)?.DisplayName ?? portName.Humanize();
+        var parameters = new DialogParameters<SelectWorkflowRootActivityDialog>
+        {
+            { x => x.SelectedTemplateKey, selectedTemplateKey }
+        };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+        var dialog = await DialogService.ShowAsync<SelectWorkflowRootActivityDialog>(
+            Localizer["Create {0} branch", portDisplayName],
+            parameters,
+            options);
+        var result = await dialog.Result;
+
+        return result is { Canceled: false, Data: string templateKey }
+            ? WorkflowRootActivityTemplateProvider.Find(templateKey)
+            : null;
+    }
 
     private static void ReplaceJsonObjectContents(JsonObject target, JsonObject source)
     {
