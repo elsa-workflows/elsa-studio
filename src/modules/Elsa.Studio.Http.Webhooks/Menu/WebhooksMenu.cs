@@ -16,10 +16,10 @@ public class WebhooksMenu(ILocalizer localizer) : IMenuProvider
                 Icon = Icons.Material.Filled.Http,
                 Href = "webhooks",
                 Text = localizer["Webhooks"],
-                GroupName = MenuItemGroups.Settings.Name
+                GroupName = MenuItemGroups.Administration.Name
             }
         };
 
-        return new ValueTask<IEnumerable<MenuItem>>(menuItems);
+        return new(menuItems);
     }
 }

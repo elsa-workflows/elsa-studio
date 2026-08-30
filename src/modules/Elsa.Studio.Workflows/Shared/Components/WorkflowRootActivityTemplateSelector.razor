@@ -12,7 +12,7 @@
                       aria-checked="@(IsSelected(template) ? "true" : "false")"
                       tabindex="@(string.IsNullOrEmpty(SelectedTemplateKey) || IsSelected(template) ? 0 : -1)"
                       @onclick="@(() => SelectAsync(template.Key))"
-                      @onkeydown="@((KeyboardEventArgs args) => OnKeyDownAsync(args, template.Key))"
+                      @onkeydown="@((KeyboardEventArgs args) => OnKeyDownAsync(args, template.Key))">
                 <MudStack Row="true" AlignItems="MudBlazor.AlignItems.Center" Spacing="2">
                     <MudIcon Icon="@template.Icon" Style="@($"color: {template.Color};")" />
                     <MudStack Spacing="0" Class="flex-grow-1">
