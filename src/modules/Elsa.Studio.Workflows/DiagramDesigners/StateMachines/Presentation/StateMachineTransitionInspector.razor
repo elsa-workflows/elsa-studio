@@ -1,5 +1,5 @@
-@using Elsa.Studio.Workflows.Designer.Models
 @using Elsa.Studio.Localization
+@using Elsa.Studio.Workflows.Designer.Models
 @namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation
 @inject ILocalizer Localizer
 
@@ -13,6 +13,7 @@
         {
             <button class="state-machine-transition-inspector__button state-machine-transition-inspector__button--danger"
                     type="button"
+                    data-testid="state-machine-transition-delete"
                     @onclick="() => DeleteRequested.InvokeAsync()">
                 @Localizer["Delete"]
             </button>
@@ -21,54 +22,127 @@
 
     @if (Transition == null)
     {
-        <p class="state-machine-transition-inspector__empty">@Localizer["Select a transition in the diagram or outline to inspect it."]</p>
+        <p class="state-machine-transition-inspector__empty" role="status">@Localizer["Select a transition in the diagram or outline to inspect it."]</p>
     }
     else
     {
-        <div class="state-machine-transition-inspector__route" aria-label="@Localizer["Transition route"]">
-            <span>@StateMachinePresentationFormatter.DisplayValue(Transition.From)</span>
-            <span aria-hidden="true">→</span>
-            <span>@StateMachinePresentationFormatter.DisplayValue(Transition.To)</span>
+        <div class="state-machine-transition-inspector__story" aria-label="@Localizer["Execution story"]">
+            <section class="state-machine-transition-inspector__stage" data-transition-slot="trigger" aria-labelledby="@TriggerStageId">
+                <div class="state-machine-transition-inspector__stage-marker" aria-hidden="true">@Localizer["WHEN"]</div>
+                <div class="state-machine-transition-inspector__stage-content">
+                    <div class="state-machine-transition-inspector__stage-heading">
+                        <div>
+                            <p class="state-machine-transition-inspector__stage-kicker">@Localizer["WHEN"]</p>
+                            <h4 id="@TriggerStageId">@Localizer["Trigger"]</h4>
+                        </div>
+                        <span class="state-machine-transition-inspector__stage-note">@Localizer["Starts the transition"]</span>
+                    </div>
+                    @RenderActivitySlot("trigger", Transition.Trigger, true)
+                </div>
+            </section>
+
+            <div class="state-machine-transition-inspector__connector" aria-hidden="true">↓</div>
+
+            <section class="state-machine-transition-inspector__stage" data-transition-slot="condition" aria-labelledby="@ConditionStageId">
+                <div class="state-machine-transition-inspector__stage-marker" aria-hidden="true">@Localizer["ONLY IF"]</div>
+                <div class="state-machine-transition-inspector__stage-content">
+                    <div class="state-machine-transition-inspector__stage-heading">
+                        <div>
+                            <p class="state-machine-transition-inspector__stage-kicker">@Localizer["ONLY IF"]</p>
+                            <h4 id="@ConditionStageId">@Localizer["Condition"]</h4>
+                        </div>
+                        @if (!IsReadOnly)
+                        {
+                            <button class="state-machine-transition-inspector__button"
+                                    type="button"
+                                    data-slot-action="edit"
+                                    data-testid="state-machine-transition-condition-edit"
+                                    @onclick="RequestConditionEditAsync">
+                                @Localizer["Edit"]
+                            </button>
+                        }
+                    </div>
+                    @RenderCondition(Transition.Condition)
+                </div>
+            </section>
+
+            <div class="state-machine-transition-inspector__connector" aria-hidden="true">↓</div>
+
+            <section class="state-machine-transition-inspector__stage" data-transition-slot="action" aria-labelledby="@ActionStageId">
+                <div class="state-machine-transition-inspector__stage-marker" aria-hidden="true">@Localizer["THEN"]</div>
+                <div class="state-machine-transition-inspector__stage-content">
+                    <div class="state-machine-transition-inspector__stage-heading">
+                        <div>
+                            <p class="state-machine-transition-inspector__stage-kicker">@Localizer["THEN"]</p>
+                            <h4 id="@ActionStageId">@Localizer["Action"]</h4>
+                        </div>
+                        <span class="state-machine-transition-inspector__stage-note">@Localizer["Runs after source exit"]</span>
+                    </div>
+                    @RenderActivitySlot("action", Transition.Action, false)
+                </div>
+            </section>
+
+            <div class="state-machine-transition-inspector__connector" aria-hidden="true">↓</div>
+
+            <section class="state-machine-transition-inspector__stage state-machine-transition-inspector__stage--destination" data-transition-slot="to" aria-labelledby="@DestinationStageId">
+                <div class="state-machine-transition-inspector__stage-marker" aria-hidden="true">@Localizer["TO"]</div>
+                <div class="state-machine-transition-inspector__stage-content">
+                    <div class="state-machine-transition-inspector__stage-heading">
+                        <div>
+                            <p class="state-machine-transition-inspector__stage-kicker">@Localizer["TO"]</p>
+                            <h4 id="@DestinationStageId">@StateMachinePresentationFormatter.DisplayValue(Transition.To)</h4>
+                        </div>
+                        <span class="state-machine-transition-inspector__stage-note">@Localizer["Target state"]</span>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="state-machine-transition-inspector__fields">
-            <div class="state-machine-transition-inspector__field-grid">
-                <div class="state-machine-transition-inspector__field">
-                    <label for="@NameId">@Localizer["Name"]</label>
-                    <input id="@NameId" class="state-machine-transition-inspector__control" value="@Transition.Name" disabled="@IsReadOnly" @onchange="ChangeNameAsync" />
-                </div>
-                <div class="state-machine-transition-inspector__field">
-                    <label for="@DisplayNameId">@Localizer["Display name"]</label>
-                    <input id="@DisplayNameId" class="state-machine-transition-inspector__control" value="@Transition.DisplayName" disabled="@IsReadOnly" @onchange="ChangeDisplayNameAsync" />
-                </div>
-                <div class="state-machine-transition-inspector__field">
-                    <label for="@FromId">@Localizer["From"]</label>
-                    <select id="@FromId" class="state-machine-transition-inspector__control" value="@Transition.From" disabled="@IsReadOnly" @onchange="ChangeFromAsync">
-                        @foreach (var state in States)
-                        {
-                            <option value="@state.Name">@StateMachinePresentationFormatter.DisplayValue(state.Name)</option>
-                        }
-                    </select>
-                </div>
-                <div class="state-machine-transition-inspector__field">
-                    <label for="@ToId">@Localizer["To"]</label>
-                    <select id="@ToId" class="state-machine-transition-inspector__control" value="@Transition.To" disabled="@IsReadOnly" @onchange="ChangeToAsync">
-                        @foreach (var state in States)
-                        {
-                            <option value="@state.Name">@StateMachinePresentationFormatter.DisplayValue(state.Name)</option>
-                        }
-                    </select>
+        <details class="state-machine-transition-inspector__details">
+            <summary>
+                <span>@Localizer["Transition details"]</span>
+                <span class="state-machine-transition-inspector__details-route">
+                    @StateMachinePresentationFormatter.DisplayValue(Transition.From)
+                    <span aria-hidden="true">→</span>
+                    @StateMachinePresentationFormatter.DisplayValue(Transition.To)
+                </span>
+            </summary>
+            <div class="state-machine-transition-inspector__fields">
+                <div class="state-machine-transition-inspector__field-grid">
+                    <div class="state-machine-transition-inspector__field">
+                        <label for="@NameId">@Localizer["Name"]</label>
+                        <input id="@NameId" class="state-machine-transition-inspector__control" value="@Transition.Name" disabled="@IsReadOnly" @onchange="ChangeNameAsync" />
+                    </div>
+                    <div class="state-machine-transition-inspector__field">
+                        <label for="@DisplayNameId">@Localizer["Display name"]</label>
+                        <input id="@DisplayNameId" class="state-machine-transition-inspector__control" value="@Transition.DisplayName" disabled="@IsReadOnly" @onchange="ChangeDisplayNameAsync" />
+                    </div>
+                    <div class="state-machine-transition-inspector__field">
+                        <label for="@FromId">@Localizer["From"]</label>
+                        <select id="@FromId" class="state-machine-transition-inspector__control" value="@Transition.From" disabled="@IsReadOnly" @onchange="ChangeFromAsync">
+                            @foreach (var state in States)
+                            {
+                                <option value="@state.Name">@StateMachinePresentationFormatter.DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="state-machine-transition-inspector__field">
+                        <label for="@ToId">@Localizer["To"]</label>
+                        <select id="@ToId" class="state-machine-transition-inspector__control" value="@Transition.To" disabled="@IsReadOnly" @onchange="ChangeToAsync">
+                            @foreach (var state in States)
+                            {
+                                <option value="@state.Name">@StateMachinePresentationFormatter.DisplayValue(state.Name)</option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
-
-            @RenderSlot("trigger", Localizer["Trigger"], Transition.Trigger)
-            @RenderSlot("condition", Localizer["Condition"], Transition.Condition, false)
-            @RenderSlot("action", Localizer["Action"], Transition.Action)
-        </div>
+        </details>
 
         @if (ValidationIssues.Count > 0)
         {
             <div class="state-machine-transition-inspector__issues" role="alert" aria-label="@Localizer["Transition validation issues"]">
+                <strong>@Localizer["Validation"]</strong>
                 @foreach (var issue in ValidationIssues)
                 {
                     <p><strong>@issue.Severity:</strong> @Localizer[issue.Message]</p>
@@ -77,85 +151,3 @@
         }
     }
 </section>
-
-@code {
-    private readonly string _id = $"state-machine-transition-inspector-{Guid.NewGuid():N}";
-
-    [Parameter] public StateMachineTransitionEdge? Transition { get; set; }
-    [Parameter] public IReadOnlyCollection<StateMachineStateNode> States { get; set; } = [];
-    [Parameter] public bool IsReadOnly { get; set; }
-    [Parameter] public IReadOnlyCollection<StateMachineValidationIssue> ValidationIssues { get; set; } = [];
-    [Parameter] public EventCallback<string?> NameChanged { get; set; }
-    [Parameter] public EventCallback<string?> DisplayNameChanged { get; set; }
-    [Parameter] public EventCallback<string> FromChanged { get; set; }
-    [Parameter] public EventCallback<string> ToChanged { get; set; }
-    [Parameter] public EventCallback<StateMachineSlotValueChange> SlotChanged { get; set; }
-    [Parameter] public EventCallback<string> SlotCleared { get; set; }
-    [Parameter] public EventCallback<string> SlotDropRequested { get; set; }
-    [Parameter] public EventCallback DeleteRequested { get; set; }
-
-    private string HeadingId => $"{_id}-heading";
-    private string NameId => $"{_id}-name";
-    private string DisplayNameId => $"{_id}-display-name";
-    private string FromId => $"{_id}-from";
-    private string ToId => $"{_id}-to";
-
-    private Task ChangeNameAsync(ChangeEventArgs args) => NameChanged.InvokeAsync(NormalizeOptionalValue(args.Value));
-    private Task ChangeDisplayNameAsync(ChangeEventArgs args) => DisplayNameChanged.InvokeAsync(NormalizeOptionalValue(args.Value));
-    private Task ChangeFromAsync(ChangeEventArgs args) => FromChanged.InvokeAsync(args.Value?.ToString() ?? "");
-    private Task ChangeToAsync(ChangeEventArgs args) => ToChanged.InvokeAsync(args.Value?.ToString() ?? "");
-
-    private static string? NormalizeOptionalValue(object? value)
-    {
-        var text = value?.ToString();
-        return string.IsNullOrWhiteSpace(text) ? null : text;
-    }
-
-    private RenderFragment RenderSlot(string slotName, string label, System.Text.Json.Nodes.JsonNode? value, bool acceptsDrop = true) => builder =>
-    {
-        var fieldId = $"{_id}-{slotName}";
-        var helpId = $"{fieldId}-help";
-        var sequence = 0;
-
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__field");
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__field-heading");
-        builder.OpenElement(sequence++, "label");
-        builder.AddAttribute(sequence++, "for", fieldId);
-        builder.AddContent(sequence++, label);
-        builder.CloseElement();
-        if (!IsReadOnly)
-        {
-            builder.OpenElement(sequence++, "button");
-            builder.AddAttribute(sequence++, "type", "button");
-            builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__button");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SlotCleared.InvokeAsync(slotName)));
-            builder.AddContent(sequence++, Localizer["Clear"]);
-            builder.CloseElement();
-        }
-        builder.CloseElement();
-        builder.OpenElement(sequence++, "textarea");
-        builder.AddAttribute(sequence++, "id", fieldId);
-        builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__control state-machine-transition-inspector__control--code");
-        builder.AddAttribute(sequence++, "aria-describedby", helpId);
-        builder.AddAttribute(sequence++, "disabled", IsReadOnly);
-        builder.AddAttribute(sequence++, "value", StateMachinePresentationFormatter.JsonSlot(value));
-        builder.AddAttribute(sequence++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, args => SlotChanged.InvokeAsync(new(slotName, args.Value?.ToString()))));
-        if (acceptsDrop)
-        {
-            builder.AddAttribute(sequence++, "ondragover", EventCallback.Factory.Create<DragEventArgs>(this, _ => Task.CompletedTask));
-            builder.AddEventPreventDefaultAttribute(sequence++, "ondragover", true);
-            builder.AddAttribute(sequence++, "ondrop", EventCallback.Factory.Create<DragEventArgs>(this, _ => SlotDropRequested.InvokeAsync(slotName)));
-        }
-        builder.CloseElement();
-        builder.OpenElement(sequence++, "p");
-        builder.AddAttribute(sequence++, "id", helpId);
-        builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__help");
-        builder.AddContent(sequence++, acceptsDrop
-            ? Localizer["Enter activity JSON or drop an activity here."]
-            : Localizer["Enter a JSON condition."]);
-        builder.CloseElement();
-        builder.CloseElement();
-    };
-}

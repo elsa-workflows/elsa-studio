@@ -1,12 +1,13 @@
 .state-machine-transition-inspector {
     display: grid;
     gap: 1rem;
+    min-width: 0;
     color: var(--mud-palette-text-primary);
 }
 
 .state-machine-transition-inspector__header,
-.state-machine-transition-inspector__field-heading,
-.state-machine-transition-inspector__route {
+.state-machine-transition-inspector__stage-heading,
+.state-machine-transition-inspector__details summary {
     display: flex;
     align-items: center;
 }
@@ -18,8 +19,18 @@
 
 .state-machine-transition-inspector__header h3,
 .state-machine-transition-inspector__eyebrow,
-.state-machine-transition-inspector__help,
-.state-machine-transition-inspector__issues p {
+.state-machine-transition-inspector__stage-kicker,
+.state-machine-transition-inspector__stage-heading h4,
+.state-machine-transition-inspector__stage-note,
+.state-machine-transition-inspector__slot-empty,
+.state-machine-transition-inspector__slot-empty span,
+.state-machine-transition-inspector__slot-warning,
+.state-machine-transition-inspector__condition span,
+.state-machine-transition-inspector__condition p,
+.state-machine-transition-inspector__issues p,
+.state-machine-transition-inspector__details summary,
+.state-machine-transition-inspector__details-route,
+.state-machine-transition-inspector__definition summary {
     margin: 0;
 }
 
@@ -29,26 +40,261 @@
 }
 
 .state-machine-transition-inspector__eyebrow,
-.state-machine-transition-inspector__help {
+.state-machine-transition-inspector__stage-kicker,
+.state-machine-transition-inspector__stage-note,
+.state-machine-transition-inspector__details-route {
     color: var(--mud-palette-text-secondary);
     font-size: .75rem;
 }
 
-.state-machine-transition-inspector__eyebrow {
-    margin-bottom: .125rem;
+.state-machine-transition-inspector__eyebrow,
+.state-machine-transition-inspector__stage-kicker {
     font-weight: 600;
     letter-spacing: .04em;
     text-transform: uppercase;
 }
 
-.state-machine-transition-inspector__route {
+.state-machine-transition-inspector__eyebrow {
+    margin-bottom: .125rem;
+}
+
+.state-machine-transition-inspector__story {
+    display: grid;
     gap: .5rem;
+}
+
+.state-machine-transition-inspector__stage {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: .75rem;
+    min-width: 0;
+    padding: .875rem;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-transition-inspector__stage--destination {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-transition-inspector__stage-marker {
+    align-self: start;
+    padding-top: .125rem;
+    color: var(--mud-palette-primary);
+    font-size: .6875rem;
+    font-weight: 700;
+    letter-spacing: .055em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.state-machine-transition-inspector__stage-content {
+    display: grid;
+    gap: .75rem;
+    min-width: 0;
+}
+
+.state-machine-transition-inspector__stage-heading {
+    justify-content: space-between;
+    gap: .75rem;
+    min-width: 0;
+}
+
+.state-machine-transition-inspector__stage-heading h4 {
+    font-size: .9375rem;
+    font-weight: 600;
+}
+
+.state-machine-transition-inspector__stage-note {
+    max-width: 50%;
+    text-align: right;
+}
+
+.state-machine-transition-inspector__connector {
+    height: 1rem;
+    color: var(--mud-palette-text-secondary);
+    font-size: 1rem;
+    line-height: 1rem;
+    text-align: center;
+}
+
+.state-machine-transition-inspector__slot,
+.state-machine-transition-inspector__condition {
+    display: grid;
+    gap: .625rem;
+    min-width: 0;
+}
+
+.state-machine-transition-inspector__slot {
+    padding: .75rem;
+    border: 1px dashed var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+}
+
+.state-machine-transition-inspector__slot:not([data-slot-state="empty"]):hover {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-transition-inspector__slot-empty {
+    display: grid;
+    gap: .25rem;
+    color: var(--mud-palette-text-secondary);
+    font-size: .8125rem;
+}
+
+.state-machine-transition-inspector__slot-empty strong {
+    color: var(--mud-palette-text-primary);
+    font-weight: 600;
+}
+
+.state-machine-transition-inspector__slot-empty span,
+.state-machine-transition-inspector__condition span,
+.state-machine-transition-inspector__slot-warning {
+    font-size: .75rem;
+    line-height: 1.45;
+}
+
+.state-machine-transition-inspector__activity-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: .75rem;
+    min-width: 0;
+}
+
+.state-machine-transition-inspector__activity-card--invalid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.state-machine-transition-inspector__activity-copy,
+.state-machine-transition-inspector__condition {
+    overflow-wrap: anywhere;
+}
+
+.state-machine-transition-inspector__activity-copy {
+    display: grid;
+    gap: .25rem;
+}
+
+.state-machine-transition-inspector__activity-copy strong,
+.state-machine-transition-inspector__condition strong {
+    font-size: .8125rem;
+    font-weight: 600;
+}
+
+.state-machine-transition-inspector__activity-copy span {
+    color: var(--mud-palette-text-secondary);
+    font-family: var(--mud-typography-default-family);
+    font-size: .6875rem;
+}
+
+.state-machine-transition-inspector__slot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .25rem;
+}
+
+.state-machine-transition-inspector__button {
+    min-height: 2.25rem;
+    padding: .375rem .625rem;
+    border: 1px solid transparent;
+    border-radius: var(--mud-default-borderradius);
+    background: transparent;
+    color: var(--mud-palette-primary);
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.state-machine-transition-inspector__button:hover {
+    border-color: var(--mud-palette-lines-default);
+    background: var(--mud-palette-action-default-hover);
+}
+
+.state-machine-transition-inspector__button--subtle {
+    color: var(--mud-palette-text-secondary);
+}
+
+.state-machine-transition-inspector__button--danger {
+    color: var(--mud-palette-error);
+}
+
+.state-machine-transition-inspector__button:focus-visible,
+.state-machine-transition-inspector__details summary:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.state-machine-transition-inspector__condition {
     padding: .75rem;
     border: 1px solid var(--mud-palette-lines-default);
     border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
-    font-size: .875rem;
+}
+
+.state-machine-transition-inspector__condition--warning,
+.state-machine-transition-inspector__activity-card--invalid {
+    border-color: var(--mud-palette-warning);
+}
+
+.state-machine-transition-inspector__condition--warning strong,
+.state-machine-transition-inspector__slot-warning {
+    color: var(--mud-palette-warning);
+}
+
+.state-machine-transition-inspector__slot-warning {
+    display: block;
+}
+
+.state-machine-transition-inspector__definition {
+    min-width: 0;
+}
+
+.state-machine-transition-inspector__definition summary,
+.state-machine-transition-inspector__details summary {
+    color: var(--mud-palette-primary);
+    cursor: pointer;
+    font-size: .75rem;
     font-weight: 600;
+    list-style-position: inside;
+}
+
+.state-machine-transition-inspector__definition pre {
+    max-height: 10rem;
+    margin: .5rem 0 0;
+    overflow: auto;
+    padding: .625rem;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+    background: var(--mud-palette-background-grey);
+    color: var(--mud-palette-text-secondary);
+    font-family: monospace;
+    font-size: .6875rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.state-machine-transition-inspector__details {
+    border-top: 1px solid var(--mud-palette-lines-default);
+    padding-top: .75rem;
+}
+
+.state-machine-transition-inspector__details summary {
+    justify-content: space-between;
+    gap: .75rem;
+    min-height: 2.25rem;
+}
+
+.state-machine-transition-inspector__details-route {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+    justify-content: flex-end;
+    font-family: monospace;
 }
 
 .state-machine-transition-inspector__fields,
@@ -59,17 +305,13 @@
 
 .state-machine-transition-inspector__fields {
     gap: 1rem;
+    padding-top: .875rem;
 }
 
 .state-machine-transition-inspector__field-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
-}
-
-.state-machine-transition-inspector__field-heading {
-    justify-content: space-between;
-    gap: .75rem;
 }
 
 .state-machine-transition-inspector__field label {
@@ -89,19 +331,11 @@
     font: inherit;
 }
 
-.state-machine-transition-inspector__control--code {
-    min-height: 7rem;
-    resize: vertical;
-    font-family: var(--mud-typography-default-family);
-    font-size: .8125rem;
-}
-
 .state-machine-transition-inspector__control:hover:not(:disabled) {
     border-color: var(--mud-palette-text-secondary);
 }
 
-.state-machine-transition-inspector__control:focus-visible,
-.state-machine-transition-inspector__button:focus-visible {
+.state-machine-transition-inspector__control:focus-visible {
     outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
@@ -109,27 +343,6 @@
 .state-machine-transition-inspector__control:disabled {
     background: var(--mud-palette-action-disabled-background);
     color: var(--mud-palette-action-disabled);
-}
-
-.state-machine-transition-inspector__button {
-    min-height: 2.25rem;
-    padding: .375rem .625rem;
-    border: 0;
-    border-radius: var(--mud-default-borderradius);
-    background: transparent;
-    color: var(--mud-palette-primary);
-    font: inherit;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.state-machine-transition-inspector__button:hover {
-    background: color-mix(in srgb, currentColor 8%, transparent);
-}
-
-.state-machine-transition-inspector__button--danger {
-    color: var(--mud-palette-error);
 }
 
 .state-machine-transition-inspector__empty,
@@ -150,8 +363,50 @@
     color: var(--mud-palette-error);
 }
 
+.state-machine-transition-inspector__issues > strong {
+    font-size: .8125rem;
+}
+
 @media (max-width: 700px) {
+    .state-machine-transition-inspector__stage {
+        grid-template-columns: minmax(0, 1fr);
+        gap: .5rem;
+    }
+
+    .state-machine-transition-inspector__stage-marker {
+        padding-top: 0;
+    }
+
+    .state-machine-transition-inspector__stage-heading {
+        align-items: flex-start;
+    }
+
+    .state-machine-transition-inspector__stage-note {
+        max-width: 45%;
+    }
+
+    .state-machine-transition-inspector__activity-card,
     .state-machine-transition-inspector__field-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .state-machine-transition-inspector__slot-actions {
+        justify-content: flex-start;
+    }
+
+    .state-machine-transition-inspector__details summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .state-machine-transition-inspector__details-route {
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .state-machine-transition-inspector * {
+        scroll-behavior: auto;
+        transition: none;
     }
 }
