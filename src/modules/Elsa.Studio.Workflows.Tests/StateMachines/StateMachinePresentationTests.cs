@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Bunit;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Microsoft.AspNetCore.Components.Web;
@@ -277,6 +278,35 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void TransitionInspector_PreservesUnknownAndMalformedJsonDuringInspection()
+    {
+        var trigger = new JsonObject { ["type"] = "Contoso.Trigger", ["opaque"] = new JsonObject { ["value"] = 42 } };
+        var condition = new JsonObject
+        {
+            [StateMachineDesignerConstants.InvalidJsonSlotProperty] = StateMachineDesignerConstants.InvalidJsonSlotMarkerValue,
+            [StateMachineDesignerConstants.InvalidJsonSlotSourceProperty] = "{ broken"
+        };
+        var action = JsonValue.Create("legacy-action");
+        var triggerSource = trigger.DeepClone();
+        var conditionSource = condition.DeepClone();
+        var actionSource = action.DeepClone();
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = trigger,
+            Condition = condition,
+            Action = action
+        };
+
+        Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+
+        Assert.True(JsonNode.DeepEquals(triggerSource, transition.Trigger));
+        Assert.True(JsonNode.DeepEquals(conditionSource, transition.Condition));
+        Assert.True(JsonNode.DeepEquals(actionSource, transition.Action));
+    }
+
+    [Fact]
     public void TransitionInspector_EmitsSemanticActivityCallbacksWithSlotNames()
     {
         var slots = new List<string>();
@@ -329,6 +359,79 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
         Assert.Empty(cut.FindAll("[data-slot-action='edit']"));
         Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
+    }
+
+    [Fact]
+    public void TransitionInspector_ReadOnlyModeAllowsOpenButNeverInvokesDropOrMutatesSlots()
+    {
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = new JsonObject { ["type"] = "Elsa.Event", ["payload"] = "keep-trigger" },
+            Action = new JsonObject { ["type"] = "Elsa.WriteLine", ["payload"] = "keep-action" }
+        };
+        var triggerSource = transition.Trigger.DeepClone();
+        var actionSource = transition.Action.DeepClone();
+        var opened = new List<string>();
+        var dropped = new List<string>();
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, transition)
+            .Add(component => component.IsReadOnly, true)
+            .Add(component => component.ActivityOpenRequested, slot => opened.Add(slot))
+            .Add(component => component.ActivityDropRequested, slot => dropped.Add(slot)));
+
+        cut.Find("[data-transition-slot='trigger'] [data-slot-action='open']").Click();
+        cut.Find("[data-transition-slot='action'] [data-slot-action='open']").Click();
+
+        Assert.Equal(["trigger", "action"], opened);
+        Assert.Empty(dropped);
+        Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
+        Assert.True(JsonNode.DeepEquals(triggerSource, transition.Trigger));
+        Assert.True(JsonNode.DeepEquals(actionSource, transition.Action));
+    }
+
+    [Fact]
+    public void TransitionInspector_UsesKeyboardButtonsWithStableAccessibleNamesForEveryMutationAction()
+    {
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = new JsonObject { ["type"] = "Elsa.Event" },
+            Condition = JsonValue.Create(true),
+            Action = new JsonObject { ["type"] = "Elsa.WriteLine" }
+        };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+
+        var actionButtons = cut.FindAll("[data-transition-slot] button");
+        Assert.NotEmpty(actionButtons);
+        Assert.All(actionButtons, button =>
+        {
+            Assert.Equal("button", button.GetAttribute("type"));
+            Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label")) && string.IsNullOrWhiteSpace(button.TextContent));
+        });
+
+        foreach (var action in new[] { "open", "replace", "clear" })
+        {
+            var triggerButton = cut.Find($"[data-transition-slot='trigger'] [data-slot-action='{action}']");
+            var activityButton = cut.Find($"[data-transition-slot='action'] [data-slot-action='{action}']");
+            Assert.False(string.IsNullOrWhiteSpace(triggerButton.GetAttribute("aria-label")));
+            Assert.False(string.IsNullOrWhiteSpace(activityButton.GetAttribute("aria-label")));
+        }
+
+        var emptyCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved" }));
+        foreach (var slot in new[] { "trigger", "action" })
+        {
+            var addButton = emptyCut.Find($"[data-transition-slot='{slot}'] [data-slot-action='add']");
+            Assert.Equal("button", addButton.GetAttribute("type"));
+            Assert.False(string.IsNullOrWhiteSpace(addButton.GetAttribute("aria-label")));
+        }
+
+        var conditionEdit = cut.Find("[data-transition-slot='condition'] [data-slot-action='edit']");
+        Assert.Equal("state-machine-transition-condition-edit", conditionEdit.GetAttribute("data-testid"));
+        Assert.Contains("Edit", conditionEdit.TextContent);
     }
 
     private sealed class TestLocalizer : ILocalizer
