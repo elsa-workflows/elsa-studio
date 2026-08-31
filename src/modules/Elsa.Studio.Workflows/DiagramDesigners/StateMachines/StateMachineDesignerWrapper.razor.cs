@@ -45,6 +45,7 @@ public partial class StateMachineDesignerWrapper
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public EventCallback<JsonObject> ActivitySelected { get; set; }
+    [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
     [Parameter] public EventCallback GraphUpdated { get; set; }
 
     [CascadingParameter] private DragDropManager DragDropManager { get; set; } = null!;
@@ -286,11 +287,19 @@ public partial class StateMachineDesignerWrapper
 
     private async Task OpenTransitionActivityAsync(string slotName)
     {
-        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || SelectedTransition is not { } transition)
+        if (_session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || SelectedTransition is not { } transition)
             return;
 
-        if (GetTransitionSlot(transition, slotName) is JsonObject activity && activity.IsActivity())
-            await SelectSlotActivityForPropertiesAsync(activity);
+        if (GetTransitionSlot(transition, slotName) is not JsonObject activity || !activity.IsActivity())
+            return;
+
+        if (string.Equals(activity.GetTypeName(), "Elsa.Sequence", StringComparison.Ordinal) && ActivityDoubleClick.HasDelegate)
+        {
+            await ActivityDoubleClick.InvokeAsync(activity);
+            return;
+        }
+
+        await SelectSlotActivityForPropertiesAsync(activity);
     }
 
     private async Task OpenTransitionActivityPickerAsync(string slotName, bool replacing)
@@ -693,7 +702,8 @@ public partial class StateMachineDesignerWrapper
         var slots = _session.Graph.States.SelectMany(x => new[] { x.Entry, x.Exit })
             .Concat(_session.Graph.Transitions.SelectMany(x => new[] { x.Trigger, x.Action }));
         foreach (var slot in slots)
-            if (slot is JsonObject activity && activity.IsActivity()) yield return activity;
+        foreach (var activity in EnumerateActivities(slot))
+            yield return activity;
     }
 
     private bool TryFindSlotActivity(string id, out JsonObject activity, out StateMachineStateNode? state, out StateMachineTransitionEdge? transition, out string? slotName)
@@ -702,13 +712,13 @@ public partial class StateMachineDesignerWrapper
         {
             foreach (var candidate in _session.Graph.States)
             {
-                if (TryMatchSlotActivity(candidate.Entry, id, out activity)) { state = candidate; transition = null; slotName = "entry"; return true; }
-                if (TryMatchSlotActivity(candidate.Exit, id, out activity)) { state = candidate; transition = null; slotName = "exit"; return true; }
+                if (TryFindActivity(candidate.Entry, id, out activity)) { state = candidate; transition = null; slotName = "entry"; return true; }
+                if (TryFindActivity(candidate.Exit, id, out activity)) { state = candidate; transition = null; slotName = "exit"; return true; }
             }
             foreach (var candidate in _session.Graph.Transitions)
             {
-                if (TryMatchSlotActivity(candidate.Trigger, id, out activity)) { state = null; transition = candidate; slotName = "trigger"; return true; }
-                if (TryMatchSlotActivity(candidate.Action, id, out activity)) { state = null; transition = candidate; slotName = "action"; return true; }
+                if (TryFindActivity(candidate.Trigger, id, out activity)) { state = null; transition = candidate; slotName = "trigger"; return true; }
+                if (TryFindActivity(candidate.Action, id, out activity)) { state = null; transition = candidate; slotName = "action"; return true; }
             }
         }
         activity = []; state = null; transition = null; slotName = null; return false;
@@ -719,13 +729,31 @@ public partial class StateMachineDesignerWrapper
         if (_session == null) return false;
         foreach (var state in _session.Graph.States)
         {
-            if (IsSlotActivityMatch(state.Entry, id, replacement)) { _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Entry, replacement); return true; }
-            if (IsSlotActivityMatch(state.Exit, id, replacement)) { _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Exit, replacement); return true; }
+            if (TryCreateUpdatedSlotValue(state.Entry, id, replacement, out var updatedEntry))
+            {
+                _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Entry, updatedEntry);
+                return true;
+            }
+
+            if (TryCreateUpdatedSlotValue(state.Exit, id, replacement, out var updatedExit))
+            {
+                _session.SetStateSlot(_session.GetStateVisualId(state), StateMachineStateSlot.Exit, updatedExit);
+                return true;
+            }
         }
         foreach (var transition in _session.Graph.Transitions)
         {
-            if (IsSlotActivityMatch(transition.Trigger, id, replacement)) { _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Trigger, replacement); return true; }
-            if (IsSlotActivityMatch(transition.Action, id, replacement)) { _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Action, replacement); return true; }
+            if (TryCreateUpdatedSlotValue(transition.Trigger, id, replacement, out var updatedTrigger))
+            {
+                _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Trigger, updatedTrigger);
+                return true;
+            }
+
+            if (TryCreateUpdatedSlotValue(transition.Action, id, replacement, out var updatedAction))
+            {
+                _session.SetTransitionSlot(_session.GetTransitionVisualId(transition), StateMachineTransitionSlot.Action, updatedAction);
+                return true;
+            }
         }
         return false;
     }
@@ -768,14 +796,103 @@ public partial class StateMachineDesignerWrapper
         _ => null
     };
 
-    private static bool TryMatchSlotActivity(JsonNode? slot, string id, out JsonObject activity)
+    private static bool TryFindActivity(JsonNode? node, string id, out JsonObject activity)
     {
-        if (slot is JsonObject obj && obj.IsActivity() && (obj.GetId() == id || obj.GetNodeId() == id)) { activity = obj; return true; }
-        activity = []; return false;
+        if (node is JsonObject obj)
+        {
+            if (obj.IsActivity() && (obj.GetId() == id || obj.GetNodeId() == id))
+            {
+                activity = obj;
+                return true;
+            }
+
+            foreach (var child in obj.Select(x => x.Value))
+            {
+                if (TryFindActivity(child, id, out activity))
+                    return true;
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            foreach (var child in array)
+            {
+                if (TryFindActivity(child, id, out activity))
+                    return true;
+            }
+        }
+
+        activity = [];
+        return false;
     }
 
-    private static bool IsSlotActivityMatch(JsonNode? slot, string id, JsonObject replacement) =>
-        slot is JsonObject obj && obj.IsActivity() && (ReferenceEquals(obj, replacement) || obj.GetId() == id || obj.GetNodeId() == id);
+    private static bool TryCreateUpdatedSlotValue(JsonNode? slot, string id, JsonObject replacement, out JsonNode? updated)
+    {
+        updated = slot?.DeepClone();
+        if (updated == null || !TryReplaceActivity(updated, id, replacement))
+        {
+            updated = null;
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool TryReplaceActivity(JsonNode node, string id, JsonObject replacement)
+    {
+        if (node is JsonObject obj)
+        {
+            if (obj.IsActivity() && (ReferenceEquals(obj, replacement) || obj.GetId() == id || obj.GetNodeId() == id))
+            {
+                ReplaceJsonObjectContents(obj, replacement);
+                return true;
+            }
+
+            foreach (var child in obj.Select(x => x.Value))
+            {
+                if (child != null && TryReplaceActivity(child, id, replacement))
+                    return true;
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            foreach (var child in array)
+            {
+                if (child != null && TryReplaceActivity(child, id, replacement))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<JsonObject> EnumerateActivities(JsonNode? node)
+    {
+        if (node is JsonObject obj)
+        {
+            if (obj.IsActivity())
+                yield return obj;
+
+            foreach (var child in obj.Select(x => x.Value))
+            foreach (var activity in EnumerateActivities(child))
+                yield return activity;
+        }
+        else if (node is JsonArray array)
+        {
+            foreach (var child in array)
+            foreach (var activity in EnumerateActivities(child))
+                yield return activity;
+        }
+    }
+
+    private static void ReplaceJsonObjectContents(JsonObject target, JsonObject replacement)
+    {
+        if (ReferenceEquals(target, replacement))
+            return;
+
+        target.Clear();
+        foreach (var property in replacement)
+            target[property.Key] = property.Value?.DeepClone();
+    }
 
     private static string? GetActivitySelectionId(JsonObject activity) => NormalizeOptional(activity.GetId()) ?? NormalizeOptional(activity.GetNodeId());
     private static string? NormalizeOptional(object? value) => string.IsNullOrWhiteSpace(value?.ToString()) ? null : value.ToString();

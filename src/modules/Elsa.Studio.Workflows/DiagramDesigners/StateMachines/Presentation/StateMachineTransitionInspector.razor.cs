@@ -148,14 +148,17 @@ public partial class StateMachineTransitionInspector
                 builder.CloseElement();
             }
 
-            if (!IsReadOnly)
+            if (activity.State != ActivityState.Malformed || !IsReadOnly)
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot-actions");
                 if (activity.State != ActivityState.Malformed)
                     AddSlotButton(builder, ref sequence, "open", Localizer["Open"], $"Open {slotName} activity", slotName, RequestActivityOpenAsync);
-                AddSlotButton(builder, ref sequence, "replace", Localizer["Replace"], $"Replace {slotName} activity", slotName, RequestActivityReplaceAsync);
-                AddSlotButton(builder, ref sequence, "clear", Localizer["Clear"], $"Clear {slotName} activity", slotName, RequestActivityClearAsync);
+                if (!IsReadOnly)
+                {
+                    AddSlotButton(builder, ref sequence, "replace", Localizer["Replace"], $"Replace {slotName} activity", slotName, RequestActivityReplaceAsync);
+                    AddSlotButton(builder, ref sequence, "clear", Localizer["Clear"], $"Clear {slotName} activity", slotName, RequestActivityClearAsync);
+                }
                 builder.CloseElement();
             }
 

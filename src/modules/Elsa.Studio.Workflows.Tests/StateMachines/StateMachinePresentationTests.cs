@@ -323,7 +323,10 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("WHEN", cut.Markup);
         Assert.Contains("Never", cut.Markup);
-        Assert.Empty(cut.FindAll("button"));
+        Assert.Equal(2, cut.FindAll("[data-slot-action='open']").Count);
+        Assert.Empty(cut.FindAll("[data-slot-action='add']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='replace']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
         Assert.Empty(cut.FindAll("[data-slot-action='edit']"));
         Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
     }
