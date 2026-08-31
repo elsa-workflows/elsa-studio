@@ -1,0 +1,103 @@
+@using Elsa.Api.Client.Resources.ActivityDescriptors.Models
+@using Elsa.Studio.Localization
+@using Variant = MudBlazor.Variant
+@inject ILocalizer Localizer
+
+<MudDialog Class="state-machine-activity-picker-dialog">
+    <DialogContent>
+        <section class="state-machine-activity-picker" data-testid="state-machine-activity-picker" aria-labelledby="@HeadingId">
+            <div class="state-machine-activity-picker__intro">
+                <p class="state-machine-activity-picker__eyebrow">@Localizer["Activity library"]</p>
+                <MudText Typo="Typo.h6" id="@HeadingId">@Localizer["Choose an activity"]</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@Localizer["Search by name, type, category, or what the activity does."]</MudText>
+            </div>
+
+            @if (_isLoading)
+            {
+                <div class="state-machine-activity-picker__state" role="status" aria-live="polite" data-picker-state="loading">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+                    <span>@Localizer["Loading activities…"]</span>
+                </div>
+            }
+            else if (_loadError != null)
+            {
+                <div class="state-machine-activity-picker__state state-machine-activity-picker__state--error" role="alert" data-picker-state="error">
+                    <strong>@Localizer["Activities could not be loaded"]</strong>
+                    <span>@Localizer["Close this dialog and try again."]</span>
+                </div>
+            }
+            else
+            {
+                <MudTextField T="string"
+                              @bind-Value="_searchText"
+                              Immediate="true"
+                              Clearable="true"
+                              InputId="@SearchInputId"
+                              Label="@Localizer["Search activities"]"
+                              Placeholder="@Localizer["Search by display name, type, category, or description"]"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Class="state-machine-activity-picker__search" />
+
+                @if (!FilteredDescriptors.Any())
+                {
+                    <div class="state-machine-activity-picker__state" role="status" data-picker-state="empty">
+                        <strong>@Localizer["No matching activities"]</strong>
+                        <span>@Localizer["Try a different name, type, category, or description."]</span>
+                    </div>
+                }
+                else
+                {
+                    @if (SequenceDescriptor != null && string.IsNullOrWhiteSpace(_searchText))
+                    {
+                        <button type="button"
+                                class="state-machine-activity-picker__quick-option"
+                                data-testid="state-machine-activity-picker-sequence"
+                                data-activity-type="@SequenceDescriptor.TypeName"
+                                @onclick="() => SelectAsync(SequenceDescriptor)">
+                            <span class="state-machine-activity-picker__quick-icon" aria-hidden="true">＋</span>
+                            <span>
+                                <strong>@Localizer["Run multiple activities"]</strong>
+                                <span>@Localizer["Add a Sequence to run more than one activity in this slot."]</span>
+                            </span>
+                        </button>
+                    }
+
+                    <div class="state-machine-activity-picker__groups" role="list" aria-label="@Localizer["Available activities"]">
+                        @foreach (var group in GroupedDescriptors)
+                        {
+                            <section class="state-machine-activity-picker__group" aria-labelledby="@GetGroupId(group.Key)">
+                                <h3 id="@GetGroupId(group.Key)">@DisplayCategory(group.Key)</h3>
+                                <div class="state-machine-activity-picker__options">
+                                    @foreach (var descriptor in group)
+                                    {
+                                        <button type="button"
+                                                class="state-machine-activity-picker__option"
+                                                data-testid="state-machine-activity-option"
+                                                data-activity-type="@descriptor.TypeName"
+                                                data-activity-name="@GetDisplayName(descriptor)"
+                                                @onclick="() => SelectAsync(descriptor)">
+                                            <span class="state-machine-activity-picker__option-copy">
+                                                <strong>@GetDisplayName(descriptor)</strong>
+                                                <span>@descriptor.TypeName</span>
+                                            </span>
+                                            @if (!string.IsNullOrWhiteSpace(descriptor.Description))
+                                            {
+                                                <span class="state-machine-activity-picker__option-description">@Localizer[descriptor.Description]</span>
+                                            }
+                                        </button>
+                                    }
+                                </div>
+                            </section>
+                        }
+                    </div>
+                }
+            }
+        </section>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>

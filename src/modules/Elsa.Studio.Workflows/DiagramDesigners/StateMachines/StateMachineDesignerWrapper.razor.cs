@@ -13,6 +13,7 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
@@ -51,6 +52,7 @@ public partial class StateMachineDesignerWrapper
     [Inject] private IActivityNameGenerator ActivityNameGenerator { get; set; } = null!;
     [Inject] private IStateMachineMapper StateMachineMapper { get; set; } = null!;
     [Inject] private StateMachineValidator StateMachineValidator { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
 
     private StateMachineStateNode? SelectedState =>
         _session != null && _selectedStateId != null ? TryGetState(_selectedStateId) : null;
@@ -272,10 +274,84 @@ public partial class StateMachineDesignerWrapper
 
     private async Task ClearTransitionSlotAsync(string slotName)
     {
-        if (_session == null || _selectedTransitionId == null || IsReadOnly)
+        if (_session == null || _selectedTransitionId == null || IsReadOnly || !IsTransitionActivitySlot(slotName))
             return;
         _session.SetTransitionSlot(_selectedTransitionId, ParseTransitionSlot(slotName), null);
         await ApplySessionChangesAndRefreshSlotAsync(slotName, false);
+    }
+
+    private Task AddTransitionActivityAsync(string slotName) => OpenTransitionActivityPickerAsync(slotName, false);
+
+    private Task ReplaceTransitionActivityAsync(string slotName) => OpenTransitionActivityPickerAsync(slotName, true);
+
+    private async Task OpenTransitionActivityAsync(string slotName)
+    {
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || SelectedTransition is not { } transition)
+            return;
+
+        if (GetTransitionSlot(transition, slotName) is JsonObject activity && activity.IsActivity())
+            await SelectSlotActivityForPropertiesAsync(activity);
+    }
+
+    private async Task OpenTransitionActivityPickerAsync(string slotName, bool replacing)
+    {
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName))
+            return;
+
+        var title = replacing ? Localizer[$"Replace {slotName} activity"] : Localizer[$"Add {slotName} activity"];
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        };
+        var dialog = await DialogService.ShowAsync<StateMachineActivityPickerDialog>(title, options);
+        var result = await dialog.Result;
+
+        // Do not touch the slot until the picker returns an explicit descriptor. In particular,
+        // cancelling Replace leaves the exact existing JSON object in place.
+        if (result is { Canceled: false, Data: ActivityDescriptor descriptor })
+            await ApplyTransitionActivityDescriptorAsync(slotName, descriptor);
+    }
+
+    private async Task OpenConditionEditorAsync(string slotName)
+    {
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || !string.Equals(slotName, "condition", StringComparison.Ordinal))
+            return;
+
+        var transitionId = _selectedTransitionId;
+        var transition = TryGetTransition(transitionId);
+        if (transition == null)
+            return;
+
+        var parameters = new DialogParameters<BooleanConditionEditorDialog>
+        {
+            { x => x.Condition, transition.Condition },
+            { x => x.IsReadOnly, IsReadOnly }
+        };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large,
+            Position = DialogPosition.Center
+        };
+        var dialog = await DialogService.ShowAsync<BooleanConditionEditorDialog>(Localizer["Edit transition condition"], parameters, options);
+        var result = await dialog.Result;
+
+        // The condition editor owns a local draft. A cancelled dialog, including Escape,
+        // must not enter the session mutation path. Applying Always uses null to clear the
+        // condition slot, so the result DTO also distinguishes that from cancellation.
+        if (result is not { Canceled: false, Data: BooleanConditionDialogResult { Applied: true } edit }
+            || _session == null
+            || TryGetTransition(transitionId) is not { } currentTransition
+            || JsonNode.DeepEquals(currentTransition.Condition, edit.Condition))
+            return;
+
+        _session.SetTransitionSlot(transitionId, StateMachineTransitionSlot.Condition, edit.Condition);
+        await ApplySessionChangesAsync();
     }
 
     private async Task OnStateSlotDropAsync(string slotName)
@@ -291,14 +367,27 @@ public partial class StateMachineDesignerWrapper
 
     private async Task OnTransitionSlotDropAsync(string slotName)
     {
-        if (IsReadOnly || _session == null || _selectedTransitionId == null || DragDropManager.Payload is not ActivityDescriptor descriptor || slotName == "condition")
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || DragDropManager.Payload is not ActivityDescriptor descriptor)
+            return;
+
+        await ApplyTransitionActivityDescriptorAsync(slotName, descriptor, clearDragPayload: true);
+    }
+
+    private async Task ApplyTransitionActivityDescriptorAsync(string slotName, ActivityDescriptor descriptor, bool clearDragPayload = false)
+    {
+        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName))
             return;
 
         var activity = CreateSlotActivity(descriptor);
         _session.SetTransitionSlot(_selectedTransitionId, ParseTransitionSlot(slotName), activity);
-        DragDropManager.Payload = null;
+        if (clearDragPayload)
+            DragDropManager.Payload = null;
         await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
     }
+
+    private static bool IsTransitionActivitySlot(string slotName) =>
+        string.Equals(slotName, "trigger", StringComparison.Ordinal) ||
+        string.Equals(slotName, "action", StringComparison.Ordinal);
 
     private async Task ApplySessionChangesAndRefreshSlotAsync(string slotName, bool selectSlot)
     {

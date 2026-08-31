@@ -161,9 +161,12 @@
                                                      DisplayNameChanged="SetTransitionDisplayNameAsync"
                                                      FromChanged="SetTransitionFromAsync"
                                                      ToChanged="SetTransitionToAsync"
-                                                     SlotChanged="SetTransitionSlotAsync"
-                                                     SlotCleared="ClearTransitionSlotAsync"
-                                                     SlotDropRequested="OnTransitionSlotDropAsync"
+                                                     ActivityAddRequested="AddTransitionActivityAsync"
+                                                     ActivityOpenRequested="OpenTransitionActivityAsync"
+                                                     ActivityReplaceRequested="ReplaceTransitionActivityAsync"
+                                                     ActivityClearRequested="ClearTransitionSlotAsync"
+                                                     ActivityDropRequested="OnTransitionSlotDropAsync"
+                                                     ConditionEditRequested="OpenConditionEditorAsync"
                                                      DeleteRequested="DeleteSelectedTransitionAsync" />
                 }
                 else

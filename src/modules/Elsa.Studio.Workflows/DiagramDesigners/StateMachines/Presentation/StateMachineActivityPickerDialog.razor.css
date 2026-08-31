@@ -1,0 +1,155 @@
+.state-machine-activity-picker {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    color: var(--mud-palette-text-primary);
+}
+
+.state-machine-activity-picker__intro,
+.state-machine-activity-picker__state,
+.state-machine-activity-picker__group,
+.state-machine-activity-picker__option,
+.state-machine-activity-picker__quick-option {
+    display: grid;
+    gap: .375rem;
+}
+
+.state-machine-activity-picker__intro p,
+.state-machine-activity-picker__intro h2,
+.state-machine-activity-picker__intro h3,
+.state-machine-activity-picker__intro h6,
+.state-machine-activity-picker__group h3,
+.state-machine-activity-picker__state strong,
+.state-machine-activity-picker__state span,
+.state-machine-activity-picker__option strong,
+.state-machine-activity-picker__option span,
+.state-machine-activity-picker__quick-option strong,
+.state-machine-activity-picker__quick-option span {
+    margin: 0;
+}
+
+.state-machine-activity-picker__eyebrow {
+    color: var(--mud-palette-primary);
+    font-size: .6875rem;
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+.state-machine-activity-picker__search {
+    min-width: 0;
+}
+
+.state-machine-activity-picker__groups {
+    display: grid;
+    gap: 1rem;
+    max-height: min(52vh, 32rem);
+    overflow-y: auto;
+    padding: .125rem .125rem .25rem;
+}
+
+.state-machine-activity-picker__group {
+    gap: .5rem;
+}
+
+.state-machine-activity-picker__group h3 {
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.state-machine-activity-picker__options {
+    display: grid;
+    gap: .5rem;
+}
+
+.state-machine-activity-picker__option,
+.state-machine-activity-picker__quick-option {
+    width: 100%;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+    background: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+    cursor: pointer;
+    padding: .75rem;
+    text-align: left;
+}
+
+.state-machine-activity-picker__option:hover,
+.state-machine-activity-picker__option:focus-visible {
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-action-default-hover);
+}
+
+.state-machine-activity-picker__quick-option {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-action-default-hover);
+}
+
+.state-machine-activity-picker__quick-option:hover,
+.state-machine-activity-picker__quick-option:focus-visible {
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-activity-picker__quick-icon {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text);
+    font-size: 1.25rem;
+}
+
+.state-machine-activity-picker__option-copy,
+.state-machine-activity-picker__quick-option > span:last-child {
+    display: grid;
+    gap: .125rem;
+    min-width: 0;
+}
+
+.state-machine-activity-picker__option-copy span,
+.state-machine-activity-picker__quick-option > span:last-child > span,
+.state-machine-activity-picker__option-description,
+.state-machine-activity-picker__state span {
+    color: var(--mud-palette-text-secondary);
+    font-size: .8125rem;
+}
+
+.state-machine-activity-picker__option-description {
+    line-height: 1.4;
+}
+
+.state-machine-activity-picker__state {
+    min-height: 8rem;
+    place-content: center;
+    justify-items: center;
+    padding: 1.5rem;
+    border: 1px dashed var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+    text-align: center;
+}
+
+.state-machine-activity-picker__state--error {
+    border-color: var(--mud-palette-error);
+}
+
+.state-machine-activity-picker__state--error strong {
+    color: var(--mud-palette-error);
+}
+
+button:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+    .state-machine-activity-picker__groups {
+        max-height: 48vh;
+    }
+}
