@@ -43,6 +43,7 @@ public partial class StateMachineDesignerWrapper
     private bool _showOutline;
     private bool _processingCanvasChange;
     private IReadOnlyCollection<string> _knownExpressionProviderTypes = ["JavaScript"];
+    private readonly List<string> _recentActivityTypes = [];
 
     [Parameter] public JsonObject StateMachine { get; set; } = [];
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
@@ -287,7 +288,7 @@ public partial class StateMachineDesignerWrapper
 
     private async Task ClearStateSlotAsync(string slotName)
     {
-        if (_session == null || _selectedStateId == null || IsReadOnly)
+        if (_session == null || _selectedStateId == null || IsReadOnly || !IsStateActivitySlot(slotName))
             return;
         _session.SetStateSlot(_selectedStateId, ParseStateSlot(slotName), null);
         await ApplySessionChangesAndRefreshSlotAsync(slotName, false);
@@ -301,9 +302,24 @@ public partial class StateMachineDesignerWrapper
         await ApplySessionChangesAndRefreshSlotAsync(slotName, false);
     }
 
-    private Task AddTransitionActivityAsync(string slotName) => OpenTransitionActivityPickerAsync(slotName, false);
+    private Task AddStateActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, false, true);
 
-    private Task ReplaceTransitionActivityAsync(string slotName) => OpenTransitionActivityPickerAsync(slotName, true);
+    private Task ReplaceStateActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, true, true);
+
+    private async Task OpenStateActivityAsync(string slotName)
+    {
+        if (_session == null || _selectedStateId == null || !IsStateActivitySlot(slotName) || SelectedState is not { } state)
+            return;
+
+        if (GetStateSlot(state, slotName) is not JsonObject activity || !activity.IsActivity())
+            return;
+
+        await OpenSlotActivityAsync(activity);
+    }
+
+    private Task AddTransitionActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, false, false);
+
+    private Task ReplaceTransitionActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, true, false);
 
     private async Task OpenTransitionActivityAsync(string slotName)
     {
@@ -313,34 +329,52 @@ public partial class StateMachineDesignerWrapper
         if (GetTransitionSlot(transition, slotName) is not JsonObject activity || !activity.IsActivity())
             return;
 
-        if (string.Equals(activity.GetTypeName(), "Elsa.Sequence", StringComparison.Ordinal) && ActivityDoubleClick.HasDelegate)
-        {
-            await ActivityDoubleClick.InvokeAsync(activity);
-            return;
-        }
-
-        await SelectSlotActivityForPropertiesAsync(activity);
+        await OpenSlotActivityAsync(activity);
     }
 
-    private async Task OpenTransitionActivityPickerAsync(string slotName, bool replacing)
+    private async Task OpenSlotActivityAsync(JsonObject activity)
     {
-        if (IsReadOnly || _session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName))
+        await SelectSlotActivityForPropertiesAsync(activity);
+
+        // Let the host decide whether the activity owns a nested designer. This supports
+        // Sequence as well as any other current or future composite activity.
+        if (ActivityDoubleClick.HasDelegate)
+            await ActivityDoubleClick.InvokeAsync(activity);
+    }
+
+    private async Task OpenActivityPickerAsync(string slotName, bool replacing, bool isStateSlot)
+    {
+        if (IsReadOnly || _session == null ||
+            (isStateSlot && (_selectedStateId == null || !IsStateActivitySlot(slotName))) ||
+            (!isStateSlot && (_selectedTransitionId == null || !IsTransitionActivitySlot(slotName))))
             return;
 
-        var title = replacing ? Localizer[$"Replace {slotName} activity"] : Localizer[$"Add {slotName} activity"];
+        var title = GetActivityPickerTitle(slotName, replacing);
+        var parameters = new DialogParameters<StateMachineActivityPickerDialog>
+        {
+            { x => x.SlotName, slotName },
+            { x => x.IsReplacing, replacing },
+            { x => x.RecentActivityTypes, _recentActivityTypes.ToArray() }
+        };
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
             CloseButton = true,
             FullWidth = true,
-            MaxWidth = MaxWidth.Medium
+            MaxWidth = MaxWidth.Large
         };
-        var dialog = await DialogService.ShowAsync<StateMachineActivityPickerDialog>(title, options);
+        var dialog = await DialogService.ShowAsync<StateMachineActivityPickerDialog>(title, parameters, options);
         var result = await dialog.Result;
 
         // Do not touch the slot until the picker returns an explicit descriptor. In particular,
         // cancelling Replace leaves the exact existing JSON object in place.
-        if (result is { Canceled: false, Data: ActivityDescriptor descriptor })
+        if (result is not { Canceled: false, Data: ActivityDescriptor descriptor })
+            return;
+
+        RememberRecentActivity(descriptor.TypeName);
+        if (isStateSlot)
+            await ApplyStateActivityDescriptorAsync(slotName, descriptor);
+        else
             await ApplyTransitionActivityDescriptorAsync(slotName, descriptor);
     }
 
@@ -385,12 +419,20 @@ public partial class StateMachineDesignerWrapper
 
     private async Task OnStateSlotDropAsync(string slotName)
     {
-        if (IsReadOnly || _session == null || _selectedStateId == null || DragDropManager.Payload is not ActivityDescriptor descriptor)
+        if (IsReadOnly || _session == null || _selectedStateId == null || !IsStateActivitySlot(slotName) || DragDropManager.Payload is not ActivityDescriptor descriptor)
             return;
 
-        var activity = CreateSlotActivity(descriptor);
-        _session.SetStateSlot(_selectedStateId, ParseStateSlot(slotName), activity);
-        DragDropManager.Payload = null;
+        await ApplyStateActivityDescriptorAsync(slotName, descriptor, clearDragPayload: true);
+    }
+
+    private async Task ApplyStateActivityDescriptorAsync(string slotName, ActivityDescriptor descriptor, bool clearDragPayload = false)
+    {
+        if (IsReadOnly || _session == null || _selectedStateId == null || !IsStateActivitySlot(slotName))
+            return;
+
+        _session.SetStateSlot(_selectedStateId, ParseStateSlot(slotName), CreateSlotActivity(descriptor));
+        if (clearDragPayload)
+            DragDropManager.Payload = null;
         await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
     }
 
@@ -417,6 +459,27 @@ public partial class StateMachineDesignerWrapper
     private static bool IsTransitionActivitySlot(string slotName) =>
         string.Equals(slotName, "trigger", StringComparison.Ordinal) ||
         string.Equals(slotName, "action", StringComparison.Ordinal);
+
+    private static bool IsStateActivitySlot(string slotName) =>
+        string.Equals(slotName, "entry", StringComparison.Ordinal) ||
+        string.Equals(slotName, "exit", StringComparison.Ordinal);
+
+    private void RememberRecentActivity(string activityType)
+    {
+        _recentActivityTypes.RemoveAll(x => string.Equals(x, activityType, StringComparison.Ordinal));
+        _recentActivityTypes.Insert(0, activityType);
+        if (_recentActivityTypes.Count > 8)
+            _recentActivityTypes.RemoveRange(8, _recentActivityTypes.Count - 8);
+    }
+
+    private string GetActivityPickerTitle(string slotName, bool replacing)
+    {
+        if (replacing)
+            return Localizer[$"Choose a replacement {slotName} activity"];
+
+        var article = string.Equals(slotName, "trigger", StringComparison.OrdinalIgnoreCase) ? "a" : "an";
+        return Localizer[$"Choose {article} {slotName} activity"];
+    }
 
     private async Task ApplySessionChangesAndRefreshSlotAsync(string slotName, bool selectSlot)
     {
@@ -560,6 +623,12 @@ public partial class StateMachineDesignerWrapper
 
     private Task RequestDeleteSelectedStateAsync() => _selectedStateId == null ? Task.CompletedTask : RequestDeleteStateAsync(_selectedStateId);
 
+    private Task ViewSelectedStateTransitionsAsync()
+    {
+        _showOutline = true;
+        return InvokeAsync(StateHasChanged);
+    }
+
     private async Task RequestDeleteStateAsync(string visualId)
     {
         if (IsReadOnly || _session == null || TryGetState(visualId) == null) return;
@@ -665,6 +734,20 @@ public partial class StateMachineDesignerWrapper
         var state = TryGetState(visualId);
         return state == null || _session == null ? 0 : _session.Graph.Transitions.Count(x => x.From == state.Name || x.To == state.Name);
     }
+
+    private bool IsSelectedStateInitial() =>
+        SelectedState != null && string.Equals(_session?.Graph.InitialState, SelectedState.Name, StringComparison.Ordinal);
+
+    private bool IsSelectedStateCurrent() =>
+        SelectedState != null && string.Equals(_session?.Graph.CurrentState, SelectedState.Name, StringComparison.Ordinal);
+
+    private int GetSelectedStateIncomingTransitionCount() => SelectedState == null || _session == null
+        ? 0
+        : _session.Graph.Transitions.Count(x => string.Equals(x.To, SelectedState.Name, StringComparison.Ordinal));
+
+    private int GetSelectedStateOutgoingTransitionCount() => SelectedState == null || _session == null
+        ? 0
+        : _session.Graph.Transitions.Count(x => string.Equals(x.From, SelectedState.Name, StringComparison.Ordinal));
 
     private IReadOnlyCollection<StateMachineValidationIssue> GetSelectedStateIssues() =>
         _session == null || SelectedState == null
