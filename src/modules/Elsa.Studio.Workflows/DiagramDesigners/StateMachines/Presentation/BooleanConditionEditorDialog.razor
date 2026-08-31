@@ -50,6 +50,13 @@
                 </div>
             }
 
+            @if (_providerLoadError != null)
+            {
+                <MudAlert Severity="Severity.Warning" Variant="MudVariant.Outlined" Dense="true" data-testid="condition-editor-provider-load-warning" role="status">
+                    @_providerLoadError
+                </MudAlert>
+            }
+
             @if (_mode == BooleanConditionEditorMode.Always)
             {
                 <MudAlert Severity="Severity.Info" Variant="MudVariant.Outlined" Dense="true">
@@ -82,11 +89,7 @@
             }
             else if (_mode == BooleanConditionEditorMode.Provider)
             {
-                @if (_providerLoadError != null)
-                {
-                    <MudAlert Severity="Severity.Warning" Variant="MudVariant.Outlined" Dense="true">@_providerLoadError</MudAlert>
-                }
-                else if (!HasProviders)
+                @if (!HasProviders)
                 {
                     <MudAlert Severity="Severity.Warning" Variant="MudVariant.Outlined" Dense="true">@Localizer["No expression providers are available. Use Custom JSON to preserve this condition."]</MudAlert>
                 }

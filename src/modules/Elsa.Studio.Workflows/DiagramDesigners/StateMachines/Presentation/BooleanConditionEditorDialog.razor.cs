@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Designer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
+using Refit;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 
@@ -78,6 +79,7 @@ public partial class BooleanConditionEditorDialog
         if (KnownExpressionProviders != null)
         {
             _providers = FilterProviders(KnownExpressionProviders);
+            _providerLoadError = null;
             return;
         }
 
@@ -86,14 +88,14 @@ public partial class BooleanConditionEditorDialog
             var descriptors = await ExpressionService.ListDescriptorsAsync();
             _providers = FilterProviders(descriptors);
         }
-        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ApiException)
         {
             _providers = [];
             _providerLoadError = "Expression providers could not be loaded. Use Custom JSON to preserve or repair this condition.";
         }
     }
 
-    private static IReadOnlyList<ExpressionDescriptor> FilterProviders(IEnumerable<ExpressionDescriptor> descriptors) =>
+    internal static IReadOnlyList<ExpressionDescriptor> FilterProviders(IEnumerable<ExpressionDescriptor> descriptors) =>
         descriptors
             .Where(x => x.IsBrowsable && !string.IsNullOrWhiteSpace(x.Type) && !NonProviderExpressionTypes.Contains(x.Type))
             .GroupBy(x => x.Type, StringComparer.OrdinalIgnoreCase)

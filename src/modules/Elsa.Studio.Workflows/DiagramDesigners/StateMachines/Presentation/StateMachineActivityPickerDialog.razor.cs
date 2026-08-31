@@ -46,7 +46,18 @@ public partial class StateMachineActivityPickerDialog
         try
         {
             await ActivityRegistry.EnsureLoadedAsync();
-            _descriptors = ActivityRegistry.ListBrowsable()
+            var descriptors = ActivityRegistry.List().ToList();
+            var browsableDescriptors = ActivityRegistry.ListBrowsable().ToList();
+
+            // Sequence is the editor's composition escape hatch. The backend may mark it
+            // non-browsable because it is normally opened through a designer, but it must
+            // still be available as the explicit multi-activity shortcut here.
+            var sequence = descriptors.FirstOrDefault(x => string.Equals(x.TypeName, "Elsa.Sequence", StringComparison.Ordinal))
+                           ?? ActivityRegistry.Find("Elsa.Sequence");
+            if (sequence != null && browsableDescriptors.All(x => !string.Equals(x.TypeName, sequence.TypeName, StringComparison.Ordinal)))
+                browsableDescriptors.Add(sequence);
+
+            _descriptors = browsableDescriptors
                 .OrderBy(GetDisplayName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.TypeName, StringComparer.OrdinalIgnoreCase)
                 .ToList();

@@ -135,9 +135,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             Name = "Approve",
             From = "Pending",
             To = "Approved",
-            Trigger = new JsonObject { ["type"] = "Elsa.Event" },
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
             Condition = JsonValue.Create(true),
-            Action = new JsonObject { ["type"] = "Elsa.WriteLine", ["text"] = "Approved" }
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1", ("text", "Approved"))
         };
         var states = new[]
         {
@@ -254,6 +254,59 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void TransitionInspector_PreservesCanonicalWrappedUnavailableProvider()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Liquid", ["value"] = "order.total > 0" }
+        };
+        var source = condition.ToJsonString();
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition }));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        Assert.Equal("unknown", summary.GetAttribute("data-condition-state"));
+        Assert.Contains("Liquid", summary.TextContent);
+        Assert.Contains("\"typeName\": \"Boolean\"", cut.Find("[data-testid='state-machine-transition-condition-definition']").TextContent);
+        Assert.Equal(source, condition.ToJsonString());
+    }
+
+    [Fact]
+    public void TransitionInspector_RecognizesProviderAdvertisedByTheBackend()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Liquid", ["value"] = "order.total > 0" }
+        };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition,
+                new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition })
+            .Add(component => component.KnownExpressionProviderTypes, ["JavaScript", "Liquid"]));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        Assert.Equal("expression", summary.GetAttribute("data-condition-state"));
+        Assert.Contains("Liquid", summary.TextContent);
+    }
+
+    [Fact]
+    public void TransitionInspector_ClassifiesPartialActivityAsMalformedAndDoesNotOfferOpen()
+    {
+        var action = new JsonObject { ["type"] = "Elsa.WriteLine", ["text"] = "incomplete" };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Action = action }));
+
+        var slot = "[data-transition-slot='action']";
+        Assert.Equal("malformed", cut.Find($"{slot} [data-activity-state]").GetAttribute("data-activity-state"));
+        Assert.Contains("incomplete", cut.Find($"{slot} [data-testid='state-machine-transition-action-definition']").TextContent);
+        Assert.Empty(cut.FindAll($"{slot} [data-slot-action='open']"));
+        Assert.NotEmpty(cut.FindAll($"{slot} [data-slot-action='replace']"));
+        Assert.NotEmpty(cut.FindAll($"{slot} [data-slot-action='clear']"));
+        Assert.Equal("Elsa.WriteLine", action["type"]!.GetValue<string>());
+    }
+
+    [Fact]
     public void TransitionInspector_PreservesMalformedAndUnknownDefinitionsForInspection()
     {
         var transition = new StateMachineTransitionEdge
@@ -314,8 +367,8 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         {
             From = "Pending",
             To = "Approved",
-            Trigger = new JsonObject { ["type"] = "Elsa.Event" },
-            Action = new JsonObject { ["type"] = "Elsa.WriteLine" }
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
         };
         var configuredCut = Render<StateMachineTransitionInspector>(parameters => parameters
             .Add(component => component.Transition, configured)
@@ -345,9 +398,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             {
                 From = "Pending",
                 To = "Approved",
-                Trigger = new JsonObject { ["type"] = "Elsa.Event" },
+                Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
                 Condition = JsonValue.Create(false),
-                Action = new JsonObject { ["type"] = "Elsa.WriteLine" }
+                Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
             })
             .Add(component => component.IsReadOnly, true));
 
@@ -368,8 +421,8 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         {
             From = "Pending",
             To = "Approved",
-            Trigger = new JsonObject { ["type"] = "Elsa.Event", ["payload"] = "keep-trigger" },
-            Action = new JsonObject { ["type"] = "Elsa.WriteLine", ["payload"] = "keep-action" }
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1", ("payload", "keep-trigger")),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1", ("payload", "keep-action"))
         };
         var triggerSource = transition.Trigger.DeepClone();
         var actionSource = transition.Action.DeepClone();
@@ -398,9 +451,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         {
             From = "Pending",
             To = "Approved",
-            Trigger = new JsonObject { ["type"] = "Elsa.Event" },
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
             Condition = JsonValue.Create(true),
-            Action = new JsonObject { ["type"] = "Elsa.WriteLine" }
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
         };
         var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
 
@@ -432,6 +485,21 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         var conditionEdit = cut.Find("[data-transition-slot='condition'] [data-slot-action='edit']");
         Assert.Equal("state-machine-transition-condition-edit", conditionEdit.GetAttribute("data-testid"));
         Assert.Contains("Edit", conditionEdit.TextContent);
+    }
+
+    private static JsonObject Activity(string type, string id, string nodeId, params (string Name, string Value)[] properties)
+    {
+        var activity = new JsonObject
+        {
+            ["type"] = type,
+            ["id"] = id,
+            ["nodeId"] = nodeId
+        };
+
+        foreach (var (name, value) in properties)
+            activity[name] = value;
+
+        return activity;
     }
 
     private sealed class TestLocalizer : ILocalizer

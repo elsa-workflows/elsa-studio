@@ -40,7 +40,16 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         TypeName = "Elsa.Sequence",
         Category = "Composition",
         Description = "Runs a sequence of activities.",
-        IsBrowsable = true
+        IsBrowsable = false
+    };
+
+    private readonly ActivityDescriptor _internalActivity = new()
+    {
+        Name = "InternalActivity",
+        DisplayName = "Internal activity",
+        TypeName = "Elsa.InternalActivity",
+        Category = "Internal",
+        IsBrowsable = false
     };
 
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
@@ -50,7 +59,7 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
-        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence]));
+        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence, _internalActivity]));
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -64,6 +73,7 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         var dialog = await ShowDialogAsync();
 
         _dialogProvider.WaitForAssertion(() => Assert.Equal(3, _dialogProvider.FindAll("[data-activity-type]").Count));
+        Assert.DoesNotContain(_dialogProvider.FindAll("[data-activity-type]"), element => element.GetAttribute("data-activity-type") == _internalActivity.TypeName);
         var search = _dialogProvider.Find("input[id*='state-machine-activity-picker']");
 
         search.Input("incoming");

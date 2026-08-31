@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Contracts;
@@ -14,6 +15,7 @@ using Elsa.Studio.Workflows.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Refit;
 using static Elsa.Studio.Workflows.Designer.StateMachineDesignerConstants;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
@@ -40,6 +42,7 @@ public partial class StateMachineDesignerWrapper
     private string? _newTransitionToId;
     private bool _showOutline;
     private bool _processingCanvasChange;
+    private IReadOnlyCollection<string> _knownExpressionProviderTypes = ["JavaScript"];
 
     [Parameter] public JsonObject StateMachine { get; set; } = [];
     [Parameter] public IDictionary<string, ActivityStats>? ActivityStats { get; set; }
@@ -54,12 +57,29 @@ public partial class StateMachineDesignerWrapper
     [Inject] private IStateMachineMapper StateMachineMapper { get; set; } = null!;
     [Inject] private StateMachineValidator StateMachineValidator { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IExpressionService ExpressionService { get; set; } = null!;
 
     private StateMachineStateNode? SelectedState =>
         _session != null && _selectedStateId != null ? TryGetState(_selectedStateId) : null;
 
     private StateMachineTransitionEdge? SelectedTransition =>
         _session != null && _selectedTransitionId != null ? TryGetTransition(_selectedTransitionId) : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _knownExpressionProviderTypes = BooleanConditionEditorDialog
+                .FilterProviders(await ExpressionService.ListDescriptorsAsync())
+                .Select(x => x.Type)
+                .ToArray();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ApiException)
+        {
+            // The editor dialog exposes the recoverable provider-load warning. Keep the
+            // inspector's safe built-in fallback until providers can be loaded there.
+        }
+    }
 
     protected override void OnParametersSet()
     {

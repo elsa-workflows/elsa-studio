@@ -14,12 +14,15 @@ namespace Elsa.Studio.Workflows.Tests.StateMachines;
 
 public sealed class BooleanConditionEditorDialogTests : BunitContext, IAsyncLifetime
 {
+    private readonly ExpressionServiceStub _expressionService;
+
     public BooleanConditionEditorDialogTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
-        Services.AddSingleton<IExpressionService>(new ExpressionServiceStub());
+        _expressionService = new ExpressionServiceStub();
+        Services.AddSingleton<IExpressionService>(_expressionService);
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -150,19 +153,39 @@ public sealed class BooleanConditionEditorDialogTests : BunitContext, IAsyncLife
         Assert.True((await reference.Result)?.Canceled);
     }
 
+    [Fact]
+    public async Task ProviderLoadFailure_ShowsRecoverableWarningAndKeepsCustomJsonAvailable()
+    {
+        _expressionService.ThrowOnList = true;
+        var original = JsonNode.Parse("{\"typeName\":\"Boolean\",\"expression\":{\"type\":\"Liquid\",\"value\":\"order.total > 0\"}}")!;
+
+        var (cut, reference) = await RenderDialog(original, providers: null, provideKnownProviders: false);
+
+        Assert.NotEmpty(cut.FindAll("[data-testid='condition-editor-provider-load-warning']"));
+        Assert.Contains("Custom JSON", cut.Find("button[data-mode='custom']").TextContent);
+        Assert.Equal("custom", cut.Find("button.state-machine-condition-editor__mode--selected").GetAttribute("data-mode"));
+        var renderedSource = cut.Find("textarea[data-testid='condition-editor-custom-json']").GetAttribute("value");
+        Assert.NotNull(renderedSource);
+        Assert.True(JsonNode.DeepEquals(original, JsonNode.Parse(renderedSource!)));
+
+        cut.Find("button[data-testid='condition-editor-cancel']").Click();
+        Assert.True((await reference.Result)?.Canceled);
+    }
+
     private async Task<(IRenderedComponent<MudDialogProvider> Host, IDialogReference Reference)> RenderDialog(
         JsonNode? condition,
         bool readOnly = false,
-        IReadOnlyCollection<ExpressionDescriptor>? providers = null)
+        IReadOnlyCollection<ExpressionDescriptor>? providers = null,
+        bool provideKnownProviders = true)
     {
         var host = Render<MudDialogProvider>();
-        providers ??= [new ExpressionDescriptor("JavaScript", "JavaScript")];
         var parameters = new DialogParameters<BooleanConditionEditorDialog>
         {
             { x => x.Condition, condition },
-            { x => x.IsReadOnly, readOnly },
-            { x => x.KnownExpressionProviders, providers }
+            { x => x.IsReadOnly, readOnly }
         };
+        if (provideKnownProviders)
+            parameters.Add(x => x.KnownExpressionProviders, providers ?? [new ExpressionDescriptor("JavaScript", "JavaScript")]);
         var reference = await Services.GetRequiredService<IDialogService>().ShowAsync<BooleanConditionEditorDialog>("Edit condition", parameters);
         host.WaitForElement("[data-testid='condition-editor']");
         return (host, reference);
@@ -170,8 +193,12 @@ public sealed class BooleanConditionEditorDialogTests : BunitContext, IAsyncLife
 
     private sealed class ExpressionServiceStub : IExpressionService
     {
+        public bool ThrowOnList { get; set; }
+
         public Task<IEnumerable<ExpressionDescriptor>> ListDescriptorsAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IEnumerable<ExpressionDescriptor>>([new("JavaScript", "JavaScript")]);
+            ThrowOnList
+                ? Task.FromException<IEnumerable<ExpressionDescriptor>>(new HttpRequestException("provider service unavailable"))
+                : Task.FromResult<IEnumerable<ExpressionDescriptor>>([new("JavaScript", "JavaScript")]);
 
         public Task<ExpressionDescriptor?> GetByTypeAsync(string type, CancellationToken cancellationToken = default) =>
             Task.FromResult<ExpressionDescriptor?>(new(type, type));

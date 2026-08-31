@@ -10,12 +10,14 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 
 public partial class StateMachineTransitionInspector
 {
+    private static readonly IReadOnlyCollection<string> DefaultKnownExpressionProviderTypes = ["JavaScript"];
     private readonly string _id = $"state-machine-transition-inspector-{Guid.NewGuid():N}";
 
     [Parameter] public StateMachineTransitionEdge? Transition { get; set; }
     [Parameter] public IReadOnlyCollection<StateMachineStateNode> States { get; set; } = [];
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public IReadOnlyCollection<StateMachineValidationIssue> ValidationIssues { get; set; } = [];
+    [Parameter] public IReadOnlyCollection<string> KnownExpressionProviderTypes { get; set; } = DefaultKnownExpressionProviderTypes;
     [Parameter] public EventCallback<string?> NameChanged { get; set; }
     [Parameter] public EventCallback<string?> DisplayNameChanged { get; set; }
     [Parameter] public EventCallback<string> FromChanged { get; set; }
@@ -251,6 +253,9 @@ public partial class StateMachineTransitionInspector
         if (string.IsNullOrWhiteSpace(typeName))
             return new(ActivityState.Malformed, Localizer["Unavailable activity definition"], Localizer["The activity type is missing."], rawDefinition);
 
+        if (string.IsNullOrWhiteSpace(GetString(obj, "id")) || string.IsNullOrWhiteSpace(GetString(obj, "nodeId")))
+            return new(ActivityState.Malformed, Localizer["Incomplete activity definition"], Localizer["An activity id and node ID are required."], rawDefinition);
+
         var title = FirstNonEmpty(GetString(obj, "displayName"), GetString(obj, "name"), typeName)!;
         var version = GetString(obj, "version");
         var detail = string.IsNullOrWhiteSpace(version) ? typeName : $"{typeName} · v{version}";
@@ -259,7 +264,7 @@ public partial class StateMachineTransitionInspector
 
     private ConditionPresentation DescribeCondition(JsonNode? value)
     {
-        var description = BooleanConditionAdapter.Inspect(value);
+        var description = BooleanConditionAdapter.Inspect(value, KnownExpressionProviderTypes ?? DefaultKnownExpressionProviderTypes);
         return description.Kind switch
         {
             BooleanConditionKind.Missing => new(
