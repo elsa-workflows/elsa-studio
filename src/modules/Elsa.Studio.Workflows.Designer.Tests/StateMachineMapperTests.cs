@@ -62,6 +62,20 @@ public class StateMachineMapperTests
         Assert.Null(activity["transitions"]![0]!["condition"]);
     }
 
+    [Theory]
+    [InlineData("{\"type\":\"Contoso.Condition\",\"payload\":{\"opaque\":true}}")]
+    [InlineData("{\"$invalidJson\":\"Elsa.Studio.Workflows.StateMachineDesigner.InvalidJsonSlot\",\"source\":\"{ broken\"}")]
+    public void Map_PreservesUnknownOrMalformedConditionOnNoOpRoundTrip(string conditionJson)
+    {
+        var source = CreateActivity();
+        source["transitions"]![0]!["condition"] = JsonNode.Parse(conditionJson);
+
+        var graph = _mapper.Map(source);
+        var activity = _mapper.Map(graph);
+
+        Assert.True(JsonNode.DeepEquals(source["transitions"]![0]!["condition"], activity["transitions"]![0]!["condition"]));
+    }
+
     [Fact]
     public void Map_RemovesBlankOptionalStateProperties()
     {

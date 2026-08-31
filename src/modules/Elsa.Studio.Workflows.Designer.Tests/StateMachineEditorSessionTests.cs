@@ -143,6 +143,42 @@ public class StateMachineEditorSessionTests
     }
 
     [Fact]
+    public void SetTransitionCondition_ChangesOnlyConditionAndPreservesOtherTransitionJson()
+    {
+        var activity = CreateActivity();
+        activity["transitions"]![0]!["trigger"] = new JsonObject
+        {
+            ["id"] = "Trigger1", ["nodeId"] = "Machine1:Trigger1", ["name"] = "Event", ["type"] = "Elsa.Event", ["version"] = 1, ["opaque"] = true
+        };
+        activity["transitions"]![0]!["condition"] = new JsonObject { ["type"] = "Contoso.Condition", ["payload"] = "keep" };
+        activity["transitions"]![0]!["action"] = new JsonObject
+        {
+            ["id"] = "Action1", ["nodeId"] = "Machine1:Action1", ["name"] = "WriteLine", ["type"] = "Elsa.WriteLine", ["version"] = 1, ["text"] = "before"
+        };
+        var session = CreateSession(activity);
+        var transition = session.ProjectCanvas().Transitions.Single();
+        var before = session.Export();
+        var replacement = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Literal", ["value"] = false }
+        };
+
+        session.SetTransitionSlot(transition.VisualId, StateMachineTransitionSlot.Condition, replacement);
+        replacement["expression"]!["value"] = true;
+
+        var after = session.Export();
+        var beforeTransition = before["transitions"]![0]!.AsObject();
+        var afterTransition = after["transitions"]![0]!.AsObject();
+        Assert.True(JsonNode.DeepEquals(before["unknownRoot"], after["unknownRoot"]));
+        Assert.True(JsonNode.DeepEquals(before["states"], after["states"]));
+        Assert.True(JsonNode.DeepEquals(beforeTransition["trigger"], afterTransition["trigger"]));
+        Assert.True(JsonNode.DeepEquals(beforeTransition["action"], afterTransition["action"]));
+        Assert.Equal("transition-value", afterTransition["unknownTransition"]!.GetValue<string>());
+        Assert.False(afterTransition["condition"]!["expression"]!["value"]!.GetValue<bool>());
+    }
+
+    [Fact]
     public void AddState_AfterDeletion_DoesNotReuseAnOccupiedDefaultPosition()
     {
         var session = CreateSession(CreateActivity());

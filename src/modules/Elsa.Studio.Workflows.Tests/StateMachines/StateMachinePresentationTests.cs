@@ -1,8 +1,10 @@
 using System.Text.Json.Nodes;
 using Bunit;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Xunit;
@@ -126,41 +128,378 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void TransitionInspector_EmitsRouteAndSlotChangesWithExplicitlyLabelledControls()
+    public void TransitionInspector_RendersExecutionStoryAndSemanticSlotSummaries()
     {
         var transition = new StateMachineTransitionEdge
         {
             Name = "Approve",
             From = "Pending",
-            To = "Approved"
+            To = "Approved",
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
+            Condition = JsonValue.Create(true),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1", ("text", "Approved"))
         };
         var states = new[]
         {
             new StateMachineStateNode { Name = "Pending" },
             new StateMachineStateNode { Name = "Approved" }
         };
+        string? editedCondition = null;
         string? changedFrom = null;
         string? changedName = "not-called";
-        StateMachineSlotValueChange? changedSlot = null;
         var cut = Render<StateMachineTransitionInspector>(parameters => parameters
             .Add(component => component.Transition, transition)
             .Add(component => component.States, states)
+            .Add(component => component.ConditionEditRequested, value => editedCondition = value)
             .Add(component => component.FromChanged, value => changedFrom = value)
-            .Add(component => component.NameChanged, value => changedName = value)
-            .Add(component => component.SlotChanged, value => changedSlot = value));
+            .Add(component => component.NameChanged, value => changedName = value));
 
-        var fromSelect = cut.Find("select[id$='-from']");
-        Assert.Equal("From", cut.Find($"label[for='{fromSelect.Id}']").TextContent);
+        var markup = cut.Markup;
+        Assert.True(markup.IndexOf("WHEN", StringComparison.Ordinal) < markup.IndexOf("ONLY IF", StringComparison.Ordinal));
+        Assert.True(markup.IndexOf("ONLY IF", StringComparison.Ordinal) < markup.IndexOf("THEN", StringComparison.Ordinal));
+        Assert.True(markup.IndexOf("THEN", StringComparison.Ordinal) < markup.IndexOf("TO", StringComparison.Ordinal));
+        Assert.Equal(4, cut.FindAll("[data-transition-slot]").Count);
+        Assert.Contains("Elsa.Event", cut.Find("[data-transition-slot='trigger']").TextContent);
+        Assert.Contains("Elsa.WriteLine", cut.Find("[data-transition-slot='action']").TextContent);
+        Assert.Equal("always", cut.Find("[data-transition-slot='condition'] [data-condition-state]").GetAttribute("data-condition-state"));
+        Assert.NotEmpty(cut.FindAll("[data-slot-action='open']"));
+        Assert.NotEmpty(cut.FindAll("[data-slot-action='replace']"));
+        Assert.NotEmpty(cut.FindAll("[data-slot-action='clear']"));
 
-        fromSelect.Change("Approved");
+        cut.Find("select[id$='-from']").Change("Approved");
         cut.Find("input[id$='-name']").Change("");
-        cut.Find("textarea[id$='-condition']").Change("{\"type\":\"Boolean\"}");
+        cut.Find("[data-transition-slot='condition'] [data-slot-action='edit']").Click();
 
         Assert.Equal("Approved", changedFrom);
         Assert.Null(changedName);
-        Assert.Equal("condition", changedSlot?.SlotName);
-        Assert.Equal("{\"type\":\"Boolean\"}", changedSlot?.Value);
+        Assert.Equal("condition", editedCondition);
+        Assert.True(transition.Condition!.GetValue<bool>());
         Assert.Equal("Pending", transition.From);
+        Assert.DoesNotContain("textarea", cut.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TransitionInspector_DescribesMissingAndFalseConditionsWithoutMutatingThem()
+    {
+        var missing = new StateMachineTransitionEdge { From = "Pending", To = "Approved" };
+        var missingCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, missing));
+
+        Assert.Contains("No trigger configured", missingCut.Find("[data-transition-slot='trigger']").TextContent);
+        Assert.Contains("evaluates immediately", missingCut.Find("[data-transition-slot='trigger']").TextContent);
+        Assert.Equal("missing", missingCut.Find("[data-transition-slot='condition'] [data-condition-state]").GetAttribute("data-condition-state"));
+        Assert.Contains("Always", missingCut.Find("[data-transition-slot='condition']").TextContent);
+        Assert.Null(missing.Condition);
+
+        var falseCondition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Condition = JsonValue.Create(false)
+        };
+        var falseCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, falseCondition));
+
+        var condition = falseCut.Find("[data-transition-slot='condition']");
+        Assert.Equal("never", condition.QuerySelector("[data-condition-state]")!.GetAttribute("data-condition-state"));
+        Assert.Contains("Never", condition.TextContent);
+        Assert.Contains("cannot pass", condition.TextContent);
+        Assert.False(falseCondition.Condition!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void TransitionInspector_DescribesCanonicalWrappedBooleanConditionsWithoutNormalizingThem()
+    {
+        var trueCondition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Literal", ["value"] = true }
+        };
+        var falseCondition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Literal", ["value"] = false }
+        };
+        var trueSource = trueCondition.ToJsonString();
+        var falseSource = falseCondition.ToJsonString();
+
+        var trueCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = trueCondition }));
+        var falseCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = falseCondition }));
+
+        Assert.Equal("always", trueCut.Find("[data-condition-state]").GetAttribute("data-condition-state"));
+        Assert.Contains("Always", trueCut.Find("[data-testid='state-machine-transition-condition-summary']").TextContent);
+        Assert.Equal("never", falseCut.Find("[data-condition-state]").GetAttribute("data-condition-state"));
+        Assert.Contains("Never", falseCut.Find("[data-testid='state-machine-transition-condition-summary']").TextContent);
+        Assert.Equal(trueSource, trueCondition.ToJsonString());
+        Assert.Equal(falseSource, falseCondition.ToJsonString());
+    }
+
+    [Fact]
+    public void TransitionInspector_DescribesCanonicalWrappedProviderExpression()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "JavaScript", ["value"] = "context.input === true" }
+        };
+        var source = condition.ToJsonString();
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition }));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        Assert.Equal("expression", summary.GetAttribute("data-condition-state"));
+        Assert.Contains("JavaScript", summary.TextContent);
+        Assert.Contains("context.input === true", summary.TextContent);
+        Assert.Equal(source, condition.ToJsonString());
+    }
+
+    [Fact]
+    public void TransitionInspector_PreservesCanonicalWrappedUnavailableProvider()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Liquid", ["value"] = "order.total > 0" }
+        };
+        var source = condition.ToJsonString();
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition }));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        Assert.Equal("unknown", summary.GetAttribute("data-condition-state"));
+        Assert.Contains("Liquid", summary.TextContent);
+        Assert.Contains("\"typeName\": \"Boolean\"", cut.Find("[data-testid='state-machine-transition-condition-definition']").TextContent);
+        Assert.Equal(source, condition.ToJsonString());
+    }
+
+    [Fact]
+    public void TransitionInspector_RecognizesProviderAdvertisedByTheBackend()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "Liquid", ["value"] = "order.total > 0" }
+        };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition,
+                new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition })
+            .Add(component => component.KnownExpressionProviderTypes, ["JavaScript", "Liquid"]));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        Assert.Equal("expression", summary.GetAttribute("data-condition-state"));
+        Assert.Contains("Liquid", summary.TextContent);
+    }
+
+    [Fact]
+    public void TransitionInspector_ClassifiesPartialActivityAsMalformedAndDoesNotOfferOpen()
+    {
+        var action = new JsonObject { ["type"] = "Elsa.WriteLine", ["text"] = "incomplete" };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Action = action }));
+
+        var slot = "[data-transition-slot='action']";
+        Assert.Equal("malformed", cut.Find($"{slot} [data-activity-state]").GetAttribute("data-activity-state"));
+        Assert.Contains("incomplete", cut.Find($"{slot} [data-testid='state-machine-transition-action-definition']").TextContent);
+        Assert.Empty(cut.FindAll($"{slot} [data-slot-action='open']"));
+        Assert.NotEmpty(cut.FindAll($"{slot} [data-slot-action='replace']"));
+        Assert.NotEmpty(cut.FindAll($"{slot} [data-slot-action='clear']"));
+        Assert.Equal("Elsa.WriteLine", action["type"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void TransitionInspector_PreservesMalformedAndUnknownDefinitionsForInspection()
+    {
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = new JsonObject { ["id"] = "LegacyTrigger", ["payload"] = "keep-me" },
+            Condition = new JsonObject { ["type"] = "Contoso.CustomCondition", ["payload"] = "keep-me" },
+            Action = JsonValue.Create("not-an-activity")
+        };
+
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+
+        Assert.Equal("malformed", cut.Find("[data-transition-slot='trigger'] [data-activity-state]").GetAttribute("data-activity-state"));
+        Assert.Contains("keep-me", cut.Find("[data-testid='state-machine-transition-trigger-definition']").TextContent);
+        Assert.Equal("unknown", cut.Find("[data-transition-slot='condition'] [data-condition-state]").GetAttribute("data-condition-state"));
+        Assert.Contains("Contoso.CustomCondition", cut.Find("[data-testid='state-machine-transition-condition-definition']").TextContent);
+        Assert.Equal("malformed", cut.Find("[data-transition-slot='action'] [data-activity-state]").GetAttribute("data-activity-state"));
+        Assert.Contains("not-an-activity", cut.Find("[data-testid='state-machine-transition-action-definition']").TextContent);
+        Assert.NotEmpty(cut.FindAll("[data-transition-slot='trigger'] [data-slot-action='replace']"));
+        Assert.Empty(cut.FindAll("[data-transition-slot='trigger'] [data-slot-action='open']"));
+    }
+
+    [Fact]
+    public void TransitionInspector_PreservesUnknownAndMalformedJsonDuringInspection()
+    {
+        var trigger = new JsonObject { ["type"] = "Contoso.Trigger", ["opaque"] = new JsonObject { ["value"] = 42 } };
+        var condition = new JsonObject
+        {
+            [StateMachineDesignerConstants.InvalidJsonSlotProperty] = StateMachineDesignerConstants.InvalidJsonSlotMarkerValue,
+            [StateMachineDesignerConstants.InvalidJsonSlotSourceProperty] = "{ broken"
+        };
+        var action = JsonValue.Create("legacy-action");
+        var triggerSource = trigger.DeepClone();
+        var conditionSource = condition.DeepClone();
+        var actionSource = action.DeepClone();
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = trigger,
+            Condition = condition,
+            Action = action
+        };
+
+        Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+
+        Assert.True(JsonNode.DeepEquals(triggerSource, transition.Trigger));
+        Assert.True(JsonNode.DeepEquals(conditionSource, transition.Condition));
+        Assert.True(JsonNode.DeepEquals(actionSource, transition.Action));
+    }
+
+    [Fact]
+    public void TransitionInspector_EmitsSemanticActivityCallbacksWithSlotNames()
+    {
+        var slots = new List<string>();
+        var configured = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
+        };
+        var configuredCut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, configured)
+            .Add(component => component.ActivityOpenRequested, slot => slots.Add($"open:{slot}"))
+            .Add(component => component.ActivityReplaceRequested, slot => slots.Add($"replace:{slot}"))
+            .Add(component => component.ActivityClearRequested, slot => slots.Add($"clear:{slot}"))
+            .Add(component => component.ActivityDropRequested, slot => slots.Add($"drop:{slot}")));
+
+        configuredCut.Find("[data-transition-slot='trigger'] [data-slot-action='open']").Click();
+        configuredCut.Find("[data-transition-slot='action'] [data-slot-action='replace']").Click();
+        configuredCut.Find("[data-transition-slot='action'] [data-slot-action='clear']").Click();
+        configuredCut.Find("[data-transition-slot='trigger'] [data-slot-action='drop']").TriggerEvent("ondrop", new DragEventArgs());
+
+        var emptyCut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, new StateMachineTransitionEdge { From = "Pending", To = "Approved" })
+            .Add(component => component.ActivityAddRequested, slot => slots.Add($"add:{slot}")));
+        emptyCut.Find("[data-transition-slot='action'] [data-slot-action='add']").Click();
+
+        Assert.Equal(["open:trigger", "replace:action", "clear:action", "drop:trigger", "add:action"], slots);
+    }
+
+    [Fact]
+    public void TransitionInspector_ReadOnlyModeRetainsInspectionButSuppressesMutationControlsAndDrops()
+    {
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, new StateMachineTransitionEdge
+            {
+                From = "Pending",
+                To = "Approved",
+                Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
+                Condition = JsonValue.Create(false),
+                Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
+            })
+            .Add(component => component.IsReadOnly, true));
+
+        Assert.Contains("WHEN", cut.Markup);
+        Assert.Contains("Never", cut.Markup);
+        Assert.Equal(2, cut.FindAll("[data-slot-action='open']").Count);
+        Assert.Empty(cut.FindAll("[data-slot-action='add']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='replace']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='edit']"));
+        Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
+    }
+
+    [Fact]
+    public void TransitionInspector_ReadOnlyModeAllowsOpenButNeverInvokesDropOrMutatesSlots()
+    {
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1", ("payload", "keep-trigger")),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1", ("payload", "keep-action"))
+        };
+        var triggerSource = transition.Trigger.DeepClone();
+        var actionSource = transition.Action.DeepClone();
+        var opened = new List<string>();
+        var dropped = new List<string>();
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, transition)
+            .Add(component => component.IsReadOnly, true)
+            .Add(component => component.ActivityOpenRequested, slot => opened.Add(slot))
+            .Add(component => component.ActivityDropRequested, slot => dropped.Add(slot)));
+
+        cut.Find("[data-transition-slot='trigger'] [data-slot-action='open']").Click();
+        cut.Find("[data-transition-slot='action'] [data-slot-action='open']").Click();
+
+        Assert.Equal(["trigger", "action"], opened);
+        Assert.Empty(dropped);
+        Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
+        Assert.True(JsonNode.DeepEquals(triggerSource, transition.Trigger));
+        Assert.True(JsonNode.DeepEquals(actionSource, transition.Action));
+    }
+
+    [Fact]
+    public void TransitionInspector_UsesKeyboardButtonsWithStableAccessibleNamesForEveryMutationAction()
+    {
+        var transition = new StateMachineTransitionEdge
+        {
+            From = "Pending",
+            To = "Approved",
+            Trigger = Activity("Elsa.Event", "Trigger1", "Workflow1:Trigger1"),
+            Condition = JsonValue.Create(true),
+            Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
+        };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+
+        var actionButtons = cut.FindAll("[data-transition-slot] button");
+        Assert.NotEmpty(actionButtons);
+        Assert.All(actionButtons, button =>
+        {
+            Assert.Equal("button", button.GetAttribute("type"));
+            Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label")) && string.IsNullOrWhiteSpace(button.TextContent));
+        });
+
+        foreach (var action in new[] { "open", "replace", "clear" })
+        {
+            var triggerButton = cut.Find($"[data-transition-slot='trigger'] [data-slot-action='{action}']");
+            var activityButton = cut.Find($"[data-transition-slot='action'] [data-slot-action='{action}']");
+            Assert.False(string.IsNullOrWhiteSpace(triggerButton.GetAttribute("aria-label")));
+            Assert.False(string.IsNullOrWhiteSpace(activityButton.GetAttribute("aria-label")));
+        }
+
+        var emptyCut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved" }));
+        foreach (var slot in new[] { "trigger", "action" })
+        {
+            var addButton = emptyCut.Find($"[data-transition-slot='{slot}'] [data-slot-action='add']");
+            Assert.Equal("button", addButton.GetAttribute("type"));
+            Assert.False(string.IsNullOrWhiteSpace(addButton.GetAttribute("aria-label")));
+        }
+
+        var conditionEdit = cut.Find("[data-transition-slot='condition'] [data-slot-action='edit']");
+        Assert.Equal("state-machine-transition-condition-edit", conditionEdit.GetAttribute("data-testid"));
+        Assert.Contains("Edit", conditionEdit.TextContent);
+    }
+
+    private static JsonObject Activity(string type, string id, string nodeId, params (string Name, string Value)[] properties)
+    {
+        var activity = new JsonObject
+        {
+            ["type"] = type,
+            ["id"] = id,
+            ["nodeId"] = nodeId
+        };
+
+        foreach (var (name, value) in properties)
+            activity[name] = value;
+
+        return activity;
     }
 
     private sealed class TestLocalizer : ILocalizer

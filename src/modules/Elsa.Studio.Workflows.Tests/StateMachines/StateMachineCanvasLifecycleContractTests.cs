@@ -40,6 +40,18 @@ public sealed class StateMachineCanvasLifecycleContractTests
         Assert.Contains("public Task AutoLayoutAsync() => IsReadOnly", canvas, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TransitionInspector_UsesSemanticPickerCallbacksAndExcludesConditionFromActivityDrops()
+    {
+        var wrapper = ReadAsset("StateMachineDesignerWrapper.razor");
+
+        Assert.Contains("ActivityAddRequested=\"AddTransitionActivityAsync\"", wrapper, StringComparison.Ordinal);
+        Assert.Contains("ActivityOpenRequested=\"OpenTransitionActivityAsync\"", wrapper, StringComparison.Ordinal);
+        Assert.Contains("ActivityReplaceRequested=\"ReplaceTransitionActivityAsync\"", wrapper, StringComparison.Ordinal);
+        Assert.Contains("ActivityClearRequested=\"ClearTransitionSlotAsync\"", wrapper, StringComparison.Ordinal);
+        Assert.Contains("ActivityDropRequested=\"OnTransitionSlotDropAsync\"", wrapper, StringComparison.Ordinal);
+    }
+
     private static string ReadAsset(string name) =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "DesignerAssets", name));
 }
