@@ -72,7 +72,9 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
     {
         var dialog = await ShowDialogAsync();
 
-        _dialogProvider.WaitForAssertion(() => Assert.Equal(3, _dialogProvider.FindAll("[data-activity-type]").Count));
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal)).Click();
+        Assert.Equal(3, _dialogProvider.FindAll("[data-activity-type]").Count);
         Assert.DoesNotContain(_dialogProvider.FindAll("[data-activity-type]"), element => element.GetAttribute("data-activity-type") == _internalActivity.TypeName);
         var search = _dialogProvider.Find("input[id*='state-machine-activity-picker']");
 
@@ -101,7 +103,12 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
 
         Assert.False(dialog.Result.IsCompleted);
         _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal)).Click();
         _dialogProvider.Find("[data-testid='state-machine-activity-option'][data-activity-type='Elsa.WriteLine']").Click();
+
+        Assert.False(dialog.Result.IsCompleted);
+        Assert.Contains("Write line", _dialogProvider.Find(".state-machine-activity-picker__details").TextContent);
+        _dialogProvider.Find("[data-testid='state-machine-activity-picker-commit']").Click();
 
         var result = await dialog.Result;
         Assert.False(result?.Canceled);
@@ -113,17 +120,90 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
     {
         var dialog = await ShowDialogAsync();
 
-        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-picker-sequence']")));
-        _dialogProvider.Find("[data-testid='state-machine-activity-picker-sequence']").Click();
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-activity-type='Elsa.Sequence']")));
+        var sequence = _dialogProvider.Find("[data-activity-type='Elsa.Sequence']");
+        Assert.Contains("Recommended", sequence.TextContent);
+        sequence.Click();
+        Assert.False(dialog.Result.IsCompleted);
+        _dialogProvider.Find("[data-testid='state-machine-activity-picker-commit']").Click();
 
         var result = await dialog.Result;
         Assert.Same(_sequence, result?.Data);
     }
 
-    private async Task<IDialogReference> ShowDialogAsync()
+    [Theory]
+    [InlineData("trigger", "Choose a trigger activity", "WHEN", "Starts the transition")]
+    [InlineData("action", "Choose an action activity", "THEN", "Runs after source exit")]
+    [InlineData("entry", "Choose an entry activity", "ON ENTRY", "Runs when this state becomes active")]
+    [InlineData("exit", "Choose an exit activity", "ON EXIT", "Runs before an accepted transition leaves this state")]
+    public async Task Picker_ExplainsTheSlotContext(string slotName, string heading, string kicker, string description)
+    {
+        var dialog = await ShowDialogAsync(slotName);
+
+        _dialogProvider.WaitForAssertion(() => Assert.Contains(heading, _dialogProvider.Markup));
+        Assert.Contains(kicker, _dialogProvider.Markup);
+        Assert.Contains(description, _dialogProvider.Markup);
+
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Cancel").Click();
+        Assert.True((await dialog.Result)?.Canceled);
+    }
+
+    [Fact]
+    public async Task Picker_ExposesRecentAndCategoryViewsAndSupportsKeyboardCommit()
+    {
+        var dialog = await ShowDialogAsync("action", ["Elsa.WriteLine"]);
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("button")));
+        var recent = _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("Recent", StringComparison.Ordinal));
+        Assert.False(recent.HasAttribute("disabled"));
+        recent.Click();
+        Assert.Single(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']"));
+        Assert.Contains("Write line", _dialogProvider.Find("[data-testid='state-machine-activity-option']").TextContent);
+
+        _dialogProvider.Find("input[id*='state-machine-activity-picker']").KeyDown("Enter");
+        var result = await dialog.Result;
+        Assert.Same(_writeLine, result?.Data);
+    }
+
+    [Fact]
+    public async Task Picker_EnterOnAFilterDoesNotCommitTheCurrentSelection()
+    {
+        var dialog = await ShowDialogAsync();
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("button")));
+        var allActivities = _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal));
+        allActivities.KeyDown("Enter");
+
+        Assert.False(dialog.Result.IsCompleted);
+    }
+
+    [Fact]
+    public async Task Picker_UsesReplacementLanguageWhenReplacingAnActivity()
+    {
+        var dialog = await ShowDialogAsync(isReplacing: true);
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal)).Click();
+        _dialogProvider.Find("[data-testid='state-machine-activity-option'][data-activity-type='Elsa.WriteLine']").Click();
+
+        Assert.Contains("Replace with Write line", _dialogProvider.Find("[data-testid='state-machine-activity-picker-commit']").TextContent);
+        Assert.False(dialog.Result.IsCompleted);
+    }
+
+    private async Task<IDialogReference> ShowDialogAsync(
+        string slotName = "action",
+        IReadOnlyCollection<string>? recentActivityTypes = null,
+        bool isReplacing = false)
     {
         var dialogService = Services.GetRequiredService<IDialogService>();
-        return await _dialogProvider.InvokeAsync(() => dialogService.ShowAsync<StateMachineActivityPickerDialog>("Add action"));
+        var parameters = new DialogParameters<StateMachineActivityPickerDialog>
+        {
+            { x => x.SlotName, slotName },
+            { x => x.IsReplacing, isReplacing },
+            { x => x.RecentActivityTypes, recentActivityTypes ?? [] }
+        };
+        var article = slotName == "trigger" ? "a" : "an";
+        return await _dialogProvider.InvokeAsync(() => dialogService.ShowAsync<StateMachineActivityPickerDialog>($"Choose {article} {slotName} activity", parameters));
     }
 
     private sealed class ActivityRegistryStub(IEnumerable<ActivityDescriptor> activities) : IActivityRegistry

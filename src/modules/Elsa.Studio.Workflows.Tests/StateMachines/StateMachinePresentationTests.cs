@@ -84,47 +84,75 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void StateInspector_AssociatesLabelsAndEmitsEditsWithoutMutatingTheModel()
+    public void StateInspector_RendersLifecycleAndEmitsSemanticActionsWithoutMutatingTheModel()
     {
         var state = new StateMachineStateNode
         {
             Name = "Pending",
-            Entry = new JsonObject { ["type"] = "WriteLine" }
+            Entry = Activity("Elsa.WriteLine", "Entry1", "Workflow1:Entry1")
         };
         string? changedName = null;
-        StateMachineSlotValueChange? changedSlot = null;
-        string? clearedSlot = null;
+        var actions = new List<string>();
+        var viewedTransitions = false;
         var cut = Render<StateMachineStateInspector>(parameters => parameters
             .Add(component => component.State, state)
+            .Add(component => component.IsInitial, true)
+            .Add(component => component.IsCurrent, true)
+            .Add(component => component.IncomingTransitionCount, 1)
+            .Add(component => component.OutgoingTransitionCount, 2)
             .Add(component => component.NameChanged, value => changedName = value)
-            .Add(component => component.SlotChanged, value => changedSlot = value)
-            .Add(component => component.SlotCleared, value => clearedSlot = value));
+            .Add(component => component.ActivityOpenRequested, slot => actions.Add($"open:{slot}"))
+            .Add(component => component.ActivityReplaceRequested, slot => actions.Add($"replace:{slot}"))
+            .Add(component => component.ActivityClearRequested, slot => actions.Add($"clear:{slot}"))
+            .Add(component => component.ActivityAddRequested, slot => actions.Add($"add:{slot}"))
+            .Add(component => component.ActivityDropRequested, slot => actions.Add($"drop:{slot}"))
+            .Add(component => component.ViewTransitionsRequested, () => viewedTransitions = true));
 
         var nameInput = cut.Find("input[id$='-name']");
         var nameLabel = cut.Find($"label[for='{nameInput.Id}']");
         Assert.Equal("Name", nameLabel.TextContent);
+        var markup = cut.Markup;
+        Assert.True(markup.IndexOf("ON ENTRY", StringComparison.Ordinal) < markup.IndexOf("ACTIVE", StringComparison.Ordinal));
+        Assert.True(markup.IndexOf("ACTIVE", StringComparison.Ordinal) < markup.IndexOf("ON EXIT", StringComparison.Ordinal));
+        Assert.Contains("Initial", cut.Find("[aria-label='State status']").TextContent);
+        Assert.Contains("Current", cut.Find("[aria-label='State status']").TextContent);
+        Assert.Contains("2 outgoing transitions", cut.Find("[data-state-stage='active']").TextContent);
+        Assert.Contains("Elsa.WriteLine", cut.Find("[data-state-stage='entry']").TextContent);
+        Assert.Contains("No exit activity configured", cut.Find("[data-state-stage='exit']").TextContent);
 
         nameInput.Change("Review");
-        cut.Find("textarea[id$='-entry']").Change("{\"type\":\"RunTask\"}");
-        cut.Find("textarea[id$='-entry']").ParentElement!.QuerySelector("button")!.Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='open']").Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='replace']").Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='clear']").Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='drop']").TriggerEvent("ondrop", new DragEventArgs());
+        cut.Find("[data-state-stage='exit'] [data-slot-action='add']").Click();
+        cut.Find("[data-testid='state-machine-state-view-transitions']").Click();
 
         Assert.Equal("Review", changedName);
         Assert.Equal("Pending", state.Name);
-        Assert.Equal("entry", changedSlot?.SlotName);
-        Assert.Equal("{\"type\":\"RunTask\"}", changedSlot?.Value);
-        Assert.Equal("entry", clearedSlot);
+        Assert.Equal(["open:entry", "replace:entry", "clear:entry", "drop:entry", "add:exit"], actions);
+        Assert.True(viewedTransitions);
+        Assert.DoesNotContain("textarea", cut.Markup, StringComparison.Ordinal);
     }
 
     [Fact]
     public void StateInspector_ReadOnlyModeSuppressesDestructiveActionsAndDisablesFields()
     {
         var cut = Render<StateMachineStateInspector>(parameters => parameters
-            .Add(component => component.State, new StateMachineStateNode { Name = "Pending" })
+            .Add(component => component.State, new StateMachineStateNode
+            {
+                Name = "Pending",
+                Entry = Activity("Elsa.WriteLine", "Entry1", "Workflow1:Entry1")
+            })
             .Add(component => component.IsReadOnly, true));
 
         Assert.True(cut.Find("input[id$='-name']").HasAttribute("disabled"));
-        Assert.True(cut.Find("textarea[id$='-entry']").HasAttribute("disabled"));
-        Assert.Empty(cut.FindAll("button"));
+        Assert.Single(cut.FindAll("[data-slot-action='open']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='add']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='replace']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
+        Assert.Empty(cut.FindAll("[data-testid='state-machine-state-delete']"));
+        Assert.All(cut.FindAll("[data-slot-action='drop']"), element => Assert.False(element.HasAttribute("ondrop")));
     }
 
     [Fact]

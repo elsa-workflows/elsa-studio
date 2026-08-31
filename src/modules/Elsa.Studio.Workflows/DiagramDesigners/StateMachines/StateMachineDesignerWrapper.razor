@@ -144,11 +144,18 @@
                 {
                     <StateMachineStateInspector State="@SelectedState"
                                                 IsReadOnly="@IsReadOnly"
+                                                IsInitial="@IsSelectedStateInitial()"
+                                                IsCurrent="@IsSelectedStateCurrent()"
+                                                IncomingTransitionCount="@GetSelectedStateIncomingTransitionCount()"
+                                                OutgoingTransitionCount="@GetSelectedStateOutgoingTransitionCount()"
                                                 ValidationIssues="@GetSelectedStateIssues()"
                                                 NameChanged="RenameSelectedStateAsync"
-                                                SlotChanged="SetStateSlotAsync"
-                                                SlotCleared="ClearStateSlotAsync"
-                                                SlotDropRequested="OnStateSlotDropAsync"
+                                                ActivityAddRequested="AddStateActivityAsync"
+                                                ActivityOpenRequested="OpenStateActivityAsync"
+                                                ActivityReplaceRequested="ReplaceStateActivityAsync"
+                                                ActivityClearRequested="ClearStateSlotAsync"
+                                                ActivityDropRequested="OnStateSlotDropAsync"
+                                                ViewTransitionsRequested="ViewSelectedStateTransitionsAsync"
                                                 DeleteRequested="RequestDeleteSelectedStateAsync" />
                 }
                 else if (SelectedTransition != null)

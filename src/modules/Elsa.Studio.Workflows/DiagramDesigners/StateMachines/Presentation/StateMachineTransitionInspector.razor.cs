@@ -3,7 +3,6 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
@@ -72,104 +71,6 @@ public partial class StateMachineTransitionInspector
         return string.IsNullOrWhiteSpace(text) ? null : text;
     }
 
-    private RenderFragment RenderActivitySlot(string slotName, JsonNode? value, bool isTrigger) => builder =>
-    {
-        var activity = DescribeActivity(value);
-        var sequence = 0;
-
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot");
-        builder.AddAttribute(sequence++, "data-slot-state", activity.State.ToString().ToLowerInvariant());
-        builder.AddAttribute(sequence++, "data-slot-action", "drop");
-        builder.AddAttribute(sequence++, "aria-label", Localizer[$"{slotName} activity slot"]);
-
-        if (!IsReadOnly)
-        {
-            builder.AddAttribute(sequence++, "ondragover", EventCallback.Factory.Create<DragEventArgs>(this, OnDragOverAsync));
-            builder.AddEventPreventDefaultAttribute(sequence++, "ondragover", true);
-            builder.AddAttribute(sequence++, "ondrop", EventCallback.Factory.Create<DragEventArgs>(this, _ => RequestActivityDropAsync(slotName)));
-            builder.AddEventPreventDefaultAttribute(sequence++, "ondrop", true);
-        }
-
-        if (activity.State == ActivityState.Empty)
-        {
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot-empty");
-            builder.AddAttribute(sequence++, "data-testid", $"state-machine-transition-{slotName}-empty");
-            builder.OpenElement(sequence++, "strong");
-            builder.AddContent(sequence++, isTrigger ? Localizer["No trigger configured"] : Localizer["No action configured"]);
-            builder.CloseElement();
-            builder.OpenElement(sequence++, "span");
-            builder.AddContent(sequence++, isTrigger
-                ? Localizer["This transition evaluates immediately after source entry."]
-                : Localizer["No activity runs between source exit and the target state."]);
-            builder.CloseElement();
-            if (!IsReadOnly)
-                AddSlotButton(builder, ref sequence, "add", isTrigger ? Localizer["Add trigger"] : Localizer["Add action"], $"Add {slotName} activity", slotName, RequestActivityAddAsync);
-            builder.CloseElement();
-        }
-        else
-        {
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", activity.State == ActivityState.Malformed
-                ? "state-machine-transition-inspector__activity-card state-machine-transition-inspector__activity-card--invalid"
-                : "state-machine-transition-inspector__activity-card");
-            builder.AddAttribute(sequence++, "data-testid", $"state-machine-transition-{slotName}-activity");
-            builder.AddAttribute(sequence++, "data-activity-state", activity.State.ToString().ToLowerInvariant());
-
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__activity-copy");
-            builder.OpenElement(sequence++, "strong");
-            builder.AddContent(sequence++, activity.Title);
-            builder.CloseElement();
-            builder.OpenElement(sequence++, "span");
-            builder.AddContent(sequence++, activity.Detail);
-            builder.CloseElement();
-            builder.CloseElement();
-
-            if (activity.State == ActivityState.Malformed)
-            {
-                builder.OpenElement(sequence++, "p");
-                builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot-warning");
-                builder.AddAttribute(sequence++, "role", "status");
-                builder.AddContent(sequence++, Localizer["This definition is invalid and will be preserved until you replace or clear it."]);
-                builder.CloseElement();
-            }
-
-            if (!string.IsNullOrWhiteSpace(activity.RawDefinition))
-            {
-                builder.OpenElement(sequence++, "details");
-                builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__definition");
-                builder.OpenElement(sequence++, "summary");
-                builder.AddContent(sequence++, Localizer["View definition"]);
-                builder.CloseElement();
-                builder.OpenElement(sequence++, "pre");
-                builder.AddAttribute(sequence++, "data-testid", $"state-machine-transition-{slotName}-definition");
-                builder.AddContent(sequence++, activity.RawDefinition);
-                builder.CloseElement();
-                builder.CloseElement();
-            }
-
-            if (activity.State != ActivityState.Malformed || !IsReadOnly)
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot-actions");
-                if (activity.State != ActivityState.Malformed)
-                    AddSlotButton(builder, ref sequence, "open", Localizer["Open"], $"Open {slotName} activity", slotName, RequestActivityOpenAsync);
-                if (!IsReadOnly)
-                {
-                    AddSlotButton(builder, ref sequence, "replace", Localizer["Replace"], $"Replace {slotName} activity", slotName, RequestActivityReplaceAsync);
-                    AddSlotButton(builder, ref sequence, "clear", Localizer["Clear"], $"Clear {slotName} activity", slotName, RequestActivityClearAsync);
-                }
-                builder.CloseElement();
-            }
-
-            builder.CloseElement();
-        }
-
-        builder.CloseElement();
-    };
-
     private RenderFragment RenderCondition(JsonNode? value) => builder =>
     {
         var condition = DescribeCondition(value);
@@ -213,54 +114,6 @@ public partial class StateMachineTransitionInspector
 
         builder.CloseElement();
     };
-
-    private void AddSlotButton(
-        RenderTreeBuilder builder,
-        ref int sequence,
-        string action,
-        string text,
-        string ariaLabel,
-        string slotName,
-        Func<string, Task> callback)
-    {
-        builder.OpenElement(sequence++, "button");
-        builder.AddAttribute(sequence++, "type", "button");
-        builder.AddAttribute(sequence++, "class", action == "clear"
-            ? "state-machine-transition-inspector__button state-machine-transition-inspector__button--subtle"
-            : "state-machine-transition-inspector__button");
-        builder.AddAttribute(sequence++, "data-slot-action", action);
-        builder.AddAttribute(sequence++, "aria-label", Localizer[ariaLabel]);
-        builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => callback(slotName)));
-        builder.AddContent(sequence++, text);
-        builder.CloseElement();
-    }
-
-    private static Task OnDragOverAsync(DragEventArgs _) => Task.CompletedTask;
-
-    private ActivityPresentation DescribeActivity(JsonNode? value)
-    {
-        if (value == null)
-            return new(ActivityState.Empty, string.Empty, string.Empty, string.Empty);
-
-        var rawDefinition = StateMachinePresentationFormatter.JsonSlot(value);
-        if (value is not JsonObject obj)
-            return new(ActivityState.Malformed, Localizer["Invalid activity definition"], Localizer["Expected an activity object."], rawDefinition);
-
-        if (StateMachineDesignerConstants.IsInvalidJsonSlotMarker(obj))
-            return new(ActivityState.Malformed, Localizer["Invalid activity definition"], Localizer["The original source is preserved."], rawDefinition);
-
-        var typeName = GetString(obj, "type");
-        if (string.IsNullOrWhiteSpace(typeName))
-            return new(ActivityState.Malformed, Localizer["Unavailable activity definition"], Localizer["The activity type is missing."], rawDefinition);
-
-        if (string.IsNullOrWhiteSpace(GetString(obj, "id")) || string.IsNullOrWhiteSpace(GetString(obj, "nodeId")))
-            return new(ActivityState.Malformed, Localizer["Incomplete activity definition"], Localizer["An activity id and node ID are required."], rawDefinition);
-
-        var title = FirstNonEmpty(GetString(obj, "displayName"), GetString(obj, "name"), typeName)!;
-        var version = GetString(obj, "version");
-        var detail = string.IsNullOrWhiteSpace(version) ? typeName : $"{typeName} · v{version}";
-        return new(ActivityState.Configured, Localizer[title], detail, rawDefinition);
-    }
 
     private ConditionPresentation DescribeCondition(JsonNode? value)
     {
@@ -307,15 +160,6 @@ public partial class StateMachineTransitionInspector
         ? text
         : null;
 
-    private static string? FirstNonEmpty(params string?[] values) => values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
-
-    private enum ActivityState
-    {
-        Empty,
-        Configured,
-        Malformed
-    }
-
     private enum ConditionState
     {
         Missing,
@@ -325,8 +169,6 @@ public partial class StateMachineTransitionInspector
         Unknown,
         Malformed
     }
-
-    private sealed record ActivityPresentation(ActivityState State, string Title, string Detail, string RawDefinition);
 
     private sealed record ConditionPresentation(ConditionState State, string Title, string Detail, string RawDefinition, string Warning);
 }

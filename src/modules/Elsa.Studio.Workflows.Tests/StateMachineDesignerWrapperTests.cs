@@ -144,6 +144,29 @@ public class StateMachineDesignerWrapperTests
     }
 
     [Fact]
+    public async Task OpenStateSequence_UsesTheSameNestedDesignerNavigation()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var sequence = root["transitions"]![0]!["action"]!.DeepClone();
+        root["states"]![0]!["entry"] = sequence;
+        var session = CreateSession(root);
+        var stateId = session.ProjectCanvas().States.Single(x => x.Name == "Pending").VisualId;
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedStateId", stateId);
+        JsonObject? opened = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivityDoubleClick),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => opened = activity));
+
+        await InvokePrivateAsync(wrapper, "OpenStateActivityAsync", "entry");
+
+        Assert.NotNull(opened);
+        Assert.Equal("Elsa.Sequence", opened!.GetTypeName());
+        Assert.Equal("Sequence1", opened.GetId());
+    }
+
+    [Fact]
     public async Task SelectActivityAsync_SelectsNestedSequenceChildInTheOwningAction()
     {
         var root = CreateNestedSequenceStateMachine();

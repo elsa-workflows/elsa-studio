@@ -37,7 +37,18 @@
                         </div>
                         <span class="state-machine-transition-inspector__stage-note">@Localizer["Starts the transition"]</span>
                     </div>
-                    @RenderActivitySlot("trigger", Transition.Trigger, true)
+                    <StateMachineActivitySlot SlotName="trigger"
+                                              TestIdPrefix="state-machine-transition"
+                                              Value="@Transition.Trigger"
+                                              EmptyTitle="@Localizer["No trigger configured"]"
+                                              EmptyDescription="@Localizer["This transition evaluates immediately after source entry."]"
+                                              AddLabel="@Localizer["Add trigger"]"
+                                              IsReadOnly="@IsReadOnly"
+                                              AddRequested="RequestActivityAddAsync"
+                                              OpenRequested="RequestActivityOpenAsync"
+                                              ReplaceRequested="RequestActivityReplaceAsync"
+                                              ClearRequested="RequestActivityClearAsync"
+                                              DropRequested="RequestActivityDropAsync" />
                 </div>
             </section>
 
@@ -78,7 +89,18 @@
                         </div>
                         <span class="state-machine-transition-inspector__stage-note">@Localizer["Runs after source exit"]</span>
                     </div>
-                    @RenderActivitySlot("action", Transition.Action, false)
+                    <StateMachineActivitySlot SlotName="action"
+                                              TestIdPrefix="state-machine-transition"
+                                              Value="@Transition.Action"
+                                              EmptyTitle="@Localizer["No action configured"]"
+                                              EmptyDescription="@Localizer["No activity runs between source exit and the target state."]"
+                                              AddLabel="@Localizer["Add action"]"
+                                              IsReadOnly="@IsReadOnly"
+                                              AddRequested="RequestActivityAddAsync"
+                                              OpenRequested="RequestActivityOpenAsync"
+                                              ReplaceRequested="RequestActivityReplaceAsync"
+                                              ClearRequested="RequestActivityClearAsync"
+                                              DropRequested="RequestActivityDropAsync" />
                 </div>
             </section>
 
