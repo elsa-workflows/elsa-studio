@@ -135,6 +135,29 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.Equal("auditors", provider.FindComponent<DeleteRoleDialog>().Instance.RoleId));
     }
 
+    [Fact]
+    public void SuccessfulAdvancedGrantClearsAnEarlierValidationError()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.Find("input[placeholder='workflows/*:view or *']").Change("not-a-grant");
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        Assert.Contains("Enter a valid grant", cut.Markup);
+
+        cut.Find("input[placeholder='workflows/*:view or *']").Change("workflows/*:view");
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.DoesNotContain("Enter a valid grant", cut.Markup);
+            Assert.Contains("workflows/*:view", cut.Markup);
+        });
+    }
+
     private void Register(IRolesApi roles, IPermissionsApi permissions)
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));

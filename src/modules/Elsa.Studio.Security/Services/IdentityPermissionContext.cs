@@ -1,4 +1,5 @@
 using System.Net;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
@@ -11,7 +12,7 @@ namespace Elsa.Studio.Security.Services;
 /// Loads the current caller's effective permissions once per Studio scope.
 /// </summary>
 public sealed class IdentityPermissionContext(
-    IMePermissionsApi api,
+    IBackendApiClientProvider apiClientProvider,
     ILogger<IdentityPermissionContext> logger) : IIdentityPermissionContext
 {
     private readonly SemaphoreSlim _loadLock = new(1, 1);
@@ -30,6 +31,7 @@ public sealed class IdentityPermissionContext(
 
             try
             {
+                var api = await apiClientProvider.GetApiAsync<IMePermissionsApi>(cancellationToken);
                 var response = await api.GetAsync(cancellationToken);
                 var grants = response.Grants
                     .GroupBy(x => x.Resource, StringComparer.Ordinal)

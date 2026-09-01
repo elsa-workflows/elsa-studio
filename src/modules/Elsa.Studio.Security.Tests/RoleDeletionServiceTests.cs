@@ -20,7 +20,7 @@ public sealed class RoleDeletionServiceTests
     public async Task InspectAsync_WhenCallerCannotDelete_FailsClosedWithoutCallingCore()
     {
         var api = new RecordingRolesApi();
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.InspectAsync("role-1", RoleAdministrationAccess.Forbidden);
 
@@ -42,7 +42,7 @@ public sealed class RoleDeletionServiceTests
                 CanRemediate = false
             }
         };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.InspectAsync("role-1", CanDelete);
 
@@ -70,7 +70,7 @@ public sealed class RoleDeletionServiceTests
             ]
         };
         var api = new RecordingRolesApi { Impact = impact };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.InspectAsync("role-1", CanDelete);
 
@@ -95,7 +95,7 @@ public sealed class RoleDeletionServiceTests
             ]
         };
         var api = new RecordingRolesApi { Impact = impact };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.InspectAsync("role-1", CanDelete);
 
@@ -107,7 +107,7 @@ public sealed class RoleDeletionServiceTests
     public async Task RemediateAndDeleteAsync_SendsInspectedVersionAndAllExplicitConfirmations()
     {
         var api = new RecordingRolesApi();
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
         var confirmation = new RoleDeletionConfirmation
         {
             ExpectedDependencyVersion = "dep-4",
@@ -156,7 +156,7 @@ public sealed class RoleDeletionServiceTests
                 }
                 """)
         };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.RemediateAndDeleteAsync(
             "role-1",
@@ -195,7 +195,7 @@ public sealed class RoleDeletionServiceTests
                 }
                 """)
         };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.RemediateAndDeleteAsync(
             "role-1",
@@ -215,7 +215,7 @@ public sealed class RoleDeletionServiceTests
     public async Task DeleteAsync_MapsAuthorizationNotFoundAndGeneralFailures(HttpStatusCode statusCode, RoleDeletionOperationOutcome expected)
     {
         var api = new RecordingRolesApi { DeleteException = CreateApiException(statusCode, null) };
-        var service = new RoleDeletionService(api);
+        var service = CreateService(api);
 
         var result = await service.DeleteAsync("role-1", CanDelete);
 
@@ -234,6 +234,9 @@ public sealed class RoleDeletionServiceTests
             response,
             new RefitSettings()).GetAwaiter().GetResult();
     }
+
+    private static RoleDeletionService CreateService(IRolesApi api) =>
+        new(new StaticBackendApiClientProvider(api));
 
     private sealed class RecordingRolesApi : IRolesApi
     {

@@ -18,7 +18,7 @@ public sealed class IdentityPermissionContextTests
     public async Task GetAsync_WhenMePermissionsReturnsForbidden_ReturnsForbiddenSnapshot()
     {
         var api = new TestMePermissionsApi(_ => Task.FromException<CurrentCallerPermissionsResponse>(CreateApiException(HttpStatusCode.Forbidden)));
-        var context = new IdentityPermissionContext(api, NullLogger<IdentityPermissionContext>.Instance);
+        var context = CreateContext(api);
 
         var snapshot = await context.GetAsync();
 
@@ -30,7 +30,7 @@ public sealed class IdentityPermissionContextTests
     public async Task GetAsync_WhenMePermissionsIsUnavailable_ReturnsUnavailableSnapshot()
     {
         var api = new TestMePermissionsApi(_ => Task.FromException<CurrentCallerPermissionsResponse>(new HttpRequestException("Identity is unavailable.")));
-        var context = new IdentityPermissionContext(api, NullLogger<IdentityPermissionContext>.Instance);
+        var context = CreateContext(api);
 
         var snapshot = await context.GetAsync();
 
@@ -50,7 +50,7 @@ public sealed class IdentityPermissionContextTests
                 new CurrentCallerResourceGrant { Resource = "Identity/Roles", Verbs = [IdentityPermissions.Delete] }
             ]
         }));
-        var context = new IdentityPermissionContext(api, NullLogger<IdentityPermissionContext>.Instance);
+        var context = CreateContext(api);
 
         var snapshot = await context.GetAsync();
 
@@ -74,7 +74,7 @@ public sealed class IdentityPermissionContextTests
                 Grants = [new CurrentCallerResourceGrant { Resource = IdentityPermissions.RolesResource, Verbs = [IdentityPermissions.View] }]
             });
         });
-        var context = new IdentityPermissionContext(api, NullLogger<IdentityPermissionContext>.Instance);
+        var context = CreateContext(api);
 
         var first = await context.GetAsync();
         var cached = await context.GetAsync();
@@ -97,7 +97,7 @@ public sealed class IdentityPermissionContextTests
             token.ThrowIfCancellationRequested();
             return new CurrentCallerPermissionsResponse();
         });
-        var context = new IdentityPermissionContext(api, NullLogger<IdentityPermissionContext>.Instance);
+        var context = CreateContext(api);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => context.GetAsync(cancellation.Token));
     }
@@ -108,6 +108,9 @@ public sealed class IdentityPermissionContextTests
             HttpMethod.Get,
             new HttpResponseMessage(statusCode),
             new RefitSettings()).GetAwaiter().GetResult();
+
+    private static IdentityPermissionContext CreateContext(IMePermissionsApi api) =>
+        new(new StaticBackendApiClientProvider(api), NullLogger<IdentityPermissionContext>.Instance);
 }
 
 public sealed class RoleAdministrationAccessServiceTests

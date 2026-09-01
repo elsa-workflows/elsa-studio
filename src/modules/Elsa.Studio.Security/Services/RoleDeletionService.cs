@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
@@ -9,7 +10,7 @@ namespace Elsa.Studio.Security.Services;
 /// <summary>
 /// Coordinates role deletion against the versioned Core impact contract.
 /// </summary>
-public sealed class RoleDeletionService(IRolesApi rolesApi) : IRoleDeletionService
+public sealed class RoleDeletionService(IBackendApiClientProvider apiClientProvider) : IRoleDeletionService
 {
     public async Task<RoleDeletionInspectionResult> InspectAsync(
         string roleId,
@@ -21,6 +22,7 @@ public sealed class RoleDeletionService(IRolesApi rolesApi) : IRoleDeletionServi
 
         try
         {
+            var rolesApi = await apiClientProvider.GetApiAsync<IRolesApi>(cancellationToken);
             var impact = await rolesApi.GetDeletionImpactAsync(roleId, cancellationToken);
             return ClassifyInspection(impact);
         }
@@ -40,6 +42,7 @@ public sealed class RoleDeletionService(IRolesApi rolesApi) : IRoleDeletionServi
 
         try
         {
+            var rolesApi = await apiClientProvider.GetApiAsync<IRolesApi>(cancellationToken);
             await rolesApi.DeleteAsync(roleId, cancellationToken);
             return new() { Outcome = RoleDeletionOperationOutcome.Deleted };
         }
@@ -60,6 +63,7 @@ public sealed class RoleDeletionService(IRolesApi rolesApi) : IRoleDeletionServi
 
         try
         {
+            var rolesApi = await apiClientProvider.GetApiAsync<IRolesApi>(cancellationToken);
             await rolesApi.RemediateAndDeleteAsync(
                 roleId,
                 new RoleRemediationRequest

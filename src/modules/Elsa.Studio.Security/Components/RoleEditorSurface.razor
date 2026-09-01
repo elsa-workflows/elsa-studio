@@ -482,6 +482,7 @@ else
         if (!_advanced.Contains(value, StringComparer.Ordinal))
             _advanced.Add(value);
         _advanced.Sort(StringComparer.Ordinal);
+        _advancedError = null;
         _advancedDraft = string.Empty;
         _reach.Remove(value);
         _reachErrors.Remove(value);
