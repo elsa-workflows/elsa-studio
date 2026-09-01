@@ -24,6 +24,7 @@ using Elsa.Studio.Diagnostics.OpenTelemetry.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.UserTasks.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
@@ -132,6 +133,7 @@ builder.Services.AddConsoleLogsDashboardModule();
 builder.Services.AddStructuredLogsModule(backendApiConfig);
 builder.Services.AddStructuredLogsDashboardModule();
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddUserTasksModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddTranslations();
 
