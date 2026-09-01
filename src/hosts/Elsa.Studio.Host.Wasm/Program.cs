@@ -26,6 +26,7 @@ using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.Security.Extensions;
 using Elsa.Studio.UserTasks.Extensions;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
 
@@ -105,6 +106,7 @@ services.AddConsoleLogsDashboardModule();
 services.AddStructuredLogsModule(backendApiConfig);
 services.AddStructuredLogsDashboardModule();
 services.AddSecretsModule(backendApiConfig);
+services.AddSecurityModule(backendApiConfig);
 services.AddUserTasksModule(backendApiConfig);
 services.AddLocalizationModule(localizationConfig);
 

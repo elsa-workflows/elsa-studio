@@ -1,33 +1,32 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Models;
+using Elsa.Studio.Security.Contracts;
 using MudBlazor;
 
 namespace Elsa.Studio.Security.Menu;
 
 /// <summary>
-/// Provides menu items for the security module, including users and roles management.
+/// Provides permission-aware role administration navigation.
 /// </summary>
-public class SecurityMenu : IMenuProvider
+public class SecurityMenu(IRoleAdministrationAccessService accessService) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
+        var access = await accessService.GetAsync(cancellationToken);
+        if (!access.CanView)
+            return [];
+
         var menuItems = new List<MenuItem>
         {
             new()
             {
                 Icon = Icons.Material.Filled.Security,
-                Href = "security/users",
+                Href = "security/roles",
                 Text = "Security",
                 GroupName = MenuItemGroups.Settings.Name,
                 SubMenuItems =
                 {
-                    new MenuItem
-                    {
-                        Text = "Users",
-                        Href = "security/users",
-                        Icon = Icons.Material.Filled.Person
-                    },
                     new MenuItem
                     {
                         Text = "Roles",
@@ -38,6 +37,6 @@ public class SecurityMenu : IMenuProvider
             }
         };
 
-        return new ValueTask<IEnumerable<MenuItem>>(menuItems);
+        return menuItems;
     }
 }

@@ -1,5 +1,10 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
+using Elsa.Studio.Security.Client;
+using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Menu;
+using Elsa.Studio.Security.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Security.Extensions;
@@ -13,11 +18,19 @@ public static class ServiceCollectionExtensions
     /// Adds the security module services to the service collection.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
+    /// <param name="backendApiConfig">Optional backend configuration used to register Identity API clients.</param>
     /// <returns>The service collection for method chaining.</returns>
-    public static IServiceCollection AddSecurityModule(this IServiceCollection services)
+    public static IServiceCollection AddSecurityModule(this IServiceCollection services, BackendApiConfig? backendApiConfig = null)
     {
-        return services
+        services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IMenuProvider, SecurityMenu>();
+            .AddScoped<IMenuProvider, SecurityMenu>()
+            .AddScoped<IIdentityPermissionContext, IdentityPermissionContext>()
+            .AddScoped<IRoleAdministrationAccessService, RoleAdministrationAccessService>()
+            .AddRemoteApi<IRolesApi>(backendApiConfig)
+            .AddRemoteApi<IPermissionsApi>(backendApiConfig)
+            .AddRemoteApi<IMePermissionsApi>(backendApiConfig);
+
+        return services;
     }
 }

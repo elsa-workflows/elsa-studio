@@ -1,0 +1,47 @@
+@inject IRoleAdministrationAccessService AccessService
+
+@if (_access == null)
+{
+    <MudStack AlignItems="AlignItems.Center" Class="pa-8" Role="status">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" aria-label="Checking role administration access" />
+        <MudText Typo="Typo.body2">Checking access…</MudText>
+    </MudStack>
+}
+else if (_access.State == RoleAdministrationAccessState.Forbidden)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">
+        <MudText Typo="Typo.subtitle1">Role administration access is required</MudText>
+        <MudText Typo="Typo.body2">Your current sign-in does not include permission to view roles. Ask an administrator for <code>identity/roles:view</code>, then sign in again.</MudText>
+    </MudAlert>
+}
+else if (_access.State == RoleAdministrationAccessState.Unavailable)
+{
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+        <MudText Typo="Typo.subtitle1">Role administration is unavailable</MudText>
+        <MudText Typo="Typo.body2">Studio could not verify the Identity feature and your effective permissions. Check the Core connection and try again.</MudText>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadAsync" Class="mt-3">Try again</MudButton>
+    </MudAlert>
+}
+else
+{
+    @ChildContent(_access)
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment<RoleAdministrationAccess> ChildContent { get; set; } = default!;
+
+    private RoleAdministrationAccess? _access;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _access = await AccessService.GetAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        AccessService.Invalidate();
+        _access = null;
+        await InvokeAsync(StateHasChanged);
+        _access = await AccessService.GetAsync();
+    }
+}

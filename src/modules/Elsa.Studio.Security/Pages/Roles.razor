@@ -4,5 +4,13 @@
 <PageTitle>Roles</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <PageHeading Text="Roles"></PageHeading>
+    <RoleAdministrationAccessBoundary Context="access">
+        <PageHeading Text="Roles"></PageHeading>
+        @if (!access.CanCreate && !access.CanUpdate && !access.CanDelete)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                You can view roles, but your current sign-in cannot create, update, or delete them.
+            </MudAlert>
+        }
+    </RoleAdministrationAccessBoundary>
 </MudContainer>
