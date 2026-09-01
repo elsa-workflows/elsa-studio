@@ -6,6 +6,7 @@
 @using Elsa.Studio.Security.Services
 @inject IBackendApiClientProvider ApiClientProvider
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <PageTitle>Roles</PageTitle>
 
@@ -282,7 +283,7 @@
                         <MudTh>Name</MudTh>
                         <MudTh>ID</MudTh>
                         <MudTh>Permissions</MudTh>
-                        @if (access.CanUpdate)
+                        @if (access.CanUpdate || access.CanDelete)
                         {
                             <MudTh>Actions</MudTh>
                         }
@@ -297,16 +298,27 @@
                         <MudTd DataLabel="Permissions">
                             <RolePermissionPreview Role="context" />
                         </MudTd>
-                        @if (access.CanUpdate)
+                        @if (access.CanUpdate || access.CanDelete)
                         {
                             <MudTd DataLabel="Actions" Class="roles-actions" @onclick:stopPropagation="true">
-                                <MudButton Variant="Variant.Outlined"
-                                            Color="Color.Default"
-                                            Size="Size.Small"
-                                            OnClick="@(() => OpenRoleDetails(context))"
-                                            aria-label="@($"Edit {context.Name}")">
-                                    Edit
-                                </MudButton>
+                                @if (access.CanUpdate)
+                                {
+                                    <MudButton Variant="Variant.Outlined"
+                                                Color="Color.Default"
+                                                Size="Size.Small"
+                                                OnClick="@(() => OpenRoleDetails(context))"
+                                                aria-label="@($"Edit {context.Name}")">
+                                        Edit
+                                    </MudButton>
+                                }
+                                @if (access.CanDelete)
+                                {
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                             Dense="true"
+                                             aria-label="@($"More actions for {context.Name}")">
+                                        <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(context, access))">Delete</MudMenuItem>
+                                    </MudMenu>
+                                }
                             </MudTd>
                         }
                     </RowTemplate>
@@ -332,13 +344,24 @@
                                 <MudText Typo="Typo.body1" Class="role-name">@role.Name</MudText>
                                 <code class="role-id">@role.Id</code>
                             </div>
-                            @if (access.CanUpdate)
+                            @if (access.CanUpdate || access.CanDelete)
                             {
                                 <div class="role-card-actions" @onclick:stopPropagation="true">
-                                    <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                                   Size="Size.Small"
-                                                   OnClick="@(() => OpenRoleDetails(role))"
-                                                   aria-label="@($"Edit {role.Name}")" />
+                                    @if (access.CanUpdate)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => OpenRoleDetails(role))"
+                                                       aria-label="@($"Edit {role.Name}")" />
+                                    }
+                                    @if (access.CanDelete)
+                                    {
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                                 Dense="true"
+                                                 aria-label="@($"More actions for {role.Name}")">
+                                            <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(role, access))">Delete</MudMenuItem>
+                                        </MudMenu>
+                                    }
                                 </div>
                             }
                         </div>
@@ -360,6 +383,7 @@
     private IdentityApiErrorInfo? _loadError;
     private bool _isLoading = true;
     private bool _navigationStarted;
+    private bool _deleteDialogOpen;
     private bool _disposed;
 
     private IReadOnlyList<RoleSummary> FilteredRoles =>
@@ -452,6 +476,24 @@
     {
         if (args.Key is "Enter" or " ")
             OpenRoleDetails(role);
+    }
+
+    private async Task OpenDeleteRoleAsync(RoleSummary role, RoleAdministrationAccess access)
+    {
+        if (_disposed || _deleteDialogOpen || !access.CanDelete)
+            return;
+
+        _deleteDialogOpen = true;
+        try
+        {
+            var result = await DialogService.ShowRoleDeletionAsync(role, access);
+            if (!_disposed && result?.ShouldRefresh == true)
+                await LoadRolesAsync(_loadCancellation.Token);
+        }
+        finally
+        {
+            _deleteDialogOpen = false;
+        }
     }
 
     private bool HasSearchMatch(RoleSummary role)

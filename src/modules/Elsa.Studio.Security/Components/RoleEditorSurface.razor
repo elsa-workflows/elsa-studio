@@ -6,6 +6,7 @@
 @inject IBackendApiClientProvider ApiClientProvider
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <style>
     .role-editor-header { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
@@ -52,6 +53,10 @@ else
                 }
             </div>
             <div class="role-editor-actions">
+                @if (!_isCreate && Access.CanDelete && _role is not null)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@_deleteDialogOpen" OnClick="OpenDeleteRoleAsync">Delete role</MudButton>
+                }
                 <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
                 @if (!IsReadOnly)
                 {
@@ -255,6 +260,7 @@ else
     private string? _advancedError;
     private bool _loading = true;
     private bool _saving;
+    private bool _deleteDialogOpen;
     private bool _initialized;
     private int _activeTab;
     private RoleSummary? _role;
@@ -635,6 +641,31 @@ else
     }
 
     private void Cancel() => NavigationManager.NavigateTo("security/roles");
+
+    private async Task OpenDeleteRoleAsync()
+    {
+        if (_deleteDialogOpen || _role is null || !Access.CanDelete)
+            return;
+
+        _deleteDialogOpen = true;
+        try
+        {
+            var result = await DialogService.ShowRoleDeletionAsync(_role, Access);
+            if (result?.WasDeleted == true)
+            {
+                Snackbar.Add("Role deleted.", Severity.Success);
+                NavigationManager.NavigateTo("security/roles");
+            }
+            else if (result?.WasRetained == true)
+            {
+                Snackbar.Add("Role retained. Review the remaining dependencies before trying again.", Severity.Warning);
+            }
+        }
+        finally
+        {
+            _deleteDialogOpen = false;
+        }
+    }
 
     public ValueTask DisposeAsync()
     {

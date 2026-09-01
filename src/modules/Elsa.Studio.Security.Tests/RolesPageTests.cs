@@ -1,6 +1,7 @@
 using Bunit;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
+using Elsa.Studio.Security.Components;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
 using Elsa.Studio.Security.Pages;
@@ -14,6 +15,9 @@ namespace Elsa.Studio.Security.Tests;
 
 public sealed class RolesPageTests : BunitContext, IAsyncLifetime
 {
+    private IRenderedComponent<MudPopoverProvider>? _popoverProvider;
+    private IRenderedComponent<MudDialogProvider>? _dialogProvider;
+
     public RolesPageTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -167,15 +171,44 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         Assert.EndsWith("/security/roles/auditors%2Fread%20only", navigation.Uri, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DeleteAction_OpensTheSharedDeletionDialogWithoutNavigatingToDetails()
+    {
+        var api = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "auditors", Name = "Auditors" }]
+            }
+        };
+        Register(api, ReadyAccess);
+        var navigation = Services.GetRequiredService<NavigationManager>();
+        var originalUri = navigation.Uri;
+        var cut = RenderRoles();
+        cut.WaitForAssertion(() => Assert.Contains("Auditors", cut.Markup));
+
+        var popoverProvider = _popoverProvider!;
+        var dialogProvider = _dialogProvider!;
+        cut.FindAll(".mud-menu button").First().Click();
+        popoverProvider.WaitForAssertion(() =>
+            popoverProvider.FindAll(".mud-menu-item").Single(x => x.TextContent.Trim() == "Delete").Click());
+
+        dialogProvider.WaitForAssertion(() =>
+            Assert.Equal("auditors", dialogProvider.FindComponent<DeleteRoleDialog>().Instance.RoleId));
+        Assert.Equal(originalUri, navigation.Uri);
+    }
+
     private void Register(IRolesApi api, RoleAdministrationAccess access)
     {
         Services.AddSingleton<IRoleAdministrationAccessService>(new TestRoleAccessService(access));
         Services.AddSingleton<IBackendApiClientProvider>(new TestBackendApiClientProvider(api));
+        Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
     }
 
     private IRenderedComponent<Roles> RenderRoles()
     {
-        Render<MudPopoverProvider>();
+        _popoverProvider ??= Render<MudPopoverProvider>();
+        _dialogProvider ??= Render<MudDialogProvider>();
         return Render<Roles>();
     }
 
@@ -230,4 +263,5 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         public Task RemediateAndDeleteAsync(string id, RoleRemediationRequest request, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
     }
+
 }

@@ -2,10 +2,12 @@ using Bunit;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Components;
+using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
+using MudBlazor;
 using Xunit;
 
 namespace Elsa.Studio.Security.Tests;
@@ -110,9 +112,33 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         Assert.EndsWith("/security/roles/new-role", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void EditDeleteAction_OpensTheSameSharedDeletionDialog()
+    {
+        var roles = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "auditors", Name = "Auditors" }]
+            }
+        };
+        Register(roles, new StubPermissionsApi());
+        var provider = Render<MudDialogProvider>();
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "auditors")
+            .Add(x => x.Access, ReadyAccess with { CanDelete = true }));
+        cut.WaitForAssertion(() => Assert.Contains("Edit role — Auditors", cut.Markup));
+
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Delete role", StringComparison.Ordinal)).Click();
+
+        provider.WaitForAssertion(() =>
+            Assert.Equal("auditors", provider.FindComponent<DeleteRoleDialog>().Instance.RoleId));
+    }
+
     private void Register(IRolesApi roles, IPermissionsApi permissions)
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));
+        Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
     }
 
     private static RoleAdministrationAccess ReadyAccess =>
@@ -161,4 +187,5 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         public Task<PermissionReachResponse> GetReachAsync(string resource, CancellationToken cancellationToken = default) =>
             Task.FromResult(new PermissionReachResponse { Resource = resource, Covers = ["workflows/definitions"], Count = 1 });
     }
+
 }

@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IMenuProvider, SecurityMenu>()
             .AddScoped<IIdentityPermissionContext, IdentityPermissionContext>()
             .AddScoped<IRoleAdministrationAccessService, RoleAdministrationAccessService>()
+            .AddScoped<IRoleDeletionService, RoleDeletionService>()
             .AddRemoteApi<IRolesApi>(backendApiConfig)
             .AddRemoteApi<IPermissionsApi>(backendApiConfig)
             .AddRemoteApi<IMePermissionsApi>(backendApiConfig);
