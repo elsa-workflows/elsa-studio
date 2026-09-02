@@ -426,7 +426,8 @@ else
                descriptor.Resource.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                descriptor.Category.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                descriptor.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-               descriptor.SupportedVerbs.Any(x => x.Contains(search, StringComparison.OrdinalIgnoreCase));
+               descriptor.SupportedVerbs.Any(x => x.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                                                  $"{descriptor.Resource}:{x}".Contains(search, StringComparison.OrdinalIgnoreCase));
     }
 
     private static int ConcreteCount(IEnumerable<PermissionResourceDescriptor> resources) =>

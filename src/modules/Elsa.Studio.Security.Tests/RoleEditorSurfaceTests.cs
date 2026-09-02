@@ -158,6 +158,35 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         });
     }
 
+    [Fact]
+    public void ExactPermissionSearch_MatchesTheFullPermissionIdentifier()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi
+        {
+            Response = new PermissionCatalogResponse
+            {
+                Resources =
+                [
+                    new PermissionResourceDescriptor
+                    {
+                        Resource = "workflows/definitions/labels",
+                        DisplayName = "Definition labels",
+                        Category = "Workflows",
+                        SupportedVerbs = ["view"]
+                    }
+                ]
+            }
+        });
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("input[aria-label='workflows/definitions/labels:view']")));
+
+        cut.Find("input[placeholder='Search by name, ID, or permission']").Input("workflows/definitions/labels:view");
+
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("input[aria-label='workflows/definitions/labels:view']")));
+    }
+
     private void Register(IRolesApi roles, IPermissionsApi permissions)
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));
