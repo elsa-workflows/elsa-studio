@@ -1,11 +1,13 @@
 @using Elsa.Api.Client.Resources.ActivityDescriptors.Models
 @namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation
 
-<MudDialog Class="state-machine-activity-picker-dialog">
+<MudDialog Class="state-machine-activity-picker-dialog" DefaultFocus="DefaultFocus.None">
     <DialogContent>
         <section class="state-machine-activity-picker"
                  data-testid="state-machine-activity-picker"
-                 aria-label="@PickerHeading">
+                 aria-label="@PickerHeading"
+                 aria-keyshortcuts="/"
+                 @onkeydown="HandleGlobalKeyboardAsync">
             <header class="state-machine-activity-picker__header">
                 <p class="state-machine-activity-picker__eyebrow">@Localizer["Activity library"]</p>
                 <p class="state-machine-activity-picker__context"><strong>@ContextKicker</strong><span aria-hidden="true">·</span>@ContextDescription</p>
@@ -106,6 +108,10 @@
                                                 {
                                                     <span class="state-machine-activity-picker__recommended">@Localizer["Recommended"]</span>
                                                 }
+                                                else if (IsDesignerBackedRoot(descriptor))
+                                                {
+                                                    <span class="state-machine-activity-picker__recommended">@Localizer["Visual designer"]</span>
+                                                }
                                             </span>
                                             <span>@descriptor.TypeName</span>
                                         </span>
@@ -133,6 +139,13 @@
                                 <div class="state-machine-activity-picker__note" role="note">
                                     <strong>@Localizer["Runs multiple activities"]</strong>
                                     <span>@Localizer["After adding Sequence, open it to arrange its child activities."]</span>
+                                </div>
+                            }
+                            else if (IsDesignerBackedRoot(_selectedDescriptor))
+                            {
+                                <div class="state-machine-activity-picker__note" role="note">
+                                    <strong>@Localizer["Includes a visual designer"]</strong>
+                                    <span>@Localizer["After adding it, use Open designer to configure its internal workflow."]</span>
                                 </div>
                             }
                         }

@@ -44,8 +44,12 @@
                                               EmptyDescription="@Localizer["This transition evaluates immediately after source entry."]"
                                               AddLabel="@Localizer["Add trigger"]"
                                               IsReadOnly="@IsReadOnly"
+                                              IsSelected="@IsActivitySelected(Transition.Trigger)"
+                                              SupportsDesigner="@TriggerSupportsDesigner"
                                               AddRequested="RequestActivityAddAsync"
+                                              SelectRequested="RequestActivitySelectAsync"
                                               OpenRequested="RequestActivityOpenAsync"
+                                              JsonRequested="RequestActivityJsonAsync"
                                               ReplaceRequested="RequestActivityReplaceAsync"
                                               ClearRequested="RequestActivityClearAsync"
                                               DropRequested="RequestActivityDropAsync" />
@@ -73,7 +77,46 @@
                             </button>
                         }
                     </div>
-                    @RenderCondition(Transition.Condition)
+                    @{
+                        var condition = DescribeCondition(Transition.Condition);
+                    }
+                    <div class="@(condition.State is ConditionState.Never or ConditionState.Malformed
+                                      ? "state-machine-transition-inspector__condition state-machine-transition-inspector__condition--warning"
+                                      : "state-machine-transition-inspector__condition")"
+                         data-condition-state="@condition.State.ToString().ToLowerInvariant()"
+                         data-testid="state-machine-transition-condition-summary">
+                        @if (condition.State == ConditionState.Expression)
+                        {
+                            <dl class="state-machine-transition-inspector__condition-expression">
+                                <div>
+                                    <dt>@Localizer["Language"]</dt>
+                                    <dd data-condition-language>@condition.Title</dd>
+                                </div>
+                                <div>
+                                    <dt>@Localizer["Expression"]</dt>
+                                    <dd data-condition-expression><code>@condition.Detail</code></dd>
+                                </div>
+                            </dl>
+                        }
+                        else
+                        {
+                            <strong>@condition.Title</strong>
+                            <span>@condition.Detail</span>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(condition.Warning))
+                        {
+                            <p class="state-machine-transition-inspector__slot-warning" role="status">@condition.Warning</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(condition.RawDefinition))
+                        {
+                            <details class="state-machine-transition-inspector__definition">
+                                <summary>@Localizer["View definition"]</summary>
+                                <pre data-testid="state-machine-transition-condition-definition">@condition.RawDefinition</pre>
+                            </details>
+                        }
+                    </div>
                 </div>
             </section>
 
@@ -96,8 +139,12 @@
                                               EmptyDescription="@Localizer["No activity runs between source exit and the target state."]"
                                               AddLabel="@Localizer["Add action"]"
                                               IsReadOnly="@IsReadOnly"
+                                              IsSelected="@IsActivitySelected(Transition.Action)"
+                                              SupportsDesigner="@ActionSupportsDesigner"
                                               AddRequested="RequestActivityAddAsync"
+                                              SelectRequested="RequestActivitySelectAsync"
                                               OpenRequested="RequestActivityOpenAsync"
+                                              JsonRequested="RequestActivityJsonAsync"
                                               ReplaceRequested="RequestActivityReplaceAsync"
                                               ClearRequested="RequestActivityClearAsync"
                                               DropRequested="RequestActivityDropAsync" />

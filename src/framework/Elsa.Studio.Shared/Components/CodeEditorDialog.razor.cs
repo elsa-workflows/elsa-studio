@@ -14,6 +14,7 @@ public partial class CodeEditorDialog : IDisposable
     private StandaloneCodeEditor? _monacoEditor;
     private bool _isInternalContentChange;
     private string? _lastMonacoEditorContent;
+    private string? _validationError;
 
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
@@ -44,6 +45,24 @@ public partial class CodeEditorDialog : IDisposable
     /// Gets or sets the programming language syntax used by the Monaco code editor within the dialog.
     /// </summary>
     [Parameter] public string MonacoLanguage { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets whether closing the dialog should be distinct from applying the draft.
+    /// Existing expression editors retain their close-to-apply behavior by default.
+    /// </summary>
+    [Parameter] public bool RequireExplicitApply { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the editor is view-only.
+    /// </summary>
+    [Parameter] public bool IsReadOnly { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional validator. Return an error message to keep the dialog open.
+    /// </summary>
+    [Parameter] public Func<string, string?>? Validator { get; set; }
+
+    private string EditorHeight => RequireExplicitApply ? "min(56vh, 655px)" : "655px";
 
     private async Task OnMonacoInitializedAsync()
     {
@@ -78,8 +97,8 @@ public partial class CodeEditorDialog : IDisposable
             LineDecorationsWidth = 0,
             HideCursorInOverviewRuler = true,
             GlyphMargin = false,
-            ReadOnly = false,
-            DomReadOnly = false
+            ReadOnly = IsReadOnly,
+            DomReadOnly = IsReadOnly
         };
     }
 
@@ -94,9 +113,25 @@ public partial class CodeEditorDialog : IDisposable
 
         Value = value;
         _lastMonacoEditorContent = value;
+        _validationError = null;
     }
 
-    private void OnClosedClicked() => MudDialog.Close(DialogResult.Ok(Value));
+    private void OnClosedClicked()
+    {
+        if (RequireExplicitApply)
+            MudDialog.Cancel();
+        else
+            MudDialog.Close(DialogResult.Ok(Value));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Apply()
+    {
+        _validationError = Validator?.Invoke(Value);
+        if (_validationError == null)
+            MudDialog.Close(DialogResult.Ok(Value));
+    }
 
     /// <inheritdoc />
     public void Dispose()

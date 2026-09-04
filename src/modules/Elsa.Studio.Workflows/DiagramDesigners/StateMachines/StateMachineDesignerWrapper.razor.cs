@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Components;
@@ -12,6 +13,7 @@ using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.UI.Contracts;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -58,6 +60,7 @@ public partial class StateMachineDesignerWrapper
     [Inject] private IStateMachineMapper StateMachineMapper { get; set; } = null!;
     [Inject] private StateMachineValidator StateMachineValidator { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
     [Inject] private IExpressionService ExpressionService { get; set; } = null!;
 
     private StateMachineStateNode? SelectedState =>
@@ -306,6 +309,14 @@ public partial class StateMachineDesignerWrapper
 
     private Task ReplaceStateActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, true, true);
 
+    private Task SelectStateActivityAsync(string slotName)
+    {
+        if (_session == null || _selectedStateId == null || !IsStateActivitySlot(slotName) || SelectedState is not { } state)
+            return Task.CompletedTask;
+
+        return SelectActivityForPropertiesAsync(GetStateSlot(state, slotName), slotName);
+    }
+
     private async Task OpenStateActivityAsync(string slotName)
     {
         if (_session == null || _selectedStateId == null || !IsStateActivitySlot(slotName) || SelectedState is not { } state)
@@ -320,6 +331,23 @@ public partial class StateMachineDesignerWrapper
     private Task AddTransitionActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, false, false);
 
     private Task ReplaceTransitionActivityAsync(string slotName) => OpenActivityPickerAsync(slotName, true, false);
+
+    private Task SelectTransitionActivityAsync(string slotName)
+    {
+        if (_session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || SelectedTransition is not { } transition)
+            return Task.CompletedTask;
+
+        return SelectActivityForPropertiesAsync(GetTransitionSlot(transition, slotName), slotName);
+    }
+
+    private async Task SelectActivityForPropertiesAsync(JsonNode? slot, string slotName)
+    {
+        if (slot is not JsonObject activity || !activity.IsActivity())
+            return;
+
+        _selectedSlotName = slotName;
+        await SelectSlotActivityForPropertiesAsync(activity);
+    }
 
     private async Task OpenTransitionActivityAsync(string slotName)
     {
@@ -340,6 +368,111 @@ public partial class StateMachineDesignerWrapper
         // Sequence as well as any other current or future composite activity.
         if (ActivityDoubleClick.HasDelegate)
             await ActivityDoubleClick.InvokeAsync(activity);
+    }
+
+    private Task OpenStateActivityJsonAsync(string slotName)
+    {
+        if (_session == null || _selectedStateId == null || !IsStateActivitySlot(slotName) || SelectedState is not { } state)
+            return Task.CompletedTask;
+
+        var stateId = _selectedStateId;
+        return OpenActivityJsonEditorAsync(slotName, GetStateSlot(state, slotName), value => ApplyEditedStateActivityJsonAsync(stateId, slotName, value));
+    }
+
+    private Task OpenTransitionActivityJsonAsync(string slotName)
+    {
+        if (_session == null || _selectedTransitionId == null || !IsTransitionActivitySlot(slotName) || SelectedTransition is not { } transition)
+            return Task.CompletedTask;
+
+        var transitionId = _selectedTransitionId;
+        return OpenActivityJsonEditorAsync(slotName, GetTransitionSlot(transition, slotName), value => ApplyEditedTransitionActivityJsonAsync(transitionId, slotName, value));
+    }
+
+    private async Task OpenActivityJsonEditorAsync(string slotName, JsonNode? slot, Func<string, Task> applyAsync)
+    {
+        if (slot == null)
+            return;
+
+        var originalActivity = slot is JsonObject obj && obj.IsActivity() ? obj : null;
+        var label = IsReadOnly ? Localizer["View {0} activity JSON", slotName] : Localizer["Edit {0} activity JSON", slotName];
+        var helperText = IsReadOnly
+            ? Localizer["Review the complete activity definition."]
+            : Localizer["Edit the complete activity definition. Activity identity must remain unchanged."];
+        var parameters = new DialogParameters<CodeEditorDialog>
+        {
+            { x => x.Label, label },
+            { x => x.HelperText, helperText },
+            { x => x.Value, StateMachinePresentationFormatter.JsonSlot(slot) },
+            { x => x.LanguageLabel, Localizer["JSON"] },
+            { x => x.MonacoLanguage, "json" },
+            { x => x.RequireExplicitApply, true },
+            { x => x.IsReadOnly, IsReadOnly },
+            { x => x.Validator, (Func<string, string?>)(value => ValidateActivityJson(value, originalActivity)) }
+        };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large,
+            Position = DialogPosition.Center
+        };
+        var dialog = await DialogService.ShowAsync<CodeEditorDialog>(label, parameters, options);
+        var result = await dialog.Result;
+
+        if (IsReadOnly || result is not { Canceled: false, Data: string value })
+            return;
+
+        await applyAsync(value);
+    }
+
+    private async Task ApplyEditedStateActivityJsonAsync(string stateId, string slotName, string value)
+    {
+        if (IsReadOnly || _session == null || TryGetState(stateId) == null)
+            return;
+
+        _selectedStateId = stateId;
+        _session.SetStateSlot(stateId, ParseStateSlot(slotName), JsonNode.Parse(value));
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
+    }
+
+    private async Task ApplyEditedTransitionActivityJsonAsync(string transitionId, string slotName, string value)
+    {
+        if (IsReadOnly || _session == null || TryGetTransition(transitionId) == null)
+            return;
+
+        _selectedTransitionId = transitionId;
+        _session.SetTransitionSlot(transitionId, ParseTransitionSlot(slotName), JsonNode.Parse(value));
+        await ApplySessionChangesAndRefreshSlotAsync(slotName, true);
+    }
+
+    private string? ValidateActivityJson(string value, JsonObject? originalActivity)
+    {
+        JsonNode? parsed;
+        try
+        {
+            parsed = JsonNode.Parse(value);
+        }
+        catch (JsonException exception)
+        {
+            return Localizer[
+                "Invalid JSON at line {0}, column {1}. Check the highlighted syntax and try again.",
+                (exception.LineNumber ?? 0) + 1,
+                (exception.BytePositionInLine ?? 0) + 1];
+        }
+
+        if (parsed is not JsonObject activity)
+            return Localizer["The activity definition must be a JSON object."];
+        if (!activity.IsActivity())
+            return Localizer["The activity definition must include a type."];
+        if (string.IsNullOrWhiteSpace(activity.GetId()) || string.IsNullOrWhiteSpace(activity.GetNodeId()))
+            return Localizer["The activity definition must include an id and nodeId."];
+
+        if (originalActivity != null &&
+            (!string.Equals(activity.GetId(), originalActivity.GetId(), StringComparison.Ordinal) ||
+             !string.Equals(activity.GetNodeId(), originalActivity.GetNodeId(), StringComparison.Ordinal)))
+            return Localizer["The activity id and nodeId cannot be changed here."];
+
+        return null;
     }
 
     private async Task OpenActivityPickerAsync(string slotName, bool replacing, bool isStateSlot)
@@ -463,6 +596,9 @@ public partial class StateMachineDesignerWrapper
     private static bool IsStateActivitySlot(string slotName) =>
         string.Equals(slotName, "entry", StringComparison.Ordinal) ||
         string.Equals(slotName, "exit", StringComparison.Ordinal);
+
+    private bool HasDiagramDesigner(JsonNode? slot) => slot is JsonObject activity &&
+        activity.IsActivity() && DiagramDesignerService.HasDiagramDesigner(activity);
 
     private void RememberRecentActivity(string activityType)
     {

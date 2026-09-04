@@ -14,7 +14,7 @@ import {arrangeSequenceGraph, moveSelectedSequenceNode, normalizeSequenceOrienta
 import {applyDesignerThemeVariables, X6DesignerTheme} from "./apply-graph-theme";
 import {createDesignerGridOptions, resolveDesignerGridOptions} from "./grid-options";
 import {ActivityShape, FlowchartEdgeShape, getDesignerModePolicy, resolveDesignerMode} from './designer-mode';
-import {applyStateMachineNodeAccessibility} from '../internal/state-machine-accessibility';
+import {applyStateMachineEdgeAccessibility, applyStateMachineNodeAccessibility} from '../internal/state-machine-accessibility';
 
 export async function createGraph(containerId: string, componentRef: DotNetComponentRef, readOnly: boolean, settings?: any): Promise<string> {
     const containerElement = document.getElementById(containerId);
@@ -60,7 +60,7 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
             useEdgeTools: () => !readOnly && modePolicy.allowsInteractiveEdges,
         },
         connecting: {
-            router: 'manhattan',
+            router: mode === 'stateMachine' ? 'orth' : 'manhattan',
             allowMulti: true,
             connector: {
                 name: 'rounded',
@@ -515,6 +515,16 @@ export async function createGraph(containerId: string, componentRef: DotNetCompo
 
         arrangeSequenceGraph(binding);
         await interop.raiseGraphUpdated();
+        return false;
+    });
+    graph.on('edge:added', async e => {
+        if (mode === 'stateMachine') {
+            const edge = e.edge || e.cell;
+            // X6 emits edge:added before its SVG view is guaranteed to be mounted.
+            // Defer one frame so the accessibility attributes land on the edge view.
+            requestAnimationFrame(() => applyStateMachineEdgeAccessibility(graph, edge));
+        }
+
         return false;
     });
     graph.on('node:removed', async e => {

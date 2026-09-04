@@ -41,6 +41,32 @@ public sealed class StateMachineCanvasLifecycleContractTests
     }
 
     [Fact]
+    public void Wrapper_ExposesSeparateStateAndTransitionCreationMenus()
+    {
+        var wrapper = ReadAsset("StateMachineDesignerWrapper.razor");
+        const string menuStart = "<details class=\"state-machine-designer__create-menu\" name=\"state-machine-create\">";
+
+        Assert.Equal(2, wrapper.Split(menuStart, StringSplitOptions.None).Length - 1);
+        Assert.Contains("<summary>@Localizer[\"Add state\"]</summary>", wrapper, StringComparison.Ordinal);
+        Assert.Contains("<summary>@Localizer[\"Add transition\"]</summary>", wrapper, StringComparison.Ordinal);
+        Assert.DoesNotContain("<summary>@Localizer[\"Add\"]</summary>", wrapper, StringComparison.Ordinal);
+
+        var stateMenuStart = wrapper.IndexOf("<summary>@Localizer[\"Add state\"]</summary>", StringComparison.Ordinal);
+        var stateMenuEnd = wrapper.IndexOf("</details>", stateMenuStart, StringComparison.Ordinal);
+        Assert.True(stateMenuStart >= 0 && stateMenuEnd > stateMenuStart);
+        var stateMenu = wrapper[stateMenuStart..stateMenuEnd];
+        Assert.Contains("State name", stateMenu, StringComparison.Ordinal);
+        Assert.DoesNotContain("Transition name", stateMenu, StringComparison.Ordinal);
+
+        var transitionMenuStart = wrapper.IndexOf("<summary>@Localizer[\"Add transition\"]</summary>", StringComparison.Ordinal);
+        var transitionMenuEnd = wrapper.IndexOf("</details>", transitionMenuStart, StringComparison.Ordinal);
+        Assert.True(transitionMenuStart >= 0 && transitionMenuEnd > transitionMenuStart);
+        var transitionMenu = wrapper[transitionMenuStart..transitionMenuEnd];
+        Assert.Contains("Transition name", transitionMenu, StringComparison.Ordinal);
+        Assert.DoesNotContain("State name", transitionMenu, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TransitionInspector_UsesSemanticPickerCallbacksAndExcludesConditionFromActivityDrops()
     {
         var wrapper = ReadAsset("StateMachineDesignerWrapper.razor");

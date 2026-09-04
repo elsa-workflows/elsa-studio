@@ -25,18 +25,22 @@
 
             @if (!IsReadOnly)
             {
-                <details class="state-machine-designer__create-menu">
-                    <summary>@Localizer["Add"]</summary>
+                <details class="state-machine-designer__create-menu" name="state-machine-create">
+                    <summary>@Localizer["Add state"]</summary>
                     <div class="state-machine-designer__create-popover">
                         <label>
                             <span>@Localizer["State name"]</span>
                             <input class="state-machine-designer__control" @bind="_newStateName" />
                         </label>
                         <button type="button" class="state-machine-designer__button state-machine-designer__button--primary" @onclick="AddStateAsync">@Localizer["Add state"]</button>
+                    </div>
+                </details>
 
-                        @if (_session.Graph.States.Count > 0)
-                        {
-                            <hr />
+                <details class="state-machine-designer__create-menu" name="state-machine-create">
+                    <summary>@Localizer["Add transition"]</summary>
+                    @if (_session.Graph.States.Count > 0)
+                    {
+                        <div class="state-machine-designer__create-popover">
                             <label>
                                 <span>@Localizer["Transition name"]</span>
                                 <input class="state-machine-designer__control" @bind="_newTransitionName" />
@@ -60,8 +64,14 @@
                                 </select>
                             </label>
                             <button type="button" class="state-machine-designer__button state-machine-designer__button--primary" @onclick="AddTransitionAsync">@Localizer["Add transition"]</button>
-                        }
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="state-machine-designer__create-popover state-machine-designer__create-popover--empty">
+                            <span>@Localizer["Add a state before adding a transition."]</span>
+                        </div>
+                    }
                 </details>
             }
         </header>
@@ -149,9 +159,14 @@
                                                 IncomingTransitionCount="@GetSelectedStateIncomingTransitionCount()"
                                                 OutgoingTransitionCount="@GetSelectedStateOutgoingTransitionCount()"
                                                 ValidationIssues="@GetSelectedStateIssues()"
+                                                SelectedActivityId="@_selectedActivityId"
+                                                EntrySupportsDesigner="@HasDiagramDesigner(SelectedState.Entry)"
+                                                ExitSupportsDesigner="@HasDiagramDesigner(SelectedState.Exit)"
                                                 NameChanged="RenameSelectedStateAsync"
                                                 ActivityAddRequested="AddStateActivityAsync"
+                                                ActivitySelectRequested="SelectStateActivityAsync"
                                                 ActivityOpenRequested="OpenStateActivityAsync"
+                                                ActivityJsonRequested="OpenStateActivityJsonAsync"
                                                 ActivityReplaceRequested="ReplaceStateActivityAsync"
                                                 ActivityClearRequested="ClearStateSlotAsync"
                                                 ActivityDropRequested="OnStateSlotDropAsync"
@@ -165,12 +180,17 @@
                                                      KnownExpressionProviderTypes="@_knownExpressionProviderTypes"
                                                      IsReadOnly="@IsReadOnly"
                                                      ValidationIssues="@GetSelectedTransitionIssues()"
+                                                     SelectedActivityId="@_selectedActivityId"
+                                                     TriggerSupportsDesigner="@HasDiagramDesigner(SelectedTransition.Trigger)"
+                                                     ActionSupportsDesigner="@HasDiagramDesigner(SelectedTransition.Action)"
                                                      NameChanged="SetTransitionNameAsync"
                                                      DisplayNameChanged="SetTransitionDisplayNameAsync"
                                                      FromChanged="SetTransitionFromAsync"
                                                      ToChanged="SetTransitionToAsync"
                                                      ActivityAddRequested="AddTransitionActivityAsync"
+                                                     ActivitySelectRequested="SelectTransitionActivityAsync"
                                                      ActivityOpenRequested="OpenTransitionActivityAsync"
+                                                     ActivityJsonRequested="OpenTransitionActivityJsonAsync"
                                                      ActivityReplaceRequested="ReplaceTransitionActivityAsync"
                                                      ActivityClearRequested="ClearTransitionSlotAsync"
                                                      ActivityDropRequested="OnTransitionSlotDropAsync"

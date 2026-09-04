@@ -186,6 +186,38 @@ public class StateMachineDesignerWrapperTests
     }
 
     [Fact]
+    public async Task SelectTransitionActivity_SelectsArbitraryActivityWithoutOpeningANestedDesigner()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        root["transitions"]![0]!["action"] = new JsonObject
+        {
+            ["id"] = "WriteLine1",
+            ["nodeId"] = "Workflow1:Machine1:WriteLine1",
+            ["name"] = "WriteLine1",
+            ["type"] = "Elsa.WriteLine",
+            ["version"] = 1,
+            ["text"] = "hello"
+        };
+        var session = CreateSession(root);
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedTransitionId", session.ProjectCanvas().Transitions.Single().VisualId);
+        JsonObject? selected = null;
+        JsonObject? opened = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivitySelected),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => selected = activity));
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivityDoubleClick),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => opened = activity));
+
+        await InvokePrivateAsync(wrapper, "SelectTransitionActivityAsync", "action");
+
+        Assert.Equal("WriteLine1", selected?.GetId());
+        Assert.Equal("Elsa.WriteLine", selected?.GetTypeName());
+        Assert.Null(opened);
+    }
+
+    [Fact]
     public void NestedSequenceChild_IsFoundAndUpdatedThroughItsOwningTransitionSlot()
     {
         var root = CreateNestedSequenceStateMachine();

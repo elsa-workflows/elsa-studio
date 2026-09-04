@@ -65,6 +65,34 @@ public sealed class X6DesignerModeContractTests
     }
 
     [Fact]
+    public void StateMachineEdges_ExposeKeyboardAccessibleSelectionAndFocusTreatment()
+    {
+        var graphCreation = ReadAsset("create-graph.ts");
+        var accessibility = ReadAsset("state-machine-accessibility.ts");
+        var canvasCss = ReadAsset("StateMachineCanvas.razor.css");
+
+        Assert.Contains("applyStateMachineEdgeAccessibility", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("graph.on('edge:added'", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("graph.getEdges().forEach(edge => applyStateMachineEdgeAccessibility(graph, edge))", accessibility, StringComparison.Ordinal);
+        Assert.Contains("container.setAttribute('role', 'button')", accessibility, StringComparison.Ordinal);
+        Assert.Contains("container.setAttribute('aria-label', accessibleName)", accessibility, StringComparison.Ordinal);
+        Assert.Contains("container.setAttribute('tabindex', '0')", accessibility, StringComparison.Ordinal);
+        Assert.Contains("graph.select(edge)", accessibility, StringComparison.Ordinal);
+        Assert.Contains(".x6-edge[role=\"button\"]:focus-visible", canvasCss, StringComparison.Ordinal);
+        Assert.Contains(".x6-edge[role=\"button\"]:focus-visible > path[pointer-events=\"none\"]", canvasCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StateMachineEdges_UseOrthogonalRoutingWithoutManhattanFallback()
+    {
+        var graphCreation = ReadAsset("create-graph.ts");
+        var shapes = ReadAsset("state-machine-shapes.ts");
+
+        Assert.Contains("router: mode === 'stateMachine' ? 'orth' : 'manhattan'", graphCreation, StringComparison.Ordinal);
+        Assert.Contains("name: 'orth'", shapes, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GraphLifecycle_DisposesX6AndCancelsDeferredCanvasWork()
     {
         var disposal = ReadAsset("dispose-graph.ts");

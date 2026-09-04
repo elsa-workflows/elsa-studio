@@ -3,6 +3,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -43,6 +44,26 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         IsBrowsable = false
     };
 
+    private readonly ActivityDescriptor _flowchart = new()
+    {
+        Name = "Flowchart",
+        DisplayName = "Flowchart",
+        TypeName = "Elsa.Flowchart",
+        Category = "Composition",
+        Description = "Runs activities as a graph.",
+        IsBrowsable = false
+    };
+
+    private readonly ActivityDescriptor _stateMachine = new()
+    {
+        Name = "StateMachine",
+        DisplayName = "State machine",
+        TypeName = "Elsa.StateMachine",
+        Category = "Composition",
+        Description = "Runs state and transition driven workflows.",
+        IsBrowsable = false
+    };
+
     private readonly ActivityDescriptor _internalActivity = new()
     {
         Name = "InternalActivity",
@@ -59,7 +80,8 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
-        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence, _internalActivity]));
+        Services.AddSingleton<IWorkflowRootActivityTemplateProvider, DefaultWorkflowRootActivityTemplateProvider>();
+        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence, _flowchart, _stateMachine, _internalActivity]));
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -74,8 +96,10 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
 
         _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
         _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal)).Click();
-        Assert.Equal(3, _dialogProvider.FindAll("[data-activity-type]").Count);
+        Assert.Equal(5, _dialogProvider.FindAll("[data-activity-type]").Count);
         Assert.DoesNotContain(_dialogProvider.FindAll("[data-activity-type]"), element => element.GetAttribute("data-activity-type") == _internalActivity.TypeName);
+        Assert.Contains(_dialogProvider.FindAll("[data-activity-type]"), element => element.GetAttribute("data-activity-type") == _flowchart.TypeName);
+        Assert.Contains(_dialogProvider.FindAll("[data-activity-type]"), element => element.GetAttribute("data-activity-type") == _stateMachine.TypeName);
         var search = _dialogProvider.Find("input[id*='state-machine-activity-picker']");
 
         search.Input("incoming");
@@ -116,11 +140,14 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
     }
 
     [Fact]
-    public async Task Picker_OffersSequenceAsTheProminentMultiActivityShortcut()
+    public async Task Picker_OffersDesignerBackedRootsAndRecommendsSequence()
     {
         var dialog = await ShowDialogAsync();
 
         _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-activity-type='Elsa.Sequence']")));
+        Assert.Equal(3, _dialogProvider.FindAll("[data-testid='state-machine-activity-option']").Count);
+        Assert.NotEmpty(_dialogProvider.FindAll("[data-activity-type='Elsa.Flowchart']"));
+        Assert.NotEmpty(_dialogProvider.FindAll("[data-activity-type='Elsa.StateMachine']"));
         var sequence = _dialogProvider.Find("[data-activity-type='Elsa.Sequence']");
         Assert.Contains("Recommended", sequence.TextContent);
         sequence.Click();
@@ -174,6 +201,28 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         var allActivities = _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal));
         allActivities.KeyDown("Enter");
 
+        Assert.False(dialog.Result.IsCompleted);
+    }
+
+    [Fact]
+    public async Task Picker_SlashShortcutRefocusesSearchFromAFilterWithoutChangingTheSearchText()
+    {
+        var dialog = await ShowDialogAsync();
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        var search = _dialogProvider.Find("input[id*='state-machine-activity-picker']");
+        var allActivities = _dialogProvider.FindAll("button").Single(x => x.TextContent.Contains("All activities", StringComparison.Ordinal));
+        Assert.Equal("/", _dialogProvider.Find("[data-testid='state-machine-activity-picker']").GetAttribute("aria-keyshortcuts"));
+        var initialFocusCalls = JSInterop.Invocations.Count(x => x.Identifier.Contains("focus", StringComparison.OrdinalIgnoreCase));
+
+        allActivities.KeyDown("/");
+
+        _dialogProvider.WaitForAssertion(() =>
+        {
+            var focusCalls = JSInterop.Invocations.Count(x => x.Identifier.Contains("focus", StringComparison.OrdinalIgnoreCase));
+            Assert.True(focusCalls > initialFocusCalls);
+        });
+        Assert.Equal(string.Empty, search.GetAttribute("value"));
         Assert.False(dialog.Result.IsCompleted);
     }
 

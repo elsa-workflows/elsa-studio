@@ -1,3 +1,6 @@
+@using System.Text.Json.Nodes
+@using Elsa.Api.Client.Extensions
+@using Elsa.Studio.Workflows.Designer
 @using Elsa.Studio.Workflows.Designer.Models
 @using Elsa.Studio.Localization
 @namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation
@@ -59,8 +62,12 @@
                                               EmptyDescription="@Localizer["Nothing runs when this state becomes active."]"
                                               AddLabel="@Localizer["Add activity"]"
                                               IsReadOnly="@IsReadOnly"
+                                              IsSelected="@IsActivitySelected(State.Entry)"
+                                              SupportsDesigner="@EntrySupportsDesigner"
                                               AddRequested="RequestActivityAddAsync"
+                                              SelectRequested="RequestActivitySelectAsync"
                                               OpenRequested="RequestActivityOpenAsync"
+                                              JsonRequested="RequestActivityJsonAsync"
                                               ReplaceRequested="RequestActivityReplaceAsync"
                                               ClearRequested="RequestActivityClearAsync"
                                               DropRequested="RequestActivityDropAsync" />
@@ -113,8 +120,12 @@
                                               EmptyDescription="@Localizer["Nothing runs before this state is left."]"
                                               AddLabel="@Localizer["Add activity"]"
                                               IsReadOnly="@IsReadOnly"
+                                              IsSelected="@IsActivitySelected(State.Exit)"
+                                              SupportsDesigner="@ExitSupportsDesigner"
                                               AddRequested="RequestActivityAddAsync"
+                                              SelectRequested="RequestActivitySelectAsync"
                                               OpenRequested="RequestActivityOpenAsync"
+                                              JsonRequested="RequestActivityJsonAsync"
                                               ReplaceRequested="RequestActivityReplaceAsync"
                                               ClearRequested="RequestActivityClearAsync"
                                               DropRequested="RequestActivityDropAsync" />
@@ -167,12 +178,17 @@
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public bool IsInitial { get; set; }
     [Parameter] public bool IsCurrent { get; set; }
+    [Parameter] public string? SelectedActivityId { get; set; }
+    [Parameter] public bool EntrySupportsDesigner { get; set; }
+    [Parameter] public bool ExitSupportsDesigner { get; set; }
     [Parameter] public int IncomingTransitionCount { get; set; }
     [Parameter] public int OutgoingTransitionCount { get; set; }
     [Parameter] public IReadOnlyCollection<StateMachineValidationIssue> ValidationIssues { get; set; } = [];
     [Parameter] public EventCallback<string> NameChanged { get; set; }
     [Parameter] public EventCallback<string> ActivityAddRequested { get; set; }
+    [Parameter] public EventCallback<string> ActivitySelectRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityOpenRequested { get; set; }
+    [Parameter] public EventCallback<string> ActivityJsonRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityReplaceRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityClearRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityDropRequested { get; set; }
@@ -190,8 +206,12 @@
 
     private Task ChangeNameAsync(ChangeEventArgs args) => NameChanged.InvokeAsync(args.Value?.ToString() ?? "");
     private Task RequestActivityAddAsync(string slotName) => ActivityAddRequested.InvokeAsync(slotName);
+    private Task RequestActivitySelectAsync(string slotName) => ActivitySelectRequested.InvokeAsync(slotName);
     private Task RequestActivityOpenAsync(string slotName) => ActivityOpenRequested.InvokeAsync(slotName);
+    private Task RequestActivityJsonAsync(string slotName) => ActivityJsonRequested.InvokeAsync(slotName);
     private Task RequestActivityReplaceAsync(string slotName) => ActivityReplaceRequested.InvokeAsync(slotName);
     private Task RequestActivityClearAsync(string slotName) => ActivityClearRequested.InvokeAsync(slotName);
     private Task RequestActivityDropAsync(string slotName) => ActivityDropRequested.InvokeAsync(slotName);
+    private bool IsActivitySelected(JsonNode? activity) => activity is JsonObject obj &&
+        (string.Equals(obj.GetId(), SelectedActivityId, StringComparison.Ordinal) || string.Equals(obj.GetNodeId(), SelectedActivityId, StringComparison.Ordinal));
 }

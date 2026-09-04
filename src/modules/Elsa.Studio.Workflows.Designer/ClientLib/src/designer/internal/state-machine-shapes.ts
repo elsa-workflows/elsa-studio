@@ -93,7 +93,11 @@ export function registerStateMachineShapes() {
                 },
             },
             router: {
-                name: 'manhattan',
+                // State transitions are already authored with explicit vertices and
+                // may connect through the same node boundary. Manhattan routing
+                // cannot resolve several of those paths and logs a fallback for
+                // every edge, so use the deterministic orthogonal router directly.
+                name: 'orth',
             },
         },
         true,

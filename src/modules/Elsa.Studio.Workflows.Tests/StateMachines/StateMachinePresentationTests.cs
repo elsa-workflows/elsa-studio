@@ -98,10 +98,12 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             .Add(component => component.State, state)
             .Add(component => component.IsInitial, true)
             .Add(component => component.IsCurrent, true)
+            .Add(component => component.SelectedActivityId, "Entry1")
             .Add(component => component.IncomingTransitionCount, 1)
             .Add(component => component.OutgoingTransitionCount, 2)
             .Add(component => component.NameChanged, value => changedName = value)
-            .Add(component => component.ActivityOpenRequested, slot => actions.Add($"open:{slot}"))
+            .Add(component => component.ActivitySelectRequested, slot => actions.Add($"select:{slot}"))
+            .Add(component => component.ActivityJsonRequested, slot => actions.Add($"json:{slot}"))
             .Add(component => component.ActivityReplaceRequested, slot => actions.Add($"replace:{slot}"))
             .Add(component => component.ActivityClearRequested, slot => actions.Add($"clear:{slot}"))
             .Add(component => component.ActivityAddRequested, slot => actions.Add($"add:{slot}"))
@@ -118,10 +120,12 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         Assert.Contains("Current", cut.Find("[aria-label='State status']").TextContent);
         Assert.Contains("2 outgoing transitions", cut.Find("[data-state-stage='active']").TextContent);
         Assert.Contains("Elsa.WriteLine", cut.Find("[data-state-stage='entry']").TextContent);
+        Assert.Equal("true", cut.Find("[data-state-stage='entry'] [data-activity-selected]").GetAttribute("data-activity-selected"));
         Assert.Contains("No exit activity configured", cut.Find("[data-state-stage='exit']").TextContent);
 
         nameInput.Change("Review");
-        cut.Find("[data-state-stage='entry'] [data-slot-action='open']").Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='select']").Click();
+        cut.Find("[data-state-stage='entry'] [data-slot-action='json']").Click();
         cut.Find("[data-state-stage='entry'] [data-slot-action='replace']").Click();
         cut.Find("[data-state-stage='entry'] [data-slot-action='clear']").Click();
         cut.Find("[data-state-stage='entry'] [data-slot-action='drop']").TriggerEvent("ondrop", new DragEventArgs());
@@ -130,7 +134,7 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
 
         Assert.Equal("Review", changedName);
         Assert.Equal("Pending", state.Name);
-        Assert.Equal(["open:entry", "replace:entry", "clear:entry", "drop:entry", "add:exit"], actions);
+        Assert.Equal(["select:entry", "json:entry", "replace:entry", "clear:entry", "drop:entry", "add:exit"], actions);
         Assert.True(viewedTransitions);
         Assert.DoesNotContain("textarea", cut.Markup, StringComparison.Ordinal);
     }
@@ -147,7 +151,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             .Add(component => component.IsReadOnly, true));
 
         Assert.True(cut.Find("input[id$='-name']").HasAttribute("disabled"));
-        Assert.Single(cut.FindAll("[data-slot-action='open']"));
+        Assert.Single(cut.FindAll("[data-slot-action='select']"));
+        Assert.Single(cut.FindAll("[data-slot-action='json']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='open']"));
         Assert.Empty(cut.FindAll("[data-slot-action='add']"));
         Assert.Empty(cut.FindAll("[data-slot-action='replace']"));
         Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
@@ -190,7 +196,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         Assert.Contains("Elsa.Event", cut.Find("[data-transition-slot='trigger']").TextContent);
         Assert.Contains("Elsa.WriteLine", cut.Find("[data-transition-slot='action']").TextContent);
         Assert.Equal("always", cut.Find("[data-transition-slot='condition'] [data-condition-state]").GetAttribute("data-condition-state"));
-        Assert.NotEmpty(cut.FindAll("[data-slot-action='open']"));
+        Assert.NotEmpty(cut.FindAll("[data-slot-action='select']"));
+        Assert.NotEmpty(cut.FindAll("[data-slot-action='json']"));
+        Assert.Empty(cut.FindAll("[data-slot-action='open']"));
         Assert.NotEmpty(cut.FindAll("[data-slot-action='replace']"));
         Assert.NotEmpty(cut.FindAll("[data-slot-action='clear']"));
 
@@ -279,6 +287,28 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         Assert.Contains("JavaScript", summary.TextContent);
         Assert.Contains("context.input === true", summary.TextContent);
         Assert.Equal(source, condition.ToJsonString());
+    }
+
+    [Fact]
+    public void TransitionInspector_RendersExpressionLanguageAndValueAsDistinctElements()
+    {
+        var condition = new JsonObject
+        {
+            ["typeName"] = "Boolean",
+            ["expression"] = new JsonObject { ["type"] = "JavaScript", ["value"] = "return 1 == 1" }
+        };
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition,
+            new StateMachineTransitionEdge { From = "Pending", To = "Approved", Condition = condition }));
+
+        var summary = cut.Find("[data-testid='state-machine-transition-condition-summary']");
+        var language = summary.QuerySelector("[data-condition-language]");
+        var expression = summary.QuerySelector("[data-condition-expression]");
+
+        Assert.NotNull(language);
+        Assert.Equal("JavaScript", language!.TextContent);
+        Assert.NotNull(expression);
+        Assert.Equal("return 1 == 1", expression!.TextContent);
+        Assert.NotSame(language, expression);
     }
 
     [Fact]
@@ -400,6 +430,7 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         };
         var configuredCut = Render<StateMachineTransitionInspector>(parameters => parameters
             .Add(component => component.Transition, configured)
+            .Add(component => component.TriggerSupportsDesigner, true)
             .Add(component => component.ActivityOpenRequested, slot => slots.Add($"open:{slot}"))
             .Add(component => component.ActivityReplaceRequested, slot => slots.Add($"replace:{slot}"))
             .Add(component => component.ActivityClearRequested, slot => slots.Add($"clear:{slot}"))
@@ -434,7 +465,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
 
         Assert.Contains("WHEN", cut.Markup);
         Assert.Contains("Never", cut.Markup);
-        Assert.Equal(2, cut.FindAll("[data-slot-action='open']").Count);
+        Assert.Empty(cut.FindAll("[data-slot-action='open']"));
+        Assert.Equal(2, cut.FindAll("[data-slot-action='select']").Count);
+        Assert.Equal(2, cut.FindAll("[data-slot-action='json']").Count);
         Assert.Empty(cut.FindAll("[data-slot-action='add']"));
         Assert.Empty(cut.FindAll("[data-slot-action='replace']"));
         Assert.Empty(cut.FindAll("[data-slot-action='clear']"));
@@ -459,6 +492,8 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         var cut = Render<StateMachineTransitionInspector>(parameters => parameters
             .Add(component => component.Transition, transition)
             .Add(component => component.IsReadOnly, true)
+            .Add(component => component.TriggerSupportsDesigner, true)
+            .Add(component => component.ActionSupportsDesigner, true)
             .Add(component => component.ActivityOpenRequested, slot => opened.Add(slot))
             .Add(component => component.ActivityDropRequested, slot => dropped.Add(slot)));
 
@@ -483,7 +518,10 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             Condition = JsonValue.Create(true),
             Action = Activity("Elsa.WriteLine", "Action1", "Workflow1:Action1")
         };
-        var cut = Render<StateMachineTransitionInspector>(parameters => parameters.Add(component => component.Transition, transition));
+        var cut = Render<StateMachineTransitionInspector>(parameters => parameters
+            .Add(component => component.Transition, transition)
+            .Add(component => component.TriggerSupportsDesigner, true)
+            .Add(component => component.ActionSupportsDesigner, true));
 
         var actionButtons = cut.FindAll("[data-transition-slot] button");
         Assert.NotEmpty(actionButtons);
@@ -493,7 +531,7 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label")) && string.IsNullOrWhiteSpace(button.TextContent));
         });
 
-        foreach (var action in new[] { "open", "replace", "clear" })
+        foreach (var action in new[] { "select", "open", "json", "replace", "clear" })
         {
             var triggerButton = cut.Find($"[data-transition-slot='trigger'] [data-slot-action='{action}']");
             var activityButton = cut.Find($"[data-transition-slot='action'] [data-slot-action='{action}']");
