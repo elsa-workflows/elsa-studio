@@ -209,6 +209,7 @@ public class StateMachineEditorSessionTests
         Assert.Equal(canvas.Transitions[0].VisualId, edge.Id);
         Assert.Equal(canvas.States[0].VisualId, edge.Source.Cell);
         Assert.Equal(canvas.States[1].VisualId, edge.Target.Cell);
+        Assert.Equal("Approve, transition from Pending to Approved", edge.Data["accessibleName"]?.GetValue<string>());
         Assert.Single(edge.Labels);
         Assert.Single(edge.Vertices);
     }

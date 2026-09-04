@@ -66,6 +66,9 @@
         <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\internal\state-machine-accessibility.ts"
               Link="DesignerAssets\state-machine-accessibility.ts"
               CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\Components\StateMachineCanvas.razor.css"
+              Link="DesignerAssets\StateMachineCanvas.razor.css"
+              CopyToOutputDirectory="PreserveNewest" />
         <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\internal\designer-ports.ts"
               Link="DesignerAssets\designer-ports.ts"
               CopyToOutputDirectory="PreserveNewest" />

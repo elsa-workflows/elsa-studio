@@ -111,19 +111,17 @@
     box-shadow: var(--mud-elevation-8);
 }
 
+.state-machine-designer__create-popover--empty {
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+}
+
 .state-machine-designer__create-popover label,
 .state-machine-designer__configuration label {
     display: grid;
     gap: .25rem;
     color: var(--mud-palette-text-secondary);
     font-size: .75rem;
-}
-
-.state-machine-designer__create-popover hr {
-    width: 100%;
-    margin: 0;
-    border: 0;
-    border-top: 1px solid var(--mud-palette-lines-default);
 }
 
 .state-machine-designer__configuration {

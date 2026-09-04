@@ -18,6 +18,7 @@ public partial class StateMachineActivityPickerDialog
     private const string AllSection = "all";
     private readonly string _id = $"state-machine-activity-picker-{Guid.NewGuid():N}";
     private IReadOnlyList<ActivityDescriptor> _descriptors = [];
+    private IReadOnlySet<string> _rootActivityTypeNames = new HashSet<string>(StringComparer.Ordinal);
     private string _searchText = string.Empty;
     private string _selectedSection = SuggestedSection;
     private ActivityDescriptor? _selectedDescriptor;
@@ -28,6 +29,7 @@ public partial class StateMachineActivityPickerDialog
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
+    [Inject] private IWorkflowRootActivityTemplateProvider RootActivityTemplateProvider { get; set; } = null!;
     [Inject] private ILocalizer Localizer { get; set; } = null!;
 
     [Parameter] public string SlotName { get; set; } = "action";
@@ -64,9 +66,13 @@ public partial class StateMachineActivityPickerDialog
     };
 
     private IReadOnlyList<ActivityDescriptor> SuggestedDescriptors =>
-        string.Equals(SlotName, "trigger", StringComparison.OrdinalIgnoreCase) || SequenceDescriptor == null
+        string.Equals(SlotName, "trigger", StringComparison.OrdinalIgnoreCase)
             ? []
-            : [SequenceDescriptor];
+            : _descriptors
+                .Where(IsDesignerBackedRoot)
+                .OrderBy(x => ReferenceEquals(x, SequenceDescriptor) ? 0 : 1)
+                .ThenBy(GetDisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
     private IReadOnlyList<ActivityDescriptor> RecentDescriptors => RecentActivityTypes
         .Select(type => _descriptors.FirstOrDefault(x => string.Equals(x.TypeName, type, StringComparison.Ordinal)))
@@ -119,12 +125,13 @@ public partial class StateMachineActivityPickerDialog
             await ActivityRegistry.EnsureLoadedAsync();
             var allDescriptors = ActivityRegistry.List().ToList();
             var browsableDescriptors = ActivityRegistry.ListBrowsable().ToList();
-            var sequence = allDescriptors.FirstOrDefault(x => string.Equals(x.TypeName, "Elsa.Sequence", StringComparison.Ordinal))
-                           ?? ActivityRegistry.Find("Elsa.Sequence");
-            if (sequence != null && browsableDescriptors.All(x => !string.Equals(x.TypeName, sequence.TypeName, StringComparison.Ordinal)))
-                browsableDescriptors.Add(sequence);
+            _rootActivityTypeNames = RootActivityTemplateProvider.List()
+                .Select(x => x.Key)
+                .ToHashSet(StringComparer.Ordinal);
+            var designerBackedRoots = allDescriptors.Where(x => _rootActivityTypeNames.Contains(x.TypeName));
 
             _descriptors = browsableDescriptors
+                .Concat(designerBackedRoots)
                 .DistinctBy(x => x.TypeName, StringComparer.Ordinal)
                 .OrderBy(GetDisplayName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.TypeName, StringComparer.OrdinalIgnoreCase)
@@ -145,11 +152,14 @@ public partial class StateMachineActivityPickerDialog
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_focusSearch || _isLoading || _loadError != null)
+        if (_isLoading || _loadError != null)
             return;
 
-        _focusSearch = false;
-        await _searchInput.FocusAsync();
+        if (_focusSearch)
+        {
+            _focusSearch = false;
+            await _searchInput.FocusAsync();
+        }
     }
 
     private void OnSearchInput(ChangeEventArgs args)
@@ -182,12 +192,6 @@ public partial class StateMachineActivityPickerDialog
 
     private Task HandleKeyboardAsync(KeyboardEventArgs args)
     {
-        if (args.Key == "/")
-        {
-            _focusSearch = true;
-            return InvokeAsync(StateHasChanged);
-        }
-
         var results = VisibleDescriptors;
         if (results.Count == 0)
             return Task.CompletedTask;
@@ -206,6 +210,15 @@ public partial class StateMachineActivityPickerDialog
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task HandleGlobalKeyboardAsync(KeyboardEventArgs args)
+    {
+        if (args.Key != "/")
+            return Task.CompletedTask;
+
+        _focusSearch = true;
+        return InvokeAsync(StateHasChanged);
     }
 
     private void EnsureSelection()
@@ -232,6 +245,7 @@ public partial class StateMachineActivityPickerDialog
         value?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
 
     private string GetDisplayName(ActivityDescriptor descriptor) => Localizer[descriptor.DisplayName ?? descriptor.Name].Value;
+    private bool IsDesignerBackedRoot(ActivityDescriptor descriptor) => _rootActivityTypeNames.Contains(descriptor.TypeName);
     private string GetCategory(ActivityDescriptor descriptor) => string.IsNullOrWhiteSpace(descriptor.Category) ? Localizer["Other"] : Localizer[descriptor.Category];
     private string GetResultId(ActivityDescriptor descriptor) => $"{_id}-activity-{SanitizeId(descriptor.TypeName)}";
     private static string SanitizeId(string value) => new(value.Select(character => char.IsLetterOrDigit(character) ? character : '-').ToArray());

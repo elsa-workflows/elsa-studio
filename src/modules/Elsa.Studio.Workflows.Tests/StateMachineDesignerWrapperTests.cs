@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using System.Reflection;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
@@ -12,12 +13,29 @@ using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using Xunit;
 
 namespace Elsa.Studio.Workflows.Tests;
 
 public class StateMachineDesignerWrapperTests
 {
+    [Theory]
+    [InlineData(false, false, "Repair the activity definition. Include a type, id, and nodeId.")]
+    [InlineData(false, true, "Edit the complete activity definition. The activity id and nodeId cannot be changed here.")]
+    [InlineData(true, false, "Review the complete activity definition.")]
+    public void ActivityJsonHelperText_DescribesTheApplicableValidationRules(bool isReadOnly, bool hasOriginalActivity, string expected)
+    {
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.IsReadOnly), isReadOnly);
+        SetPrivateField(wrapper, "Localizer", new TestLocalizer());
+
+        var originalActivity = hasOriginalActivity ? new JsonObject() : null;
+        var helperText = (string)InvokePrivate(wrapper, "GetActivityJsonHelperText", [originalActivity])!;
+
+        Assert.Equal(expected, helperText);
+    }
+
     [Fact]
     public void GetUniqueStateName_WhenRenamingToExistingStateName_ReturnsAvailableVariant()
     {
@@ -186,6 +204,38 @@ public class StateMachineDesignerWrapperTests
     }
 
     [Fact]
+    public async Task SelectTransitionActivity_SelectsArbitraryActivityWithoutOpeningANestedDesigner()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        root["transitions"]![0]!["action"] = new JsonObject
+        {
+            ["id"] = "WriteLine1",
+            ["nodeId"] = "Workflow1:Machine1:WriteLine1",
+            ["name"] = "WriteLine1",
+            ["type"] = "Elsa.WriteLine",
+            ["version"] = 1,
+            ["text"] = "hello"
+        };
+        var session = CreateSession(root);
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedTransitionId", session.ProjectCanvas().Transitions.Single().VisualId);
+        JsonObject? selected = null;
+        JsonObject? opened = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivitySelected),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => selected = activity));
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivityDoubleClick),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => opened = activity));
+
+        await InvokePrivateAsync(wrapper, "SelectTransitionActivityAsync", "action");
+
+        Assert.Equal("WriteLine1", selected?.GetId());
+        Assert.Equal("Elsa.WriteLine", selected?.GetTypeName());
+        Assert.Null(opened);
+    }
+
+    [Fact]
     public void NestedSequenceChild_IsFoundAndUpdatedThroughItsOwningTransitionSlot()
     {
         var root = CreateNestedSequenceStateMachine();
@@ -333,6 +383,14 @@ public class StateMachineDesignerWrapperTests
     {
         public bool GetNameExists(IEnumerable<JsonObject> activities, string name) => activities.Any(x => x.GetName() == name);
         public string GenerateNextName(IEnumerable<JsonObject> activities, ActivityDescriptor activityDescriptor) => name;
+    }
+
+    private sealed class TestLocalizer : ILocalizer
+    {
+        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
+
+        public LocalizedString this[string? key, params object[] arguments] =>
+            new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
     }
 
     private class ThrowingDiagramDesigner : IDiagramDesigner

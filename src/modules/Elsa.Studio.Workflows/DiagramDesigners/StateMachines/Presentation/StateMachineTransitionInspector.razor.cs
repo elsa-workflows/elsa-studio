@@ -1,9 +1,9 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Designer;
 using Elsa.Studio.Workflows.Designer.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 
@@ -15,6 +15,9 @@ public partial class StateMachineTransitionInspector
     [Parameter] public StateMachineTransitionEdge? Transition { get; set; }
     [Parameter] public IReadOnlyCollection<StateMachineStateNode> States { get; set; } = [];
     [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public string? SelectedActivityId { get; set; }
+    [Parameter] public bool TriggerSupportsDesigner { get; set; }
+    [Parameter] public bool ActionSupportsDesigner { get; set; }
     [Parameter] public IReadOnlyCollection<StateMachineValidationIssue> ValidationIssues { get; set; } = [];
     [Parameter] public IReadOnlyCollection<string> KnownExpressionProviderTypes { get; set; } = DefaultKnownExpressionProviderTypes;
     [Parameter] public EventCallback<string?> NameChanged { get; set; }
@@ -29,7 +32,9 @@ public partial class StateMachineTransitionInspector
     [Parameter] public EventCallback<string> SlotDropRequested { get; set; }
 
     [Parameter] public EventCallback<string> ActivityAddRequested { get; set; }
+    [Parameter] public EventCallback<string> ActivitySelectRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityOpenRequested { get; set; }
+    [Parameter] public EventCallback<string> ActivityJsonRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityReplaceRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityClearRequested { get; set; }
     [Parameter] public EventCallback<string> ActivityDropRequested { get; set; }
@@ -54,7 +59,9 @@ public partial class StateMachineTransitionInspector
     private Task RequestConditionEditAsync() => ConditionEditRequested.InvokeAsync("condition");
 
     private Task RequestActivityAddAsync(string slotName) => ActivityAddRequested.InvokeAsync(slotName);
+    private Task RequestActivitySelectAsync(string slotName) => ActivitySelectRequested.InvokeAsync(slotName);
     private Task RequestActivityOpenAsync(string slotName) => ActivityOpenRequested.InvokeAsync(slotName);
+    private Task RequestActivityJsonAsync(string slotName) => ActivityJsonRequested.InvokeAsync(slotName);
     private Task RequestActivityReplaceAsync(string slotName) => ActivityReplaceRequested.InvokeAsync(slotName);
 
     private Task RequestActivityClearAsync(string slotName) => ActivityClearRequested.HasDelegate
@@ -71,49 +78,8 @@ public partial class StateMachineTransitionInspector
         return string.IsNullOrWhiteSpace(text) ? null : text;
     }
 
-    private RenderFragment RenderCondition(JsonNode? value) => builder =>
-    {
-        var condition = DescribeCondition(value);
-        var sequence = 0;
-
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", condition.State is ConditionState.Never or ConditionState.Malformed
-            ? "state-machine-transition-inspector__condition state-machine-transition-inspector__condition--warning"
-            : "state-machine-transition-inspector__condition");
-        builder.AddAttribute(sequence++, "data-condition-state", condition.State.ToString().ToLowerInvariant());
-        builder.AddAttribute(sequence++, "data-testid", "state-machine-transition-condition-summary");
-        builder.OpenElement(sequence++, "strong");
-        builder.AddContent(sequence++, condition.Title);
-        builder.CloseElement();
-        builder.OpenElement(sequence++, "span");
-        builder.AddContent(sequence++, condition.Detail);
-        builder.CloseElement();
-
-        if (!string.IsNullOrWhiteSpace(condition.Warning))
-        {
-            builder.OpenElement(sequence++, "p");
-            builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__slot-warning");
-            builder.AddAttribute(sequence++, "role", "status");
-            builder.AddContent(sequence++, condition.Warning);
-            builder.CloseElement();
-        }
-
-        if (!string.IsNullOrWhiteSpace(condition.RawDefinition))
-        {
-            builder.OpenElement(sequence++, "details");
-            builder.AddAttribute(sequence++, "class", "state-machine-transition-inspector__definition");
-            builder.OpenElement(sequence++, "summary");
-            builder.AddContent(sequence++, Localizer["View definition"]);
-            builder.CloseElement();
-            builder.OpenElement(sequence++, "pre");
-            builder.AddAttribute(sequence++, "data-testid", "state-machine-transition-condition-definition");
-            builder.AddContent(sequence++, condition.RawDefinition);
-            builder.CloseElement();
-            builder.CloseElement();
-        }
-
-        builder.CloseElement();
-    };
+    private bool IsActivitySelected(JsonNode? activity) => activity is JsonObject obj &&
+        (string.Equals(obj.GetId(), SelectedActivityId, StringComparison.Ordinal) || string.Equals(obj.GetNodeId(), SelectedActivityId, StringComparison.Ordinal));
 
     private ConditionPresentation DescribeCondition(JsonNode? value)
     {

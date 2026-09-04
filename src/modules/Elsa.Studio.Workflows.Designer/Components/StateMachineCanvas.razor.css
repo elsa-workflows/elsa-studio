@@ -14,3 +14,13 @@
     outline: 2px solid var(--elsa-designer-selection);
     outline-offset: 3px;
 }
+
+::deep .x6-edge[role="button"]:focus-visible {
+    outline: 2px solid var(--elsa-designer-selection);
+    outline-offset: 4px;
+}
+
+::deep .x6-edge[role="button"]:focus-visible > path[pointer-events="none"] {
+    stroke: var(--elsa-designer-selection);
+    stroke-width: 3px;
+}
