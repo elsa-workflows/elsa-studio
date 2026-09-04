@@ -39,9 +39,9 @@
                                   CssClass="studio-expression-input-monaco-editor" />
         </MudPaper>
     </DialogContent>
-    <DialogActions>
-        @if (RequireExplicitApply)
-        {
+    @if (RequireExplicitApply)
+    {
+        <DialogActions>
             <MudButton OnClick="Cancel">@(IsReadOnly ? Localizer["Close"] : Localizer["Cancel"])</MudButton>
             @if (!IsReadOnly)
             {
@@ -49,6 +49,6 @@
                     @Localizer["Apply"]
                 </MudButton>
             }
-        }
-    </DialogActions>
+        </DialogActions>
+    }
 </MudDialog>

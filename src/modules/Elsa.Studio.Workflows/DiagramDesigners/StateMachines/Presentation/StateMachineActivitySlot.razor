@@ -62,9 +62,9 @@
                             class="state-machine-activity-slot__button state-machine-activity-slot__button--primary"
                             data-slot-action="select"
                             aria-pressed="@IsSelected"
-                            aria-label="@Localizer[$"Edit {SlotName} activity properties"]"
+                            aria-label="@Localizer[$"{(IsReadOnly ? "View" : "Edit")} {SlotName} activity properties"]"
                             @onclick="RequestSelectAsync">
-                        @Localizer["Edit properties"]
+                        @(IsReadOnly ? Localizer["View properties"] : Localizer["Edit properties"])
                     </button>
                     @if (SupportsDesigner)
                     {
