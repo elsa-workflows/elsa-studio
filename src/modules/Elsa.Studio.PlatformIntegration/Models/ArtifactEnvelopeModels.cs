@@ -21,9 +21,9 @@ public static class PlatformArtifactEnvelopeConstants
     public const string DefaultArtifactSchemaVersion = "1.0";
 
     /// <summary>
-    /// The Elsa workflow definition artifact type.
+    /// The Elsa Loom recipe artifact type.
     /// </summary>
-    public const string ElsaWorkflowDefinitionArtifactType = "elsa.workflow-definition";
+    public const string ElsaLoomRecipeArtifactType = "elsa.loom.recipe";
 }
 
 /// <summary>

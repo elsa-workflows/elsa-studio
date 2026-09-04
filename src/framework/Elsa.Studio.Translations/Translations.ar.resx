@@ -110,7 +110,7 @@
     <value>قيد الانتظار</value>
   </data>
   <data name="Add variable" xml:space="preserve">
-    <value>إضافة متغير</value>
+    <value />
   </data>
   <data name="Frequency Penalty" xml:space="preserve">
     <value />
@@ -137,7 +137,7 @@
     <value>اصدار التعريف</value>
   </data>
   <data name="Add output" xml:space="preserve">
-    <value>إضافة مخرج</value>
+    <value />
   </data>
   <data name="Create Secret" xml:space="preserve">
     <value>انشاء مفتاح سري</value>
@@ -230,7 +230,7 @@
     <value>الغاء</value>
   </data>
   <data name="Add" xml:space="preserve">
-    <value>إضافة</value>
+    <value />
   </data>
   <data name="Common" xml:space="preserve">
     <value>شائع</value>
@@ -266,7 +266,7 @@
     <value>تأخير</value>
   </data>
   <data name="Bulk Dispatch Workflows" xml:space="preserve">
-    <value>سير عمل الإرسال الجماعي</value>
+    <value />
   </data>
   <data name="HTTP Response" xml:space="preserve">
     <value />
@@ -293,7 +293,7 @@
     <value>حاوية</value>
   </data>
   <data name="Add input" xml:space="preserve">
-    <value>إضافة مدخل</value>
+    <value />
   </data>
   <data name="Activities" xml:space="preserve">
     <value />

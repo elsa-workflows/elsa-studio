@@ -17,4 +17,10 @@
         <ProjectReference Include="..\Elsa.Studio.Diagnostics.StructuredLogs\Elsa.Studio.Diagnostics.StructuredLogs.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="..\Elsa.Studio.Diagnostics.StructuredLogs\wwwroot\structuredLogs.css"
+              Link="Assets\structuredLogs.css"
+              CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

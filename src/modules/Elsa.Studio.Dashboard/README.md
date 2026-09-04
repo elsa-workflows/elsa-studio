@@ -1,6 +1,6 @@
 # Elsa.Studio.Dashboard
 
-`Elsa.Studio.Dashboard` provides the dashboard shell and shared widget composition contracts. It does not own workflow, console log, or structured log data loading. Companion Studio modules register dashboard widgets only when their matching backend dashboard feature is enabled.
+`Elsa.Studio.Dashboard` provides the dashboard shell and shared widget composition contracts. It does not own workflow, console log, structured log, or OpenTelemetry data loading. Companion Studio modules register dashboard widgets only when their matching backend feature is enabled.
 
 ## Widget Composition
 
@@ -57,7 +57,7 @@ The optional registry lookup keeps companion modules usable when a host does not
 
 The shell supplies a `DashboardWidgetContext` parameter with the selected range, load status, latest dashboard snapshot, refresh callback, and navigation manager. Widgets should read the snapshot payloads they need and keep their own empty and unavailable states.
 
-Use `PayloadKind` to document which snapshot payload a widget consumes. For example, workflow dashboard widgets consume `WorkflowInstances`, `WorkflowTrends`, `RecentActivity`, and `WorkflowHotspots`, while diagnostics widgets consume their matching diagnostics payloads.
+Use `PayloadKind` to document which payload a widget consumes. For example, workflow dashboard widgets consume `WorkflowInstances`, `WorkflowTrends`, `RecentActivity`, and `WorkflowHotspots`; log widgets consume their matching dashboard snapshot payloads; and the OpenTelemetry companion owns loading `OpenTelemetry.StorageDiagnostics`.
 
 ## Host Registration
 
@@ -71,6 +71,8 @@ services.AddConsoleLogsModule(backendApiConfig);
 services.AddConsoleLogsDashboardModule();
 services.AddStructuredLogsModule(backendApiConfig);
 services.AddStructuredLogsDashboardModule();
+services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);
+services.AddOpenTelemetryDashboardModule();
 ```
 
 The shell remains coherent when any companion is absent or when the backend does not advertise a companion dashboard feature.

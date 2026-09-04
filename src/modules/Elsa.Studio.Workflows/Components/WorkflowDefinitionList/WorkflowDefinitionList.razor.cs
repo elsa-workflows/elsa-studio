@@ -13,7 +13,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -40,7 +39,6 @@ public partial class WorkflowDefinitionList
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
-    [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
@@ -72,27 +70,28 @@ public partial class WorkflowDefinitionList
         };
 
         var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
-        IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
         if (latestWorkflowDefinitionsResponse is null)
-            return new TableData<WorkflowDefinitionRow> { TotalItems = 0, Items = Array.Empty<WorkflowDefinitionRow>() };
+            return new TableData<WorkflowDefinitionRow> { TotalItems = 0, Items = [] };
 
-        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+        var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items;
+        IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
+        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitions.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
         var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             DefinitionIds = unpublishedWorkflowDefinitionIds,
         }, VersionOptions.Published);
 
-        _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
+        _totalCount = latestWorkflowDefinitionsResponse!.TotalCount;
 
-        var workflowDefinitionRows = latestWorkflowDefinitionsResponse.Items
+        var workflowDefinitionRows = latestWorkflowDefinitions
             .Select(definition =>
             {
                 var latestVersionNumber = definition.Version;
                 var isPublished = definition.IsPublished;
                 var publishedVersion = isPublished
                     ? definition
-                    : publishedWorkflowDefinitions?.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
+                    : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
                 var publishedVersionNumber = publishedVersion?.Version;
 
                 return new WorkflowDefinitionRow(
@@ -178,11 +177,11 @@ public partial class WorkflowDefinitionList
         var dialogInstance = await DialogService.ShowAsync(dialogComponentType, Localizer["New workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
 
-        if (dialogResult is { Canceled: false, Data: Result<WorkflowDefinition, ValidationErrors> result })
-        {
-            await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
-            result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
-        }
+        if (dialogResult?.Canceled != false || dialogResult.Data is not Result<WorkflowDefinition, ValidationErrors> result)
+            return;
+
+        await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
+        result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
     }
 
     private async Task OnDuplicateWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
@@ -230,7 +229,7 @@ public partial class WorkflowDefinitionList
         var definitionId = workflowDefinitionRow!.DefinitionId;
         var response = await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
 
-        if (response?.CannotStart != false)
+        if (response.CannotStart)
         {
             UserMessageService.ShowSnackbarTextMessage(Localizer["The workflow cannot be started"], Severity.Error);
             return;
@@ -324,7 +323,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 
@@ -411,7 +409,7 @@ public partial class WorkflowDefinitionList
         {
             options.SnackbarVariant = Variant.Filled;
             options.CloseAfterNavigation = failedResultCount > 0;
-            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 3000;
+            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 5000;
         });
         Reload();
     }
@@ -445,7 +443,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 

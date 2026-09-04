@@ -1,7 +1,12 @@
 using System.Text.Json.Nodes;
+using System.Reflection;
+using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contexts;
@@ -49,29 +54,27 @@ public class StateMachineDesignerWrapperTests
     }
 
     [Fact]
-    public void IsTransitionSelected_WhenTransitionIdentitiesAreDuplicated_SelectsOnlyMatchingOccurrence()
+    public void CanvasProjection_WhenTransitionIdentitiesAreDuplicated_AssignsDistinctVisualIds()
     {
-        var firstTransition = new StateMachineTransitionEdge { Name = "Review", From = "Pending", To = "Approved" };
-        var selectedTransition = new StateMachineTransitionEdge { Name = "Review", From = "Pending", To = "Approved" };
-        var graph = new StateMachineGraph
+        var activity = new JsonObject
         {
-            Transitions =
+            ["states"] = new JsonArray
             {
-                firstTransition,
-                selectedTransition
+                new JsonObject { ["name"] = "Pending" },
+                new JsonObject { ["name"] = "Approved" }
+            },
+            ["transitions"] = new JsonArray
+            {
+                new JsonObject { ["name"] = "Review", ["from"] = "Pending", ["to"] = "Approved" },
+                new JsonObject { ["name"] = "Review", ["from"] = "Pending", ["to"] = "Approved" }
             }
         };
-        var wrapper = new StateMachineDesignerWrapper();
-        var wrapperType = typeof(StateMachineDesignerWrapper);
-        wrapperType.GetField("_graph", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(wrapper, graph);
-        wrapperType.GetField("_selectedTransition", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(wrapper, selectedTransition);
-        var method = wrapperType.GetMethod("IsTransitionSelected", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var validator = new StateMachineValidator();
+        var session = new StateMachineEditorSession(new StateMachineMapper(validator), validator, activity);
+        var transitions = session.ProjectCanvas().Transitions;
 
-        var firstSelected = (bool)method.Invoke(wrapper, [firstTransition])!;
-        var secondSelected = (bool)method.Invoke(wrapper, [selectedTransition])!;
-
-        Assert.False(firstSelected);
-        Assert.True(secondSelected);
+        Assert.Equal(2, transitions.Count);
+        Assert.NotEqual(transitions[0].VisualId, transitions[1].VisualId);
     }
 
     [Fact]
@@ -89,6 +92,247 @@ public class StateMachineDesignerWrapperTests
         await (Task)method.Invoke(wrapper, [])!;
 
         Assert.False(graphUpdated);
+    }
+
+    [Fact]
+    public void CreateSlotActivity_AssignsStableIdentityForASequence()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var session = CreateSession(root);
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedTransitionId", session.ProjectCanvas().Transitions.Single().VisualId);
+        SetPrivateField(wrapper, "IdentityGenerator", new FixedIdentityGenerator("Sequence2"));
+        SetPrivateField(wrapper, "ActivityNameGenerator", new FixedActivityNameGenerator("Sequence2"));
+
+        var descriptor = new ActivityDescriptor
+        {
+            Name = "Sequence",
+            TypeName = "Elsa.Sequence",
+            Version = 1,
+            IsBrowsable = true
+        };
+        var sequence = (JsonObject)InvokePrivate(wrapper, "CreateSlotActivity", descriptor)!;
+
+        Assert.Equal("Sequence2", sequence.GetId());
+        Assert.Equal("Workflow1:Machine1:Sequence2", sequence.GetNodeId());
+        Assert.Equal("Elsa.Sequence", sequence.GetTypeName());
+        Assert.Equal(1, sequence.GetVersion());
+    }
+
+    [Fact]
+    public async Task OpenTransitionSequence_UsesDoubleClickNavigationEvenWhenReadOnly()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var session = CreateSession(root);
+        var transitionId = session.ProjectCanvas().Transitions.Single().VisualId;
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.IsReadOnly), true);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedTransitionId", transitionId);
+        JsonObject? opened = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivityDoubleClick),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => opened = activity));
+
+        await InvokePrivateAsync(wrapper, "OpenTransitionActivityAsync", "action");
+
+        Assert.NotNull(opened);
+        Assert.Equal("Elsa.Sequence", opened!.GetTypeName());
+        Assert.Equal("Sequence1", opened.GetId());
+    }
+
+    [Fact]
+    public async Task OpenStateSequence_UsesTheSameNestedDesignerNavigation()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var sequence = root["transitions"]![0]!["action"]!.DeepClone();
+        root["states"]![0]!["entry"] = sequence;
+        var session = CreateSession(root);
+        var stateId = session.ProjectCanvas().States.Single(x => x.Name == "Pending").VisualId;
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedStateId", stateId);
+        JsonObject? opened = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivityDoubleClick),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => opened = activity));
+
+        await InvokePrivateAsync(wrapper, "OpenStateActivityAsync", "entry");
+
+        Assert.NotNull(opened);
+        Assert.Equal("Elsa.Sequence", opened!.GetTypeName());
+        Assert.Equal("Sequence1", opened.GetId());
+    }
+
+    [Fact]
+    public async Task SelectActivityAsync_SelectsNestedSequenceChildInTheOwningAction()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var session = CreateSession(root);
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        JsonObject? selected = null;
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.ActivitySelected),
+            EventCallback.Factory.Create<JsonObject>(new object(), (JsonObject activity) => selected = activity));
+
+        await wrapper.SelectActivityAsync("Grandchild1");
+
+        Assert.NotNull(selected);
+        Assert.Equal("Grandchild1", selected!.GetId());
+        Assert.Equal("WriteLine2", selected.GetName());
+    }
+
+    [Fact]
+    public void NestedSequenceChild_IsFoundAndUpdatedThroughItsOwningTransitionSlot()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var session = CreateSession(root);
+        var transitionId = session.ProjectCanvas().Transitions.Single().VisualId;
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetPrivateField(wrapper, "_session", session);
+        SetPrivateField(wrapper, "_selectedTransitionId", transitionId);
+
+        var arguments = new object?[] { "Grandchild1", null, null, null, null };
+        var found = (bool)InvokePrivate(wrapper, "TryFindSlotActivity", arguments)!;
+
+        Assert.True(found);
+        Assert.Equal("action", arguments[4]);
+        Assert.Equal("Grandchild1", ((JsonObject)arguments[1]!).GetId());
+        Assert.NotNull(arguments[3]);
+
+        var replacement = new JsonObject
+        {
+            ["id"] = "Grandchild1",
+            ["nodeId"] = "Workflow1:Machine1:Sequence1:NestedSequence1:Grandchild1",
+            ["name"] = "UpdatedGrandchild",
+            ["type"] = "Elsa.WriteLine",
+            ["version"] = 1,
+            ["text"] = "updated"
+        };
+        var updated = (bool)InvokePrivate(wrapper, "TryUpdateSlotActivity", "Grandchild1", replacement)!;
+
+        Assert.True(updated);
+        var transition = session.Graph.Transitions.Single();
+        var action = (JsonObject)transition.Action!;
+        Assert.Equal("Sequence1", action.GetId());
+        Assert.Equal("NestedSequence1", action["activities"]![1]!["id"]!.GetValue<string>());
+        Assert.Equal("UpdatedGrandchild", action["activities"]![1]!["activities"]![0]!["name"]!.GetValue<string>());
+        Assert.Equal("Elsa.Event", ((JsonObject)transition.Trigger!).GetTypeName());
+
+        var reloaded = CreateSession(session.Export());
+        var reloadedAction = (JsonObject)reloaded.Graph.Transitions.Single().Action!;
+        Assert.Equal("Sequence1", reloadedAction.GetId());
+        Assert.Equal("Workflow1:Machine1:Sequence1", reloadedAction.GetNodeId());
+        Assert.Equal("NestedSequence1", reloadedAction["activities"]![1]!["id"]!.GetValue<string>());
+        Assert.Equal("Workflow1:Machine1:Sequence1:NestedSequence1", reloadedAction["activities"]![1]!["nodeId"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task ReadOnlyUpdateActivity_RejectsNestedSequenceMutation()
+    {
+        var root = CreateNestedSequenceStateMachine();
+        var session = CreateSession(root);
+        var wrapper = new StateMachineDesignerWrapper();
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.StateMachine), root);
+        SetComponentParameter(wrapper, nameof(StateMachineDesignerWrapper.IsReadOnly), true);
+        SetPrivateField(wrapper, "_session", session);
+
+        var replacement = new JsonObject
+        {
+            ["id"] = "Grandchild1",
+            ["nodeId"] = "Workflow1:Machine1:Sequence1:NestedSequence1:Grandchild1",
+            ["name"] = "ShouldNotApply",
+            ["type"] = "Elsa.WriteLine",
+            ["version"] = 1
+        };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => wrapper.UpdateActivityAsync("Grandchild1", replacement));
+        Assert.Equal("Grandchild1", session.Graph.Transitions.Single().Action!["activities"]![1]!["activities"]![0]!["id"]!.GetValue<string>());
+    }
+
+    private static StateMachineEditorSession CreateSession(JsonObject activity)
+    {
+        var validator = new StateMachineValidator();
+        return new(new StateMachineMapper(validator), validator, activity);
+    }
+
+    private static JsonObject CreateNestedSequenceStateMachine() => JsonNode.Parse("""
+    {
+      "id": "Machine1",
+      "nodeId": "Workflow1:Machine1",
+      "type": "Elsa.StateMachine",
+      "initialState": "Pending",
+      "currentState": "Pending",
+      "states": [
+        { "name": "Pending" },
+        { "name": "Approved" }
+      ],
+      "transitions": [
+        {
+          "name": "Approve",
+          "from": "Pending",
+          "to": "Approved",
+          "trigger": { "id": "Trigger1", "nodeId": "Workflow1:Trigger1", "name": "Event1", "type": "Elsa.Event", "version": 1 },
+          "action": {
+            "id": "Sequence1",
+            "nodeId": "Workflow1:Machine1:Sequence1",
+            "name": "Sequence1",
+            "type": "Elsa.Sequence",
+            "version": 1,
+            "activities": [
+              { "id": "Child1", "nodeId": "Workflow1:Machine1:Sequence1:Child1", "name": "WriteLine1", "type": "Elsa.WriteLine", "version": 1 },
+              {
+                "id": "NestedSequence1",
+                "nodeId": "Workflow1:Machine1:Sequence1:NestedSequence1",
+                "name": "NestedSequence1",
+                "type": "Elsa.Sequence",
+                "version": 1,
+                "activities": [
+                  { "id": "Grandchild1", "nodeId": "Workflow1:Machine1:Sequence1:NestedSequence1:Grandchild1", "name": "WriteLine2", "type": "Elsa.WriteLine", "version": 1 }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+    """)!.AsObject();
+
+    private static object? InvokePrivate(object target, string methodName, params object?[] arguments) =>
+        target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(target, arguments);
+
+    private static async Task InvokePrivateAsync(object target, string methodName, params object?[] arguments) =>
+        await (Task)InvokePrivate(target, methodName, arguments)!;
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?? target.GetType().GetField($"<{fieldName}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field != null)
+        {
+            field.SetValue(target, value);
+            return;
+        }
+
+        target.GetType().GetProperty(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(target, value);
+    }
+
+    private static void SetComponentParameter<T>(StateMachineDesignerWrapper wrapper, string propertyName, T value) =>
+        typeof(StateMachineDesignerWrapper).GetProperty(propertyName)!.SetValue(wrapper, value);
+
+    private sealed class FixedIdentityGenerator(string id) : IIdentityGenerator
+    {
+        public string GenerateId() => id;
+    }
+
+    private sealed class FixedActivityNameGenerator(string name) : IActivityNameGenerator
+    {
+        public bool GetNameExists(IEnumerable<JsonObject> activities, string name) => activities.Any(x => x.GetName() == name);
+        public string GenerateNextName(IEnumerable<JsonObject> activities, ActivityDescriptor activityDescriptor) => name;
     }
 
     private class ThrowingDiagramDesigner : IDiagramDesigner

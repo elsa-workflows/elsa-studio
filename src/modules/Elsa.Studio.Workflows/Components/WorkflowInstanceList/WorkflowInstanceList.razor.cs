@@ -50,9 +50,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IFiles Files { get; set; } = default!;
     [Inject] private IDomAccessor DomAccessor { get; set; } = default!;
-    [Inject] private ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
+    [Inject] private new ILogger<WorkflowInstanceList> Logger { get; set; } = default!;
     [Inject] private IOptions<WorkflowInstanceListPollingOptions> PollingOptions { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private new NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IRemoteFeatureProvider RemoteFeatureProvider { get; set; } = default!;
 
     /// <summary>
@@ -521,13 +521,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
             StopElapsedTimer();
     }
 
-    private void StartElapsedTimer()
-    {
-        if (!EnablePolling)
-            return;
-
-        _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
-    }
+    private void StartElapsedTimer() => _elapsedTimer ??= new(_ => InvokeAsync(async () => await _table.ReloadServerData()), null, TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds), TimeSpan.FromSeconds(PollingOptions.Value.IntervalSeconds));
 
     private void StopElapsedTimer()
     {

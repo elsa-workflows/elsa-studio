@@ -58,7 +58,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     public string? SelectedActivityId => WorkflowEditor?.SelectedActivityId;
 
     /// Gets the workflow definition serialized as a formatted JSON string.
-    public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor?.WorkflowDefinition ?? _workflowDefinition, new JsonSerializerOptions { WriteIndented = true });
+    public string WorkflowDefinitionSerialized => JsonSerializer.Serialize(WorkflowEditor.WorkflowDefinition, new JsonSerializerOptions { WriteIndented = true });
 
     /// <inheritdoc />
     protected override void OnInitialized()

@@ -72,22 +72,6 @@
     margin-top: 0;
 }
 
-.dashboard-shell ::deep .dashboard-diagnostics-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.dashboard-shell ::deep .dashboard-diagnostics-grid-item {
-    min-width: 0;
-    display: flex;
-}
-
-.dashboard-shell ::deep .dashboard-diagnostics-grid-item > .dashboard-panel {
-    width: 100%;
-    height: 100%;
-}
-
 .dashboard-shell ::deep .dashboard-section {
     padding: 14px;
 }
@@ -143,9 +127,5 @@
 
     .dashboard-shell ::deep .dashboard-section {
         padding: 12px;
-    }
-
-    .dashboard-shell ::deep .dashboard-diagnostics-grid {
-        grid-template-columns: minmax(0, 1fr);
     }
 }

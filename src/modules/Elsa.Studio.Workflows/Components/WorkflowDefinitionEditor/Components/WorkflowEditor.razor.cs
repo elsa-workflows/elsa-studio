@@ -403,7 +403,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         var result = await WorkflowCloningService.SaveAs(WorkflowDefinition);
         if (result is null) return;
-        if (result.IsSuccess) NavigationManager.NavigateTo($"workflows/definitions/{result?.Success?.WorkflowDefinition.DefinitionId}/edit");
+        var definitionId = result.Success?.WorkflowDefinition.DefinitionId;
+        if (result.IsSuccess && !string.IsNullOrWhiteSpace(definitionId))
+            NavigationManager.NavigateTo($"workflows/definitions/{definitionId}/edit");
     }
 
     private async Task OnPublishClicked()
@@ -422,7 +424,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
             if (response.ConsumingWorkflowCount > 0)
             {
-                UserMessageService.ShowSnackbarTextMessage(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success, options => options.VisibleStateDuration = 3000);
+                UserMessageService.ShowSnackbarTextMessage(Localizer["{0} consuming workflow(s) updated", response.ConsumingWorkflowCount], Severity.Success);
             }
         }));
     }
@@ -540,7 +542,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         {
             snackbarOptions.SnackbarVariant = Variant.Filled;
             snackbarOptions.CloseAfterNavigation = failedImports.Count > 0;
-            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 3000;
+            snackbarOptions.VisibleStateDuration = failedImports.Count > 0 ? 10000 : 5000;
         }
     }
 

@@ -50,8 +50,12 @@ public partial class ActivityDetailsTab
 
     private void CreateDataModels()
     {
+        ClearDataModels();
+
         var activity = Activity;
-        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion())!;
+        var activityDescriptor = ActivityRegistry.Find(activity.GetTypeName(), activity.GetVersion());
+        if (activityDescriptor is null)
+            return;
         var activityId = activity.GetId();
         var activityNodeId = activity.GetNodeId();
         var activityName = activity.GetName();
@@ -157,5 +161,15 @@ public partial class ActivityDetailsTab
         OutputData = outputData;
         ExceptionData = exceptionData;
         ResilienceStrategyData = resilienceStrategyData;
+    }
+
+    private void ClearDataModels()
+    {
+        ActivityInfo = new();
+        ActivityData = new();
+        OutcomesData = new();
+        OutputData = new();
+        ExceptionData = new();
+        ResilienceStrategyData = new();
     }
 }
