@@ -395,9 +395,7 @@ public partial class StateMachineDesignerWrapper
 
         var originalActivity = slot is JsonObject obj && obj.IsActivity() ? obj : null;
         var label = IsReadOnly ? Localizer["View {0} activity JSON", slotName] : Localizer["Edit {0} activity JSON", slotName];
-        var helperText = IsReadOnly
-            ? Localizer["Review the complete activity definition."]
-            : Localizer["Edit the complete activity definition. Activity identity must remain unchanged."];
+        var helperText = GetActivityJsonHelperText(originalActivity);
         var parameters = new DialogParameters<CodeEditorDialog>
         {
             { x => x.Label, label },
@@ -423,6 +421,16 @@ public partial class StateMachineDesignerWrapper
             return;
 
         await applyAsync(value);
+    }
+
+    private string GetActivityJsonHelperText(JsonObject? originalActivity)
+    {
+        if (IsReadOnly)
+            return Localizer["Review the complete activity definition."];
+
+        return originalActivity == null
+            ? Localizer["Repair the activity definition. Include a type, id, and nodeId."]
+            : Localizer["Edit the complete activity definition. The activity id and nodeId cannot be changed here."];
     }
 
     private async Task ApplyEditedStateActivityJsonAsync(string stateId, string slotName, string value)
