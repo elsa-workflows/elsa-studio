@@ -151,7 +151,9 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
             .Add(component => component.IsReadOnly, true));
 
         Assert.True(cut.Find("input[id$='-name']").HasAttribute("disabled"));
-        Assert.Single(cut.FindAll("[data-slot-action='select']"));
+        var propertiesButton = Assert.Single(cut.FindAll("[data-slot-action='select']"));
+        Assert.Equal("View properties", propertiesButton.TextContent.Trim());
+        Assert.Equal("View entry activity properties", propertiesButton.GetAttribute("aria-label"));
         Assert.Single(cut.FindAll("[data-slot-action='json']"));
         Assert.Empty(cut.FindAll("[data-slot-action='open']"));
         Assert.Empty(cut.FindAll("[data-slot-action='add']"));
@@ -466,7 +468,11 @@ public sealed class StateMachinePresentationTests : BunitContext, IAsyncLifetime
         Assert.Contains("WHEN", cut.Markup);
         Assert.Contains("Never", cut.Markup);
         Assert.Empty(cut.FindAll("[data-slot-action='open']"));
-        Assert.Equal(2, cut.FindAll("[data-slot-action='select']").Count);
+        var propertiesButtons = cut.FindAll("[data-slot-action='select']");
+        Assert.Equal(2, propertiesButtons.Count);
+        Assert.All(propertiesButtons, button => Assert.Equal("View properties", button.TextContent.Trim()));
+        Assert.Equal("View trigger activity properties", propertiesButtons[0].GetAttribute("aria-label"));
+        Assert.Equal("View action activity properties", propertiesButtons[1].GetAttribute("aria-label"));
         Assert.Equal(2, cut.FindAll("[data-slot-action='json']").Count);
         Assert.Empty(cut.FindAll("[data-slot-action='add']"));
         Assert.Empty(cut.FindAll("[data-slot-action='replace']"));

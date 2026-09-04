@@ -7,7 +7,7 @@
     }
 </style>
 
-<MudDialog>
+<MudDialog DialogActions="@ExplicitDialogActions">
     <TitleContent>
         <MudToolBar Dense="true" Gutters="false">
             <MudStack Spacing="0">
@@ -39,16 +39,18 @@
                                   CssClass="studio-expression-input-monaco-editor" />
         </MudPaper>
     </DialogContent>
-    @if (RequireExplicitApply)
-    {
-        <DialogActions>
-            <MudButton OnClick="Cancel">@(IsReadOnly ? Localizer["Close"] : Localizer["Cancel"])</MudButton>
-            @if (!IsReadOnly)
-            {
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Apply" data-testid="code-editor-apply">
-                    @Localizer["Apply"]
-                </MudButton>
-            }
-        </DialogActions>
-    }
 </MudDialog>
+
+@code {
+    private RenderFragment? ExplicitDialogActions => RequireExplicitApply
+        ? @<text>
+              <MudButton OnClick="Cancel">@(IsReadOnly ? Localizer["Close"] : Localizer["Cancel"])</MudButton>
+              @if (!IsReadOnly)
+              {
+                  <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Apply" data-testid="code-editor-apply">
+                      @Localizer["Apply"]
+                  </MudButton>
+              }
+          </text>
+        : null;
+}
