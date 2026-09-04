@@ -60,4 +60,23 @@ public partial class CreateWorkflowDialog
         MudDialog.Close(result);
     }
 
+    private void SelectRootActivityTemplate(string key)
+    {
+        _selectedRootActivityTemplateKey = key;
+    }
+
+    private bool IsRootActivityTemplateSelected(WorkflowRootActivityTemplate template)
+    {
+        return string.Equals(template.Key, _selectedRootActivityTemplateKey, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetRootActivityTemplateClass(WorkflowRootActivityTemplate template)
+    {
+        return IsRootActivityTemplateSelected(template) ? "workflow-root-template workflow-root-template-selected" : "workflow-root-template";
+    }
+
+    private static string GetRootActivityTemplateIconStyle(WorkflowRootActivityTemplate template)
+    {
+        return $"color: {template.Color};";
+    }
 }

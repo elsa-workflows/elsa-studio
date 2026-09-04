@@ -1,245 +1,289 @@
 .state-machine-designer {
-    container-type: inline-size;
-    display: flex;
     height: 100%;
     min-height: 0;
-    flex-direction: column;
-    gap: .75rem;
-    padding: .75rem;
-    overflow: hidden;
-    background: var(--mud-palette-background);
-    color: var(--mud-palette-text-primary);
-}
-
-.state-machine-designer__toolbar,
-.state-machine-designer__configuration,
-.state-machine-designer__summary,
-.state-machine-designer__view-switch,
-.state-machine-designer__confirmation > div {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+    padding: 16px;
+    background: var(--mud-palette-background);
 }
 
-.state-machine-designer__toolbar {
-    position: relative;
-    gap: .5rem;
+.state-machine-designer[data-centered="True"] {
+    justify-content: center;
 }
 
 .state-machine-designer__summary {
-    margin-right: auto;
-    gap: .75rem;
-    color: var(--mud-palette-text-secondary);
-    font-size: .75rem;
-}
-
-.state-machine-designer__summary strong {
-    color: var(--mud-palette-text-primary);
-}
-
-.state-machine-designer__view-switch {
-    padding: .125rem;
-    border: 1px solid var(--mud-palette-lines-default);
-    border-radius: var(--mud-default-borderradius);
-    background: var(--mud-palette-surface);
-}
-
-.state-machine-designer__view-button,
-.state-machine-designer__button,
-.state-machine-designer__create-menu summary,
-.state-machine-designer__issue {
-    min-height: 2.25rem;
-    padding: .375rem .75rem;
-    border: 0;
-    border-radius: var(--mud-default-borderradius);
-    background: transparent;
-    color: var(--mud-palette-text-primary);
-    font: inherit;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.state-machine-designer__view-button--active {
-    background: color-mix(in srgb, var(--mud-palette-primary) 10%, var(--mud-palette-surface));
-    color: var(--mud-palette-primary);
-}
-
-.state-machine-designer__button:hover,
-.state-machine-designer__view-button:hover,
-.state-machine-designer__create-menu summary:hover {
-    background: color-mix(in srgb, currentColor 7%, transparent);
-}
-
-.state-machine-designer__button--primary {
-    color: var(--mud-palette-primary);
-}
-
-.state-machine-designer__button--danger {
-    color: var(--mud-palette-error);
-}
-
-.state-machine-designer__view-button:focus-visible,
-.state-machine-designer__button:focus-visible,
-.state-machine-designer__create-menu summary:focus-visible,
-.state-machine-designer__issue:focus-visible,
-.state-machine-designer__control:focus-visible {
-    outline: 2px solid var(--mud-palette-primary);
-    outline-offset: 2px;
-}
-
-.state-machine-designer__create-menu {
-    position: relative;
-}
-
-.state-machine-designer__create-menu summary {
-    color: var(--mud-palette-primary);
-    list-style: none;
-}
-
-.state-machine-designer__create-popover {
-    position: absolute;
-    z-index: 20;
-    top: calc(100% + .375rem);
-    right: 0;
     display: grid;
-    width: min(20rem, 80vw);
-    gap: .75rem;
-    padding: 1rem;
-    border: 1px solid var(--mud-palette-lines-default);
-    border-radius: var(--mud-default-borderradius);
-    background: var(--mud-palette-surface);
-    box-shadow: var(--mud-elevation-8);
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
 }
 
-.state-machine-designer__create-popover label,
-.state-machine-designer__configuration label {
-    display: grid;
-    gap: .25rem;
-    color: var(--mud-palette-text-secondary);
-    font-size: .75rem;
-}
-
-.state-machine-designer__create-popover hr {
-    width: 100%;
-    margin: 0;
-    border: 0;
-    border-top: 1px solid var(--mud-palette-lines-default);
-}
-
-.state-machine-designer__configuration {
-    gap: .75rem;
-}
-
-.state-machine-designer__configuration label {
-    width: min(15rem, 50%);
-}
-
-.state-machine-designer__control {
-    width: 100%;
-    min-height: 2.5rem;
-    box-sizing: border-box;
-    padding: .5rem .75rem;
-    border: 1px solid var(--mud-palette-lines-inputs);
-    border-radius: var(--mud-default-borderradius);
-    background: var(--mud-palette-surface);
-    color: var(--mud-palette-text-primary);
-    font: inherit;
-}
-
-.state-machine-designer__issues {
-    display: flex;
-    max-height: 7rem;
-    flex-wrap: wrap;
-    gap: .375rem;
-    overflow: auto;
-}
-
-.state-machine-designer__issue {
-    display: flex;
-    min-height: 2rem;
-    align-items: center;
-    gap: .375rem;
-    border: 1px solid var(--mud-palette-warning);
-    color: var(--mud-palette-warning-darken);
-    text-align: left;
-}
-
-.state-machine-designer__issue--error {
-    border-color: var(--mud-palette-error);
-    color: var(--mud-palette-error);
-}
-
-.state-machine-designer__workspace {
-    display: grid;
-    min-height: 0;
-    flex: 1;
-    grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
-    border: 1px solid var(--mud-palette-lines-default);
-    border-radius: var(--mud-default-borderradius);
-    overflow: hidden;
-    background: var(--mud-palette-surface);
-}
-
-.state-machine-designer__surface {
+.state-machine-designer__summary > div {
     min-width: 0;
-    min-height: 28rem;
-    overflow: auto;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--mud-palette-surface);
 }
 
-.state-machine-designer__surface > :first-child {
-    height: 100%;
+.state-machine-designer__editor-row,
+.state-machine-designer__transition-editor {
+    display: grid;
+    gap: 6px;
 }
 
-.state-machine-designer__surface ::deep .state-machine-outline {
-    padding: 1rem;
+.state-machine-designer__transition-editor {
+    grid-template-columns: minmax(120px, 1fr) minmax(96px, .7fr) minmax(96px, .7fr) auto;
 }
 
-.state-machine-designer__inspector {
+.state-machine-designer__input,
+.state-machine-designer__textarea {
+    width: 100%;
     min-width: 0;
-    padding: 1rem;
-    border-left: 1px solid var(--mud-palette-lines-default);
-    overflow: auto;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    padding: 7px 8px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__textarea {
+    min-height: 112px;
+    resize: vertical;
+    font-family: var(--mud-typography-default-family);
+}
+
+.state-machine-designer__input:disabled,
+.state-machine-designer__textarea:disabled {
+    color: var(--mud-palette-text-disabled);
     background: var(--mud-palette-background);
 }
 
-.state-machine-designer__empty-inspector,
-.state-machine-designer__confirmation {
-    display: grid;
-    gap: .5rem;
-    padding: .75rem;
-    border: 1px dashed var(--mud-palette-lines-default);
-    border-radius: var(--mud-default-borderradius);
-    color: var(--mud-palette-text-secondary);
-    font-size: .8125rem;
+.state-machine-designer__command,
+.state-machine-designer__secondary,
+.state-machine-designer__danger {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
 }
 
-.state-machine-designer__confirmation {
-    margin-bottom: 1rem;
-    border-style: solid;
+.state-machine-designer__command {
+    color: var(--mud-palette-primary);
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__danger {
+    color: var(--mud-palette-error);
     border-color: var(--mud-palette-error);
 }
 
-.state-machine-designer__confirmation > div {
-    justify-content: flex-end;
-    gap: .375rem;
+.state-machine-designer__label {
+    display: block;
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+    line-height: 1.2;
 }
 
-@container (max-width: 60rem) {
-    .state-machine-designer {
-        overflow: auto;
-    }
+.state-machine-designer__value {
+    display: block;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    line-height: 1.4;
+}
 
-    .state-machine-designer__workspace {
-        flex: none;
-        grid-template-columns: minmax(0, 1fr);
-    }
+.state-machine-designer__issues {
+    display: grid;
+    gap: 6px;
+}
 
-    .state-machine-designer__surface {
-        min-height: 20rem;
-    }
+.state-machine-designer__issue {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    border-left: 3px solid var(--mud-palette-warning);
+    padding: 8px 10px;
+    background: var(--mud-palette-surface);
+}
 
-    .state-machine-designer__inspector {
-        border-top: 1px solid var(--mud-palette-lines-default);
-        border-left: 0;
+.state-machine-designer__issue--error {
+    border-left-color: var(--mud-palette-error);
+}
+
+.state-machine-designer__canvas {
+    min-height: 360px;
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.2fr);
+    gap: 16px;
+    align-content: start;
+}
+
+.state-machine-designer__canvas--fit {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.state-machine-designer__states,
+.state-machine-designer__transitions {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+}
+
+.state-machine-designer__state {
+    width: 100%;
+    min-height: 72px;
+    display: grid;
+    gap: 8px;
+    text-align: left;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__state:hover,
+.state-machine-designer__state--selected {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__state--terminal {
+    border-style: dashed;
+}
+
+.state-machine-designer__state-title,
+.state-machine-designer__transition-route,
+.state-machine-designer__transition-name {
+    overflow-wrap: anywhere;
+}
+
+.state-machine-designer__state-edges {
+    display: grid;
+    gap: 4px;
+}
+
+.state-machine-designer__state-edge {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border-left: 2px solid var(--mud-palette-primary);
+    padding-left: 8px;
+    color: var(--mud-palette-text-secondary);
+    font-size: .8rem;
+    line-height: 1.35;
+}
+
+.state-machine-designer__state-title,
+.state-machine-designer__transition-route {
+    font-weight: 600;
+}
+
+.state-machine-designer__transition {
+    width: 100%;
+    min-height: 80px;
+    display: grid;
+    gap: 6px;
+    text-align: left;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--mud-palette-text-primary);
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__transition:hover,
+.state-machine-designer__transition--selected {
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__transition--invalid {
+    border-left: 3px solid var(--mud-palette-error);
+}
+
+.state-machine-designer__transition-route {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.state-machine-designer__transition-name {
+    color: var(--mud-palette-text-secondary);
+}
+
+.state-machine-designer__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.state-machine-designer__badge {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 999px;
+    padding: 2px 7px;
+    color: var(--mud-palette-text-secondary);
+    font-size: .75rem;
+    line-height: 1.3;
+    background: var(--mud-palette-background);
+}
+
+.state-machine-designer__badge--current {
+    color: var(--mud-palette-primary);
+    border-color: var(--mud-palette-primary);
+}
+
+.state-machine-designer__badge--terminal {
+    color: var(--mud-palette-error);
+    border-color: var(--mud-palette-error);
+}
+
+.state-machine-designer__details {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 12px;
+    background: var(--mud-palette-surface);
+}
+
+.state-machine-designer__details-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.state-machine-designer__details-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.state-machine-designer__details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.state-machine-designer__field {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.state-machine-designer__field > span {
+    color: var(--mud-palette-text-secondary);
+    font-size: .8rem;
+}
+
+@media (max-width: 960px) {
+    .state-machine-designer__summary,
+    .state-machine-designer__canvas,
+    .state-machine-designer__transition-editor,
+    .state-machine-designer__details-grid {
+        grid-template-columns: 1fr;
     }
 }

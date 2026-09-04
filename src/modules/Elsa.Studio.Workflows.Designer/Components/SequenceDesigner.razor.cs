@@ -19,6 +19,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using MudBlazor.Utilities;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
@@ -36,7 +37,6 @@ public partial class SequenceDesigner : IDisposable, IAsyncDisposable
     private JsonObject? _sequence;
     private IDictionary<string, ActivityStats>? _activityStats;
     private X6GraphApi _graphApi = null!;
-    private IDisposable? _themeSubscription;
 
     public SequenceDesigner()
     {
@@ -194,9 +194,7 @@ public partial class SequenceDesigner : IDisposable, IAsyncDisposable
 
     protected override void OnInitialized()
     {
-        _themeSubscription = new X6DesignerThemeSubscription(
-            ThemeService,
-            theme => ScheduleGraphActionAsync(() => _graphApi.ApplyThemeAsync(theme)));
+        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
         _sequence = Sequence;
     }
 
@@ -278,6 +276,13 @@ public partial class SequenceDesigner : IDisposable, IAsyncDisposable
         }
     }
 
+    private async void OnDarkModeChanged()
+    {
+        var palette = ThemeService.CurrentPalette;
+        var gridColor = palette.BackgroundGray;
+        await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA)));
+    }
+
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         if (_graphApi != null!)
@@ -288,7 +293,7 @@ public partial class SequenceDesigner : IDisposable, IAsyncDisposable
 
     void IDisposable.Dispose()
     {
-        _themeSubscription?.Dispose();
+        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
         _componentRef?.Dispose();
     }
 }

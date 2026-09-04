@@ -1,8 +1,8 @@
 @inject ILocalizer Localizer
 @{
     var inputDescriptor = EditorContext.InputDescriptor;
-    var displayName = inputDescriptor.DisplayName;
-    var description = inputDescriptor.Description;
+    var displayName = inputDescriptor.DisplayName ?? inputDescriptor.Name;
+    var description = inputDescriptor.Description ?? string.Empty;
 }
 
 <ExpressionInput EditorContext="@EditorContext">
@@ -20,7 +20,7 @@
             HelperText="@Localizer[description]"
             Immediate="true"
             AutoSize="true"
-            force-shrink="true"
+            ForceShrink="true"
             ChipColor="Color.Primary"
             ChipSize="Size.Medium"
             ChipVariant="Variant.Filled"

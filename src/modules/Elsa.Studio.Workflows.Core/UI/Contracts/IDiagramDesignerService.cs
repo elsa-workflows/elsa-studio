@@ -8,11 +8,6 @@ namespace Elsa.Studio.Workflows.UI.Contracts;
 public interface IDiagramDesignerService
 {
     /// <summary>
-    /// Returns whether a dedicated diagram designer is registered for the specified activity.
-    /// </summary>
-    bool HasDiagramDesigner(JsonObject activity);
-
-    /// <summary>
     /// Gets the diagram designer for the specified activity.
     /// </summary>
     IDiagramDesigner GetDiagramDesigner(JsonObject activity);

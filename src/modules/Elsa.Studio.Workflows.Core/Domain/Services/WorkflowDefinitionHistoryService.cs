@@ -1,4 +1,3 @@
-using System.Net;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Contracts;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -25,18 +24,18 @@ public class WorkflowDefinitionHistoryService(IBackendApiClientProvider backendA
             var api = await GetApiAsync(cancellationToken);
             await mediator.NotifyAsync(new WorkflowDefinitionRetracting(workflowDefinition), cancellationToken);
             var definition = await api.RetractAsync(workflowDefinition.DefinitionId, new RetractWorkflowDefinitionRequest(), cancellationToken);
-            if (workflowRetractedCallback != null) await workflowRetractedCallback(definition);
+            if(workflowRetractedCallback != null) await workflowRetractedCallback(definition);
             await mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
             return new(definition);
         }
-        catch (ApiException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+        catch (ValidationApiException e)
         {
             var errors = e.GetValidationErrors();
             await mediator.NotifyAsync(new WorkflowDefinitionRetractingFailed(workflowDefinition, errors), cancellationToken);
             return new(errors);
         }
     }
-
+    
     /// <inheritdoc />
     public async Task<WorkflowDefinitionSummary> RevertAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default)
     {

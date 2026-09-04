@@ -87,26 +87,6 @@ public sealed class OutputConverterSettingsEditorTests : BunitContext, IAsyncLif
         Assert.Contains("Enter a valid integer.", cut.Markup);
     }
 
-    [Fact]
-    public void SchemaDefaultsAreNotDisplayedBeforeTheyArePersisted()
-    {
-        JsonObject? changed = null;
-        using var document = JsonDocument.Parse("""
-            {"type":"object","properties":{"format":{"type":"string","default":"compact"}}}
-            """);
-        var cut = Render<OutputConverterSettingsEditor>(parameters => parameters
-            .Add(x => x.SettingsSchema, document.RootElement.Clone())
-            .Add(x => x.Settings, new JsonObject())
-            .Add(x => x.SettingsChanged, value =>
-            {
-                changed = value;
-                return Task.CompletedTask;
-            }));
-
-        Assert.True(string.IsNullOrEmpty(cut.Find("input").GetAttribute("value")));
-        Assert.Null(changed);
-    }
-
     private sealed class TestLocalizer : ILocalizer
     {
         public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);

@@ -6,8 +6,8 @@
 @inherits ActivityWrapperBase
 @inject ILocalizer Localizer
 @{
-    var activityClass = CanStartWorkflow ? "elsa-activity pa-3 is-starting-point" : "elsa-activity pa-3";
-    var activityStyle = $"--elsa-activity-accent: {Color};";
+    const string white = "#ffffff";
+    var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
     var metadata = Stats?.Metadata;
     var hasRetryAttempts = metadata != null && metadata.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True }; 
     var color = Stats == null ? MudBlazor.Color.Transparent : Stats.Faulted ? MudBlazor.Color.Error :  Stats.Blocked ? MudBlazor.Color.Warning : Stats.Uncompleted > Stats.Completed ? MudBlazor.Color.Info : Stats.Completed > 0 ? MudBlazor.Color.Success : MudBlazor.Color.Default;
@@ -18,28 +18,28 @@
 
     <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;" Visible="showBadge" class="@cssClass">
         <MudPaper
-            Class="@activityClass"
-            Style="@activityStyle"
+            Class="elsa-activity pa-3"
+            Style="@($"border-left-color: {Color}; {(CanStartWorkflow ? $"background-color: {Color}" : "")};")"
             Outlined="true">
             <MudStack Row="true" AlignItems="AlignItems.Center" Style="height:100%">
                 @if (Icon != null)
                 {
-                    <MudIcon Icon="@Icon"></MudIcon>
+                    <MudIcon Icon="@Icon" Style="@colorStyle"></MudIcon>
                 }
                 <MudStack Style="height:100%" Justify="Justify.Center">
-                    <MudText Typo="Typo.body1">@Localizer[Label]</MudText>
+                    <MudText Typo="Typo.body1" Style="@colorStyle">@Localizer[Label]</MudText>
                     @{
                         var visiblePorts = Ports.Where(x => x is { Type: PortType.Embedded, IsBrowsable: true }).ToList();
                     }
-                    @if (visiblePorts.Any())
+                    @if (visiblePorts.Any() && ActivityDescriptor is not null)
                     {
                         <MudStack Row="true">
                             @foreach (var port in visiblePorts)
                             {
                                 var portName = port.Name;
-                                var providerContext = new PortProviderContext(ActivityDescriptor!, Activity);
+                                var providerContext = new PortProviderContext(ActivityDescriptor, Activity);
                                 var portProvider = ActivityPortService.GetProvider(providerContext);
-                                var childActivity = portProvider.ResolvePort(portName, new(ActivityDescriptor!, Activity));
+                                var childActivity = portProvider.ResolvePort(portName, new(ActivityDescriptor, Activity));
 
                                 @if (childActivity != null)
                                 {
@@ -61,7 +61,7 @@
 
                     @if (!string.IsNullOrWhiteSpace(Description) && ShowDescription)
                     {
-                        <MudText Typo="Typo.caption">@Description</MudText>
+                        <MudText Typo="Typo.caption" Style="@colorStyle">@Description</MudText>
                     }
                 </MudStack>
             </MudStack>

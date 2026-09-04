@@ -1,13 +1,4 @@
 .structured-logs-page {
-    --structured-logs-viewport: color-mix(in srgb, var(--mud-palette-surface) 62%, var(--mud-palette-background));
-    --structured-logs-row-hover: color-mix(in srgb, var(--mud-palette-primary) 7%, var(--structured-logs-viewport));
-    --structured-logs-row-selected: color-mix(in srgb, var(--mud-palette-primary) 14%, var(--structured-logs-viewport));
-    --structured-logs-code-surface: color-mix(in srgb, var(--mud-palette-text-primary) 4%, var(--structured-logs-viewport));
-    --structured-logs-primary-text: color-mix(in srgb, var(--mud-palette-primary) 76%, var(--mud-palette-text-primary));
-    --structured-logs-secondary-text: color-mix(in srgb, var(--mud-palette-secondary) 64%, var(--mud-palette-text-primary));
-    --structured-logs-success-text: color-mix(in srgb, var(--mud-palette-success) 68%, var(--mud-palette-text-primary));
-    --structured-logs-warning-text: color-mix(in srgb, var(--mud-palette-warning) 68%, var(--mud-palette-text-primary));
-    --structured-logs-error-text: color-mix(in srgb, var(--mud-palette-error) 72%, var(--mud-palette-text-primary));
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -76,7 +67,7 @@
 
 .structured-logs-action-divider {
     align-self: stretch;
-    background: var(--mud-palette-lines-default);
+    background: rgba(0, 0, 0, 0.14);
     display: inline-block;
     margin: 3px 4px;
     width: 1px;
@@ -94,7 +85,7 @@
 }
 
 .structured-logs-status-dot {
-    background: var(--mud-palette-text-secondary);
+    background: #7a8699;
     border-radius: 999px;
     display: inline-block;
     height: 8px;
@@ -102,21 +93,21 @@
 }
 
 .structured-logs-status-connected .structured-logs-status-dot {
-    background: var(--mud-palette-success);
+    background: #1b8f55;
 }
 
 .structured-logs-status-connecting .structured-logs-status-dot,
 .structured-logs-status-reconnecting .structured-logs-status-dot {
-    background: var(--mud-palette-warning);
+    background: #c77700;
 }
 
 .structured-logs-status-unavailable .structured-logs-status-dot,
 .structured-logs-status-unauthorized .structured-logs-status-dot {
-    background: var(--mud-palette-error);
+    background: #c93838;
 }
 
 .structured-logs-dropped {
-    color: var(--structured-logs-warning-text);
+    color: #a05f00;
 }
 
 .structured-logs-filter-grid {
@@ -147,10 +138,10 @@
 }
 
 .structured-logs-surface {
-    background: var(--structured-logs-viewport);
-    border: 1px solid var(--mud-palette-lines-default);
+    background: #f8fafc;
+    border: 1px solid #d7dde5;
     border-radius: 6px;
-    color: var(--mud-palette-text-primary);
+    color: #1f2937;
     flex: 1 1 auto;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 0.78rem;
@@ -161,7 +152,7 @@
 }
 
 .structured-logs-empty {
-    color: var(--mud-palette-text-secondary);
+    color: #64748b;
     padding: 18px;
 }
 
@@ -176,35 +167,35 @@
 }
 
 .structured-log-row:hover {
-    background: var(--structured-logs-row-hover);
+    background: #edf3f8;
 }
 
 .structured-log-row-selected {
-    background: var(--structured-logs-row-selected);
+    background: #e2eefc;
 }
 
 .structured-log-row-warning {
-    border-left-color: var(--mud-palette-warning);
+    border-left-color: #d7a930;
 }
 
 .structured-log-row-error,
 .structured-log-row-critical {
-    border-left-color: var(--mud-palette-error);
+    border-left-color: #d95d5d;
 }
 
 .structured-log-details-button.mud-button-root.mud-icon-button {
-    color: var(--mud-palette-text-secondary);
+    color: #526173;
     height: 22px;
     padding: 1px;
     width: 22px;
 }
 
 .structured-log-details-button.mud-button-root.mud-icon-button:hover {
-    color: var(--mud-palette-primary);
+    color: #135f9f;
 }
 
 .structured-log-select {
-    accent-color: var(--mud-palette-primary);
+    accent-color: #276da8;
     align-self: start;
     height: 13px;
     margin: 3px 0 0;
@@ -227,21 +218,21 @@
 }
 
 .structured-log-time {
-    color: var(--mud-palette-text-secondary);
+    color: #687386;
 }
 
 .structured-log-source {
-    color: var(--structured-logs-primary-text);
+    color: #087da1;
     max-width: 220px;
 }
 
 .structured-log-category {
-    color: var(--mud-palette-text-secondary);
+    color: #506071;
     max-width: 360px;
 }
 
 .structured-log-correlation {
-    color: var(--structured-logs-secondary-text);
+    color: #6b5f8f;
     max-width: 220px;
 }
 
@@ -256,12 +247,12 @@
 
 .structured-log-filter-chip:hover,
 .structured-log-filter-chip:focus-visible {
-    color: var(--mud-palette-primary);
+    color: #135f9f;
     text-decoration: underline;
 }
 
 .structured-log-message {
-    color: var(--mud-palette-text-primary);
+    color: #111827;
     min-width: 0;
     white-space: pre;
 }
@@ -283,34 +274,34 @@
 }
 
 .structured-log-level-trace {
-    color: var(--mud-palette-text-secondary);
+    color: #687386;
 }
 
 .structured-log-level-debug {
-    color: var(--structured-logs-primary-text);
+    color: #2563a7;
 }
 
 .structured-log-level-information {
-    color: var(--structured-logs-success-text);
+    color: #21734a;
 }
 
 .structured-log-level-warning {
-    color: var(--structured-logs-warning-text);
+    color: #9a6500;
 }
 
 .structured-log-level-error {
-    color: var(--structured-logs-error-text);
+    color: #bb3434;
 }
 
 .structured-log-level-critical {
-    background: var(--mud-palette-error);
+    background: #bb3434;
     border-radius: 3px;
-    color: var(--mud-palette-error-text, #fff);
+    color: #fff;
     padding: 0 3px;
 }
 
 .structured-log-exception {
-    color: var(--structured-logs-error-text);
+    color: #9f1f1f;
     grid-column: 8;
     margin: 2px 0 5px;
     overflow-x: auto;
@@ -318,9 +309,8 @@
 }
 
 .structured-log-details {
-    background: var(--mud-palette-surface);
-    border: 1px solid var(--mud-palette-lines-default);
-    color: var(--mud-palette-text-primary);
+    background: #fff;
+    border: 1px solid #d7dde5;
     border-radius: 6px;
     min-height: 0;
     min-width: 0;
@@ -330,7 +320,7 @@
 
 .structured-log-details-header {
     align-items: flex-start;
-    border-bottom: 1px solid var(--mud-palette-lines-default);
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     gap: 10px;
     justify-content: space-between;
@@ -347,7 +337,7 @@
 }
 
 .structured-log-details-header span {
-    color: var(--mud-palette-text-secondary);
+    color: #64748b;
     display: block;
     font-size: 0.78rem;
     margin-top: 3px;
@@ -378,7 +368,7 @@
 }
 
 .structured-log-detail-list dt {
-    color: var(--mud-palette-text-secondary);
+    color: #64748b;
     font-size: 0.76rem;
 }
 
@@ -398,7 +388,7 @@
 .structured-log-detail-action {
     background: transparent;
     border: 0;
-    color: var(--mud-palette-primary);
+    color: #276da8;
     cursor: pointer;
     flex: 0 0 auto;
     font-size: 0.72rem;
@@ -406,10 +396,10 @@
 }
 
 .structured-log-code {
-    background: var(--structured-logs-code-surface);
-    border: 1px solid var(--mud-palette-lines-default);
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
     border-radius: 4px;
-    color: var(--mud-palette-text-primary);
+    color: #1f2937;
     margin: 8px 0 0;
     max-height: 280px;
     overflow: auto;

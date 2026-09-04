@@ -4,8 +4,6 @@ using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Dashboard.Widgets;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.UI.Dashboard;
-using Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Extensions;
-using Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.UI.Dashboard;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.UI.Dashboard;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
@@ -86,8 +84,7 @@ public class DashboardWidgetRegistrationTests
             .AddDashboardModule()
             .AddWorkflowsDashboardModule()
             .AddStructuredLogsDashboardModule()
-            .AddConsoleLogsDashboardModule()
-            .AddOpenTelemetryDashboardModule();
+            .AddConsoleLogsDashboardModule();
 
         var serviceProvider = services.BuildServiceProvider();
         var features = serviceProvider.GetRequiredService<IEnumerable<IFeature>>().Where(x => x.GetType().Namespace?.EndsWith(".Dashboard", StringComparison.Ordinal) == true).ToList();
@@ -96,7 +93,6 @@ public class DashboardWidgetRegistrationTests
         Assert.Contains(features, x => x.GetType() == typeof(Elsa.Studio.Workflows.Dashboard.Feature));
         Assert.Contains(features, x => x.GetType() == typeof(Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Feature));
         Assert.Contains(features, x => x.GetType() == typeof(Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Feature));
-        Assert.Contains(features, x => x.GetType() == typeof(Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Feature));
 
         foreach (var feature in features)
             await feature.InitializeAsync();
@@ -110,8 +106,7 @@ public class DashboardWidgetRegistrationTests
         AssertDescriptor<DashboardWorkflowHotspotsWidget>(descriptors, "dashboard.workflow.hotspots", DashboardWidgetZones.SecondaryPanels, 100, "WorkflowHotspots");
         AssertDescriptor<StructuredLogsDashboardWidget>(descriptors, "diagnostics.structured-logs", DashboardWidgetZones.DiagnosticsStatus, 100, "Diagnostics.StructuredLogs");
         AssertDescriptor<ConsoleLogsDashboardWidget>(descriptors, "diagnostics.console-logs", DashboardWidgetZones.DiagnosticsStatus, 200, "Diagnostics.ConsoleLogs");
-        AssertDescriptor<OpenTelemetryDashboardWidget>(descriptors, "diagnostics.open-telemetry", DashboardWidgetZones.DiagnosticsStatus, 300, "OpenTelemetry.StorageDiagnostics");
-        Assert.Equal(8, descriptors.Count);
+        Assert.Equal(7, descriptors.Count);
     }
 
     [Fact]
@@ -120,7 +115,6 @@ public class DashboardWidgetRegistrationTests
         AssertRemoteFeatureName<Elsa.Studio.Workflows.Dashboard.Feature>("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard");
         AssertRemoteFeatureName<Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Feature>("Elsa.Diagnostics.StructuredLogs.Dashboard.ShellFeatures.StructuredLogsDashboard");
         AssertRemoteFeatureName<Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Feature>("Elsa.Diagnostics.ConsoleLogs.Dashboard.ShellFeatures.ConsoleLogsDashboard");
-        AssertRemoteFeatureName<Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Feature>("Elsa.Diagnostics.OpenTelemetry.ShellFeatures.OpenTelemetry");
     }
 
     private sealed class TestWidget : IComponent

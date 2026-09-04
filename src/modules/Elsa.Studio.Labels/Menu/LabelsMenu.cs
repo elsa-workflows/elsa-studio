@@ -20,8 +20,7 @@ public class LabelsMenu(ILocalizer localizer) : IMenuProvider
                 Icon = Icons.Material.Filled.Label,
                 Href = "Labels",
                 Text = localizer["Labels"],
-                GroupName = MenuItemGroups.Administration.Name,
-                Order = 200
+                GroupName = MenuItemGroups.Settings.Name
             }
         };
 

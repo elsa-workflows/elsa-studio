@@ -3,8 +3,7 @@ import {GraphBinding} from './graph-bindings';
 
 export type SequenceLayoutOrientation = 'vertical' | 'horizontal';
 
-const SequenceNodeGap = 64;
-const SequenceMinimumStride = 160;
+const SequenceGap = 160;
 
 export function normalizeSequenceOrientation(value?: string | null): SequenceLayoutOrientation {
     return value === 'horizontal' ? 'horizontal' : 'vertical';
@@ -26,31 +25,19 @@ export function withSuppressedGraphUpdated<T>(binding: GraphBinding, action: () 
 export function arrangeSequenceGraph(binding: GraphBinding, orderedNodes?: Node<Node.Properties>[]) {
     const graph = binding.graph;
     const nodes = orderedNodes ?? sortSequenceNodes(graph.getNodes(), binding);
-    const horizontal = isHorizontalSequence(binding);
-    const nodeSizes = nodes.map(node => node.getSize());
-    const crossAxisSize = Math.max(0, ...nodeSizes.map(size => horizontal ? size.height : size.width));
 
     withSuppressedGraphUpdated(binding, () => {
-        graph.batchUpdate('sequence-layout', () => {
-            const mutationOptions = {sequenceLayout: true};
-            let offset = 0;
-
-            nodes.forEach((node, index) => {
-                const size = nodeSizes[index];
-                node.setPosition(
-                    horizontal
-                        ? {x: offset, y: (crossAxisSize - size.height) / 2}
-                        : {x: (crossAxisSize - size.width) / 2, y: offset},
-                    mutationOptions,
-                );
-
-                const nodeExtent = horizontal ? size.width : size.height;
-                offset += Math.max(SequenceMinimumStride, nodeExtent + SequenceNodeGap);
-            });
-
-            graph.getEdges().forEach(edge => graph.removeCell(edge, mutationOptions));
-            buildSequenceEdges(graph, nodes, horizontal).forEach(edge => graph.addEdge(edge, mutationOptions));
+        nodes.forEach((node, index) => {
+            node.setPosition(
+                isHorizontalSequence(binding)
+                    ? {x: index * SequenceGap, y: 0}
+                    : {x: 0, y: index * SequenceGap},
+                {silent: true},
+            );
         });
+
+        graph.getEdges().forEach(edge => graph.removeCell(edge, {silent: true}));
+        buildSequenceEdges(graph, nodes).forEach(edge => graph.addEdge(edge, {silent: true}));
     });
 }
 
@@ -87,20 +74,14 @@ export function sortSequenceNodes(nodes: Node<Node.Properties>[], binding: Graph
     });
 }
 
-function buildSequenceEdges(graph: Graph, nodes: Node<Node.Properties>[], horizontal: boolean): Edge<Edge.Properties>[] {
+function buildSequenceEdges(graph: Graph, nodes: Node<Node.Properties>[]): Edge<Edge.Properties>[] {
     return nodes.slice(0, -1).map((node, index) => {
         const next = nodes[index + 1];
         return graph.createEdge({
             id: `${node.id}:sequence:${next.id}`,
             shape: 'elsa-sequence-edge',
-            source: {
-                cell: node.id,
-                anchor: {name: horizontal ? 'right' : 'bottom'},
-            },
-            target: {
-                cell: next.id,
-                anchor: {name: horizontal ? 'left' : 'top'},
-            },
+            source: {cell: node.id},
+            target: {cell: next.id},
             zIndex: -1,
         });
     });

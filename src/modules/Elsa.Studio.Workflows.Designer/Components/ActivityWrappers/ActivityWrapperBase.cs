@@ -7,7 +7,6 @@ using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Helpers;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 
@@ -115,9 +114,11 @@ public abstract class ActivityWrapperBase : StudioComponentBase
         var descriptor = ActivityRegistry.Find(activityType, activityVersion);
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        // Hierarchy: Custom Display Text > Activity Name > Type Name
-        Label = ActivityLabelResolver.Resolve(activityDisplayText, activityName, descriptor?.DisplayName ?? descriptor?.Name);
-        TypeName = descriptor?.DisplayName ?? ActivityLabelResolver.UnknownActivityLabel;
+        // Hierarchy: Activity Name > Custom Display Text > Type Name
+        Label = !string.IsNullOrEmpty(activityName) 
+            ? activityName 
+            : (!string.IsNullOrEmpty(activityDisplayText) ? activityDisplayText : descriptor?.DisplayName ?? descriptor?.Name ?? "Unknown Activity");
+        TypeName = descriptor?.DisplayName ?? "Unknown Activity";
         Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor?.Description ?? string.Empty;
         var currentShowDescription = activity.GetShowDescription() == true;
         ShowDescription = currentShowDescription;

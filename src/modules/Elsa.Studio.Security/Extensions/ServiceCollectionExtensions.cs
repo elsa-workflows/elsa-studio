@@ -1,11 +1,5 @@
 using Elsa.Studio.Contracts;
-using Elsa.Studio.DomInterop.Extensions;
-using Elsa.Studio.Extensions;
-using Elsa.Studio.Models;
-using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Menu;
-using Elsa.Studio.Security.Contracts;
-using Elsa.Studio.Security.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Security.Extensions;
@@ -20,22 +14,10 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <returns>The service collection for method chaining.</returns>
-    public static IServiceCollection AddSecurityModule(this IServiceCollection services, BackendApiConfig? backendApiConfig = null)
+    public static IServiceCollection AddSecurityModule(this IServiceCollection services)
     {
-        services
+        return services
             .AddScoped<IFeature, Feature>()
-            .AddScoped<IMenuProvider, SecurityMenu>()
-            .AddScoped<ISecurityMenuContributor, IdentitySecurityMenuContributor>()
-            .AddScoped<IIdentityPermissionService, IdentityPermissionService>()
-            .AddClipboardInterop();
-
-        if (backendApiConfig != null)
-        {
-            services
-                .AddRemoteApi<IUsersApi>(backendApiConfig)
-                .AddRemoteApi<IRolesApi>(backendApiConfig);
-        }
-
-        return services;
+            .AddScoped<IMenuProvider, SecurityMenu>();
     }
 }

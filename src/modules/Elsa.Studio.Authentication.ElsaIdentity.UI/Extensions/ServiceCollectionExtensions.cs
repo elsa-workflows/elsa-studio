@@ -1,8 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
-using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Components;
-using Elsa.Studio.Authentication.ElsaIdentity.UI.Services;
 using Elsa.Studio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,10 +15,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddElsaIdentityUI(this IServiceCollection services)
     {
-        services.AddSingleton(new StudioAuthenticationProviderRegistration(StudioAuthenticationProvider.ElsaIdentity));
-        services.AddScoped<ILoginMethodCatalog, ElsaIdentityLoginMethodCatalog>();
-        services.AddScoped<ILoginMethodComponentProvider, ElsaIdentityLoginMethodComponentProvider>();
-        services.AddSingleton<ILoginMethodIconProvider, ElsaIdentityLoginMethodIconProvider>();
+        services.AddScoped<IFeature, ElsaIdentityUIFeature>();
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<RedirectToLogin>>();
 
         return services;

@@ -26,26 +26,6 @@ public sealed record PlatformSubmitOptions
     public Guid? WorkspaceId { get; set; }
 
     /// <summary>
-    /// The Platform application receiving the desired-state revision.
-    /// </summary>
-    public Guid? ApplicationId { get; set; }
-
-    /// <summary>
-    /// The Platform environment receiving the desired-state revision.
-    /// </summary>
-    public Guid? EnvironmentId { get; set; }
-
-    /// <summary>
-    /// Optional revision label. When not set, Studio generates a workflow-specific label.
-    /// </summary>
-    public string? RevisionLabel { get; set; }
-
-    /// <summary>
-    /// Optional revision commit identifier.
-    /// </summary>
-    public string? RevisionCommit { get; set; }
-
-    /// <summary>
     /// Optional request customization for authentication headers.
     /// </summary>
     public Func<HttpRequestMessage, CancellationToken, Task>? ConfigureRequestAsync { get; set; }
@@ -83,14 +63,10 @@ public sealed record PlatformSubmitOptions
     /// <summary>
     /// Required runtime capabilities for this artifact.
     /// </summary>
-    public IReadOnlyList<string> RequiredCapabilities { get; set; } = ["loom.recipe.apply"];
+    public IReadOnlyList<string> RequiredCapabilities { get; set; } = ["workflow-definition.apply"];
 
     /// <summary>
     /// Whether required Platform submission settings have been provided.
     /// </summary>
-    public bool IsConfigured =>
-        PlatformEndpoint is not null
-        && WorkspaceId is { } workspaceId && workspaceId != Guid.Empty
-        && ApplicationId is { } applicationId && applicationId != Guid.Empty
-        && EnvironmentId is { } environmentId && environmentId != Guid.Empty;
+    public bool IsConfigured => PlatformEndpoint is not null && WorkspaceId is { } workspaceId && workspaceId != Guid.Empty;
 }

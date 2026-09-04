@@ -10,8 +10,8 @@ internal class ResxLocalizationProvider : ILocalizationProvider
     /// </summary>
     /// <param name="key">The key.</param>
     /// <returns>The result of the operation.</returns>
-    public string? GetTranslation(string key)
+    public string GetTranslation(string key)
     {
-        return Elsa.Studio.Translations.Translations.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
+        return Elsa.Studio.Translations.Translations.ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
     }
 }

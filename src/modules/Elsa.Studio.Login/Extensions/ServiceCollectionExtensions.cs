@@ -1,6 +1,5 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
-using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Login.Components;
 using Elsa.Studio.Login.Contracts;
@@ -25,7 +24,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddLoginModuleCore(this IServiceCollection services)
     {
-        services.AddSingleton(new StudioAuthenticationProviderRegistration(StudioAuthenticationProvider.ElsaLogin));
         return services
                 .AddScoped<IFeature, LoginFeature>()
                 .AddOptions()

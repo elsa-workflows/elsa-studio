@@ -5,34 +5,24 @@
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<MudLayout Class="elsa-studio-shell" data-elsa-theme="@ThemeId">
+<MudLayout>
     <MudAppBar Elevation="0" Color="Color.Inherit" Class="studio-appbar">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       Edge="Edge.Start"
-                       Class="studio-appbar__menu"
-                       aria-label="Toggle navigation"
-                       OnClick="@DrawerToggle"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle"/>
         <MudSpacer/>
-        <div class="studio-appbar__actions">
-            @foreach (var appBarItem in AppBarService.AppBarComponents)
-            {
-                @appBarItem
-            }
-        </div>
+        @foreach (var appBarItem in AppBarService.AppBarComponents)
+        {
+            @appBarItem
+        }
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen"
-               Elevation="0"
-               ClipMode="DrawerClipMode.Always"
-               Class="studio-drawer">
-        <MudDrawerHeader Class="studio-drawer__header">
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>
             @BrandingProvider.Branding
         </MudDrawerHeader>
-        <div class="studio-drawer__navigation">
+        <div class="mt-10">
             <NavMenu/>
         </div>
     </MudDrawer>
-    <MudMainContent Class="studio-main-content">
+    <MudMainContent>
         <ErrorBoundary @ref="@_errorBoundary">
             <ChildContent>
                 @Body

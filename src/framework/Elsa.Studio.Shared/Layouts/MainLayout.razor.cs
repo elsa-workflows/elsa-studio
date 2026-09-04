@@ -18,7 +18,6 @@ public partial class MainLayout : IDisposable
     private ErrorBoundary? _errorBoundary;
 
     [Inject] private IThemeService ThemeService { get; set; } = null!;
-    [Inject] private IStudioThemeRegistry ThemeRegistry { get; set; } = null!;
     [Inject] private IAppBarService AppBarService { get; set; } = null!;
     [Inject] private IUnauthorizedComponentProvider UnauthorizedComponentProvider { get; set; } = null!;
     [Inject] private IErrorComponentProvider ErrorComponentProvider { get; set; } = null!;
@@ -29,7 +28,6 @@ public partial class MainLayout : IDisposable
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     private MudTheme CurrentTheme => ThemeService.CurrentTheme;
     private bool IsDarkMode => ThemeService.IsDarkMode;
-    private string ThemeId => ThemeRegistry.Selected.Id;
     private RenderFragment UnauthorizedComponent => UnauthorizedComponentProvider.GetUnauthorizedComponent();
     private RenderFragment DisplayError(Exception context) => ErrorComponentProvider.GetErrorComponent(context);
 

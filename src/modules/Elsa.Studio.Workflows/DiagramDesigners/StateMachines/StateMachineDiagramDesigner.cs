@@ -65,7 +65,6 @@ public class StateMachineDiagramDesigner(ILocalizer localizer) : IDiagramDesigne
             builder.AddAttribute(sequence++, nameof(StateMachineDesignerWrapper.IsReadOnly), context.IsReadOnly);
             builder.AddAttribute(sequence++, nameof(StateMachineDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(StateMachineDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
-            builder.AddAttribute(sequence++, nameof(StateMachineDesignerWrapper.ActivityDoubleClick), context.ActivityDoubleClickCallback);
             builder.AddAttribute(sequence++, nameof(StateMachineDesignerWrapper.GraphUpdated), context.GraphUpdatedCallback);
             builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (StateMachineDesignerWrapper)@ref);
             builder.CloseComponent();

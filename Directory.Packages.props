@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
-    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-rc2" />
+    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-preview.5397" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
@@ -20,7 +20,6 @@
     <PackageVersion Include="MudBlazor" Version="9.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="MudBlazor.Translations" Version="2.7.0" />
     <PackageVersion Include="Radzen.Blazor" Version="9.0.5" />
     <PackageVersion Include="ShortGuid" Version="2.0.1" />

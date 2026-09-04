@@ -1,9 +1,5 @@
 # Elsa Studio Authentication - OpenID Connect
 
-> For new deployments that need administrators to manage multiple identity providers at runtime,
-> prefer the External Authentication broker and its Identity provider connections UI. This direct OIDC module
-> remains supported for a single deployment-configured provider and is not marked obsolete.
-
 This module provides the shared OpenID Connect (OIDC) services used by Elsa Studio.
 It is not used directly by host applications. Use one of the hosting-specific packages instead:
 

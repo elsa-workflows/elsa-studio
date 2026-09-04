@@ -47,7 +47,7 @@ public partial class VariablesTab
     {
         var isNew = variable == null;
 
-        var parameters = new DialogParameters<EditVariableDialog>
+        var parameters = new DialogParameters<EditOutputDialog>
         {
             [nameof(EditVariableDialog.WorkflowDefinition)] = WorkflowDefinition
         };
@@ -67,18 +67,20 @@ public partial class VariablesTab
         var dialog = await DialogService.ShowAsync<EditVariableDialog>(title, parameters, options);
         var result = await dialog.Result;
 
-        if (result?.Canceled != false)
+        if (result?.Canceled is not false)
             return;
 
         if (isNew && result.Data is Variable newVariable)
+        {
             WorkflowDefinition.Variables.Add(newVariable);
+        }
 
         await RaiseWorkflowDefinitionUpdatedAsync();
     }
     
     private async Task OpenVariableTestValueEditorDialog(Variable variable)
     {
-        var parameters = new DialogParameters<EditVariableTestValueDialog>
+        var parameters = new DialogParameters<EditOutputDialog>
         {
             [nameof(EditVariableDialog.WorkflowDefinition)] = WorkflowDefinition,
             [nameof(EditVariableDialog.Variable)] = variable

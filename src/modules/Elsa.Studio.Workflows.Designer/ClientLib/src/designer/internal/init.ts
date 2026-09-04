@@ -1,13 +1,11 @@
 import {Graph, Shape} from '@antv/x6';
 import {createActivityElement} from "./create-activity-element";
 import {Activity} from "../models";
-import {ActivityShape, FlowchartEdgeShape, SequenceEdgeShape} from '../api/designer-mode';
-import {createDesignerPortGroups, designerPortMarkup} from './designer-ports';
-import {registerStateMachineShapes} from './state-machine-shapes';
 
 export function initialize() {
+
     Shape.HTML.register({
-        shape: ActivityShape,
+        shape: "elsa-activity",
         effect: ["data", "activityStats"],
         html(cell) {
             const activity: Activity = cell.getData();
@@ -15,19 +13,61 @@ export function initialize() {
             const activityStats = cell.prop('activityStats');
             return createActivityElement(activity, false, selectedPort, activityStats);
         },
-        portMarkup: designerPortMarkup,
         ports: {
-            groups: createDesignerPortGroups(),
+            groups: {
+                in: {
+                    position: "left",
+                    attrs: {
+                        circle: {
+                            r: 5,
+                            magnet: true,
+                            stroke: "#0ea5e9",
+                            strokeWidth: 2,
+                            fill: "#fff",
+                        },
+                        text: {
+                            fontSize: 12,
+                            fill: "#888",
+                        },
+                    },
+                    label: {
+                        position: {
+                            name: "outside",
+                        },
+                    },
+                },
+                out: {
+                    position: "right",
+                    attrs: {
+                        circle: {
+                            r: 5,
+                            magnet: true,
+                            stroke: "#fff",
+                            strokeWidth: 2,
+                            fill: "#0ea5e9",
+                        },
+                        text: {
+                            fontSize: 12,
+                            fill: "#888",
+                        },
+                    },
+                    label: {
+                        position: {
+                            name: "outside",
+                        },
+                    },
+                },
+            },
         }
     });
 
     Graph.registerEdge(
-        FlowchartEdgeShape,
+        'elsa-edge',
         {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: 'var(--elsa-designer-edge)',
+                    stroke: '#C2C8D5',
                     strokeWidth: 1,
                     targetMarker: 'classic',
                     size: 6,
@@ -38,12 +78,12 @@ export function initialize() {
     );
 
     Graph.registerEdge(
-        SequenceEdgeShape,
+        'elsa-sequence-edge',
         {
             inherit: 'edge',
             attrs: {
                 line: {
-                    stroke: 'var(--elsa-designer-edge)',
+                    stroke: '#94a3b8',
                     strokeWidth: 2,
                     targetMarker: 'classic',
                     size: 6,
@@ -61,7 +101,5 @@ export function initialize() {
         },
         true,
     );
-
-    registerStateMachineShapes();
 
 }

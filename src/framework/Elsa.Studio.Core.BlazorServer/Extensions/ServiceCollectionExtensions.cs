@@ -1,6 +1,5 @@
 using Elsa.Studio.Core.BlazorServer.HostedServices;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Options;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Core.BlazorServer.Extensions;
@@ -13,11 +12,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds core services with Blazor Server implementations.
     /// </summary>
-    public static IServiceCollection AddCore(
-        this IServiceCollection services,
-        Action<StudioThemeOptions>? configureTheme = null)
+    public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        services.AddCoreInternal(configureTheme);
+        services.AddCoreInternal();
         services.AddSharedServices();
         services.AddHostedService<RunStartupTasksHostedService>();
         

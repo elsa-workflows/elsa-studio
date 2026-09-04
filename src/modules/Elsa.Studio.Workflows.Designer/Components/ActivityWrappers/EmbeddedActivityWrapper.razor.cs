@@ -4,7 +4,6 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Components;
 using Elsa.Studio.Workflows.Designer.Interop;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Helpers;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 
@@ -63,10 +62,11 @@ public abstract class EmbeddedActivityWrapperBase : StudioComponentBase
         var activityType = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
         var descriptor = (ActivityRegistry.Find(activityType, activityVersion) ?? ActivityRegistry.Find("Elsa.UnknownActivity"))!;
+        var activityDisplayText = activity.GetDisplayText()?.Trim() ?? activity.GetName() ?? descriptor.DisplayName ?? descriptor.Name;
         var activityDescription = activity.GetDescription()?.Trim();
         var displaySettings = ActivityDisplaySettingsRegistry.GetSettings(activityType);
 
-        Label = ActivityLabelResolver.Resolve(activity.GetDisplayText(), activity.GetName(), descriptor.DisplayName ?? descriptor.Name);
+        Label = activityDisplayText;
         Description = !string.IsNullOrEmpty(activityDescription) ? activityDescription : descriptor.Description ?? string.Empty;
         ShowDescription = activity.GetShowDescription() == true;
         Color = displaySettings.Color;

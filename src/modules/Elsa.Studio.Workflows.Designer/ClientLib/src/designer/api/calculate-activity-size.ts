@@ -1,41 +1,27 @@
 import {activityTagName, createActivityElement} from "../internal/create-activity-element";
 import {Activity, Size} from "../models";
 
-// Cache for storing calculated activity sizes.
+// Cache for storing calculated activity sizes
+// Key format: "activityType:showsDescription:hasIcon:portCount:displayTextLength:descriptionLength"
 const sizeCache = new Map<string, Size>();
 
 // Queue for batching size calculations
-let calculationQueue: Array<{
-    activity: Activity,
-    portCount?: number,
-    measurementScopeClass: string,
-    resolve: (size: Size) => void,
-    reject: (error: any) => void
-}> = [];
+let calculationQueue: Array<{activity: Activity, portCount?: number, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
 let batchTimer: number | null = null;
 
-function getCacheKey(activity: Activity, portCount: number | undefined, measurementScopeClass: string): string {
+function getCacheKey(activity: Activity, portCount?: number): string {
     const type = activity.type || 'unknown';
-    const name = activity.name || '';
     const displayText = activity.metadata?.displayText || '';
     const description = activity.metadata?.description || '';
     const hasDescription = !!description;
     const showDescription = activity.metadata?.showDescription === true;
     const hasIcon = !!activity.metadata?.icon;
     const ports = portCount ?? 0;
-    const visibleDescription = hasDescription && showDescription ? description : '';
-
-    // The effective label and designer layout both affect the rendered dimensions. Using the
-    // complete values avoids collisions between different same-length labels.
-    return JSON.stringify([measurementScopeClass, type, name, displayText, visibleDescription, hasIcon, ports]);
-}
-
-export function getActivityMeasurementScopeClass(element: Element | null): string {
-    const designerScope = element?.closest<HTMLElement>(
-        '.elsa-flowchart-diagram-designer, .elsa-flowchart-diagram-designer-v1, .elsa-flowchart-diagram-designer-v2'
-    );
-
-    return designerScope?.className ?? '';
+    // Include display text and description lengths to differentiate activities with different text content
+    // Using length is more efficient than hashing the full text, while still catching size-affecting changes
+    const displayTextKey = displayText.length;
+    const descriptionKey = hasDescription && showDescription ? description.length : 0;
+    return `${type}:${hasDescription && showDescription}:${hasIcon}:${ports}:${displayTextKey}:${descriptionKey}`;
 }
 
 function processBatch() {
@@ -57,18 +43,11 @@ function processBatch() {
     const bodyElement = document.getElementsByTagName('body')[0];
     bodyElement.appendChild(container);
 
-    const measurements: Array<{
-        wrapper: HTMLElement,
-        activity: Activity,
-        portCount?: number,
-        measurementScopeClass: string,
-        resolve: (size: Size) => void,
-        reject: (error: any) => void
-    }> = [];
+    const measurements: Array<{wrapper: HTMLElement, activity: Activity, portCount?: number, resolve: (size: Size) => void, reject: (error: any) => void}> = [];
 
     // Create all elements at once
     for (const item of batch) {
-        const cacheKey = getCacheKey(item.activity, item.portCount, item.measurementScopeClass);
+        const cacheKey = getCacheKey(item.activity, item.portCount);
         
         // Check cache first
         const cachedSize = sizeCache.get(cacheKey);
@@ -79,7 +58,6 @@ function processBatch() {
         }
 
         const wrapper = document.createElement('div');
-        wrapper.className = item.measurementScopeClass;
         wrapper.style.display = 'inline-block';
         const dummyActivityElement = createActivityElement(item.activity, true);
         wrapper.appendChild(dummyActivityElement);
@@ -89,7 +67,6 @@ function processBatch() {
             wrapper,
             activity: item.activity,
             portCount: item.portCount,
-            measurementScopeClass: item.measurementScopeClass,
             resolve: item.resolve,
             reject: item.reject
         });
@@ -143,11 +120,7 @@ function processBatch() {
                 };
                 
                 // Cache the size
-                const cacheKey = getCacheKey(
-                    measurement.activity,
-                    measurement.portCount,
-                    measurement.measurementScopeClass
-                );
+                const cacheKey = getCacheKey(measurement.activity, measurement.portCount);
                 sizeCache.set(cacheKey, size);
                 
                 // Return a shallow copy to prevent mutation
@@ -165,9 +138,9 @@ function processBatch() {
     checkAllSizes();
 }
 
-export function calculateActivitySize(activity: Activity, portCount?: number, measurementScopeClass = ''): Promise<Size> {
+export function calculateActivitySize(activity: Activity, portCount?: number): Promise<Size> {
     // Check cache first
-    const cacheKey = getCacheKey(activity, portCount, measurementScopeClass);
+    const cacheKey = getCacheKey(activity, portCount);
     const cachedSize = sizeCache.get(cacheKey);
     
     if (cachedSize) {
@@ -177,7 +150,7 @@ export function calculateActivitySize(activity: Activity, portCount?: number, me
 
     // Add to batch queue
     return new Promise((resolve, reject) => {
-        calculationQueue.push({activity, portCount, measurementScopeClass, resolve, reject});
+        calculationQueue.push({activity, portCount, resolve, reject});
 
         // Schedule batch processing
         if (batchTimer === null) {

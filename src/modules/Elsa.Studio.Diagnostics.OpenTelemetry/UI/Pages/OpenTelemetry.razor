@@ -15,36 +15,38 @@
 
 <PageTitle>@Localizer["OpenTelemetry"]</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False" Class="elsa-otel-page-shell">
-    <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
-        <PageHeading Text="@Localizer["OpenTelemetry"]" />
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@(_liveEnabled ? Icons.Material.Filled.Pause : Icons.Material.Filled.PlayArrow)" OnClick="ToggleLiveAsync">
-                @(_liveEnabled ? Localizer["Stop live updates"] : Localizer["Start live updates"])
-            </MudButton>
-            <MudTooltip Text="@Localizer["Refresh"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Disabled="@_loading" OnClick="LoadAsync" />
-            </MudTooltip>
-            <MudTooltip Text="@Localizer["Clear view"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Disabled="@IsTelemetryEmpty" OnClick="ClearViewAsync" />
-            </MudTooltip>
-            <MudTooltip Text="@Localizer["Export visible telemetry"]" Delay="500">
-                <MudIconButton Icon="@Icons.Material.Outlined.Download" Disabled="@IsTelemetryEmpty" OnClick="ExportTelemetryAsync" />
-            </MudTooltip>
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-6 elsa-otel-page-shell" Style="background: #f7f9fc;">
+    <MudPaper Elevation="2" Outlined="false" Class="pa-6 mb-5 elsa-otel-fixed-section" Style="border-radius: 14px;">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="4" Class="flex-wrap">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h4">OpenTelemetry</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Default">@StatusText</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@LiveChipColor">@LiveChipText</MudChip>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@CollectorChipColor">@CollectorStatusText</MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Default">@LastUpdateText</MudText>
+                </MudStack>
+            </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@(_liveEnabled ? Icons.Material.Filled.Pause : Icons.Material.Filled.PlayArrow)" OnClick="ToggleLiveAsync">
+                    @(_liveEnabled ? Localizer["Stop live updates"] : Localizer["Start live updates"])
+                </MudButton>
+                <MudTooltip Text="@Localizer["Refresh"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Disabled="@_loading" OnClick="LoadAsync" />
+                </MudTooltip>
+                <MudTooltip Text="@Localizer["Clear view"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Disabled="@IsTelemetryEmpty" OnClick="ClearViewAsync" />
+                </MudTooltip>
+                <MudTooltip Text="@Localizer["Export visible telemetry"]" Delay="500">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Download" Disabled="@IsTelemetryEmpty" OnClick="ExportTelemetryAsync" />
+                </MudTooltip>
+            </MudStack>
         </MudStack>
-    </MudStack>
-    <MudStack Spacing="1" Class="mb-4 elsa-otel-fixed-section">
-        <MudText Typo="Typo.body2" Color="Color.Secondary">@StatusText</MudText>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@LiveChipColor">@LiveChipText</MudChip>
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@CollectorChipColor">@CollectorStatusText</MudChip>
-            <MudText Typo="Typo.caption" Color="Color.Secondary">@LastUpdateText</MudText>
-        </MudStack>
-    </MudStack>
+    </MudPaper>
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" aria-label="Loading OpenTelemetry diagnostics" />
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
@@ -52,62 +54,60 @@
     }
     else
     {
-        <MudPaper Elevation="0" Outlined="true" Class="mb-4 elsa-otel-fixed-section elsa-otel-summary-surface">
-            <div class="elsa-otel-summary-strip" role="list" aria-label="OpenTelemetry summary">
-                <div class="elsa-otel-summary-item" role="listitem">
-                    <div>
+        <div class="mb-5 elsa-otel-fixed-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div>
+                <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid var(--mud-palette-primary);">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                         <MudText Typo="Typo.overline">@Localizer["Resources"]</MudText>
-                        <div class="elsa-otel-summary-value">
-                            <MudText Typo="Typo.h5">@_resources.Count</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@ActiveResourceText</MudText>
-                        </div>
-                    </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.CloudQueue" Size="Size.Small" Color="Color.Primary" />
-                </div>
-                <div class="elsa-otel-summary-item" role="listitem">
-                    <div>
-                        <MudText Typo="Typo.overline">@Localizer["Traces"]</MudText>
-                        <div class="elsa-otel-summary-value">
-                            <MudText Typo="Typo.h5">@FilteredTraces.Count</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@TraceSupportText</MudText>
-                        </div>
-                    </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.Timeline" Size="Size.Small" Color="Color.Primary" />
-                </div>
-                <div class="elsa-otel-summary-item" role="listitem">
-                    <div>
-                        <MudText Typo="Typo.overline">@Localizer["Metrics"]</MudText>
-                        <div class="elsa-otel-summary-value">
-                            <MudText Typo="Typo.h5">@_metrics.Instruments.Count</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer["OTLP received"]</MudText>
-                        </div>
-                    </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.QueryStats" Size="Size.Small" Color="Color.Primary" />
-                </div>
-                <div class="elsa-otel-summary-item" role="listitem">
-                    <div>
-                        <MudText Typo="Typo.overline">@Localizer["Logs"]</MudText>
-                        <div class="elsa-otel-summary-value">
-                            <MudText Typo="Typo.h5">@_logs.Count</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer["Structured + OTLP"]</MudText>
-                        </div>
-                    </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.Article" Size="Size.Small" Color="Color.Primary" />
-                </div>
-                <div class="elsa-otel-summary-item" role="listitem">
-                    <div>
-                        <MudText Typo="Typo.overline">@Localizer["Dropped"]</MudText>
-                        <div class="elsa-otel-summary-value">
-                            <MudText Typo="Typo.h5" Color="@DroppedTextColor">@DroppedCount</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@DroppedSupportText</MudText>
-                        </div>
-                    </div>
-                    <MudIcon Icon="@DroppedIcon" Size="Size.Small" Color="@DroppedTextColor" />
-                </div>
+                        <MudIcon Icon="@Icons.Material.Outlined.CloudQueue" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h3" Class="mt-2">@_resources.Count</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@ActiveResourceText</MudText>
+                </MudPaper>
             </div>
-        </MudPaper>
+            <div>
+                <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid var(--mud-palette-info);">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.overline">@Localizer["Traces"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.Timeline" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h3" Class="mt-2">@FilteredTraces.Count</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@TraceSupportText</MudText>
+                </MudPaper>
+            </div>
+            <div>
+                <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid #6b7280;">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.overline">@Localizer["Metrics"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.QueryStats" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h3" Class="mt-2">@_metrics.Instruments.Count</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@Localizer["OTLP received"]</MudText>
+                </MudPaper>
+            </div>
+            <div>
+                <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid #64748b;">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.overline">@Localizer["Logs"]</MudText>
+                        <MudIcon Icon="@Icons.Material.Outlined.Article" Size="Size.Small" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.h3" Class="mt-2">@_logs.Count</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@Localizer["Structured + OTLP"]</MudText>
+                </MudPaper>
+            </div>
+            <div>
+                <MudPaper Elevation="1" Outlined="false" Class="pa-4" Style="border-radius: 12px; min-height: 132px; border-left: 4px solid var(--mud-palette-warning);">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.overline">@Localizer["Dropped"]</MudText>
+                        <MudIcon Icon="@DroppedIcon" Size="Size.Small" Color="@DroppedTextColor" />
+                    </MudStack>
+                    <MudText Typo="Typo.h3" Class="mt-2" Color="@DroppedTextColor">@DroppedCount</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@DroppedSupportText</MudText>
+                </MudPaper>
+            </div>
+        </div>
 
-        <MudPaper Elevation="0" Outlined="true" Class="pa-4 mb-4 elsa-otel-fixed-section">
+        <MudPaper Elevation="1" Outlined="false" Class="pa-4 mb-5 elsa-otel-fixed-section" Style="border-radius: 12px;">
             <MudStack Spacing="3">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
                     <MudText Typo="Typo.overline">@Localizer["Resource"]</MudText>
@@ -141,40 +141,40 @@
             </MudStack>
         </MudPaper>
 
-        <MudPaper Elevation="0" Outlined="true" Class="pa-4 elsa-otel-tabs-paper">
-                <MudTabs Class="elsa-otel-tabs" Elevation="0" Rounded="false" Border="false" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync">
+        <MudPaper Elevation="1" Outlined="false" Class="pa-4 elsa-otel-tabs-paper" Style="border-radius: 12px;">
+                <MudTabs Class="elsa-otel-tabs" Elevation="0" Rounded="true" Border="false" ActivePanelIndex="@ActiveTabIndex" ActivePanelIndexChanged="SelectTabIndexAsync">
                     <MudTabPanel Text="@Localizer["Overview"]">
                         <MudGrid Spacing="2">
                             <MudItem xs="12" md="3">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4 elsa-otel-overview-card">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; min-height: 120px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.overline">@Localizer["Trace latency"]</MudText>
                                     <MudText Typo="Typo.h5">@AverageTraceDurationText</MudText>
                                     <MudText Typo="Typo.caption">@Localizer["Average visible trace duration"]</MudText>
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="12" md="3">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4 elsa-otel-overview-card">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; min-height: 120px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.overline">@Localizer["Errors"]</MudText>
                                     <MudText Typo="Typo.h5" Color="@ErrorRateColor">@TraceErrorRateText</MudText>
                                     <MudText Typo="Typo.caption">@DroppedSupportText</MudText>
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="12" md="3">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4 elsa-otel-overview-card">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; min-height: 120px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.overline">@Localizer["Log volume"]</MudText>
                                     <MudText Typo="Typo.h5">@_logs.Count</MudText>
                                     <MudText Typo="Typo.caption">@Localizer["Visible OTLP log records"]</MudText>
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="12" md="3">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4 elsa-otel-overview-card">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; min-height: 120px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.overline">@Localizer["Collector"]</MudText>
                                     <MudText Typo="Typo.h5">@CollectorShortStatus</MudText>
                                     <MudText Typo="Typo.caption">@CollectorProtocolText</MudText>
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="12" md="7">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.subtitle2" Class="mb-2">@Localizer["Top operations"]</MudText>
                                     @if (TopOperations.Count == 0)
                                     {
@@ -198,7 +198,7 @@
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="12" md="5">
-                                <MudPaper Elevation="0" Outlined="true" Class="pa-4">
+                                <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                     <MudText Typo="Typo.subtitle2" Class="mb-2">@Localizer["Collector setup"]</MudText>
                                     <MudSimpleTable Dense="true" Hover="false">
                                         <tbody>
@@ -218,7 +218,7 @@
                         }
                         else
                         {
-                            <MudTable T="TelemetryResource" Items="_resources" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="elsa-otel-table-card">
+                            <MudTable T="TelemetryResource" Items="_resources" Dense="true" Hover="true" Elevation="0" Outlined="false" Class="elsa-otel-table-card">
                                 <HeaderContent>
                                     <MudTh>@Localizer["Service"]</MudTh>
                                     <MudTh>@Localizer["Instance"]</MudTh>
@@ -245,7 +245,7 @@
                         {
                             <MudGrid Spacing="3">
                                 <MudItem xs="12" lg="@TraceTableColumns">
-                                    <MudTable T="TelemetryTrace" Items="FilteredTraces" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Lg" RowClassFunc="TraceRowClass" OnRowClick="SelectTraceFromRowAsync" RowStyle="cursor: pointer;" Class="elsa-otel-table-card">
+                                    <MudTable T="TelemetryTrace" Items="FilteredTraces" Dense="true" Hover="true" Elevation="0" Outlined="false" RowClassFunc="TraceRowClass" OnRowClick="SelectTraceFromRowAsync" RowStyle="cursor: pointer;" Class="elsa-otel-table-card">
                                         <ColGroup>
                                             <col style="width: 38%;" />
                                             <col style="width: 9%;" />
@@ -296,7 +296,7 @@
                                 @if (IsTraceDetailsVisible && _selectedTraceDetail?.Trace is { } trace)
                                 {
                                     <MudItem xs="12" lg="4">
-                                        <MudPaper Elevation="0" Outlined="true" Class="pa-4">
+                                        <MudPaper Elevation="0" Outlined="false" Class="pa-4" Style="border-radius: 10px; background: var(--mud-palette-background-grey, #f3f6fa);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
                                                 <MudText Typo="Typo.h6">@Localizer["Trace Details"]</MudText>
                                                 <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="CloseTraceDrawer" />
@@ -343,7 +343,7 @@
                         }
                         else
                         {
-                            <MudTable T="OtlpLogRecord" Items="_logs" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="elsa-otel-table-card">
+                            <MudTable T="OtlpLogRecord" Items="_logs" Dense="true" Hover="true" Elevation="0" Outlined="false" Class="elsa-otel-table-card">
                                 <HeaderContent>
                                     <MudTh>@Localizer["Time"]</MudTh>
                                     <MudTh>@Localizer["Severity"]</MudTh>
@@ -381,7 +381,7 @@
                         else
                         {
                             var setup = CollectorConfigurationViewModelMapper.Create(_collectorConfiguration);
-                            <MudPaper Elevation="0" Outlined="true" Class="pa-3 mb-3">
+                            <MudPaper Elevation="0" Outlined="false" Class="pa-3 mb-3" Style="border-radius: 10px; background: #f8fafc;">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                                     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy" OnClick="() => CopyEnvironmentVariablesAsync(setup.EnvironmentVariables)">@Localizer["Copy all"]</MudButton>
                                     @if (!string.IsNullOrWhiteSpace(_copyStatus))
@@ -401,7 +401,7 @@
                                     </tbody>
                                 </MudSimpleTable>
                             </MudPaper>
-                            <MudTable T="CollectorEnvironmentVariable" Items="setup.EnvironmentVariables" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="elsa-otel-table-card">
+                            <MudTable T="CollectorEnvironmentVariable" Items="setup.EnvironmentVariables" Dense="true" Hover="true" Elevation="0" Outlined="false" Class="elsa-otel-table-card">
                                 <HeaderContent>
                                     <MudTh>@Localizer["Variable"]</MudTh>
                                     <MudTh>@Localizer["Value"]</MudTh>

@@ -22,7 +22,7 @@ internal sealed partial class PlatformArtifactEnvelopeValidator
             throw new InvalidOperationException("Artifact identity is required.");
         if (!envelope.EnvelopeVersion.Equals(PlatformArtifactEnvelopeConstants.EnvelopeVersion, StringComparison.Ordinal))
             throw new InvalidOperationException("Artifact envelope version is not supported.");
-        if (!envelope.ArtifactTypeId.Equals(PlatformArtifactEnvelopeConstants.ElsaLoomRecipeArtifactType, StringComparison.OrdinalIgnoreCase))
+        if (!envelope.ArtifactTypeId.Equals(PlatformArtifactEnvelopeConstants.ElsaWorkflowDefinitionArtifactType, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Artifact type is not supported.");
         if (!envelope.ArtifactSchemaVersion.Equals(PlatformArtifactEnvelopeConstants.DefaultArtifactSchemaVersion, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Artifact schema version is not supported for the artifact type.");

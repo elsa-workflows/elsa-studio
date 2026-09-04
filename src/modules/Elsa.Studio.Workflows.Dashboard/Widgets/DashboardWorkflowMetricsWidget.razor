@@ -14,26 +14,24 @@
     };
 
     <MudPaper Outlined="true" Elevation="0" Class="dashboard-operational-health">
-        <div class="dashboard-operational-health-content">
-            <MudText Typo="Typo.subtitle1" Class="dashboard-operational-health-heading">Operational health</MudText>
+        <MudText Typo="Typo.subtitle1" Class="dashboard-operational-health-heading">Operational health</MudText>
 
-            <div class="dashboard-operational-health-metrics">
-                @foreach (var metric in healthMetrics)
-                {
-                    <div class="dashboard-operational-health-metric">
-                        @if (!string.IsNullOrWhiteSpace(metric.Href))
-                        {
-                            <MudLink Href="@metric.Href" Underline="Underline.None" Class="dashboard-operational-health-link" aria-label="@metric.AriaLabel">
-                                @MetricContent(metric)
-                            </MudLink>
-                        }
-                        else
-                        {
+        <div class="dashboard-operational-health-metrics">
+            @foreach (var metric in healthMetrics)
+            {
+                <div class="dashboard-operational-health-metric">
+                    @if (!string.IsNullOrWhiteSpace(metric.Href))
+                    {
+                        <MudLink Href="@metric.Href" Underline="Underline.None" Class="dashboard-operational-health-link" aria-label="@metric.AriaLabel">
                             @MetricContent(metric)
-                        }
-                    </div>
-                }
-            </div>
+                        </MudLink>
+                    }
+                    else
+                    {
+                        @MetricContent(metric)
+                    }
+                </div>
+            }
         </div>
     </MudPaper>
 }

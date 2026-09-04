@@ -13,6 +13,7 @@ using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.BlazorWasm.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Secrets.Extensions;
+using Elsa.Studio.UserTasks.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -56,6 +57,7 @@ builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, Compon
 builder.Services.AddScoped<IHttpConnectionOptionsConfigurator, BackendServiceHttpConnectionOptionsConfigurator>();
 builder.Services.AddWorkflowsModule();
 builder.Services.AddSecretsModule(backendApiConfig);
+builder.Services.AddUserTasksModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);
 builder.Services.AddScoped<ITimeZoneProvider, LocalTimeZoneProvider>();
 

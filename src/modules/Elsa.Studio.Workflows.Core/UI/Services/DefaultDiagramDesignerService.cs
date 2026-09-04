@@ -7,28 +7,22 @@ namespace Elsa.Studio.Workflows.UI.Services;
 /// <inheritdoc />
 public class DefaultDiagramDesignerService : IDiagramDesignerService
 {
-    private readonly IReadOnlyList<IDiagramDesignerProvider> _providers;
+    private readonly IEnumerable<IDiagramDesignerProvider> _providers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultDiagramDesignerService"/> class.
     /// </summary>
     public DefaultDiagramDesignerService(IEnumerable<IDiagramDesignerProvider> providers)
     {
-        _providers = providers.OrderByDescending(x => x.Priority).ToList();
+        _providers = providers;
     }
-
-    /// <inheritdoc />
-    public bool HasDiagramDesigner(JsonObject activity) => FindProvider(activity, false) != null;
 
     /// <inheritdoc />
     public IDiagramDesigner GetDiagramDesigner(JsonObject activity)
     {
-        var provider = FindProvider(activity, false) ?? FindProvider(activity, true)
-            ?? throw new Exception($"No diagram editor provider found for activity {activity.GetTypeName()}.");
+        var provider = _providers
+            .OrderByDescending(x => x.Priority)
+            .FirstOrDefault(x => x.GetSupportsActivity(activity)) ?? throw new Exception($"No diagram editor provider found for activity {activity.GetTypeName()}.");
         return provider.GetEditor();
     }
-
-    private IDiagramDesignerProvider? FindProvider(JsonObject activity, bool includeFallback) =>
-        _providers
-            .FirstOrDefault(x => (includeFallback || !x.IsFallback) && x.GetSupportsActivity(activity));
 }

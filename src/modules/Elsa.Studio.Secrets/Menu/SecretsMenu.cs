@@ -18,8 +18,7 @@ public class SecretsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuPr
                 Icon = Icons.Material.Filled.Key,
                 Href = "security/secrets",
                 Text = "Secrets",
-                GroupName = MenuItemGroups.Administration.Name,
-                Order = 300
+                GroupName = MenuItemGroups.Settings.Name
             }
         ];
     }

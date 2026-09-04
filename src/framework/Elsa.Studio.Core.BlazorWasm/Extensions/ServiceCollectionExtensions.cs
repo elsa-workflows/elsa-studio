@@ -1,5 +1,4 @@
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Options;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elsa.Studio.Core.BlazorWasm.Extensions;
@@ -12,12 +11,10 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds core services with WASM implementations.
     /// </summary>
-    public static IServiceCollection AddCore(
-        this IServiceCollection services,
-        Action<StudioThemeOptions>? configureTheme = null)
+    public static IServiceCollection AddCore(this IServiceCollection services)
     {
         services.AddSharedServices();
-        services.AddCoreInternal(configureTheme);
+        services.AddCoreInternal();
         
         return services;
     }

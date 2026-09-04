@@ -14,10 +14,6 @@ public class FallbackDesignerProvider : IDiagramDesignerProvider
     /// Provides the priority.
     /// </summary>
     public double Priority => -1000;
-
-    /// <inheritdoc />
-    public bool IsFallback => true;
-
     /// <summary>
     /// Provides the get supports activity.
     /// </summary>

@@ -6,8 +6,13 @@
 @inject ILocalizer Localizer
 
 @{
-    var activityClass = CanStartWorkflow ? "elsa-activity pa-2 is-starting-point" : "elsa-activity pa-2";
-    var activityStyle = $"--elsa-activity-accent: {Color};";
+    const string white = "#ffffff";
+    const string transparent = "rgba(0,0,0,0)";
+    var colorStyle = CanStartWorkflow ? $"color: {white};" : "";
+    var backgroundColor = CanStartWorkflow ? Color : white;
+    var iconBgColor = CanStartWorkflow ? transparent : Color;
+    var iconColor = white;
+    var menuIconColor = CanStartWorkflow ? white : "var(--mud-palette-text-primary)";
     var metadata = Stats?.Metadata;
     var hasRetryAttempts = metadata != null && metadata.TryGetValue("HasRetryAttempts", out var hasRetryAttemptsValue) && hasRetryAttemptsValue is JsonElement { ValueKind: JsonValueKind.True };
     var color = Stats == null ? MudBlazor.Color.Transparent : Stats.Faulted ? MudBlazor.Color.Error : Stats.Blocked ? MudBlazor.Color.Warning : Stats.Uncompleted > Stats.Completed ? MudBlazor.Color.Info : Stats.Completed > 0 ? MudBlazor.Color.Success : MudBlazor.Color.Default;
@@ -23,8 +28,8 @@
 <MudBadge Color="color" Content="content" Overlap="true" Icon="@icon" Style="width: 100%; height: 100%;"
           Visible="showBadge" Class="@cssClass">
     <MudPaper
-        Class="@activityClass"
-        Style="@activityStyle"
+        Class="elsa-activity pa-2"
+        Style="@($"background-color: {backgroundColor};")"
         Outlined="true">
 
         <MudStack>
@@ -33,23 +38,23 @@
                 <!-- Icon -->
                 @if (Icon != null)
                 {
-                    <div class="activity-icon">
-                        <MudIcon Icon="@Icon" Size="Size.Small"/>
+                    <div class="activity-icon" style="@($"background-color: {iconBgColor};")">
+                        <MudIcon Icon="@Icon" Size="Size.Small" Style="@($"color: {iconColor};")"/>
                     </div>
                 }
 
                 <!-- Labels + Embedded ports + Description -->
                 <div class="activity-content">
-                    <MudText Typo="Typo.subtitle1" Class="activity-label">@Localizer[Label]</MudText>
-                    <MudText Typo="Typo.subtitle2" Class="activity-type">@Localizer[TypeName]</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="activity-label" Style="@colorStyle">@Localizer[Label]</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="activity-type" Style="@colorStyle">@Localizer[TypeName]</MudText>
                 </div>
 
                 <!-- Menu -->
                 <div class="activity-menu">
                     <!-- hidden until we have better integration between X6 node handling and events. -->
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Style="visibility: hidden;">
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Style="@($"color: {menuIconColor}; visibility: hidden;")">
                         <ActivatorContent>
-                            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Style="@($"color: {menuIconColor};")"></MudIconButton>
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Icon="@Icons.Material.Outlined.Check" IconColor="MudBlazor.Color.Primary" Label="@toggleCanStartText"/>
@@ -92,7 +97,7 @@
             @if (!string.IsNullOrWhiteSpace(Description) && ShowDescription)
             {
                 <div>
-                    <MudText Typo="Typo.caption" Class="activity-description">@Description</MudText>
+                    <MudText Typo="Typo.caption" Class="activity-description" Style="@colorStyle">@Description</MudText>
                 </div>
             }
         </MudStack>

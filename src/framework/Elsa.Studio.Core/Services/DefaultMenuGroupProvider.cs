@@ -17,7 +17,7 @@ public class DefaultMenuGroupProvider : IMenuGroupProvider
         {
             MenuItemGroups.General,
             MenuItemGroups.Diagnostics,
-            MenuItemGroups.Administration
+            MenuItemGroups.Settings
         };
 
         return new(groups);
