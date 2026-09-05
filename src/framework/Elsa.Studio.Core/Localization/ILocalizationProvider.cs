@@ -8,5 +8,5 @@ public interface ILocalizationProvider
     /// <summary>
     /// Gets the translation for the specified key.
     /// </summary>
-    string GetTranslation(string key);
+    string? GetTranslation(string key);
 }

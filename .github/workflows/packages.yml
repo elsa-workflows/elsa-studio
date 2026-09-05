@@ -14,7 +14,10 @@ on:
       - 'develop/*'
       - 'release/*'
   release:
-    types: [ prereleased, published ]
+    # `published` fires for pre-releases too. Subscribing to `prereleased` as well
+    # produced two runs per release, and the feedz publish jobs (which are not gated
+    # on the action) then raced: the second run failed with npm EPUBLISHCONFLICT.
+    types: [ published ]
 env:
   base_version: '3.8.0'
   nuget_feed_feedzio: 'https://f.feedz.io/elsa-workflows/elsa-3/nuget/index.json'
@@ -148,10 +151,25 @@ jobs:
 
       - name: Publish npm packages to feedz.io
         run: |
+          # npm has no --skip-duplicate. Re-publishing a version that already exists
+          # (e.g. when a release is re-created for the same tag) returns EPUBLISHCONFLICT,
+          # which is not a failure for us. Every other error still fails the job.
+          status=0
           for file in ./elsa-studio-npm-packages/*.tgz
           do
-            npm publish "$file" --access public
+            echo "Publishing $file"
+            if output=$(npm publish "$file" --access public 2>&1); then
+              echo "$output"
+            else
+              echo "$output"
+              if echo "$output" | grep -qiE 'EPUBLISHCONFLICT|cannot publish over'; then
+                echo "::notice::$file is already published at this version - skipping"
+              else
+                status=1
+              fi
+            fi
           done
+          exit $status
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
 
@@ -163,10 +181,25 @@ jobs:
 
       - name: Publish npm react packages to feedz.io
         run: |
+          # npm has no --skip-duplicate. Re-publishing a version that already exists
+          # (e.g. when a release is re-created for the same tag) returns EPUBLISHCONFLICT,
+          # which is not a failure for us. Every other error still fails the job.
+          status=0
           for file in ./elsa-studio-npm-react-packages/*.tgz
           do
-            npm publish "$file" --access public
+            echo "Publishing $file"
+            if output=$(npm publish "$file" --access public 2>&1); then
+              echo "$output"
+            else
+              echo "$output"
+              if echo "$output" | grep -qiE 'EPUBLISHCONFLICT|cannot publish over'; then
+                echo "::notice::$file is already published at this version - skipping"
+              else
+                status=1
+              fi
+            fi
           done
+          exit $status
         env:
           NODE_AUTH_TOKEN: ${{secrets.FEEDZ_API_KEY_BASE64}}
   
@@ -176,12 +209,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    permissions:
+      contents: read
+      id-token: write # Required: lets this job request the OIDC token npmjs.com exchanges for publish rights.
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.12.1
+          node-version: 22
           registry-url: ${{ env.npm_feed_npm }}
+
+      # npm's OIDC trusted publishing requires npm >= 11.5.1, which is newer than the
+      # npm bundled with any current Node LTS, so upgrade it explicitly. Pinned to the
+      # 11.x line rather than `latest` so a future npm major cannot change publish
+      # behaviour without a deliberate bump here.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@11
 
       - name: Download npm Packages
         uses: actions/download-artifact@v4
@@ -189,13 +232,26 @@ jobs:
           name: elsa-studio-npm-packages
           path: elsa-studio-npm-packages
 
-      - run: |
+      # No NODE_AUTH_TOKEN: publish rights come from the trusted publisher configured
+      # on npmjs.com for elsa-workflows/elsa-studio + packages.yml. Kept strict (unlike
+      # the feedz job) because this path has never published successfully -- an auth
+      # failure here must stay loud.
+      - name: Publish npm packages to npmjs.com
+        run: |
+          # npm 11 refuses to publish a prerelease without an explicit dist-tag, so it
+          # cannot silently move `latest` to an rc. Derive the tag from each tarball's
+          # own version: prereleases go to `next`, stable versions to `latest`.
           for file in ./elsa-studio-npm-packages/*.tgz
           do
-            npm publish "$file" --access public
+            version=$(tar -xzOf "$file" package/package.json \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+            case "$version" in
+              *-*) tag=next ;;
+              *)   tag=latest ;;
+            esac
+            echo "Publishing $file ($version) with --tag $tag"
+            npm publish "$file" --access public --tag "$tag"
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
       - name: Download npm react Packages
         uses: actions/download-artifact@v4
@@ -203,13 +259,22 @@ jobs:
           name: elsa-studio-npm-react-packages
           path: elsa-studio-npm-react-packages
 
-      - run: |
+      - name: Publish npm react packages to npmjs.com
+        run: |
+          # npm 11 refuses to publish a prerelease without an explicit dist-tag, so it
+          # cannot silently move `latest` to an rc. Derive the tag from each tarball's
+          # own version: prereleases go to `next`, stable versions to `latest`.
           for file in ./elsa-studio-npm-react-packages/*.tgz
           do
-            npm publish "$file" --access public
+            version=$(tar -xzOf "$file" package/package.json \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+            case "$version" in
+              *-*) tag=next ;;
+              *)   tag=latest ;;
+            esac
+            echo "Publishing $file ($version) with --tag $tag"
+            npm publish "$file" --access public --tag "$tag"
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
   publish_nuget_preview_feedzio:
     name: Publish nuget packages to feedz.io
@@ -233,6 +298,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    permissions:
+      contents: read
+      id-token: write # Required: lets this job request the OIDC token that nuget.org exchanges for a temporary API key.
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
@@ -240,5 +308,15 @@ jobs:
           name: elsa-studio-nuget-packages
           path: elsa-studio-nuget-packages
 
+      # Exchanges a GitHub OIDC token for a temporary nuget.org API key (valid 1 hour).
+      # Requires a Trusted Publishing policy on nuget.org matching:
+      #   Repository Owner: elsa-workflows | Repository: elsa-studio | Workflow File: packages.yml
+      # Keep this step immediately before the push so the key cannot expire in between.
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: ${{ secrets.NUGET_USER }} # nuget.org username (profile name), not an email address.
+
       - name: Publish to nuget.org
-        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.nuget_feed_nuget }} --skip-duplicate
+        run: dotnet nuget push ./elsa-studio-nuget-packages/*.nupkg --api-key ${{ steps.nuget_login.outputs.NUGET_API_KEY }} --source ${{ env.nuget_feed_nuget }} --skip-duplicate

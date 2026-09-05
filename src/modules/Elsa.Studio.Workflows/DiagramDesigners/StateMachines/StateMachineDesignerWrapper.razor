@@ -1,274 +1,210 @@
 @using Elsa.Studio.Localization
+@using Elsa.Studio.Workflows.Designer.Components
 @using Elsa.Studio.Workflows.Designer.Models
+@using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation
 @inject ILocalizer Localizer
 
-<div class="state-machine-designer" data-centered="@_centerContent">
-    @if (_graph != null)
+<div class="state-machine-designer">
+    @if (_session != null && _canvasGraph != null)
     {
-        <div class="state-machine-designer__summary">
-            <div>
-                <span class="state-machine-designer__label">@Localizer["Initial"]</span>
-                @if (IsReadOnly)
-                {
-                    <span class="state-machine-designer__value">@DisplayValue(_graph.InitialState)</span>
-                }
-                else
-                {
-                    <select class="state-machine-designer__input" aria-label="@Localizer["Initial state"]" value="@_graph.InitialState" @onchange="SetInitialStateAsync">
-                        <option value="">-</option>
-                        @foreach (var state in _graph.States)
-                        {
-                            <option value="@state.Name">@DisplayValue(state.Name)</option>
-                        }
-                    </select>
-                }
+        <header class="state-machine-designer__toolbar">
+            <div class="state-machine-designer__view-switch" role="group" aria-label="@Localizer["Designer view"]">
+                <button type="button" class="@GetViewButtonClass(false)" aria-pressed="@ToAriaPressed(!_showOutline)" @onclick="ShowDiagram">@Localizer["Diagram"]</button>
+                <button type="button" class="@GetViewButtonClass(true)" aria-pressed="@ToAriaPressed(_showOutline)" @onclick="ShowOutline">@Localizer["Outline"]</button>
             </div>
-            <div>
-                <span class="state-machine-designer__label">@Localizer["Current"]</span>
-                @if (IsReadOnly)
-                {
-                    <span class="state-machine-designer__value">@DisplayValue(_graph.CurrentState)</span>
-                }
-                else
-                {
-                    <select class="state-machine-designer__input" aria-label="@Localizer["Current state"]" value="@_graph.CurrentState" @onchange="SetCurrentStateAsync">
-                        <option value="">-</option>
-                        @foreach (var state in _graph.States)
-                        {
-                            <option value="@state.Name">@DisplayValue(state.Name)</option>
-                        }
-                    </select>
-                }
-            </div>
-            <div>
-                <span class="state-machine-designer__label">@Localizer["States"]</span>
-                <span class="state-machine-designer__value">@_graph.States.Count</span>
-            </div>
-            <div>
-                <span class="state-machine-designer__label">@Localizer["Transitions"]</span>
-                <span class="state-machine-designer__value">@_graph.Transitions.Count</span>
-            </div>
-        </div>
 
-        @if (_graph.ValidationIssues.Count > 0)
+            <div class="state-machine-designer__summary" aria-label="@Localizer["State machine summary"]">
+                <span><strong>@_session.Graph.States.Count</strong> @Localizer["states"]</span>
+                <span><strong>@_session.Graph.Transitions.Count</strong> @Localizer["transitions"]</span>
+            </div>
+
+            @if (!_showOutline && !IsReadOnly)
+            {
+                <button type="button" class="state-machine-designer__button" @onclick="AutoLayoutAsync">@Localizer["Auto layout"]</button>
+            }
+
+            @if (!IsReadOnly)
+            {
+                <details class="state-machine-designer__create-menu" name="state-machine-create">
+                    <summary>@Localizer["Add state"]</summary>
+                    <div class="state-machine-designer__create-popover">
+                        <label>
+                            <span>@Localizer["State name"]</span>
+                            <input class="state-machine-designer__control" @bind="_newStateName" />
+                        </label>
+                        <button type="button" class="state-machine-designer__button state-machine-designer__button--primary" @onclick="AddStateAsync">@Localizer["Add state"]</button>
+                    </div>
+                </details>
+
+                <details class="state-machine-designer__create-menu" name="state-machine-create">
+                    <summary>@Localizer["Add transition"]</summary>
+                    @if (_session.Graph.States.Count > 0)
+                    {
+                        <div class="state-machine-designer__create-popover">
+                            <label>
+                                <span>@Localizer["Transition name"]</span>
+                                <input class="state-machine-designer__control" @bind="_newTransitionName" />
+                            </label>
+                            <label>
+                                <span>@Localizer["From"]</span>
+                                <select class="state-machine-designer__control" @bind="_newTransitionFromId">
+                                    @foreach (var state in _canvasGraph.States)
+                                    {
+                                        <option value="@state.VisualId">@DisplayValue(state.Name)</option>
+                                    }
+                                </select>
+                            </label>
+                            <label>
+                                <span>@Localizer["To"]</span>
+                                <select class="state-machine-designer__control" @bind="_newTransitionToId">
+                                    @foreach (var state in _canvasGraph.States)
+                                    {
+                                        <option value="@state.VisualId">@DisplayValue(state.Name)</option>
+                                    }
+                                </select>
+                            </label>
+                            <button type="button" class="state-machine-designer__button state-machine-designer__button--primary" @onclick="AddTransitionAsync">@Localizer["Add transition"]</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="state-machine-designer__create-popover state-machine-designer__create-popover--empty">
+                            <span>@Localizer["Add a state before adding a transition."]</span>
+                        </div>
+                    }
+                </details>
+            }
+        </header>
+
+        <section class="state-machine-designer__configuration" aria-label="@Localizer["State machine configuration"]">
+            <label>
+                <span>@Localizer["Initial state"]</span>
+                <select class="state-machine-designer__control" disabled="@IsReadOnly" value="@GetStateVisualIdByName(_session.Graph.InitialState)" @onchange="SetInitialStateAsync">
+                    <option value="">-</option>
+                    @foreach (var state in _canvasGraph.States)
+                    {
+                        <option value="@state.VisualId">@DisplayValue(state.Name)</option>
+                    }
+                </select>
+            </label>
+            <label>
+                <span>@Localizer["Current state"]</span>
+                <select class="state-machine-designer__control" disabled="@IsReadOnly" value="@GetStateVisualIdByName(_session.Graph.CurrentState)" @onchange="SetCurrentStateAsync">
+                    <option value="">-</option>
+                    @foreach (var state in _canvasGraph.States)
+                    {
+                        <option value="@state.VisualId">@DisplayValue(state.Name)</option>
+                    }
+                </select>
+            </label>
+        </section>
+
+        @if (_session.ValidationIssues.Count > 0)
         {
-            <div class="state-machine-designer__issues">
-                @foreach (var issue in _graph.ValidationIssues)
+            <section class="state-machine-designer__issues" aria-label="@Localizer["Validation issues"]">
+                @foreach (var issue in _session.ValidationIssues)
                 {
-                    <div class="@GetIssueClass(issue)">
+                    <button type="button" class="@GetIssueClass(issue)" @onclick="() => SelectIssueAsync(issue)">
                         <strong>@issue.Severity</strong>
                         <span>@Localizer[issue.Message]</span>
-                    </div>
+                    </button>
                 }
-            </div>
+            </section>
         }
 
-        <div class="@GetCanvasClass()">
-            <section class="state-machine-designer__states" aria-label="@Localizer["States"]">
-                @if (!IsReadOnly)
+        <div class="state-machine-designer__workspace">
+            <main class="state-machine-designer__surface">
+                @if (_showOutline)
                 {
-                    <div class="state-machine-designer__editor-row">
-                        <input class="state-machine-designer__input" aria-label="@Localizer["State name"]" placeholder="@Localizer["State name"]" @bind="_newStateName" />
-                        <button class="state-machine-designer__command" type="button" @onclick="AddStateAsync">@Localizer["Add"]</button>
+                    <StateMachineOutline Graph="@_session.Graph"
+                                         SelectedStateName="@SelectedState?.Name"
+                                         SelectedTransition="@SelectedTransition"
+                                         StateSelected="SelectStateAsync"
+                                         TransitionSelected="SelectTransitionAsync" />
+                }
+                else
+                {
+                    <StateMachineCanvas @ref="_canvas"
+                                        @key="IsReadOnly"
+                                        Graph="@_canvasGraph"
+                                        SelectedVisualId="@(_selectedStateId ?? _selectedTransitionId)"
+                                        IsReadOnly="@IsReadOnly"
+                                        StateSelected="SelectStateByVisualIdAsync"
+                                        TransitionSelected="SelectTransitionByVisualIdAsync"
+                                        CanvasSelected="SelectCanvasAsync"
+                                        GraphChanged="ReconcileCanvasAsync"
+                                        DeleteRequested="HandleDeleteRequestAsync" />
+                }
+            </main>
+
+            <aside class="state-machine-designer__inspector">
+                @if (_pendingDeleteStateId != null)
+                {
+                    <div class="state-machine-designer__confirmation" role="alertdialog" aria-label="@Localizer["Confirm state deletion"]">
+                        <strong>@Localizer["Delete state and connected transitions?"]</strong>
+                        <span>@Localizer["This removes {0} connected transitions.", GetConnectedTransitionCount(_pendingDeleteStateId)]</span>
+                        <div>
+                            <button type="button" class="state-machine-designer__button" @onclick="CancelDeleteState">@Localizer["Cancel"]</button>
+                            <button type="button" class="state-machine-designer__button state-machine-designer__button--danger" @onclick="ConfirmDeleteStateAsync">@Localizer["Delete"]</button>
+                        </div>
                     </div>
                 }
 
-                @foreach (var state in _graph.States)
+                @if (SelectedState != null)
                 {
-                    var outgoingTransitions = GetOutgoingTransitions(state).ToList();
-                    <button class="@GetStateClass(state)" type="button" aria-pressed="@GetStateAriaPressed(state)" @onclick="() => SelectStateAsync(state)">
-                        <span class="state-machine-designer__state-title">@DisplayValue(state.Name)</span>
-                        @if (outgoingTransitions.Count > 0)
-                        {
-                            <span class="state-machine-designer__state-edges" aria-label="@Localizer["Outgoing transitions"]">
-                                @foreach (var transition in outgoingTransitions)
-                                {
-                                    <span class="state-machine-designer__state-edge">
-                                        <span>@GetTransitionDisplayText(transition)</span>
-                                        <span aria-hidden="true">-></span>
-                                        <span>@DisplayValue(transition.To)</span>
-                                    </span>
-                                }
-                            </span>
-                        }
-                        <span class="state-machine-designer__badges">
-                            @if (string.Equals(state.Name, _graph.InitialState, StringComparison.Ordinal))
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Initial"]</span>
-                            }
-                            @if (string.Equals(state.Name, _graph.CurrentState, StringComparison.Ordinal))
-                            {
-                                <span class="state-machine-designer__badge state-machine-designer__badge--current">@Localizer["Current"]</span>
-                            }
-                            @if (state.IsTerminal)
-                            {
-                                <span class="state-machine-designer__badge state-machine-designer__badge--terminal">@Localizer["Terminal"]</span>
-                            }
-                            @if (state.Entry != null)
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Entry"]</span>
-                            }
-                            @if (state.Exit != null)
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Exit"]</span>
-                            }
-                        </span>
-                    </button>
+                    <StateMachineStateInspector State="@SelectedState"
+                                                IsReadOnly="@IsReadOnly"
+                                                IsInitial="@IsSelectedStateInitial()"
+                                                IsCurrent="@IsSelectedStateCurrent()"
+                                                IncomingTransitionCount="@GetSelectedStateIncomingTransitionCount()"
+                                                OutgoingTransitionCount="@GetSelectedStateOutgoingTransitionCount()"
+                                                ValidationIssues="@GetSelectedStateIssues()"
+                                                SelectedActivityId="@_selectedActivityId"
+                                                EntrySupportsDesigner="@HasDiagramDesigner(SelectedState.Entry)"
+                                                ExitSupportsDesigner="@HasDiagramDesigner(SelectedState.Exit)"
+                                                NameChanged="RenameSelectedStateAsync"
+                                                ActivityAddRequested="AddStateActivityAsync"
+                                                ActivitySelectRequested="SelectStateActivityAsync"
+                                                ActivityOpenRequested="OpenStateActivityAsync"
+                                                ActivityJsonRequested="OpenStateActivityJsonAsync"
+                                                ActivityReplaceRequested="ReplaceStateActivityAsync"
+                                                ActivityClearRequested="ClearStateSlotAsync"
+                                                ActivityDropRequested="OnStateSlotDropAsync"
+                                                ViewTransitionsRequested="ViewSelectedStateTransitionsAsync"
+                                                DeleteRequested="RequestDeleteSelectedStateAsync" />
                 }
-            </section>
-
-            <section class="state-machine-designer__transitions" aria-label="@Localizer["Transitions"]">
-                @if (!IsReadOnly && _graph.States.Count > 0)
+                else if (SelectedTransition != null)
                 {
-                    <div class="state-machine-designer__transition-editor">
-                        <input class="state-machine-designer__input" aria-label="@Localizer["Transition name"]" placeholder="@Localizer["Transition name"]" @bind="_newTransitionName" />
-                        <select class="state-machine-designer__input" aria-label="@Localizer["Source state"]" @bind="_newTransitionFrom">
-                            @foreach (var state in _graph.States)
-                            {
-                                <option value="@state.Name">@DisplayValue(state.Name)</option>
-                            }
-                        </select>
-                        <select class="state-machine-designer__input" aria-label="@Localizer["Target state"]" @bind="_newTransitionTo">
-                            @foreach (var state in _graph.States)
-                            {
-                                <option value="@state.Name">@DisplayValue(state.Name)</option>
-                            }
-                        </select>
-                        <button class="state-machine-designer__command" type="button" @onclick="AddTransitionAsync">@Localizer["Add"]</button>
+                    <StateMachineTransitionInspector Transition="@SelectedTransition"
+                                                     States="@_session.Graph.States.ToList()"
+                                                     KnownExpressionProviderTypes="@_knownExpressionProviderTypes"
+                                                     IsReadOnly="@IsReadOnly"
+                                                     ValidationIssues="@GetSelectedTransitionIssues()"
+                                                     SelectedActivityId="@_selectedActivityId"
+                                                     TriggerSupportsDesigner="@HasDiagramDesigner(SelectedTransition.Trigger)"
+                                                     ActionSupportsDesigner="@HasDiagramDesigner(SelectedTransition.Action)"
+                                                     NameChanged="SetTransitionNameAsync"
+                                                     DisplayNameChanged="SetTransitionDisplayNameAsync"
+                                                     FromChanged="SetTransitionFromAsync"
+                                                     ToChanged="SetTransitionToAsync"
+                                                     ActivityAddRequested="AddTransitionActivityAsync"
+                                                     ActivitySelectRequested="SelectTransitionActivityAsync"
+                                                     ActivityOpenRequested="OpenTransitionActivityAsync"
+                                                     ActivityJsonRequested="OpenTransitionActivityJsonAsync"
+                                                     ActivityReplaceRequested="ReplaceTransitionActivityAsync"
+                                                     ActivityClearRequested="ClearTransitionSlotAsync"
+                                                     ActivityDropRequested="OnTransitionSlotDropAsync"
+                                                     ConditionEditRequested="OpenConditionEditorAsync"
+                                                     DeleteRequested="DeleteSelectedTransitionAsync" />
+                }
+                else
+                {
+                    <div class="state-machine-designer__empty-inspector">
+                        <strong>@Localizer["Nothing selected"]</strong>
+                        <span>@Localizer["Select a state or transition to inspect and edit it."]</span>
                     </div>
                 }
-
-                @foreach (var transition in _graph.Transitions)
-                {
-                    <button class="@GetTransitionClass(transition)" type="button" aria-pressed="@GetTransitionAriaPressed(transition)" @onclick="() => SelectTransitionAsync(transition)">
-                        <span class="state-machine-designer__transition-route">
-                            <span>@DisplayValue(transition.From)</span>
-                            <span aria-hidden="true">-></span>
-                            <span>@DisplayValue(transition.To)</span>
-                        </span>
-                        <span class="state-machine-designer__transition-name">@GetTransitionDisplayText(transition)</span>
-                        <span class="state-machine-designer__badges">
-                            @if (transition.Trigger != null)
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Trigger"]</span>
-                            }
-                            @if (transition.Condition != null)
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Condition"]</span>
-                            }
-                            @if (transition.Action != null)
-                            {
-                                <span class="state-machine-designer__badge">@Localizer["Action"]</span>
-                            }
-                        </span>
-                    </button>
-                }
-            </section>
+            </aside>
         </div>
-
-        @if (SelectedState != null)
-        {
-            <section class="state-machine-designer__details" aria-label="@Localizer["State details"]">
-                <div class="state-machine-designer__details-header">
-                    <h3>@Localizer["State"]</h3>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__danger" type="button" @onclick="DeleteSelectedStateAsync">@Localizer["Delete"]</button>
-                    }
-                </div>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Name"]</span>
-                    <input class="state-machine-designer__input" value="@SelectedState.Name" disabled="@IsReadOnly" @onchange="RenameSelectedStateAsync" />
-                </label>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Entry"]</span>
-                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(SelectedState.Entry)" @onchange='e => SetStateSlotAsync("entry", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnStateSlotDropAsync("entry")'></textarea>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearStateSlotAsync("entry")'>@Localizer["Clear entry"]</button>
-                    }
-                </label>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Exit"]</span>
-                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(SelectedState.Exit)" @onchange='e => SetStateSlotAsync("exit", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnStateSlotDropAsync("exit")'></textarea>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearStateSlotAsync("exit")'>@Localizer["Clear exit"]</button>
-                    }
-                </label>
-            </section>
-        }
-
-        @if (_selectedTransition != null)
-        {
-            <section class="state-machine-designer__details" aria-label="@Localizer["Transition details"]">
-                <div class="state-machine-designer__details-header">
-                    <h3>@Localizer["Transition"]</h3>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__danger" type="button" @onclick="DeleteSelectedTransitionAsync">@Localizer["Delete"]</button>
-                    }
-                </div>
-
-                <div class="state-machine-designer__details-grid">
-                    <label class="state-machine-designer__field">
-                        <span>@Localizer["Name"]</span>
-                        <input class="state-machine-designer__input" value="@_selectedTransition.Name" disabled="@IsReadOnly" @onchange="SetTransitionNameAsync" />
-                    </label>
-                    <label class="state-machine-designer__field">
-                        <span>@Localizer["Display name"]</span>
-                        <input class="state-machine-designer__input" value="@_selectedTransition.DisplayName" disabled="@IsReadOnly" @onchange="SetTransitionDisplayNameAsync" />
-                    </label>
-                    <label class="state-machine-designer__field">
-                        <span>@Localizer["From"]</span>
-                        <select class="state-machine-designer__input" value="@_selectedTransition.From" disabled="@IsReadOnly" @onchange="SetTransitionFromAsync">
-                            @foreach (var state in _graph.States)
-                            {
-                                <option value="@state.Name">@DisplayValue(state.Name)</option>
-                            }
-                        </select>
-                    </label>
-                    <label class="state-machine-designer__field">
-                        <span>@Localizer["To"]</span>
-                        <select class="state-machine-designer__input" value="@_selectedTransition.To" disabled="@IsReadOnly" @onchange="SetTransitionToAsync">
-                            @foreach (var state in _graph.States)
-                            {
-                                <option value="@state.Name">@DisplayValue(state.Name)</option>
-                            }
-                        </select>
-                    </label>
-                </div>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Trigger"]</span>
-                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Trigger)" @onchange='e => SetTransitionSlotAsync("trigger", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnTransitionSlotDropAsync("trigger")'></textarea>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("trigger")'>@Localizer["Clear trigger"]</button>
-                    }
-                </label>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Condition"]</span>
-                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Condition)" @onchange='e => SetTransitionSlotAsync("condition", e)'></textarea>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("condition")'>@Localizer["Clear condition"]</button>
-                    }
-                </label>
-
-                <label class="state-machine-designer__field">
-                    <span>@Localizer["Action"]</span>
-                    <textarea class="state-machine-designer__textarea" disabled="@IsReadOnly" value="@FormatJsonSlot(_selectedTransition.Action)" @onchange='e => SetTransitionSlotAsync("action", e)' @ondragover="OnSlotDragOver" @ondragover:preventDefault @ondrop='() => OnTransitionSlotDropAsync("action")'></textarea>
-                    @if (!IsReadOnly)
-                    {
-                        <button class="state-machine-designer__secondary" type="button" @onclick='() => ClearTransitionSlotAsync("action")'>@Localizer["Clear action"]</button>
-                    }
-                </label>
-            </section>
-        }
     }
 </div>

@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Security.Client;
@@ -25,9 +26,13 @@ public static class ServiceCollectionExtensions
         services
             .AddScoped<IFeature, Feature>()
             .AddScoped<IMenuProvider, SecurityMenu>()
+            .AddScoped<ISecurityMenuContributor, IdentitySecurityMenuContributor>()
+            .AddScoped<IIdentityPermissionService, IdentityPermissionService>()
             .AddScoped<IIdentityPermissionContext, IdentityPermissionContext>()
             .AddScoped<IRoleAdministrationAccessService, RoleAdministrationAccessService>()
             .AddScoped<IRoleDeletionService, RoleDeletionService>()
+            .AddClipboardInterop()
+            .AddRemoteApi<IUsersApi>(backendApiConfig)
             .AddRemoteApi<IRolesApi>(backendApiConfig)
             .AddRemoteApi<IPermissionsApi>(backendApiConfig)
             .AddRemoteApi<IMePermissionsApi>(backendApiConfig);

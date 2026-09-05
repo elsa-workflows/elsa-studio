@@ -16,7 +16,7 @@
                  Validation="@((Func<LabelInputModel, bool>)(x => _validator.Validate(x).IsValid))"
                  ValidationDelay="0">
 
-            <MudTabs Border="false" PanelClass="pa-6">
+            <MudTabs Border="false" panel-class="pa-6">
                 <MudTabPanel Text="@Localizer["General"]">
                     <MudStack Spacing="8">
                         <MudTextField @bind-Value="_model.Name"

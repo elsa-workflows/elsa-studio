@@ -92,7 +92,7 @@ public partial class ActivityPicker
     {
         var index = list.OfType<ActivityTreeItem>()
             .ToList()
-            .FindIndex(x => string.Compare(node.Text, x.Text, StringComparison.OrdinalIgnoreCase) < 0);
+            .FindIndex(x => string.Compare(node.Text ?? string.Empty, x.Text ?? string.Empty, StringComparison.OrdinalIgnoreCase) < 0);
 
         if (index == -1)
             list.Add(node);
@@ -114,14 +114,6 @@ public partial class ActivityPicker
         else
             await _treeView.ExpandAllAsync();
         _expanded = !_expanded;
-    }
-
-    private void OnItemDoubleClick(ActivityTreeItem item)
-    {
-        if (item.Children?.Any() == true)
-        {
-            item.Expanded = !item.Expanded;
-        }
     }
 
     private Task<bool> MatchesName(ActivityTreeItem item)

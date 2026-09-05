@@ -25,14 +25,14 @@ public sealed class PlatformWorkflowSnapshotPackagerTests
         var package = _packager.Package(WorkflowDefinition(), _options, packagedAt);
 
         Assert.Equal(packagedAt, package.PackagedAt);
-        Assert.StartsWith("elsa.workflow-definition:payment-retry:", package.Envelope.ArtifactId);
-        Assert.Equal(PlatformArtifactEnvelopeConstants.ElsaWorkflowDefinitionArtifactType, package.Envelope.ArtifactTypeId);
+        Assert.StartsWith("elsa.loom.recipe:payment-retry:", package.Envelope.ArtifactId);
+        Assert.Equal(PlatformArtifactEnvelopeConstants.ElsaLoomRecipeArtifactType, package.Envelope.ArtifactTypeId);
         Assert.Equal(PlatformArtifactEnvelopeConstants.EnvelopeVersion, package.Envelope.EnvelopeVersion);
         Assert.Equal(PlatformArtifactEnvelopeConstants.DefaultArtifactSchemaVersion, package.Envelope.ArtifactSchemaVersion);
         Assert.Equal("sha256", package.Envelope.ContentDigest.Algorithm);
         Assert.Equal(64, package.Envelope.ContentDigest.Value.Length);
         Assert.Equal("producer-managed", package.Envelope.PayloadReference.Provider);
-        Assert.StartsWith("studio://workflows/payment-retry/snapshots/", package.Envelope.PayloadReference.Uri);
+        Assert.StartsWith("studio://loom-recipes/payment-retry/snapshots/", package.Envelope.PayloadReference.Uri);
         Assert.Equal(package.Envelope.ContentDigest, package.Envelope.PayloadReference.ReferenceDigest);
         Assert.Equal("studio", package.Envelope.Producer.ProducerType);
         Assert.Equal("Elsa Studio", package.Envelope.Producer.ProducerName);
@@ -41,10 +41,15 @@ public sealed class PlatformWorkflowSnapshotPackagerTests
         Assert.Equal("Payment Retry", package.Envelope.DisplayMetadata.Name);
         Assert.Equal("42", package.Envelope.DisplayMetadata.Version);
         Assert.Single(package.Envelope.CompatibilityHints);
-        Assert.Contains("workflow-definition.apply", package.Envelope.CompatibilityHints.Single().RequiredCapabilities);
+        Assert.Contains("loom.recipe.apply", package.Envelope.CompatibilityHints.Single().RequiredCapabilities);
 
         using var document = JsonDocument.Parse(package.WorkflowDefinitionJson);
-        Assert.Equal("payment-retry", document.RootElement.GetProperty("definitionId").GetString());
+        Assert.Equal("1.0", document.RootElement.GetProperty("schemaVersion").GetString());
+        Assert.Equal("payment-retry", document.RootElement.GetProperty("id").GetString());
+        var step = document.RootElement.GetProperty("steps").EnumerateArray().Single();
+        Assert.Equal("workflowDefinition.upsert", step.GetProperty("type").GetString());
+        Assert.True(step.GetProperty("publish").GetBoolean());
+        Assert.Equal("payment-retry", step.GetProperty("payload").GetProperty("definitionId").GetString());
     }
 
     [Fact]

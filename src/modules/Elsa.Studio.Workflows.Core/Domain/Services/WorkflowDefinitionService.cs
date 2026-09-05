@@ -88,7 +88,7 @@ public class RemoteWorkflowDefinitionService(
             await mediator.NotifyAsync(new WorkflowDefinitionRetracted(definition), cancellationToken);
             return new(definition);
         }
-        catch (ValidationApiException e)
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.BadRequest)
         {
             var errors = e.GetValidationErrors();
             await mediator.NotifyAsync(new WorkflowDefinitionIdRetractingFailed(definitionId, errors), cancellationToken);
@@ -209,7 +209,7 @@ public class RemoteWorkflowDefinitionService(
 
     /// <inheritdoc />
     public async Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(
-        string name, 
+        string name,
         string? description = null,
         Action<SaveWorkflowDefinitionRequest>? configureRequest = null,
         CancellationToken cancellationToken = default)
@@ -239,7 +239,7 @@ public class RemoteWorkflowDefinitionService(
                 Root = rootActivityTemplate.CreateRoot(identityGenerator)
             }
         };
-        
+
         configureRequest?.Invoke(saveRequest);
 
         var api = await GetApiAsync(cancellationToken);
@@ -249,7 +249,7 @@ public class RemoteWorkflowDefinitionService(
             var response = await api.SaveAsync(saveRequest, cancellationToken);
             return new(response.WorkflowDefinition);
         }
-        catch (ValidationApiException e)
+        catch (ApiException e) when (e.StatusCode == HttpStatusCode.BadRequest)
         {
             var errors = e.GetValidationErrors();
             return new(errors);
@@ -265,10 +265,10 @@ public class RemoteWorkflowDefinitionService(
         var fileName = response.GetDownloadedFileNameOrDefault($"workflow-definition-{definitionId}.json");
         var fileDownload = new FileDownload(fileName, response.Content!);
         await mediator.NotifyAsync(new WorkflowDefinitionIdExported(definitionId, versionOptions, fileDownload), cancellationToken);
-        
+
         return fileDownload;
     }
-    
+
     /// <inheritdoc />
     public async Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default)
     {
@@ -285,7 +285,7 @@ public class RemoteWorkflowDefinitionService(
         var api = await GetApiAsync(cancellationToken);
         return await api.UpdateReferencesAsync(definitionId, new(), cancellationToken);
     }
-    
+
     /// <inheritdoc />
     public async Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default)
     {

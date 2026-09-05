@@ -47,6 +47,18 @@ export class DotNetFlowchartDesigner {
         await this.componentRef.invokeMethodAsync('HandleGraphUpdated');
     }
 
+    async raiseStateMachineStateSelected(visualId: string): Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandleStateMachineStateSelected', visualId);
+    }
+
+    async raiseStateMachineTransitionSelected(visualId: string): Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandleStateMachineTransitionSelected', visualId);
+    }
+
+    async raiseStateMachineDeleteRequested(kind: 'state' | 'transition', visualId: string): Promise<void> {
+        await this.componentRef.invokeMethodAsync('HandleStateMachineDeleteRequested', kind, visualId);
+    }
+
     /// <summary>
     /// Raises the <see cref="PasteCellsRequested"/> event.
     /// </summary>

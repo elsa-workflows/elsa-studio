@@ -3,6 +3,7 @@ using Elsa.Studio.Security.Components;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Menu;
 using Elsa.Studio.Security.Models;
+using Elsa.Studio.Security.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -16,7 +17,11 @@ public sealed class SecurityMenuTests
     [Fact]
     public async Task GetMenuItemsAsync_WhenAccessIsForbidden_ReturnsNoItems()
     {
-        var menu = new SecurityMenu(new TestRoleAccessService(RoleAdministrationAccess.Forbidden));
+        var contributor = new IdentitySecurityMenuContributor(
+            new TestRemoteFeatureProvider(true),
+            new TestIdentityPermissionService(),
+            new TestRoleAccessService(RoleAdministrationAccess.Forbidden));
+        var menu = new SecurityMenu([contributor]);
 
         var items = await menu.GetMenuItemsAsync();
 
@@ -26,19 +31,34 @@ public sealed class SecurityMenuTests
     [Fact]
     public async Task GetMenuItemsAsync_WhenAccessIsReady_ReturnsRolesWithoutUsers()
     {
-        var menu = new SecurityMenu(new TestRoleAccessService(new RoleAdministrationAccess(
-            RoleAdministrationAccessState.Ready, CanView: true, CanCreate: true, CanUpdate: false, CanDelete: false)));
+        var contributor = new IdentitySecurityMenuContributor(
+            new TestRemoteFeatureProvider(true),
+            new TestIdentityPermissionService(),
+            new TestRoleAccessService(new RoleAdministrationAccess(
+                RoleAdministrationAccessState.Ready, CanView: true, CanCreate: true, CanUpdate: false, CanDelete: false)));
+        var menu = new SecurityMenu([contributor]);
 
         var items = (await menu.GetMenuItemsAsync()).ToList();
 
         var item = Assert.Single(items);
         Assert.Equal("security/roles", item.Href);
-        Assert.Equal("Security", item.Text);
+        Assert.Equal("Identity & access", item.Text);
         var roles = Assert.Single(item.SubMenuItems);
         Assert.Equal("Roles", roles.Text);
         Assert.Equal("security/roles", roles.Href);
         Assert.DoesNotContain(items.SelectMany(x => x.SubMenuItems), x => x.Text == "Users");
     }
+}
+
+internal sealed class TestIdentityPermissionService(params string[] permissions) : IIdentityPermissionService
+{
+    private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
+
+    public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
+        new(_permissions.Contains(permission));
+
+    public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
+        new(_permissions);
 }
 
 public sealed class RoleAdministrationAccessBoundaryTests : BunitContext, IAsyncLifetime

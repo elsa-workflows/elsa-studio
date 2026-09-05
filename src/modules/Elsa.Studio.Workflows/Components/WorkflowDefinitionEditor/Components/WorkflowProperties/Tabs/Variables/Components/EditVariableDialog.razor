@@ -18,7 +18,7 @@
                         <MudSelectItemGroupExtended T="string" Text="@grouping.Key">
                             @foreach (var variableType in grouping)
                             {
-                                <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType">@variableType.DisplayName</MudSelectItemExtended>
+                                <MudSelectItemExtended T="VariableTypeDescriptor" Value="@variableType" Text="@variableType.DisplayName">@variableType.DisplayName</MudSelectItemExtended>
                             }
                         </MudSelectItemGroupExtended>
                     }
