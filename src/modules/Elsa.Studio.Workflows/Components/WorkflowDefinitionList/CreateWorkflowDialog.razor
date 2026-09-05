@@ -7,7 +7,7 @@
 <MudDialog>
     <DialogContent>
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
-            <FluentValidationValidator @ref="_fluentValidationValidator" Validator="_validator" DisableAssemblyScanning="true"/>
+            <FluentValidator Validator="_validator" AsyncMode="true"/>
             <MudStack>
                 <MudTextField Label="@Localizer["Name"]" @bind-Value="_metadataModel.Name" For="@(() => _metadataModel.Name)" HelperText="@Localizer["The name of the new workflow."]" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <MudStack Spacing="1">
