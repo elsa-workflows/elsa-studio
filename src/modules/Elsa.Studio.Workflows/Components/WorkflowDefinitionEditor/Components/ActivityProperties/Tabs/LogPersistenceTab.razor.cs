@@ -15,6 +15,8 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs;
 
+#pragma warning disable CS0612 // LegacyPersistenceActivityConfiguration is intentionally read for migration support.
+
 /// <summary>
 /// Represents the persistence tab.
 /// </summary>

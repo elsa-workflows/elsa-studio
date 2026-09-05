@@ -11,6 +11,49 @@
     flex: 0 0 auto;
 }
 
+.elsa-otel-summary-surface {
+    overflow: hidden;
+}
+
+.elsa-otel-summary-strip {
+    background: var(--mud-palette-lines-default);
+    display: grid;
+    gap: 1px;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.elsa-otel-summary-item {
+    align-items: center;
+    background: var(--mud-palette-surface);
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+}
+
+.elsa-otel-summary-value {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.elsa-otel-overview-card {
+    min-height: 7rem;
+}
+
+.elsa-otel-muted {
+    color: var(--mud-palette-text-secondary);
+}
+
+.elsa-otel-kpi-title {
+    color: var(--mud-palette-text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
 .elsa-otel-tabs-paper {
     display: flex;
     flex: 1 1 auto;
@@ -19,6 +62,7 @@
 }
 
 .elsa-otel-tabs {
+    background: var(--mud-palette-surface);
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -38,26 +82,40 @@
     overflow: auto;
 }
 
-.elsa-otel-tabs .mud-tab-panel {
-    min-width: fit-content;
-}
-
 .elsa-otel-table-card {
-    border-radius: 8px;
     min-width: 100%;
-}
-
-.elsa-otel-table-card .mud-table-container {
-    overflow: visible;
-}
-
-.elsa-otel-table-card table {
-    min-width: 900px;
 }
 
 .elsa-otel-table-card th,
 .elsa-otel-table-card td {
     vertical-align: top;
+}
+
+.elsa-otel-selected-trace {
+    background: color-mix(in srgb, var(--mud-palette-primary) 8%, transparent) !important;
+}
+
+.elsa-otel-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+}
+
+@media (min-width: 40rem) {
+    .elsa-otel-summary-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 64rem) {
+    .elsa-otel-summary-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 90rem) {
+    .elsa-otel-summary-strip {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
 }
 
 @media (max-height: 760px) {

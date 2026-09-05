@@ -38,10 +38,10 @@ public class X6GraphApi
     public async Task DisposeGraphAsync() => await TryInvokeAsync(module => module.InvokeVoidAsync("disposeGraph", _containerId));
 
     /// <summary>
-    /// Sets the grid color.
+    /// Applies the active Elsa theme to the X6 graph.
     /// </summary>
-    /// <param name="color">The color.</param>
-    public async Task SetGridColorAsync(string color) => await InvokeAsync(module => module.InvokeVoidAsync("setGridColor", _containerId, color));
+    public async Task ApplyThemeAsync(X6DesignerTheme theme) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("applyGraphTheme", _containerId, theme));
 
     /// <summary>
     /// Adds a node to the graph.
@@ -87,6 +87,21 @@ public class X6GraphApi
         await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
     }
 
+    /// <summary>
+    /// Loads a renderer-specific X6 graph projection.
+    /// </summary>
+    public async Task LoadGraphAsync<TGraph>(TGraph graph)
+    {
+        var serializedGraph = SerializeGraph(graph);
+        await InvokeAsync(module => module.InvokeVoidAsync("loadGraph", _containerId, serializedGraph));
+    }
+
+    /// <summary>
+    /// Selects a native X6 cell and optionally centers it.
+    /// </summary>
+    public async Task SelectCellAsync(string id, bool center = false) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("selectCell", _containerId, id, center));
+
     /// Zoom the canvas to fit the content.
     public async Task ZoomToFitAsync() => await InvokeAsync(module => module.InvokeVoidAsync("zoomToFit", _containerId));
 
@@ -95,6 +110,15 @@ public class X6GraphApi
 
     /// Adjusts the graph layout.
     public async Task AutoLayoutAsync(X6Graph graph)
+    {
+        var serializedGraph = SerializeGraph(graph);
+        await InvokeAsync(module => module.InvokeVoidAsync("autoLayout", _containerId, serializedGraph));
+    }
+
+    /// <summary>
+    /// Applies the shared X6 auto-layout to a renderer-specific graph projection.
+    /// </summary>
+    public async Task AutoLayoutAsync<TGraph>(TGraph graph)
     {
         var serializedGraph = SerializeGraph(graph);
         await InvokeAsync(module => module.InvokeVoidAsync("autoLayout", _containerId, serializedGraph));
@@ -143,7 +167,7 @@ public class X6GraphApi
     private async Task<T> InvokeAsync<T>(Func<IJSObjectReference, ValueTask<T>> func) => await func(_module);
 
     // Serializing the graph here instead of relying on the JS interop layer to avoid the max depth of 32 exception.
-    private static string SerializeGraph(X6Graph graph)
+    private static string SerializeGraph<TGraph>(TGraph graph)
     {
         var options = GetSerializerOptions();
         return JsonSerializer.Serialize(graph, options);

@@ -1,5 +1,6 @@
 using Elsa.Studio.Authentication.Abstractions.ComponentProviders;
 using Elsa.Studio.Authentication.Abstractions.Contracts;
+using Elsa.Studio.Authentication.Abstractions.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.Contracts;
 using Elsa.Studio.Authentication.OpenIdConnect.Models;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm.Services;
@@ -24,8 +25,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         Action<OidcOptions> configure)
     {
-         var options = new OidcOptions();
+        var options = new OidcOptions();
         configure(options);
+        services.AddStudioAuthenticationProviderRegistration(StudioAuthenticationProvider.OpenIdConnect);
 
         // Set Blazor WASM defaults for callback paths if not explicitly specified.
         options.CallbackPath ??= "/authentication/login-callback";
@@ -70,6 +72,8 @@ public static class ServiceCollectionExtensions
 
         // Provide an OIDC-aware unauthorized component.
         services.AddScoped<IUnauthorizedComponentProvider, UnauthorizedComponentProvider<NavigateToLogin>>();
+        services.AddScoped<ILoginMethodCatalog, DirectOpenIdConnectLoginMethodCatalog>();
+        services.AddScoped<ILoginMethodComponentProvider, DirectOpenIdConnectLoginMethodComponentProvider>();
 
         return services;
     }

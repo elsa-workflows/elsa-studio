@@ -58,7 +58,9 @@ public sealed class SubmitWorkflowDefinitionToPlatformTests
         new()
         {
             PlatformEndpoint = new Uri("https://platform.example.test"),
-            WorkspaceId = Guid.Parse("10000000-0000-0000-0000-000000000001")
+            WorkspaceId = Guid.Parse("10000000-0000-0000-0000-000000000001"),
+            ApplicationId = Guid.Parse("30000000-0000-0000-0000-000000000001"),
+            EnvironmentId = Guid.Parse("40000000-0000-0000-0000-000000000001")
         };
 
     private static WorkflowDefinition WorkflowDefinition() =>
