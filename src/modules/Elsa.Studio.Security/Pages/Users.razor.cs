@@ -26,10 +26,10 @@ public partial class Users
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-    protected bool CanRead => Has(IdentityPermissions.ReadUser);
-    protected bool CanCreate => Has(IdentityPermissions.CreateUser);
-    protected bool CanUpdate => Has(IdentityPermissions.UpdateUser);
-    protected bool CanDelete => Has(IdentityPermissions.DeleteUser);
+    protected bool CanRead => Has(IdentityClaimPermissions.ReadUser);
+    protected bool CanCreate => Has(IdentityClaimPermissions.CreateUser);
+    protected bool CanUpdate => Has(IdentityClaimPermissions.UpdateUser);
+    protected bool CanDelete => Has(IdentityClaimPermissions.DeleteUser);
     protected IEnumerable<UserSummary> FilteredUsers => string.IsNullOrWhiteSpace(_search)
         ? _users
         : _users.Where(MatchesSearch);

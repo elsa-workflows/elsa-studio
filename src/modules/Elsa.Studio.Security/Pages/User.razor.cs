@@ -35,9 +35,9 @@ public partial class User : IDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     protected bool IsNew => string.IsNullOrWhiteSpace(Id);
-    protected bool CanReadRoles => Has(IdentityPermissions.ReadRole);
-    protected bool CanSave => IsNew ? Has(IdentityPermissions.CreateUser) : Has(IdentityPermissions.UpdateUser);
-    protected bool CanDelete => Has(IdentityPermissions.DeleteUser);
+    protected bool CanReadRoles => Has(IdentityClaimPermissions.ReadRole);
+    protected bool CanSave => IsNew ? Has(IdentityClaimPermissions.CreateUser) : Has(IdentityClaimPermissions.UpdateUser);
+    protected bool CanDelete => Has(IdentityClaimPermissions.DeleteUser);
     protected string PageTitleText => IsNew ? "Create user" : _name ?? "User";
     protected string PageDescription => IsNew ? "Create an Elsa account and assign its roles." : "Manage role assignments and account credentials.";
     protected string SaveLabel => IsNew ? "Create user" : "Save changes";
@@ -66,13 +66,13 @@ public partial class User : IDisposable
                 return;
             _permissions = permissions;
 
-            if (isNew && !Has(IdentityPermissions.CreateUser))
+            if (isNew && !Has(IdentityClaimPermissions.CreateUser))
             {
                 _loadError = "You do not have permission to create users.";
                 return;
             }
 
-            if (!isNew && !Has(IdentityPermissions.ReadUser))
+            if (!isNew && !Has(IdentityClaimPermissions.ReadUser))
             {
                 _loadError = "You do not have permission to view users.";
                 return;

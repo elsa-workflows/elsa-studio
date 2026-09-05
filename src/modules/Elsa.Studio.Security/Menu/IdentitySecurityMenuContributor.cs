@@ -10,7 +10,8 @@ namespace Elsa.Studio.Security.Menu;
 
 public sealed class IdentitySecurityMenuContributor(
     IRemoteFeatureProvider remoteFeatures,
-    IIdentityPermissionService permissions) : ISecurityMenuContributor
+    IIdentityPermissionService permissions,
+    IRoleAdministrationAccessService roleAccessService) : ISecurityMenuContributor
 {
     public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
@@ -18,7 +19,7 @@ public sealed class IdentitySecurityMenuContributor(
             return [];
 
         var items = new List<MenuItem>();
-        if (await permissions.HasAsync(IdentityPermissions.ReadUser, cancellationToken))
+        if (await permissions.HasAsync(IdentityClaimPermissions.ReadUser, cancellationToken))
         {
             items.Add(new()
             {
@@ -29,7 +30,8 @@ public sealed class IdentitySecurityMenuContributor(
             });
         }
 
-        if (await permissions.HasAsync(IdentityPermissions.ReadRole, cancellationToken))
+        var roleAccess = await roleAccessService.GetAsync(cancellationToken);
+        if (roleAccess.CanView)
         {
             items.Add(new()
             {

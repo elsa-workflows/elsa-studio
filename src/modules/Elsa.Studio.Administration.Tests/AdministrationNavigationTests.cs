@@ -66,7 +66,8 @@ public class AdministrationNavigationTests
 
         var contributor = new IdentitySecurityMenuContributor(
             new EnabledRemoteFeatureProvider(),
-            new TestIdentityPermissionService(IdentityPermissions.ReadUser, IdentityPermissions.ReadRole));
+            new TestIdentityPermissionService(IdentityClaimPermissions.ReadUser),
+            new TestRoleAdministrationAccessService());
 
         var items = (await contributor.GetMenuItemsAsync()).ToList();
 
@@ -113,5 +114,20 @@ public class AdministrationNavigationTests
 
         public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
             new(_permissions);
+    }
+
+    private sealed class TestRoleAdministrationAccessService : IRoleAdministrationAccessService
+    {
+        public Task<RoleAdministrationAccess> GetAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new RoleAdministrationAccess(
+                RoleAdministrationAccessState.Ready,
+                CanView: true,
+                CanCreate: false,
+                CanUpdate: false,
+                CanDelete: false));
+
+        public void Invalidate()
+        {
+        }
     }
 }

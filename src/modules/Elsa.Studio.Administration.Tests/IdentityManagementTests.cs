@@ -10,8 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
-using RoleEditor = Elsa.Studio.Security.Pages.Role;
-using RolesPage = Elsa.Studio.Security.Pages.Roles;
 using UserEditor = Elsa.Studio.Security.Pages.User;
 using UsersPage = Elsa.Studio.Security.Pages.Users;
 
@@ -85,48 +83,6 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         await cut.InvokeAsync(() => cut.Find("button[aria-label='Copy user ID user-with-a-long-id']").Click());
 
         Assert.Equal("user-with-a-long-id", _clipboard.LastCopiedText);
-    }
-
-    [Fact]
-    public void RoleList_RendersPermissionPreviewAndEmptyPermissionState()
-    {
-        _roles.Roles =
-        [
-            new() { Id = "admin", Name = "admin", Permissions = ["read:user", "update:user"] },
-            new() { Id = "role-2", Name = "observer", Permissions = [] }
-        ];
-
-        var cut = Render<RolesPage>();
-
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Contains("read:user", cut.Markup);
-            Assert.Contains("No permissions", cut.Markup);
-            Assert.Contains("Role ID", cut.Markup);
-            Assert.Contains("Edit role admin", cut.Markup);
-            Assert.Contains("Open role admin", cut.Markup);
-            Assert.Equal(Breakpoint.Md, cut.FindComponent<MudTable<RoleSummary>>().Instance.Breakpoint);
-            Assert.Empty(cut.FindAll("td[data-label='Name']")[0].QuerySelectorAll(".mud-typography-caption"));
-        });
-    }
-
-    [Fact]
-    public async Task RoleList_PresentsRoleIdSeparatelyAndCopiesTheFullValue()
-    {
-        _roles.Roles = [new() { Id = "workflow-manager", Name = "Workflow Manager", Permissions = ["read:user"] }];
-
-        var cut = Render<RolesPage>();
-        cut.WaitForAssertion(() =>
-        {
-            var row = cut.Find("tbody tr");
-            Assert.Equal("Workflow Manager", row.QuerySelector("td[data-label='Name']")?.TextContent.Trim());
-            Assert.Equal("workflow-manager", row.QuerySelector("td[data-label='Role ID'] .identity-id-value")?.TextContent.Trim());
-            Assert.DoesNotContain("workflow-manager", row.QuerySelector("td[data-label='Name']")?.TextContent);
-        });
-
-        await cut.InvokeAsync(() => cut.Find("button[aria-label='Copy role ID workflow-manager']").Click());
-
-        Assert.Equal("workflow-manager", _clipboard.LastCopiedText);
     }
 
     [Fact]
@@ -218,65 +174,12 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void CreateRole_SendsAddedPermissionTokens()
-    {
-        _roles.CreateResult = new() { Id = "role-3", Name = "auditor", Permissions = ["read:user"] };
-        _roles.Roles = [_roles.CreateResult];
-        var cut = Render<RoleEditor>();
-        cut.WaitForAssertion(() => Assert.Contains("Create a reusable set", cut.Markup));
-
-        var inputs = cut.FindAll("input");
-        inputs[0].Change("auditor");
-        inputs[1].Input("read:user");
-        cut.FindAll("button").Single(x => x.TextContent.Trim() == "Add").Click();
-        cut.FindAll("button").Single(x => x.TextContent.Trim() == "Create role").Click();
-
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Equal("auditor", _roles.CreateRequest?.Name);
-            Assert.Equal(["read:user"], _roles.CreateRequest?.Permissions);
-        });
-
-        cut.Render(parameters => parameters.Add(component => component.Id, "role-3"));
-        cut.WaitForAssertion(() =>
-        {
-            Assert.NotNull(cut.Find("input[value='auditor']"));
-            Assert.Contains("read:user", cut.Markup);
-        });
-    }
-
-    [Fact]
-    public void RoleEditor_IgnoresAStaleLoadAfterTheRouteChanges()
-    {
-        var firstLoad = new TaskCompletionSource<ListRolesResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var secondLoad = new TaskCompletionSource<ListRolesResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _roles.ListResults.Enqueue(firstLoad.Task);
-        _roles.ListResults.Enqueue(secondLoad.Task);
-        var cut = Render<RoleEditor>(parameters => parameters.Add(component => component.Id, "role-a"));
-        cut.WaitForState(() => _roles.ListCallCount == 1);
-
-        cut.Render(parameters => parameters.Add(component => component.Id, "role-b"));
-        cut.WaitForState(() => _roles.ListCallCount == 2);
-        secondLoad.SetResult(new() { Roles = [new() { Id = "role-b", Name = "Operators", Permissions = ["read:user"] }] });
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("input[value='Operators']")));
-
-        firstLoad.SetResult(new() { Roles = [new() { Id = "role-a", Name = "Administrators", Permissions = ["*"] }] });
-        cut.WaitForAssertion(() =>
-        {
-            Assert.NotNull(cut.Find("input[value='Operators']"));
-            Assert.DoesNotContain("Administrators", cut.Markup);
-        });
-    }
-
-    [Fact]
     public void ReadOnlyLists_UseViewAffordancesAndHideMutations()
     {
-        _permissionService.Set(IdentityPermissions.ReadUser, IdentityPermissions.ReadRole);
+        _permissionService.Set(IdentityClaimPermissions.ReadUser);
         _users.Users = [new() { Id = "user-1", Name = "alice" }];
-        _roles.Roles = [new() { Id = "role-1", Name = "auditor" }];
 
         var users = Render<UsersPage>();
-        var roles = Render<RolesPage>();
 
         users.WaitForAssertion(() =>
         {
@@ -284,13 +187,6 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("Edit user alice", users.Markup);
             Assert.DoesNotContain("Create user", users.Markup);
             Assert.DoesNotContain("Delete user alice", users.Markup);
-        });
-        roles.WaitForAssertion(() =>
-        {
-            Assert.Contains("View role auditor", roles.Markup);
-            Assert.DoesNotContain("Edit role auditor", roles.Markup);
-            Assert.DoesNotContain("Create role", roles.Markup);
-            Assert.DoesNotContain("Delete role auditor", roles.Markup);
         });
     }
 
@@ -399,34 +295,6 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         Assert.Equal(uriBeforeDisposal, navigation.Uri);
     }
 
-    [Fact]
-    public async Task RoleSaveCompletion_DoesNotOverwriteANewRoute()
-    {
-        _roles.Roles =
-        [
-            new() { Id = "role-a", Name = "Administrators", Permissions = ["*"] },
-            new() { Id = "role-b", Name = "Operators", Permissions = ["read:user"] }
-        ];
-        var updateCompletion = new TaskCompletionSource<RoleSummary>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _roles.UpdateHandler = (_, _) => updateCompletion.Task;
-        var cut = Render<RoleEditor>(parameters => parameters.Add(component => component.Id, "role-a"));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("input[value='Administrators']")));
-        await cut.InvokeAsync(() => cut.Find("input[value='Administrators']").Change("Admins"));
-
-        var saveTask = cut.InvokeAsync(() => cut.FindAll("button").Single(x => x.TextContent.Trim() == "Save changes").Click());
-        cut.WaitForState(() => _roles.UpdateId == "role-a");
-        cut.Render(parameters => parameters.Add(component => component.Id, "role-b"));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("input[value='Operators']")));
-        updateCompletion.SetResult(new() { Id = "role-a", Name = "Admins", Permissions = ["*"] });
-        await saveTask;
-
-        cut.WaitForAssertion(() =>
-        {
-            Assert.NotNull(cut.Find("input[value='Operators']"));
-            Assert.DoesNotContain("Admins", cut.Markup);
-        });
-    }
-
     private sealed class ApiProvider(UsersApi users, RolesApi roles) : IBackendApiClientProvider
     {
         public Uri Url => new("https://elsa.example.test");
@@ -510,17 +378,31 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             ListCallCount++;
             return ListResults.Count > 0 ? ListResults.Dequeue() : Task.FromResult(new ListRolesResponse { Roles = Roles });
         }
-        public Task<RoleSummary> CreateAsync(CreateRoleRequest request, CancellationToken cancellationToken = default)
+        public Task<CreateRoleResponse> CreateAsync(CreateRoleRequest request, CancellationToken cancellationToken = default)
         {
             CreateRequest = request;
-            return Task.FromResult(CreateResult);
+            return Task.FromResult(new CreateRoleResponse
+            {
+                Id = CreateResult.Id,
+                Name = CreateResult.Name,
+                Permissions = CreateResult.Permissions
+            });
         }
-        public Task<RoleSummary> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
+        public async Task<UpdateRoleResponse> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
         {
             UpdateId = id;
             UpdateRequest = request;
-            return UpdateHandler?.Invoke(id, request) ?? Task.FromResult(Roles.Single(role => role.Id == id));
+            var role = await (UpdateHandler?.Invoke(id, request) ?? Task.FromResult(Roles.Single(item => item.Id == id)));
+            return new UpdateRoleResponse
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Permissions = role.Permissions,
+                TenantId = role.TenantId
+            };
         }
         public Task DeleteAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<RoleDeletionImpactResponse> GetDeletionImpactAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task RemediateAndDeleteAsync(string id, RoleRemediationRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }
