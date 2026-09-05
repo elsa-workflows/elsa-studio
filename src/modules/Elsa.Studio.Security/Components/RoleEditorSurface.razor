@@ -12,11 +12,29 @@
     .role-editor-header { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
     .role-editor-actions { align-items: center; display: flex; gap: .5rem; flex-wrap: wrap; }
     .role-editor-id { color: var(--mud-palette-text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-    .role-permission-row { align-items: flex-start; display: flex; gap: .5rem; justify-content: space-between; min-width: 0; padding: .65rem .75rem; }
-    .role-permission-copy { min-width: 0; }
-    .role-permission-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-    .role-permission-meta { align-items: center; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .role-editor-details { align-items: end; display: grid; gap: 1rem; grid-template-columns: minmax(16rem, 32rem) minmax(0, 1fr); }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+    .role-permissions-header { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
+    .role-permissions-summary { color: var(--mud-palette-text-secondary); }
+    .role-category-title { align-items: center; display: flex; gap: .75rem; justify-content: space-between; min-width: 0; width: 100%; }
+    .role-category-title-copy { align-items: baseline; display: flex; flex-wrap: wrap; gap: .35rem .75rem; min-width: 0; }
+    .role-category-summary { color: var(--mud-palette-text-secondary); font-size: .75rem; }
+    .role-resource-list { border-top: 1px solid var(--mud-palette-lines-default); }
+    .role-resource-row { align-items: start; border-bottom: 1px solid var(--mud-palette-lines-default); display: grid; gap: .5rem 1rem; grid-template-columns: minmax(14rem, 1fr) minmax(20rem, 1.4fr); padding: .5rem .75rem; }
+    .role-resource-copy { min-width: 0; }
+    .role-resource-heading { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem; }
+    .role-resource-description { color: var(--mud-palette-text-secondary); display: block; line-height: 1.25; margin-top: .15rem; }
+    .role-verb-list { align-items: start; display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: flex-start; min-width: 0; }
+    .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; min-height: 2rem; min-width: 9rem; }
+    .role-verb-option .mud-checkbox { margin: 0; }
+    .role-grant-state { color: var(--mud-palette-text-secondary); font-size: .7rem; margin-left: -.2rem; }
+
+    @@media (max-width: 959.98px) {
+        .role-editor-details,
+        .role-resource-row { grid-template-columns: 1fr; }
+        .role-editor-actions { width: 100%; }
+        .role-editor-actions .mud-button-root { flex: 1 1 auto; }
+    }
 </style>
 
 @if (_loading)
@@ -42,7 +60,7 @@ else if (!CanOpen)
 }
 else
 {
-    <MudStack Spacing="4">
+    <MudStack Spacing="3">
         <div class="role-editor-header">
             <div>
                 <MudBreadcrumbs Items="@Breadcrumbs" Class="pa-0" />
@@ -67,24 +85,26 @@ else
             </div>
         </div>
 
-        <MudPaper Outlined="true" Elevation="0" Class="pa-4">
+        <MudPaper Outlined="true" Elevation="0" Class="pa-3">
             <MudForm @ref="_form">
-                <MudText Typo="Typo.h6">Role details</MudText>
-                <MudGrid Spacing="4" Class="mt-1">
-                    <MudItem xs="12" md="@(_isCreate ? 12 : 6)">
-                        <MudTextField T="string" Label="Role name" Value="@_name" ValueChanged="OnNameChanged" Required="true" RequiredError="Role name is required." Disabled="@IsReadOnly" Variant="Variant.Outlined" Immediate="true" aria-label="Role name" />
-                    </MudItem>
+                <div class="role-editor-details">
+                    <MudTextField T="string"
+                                  Label="Role name"
+                                  Value="@_name"
+                                  ValueChanged="OnNameChanged"
+                                  Required="true"
+                                  RequiredError="Role name is required."
+                                  Disabled="@IsReadOnly"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true"
+                                  HelperText="@(_isCreate ? "Core generates the role ID after creation." : null)"
+                                  aria-label="Role name" />
                     @if (!_isCreate)
                     {
-                        <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="ID" Value="@RoleId" Disabled="true" Variant="Variant.Outlined" HelperText="ID cannot be changed." />
-                        </MudItem>
+                        <MudText Typo="Typo.caption" Class="role-permissions-summary">The role ID is read-only and shown beneath the page title.</MudText>
                     }
-                </MudGrid>
-                @if (_isCreate)
-                {
-                    <MudText Typo="Typo.caption" Class="mt-2">Core generates the role ID after creation.</MudText>
-                }
+                </div>
             </MudForm>
         </MudPaper>
 
@@ -93,81 +113,88 @@ else
             <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_saveError</MudAlert>
         }
 
-        <MudPaper Outlined="true" Elevation="0" Class="pa-4">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <MudPaper Outlined="true" Elevation="0" Class="pa-3">
+            <div class="role-permissions-header mb-1">
                 <MudText Typo="Typo.h6">Permissions</MudText>
-                <MudText Typo="Typo.caption">@DirectCount direct · @CoveredCount covered · @_advanced.Count advanced</MudText>
-            </MudStack>
+                <MudText Typo="Typo.caption" Class="role-permissions-summary">@DirectCount direct · @CoveredCount covered · @_advanced.Count advanced</MudText>
+            </div>
             <MudTabs Border="false" Elevation="0" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
                 <MudTabPanel Text="Exact permissions">
-                    <MudStack Spacing="3" Class="pt-3">
+                    <MudStack Spacing="2" Class="pt-2">
                         <MudText Typo="Typo.body2">Select concrete permissions. Category actions add exact grants only and never create a wildcard.</MudText>
-                        <MudTextField T="string" Label="Filter permissions" Placeholder="Search by name, ID, or permission" Value="@_search" ValueChanged="OnSearchChanged" Immediate="true" Clearable="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" />
-                        <MudExpansionPanels MultiExpansion="true">
+                        <MudTextField T="string" Label="Filter permissions" Placeholder="Search by name, ID, or permission" Value="@_search" ValueChanged="OnSearchChanged" Immediate="true" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" />
+                        <MudExpansionPanels MultiExpansion="true" Elevation="0">
                             @foreach (var category in Categories)
                             {
                                 var resources = GetFilteredResources(category).ToArray();
                                 if (resources.Length == 0)
                                     continue;
 
-                                <MudExpansionPanel Text="@category" Expanded="true" Class="role-category-panel">
+                                var categoryResources = GetCategoryResources(category).ToArray();
+                                var directCount = CategoryDirectCount(categoryResources);
+                                var coveredCount = CategoryCoveredCount(categoryResources);
+                                <MudExpansionPanel Text="@category" Expanded="@ShouldExpandCategory(categoryResources)" Dense="true" Gutters="false" Class="role-category-panel">
                                     <TitleContent>
-                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width:100%">
-                                            <MudText>@category</MudText>
-                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                                <MudChip T="string" Size="Size.Small">@ConcreteCount(GetCategoryResources(category)) permissions</MudChip>
+                                        <div class="role-category-title">
+                                            <div class="role-category-title-copy">
+                                                <MudText Typo="Typo.body2"><strong>@category</strong></MudText>
+                                                <span class="role-category-summary">@CategorySummary(ConcreteCount(categoryResources), directCount, coveredCount)</span>
+                                            </div>
+                                            <div @onclick:stopPropagation="true">
                                                 @if (!IsReadOnly)
                                                 {
-                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => SelectCategory(GetCategoryResources(category)))">Select all exact</MudButton>
+                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => SelectCategory(categoryResources))">Select all exact</MudButton>
                                                 }
-                                            </MudStack>
-                                        </MudStack>
+                                            </div>
+                                        </div>
                                     </TitleContent>
                                     <ChildContent>
-                                        <MudStack Spacing="0">
+                                        <div class="role-resource-list">
                                             @foreach (var resource in resources)
                                             {
-                                                <MudPaper Outlined="true" Elevation="0" Class="pa-2 mb-2">
-                                                    <MudText Typo="Typo.subtitle2">@resource.DisplayName</MudText>
-                                                    <MudText Typo="Typo.caption" Class="role-code">@resource.Resource</MudText>
-                                                    @if (!string.IsNullOrWhiteSpace(resource.Description))
-                                                    {
-                                                        <MudText Typo="Typo.caption">@resource.Description</MudText>
-                                                    }
-                                                    @if (!resource.Verified)
-                                                    {
-                                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Unverified · verified:false</MudChip>
-                                                    }
-                                                    @if (resource.NonCoreVerbs.Count > 0)
-                                                    {
-                                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">Non-core: @string.Join(", ", resource.NonCoreVerbs)</MudChip>
-                                                    }
+                                                <div class="role-resource-row">
+                                                    <div class="role-resource-copy">
+                                                        <div class="role-resource-heading">
+                                                            <MudText Typo="Typo.subtitle2">@resource.DisplayName</MudText>
+                                                            @if (!resource.Verified)
+                                                            {
+                                                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Unverified · verified:false</MudChip>
+                                                            }
+                                                            @if (resource.NonCoreVerbs.Count > 0)
+                                                            {
+                                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">Non-core: @string.Join(", ", resource.NonCoreVerbs)</MudChip>
+                                                            }
+                                                        </div>
+                                                        <MudText Typo="Typo.caption" Class="role-code">@resource.Resource</MudText>
+                                                        @if (!string.IsNullOrWhiteSpace(resource.Description))
+                                                        {
+                                                            <MudText Typo="Typo.caption" Class="role-resource-description">@resource.Description</MudText>
+                                                        }
+                                                    </div>
+                                                    <div class="role-verb-list">
                                                     @foreach (var verb in resource.SupportedVerbs.OrderBy(x => x, StringComparer.Ordinal))
                                                     {
                                                         var permission = $"{resource.Resource}:{verb}";
                                                         var direct = IsDirect(permission);
                                                         var covering = FindCoveringWildcard(resource.Resource, verb);
-                                                        <div class="role-permission-row">
-                                                            <div class="role-permission-copy">
-                                                                <MudText Class="role-permission-name">@permission</MudText>
-                                                                @if (direct)
-                                                                {
-                                                                    <div class="role-permission-meta"><MudChip T="string" Size="Size.Small" Color="Color.Success">Direct grant</MudChip></div>
-                                                                }
-                                                                else if (covering != null)
-                                                                {
-                                                                    <div class="role-permission-meta">
-                                                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">Covered by @covering</MudChip>
-                                                                        <MudText Typo="Typo.caption">Effective access only — not stored twice</MudText>
-                                                                    </div>
-                                                                }
-                                                            </div>
-                                                            <MudCheckBox T="bool" Value="@direct" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
+                                                        <div class="role-verb-option">
+                                                            <MudCheckBox T="bool" Label="@verb" Dense="true" Value="@direct" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
+                                                            @if (direct)
+                                                            {
+                                                                <span class="role-grant-state">Direct grant</span>
+                                                            }
+                                                            else if (covering != null)
+                                                            {
+                                                                <MudTooltip Text="Effective access only — not stored twice.">
+                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">Covered by @covering</MudChip>
+                                                                </MudTooltip>
+                                                            }
                                                         </div>
                                                     }
-                                                </MudPaper>
+                                                    </div>
+                                                </div>
                                             }
-                                        </MudStack>
+                                        </div>
                                     </ChildContent>
                                 </MudExpansionPanel>
                             }
@@ -175,12 +202,12 @@ else
                     </MudStack>
                 </MudTabPanel>
                 <MudTabPanel Text="@($"Advanced grants{(_advanced.Count == 0 ? string.Empty : $" · {_advanced.Count}")}")">
-                    <MudStack Spacing="3" Class="pt-3">
+                    <MudStack Spacing="2" Class="pt-2">
                         <MudText Typo="Typo.body2">Advanced grants are stored independently from exact selections. Each wildcard can cover current and future permissions.</MudText>
                         @if (!IsReadOnly)
                         {
                             <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
-                                <MudTextField T="string" Label="Advanced grant" Placeholder="workflows/*:view or *" Value="@_advancedDraft" ValueChanged="@(value => _advancedDraft = value)" Variant="Variant.Outlined" Class="flex-grow-1" />
+                                <MudTextField T="string" Label="Advanced grant" Placeholder="workflows/*:view or *" Value="@_advancedDraft" ValueChanged="@(value => _advancedDraft = value)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-grow-1" />
                                 <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddAdvancedGrant">Add advanced grant</MudButton>
                             </MudStack>
                         }
@@ -432,6 +459,27 @@ else
 
     private static int ConcreteCount(IEnumerable<PermissionResourceDescriptor> resources) =>
         resources.Sum(x => x.SupportedVerbs.Count);
+
+    private int CategoryDirectCount(IEnumerable<PermissionResourceDescriptor> resources) =>
+        resources.Sum(resource => resource.SupportedVerbs.Count(verb => IsDirect($"{resource.Resource}:{verb}")));
+
+    private int CategoryCoveredCount(IEnumerable<PermissionResourceDescriptor> resources) =>
+        resources.Sum(resource => resource.SupportedVerbs.Count(verb =>
+            !IsDirect($"{resource.Resource}:{verb}") && FindCoveringWildcard(resource.Resource, verb) != null));
+
+    private bool ShouldExpandCategory(IEnumerable<PermissionResourceDescriptor> resources) =>
+        !string.IsNullOrWhiteSpace(_search) || CategoryDirectCount(resources) > 0;
+
+    private static string CategorySummary(int total, int direct, int covered)
+    {
+        var parts = new List<string>();
+        if (direct > 0)
+            parts.Add($"{direct} direct");
+        if (covered > 0)
+            parts.Add($"{covered} covered");
+        parts.Add($"{total} permissions");
+        return string.Join(" · ", parts);
+    }
 
     private bool IsDirect(string permission) => _direct.Contains(permission);
 

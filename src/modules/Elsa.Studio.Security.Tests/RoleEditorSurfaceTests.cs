@@ -191,6 +191,7 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));
         Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
+        Render<MudPopoverProvider>();
     }
 
     private static RoleAdministrationAccess ReadyAccess =>

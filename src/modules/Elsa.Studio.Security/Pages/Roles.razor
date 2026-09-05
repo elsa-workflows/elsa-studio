@@ -59,7 +59,6 @@
     }
 
     .roles-table .mud-table-cell {
-        padding: 16px;
         vertical-align: middle;
     }
 
@@ -100,7 +99,9 @@
     }
 
     .roles-actions {
+        text-align: right;
         white-space: nowrap;
+        width: 1%;
     }
 
     .roles-mobile-list {
@@ -110,7 +111,6 @@
     }
 
     .role-card {
-        cursor: pointer;
         padding: 16px;
     }
 
@@ -123,6 +123,19 @@
 
     .role-card-content {
         min-width: 0;
+    }
+
+    .role-card-link {
+        color: inherit;
+        display: block;
+        min-width: 0;
+        text-decoration: none;
+    }
+
+    .role-card-link:hover .role-name,
+    .role-card-link:focus-visible .role-name {
+        color: var(--mud-palette-primary);
+        text-decoration: underline;
     }
 
     .role-card-actions {
@@ -151,6 +164,16 @@
         display: flex;
         gap: 8px;
         padding: 12px 16px;
+    }
+
+    .roles-visually-hidden {
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
     }
 
     @@media (max-width: 959.98px) {
@@ -285,7 +308,7 @@
                         <MudTh>Permissions</MudTh>
                         @if (access.CanUpdate || access.CanDelete)
                         {
-                            <MudTh>Actions</MudTh>
+                            <MudTh Class="roles-actions"><span class="roles-visually-hidden">Actions</span></MudTh>
                         }
                     </HeaderContent>
                     <RowTemplate>
@@ -301,24 +324,19 @@
                         @if (access.CanUpdate || access.CanDelete)
                         {
                             <MudTd DataLabel="Actions" Class="roles-actions" @onclick:stopPropagation="true">
-                                @if (access.CanUpdate)
-                                {
-                                    <MudButton Variant="Variant.Outlined"
-                                                Color="Color.Default"
-                                                Size="Size.Small"
-                                                OnClick="@(() => OpenRoleDetails(context))"
-                                                aria-label="@($"Edit {context.Name}")">
-                                        Edit
-                                    </MudButton>
-                                }
-                                @if (access.CanDelete)
-                                {
-                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                                             Dense="true"
-                                             aria-label="@($"More actions for {context.Name}")">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                         Size="Size.Small"
+                                         Dense="true"
+                                         aria-label="@($"Actions for {context.Name}")">
+                                    @if (access.CanUpdate)
+                                    {
+                                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(context))">Edit</MudMenuItem>
+                                    }
+                                    @if (access.CanDelete)
+                                    {
                                         <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(context, access))">Delete</MudMenuItem>
-                                    </MudMenu>
-                                }
+                                    }
+                                </MudMenu>
                             </MudTd>
                         }
                     </RowTemplate>
@@ -332,36 +350,30 @@
             <div class="roles-mobile-list" aria-label="Roles list">
                 @foreach (var role in FilteredRoles)
                 {
-                    <MudPaper Outlined="true"
-                              Class="role-card"
-                              Role="button"
-                              tabindex="0"
-                              @onclick="@(() => OpenRoleDetails(role))"
-                              @onkeydown="@(args => OnRoleCardKeyDown(args, role))"
-                              aria-label="@($"Open {role.Name} role details")">
+                    <MudPaper Outlined="true" Class="role-card">
                         <div class="role-card-header">
-                            <div class="role-card-content">
+                            <a class="role-card-link role-card-content"
+                               href="@RoleDetailsUrl(role)"
+                               aria-label="@($"Open {role.Name} role details")">
                                 <MudText Typo="Typo.body1" Class="role-name">@role.Name</MudText>
                                 <code class="role-id">@role.Id</code>
-                            </div>
+                            </a>
                             @if (access.CanUpdate || access.CanDelete)
                             {
                                 <div class="role-card-actions" @onclick:stopPropagation="true">
-                                    @if (access.CanUpdate)
-                                    {
-                                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                                       Size="Size.Small"
-                                                       OnClick="@(() => OpenRoleDetails(role))"
-                                                       aria-label="@($"Edit {role.Name}")" />
-                                    }
-                                    @if (access.CanDelete)
-                                    {
-                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                                                 Dense="true"
-                                                 aria-label="@($"More actions for {role.Name}")">
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                             Size="Size.Small"
+                                             Dense="true"
+                                             aria-label="@($"Actions for {role.Name}")">
+                                        @if (access.CanUpdate)
+                                        {
+                                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(role))">Edit</MudMenuItem>
+                                        }
+                                        @if (access.CanDelete)
+                                        {
                                             <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(role, access))">Delete</MudMenuItem>
-                                        </MudMenu>
-                                    }
+                                        }
+                                    </MudMenu>
                                 </div>
                             }
                         </div>
@@ -472,11 +484,8 @@
         NavigationManager.NavigateTo($"/security/roles/{Uri.EscapeDataString(role.Id)}");
     }
 
-    private void OnRoleCardKeyDown(KeyboardEventArgs args, RoleSummary role)
-    {
-        if (args.Key is "Enter" or " ")
-            OpenRoleDetails(role);
-    }
+    private static string RoleDetailsUrl(RoleSummary role) =>
+        $"/security/roles/{Uri.EscapeDataString(role.Id)}";
 
     private async Task OpenDeleteRoleAsync(RoleSummary role, RoleAdministrationAccess access)
     {

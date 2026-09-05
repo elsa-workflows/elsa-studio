@@ -1,62 +1,68 @@
 @using Elsa.Studio.Security.Models
 
 <style>
-    .role-reach-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .role-reach-item { min-width: 0; }
-    .role-reach-value { font-size: 1.35rem; font-weight: 650; }
+    .role-reach-header { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem .75rem; justify-content: space-between; }
+    .role-reach-title { align-items: center; display: flex; flex-wrap: wrap; gap: .4rem .65rem; min-width: 0; }
+    .role-reach-summary { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
+    .role-reach-future { color: var(--mud-palette-text-secondary); margin-top: .35rem; }
+    .role-reach-examples { border-top: 1px solid var(--mud-palette-lines-default); margin-top: .5rem; padding-top: .5rem; }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-    @@media (max-width: 60rem) {
-        .role-reach-grid { grid-template-columns: 1fr; }
-    }
 </style>
 
 @if (RolePermissionAuthoring.TryParse(Grant, out var pattern))
 {
-    <MudPaper Outlined="true" Elevation="0" Class="pa-4">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <div>
+    <MudPaper Outlined="true" Elevation="0" Class="pa-3">
+        <div class="role-reach-header">
+            <div class="role-reach-title">
                 <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@GrantType(pattern)</MudChip>
-                <MudText Typo="Typo.h6" Class="role-code mt-2">@Grant</MudText>
+                <MudText Typo="Typo.subtitle1" Class="role-code"><strong>@Grant</strong></MudText>
                 <MudChip T="string" Size="Size.Small" Color="Color.Warning">Broad access</MudChip>
+                @if (Reach != null)
+                {
+                    <MudText Typo="Typo.caption"><strong>@Reach.Count</strong> resources today</MudText>
+                }
             </div>
             @if (!IsReadOnly)
             {
-                <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" OnClick="OnRemove">Remove</MudButton>
+                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               OnClick="OnRemove"
+                               aria-label="@($"Remove advanced grant {Grant}")" />
             }
-        </MudStack>
-        <MudDivider Class="my-3" />
-        <div class="role-reach-grid">
-            <div class="role-reach-item">
-                <MudText Typo="Typo.caption">Current coverage</MudText>
-                <MudText Class="role-reach-value">@(Reach is null ? "—" : Reach.Count) <small>resources today</small></MudText>
-            </div>
-            <div class="role-reach-item">
-                <MudText Typo="Typo.caption">Future reach</MudText>
-                <MudText Typo="Typo.body2">@GetFutureReach(pattern)</MudText>
-            </div>
-            <div class="role-reach-item">
-                <MudText Typo="Typo.caption">Materialized duplicates</MudText>
-                <MudText Class="role-reach-value">@MaterializedDuplicates</MudText>
-            </div>
         </div>
+        <MudText Typo="Typo.caption" Class="role-reach-future"><strong>Future reach:</strong> @GetFutureReach(pattern)</MudText>
+        @if (MaterializedDuplicates > 0)
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-1 pa-0">@MaterializedDuplicates exact grant(s) duplicate this wildcard.</MudAlert>
+        }
         @if (ReachError != null)
         {
-            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mt-3">@ReachError</MudAlert>
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Dense="true" Class="mt-2">@ReachError</MudAlert>
         }
         else if (ReachLoading)
         {
-            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-3" aria-label="Loading grant reach" />
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" aria-label="Loading grant reach" />
         }
         else if (Reach != null)
         {
-            <MudStack Spacing="1" Class="mt-3">
-                <MudText Typo="Typo.caption">Current coverage examples</MudText>
-                @foreach (var permission in RolePermissionAuthoring.GetReachedPermissions(pattern, Reach).Take(5))
-                {
-                    <MudText Typo="Typo.caption" Class="role-code">@permission · Covered, not stored</MudText>
-                }
-                <MudText Typo="Typo.caption">Reach is calculated for this wildcard only.</MudText>
-            </MudStack>
+            <MudButton Variant="Variant.Text"
+                       Size="Size.Small"
+                       StartIcon="@(_showCoverage ? Icons.Material.Outlined.ExpandLess : Icons.Material.Outlined.ExpandMore)"
+                       OnClick="ToggleCoverage"
+                       aria-expanded="@_showCoverage"
+                       aria-label="@($"{(_showCoverage ? "Hide" : "Show")} current coverage for {Grant}")">
+                @(_showCoverage ? "Hide current coverage" : "Show current coverage")
+            </MudButton>
+            <MudCollapse Expanded="@_showCoverage">
+                <MudStack Spacing="1" Class="role-reach-examples">
+                    @foreach (var permission in RolePermissionAuthoring.GetReachedPermissions(pattern, Reach).Take(5))
+                    {
+                        <MudText Typo="Typo.caption" Class="role-code">@permission · Covered, not stored</MudText>
+                    }
+                    <MudText Typo="Typo.caption">Reach is calculated for this wildcard only.</MudText>
+                </MudStack>
+            </MudCollapse>
         }
         else
         {
@@ -74,6 +80,9 @@
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public EventCallback OnRemove { get; set; }
     [Parameter] public EventCallback OnLoadReach { get; set; }
+    private bool _showCoverage;
+
+    private void ToggleCoverage() => _showCoverage = !_showCoverage;
 
     private static string GrantType(RolePermissionPattern pattern) => pattern switch
     {
