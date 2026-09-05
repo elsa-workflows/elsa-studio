@@ -58,19 +58,7 @@
     {
         @if (Item is { Format: DataPanelItemFormat.Timestamp, Value: DateTime or DateTimeOffset })
         {
-            var timestampValue = Item.Value switch
-            {
-                DateTime dt => dt.Kind switch
-                {
-                    DateTimeKind.Utc => new DateTimeOffset(dt),
-                    DateTimeKind.Local => new DateTimeOffset(dt),
-                    DateTimeKind.Unspecified => new DateTimeOffset(DateTime.SpecifyKind(dt, DateTimeKind.Unspecified), TimeSpan.Zero),
-                    _ => new DateTimeOffset(dt)
-                },
-                DateTimeOffset dto => dto,
-                _ => (DateTimeOffset?)null
-            };
-            <DataPanelTimestampValue Value="@timestampValue" Format="@(Item.FormatString ?? "G")" />
+            <DataPanelTimestampValue Value="@DataPanel.GetTimestampValue(Item.Value)" Format="@(string.IsNullOrWhiteSpace(Item.FormatString) ? "G" : Item.FormatString)" />
         }
         else if (Item.Format == DataPanelItemFormat.Code)
         {
