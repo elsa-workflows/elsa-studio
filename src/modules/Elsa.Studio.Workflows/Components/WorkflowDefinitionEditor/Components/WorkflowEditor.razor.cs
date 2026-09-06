@@ -159,11 +159,10 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        if (WorkflowDefinition == _workflowDefinition)
+        if (ReferenceEquals(WorkflowDefinition, _workflowDefinition))
             return;
 
-        if (_workflowDefinition != null && !IsSameWorkflowVersion(_workflowDefinition, WorkflowDefinition))
-            _workflowDefinitionGeneration++;
+        _workflowDefinitionGeneration++;
 
         _workflowDefinition = WorkflowDefinition;
 
@@ -382,11 +381,6 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (isNewImport && workflowDefinition.Root != null)
             await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
     }
-
-    private static bool IsSameWorkflowVersion(WorkflowDefinition? first, WorkflowDefinition? second) =>
-        first != null && second != null &&
-        string.Equals(first.DefinitionId, second.DefinitionId, StringComparison.Ordinal) &&
-        string.Equals(first.Id, second.Id, StringComparison.Ordinal);
 
     private async Task<WorkflowDefinition?> GetWorkflowDefinitionSnapshotAsync()
     {

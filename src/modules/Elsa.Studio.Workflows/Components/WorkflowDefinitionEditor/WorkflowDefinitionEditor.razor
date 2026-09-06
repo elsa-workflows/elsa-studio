@@ -34,6 +34,8 @@
 {
     private readonly DragDropManager _dragDropManager = new();
     private WorkflowDefinition? _workflowDefinition;
+    private string? _loadedDefinitionId;
+    private long _definitionLoadGeneration;
     private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = null!;
 
     /// The ID of the workflow definition to load.
@@ -65,6 +67,19 @@
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        _workflowDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(DefinitionId, VersionOptions.Latest);
+        if (string.Equals(_loadedDefinitionId, DefinitionId, StringComparison.Ordinal) && _workflowDefinition != null)
+            return;
+
+        var requestedDefinitionId = DefinitionId;
+        var definitionLoadGeneration = ++_definitionLoadGeneration;
+        var workflowDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(requestedDefinitionId, VersionOptions.Latest);
+
+        if (definitionLoadGeneration != _definitionLoadGeneration || !string.Equals(requestedDefinitionId, DefinitionId, StringComparison.Ordinal))
+            return;
+
+        _workflowDefinition = workflowDefinition;
+
+        if (workflowDefinition != null)
+            _loadedDefinitionId = requestedDefinitionId;
     }
 }
