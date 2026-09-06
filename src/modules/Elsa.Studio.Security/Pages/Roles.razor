@@ -55,13 +55,13 @@
     }
 
     .roles-desktop-list {
+        border-radius: 8px;
         margin-top: 16px;
+        overflow: hidden;
     }
 
     .roles-table {
-        border: 1px solid var(--roles-border);
-        border-radius: 8px;
-        overflow: hidden;
+        border-radius: 0;
     }
 
     .roles-table .mud-table-head {
@@ -306,7 +306,7 @@
         }
         else
         {
-            <div class="roles-desktop-list">
+            <MudPaper Outlined="true" Elevation="0" Class="roles-desktop-list">
                 <MudTable T="RoleSummary"
                           Items="@FilteredRoles"
                           Dense="true"
@@ -363,7 +363,7 @@
                     <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" aria-hidden="true" />
                     <span>All matching roles are shown. No pagination.</span>
                 </div>
-            </div>
+            </MudPaper>
 
             <div class="roles-mobile-list" aria-label="Roles list">
                 @foreach (var role in FilteredRoles)

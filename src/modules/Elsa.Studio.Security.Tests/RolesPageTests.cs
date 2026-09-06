@@ -47,6 +47,9 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         Assert.Contains("Global access (*)", cut.Markup);
         Assert.DoesNotContain("Tenant", cut.Markup);
         Assert.DoesNotContain("mud-table-pagination", cut.Markup);
+        var desktopList = cut.Find(".roles-desktop-list.mud-paper");
+        Assert.NotNull(desktopList.QuerySelector(".roles-table"));
+        Assert.NotNull(desktopList.QuerySelector(".roles-no-pagination"));
         var actionButtons = cut.FindAll("button[aria-label^='Actions for ']");
         Assert.Equal(4, actionButtons.Count);
         Assert.All(actionButtons, button => Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label"))));
