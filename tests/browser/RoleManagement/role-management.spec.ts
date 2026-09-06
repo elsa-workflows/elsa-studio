@@ -110,6 +110,14 @@ async function expectInsideViewport(locator: Locator, viewportWidth: number): Pr
   expect(bounds!.x + bounds!.width, `${description} ends outside the viewport`).toBeLessThanOrEqual(viewportWidth);
 }
 
+async function expectContentNotClipped(locator: Locator): Promise<void> {
+  const size = await locator.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth
+  }));
+  expect(size.scrollWidth, 'Element content exceeds its visible width').toBeLessThanOrEqual(size.clientWidth + 1);
+}
+
 test.describe('role management against a real Core host', () => {
   test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
@@ -189,8 +197,11 @@ test.describe('role management against a real Core host', () => {
     await expect(tabs).toHaveCount(2);
     const advancedTab = tabs.filter({ hasText: 'Advanced grants' });
     await advancedTab.click();
-    await expectInsideViewport(tabs.filter({ hasText: 'Exact permissions' }), viewportWidth);
+    const exactTab = tabs.filter({ hasText: 'Exact permissions' });
+    await expectInsideViewport(exactTab, viewportWidth);
     await expectInsideViewport(advancedTab, viewportWidth);
+    await expectContentNotClipped(exactTab);
+    await expectContentNotClipped(advancedTab);
     await captureEvidence(page, testInfo, 'role-editor-tabs');
 
     if (config.unresolvedRoleId) {
