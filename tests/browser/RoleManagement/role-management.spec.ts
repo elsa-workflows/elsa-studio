@@ -118,6 +118,16 @@ async function expectContentNotClipped(locator: Locator): Promise<void> {
   expect(size.scrollWidth, 'Element content exceeds its visible width').toBeLessThanOrEqual(size.clientWidth + 1);
 }
 
+async function expectNoBlockingAccessibilityViolations(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page }).analyze();
+  const blockingViolations = results.violations.filter(violation =>
+    violation.impact === 'serious' || violation.impact === 'critical');
+  const violationSummary = blockingViolations
+    .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
+    .join('\n');
+  expect(blockingViolations, violationSummary).toHaveLength(0);
+}
+
 test.describe('role management against a real Core host', () => {
   test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
@@ -175,14 +185,31 @@ test.describe('role management against a real Core host', () => {
     await page.keyboard.press('Tab');
     await expect(page.locator(':focus')).toBeVisible();
 
-    const results = await new AxeBuilder({ page }).analyze();
-    const blockingViolations = results.violations.filter(violation =>
-      violation.impact === 'serious' || violation.impact === 'critical');
+    await expectNoBlockingAccessibilityViolations(page);
     await captureEvidence(page, testInfo, 'roles-list');
-    const violationSummary = blockingViolations
-      .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
-      .join('\n');
-    expect(blockingViolations, violationSummary).toHaveLength(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
+  test('role editor header follows the administration detail-page hierarchy', async ({ page, config, diagnostics }, testInfo) => {
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/admin');
+
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    const backLink = page.locator('.role-editor-back');
+    const summary = page.locator('.role-editor-summary');
+    const actions = page.getByRole('group', { name: 'Role form actions' });
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit role — admin' })).toBeVisible();
+    await expect(backLink).toHaveText('Roles');
+    await expect(backLink).toHaveAttribute('href', /security\/roles$/);
+    await expect(page.getByText('Role ID admin', { exact: true })).toBeVisible();
+    await expectInsideViewport(summary, viewportWidth);
+    await expectInsideViewport(actions, viewportWidth);
+    for (const button of await actions.getByRole('button').all())
+      await expectInsideViewport(button, viewportWidth);
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await captureEvidence(page, testInfo, 'role-editor-header');
     await assertCleanRuntime(diagnostics);
   });
 

@@ -9,13 +9,24 @@
 @inject IDialogService DialogService
 
 <style>
-    .role-editor-header { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
+    .role-editor-surface {
+        --role-editor-primary-aa: color-mix(in srgb, var(--mud-palette-primary), var(--mud-palette-text-primary) 32%);
+    }
+
+    .role-editor-summary { padding: 1rem; }
+    .role-editor-header { align-items: center; display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
+    .role-editor-identity { align-items: center; display: flex; gap: 1rem; min-width: 0; }
+    .role-editor-title-group { min-width: 0; }
+    .role-editor-title { color: var(--role-editor-primary-aa); }
     .role-editor-actions { align-items: center; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .role-editor-primary-action.mud-button-filled { background-color: var(--role-editor-primary-aa); }
     .role-editor-id { color: var(--mud-palette-text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
     .role-editor-details { align-items: end; display: grid; gap: 1rem; grid-template-columns: minmax(16rem, 32rem) minmax(0, 1fr); }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
     .role-permissions-header { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
     .role-permissions-summary { color: var(--mud-palette-text-secondary); }
+    .role-permissions-tabs .mud-tab-active { color: var(--role-editor-primary-aa) !important; }
+    .role-permissions-tabs .mud-tab-slider { background-color: var(--role-editor-primary-aa) !important; }
     .role-category-title { align-items: center; display: flex; gap: .75rem; justify-content: space-between; min-width: 0; width: 100%; }
     .role-category-title-copy { align-items: baseline; display: flex; flex-wrap: wrap; gap: .35rem .75rem; min-width: 0; }
     .role-category-summary { color: var(--mud-palette-text-secondary); font-size: .75rem; }
@@ -72,30 +83,47 @@ else if (!CanOpen)
 }
 else
 {
-    <MudStack Spacing="3">
-        <div class="role-editor-header">
-            <div>
-                <MudBreadcrumbs Items="@Breadcrumbs" Class="pa-0" />
-                <MudText Typo="Typo.h4" HtmlTag="h1">@(_isCreate ? "New role" : $"Edit role — {_name}")</MudText>
-                @if (!_isCreate)
-                {
-                    <MudText Typo="Typo.body2" Class="role-editor-id mt-1">ID <code>@RoleId</code></MudText>
-                }
+    <MudStack Spacing="3" Class="role-editor-surface">
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   Class="role-editor-back align-self-start"
+                   Href="security/roles">
+            Roles
+        </MudButton>
+
+        <MudPaper Outlined="true" Class="role-editor-summary">
+            <div class="role-editor-header">
+                <div class="role-editor-identity">
+                    <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Medium" aria-hidden="true">
+                        <MudIcon Icon="@Icons.Material.Outlined.AdminPanelSettings" />
+                    </MudAvatar>
+                    <div class="role-editor-title-group">
+                        <MudText Typo="Typo.h5" HtmlTag="h1" Class="role-editor-title">@(_isCreate ? "New role" : $"Edit role — {_name}")</MudText>
+                        @if (!_isCreate)
+                        {
+                            <MudText Typo="Typo.caption" Class="role-editor-id">Role ID <code>@RoleId</code></MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption">Configure the role identity and permissions.</MudText>
+                        }
+                    </div>
+                </div>
+                <div class="role-editor-actions" role="group" aria-label="Role form actions">
+                    @if (!_isCreate && Access.CanDelete && _role is not null)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@_deleteDialogOpen" OnClick="OpenDeleteRoleAsync">Delete role</MudButton>
+                    }
+                    <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+                    @if (!IsReadOnly)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="role-editor-primary-action" Disabled="@(!CanSave)" OnClick="SaveAsync">
+                            @(_saving ? "Saving…" : _isCreate ? "Create role" : "Save changes")
+                        </MudButton>
+                    }
+                </div>
             </div>
-            <div class="role-editor-actions">
-                @if (!_isCreate && Access.CanDelete && _role is not null)
-                {
-                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@_deleteDialogOpen" OnClick="OpenDeleteRoleAsync">Delete role</MudButton>
-                }
-                <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
-                @if (!IsReadOnly)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!CanSave)" OnClick="SaveAsync">
-                        @(_saving ? "Saving…" : _isCreate ? "Create role" : "Save changes")
-                    </MudButton>
-                }
-            </div>
-        </div>
+        </MudPaper>
 
         <MudPaper Outlined="true" Elevation="0" Class="pa-3">
             <MudForm @ref="_form">
@@ -114,7 +142,7 @@ else
                                   aria-label="Role name" />
                     @if (!_isCreate)
                     {
-                        <MudText Typo="Typo.caption" Class="role-permissions-summary">The role ID is read-only and shown beneath the page title.</MudText>
+                        <MudText Typo="Typo.caption" Class="role-permissions-summary">The role ID is read-only.</MudText>
                     }
                 </div>
             </MudForm>
@@ -325,11 +353,6 @@ else
         .OrderBy(x => x, StringComparer.Ordinal);
     private int DirectCount => _direct.Count;
     private int CoveredCount => _catalog.Resources.Sum(x => x.SupportedVerbs.Count(verb => FindCoveringWildcard(x.Resource, verb) != null && !IsDirect($"{x.Resource}:{verb}")));
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs =>
-        _isCreate
-            ? [new("Roles", href: "security/roles"), new("New role", href: null)]
-            : [new("Roles", href: "security/roles"), new(_name, href: null)];
-
     protected override async Task OnParametersSetAsync()
     {
         if (_initialized && string.Equals(_loadedRoleId, RoleId, StringComparison.Ordinal))

@@ -66,6 +66,10 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("Edit role — Auditors", cut.Markup);
             Assert.Equal("Edit role — Auditors", cut.Find("h1").TextContent.Trim());
+            Assert.Contains("role-editor-title", cut.Find("h1").ClassList);
+            Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
+            Assert.NotNull(cut.Find(".role-editor-summary"));
+            Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
             Assert.Contains("Direct grant", cut.Markup);
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
@@ -148,6 +152,9 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
 
         var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
         cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        Assert.Equal("New role", cut.Find("h1").TextContent.Trim());
+        Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
+        Assert.Empty(cut.FindAll(".role-editor-id"));
         cut.Find("input[aria-label='Role name']").Input("New role");
         var save = cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal));
 
