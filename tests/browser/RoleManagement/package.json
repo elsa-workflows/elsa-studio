@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "playwright test --config playwright.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.3"
+  }
+}
