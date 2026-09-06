@@ -36,6 +36,12 @@ export type RoleRecord = {
   permissions?: string[];
 };
 
+export type UserRecord = {
+  id: string;
+  name: string;
+  password: string;
+};
+
 const secretUrlPattern = /(access[_-]?token|refresh[_-]?token|client[_-]?secret|password|cookie|authorization)/i;
 const localHosts = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 
@@ -205,6 +211,20 @@ export class CoreApiSession {
     const response = await this.send('DELETE', `/identity/roles/${encodeURIComponent(id)}`);
     if (![204, 404].includes(response.status()))
       throw new Error(`Core role cleanup returned status ${response.status()}.`);
+  }
+
+  async createUser(name: string, roles: string[]): Promise<UserRecord> {
+    const response = await this.send('POST', '/identity/users', { name, password: null, roles });
+    const body = await response.json().catch(() => ({})) as Partial<UserRecord>;
+    if (response.status() !== 200 || typeof body.id !== 'string' || typeof body.name !== 'string' || typeof body.password !== 'string')
+      throw new Error(`Core user creation returned status ${response.status()}.`);
+    return { id: body.id, name: body.name, password: body.password };
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const response = await this.send('DELETE', `/identity/users/${encodeURIComponent(id)}`);
+    if (![204, 404].includes(response.status()))
+      throw new Error(`Core user cleanup returned status ${response.status()}.`);
   }
 
   async expectForbiddenRoleCreation(name = `unauthorized-${randomUUID()}`): Promise<void> {

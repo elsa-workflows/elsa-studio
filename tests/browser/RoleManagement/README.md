@@ -66,10 +66,11 @@ loaded` card, restart that same command, then activate `Try again`. This is a
 manual gate because intercepting a successful browser response would no longer
 be a real-host proof.
 
-For restricted-user proof, also inject
-`ROLE_E2E_RESTRICTED_USERNAME` and `ROLE_E2E_RESTRICTED_PASSWORD`. The suite
-checks read-only rendering and sends a create request with that actor to prove
-Core returns 403; the response body is never read or logged.
+For restricted-user proof, the suite provisions a generated view-only Role and
+User through the authenticated Core APIs, checks read-only rendering and a
+direct create rejection, then deletes both fixtures. Operators may instead
+inject `ROLE_E2E_RESTRICTED_USERNAME` and `ROLE_E2E_RESTRICTED_PASSWORD`; the
+response body from the rejected mutation is never read or logged.
 
 ## Optional deletion fixtures
 

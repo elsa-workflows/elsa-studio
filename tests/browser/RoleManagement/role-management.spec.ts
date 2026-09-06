@@ -182,17 +182,27 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('restricted actor sees read-only roles and Core rejects mutation', async ({ page, config, adminApi, registerRole, restrictedApi, diagnostics }) => {
-    test.skip(!config.restricted, 'Set ROLE_E2E_RESTRICTED_USERNAME/PASSWORD for restricted-actor proof.');
-    const fixture = await adminApi.createRole(roleName('restricted-role'), ['identity/roles:view']);
-    registerRole(fixture.id);
-    await openRoles(page, config.restricted!);
-    await expect(page.getByText('You can view roles, but you cannot create, edit, or delete them.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'New role', exact: true })).toHaveCount(0);
-    await page.goto('/security/roles/new');
-    await expect(page.getByText('You can view roles, but your current sign-in cannot create a role.')).toBeVisible();
-    await restrictedApi!.expectForbiddenRoleCreation();
-    await assertCleanRuntime(diagnostics);
+  test('restricted actor sees read-only roles and Core rejects mutation', async ({ page, request, config, adminApi, diagnostics }) => {
+    const fixture = config.restricted
+      ? undefined
+      : await adminApi.createRole(roleName('restricted-role'), ['identity/roles:view', 'system/features:view']);
+    const generatedUser = fixture ? await adminApi.createUser(roleName('restricted-user'), [fixture.id]) : undefined;
+    const restrictedActor = config.restricted ?? { username: generatedUser!.name, password: generatedUser!.password };
+    const restrictedSession = await CoreApiSession.signIn(request, config.backendUrl, restrictedActor);
+    try {
+      await openRoles(page, restrictedActor);
+      await expect(page.getByText('You can view roles, but you cannot create, edit, or delete them.')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'New role', exact: true })).toHaveCount(0);
+      await page.goto('/security/roles/new');
+      await expect(page.getByText('You can view roles, but your current sign-in cannot create a role.')).toBeVisible();
+      await restrictedSession.expectForbiddenRoleCreation();
+      await assertCleanRuntime(diagnostics);
+    } finally {
+      if (generatedUser)
+        await adminApi.deleteUser(generatedUser.id);
+      if (fixture)
+        await adminApi.deleteRole(fixture.id);
+    }
   });
 
   test('recognized unverified catalog entries remain selectable', async ({ page, config, diagnostics }) => {
