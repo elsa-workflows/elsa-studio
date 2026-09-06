@@ -196,7 +196,9 @@ export class CoreApiSession {
     if (response.status() !== 200)
       throw new Error(`Core role list returned status ${response.status()}.`);
     const body = await response.json().catch(() => ({})) as { roles?: RoleRecord[] };
-    return body.roles?.find(role => role.id === id);
+    const normalizedId = id.trim().toLocaleLowerCase();
+    return body.roles?.find(role =>
+      role.id?.trim().toLocaleLowerCase() === normalizedId || role.name?.trim().toLocaleLowerCase() === normalizedId);
   }
 
   async deleteRole(id: string): Promise<void> {

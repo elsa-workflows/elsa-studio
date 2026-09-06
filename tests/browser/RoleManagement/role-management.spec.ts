@@ -56,6 +56,7 @@ async function createRoleInEditor(
     throw new Error(`Create role remained disabled. ${pageText.slice(0, 1200)}`);
   }
   await createButton.click();
+  await expect(page).not.toHaveURL(/\/security\/roles\/new(?:$|[?#])/);
   await expect(page).toHaveURL(/\/security\/roles\/[^/]+$/);
   const id = roleIdFromUrl(page.url());
   registerRole(id);
