@@ -301,6 +301,44 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("input[aria-label='workflows/definitions/labels:view']")));
     }
 
+    [Fact]
+    public void ResponsiveLayout_ExposesStableHooksForPermissionTabsAndLegacyRepair()
+    {
+        var roles = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles =
+                [
+                    new RoleSummary
+                    {
+                        Id = "auditors",
+                        Name = "Auditors",
+                        Permissions = ["legacy:grant"]
+                    }
+                ]
+            }
+        };
+        Register(roles, new StubPermissionsApi());
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "auditors")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() => Assert.Contains("Edit role — Auditors", cut.Markup));
+
+        var tabs = cut.Find(".role-permissions-tabs");
+        Assert.Equal(2, tabs.QuerySelectorAll("[role='tab']").Length);
+        Assert.Contains("Exact permissions", tabs.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Advanced grants", tabs.TextContent, StringComparison.Ordinal);
+
+        var repairActions = cut.Find(".role-unresolved-repair-actions");
+        Assert.NotNull(repairActions.QuerySelector("input[placeholder='resource:verb or wildcard']"));
+        Assert.Equal(
+            ["Replace", "Remove"],
+            repairActions.QuerySelectorAll("button").Select(x => x.TextContent.Trim()).ToArray());
+    }
+
     private void Register(IRolesApi roles, IPermissionsApi permissions)
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));
