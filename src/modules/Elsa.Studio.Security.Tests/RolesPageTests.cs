@@ -42,6 +42,7 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         var cut = RenderRoles();
 
         cut.WaitForAssertion(() => Assert.Contains("Administrators", cut.Markup));
+        Assert.Equal("Roles", cut.Find("h1").TextContent.Trim());
         Assert.Contains("2 roles · all loaded", cut.Markup);
         Assert.Contains("Global access (*)", cut.Markup);
         Assert.DoesNotContain("Tenant", cut.Markup);

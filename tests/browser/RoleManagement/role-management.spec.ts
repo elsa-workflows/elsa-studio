@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
 import type { Page } from '@playwright/test';
-import { expect, openRoles, signIn, test, assertCleanRuntime } from './fixtures';
+import { CoreApiSession, expect, openRoles, signIn, test, assertCleanRuntime } from './fixtures';
 
 const roleHostConfigured = ['SERVER', 'WASM'].some(prefix =>
   Boolean(process.env[`ROLE_E2E_${prefix}_STUDIO_URL`] && process.env[`ROLE_E2E_${prefix}_BACKEND_URL`]));
@@ -21,16 +21,9 @@ function roleIdFromUrl(url: string): string {
   return decodeURIComponent(segment);
 }
 
-function hasRoleCollectionEndpoint(response: { url(): string; request(): { method(): string } }, method: string): boolean {
-  return response.request().method() === method && new URL(response.url()).pathname.endsWith('/identity/roles');
-}
-
-function hasRoleItemEndpoint(response: { url(): string; request(): { method(): string } }, method: string): boolean {
-  return response.request().method() === method && /\/identity\/roles\/[^/]+$/.test(new URL(response.url()).pathname);
-}
-
 async function createRoleInEditor(
   page: Page,
+  adminApi: CoreApiSession,
   registerRole: (id: string) => void,
   name: string
 ): Promise<string> {
@@ -49,20 +42,24 @@ async function createRoleInEditor(
   const advancedTab = page.locator('[role="tab"]').filter({ hasText: 'Advanced grants' }).first();
   await advancedTab.click();
   await expect(page.getByText('No advanced grants.', { exact: false })).toBeVisible();
-  await page.getByLabel('Advanced grant').fill('identity/roles:*');
+  await page.getByRole('textbox', { name: 'Advanced grant' }).fill('identity/roles:*');
   await page.getByRole('button', { name: 'Add advanced grant' }).click();
   await expect(page.getByText('identity/roles:*', { exact: true })).toBeVisible();
   await expect(page.getByText(/\d+ resources today/)).toBeVisible();
   await expect(page.getByText('Future reach:', { exact: false })).toBeVisible();
 
-  const createResponse = page.waitForResponse(response => hasRoleCollectionEndpoint(response, 'POST'));
-  await page.getByRole('button', { name: 'Create role', exact: true }).click();
-  const response = await createResponse;
-  expect(response.status()).toBe(200);
-
+  const createButton = page.getByRole('button', { name: 'Create role', exact: true });
+  try {
+    await expect(createButton).toBeEnabled();
+  } catch {
+    const pageText = (await page.locator('body').innerText()).replaceAll(name, '[role-name]');
+    throw new Error(`Create role remained disabled. ${pageText.slice(0, 1200)}`);
+  }
+  await createButton.click();
   await expect(page).toHaveURL(/\/security\/roles\/[^/]+$/);
   const id = roleIdFromUrl(page.url());
   registerRole(id);
+  await expect.poll(async () => (await adminApi.findRole(id))?.name).toBe(name);
   return id;
 }
 
@@ -85,10 +82,10 @@ async function confirmRemediation(page: Page): Promise<void> {
 }
 
 test.describe('role management against a real Core host', () => {
-  test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, registerRole, diagnostics }) => {
+  test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
     const name = roleName('browser-role');
-    const id = await createRoleInEditor(page, registerRole, name);
+    const id = await createRoleInEditor(page, adminApi, registerRole, name);
 
     await page.reload();
     await expect(page.getByLabel('Role name')).toHaveValue(name);
@@ -100,9 +97,8 @@ test.describe('role management against a real Core host', () => {
 
     const updatedName = `${name}-updated`;
     await page.getByLabel('Role name').fill(updatedName);
-    const updateResponse = page.waitForResponse(response => hasRoleItemEndpoint(response, 'PUT'));
     await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-    expect((await updateResponse).status()).toBe(200);
+    await expect.poll(async () => (await adminApi.findRole(id))?.name).toBe(updatedName);
 
     await page.reload();
     await expect(page.getByLabel('Role name')).toHaveValue(updatedName);
@@ -111,11 +107,9 @@ test.describe('role management against a real Core host', () => {
     await page.getByRole('button', { name: 'Delete role', exact: true }).click();
     await expect(page.getByTestId('role-deletion-safe')).toBeVisible();
     await expect(page.getByText(/Existing access tokens are not changed/)).toBeVisible();
-    const deleteResponse = page.waitForResponse(response =>
-      response.request().method() === 'DELETE' && new URL(response.url()).pathname.endsWith(`/identity/roles/${encodeURIComponent(id)}`));
     await page.getByRole('button', { name: `Delete ${updatedName}`, exact: true }).click();
-    expect((await deleteResponse).status()).toBe(204);
     await expect(page).toHaveURL(/\/security\/roles(?:$|[?#])/);
+    await expect.poll(async () => await adminApi.findRole(id)).toBeUndefined();
 
     // The role was deleted by the UI; cleanup accepts the expected 404.
     await assertCleanRuntime(diagnostics);
@@ -204,16 +198,14 @@ test.describe('optional real-host deletion dependency outcomes', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('editable dependency remediation submits the inspected version and deletes after confirmation', async ({ page, config, diagnostics }) => {
+  test('editable dependency remediation submits the inspected version and deletes after confirmation', async ({ page, config, adminApi, diagnostics }) => {
     test.skip(!config.remediableRoleId, 'Set ROLE_E2E_REMEDIABLE_ROLE_ID to an isolated role with database-owned editable references.');
     await openDeletionDialog(page, config.admin, config.remediableRoleId!);
     await expect(page.getByTestId('role-deletion-remediation')).toBeVisible();
     await confirmRemediation(page);
-    const operation = page.waitForResponse(response =>
-      response.request().method() === 'POST' && new URL(response.url()).pathname.includes('/remove-from-jit-policies-and-delete'));
     await page.getByRole('button', { name: 'Apply remediation & delete', exact: true }).click();
-    expect((await operation).status()).toBe(204);
     await expect(page).toHaveURL(/\/security\/roles(?:$|[?#])/);
+    await expect.poll(async () => await adminApi.findRole(config.remediableRoleId!)).toBeUndefined();
     await assertCleanRuntime(diagnostics);
   });
 
@@ -245,7 +237,7 @@ test.describe('optional real-host deletion dependency outcomes', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('unresolved legacy grants stay verbatim and block save until repaired', async ({ page, config, diagnostics }) => {
+  test('unresolved legacy grants stay verbatim and block save until repaired', async ({ page, config, adminApi, diagnostics }) => {
     test.skip(!config.unresolvedRoleId,
       'Set ROLE_E2E_UNRESOLVED_ROLE_ID to an isolated database-seeded role containing a legacy grant. Core rejects unknown grants on create/update.');
     await openRoles(page, config.admin);
@@ -262,9 +254,9 @@ test.describe('optional real-host deletion dependency outcomes', () => {
     await expect(page.getByText(/Review and repair ·/)).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeEnabled();
 
-    const updateResponse = page.waitForResponse(response => hasRoleItemEndpoint(response, 'PUT'));
     await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-    expect((await updateResponse).status()).toBe(200);
+    await expect.poll(async () => (await adminApi.findRole(config.unresolvedRoleId!))?.permissions)
+      .toContain('identity/roles:view');
     await page.reload();
     await expect(page.getByText(/Review and repair ·/)).toHaveCount(0);
     await expect(page.getByLabel('identity/roles:view')).toBeChecked();

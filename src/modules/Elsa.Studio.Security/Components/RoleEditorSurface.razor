@@ -64,7 +64,7 @@ else
         <div class="role-editor-header">
             <div>
                 <MudBreadcrumbs Items="@Breadcrumbs" Class="pa-0" />
-                <MudText Typo="Typo.h4">@(_isCreate ? "New role" : $"Edit role — {_name}")</MudText>
+                <MudText Typo="Typo.h4" HtmlTag="h1">@(_isCreate ? "New role" : $"Edit role — {_name}")</MudText>
                 @if (!_isCreate)
                 {
                     <MudText Typo="Typo.body2" Class="role-editor-id mt-1">ID <code>@RoleId</code></MudText>

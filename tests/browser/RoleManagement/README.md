@@ -23,12 +23,12 @@ the `/elsa/api` prefix shown here.
 
 ```bash
 # Current-main Core + Server Studio
-dotnet run --project /Users/sipke/Projects/Elsa/elsa-core-main/src/apps/Elsa.ModularServer.Web/Elsa.ModularServer.Web.csproj --launch-profile https
-dotnet run --project /Users/sipke/.codex/worktrees/role-lifecycle-browser-989/src/hosts/Elsa.Studio.Host.Server/Elsa.Studio.Host.Server.csproj --launch-profile https
+dotnet run --project /path/to/elsa-core/src/apps/Elsa.ModularServer.Web/Elsa.ModularServer.Web.csproj --framework net8.0 --launch-profile https
+dotnet run --project src/hosts/Elsa.Studio.Host.Server/Elsa.Studio.Host.Server.csproj --framework net10.0 --launch-profile https
 
 # Current-main Core + WebAssembly Studio (use a separate Core database)
-dotnet run --project /Users/sipke/Projects/Elsa/elsa-core-main/src/apps/Elsa.Server.Web/Elsa.Server.Web.csproj --launch-profile Elsa.WorkflowServer.Web
-dotnet run --project /Users/sipke/.codex/worktrees/role-lifecycle-browser-989/src/hosts/Elsa.Studio.Host.Wasm/Elsa.Studio.Host.Wasm.csproj --launch-profile https
+dotnet run --project /path/to/elsa-core/src/apps/Elsa.Server.Web/Elsa.Server.Web.csproj --framework net8.0 --launch-profile Elsa.WorkflowServer.Web
+dotnet run --project src/hosts/Elsa.Studio.Host.Wasm/Elsa.Studio.Host.Wasm.csproj --framework net10.0 --launch-profile https
 ```
 
 The resulting default URLs are Server Studio `https://localhost:7113` →

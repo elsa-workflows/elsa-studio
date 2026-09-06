@@ -25,7 +25,7 @@ export type ActorCredentials = {
 };
 
 type LoginResponse = {
-  success?: boolean;
+  isAuthenticated?: boolean;
   accessToken?: string | null;
   refreshToken?: string | null;
 };
@@ -33,6 +33,7 @@ type LoginResponse = {
 export type RoleRecord = {
   id: string;
   name: string;
+  permissions?: string[];
 };
 
 const secretUrlPattern = /(access[_-]?token|refresh[_-]?token|client[_-]?secret|password|cookie|authorization)/i;
@@ -135,14 +136,25 @@ export async function signIn(page: Page, actor: ActorCredentials): Promise<void>
   await page.getByLabel('User name').fill(actor.username);
   await page.getByLabel('Password').fill(actor.password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page).not.toHaveURL(/\/login(?:$|[?#])/);
+  try {
+    await expect(page).not.toHaveURL(/\/login(?:$|[?#])/);
+  } catch {
+    const visibleAlerts = await page.getByRole('alert').allTextContents();
+    const detail = visibleAlerts.length === 0 ? 'No actionable error was rendered.' : visibleAlerts.join(' ');
+    throw new Error(`Studio sign-in did not complete. ${detail}`);
+  }
 }
 
 export async function openRoles(page: Page, actor: ActorCredentials): Promise<void> {
   await signIn(page, actor);
   await page.goto('/security/roles');
   await expect(page).toHaveURL(/\/security\/roles(?:$|[?#])/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Roles' })).toBeVisible();
+  try {
+    await expect(page.getByRole('heading', { level: 1, name: 'Roles' })).toBeVisible();
+  } catch {
+    const pageText = (await page.locator('body').innerText()).replaceAll(actor.username, '[actor]');
+    throw new Error(`Roles route did not render its heading. ${pageText.slice(0, 800)}`);
+  }
 }
 
 export class CoreApiSession {
@@ -158,7 +170,7 @@ export class CoreApiSession {
       data: { username: actor.username, password: actor.password }
     });
     const body = await response.json().catch(() => ({})) as LoginResponse;
-    if (response.status() !== 200 || body.success !== true || !body.accessToken)
+    if (response.status() !== 200 || body.isAuthenticated !== true || !body.accessToken)
       throw new Error(`Core login failed with status ${response.status()}.`);
 
     // The token is intentionally kept only in this object for the duration of the test.
@@ -177,6 +189,14 @@ export class CoreApiSession {
     const response = await this.send('PUT', `/identity/roles/${encodeURIComponent(id)}`, { name, permissions });
     if (response.status() !== 200)
       throw new Error(`Core role update returned status ${response.status()}.`);
+  }
+
+  async findRole(id: string): Promise<RoleRecord | undefined> {
+    const response = await this.send('GET', '/identity/roles');
+    if (response.status() !== 200)
+      throw new Error(`Core role list returned status ${response.status()}.`);
+    const body = await response.json().catch(() => ({})) as { roles?: RoleRecord[] };
+    return body.roles?.find(role => role.id === id);
   }
 
   async deleteRole(id: string): Promise<void> {
@@ -210,22 +230,41 @@ export class CoreApiSession {
 
 export type RuntimeDiagnostics = {
   consoleIssues: number;
+  consoleIssueSummaries: string[];
+  clientIssueSummaries: string[];
   serverErrors: number;
   secretUrls: number;
 };
 
-export function captureRuntimeDiagnostics(page: Page): RuntimeDiagnostics {
-  const diagnostics: RuntimeDiagnostics = { consoleIssues: 0, serverErrors: 0, secretUrls: 0 };
+function sanitizeDiagnostic(value: string, secrets: string[]): string {
+  let sanitized = value
+    .replace(/https?:\/\/\S+/gi, '[url]')
+    .replace(/Bearer\s+\S+/gi, 'Bearer [redacted]')
+    .replace(/[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/g, '[token]')
+    .replace(/((?:(?:access|refresh)[_-]?token|client[_-]?secret|password|cookie|authorization)\s*[:=]\s*)\S+/gi, '$1[redacted]');
+  for (const secret of secrets.filter(Boolean))
+    sanitized = sanitized.replaceAll(secret, '[redacted]');
+  return sanitized.slice(0, 300);
+}
+
+export function captureRuntimeDiagnostics(page: Page, secrets: string[]): RuntimeDiagnostics {
+  const diagnostics: RuntimeDiagnostics = { consoleIssues: 0, consoleIssueSummaries: [], clientIssueSummaries: [], serverErrors: 0, secretUrls: 0 };
 
   page.on('console', message => {
-    if (message.type() === 'error' || message.type() === 'warning')
+    if (message.type() === 'error' || message.type() === 'warning') {
       diagnostics.consoleIssues++;
+      diagnostics.consoleIssueSummaries.push(`${message.type()}: ${sanitizeDiagnostic(message.text(), secrets)}`);
+    }
   });
   page.on('request', request => {
     if (secretUrlPattern.test(request.url()))
       diagnostics.secretUrls++;
   });
   page.on('response', response => {
+    if (response.status() >= 400 && response.status() < 500) {
+      const url = new URL(response.url());
+      diagnostics.clientIssueSummaries.push(`${response.request().method()} ${url.pathname} -> ${response.status()}`);
+    }
     if (response.status() >= 500)
       diagnostics.serverErrors++;
   });
@@ -234,9 +273,10 @@ export function captureRuntimeDiagnostics(page: Page): RuntimeDiagnostics {
 }
 
 export async function assertCleanRuntime(diagnostics: RuntimeDiagnostics): Promise<void> {
-  // Deliberately report counts only; console text and URLs can contain credentials or tokens.
+  // Diagnostics are sanitized before they are included in assertion failures.
   expect(diagnostics.secretUrls).toBe(0);
-  expect(diagnostics.consoleIssues).toBe(0);
+  expect(diagnostics.consoleIssues,
+    [...diagnostics.consoleIssueSummaries, ...diagnostics.clientIssueSummaries].join('\n')).toBe(0);
   expect(diagnostics.serverErrors).toBe(0);
 }
 
@@ -287,8 +327,8 @@ export const test = base.extend<Fixtures>({
     for (const id of roleIds)
       await adminApi.deleteRole(id);
   },
-  diagnostics: async ({ page }, use) => {
-    const diagnostics = captureRuntimeDiagnostics(page);
+  diagnostics: async ({ page, config }, use) => {
+    const diagnostics = captureRuntimeDiagnostics(page, [config.admin.username, config.admin.password]);
     await use(diagnostics);
     await assertCleanRuntime(diagnostics);
   }
