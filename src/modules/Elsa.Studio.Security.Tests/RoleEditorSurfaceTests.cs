@@ -70,7 +70,8 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
             Assert.NotNull(cut.Find(".role-editor-summary"));
             Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
-            Assert.Contains("Direct grant", cut.Markup);
+            Assert.DoesNotContain("Direct grant", cut.Markup);
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
             Assert.Contains("WorkflowDefinitions:Publish", cut.Markup);

@@ -53,10 +53,11 @@ async function createRoleInEditor(
   await page.getByLabel('Filter permissions').fill('identity/roles');
   const viewGrant = page.getByLabel('identity/roles:view');
   await expect(viewGrant).toHaveCount(1);
-  const categoryBulk = page.getByRole('button', { name: 'Select all exact', exact: true }).first();
+  const categoryBulk = page.getByRole('button', { name: 'Select all', exact: true }).first();
   await expect(categoryBulk).toBeVisible();
   await categoryBulk.click();
   await expect(viewGrant).toBeChecked();
+  await expect(page.getByText('Direct grant', { exact: true })).toHaveCount(0);
 
   const advancedTab = page.locator('[role="tab"]').filter({ hasText: 'Advanced grants' }).first();
   await advancedTab.click();

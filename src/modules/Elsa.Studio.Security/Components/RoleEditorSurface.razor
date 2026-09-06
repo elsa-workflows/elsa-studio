@@ -38,7 +38,6 @@
     .role-verb-list { align-items: start; display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: flex-start; min-width: 0; }
     .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; min-height: 2rem; min-width: 9rem; }
     .role-verb-option .mud-checkbox { margin: 0; }
-    .role-grant-state { color: var(--mud-palette-text-secondary); font-size: .7rem; margin-left: -.2rem; }
     .role-repair-field { min-width: 0; }
     .role-repair-action { min-width: 0; }
 
@@ -183,7 +182,7 @@ else
                                             <div @onclick:stopPropagation="true">
                                                 @if (!IsReadOnly)
                                                 {
-                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => SelectCategory(categoryResources))">Select all exact</MudButton>
+                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => SelectCategory(categoryResources))">Select all</MudButton>
                                                 }
                                             </div>
                                         </div>
@@ -219,11 +218,7 @@ else
                                                         var covering = FindCoveringWildcard(resource.Resource, verb);
                                                         <div class="role-verb-option">
                                                             <MudCheckBox T="bool" Label="@verb" Dense="true" Value="@direct" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
-                                                            @if (direct)
-                                                            {
-                                                                <span class="role-grant-state">Direct grant</span>
-                                                            }
-                                                            else if (covering != null)
+                                                            @if (!direct && covering != null)
                                                             {
                                                                 <MudTooltip Text="Effective access only — not stored twice.">
                                                                     <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">Covered by @covering</MudChip>
