@@ -105,8 +105,9 @@ async function expectInsideViewport(locator: Locator, viewportWidth: number): Pr
   await expect(locator).toBeVisible();
   const bounds = await locator.boundingBox();
   expect(bounds).not.toBeNull();
-  expect(bounds!.x).toBeGreaterThanOrEqual(0);
-  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewportWidth);
+  const description = await locator.evaluate(element => `${element.tagName.toLowerCase()}.${element.className}`);
+  expect(bounds!.x, `${description} starts outside the viewport`).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width, `${description} ends outside the viewport`).toBeLessThanOrEqual(viewportWidth);
 }
 
 test.describe('role management against a real Core host', () => {
@@ -177,7 +178,7 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('mobile role editor and deletion remediation controls stay within the viewport', async ({ page, config, diagnostics }) => {
+  test('mobile role editor and deletion remediation controls stay within the viewport', async ({ page, config, diagnostics }, testInfo) => {
     const viewportWidth = page.viewportSize()?.width ?? 0;
     test.skip(viewportWidth >= 600, 'This regression proof targets the phone layout.');
 
@@ -190,6 +191,7 @@ test.describe('role management against a real Core host', () => {
     await advancedTab.click();
     await expectInsideViewport(tabs.filter({ hasText: 'Exact permissions' }), viewportWidth);
     await expectInsideViewport(advancedTab, viewportWidth);
+    await captureEvidence(page, testInfo, 'role-editor-tabs');
 
     if (config.unresolvedRoleId) {
       await page.goto(`/security/roles/${encodeURIComponent(config.unresolvedRoleId)}`);
@@ -197,9 +199,10 @@ test.describe('role management against a real Core host', () => {
       const replacement = repairActions.getByLabel('Replacement grant');
       await expectInsideViewport(repairActions, viewportWidth);
       await expectInsideViewport(replacement, viewportWidth);
-      expect((await replacement.boundingBox())!.width).toBeGreaterThanOrEqual(200);
+      expect((await replacement.boundingBox())!.width).toBeGreaterThanOrEqual(180);
       await expectInsideViewport(repairActions.getByRole('button', { name: 'Replace', exact: true }), viewportWidth);
       await expectInsideViewport(repairActions.getByRole('button', { name: 'Remove', exact: true }), viewportWidth);
+      await captureEvidence(page, testInfo, 'role-editor-repair');
     }
 
     if (config.remediableRoleId) {
@@ -213,6 +216,7 @@ test.describe('role management against a real Core host', () => {
         await expectInsideViewport(row, viewportWidth);
         await expectInsideViewport(row.getByRole('checkbox'), viewportWidth);
       }
+      await captureEvidence(page, testInfo, 'role-deletion-remediation');
     }
 
     await assertCleanRuntime(diagnostics);

@@ -39,6 +39,9 @@
     }
 
     @@media (max-width: 599.98px) {
+        .role-permissions-tabs .mud-tabs-scroll-button { display: none; }
+        .role-permissions-tabs .mud-tabs-tabbar-content .mud-tabs-tabbar-wrapper { transform: none !important; width: 100%; }
+        .role-permissions-tabs .mud-tabs-tabbar-wrapper .mud-tab { flex: 1 1 50%; min-width: 0 !important; padding-inline: .5rem; width: 50% !important; }
         .role-unresolved-repair-actions { flex-wrap: wrap; }
         .role-repair-field { flex: 1 0 100%; max-width: 100%; width: 100%; }
         .role-repair-action { flex: 1 1 calc(50% - .5rem); }
@@ -126,7 +129,7 @@ else
                 <MudText Typo="Typo.h6">Permissions</MudText>
                 <MudText Typo="Typo.caption" Class="role-permissions-summary">@DirectCount direct · @CoveredCount covered · @_advanced.Count advanced</MudText>
             </div>
-            <MudTabs Border="false" Elevation="0" MinimumTabWidth="min(160px, 50%)" Class="role-permissions-tabs" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
+            <MudTabs Border="false" Elevation="0" Class="role-permissions-tabs" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
                 <MudTabPanel Text="Exact permissions">
                     <MudStack Spacing="2" Class="pt-2">
                         <MudText Typo="Typo.body2">Select concrete permissions. Category actions add exact grants only and never create a wildcard.</MudText>
