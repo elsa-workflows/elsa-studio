@@ -21,6 +21,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     private MudDynamicTabs _dynamicTabs = null!;
     private WorkflowDefinition? _workflowDefinition = null!;
     private WorkflowDefinition? _selectedWorkflowDefinition = null!;
+    private long _workflowDefinitionReloadVersion;
     private WorkflowEditor WorkflowEditor { get; set; } = null!;
     private CodeView CodeView { get; set; } = null!;
 
@@ -85,6 +86,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         if (_selectedWorkflowDefinition == workflowDefinition)
             return;
 
+        _workflowDefinitionReloadVersion++;
         _selectedWorkflowDefinition = workflowDefinition;
 
         if (workflowDefinition.IsLatest)
@@ -137,6 +139,8 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         var incomingJson = JsonSerializer.Serialize(deserialized, new JsonSerializerOptions { WriteIndented = true });
         if (string.Equals(WorkflowDefinitionSerialized, incomingJson, StringComparison.Ordinal))
             return;
+
+        _workflowDefinitionReloadVersion++;
 
         if (WorkflowEditor != null)
             await WorkflowEditor.ApplyWorkflowDefinitionAsync(deserialized);

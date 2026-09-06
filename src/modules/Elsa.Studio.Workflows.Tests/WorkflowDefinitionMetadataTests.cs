@@ -8,6 +8,7 @@ using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -106,15 +107,16 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
 
         secondValidation.Result.SetResult(true);
         await secondBlurTask;
-        firstValidation.Result.SetResult(true);
+        firstValidation.Result.SetResult(false);
         await firstBlurTask;
 
         Assert.Equal("edited name", definition.Name);
         Assert.Equal("edited description", definition.Description);
         Assert.Equal("edited name", cut.FindComponents<MudTextField<string>>()[0].Find("input").GetAttribute("value"));
         Assert.Equal("edited description", cut.FindComponents<MudTextField<string>>()[1].Find("textarea").GetAttribute("value"));
-        Assert.Equal(2, callbackValues.Count);
+        Assert.Single(callbackValues);
         Assert.Equal(("edited name", "edited description"), callbackValues[^1]);
+        Assert.DoesNotContain("A workflow with this name already exists.", cut.Markup);
     }
 
     [Fact]
@@ -221,6 +223,7 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
 
         Assert.Equal("initial name", definition.Name);
         Assert.Empty(callbackValues);
+        Assert.Contains("A workflow with this name already exists.", cut.Markup);
     }
 
     [Fact]
@@ -468,6 +471,43 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         Assert.Equal("replacement description", fields[1].Find("textarea").GetAttribute("value"));
     }
 
+    [Fact]
+    public async Task ExplicitSameVersionReloadAppliesCodeViewMetadataAfterAnEarlierCommit()
+    {
+        var initialDefinition = CreateDefinition();
+        var codeViewDefinition = new WorkflowDefinition
+        {
+            Id = initialDefinition.Id,
+            DefinitionId = initialDefinition.DefinitionId,
+            Name = "code view name",
+            Description = "code view description"
+        };
+        var cut = Render<MetadataHost>(parameters => parameters
+            .Add(x => x.WorkflowDefinition, initialDefinition)
+            .Add(x => x.ReloadVersion, 0));
+        var metadata = cut.FindComponent<MetadataComponent>();
+        var nameInput = metadata.FindComponents<MudTextField<string>>()[0].Find("input");
+
+        await nameInput.InputAsync("submitted name");
+        var validation = _workflowDefinitionService.EnqueueValidation();
+        var blurTask = nameInput.BlurAsync();
+        await validation.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        validation.Result.SetResult(true);
+        await blurTask;
+
+        // The workspace reload signal can be observed before the replacement object reaches this child.
+        cut.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, initialDefinition)
+            .Add(x => x.ReloadVersion, 1));
+        cut.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, codeViewDefinition)
+            .Add(x => x.ReloadVersion, 1));
+
+        var fields = cut.FindComponent<MetadataComponent>().FindComponents<MudTextField<string>>();
+        Assert.Equal("code view name", fields[0].Find("input").GetAttribute("value"));
+        Assert.Equal("code view description", fields[1].Find("textarea").GetAttribute("value"));
+    }
+
     private IRenderedComponent<MetadataComponent> RenderMetadata(WorkflowDefinition definition, List<(string? Name, string? Description)> callbackValues, Func<WorkflowDefinition>? currentDefinition = null) =>
         Render<MetadataComponent>(parameters => parameters
             .Add(x => x.WorkflowDefinition, definition)
@@ -543,5 +583,25 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
     {
         public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
         public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
+    }
+
+    private sealed class MetadataHost : ComponentBase
+    {
+        [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = default!;
+        [Parameter] public long ReloadVersion { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenComponent<CascadingValue<long>>(0);
+            builder.AddAttribute(1, nameof(CascadingValue<long>.Name), "WorkflowDefinitionReloadVersion");
+            builder.AddAttribute(2, nameof(CascadingValue<long>.Value), ReloadVersion);
+            builder.AddAttribute(3, nameof(CascadingValue<long>.ChildContent), (RenderFragment)(childBuilder =>
+            {
+                childBuilder.OpenComponent<MetadataComponent>(0);
+                childBuilder.AddAttribute(1, nameof(MetadataComponent.WorkflowDefinition), WorkflowDefinition);
+                childBuilder.CloseComponent();
+            }));
+            builder.CloseComponent();
+        }
     }
 }
