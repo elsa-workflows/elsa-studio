@@ -58,6 +58,80 @@ npx playwright install chromium
 npm test
 ```
 
+## Deterministic deletion fixtures
+
+The optional deletion states can be prepared against an isolated current
+Modular Core SQLite database. The fixture tool requires Node 20+ and the local
+`sqlite3` command; it never reads Core or Studio credentials and it never calls
+a production endpoint. Use a copy of the database or a dedicated development
+database, and stop the matching Core host while replacing its database rows:
+
+```bash
+cd tests/browser/RoleManagement
+
+# The confirmation is intentionally required to prevent a shared database
+# from being modified by accident.
+export ROLE_E2E_SQLITE_PATH=/absolute/path/to/elsa-core/src/apps/Elsa.ModularServer.Web/elsa_workflows.db
+export ROLE_E2E_SQLITE_CONFIRM=isolated
+
+# This creates exact role-e2e-* rows, four database-owned connections, the
+# marked configuration overlay, and a manifest beside the database. Source
+# only the generated export lines into the current shell.
+fixture_output="$(npm run fixtures:prepare)"
+printf '%s\n' "$fixture_output"
+eval "$(printf '%s\n' "$fixture_output" | sed -n '/^export /p')"
+```
+
+The generated `ROLE_E2E_CORE_OVERLAY_PATH` is a marked, secret-free JSON file.
+Start Modular Core from its app directory with the overlay path supplied before
+starting Studio (the overlay is loaded at startup):
+
+```bash
+cd /absolute/path/to/elsa-core/src/apps/Elsa.ModularServer.Web
+dotnet run --project Elsa.ModularServer.Web.csproj --framework net8.0 \
+  --launch-profile https -- \
+  --Elsa:PlatformIntegration:ShellOverlayPath="$ROLE_E2E_CORE_OVERLAY_PATH"
+```
+
+In another terminal, source the generated exports and run the localhost-only
+trigger server. It binds to `127.0.0.1`; its two POST routes accept only the
+exact generated role ID and perform only the conflict revision bump or the
+incomplete SQLite trigger installation:
+
+```bash
+cd tests/browser/RoleManagement
+export ROLE_E2E_SQLITE_PATH=/absolute/path/to/elsa-core/src/apps/Elsa.ModularServer.Web/elsa_workflows.db
+export ROLE_E2E_SQLITE_CONFIRM=isolated
+npm run fixtures:serve
+```
+
+Keep that process running while the browser tests execute. The emitted URLs
+are the values for `ROLE_E2E_CONFLICT_TRIGGER_URL` and
+`ROLE_E2E_INCOMPLETE_TRIGGER_URL`; the browser suite posts only the fixture role
+ID. The incomplete route creates a `BEFORE UPDATE` trigger for the second
+fixture connection, so the first owner can be changed and the second owner
+fails during the real Core best-effort operation. This is an SQLite race seam,
+not a Core endpoint or a response interception.
+
+Run the optional states by exporting the generated role IDs alongside the
+matching Studio/Core URL pair. The trigger server prints the two URL exports
+when it starts; copy those lines into the shell running `npm test`. Then clean
+up in a separate terminal after stopping Studio and Core:
+
+```bash
+cd tests/browser/RoleManagement
+ROLE_E2E_SQLITE_PATH=/absolute/path/to/elsa-core/src/apps/Elsa.ModularServer.Web/elsa_workflows.db \
+ROLE_E2E_SQLITE_CONFIRM=isolated \
+npm run fixtures:cleanup
+```
+
+Cleanup drops only the manifest's exact trigger name, deletes only the six
+`role-e2e-*` role IDs and four exact connection IDs, removes the marked overlay,
+and removes the manifest. It refuses to modify a row whose ID has been reused
+with different fixture content. It is safe to run again after successful
+cleanup. If the trigger server is interrupted, it drops its exact incomplete
+trigger but leaves fixture rows for the explicit cleanup command.
+
 For a single host, set only its matching Studio/Core URL pair. Supplying both
 pairs runs both topologies and all four viewport projects. To exercise the
 real load-error recovery path, open Roles, stop only the matching Core process
@@ -72,42 +146,14 @@ direct create rejection, then deletes both fixtures. Operators may instead
 inject `ROLE_E2E_RESTRICTED_USERNAME` and `ROLE_E2E_RESTRICTED_PASSWORD`; the
 response body from the rejected mutation is never read or logged.
 
-## Optional deletion fixtures
+## Other optional catalog fixture
 
-The current Core hosts do not ship deterministic configuration-blocked,
-editable-remediation, or incomplete-remediation role fixtures. The suite
-therefore skips these cases unless the operator supplies IDs from a dedicated
-isolated fixture database:
-
-- `ROLE_E2E_BLOCKED_ROLE_ID`: configuration-owned JIT policy reference; the
-  test verifies the blocker and absence of an apply action.
-- `ROLE_E2E_REMEDIABLE_ROLE_ID`: database-owned editable JIT policy references;
-  the test submits the inspected dependency version and confirmations.
-- `ROLE_E2E_CONFLICT_ROLE_ID` plus
-  `ROLE_E2E_CONFLICT_TRIGGER_URL`: a local-only fixture hook that changes a
-  dependency revision after impact inspection and before submit.
-- `ROLE_E2E_INCOMPLETE_ROLE_ID` plus
-  `ROLE_E2E_INCOMPLETE_TRIGGER_URL`: a local-only fixture hook that causes a
-  contributor failure or remaining dependency during remediation.
-- `ROLE_E2E_UNRESOLVED_ROLE_ID`: a database-seeded role containing a legacy
-  grant that the current catalog cannot resolve.
-- `ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true`: require the current Core catalog
-  to expose at least one `verified:false` descriptor and verify that it can be
-  selected.
-
-Trigger URLs must be `localhost`, `127.0.0.1`, or `::1`. The test posts only the
-role ID and never adds an authorization header. A trigger is a harness seam,
-not a production Core endpoint; do not weaken production code to make these
-states appear. Without a repeatable local hook, record conflict/incomplete as
-unproven rather than substituting an intercepted response.
-
-Core rejects unknown concrete permissions on both create and update, so an
-unresolved-grant role cannot be created through the public API. It must be
-seeded in the isolated fixture database (or supplied by a non-production Core
-fixture tool); the test preserves and then explicitly replaces the grant. The
-current Modular and Classic sample hosts do not register a `verified:false`
-descriptor by default. That gate is therefore opt-in and remains a visible
-skip until a fixture host provides one.
+`ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true` still requires the current Core
+catalog to expose a `verified:false` descriptor. The sample hosts do not ship
+one by default, so that gate remains a visible skip until a non-production host
+composition provides it. The fixture tool prepares the unresolved legacy grant
+directly in SQLite because Core correctly rejects unknown grants through its
+public API; the test preserves the original text and explicitly replaces it.
 
 Ordinary test roles are created with a short-lived in-memory Core API session
 and deleted in fixture teardown. If a host is interrupted, remove only the

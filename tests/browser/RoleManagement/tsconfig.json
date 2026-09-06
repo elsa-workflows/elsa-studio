@@ -7,5 +7,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["fixtures.ts", "playwright.config.ts", "role-management.spec.ts"]
+  "include": ["fixture-tool.ts", "fixtures.ts", "playwright.config.ts", "role-management.spec.ts"]
 }
