@@ -69,11 +69,19 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.Equal("Edit role — Auditors", cut.Find("h1").TextContent.Trim());
             Assert.Contains("role-editor-title", cut.Find("h1").ClassList);
             Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
-            Assert.NotNull(cut.Find(".role-editor-summary"));
+            var summary = cut.Find(".role-editor-summary");
+            var actions = cut.Find(".role-editor-actions");
+            Assert.Null(summary.QuerySelector(".role-editor-actions"));
+            var actionButtons = actions.QuerySelectorAll("button");
+            Assert.Equal(["Cancel", "Save changes"], actionButtons.Select(button => button.TextContent.Trim()));
+            Assert.All(actionButtons, button => Assert.Contains("mud-button-text", button.ClassList));
+            Assert.Contains("mud-button-text-primary", actionButtons[1].ClassList);
+            Assert.Contains("role-editor-primary-action", actionButtons[1].ClassList);
             Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
             Assert.DoesNotContain("Direct grant", cut.Markup);
             Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
+            Assert.Contains("role-covered-grant", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
             Assert.DoesNotContain("Non-core:", cut.Markup);
             Assert.NotNull(cut.Find("input[aria-label='workflows/definitions:publish']"));
@@ -254,7 +262,10 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             .Add(x => x.Access, ReadyAccess with { CanDelete = true }));
         cut.WaitForAssertion(() => Assert.Contains("Edit role — Auditors", cut.Markup));
 
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Delete role", StringComparison.Ordinal)).Click();
+        var delete = cut.FindAll("button").Single(x => x.TextContent.Contains("Delete role", StringComparison.Ordinal));
+        Assert.Contains("mud-button-text", delete.ClassList);
+        Assert.Contains("mud-button-text-error", delete.ClassList);
+        delete.Click();
 
         provider.WaitForAssertion(() =>
             Assert.Equal("auditors", provider.FindComponent<DeleteRoleDialog>().Instance.RoleId));

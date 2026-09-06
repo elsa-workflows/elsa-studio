@@ -11,15 +11,17 @@
 <style>
     .role-editor-surface {
         --role-editor-primary-aa: color-mix(in srgb, var(--mud-palette-primary), var(--mud-palette-text-primary) 32%);
+        min-block-size: calc(100dvh - var(--mud-appbar-height) - 2rem);
     }
 
     .role-editor-summary { padding: 1rem; }
-    .role-editor-header { align-items: center; display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
+    .role-editor-header { align-items: center; display: flex; gap: 1rem; }
     .role-editor-identity { align-items: center; display: flex; gap: 1rem; min-width: 0; }
     .role-editor-title-group { min-width: 0; }
     .role-editor-title { color: var(--role-editor-primary-aa); }
-    .role-editor-actions { align-items: center; display: flex; gap: .5rem; flex-wrap: wrap; }
-    .role-editor-primary-action.mud-button-filled { background-color: var(--role-editor-primary-aa); }
+    .role-editor-actions { align-items: center; background: var(--mud-palette-surface); border-top: 1px solid var(--mud-palette-lines-default); bottom: 0; display: flex; gap: .5rem; margin-top: auto; padding: .75rem 1rem max(.75rem, env(safe-area-inset-bottom)); position: sticky; z-index: 2; }
+    .role-editor-commit-actions { align-items: center; display: flex; gap: .5rem; margin-left: auto; }
+    .role-editor-primary-action.mud-button-text { color: var(--role-editor-primary-aa); }
     .role-editor-id { color: var(--mud-palette-text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
     .role-editor-details { align-items: end; display: grid; gap: 1rem; grid-template-columns: minmax(16rem, 32rem) minmax(0, 1fr); }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
@@ -38,14 +40,13 @@
     .role-verb-list { align-items: start; display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: flex-start; min-width: 0; }
     .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; min-height: 2rem; min-width: 9rem; }
     .role-verb-option .mud-checkbox { margin: 0; }
+    .role-covered-grant.mud-chip { border-color: currentColor; color: var(--role-editor-primary-aa); }
     .role-repair-field { min-width: 0; }
     .role-repair-action { min-width: 0; }
 
     @@media (max-width: 959.98px) {
         .role-editor-details,
         .role-resource-row { grid-template-columns: 1fr; }
-        .role-editor-actions { width: 100%; }
-        .role-editor-actions .mud-button-root { flex: 1 1 auto; }
     }
 
     @@media (max-width: 599.98px) {
@@ -56,6 +57,10 @@
         .role-unresolved-repair-actions { flex-wrap: wrap; }
         .role-repair-field { flex: 1 0 100%; max-width: 100%; width: 100%; }
         .role-repair-action { flex: 1 1 calc(50% - .5rem); }
+        .role-editor-actions { align-items: stretch; flex-wrap: wrap; }
+        .role-editor-delete-action { flex: 1 0 100%; }
+        .role-editor-commit-actions { margin-left: 0; width: 100%; }
+        .role-editor-commit-actions .mud-button-root { flex: 1 1 50%; }
     }
 </style>
 
@@ -107,19 +112,6 @@ else
                             <MudText Typo="Typo.caption">Configure the role identity and permissions.</MudText>
                         }
                     </div>
-                </div>
-                <div class="role-editor-actions" role="group" aria-label="Role form actions">
-                    @if (!_isCreate && Access.CanDelete && _role is not null)
-                    {
-                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@_deleteDialogOpen" OnClick="OpenDeleteRoleAsync">Delete role</MudButton>
-                    }
-                    <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
-                    @if (!IsReadOnly)
-                    {
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="role-editor-primary-action" Disabled="@(!CanSave)" OnClick="SaveAsync">
-                            @(_saving ? "Saving…" : _isCreate ? "Create role" : "Save changes")
-                        </MudButton>
-                    }
                 </div>
             </div>
         </MudPaper>
@@ -217,7 +209,7 @@ else
                                                             @if (!direct && covering != null)
                                                             {
                                                                 <MudTooltip Text="Effective access only — not stored twice.">
-                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">Covered by @covering</MudChip>
+                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" Class="role-covered-grant">Covered by @covering</MudChip>
                                                                 </MudTooltip>
                                                             }
                                                         </div>
@@ -301,6 +293,22 @@ else
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">You can view this role, but your current sign-in cannot edit it.</MudAlert>
         }
+
+        <div class="role-editor-actions" role="group" aria-label="Role form actions">
+            @if (!_isCreate && Access.CanDelete && _role is not null)
+            {
+                <MudButton Variant="Variant.Text" Color="Color.Error" Class="role-editor-delete-action" Disabled="@_deleteDialogOpen" OnClick="OpenDeleteRoleAsync">Delete role</MudButton>
+            }
+            <div class="role-editor-commit-actions">
+                <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+                @if (!IsReadOnly)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="role-editor-primary-action" Disabled="@(!CanSave)" OnClick="SaveAsync">
+                        @(_saving ? "Saving…" : _isCreate ? "Create role" : "Save changes")
+                    </MudButton>
+                }
+            </div>
+        </div>
     </MudStack>
 }
 

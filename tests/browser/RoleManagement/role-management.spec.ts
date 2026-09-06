@@ -111,6 +111,17 @@ async function expectInsideViewport(locator: Locator, viewportWidth: number): Pr
   expect(bounds!.x + bounds!.width, `${description} ends outside the viewport`).toBeLessThanOrEqual(viewportWidth);
 }
 
+async function expectPinnedNearViewportBottom(locator: Locator, viewportHeight: number): Promise<void> {
+  await expect(locator).toBeVisible();
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.y, 'Action bar starts above the viewport').toBeGreaterThanOrEqual(0);
+  expect(viewportHeight - (bounds!.y + bounds!.height), 'Action bar is not pinned near the viewport bottom')
+    .toBeGreaterThanOrEqual(0);
+  expect(viewportHeight - (bounds!.y + bounds!.height), 'Action bar is not pinned near the viewport bottom')
+    .toBeLessThanOrEqual(20);
+}
+
 async function expectContentNotClipped(locator: Locator): Promise<void> {
   const size = await locator.evaluate(element => ({
     clientWidth: element.clientWidth,
@@ -195,7 +206,9 @@ test.describe('role management against a real Core host', () => {
     await signIn(page, config.admin);
     await page.goto('/security/roles/admin');
 
-    const viewportWidth = page.viewportSize()?.width ?? 0;
+    const viewport = page.viewportSize();
+    const viewportWidth = viewport?.width ?? 0;
+    const viewportHeight = viewport?.height ?? 0;
     const backLink = page.locator('.role-editor-back');
     const summary = page.locator('.role-editor-summary');
     const actions = page.getByRole('group', { name: 'Role form actions' });
@@ -206,8 +219,19 @@ test.describe('role management against a real Core host', () => {
     await expect(page.getByText('Role ID admin', { exact: true })).toBeVisible();
     await expectInsideViewport(summary, viewportWidth);
     await expectInsideViewport(actions, viewportWidth);
+    await expectPinnedNearViewportBottom(actions, viewportHeight);
+    await expect(actions).toHaveCSS('position', 'sticky');
+    await expect(actions).toHaveCSS('bottom', '0px');
+    await expect(actions.locator('.mud-button-filled, .mud-button-outlined')).toHaveCount(0);
+    await expect(actions.getByRole('button', { name: 'Delete role', exact: true })).toHaveClass(/mud-button-text-error/);
+    await expect(actions.getByRole('button', { name: 'Save changes', exact: true })).toHaveClass(/mud-button-text-primary/);
     for (const button of await actions.getByRole('button').all())
       await expectInsideViewport(button, viewportWidth);
+
+    const workflowCategory = page.locator('.role-category-panel').filter({ hasText: /^Workflows/ });
+    await workflowCategory.locator('.mud-expand-panel-header').click();
+    await page.locator('.role-resource-row:visible').last().scrollIntoViewIfNeeded();
+    await expectPinnedNearViewportBottom(actions, viewportHeight);
 
     await page.getByLabel('Filter permissions').fill('workflows/definitions');
     await expect(page.getByLabel('workflows/definitions:publish')).toBeVisible();
