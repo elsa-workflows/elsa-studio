@@ -183,8 +183,8 @@ function policy(roleIds: string[]): string {
   return JSON.stringify({ type: 'create-user', settingsVersion: 1, settings: { defaultRoleIds: roleIds } });
 }
 
-function rolePermissionJson(permissions: string[]): string {
-  return JSON.stringify(permissions);
+function rolePermissionValue(permissions: string[]): string {
+  return permissions.join(',');
 }
 
 function connectionInsert(id: string, roleIds: string[], now: string): string {
@@ -297,12 +297,12 @@ DROP TRIGGER IF EXISTS "${fixture.triggers.incomplete}";
 DELETE FROM IdentityProviderConnections WHERE Id IN (${connectionIds});
 DELETE FROM Roles WHERE Id IN (${roleIds});
 INSERT INTO Roles (Id, Name, Permissions) VALUES
-  (${sqlString(fixture.roles.blocked)}, ${sqlString('role-e2e-blocked')}, ${sqlString(rolePermissionJson(['identity/roles:view']))}),
-  (${sqlString(fixture.roles.remediable)}, ${sqlString('role-e2e-remediable')}, ${sqlString(rolePermissionJson(['identity/roles:view']))}),
-  (${sqlString(fixture.roles.conflict)}, ${sqlString('role-e2e-conflict')}, ${sqlString(rolePermissionJson(['identity/roles:view']))}),
-  (${sqlString(fixture.roles.incomplete)}, ${sqlString('role-e2e-incomplete')}, ${sqlString(rolePermissionJson(['identity/roles:view']))}),
-  (${sqlString(fixture.roles.unresolved)}, ${sqlString('role-e2e-unresolved')}, ${sqlString(rolePermissionJson(['identity/roles:view', 'legacy/removed:grant']))}),
-  (${sqlString(replacement)}, ${sqlString('role-e2e-replacement')}, ${sqlString(rolePermissionJson(['identity/roles:view']))});
+  (${sqlString(fixture.roles.blocked)}, ${sqlString('role-e2e-blocked')}, ${sqlString(rolePermissionValue(['identity/roles:view']))}),
+  (${sqlString(fixture.roles.remediable)}, ${sqlString('role-e2e-remediable')}, ${sqlString(rolePermissionValue(['identity/roles:view']))}),
+  (${sqlString(fixture.roles.conflict)}, ${sqlString('role-e2e-conflict')}, ${sqlString(rolePermissionValue(['identity/roles:view']))}),
+  (${sqlString(fixture.roles.incomplete)}, ${sqlString('role-e2e-incomplete')}, ${sqlString(rolePermissionValue(['identity/roles:view']))}),
+  (${sqlString(fixture.roles.unresolved)}, ${sqlString('role-e2e-unresolved')}, ${sqlString(rolePermissionValue(['identity/roles:view', 'legacy/removed:grant']))}),
+  (${sqlString(replacement)}, ${sqlString('role-e2e-replacement')}, ${sqlString(rolePermissionValue(['identity/roles:view']))});
 ${connectionInsert(fixture.connections.remediable, [fixture.roles.remediable, replacement], now)}
 ${connectionInsert(fixture.connections.conflict, [fixture.roles.conflict, replacement], now)}
 ${connectionInsert(fixture.connections.incompleteA, incompleteRoles, now)}
