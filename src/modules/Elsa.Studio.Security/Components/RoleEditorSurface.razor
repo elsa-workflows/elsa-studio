@@ -39,7 +39,7 @@
     }
 
     @@media (max-width: 599.98px) {
-        .role-repair-row { flex-wrap: wrap; }
+        .role-unresolved-repair-actions { flex-wrap: wrap; }
         .role-repair-field { flex: 1 0 100%; max-width: 100%; width: 100%; }
         .role-repair-action { flex: 1 1 calc(50% - .5rem); }
     }
@@ -126,7 +126,7 @@ else
                 <MudText Typo="Typo.h6">Permissions</MudText>
                 <MudText Typo="Typo.caption" Class="role-permissions-summary">@DirectCount direct · @CoveredCount covered · @_advanced.Count advanced</MudText>
             </div>
-            <MudTabs Border="false" Elevation="0" MinimumTabWidth="min(160px, 50%)" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
+            <MudTabs Border="false" Elevation="0" MinimumTabWidth="min(160px, 50%)" Class="role-permissions-tabs" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
                 <MudTabPanel Text="Exact permissions">
                     <MudStack Spacing="2" Class="pt-2">
                         <MudText Typo="Typo.body2">Select concrete permissions. Category actions add exact grants only and never create a wildcard.</MudText>
@@ -255,7 +255,7 @@ else
                         <MudText Typo="Typo.caption">Unresolved legacy grant · verified:false</MudText>
                         @if (!IsReadOnly)
                         {
-                            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2" Class="role-repair-row mt-2">
+                            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2" Class="role-unresolved-repair-actions mt-2">
                                 <MudTextField T="string" Label="Replacement grant" Placeholder="resource:verb or wildcard" Value="@GetReplacement(original)" ValueChanged="@(value => SetReplacement(original, value))" Variant="Variant.Outlined" Class="role-repair-field flex-grow-1" />
                                 <MudButton Variant="Variant.Outlined" Color="Color.Warning" Class="role-repair-action" OnClick="@(() => ReplaceGrant(original))">Replace</MudButton>
                                 <MudButton Variant="Variant.Outlined" Color="Color.Error" Class="role-repair-action" OnClick="@(() => RemoveUnresolved(original))">Remove</MudButton>
