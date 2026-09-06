@@ -74,6 +74,119 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void ExplicitReplacementPersistsAnExactGrantEvenWhenCoveredByWildcard()
+    {
+        var roles = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles =
+                [
+                    new RoleSummary
+                    {
+                        Id = "auditors",
+                        Name = "Auditors",
+                        Permissions = ["workflows/*:view", "legacy:grant"]
+                    }
+                ]
+            },
+            Updated = new UpdateRoleResponse
+            {
+                Id = "auditors",
+                Name = "Auditors",
+                Permissions = ["workflows/*:view", "workflows/definitions:view"]
+            }
+        };
+        var permissions = new StubPermissionsApi
+        {
+            Response = new PermissionCatalogResponse
+            {
+                Resources =
+                [
+                    new PermissionResourceDescriptor
+                    {
+                        Resource = "workflows/definitions",
+                        DisplayName = "Definitions",
+                        Category = "Workflows",
+                        SupportedVerbs = ["view"]
+                    }
+                ]
+            }
+        };
+        Register(roles, permissions);
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "auditors")
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("legacy:grant", cut.Markup));
+
+        cut.Find("input[placeholder='resource:verb or wildcard']").Change("workflows/definitions:view");
+        cut.FindAll("button").Single(x => x.TextContent.Trim() == "Replace").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Contains("workflows/definitions:view", roles.LastUpdate!.Permissions!);
+    }
+
+    [Fact]
+    public async Task SaveIsSingleFlightWhileTheFirstRequestIsInProgress()
+    {
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var roles = new StubRolesApi
+        {
+            Created = new CreateRoleResponse { Id = "new-role", Name = "New role" }
+        };
+        roles.CreateHandler = async cancellationToken =>
+        {
+            started.SetResult();
+            await release.Task.WaitAsync(cancellationToken);
+            return roles.Created;
+        };
+        Register(roles, new StubPermissionsApi());
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        cut.Find("input[aria-label='Role name']").Input("New role");
+        var save = cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal));
+
+        var first = save.ClickAsync();
+        await Task.Yield();
+        var currentSave = cut.FindAll("button").Single(x => x.TextContent.Contains("Saving", StringComparison.Ordinal));
+        var second = currentSave.ClickAsync();
+        await started.Task;
+        release.SetResult();
+        await Task.WhenAll(first, second);
+
+        Assert.Equal(1, roles.CreateCalls);
+    }
+
+    [Fact]
+    public void ReachProviderFailureIsShownAsRecoverableGrantError()
+    {
+        var roles = new StubRolesApi();
+        var permissions = new StubPermissionsApi();
+        var provider = new StubBackendApiClientProvider(roles, permissions)
+        {
+            GetApiException = (type, count) => type == typeof(IPermissionsApi) && count > 1
+                ? new InvalidOperationException("permissions provider unavailable")
+                : null
+        };
+        Services.AddSingleton<IBackendApiClientProvider>(provider);
+        Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
+        Render<MudPopoverProvider>();
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.Find("input[placeholder='workflows/*:view or *']").Change("workflows/*:view");
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+
+        Assert.Equal(2, provider.PermissionsApiCalls);
+        cut.WaitForAssertion(() => Assert.Contains("Role administration is unavailable right now", cut.Markup));
+    }
+
+    [Fact]
     public void CreateSurfaceSendsNormalizedGrantsOnceAndNavigatesToCreatedRole()
     {
         var roles = new StubRolesApi
@@ -204,9 +317,19 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     private sealed class StubBackendApiClientProvider(IRolesApi roles, IPermissionsApi permissions) : IBackendApiClientProvider
     {
         public Uri Url { get; } = new("https://localhost/");
+        public Func<Type, int, Exception?>? GetApiException { get; init; }
+        public int PermissionsApiCalls => _permissionsApiCalls;
+        private int _permissionsApiCalls;
 
-        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class =>
-            ValueTask.FromResult(typeof(T) == typeof(IRolesApi) ? (T)(object)roles : (T)(object)permissions);
+        public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class
+        {
+            var count = typeof(T) == typeof(IPermissionsApi) ? ++_permissionsApiCalls : 0;
+            var exception = GetApiException?.Invoke(typeof(T), count);
+            if (exception is not null)
+                return ValueTask.FromException<T>(exception);
+
+            return ValueTask.FromResult(typeof(T) == typeof(IRolesApi) ? (T)(object)roles : (T)(object)permissions);
+        }
     }
 
     private sealed class StubRolesApi : IRolesApi
@@ -215,6 +338,10 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         public CreateRoleResponse Created { get; set; } = new();
         public int CreateCalls { get; private set; }
         public CreateRoleRequest? LastCreate { get; private set; }
+        public int UpdateCalls { get; private set; }
+        public UpdateRoleRequest? LastUpdate { get; private set; }
+        public Func<CancellationToken, Task<CreateRoleResponse>>? CreateHandler { get; set; }
+        public UpdateRoleResponse Updated { get; set; } = new();
 
         public Task<ListRolesResponse> ListAsync(CancellationToken cancellationToken = default) => Task.FromResult(Response);
 
@@ -222,10 +349,15 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             CreateCalls++;
             LastCreate = request;
-            return Task.FromResult(Created);
+            return CreateHandler?.Invoke(cancellationToken) ?? Task.FromResult(Created);
         }
 
-        public Task<UpdateRoleResponse> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<UpdateRoleResponse> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
+        {
+            UpdateCalls++;
+            LastUpdate = request;
+            return Task.FromResult(Updated);
+        }
         public Task DeleteAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<RoleDeletionImpactResponse> GetDeletionImpactAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemediateAndDeleteAsync(string id, RoleRemediationRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();

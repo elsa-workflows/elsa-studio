@@ -173,6 +173,93 @@ public sealed class DeleteRoleDialogTests : BunitContext, IAsyncLifetime
         Assert.Equal(["partner-sso"], deletionResult.ChangedOwnerIds);
     }
 
+    [Fact]
+    public async Task Remediation_SendsSelectedReferencesAndReplacementDefaultRole()
+    {
+        RoleDeletionConfirmation? submitted = null;
+        var service = new FakeRoleDeletionService
+        {
+            Inspection = new RoleDeletionInspectionResult
+            {
+                Outcome = RoleDeletionInspectionOutcome.RemediationRequired,
+                Impact = new RoleDeletionImpactResponse
+                {
+                    RoleId = "role-1",
+                    DependencyVersion = "dep-1",
+                    CanDelete = false,
+                    CanRemediate = true,
+                    Warnings = ["removes_last_default_role"],
+                    EditableReferences =
+                    [
+                        new RoleDeletionDependencyResponse { Source = "external-authentication", OwnerId = "connection-a", OwnerKey = "Connection A" },
+                        new RoleDeletionDependencyResponse { Source = "external-authentication", OwnerId = "connection-b", OwnerKey = "Connection B" }
+                    ]
+                }
+            },
+            RemediationHandler = confirmation =>
+            {
+                submitted = confirmation;
+                return Task.FromResult(new RoleDeletionOperationResult { Outcome = RoleDeletionOperationOutcome.Deleted });
+            }
+        };
+        var (provider, _) = await OpenAsync(
+            "role-1",
+            "Auditors",
+            CanDelete,
+            [new RoleSummary { Id = "replacement", Name = "Workflow Authors" }],
+            service);
+        var dialog = provider.FindComponent<DeleteRoleDialog>();
+
+        var selects = dialog.FindComponents<MudSelect<string>>();
+        Assert.Contains("Replacement default role", dialog.Markup, StringComparison.Ordinal);
+        await dialog.InvokeAsync(() => selects.Single().Instance.ValueChanged.InvokeAsync("replacement"));
+
+        var checkboxes = dialog.FindAll("input[type=checkbox]");
+        Assert.Equal(4, checkboxes.Count);
+        await checkboxes[1].ChangeAsync(false);
+        await checkboxes[2].ChangeAsync(true);
+        await checkboxes[3].ChangeAsync(true);
+        await dialog.FindAll("button").Single(x => x.TextContent.Contains("Apply remediation", StringComparison.Ordinal)).ClickAsync();
+
+        Assert.NotNull(submitted);
+        Assert.Equal("replacement", submitted!.ReplacementDefaultRoleId);
+        Assert.Equal(
+            [new RoleDeletionReferenceSelection { Source = "external-authentication", OwnerId = "connection-a" }],
+            submitted.SelectedReferences);
+    }
+
+    [Fact]
+    public async Task Remediation_OnlyRequiresReplacementForSelectedFinalDefaultReference()
+    {
+        var service = new FakeRoleDeletionService
+        {
+            Inspection = new RoleDeletionInspectionResult
+            {
+                Outcome = RoleDeletionInspectionOutcome.RemediationRequired,
+                Impact = new RoleDeletionImpactResponse
+                {
+                    RoleId = "role-1",
+                    DependencyVersion = "dep-1",
+                    CanDelete = false,
+                    CanRemediate = true,
+                    Warnings = ["removes_last_default_role"],
+                    EditableReferences =
+                    [
+                        new RoleDeletionDependencyResponse { Source = "external-authentication", OwnerId = "final", RemovesLastDefaultRole = true },
+                        new RoleDeletionDependencyResponse { Source = "external-authentication", OwnerId = "other" }
+                    ]
+                }
+            }
+        };
+        var (provider, _) = await OpenAsync("role-1", "Auditors", CanDelete, service: service);
+        var dialog = provider.FindComponent<DeleteRoleDialog>();
+
+        Assert.Contains("Replacement default role", dialog.Markup, StringComparison.Ordinal);
+        await dialog.FindAll("input[type=checkbox]")[0].ChangeAsync(false);
+
+        Assert.DoesNotContain("Replacement default role", dialog.Markup, StringComparison.Ordinal);
+    }
+
     private async Task<IRenderedComponent<MudDialogProvider>> ShowAsync(
         string roleId,
         string roleName,
@@ -185,15 +272,21 @@ public sealed class DeleteRoleDialogTests : BunitContext, IAsyncLifetime
     private async Task<(IRenderedComponent<MudDialogProvider> Provider, IDialogReference Reference)> OpenAsync(
         string roleId,
         string roleName,
-        RoleAdministrationAccess access)
+        RoleAdministrationAccess access,
+        IReadOnlyCollection<RoleSummary>? replacementRoles = null,
+        FakeRoleDeletionService? service = null)
     {
+        if (service is not null)
+            Services.AddSingleton<IRoleDeletionService>(service);
+        Render<MudPopoverProvider>();
         var provider = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters
         {
             [nameof(DeleteRoleDialog.RoleId)] = roleId,
             [nameof(DeleteRoleDialog.RoleName)] = roleName,
-            [nameof(DeleteRoleDialog.Access)] = access
+            [nameof(DeleteRoleDialog.Access)] = access,
+            [nameof(DeleteRoleDialog.ReplacementRoles)] = replacementRoles ?? []
         };
         var reference = await dialogService.ShowAsync<DeleteRoleDialog>("Delete role", parameters);
         provider.WaitForAssertion(() => provider.FindComponent<DeleteRoleDialog>());

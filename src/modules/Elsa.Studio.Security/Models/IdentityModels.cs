@@ -164,6 +164,15 @@ public sealed record RoleRemediationRequest
     public bool ConfirmRemoveFromEditableJitPolicies { get; init; }
     public bool ConfirmEmptyDefaultRoles { get; init; }
     public bool ConfirmBestEffort { get; init; }
+    public IReadOnlyCollection<RoleDeletionReferenceSelection>? SelectedReferences { get; init; }
+    public string? ReplacementRoleId { get; init; }
+}
+
+/// <summary>Identifies one editable role reference selected for remediation.</summary>
+public sealed record RoleDeletionReferenceSelection
+{
+    public string Source { get; init; } = string.Empty;
+    public string OwnerId { get; init; } = string.Empty;
 }
 
 /// <summary>Core's structured error shape used by role deletion and other Identity endpoints.</summary>

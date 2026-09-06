@@ -22,6 +22,8 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
     private bool _confirmBestEffort;
     private bool _isSubmitting;
     private bool _closed;
+    private readonly HashSet<string> _selectedReferenceKeys = new(StringComparer.Ordinal);
+    private string? _replacementDefaultRoleId;
 
     [Parameter, EditorRequired]
     public string RoleId { get; set; } = string.Empty;
@@ -32,6 +34,9 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
     /// <summary>Delete capability resolved by the existing role-administration boundary.</summary>
     [Parameter]
     public RoleAdministrationAccess Access { get; set; } = RoleAdministrationAccess.Unavailable;
+
+    [Parameter]
+    public IReadOnlyCollection<RoleSummary> ReplacementRoles { get; set; } = [];
 
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
@@ -54,9 +59,14 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
         : "Cancel";
 
     private bool HasFinalDefaultWarning =>
-        (_impact?.Warnings ?? []).Contains("removes_last_default_role", StringComparer.Ordinal) ||
-        (_impact?.ConfigurationReferences ?? []).Concat(_impact?.EditableReferences ?? [])
-            .Any(x => x.RemovesLastDefaultRole);
+        ConfigurationReferences.Any(x => x.RemovesLastDefaultRole) ||
+        (EditableReferences.Count > 0
+            ? EditableReferences.Any(x => IsReferenceSelected(x) && x.RemovesLastDefaultRole) ||
+              !EditableReferences.Any(x => x.RemovesLastDefaultRole) && HasFinalDefaultWarningCode
+            : HasFinalDefaultWarningCode);
+
+    private bool HasFinalDefaultWarningCode =>
+        (_impact?.Warnings ?? []).Contains("removes_last_default_role", StringComparer.Ordinal);
 
     private bool RequiresBestEffortConfirmation =>
         string.Equals(_impact?.ExecutionMode, "bestEffort", StringComparison.OrdinalIgnoreCase);
@@ -64,9 +74,11 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
     private bool CanSubmitRemediation =>
         _impact is not null &&
         !string.IsNullOrWhiteSpace(_impact.DependencyVersion) &&
-        (!EditableReferences.Any() || _confirmEditableReferences) &&
-        (!HasFinalDefaultWarning || _confirmEmptyDefaultRoles) &&
+        (!EditableReferences.Any() || (HasSelectedEditableReferences && _confirmEditableReferences)) &&
+        (!HasFinalDefaultWarning || (!string.IsNullOrWhiteSpace(_replacementDefaultRoleId) && _confirmEmptyDefaultRoles)) &&
         (!RequiresBestEffortConfirmation || _confirmBestEffort);
+
+    private bool HasSelectedEditableReferences => EditableReferences.Any(IsReferenceSelected);
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,6 +128,7 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
         _impact = result.Impact;
         _errorMessage = result.Message;
         _operationCode = result.Code;
+        ResetSelectedReferences();
         _state = result.Outcome switch
         {
             RoleDeletionInspectionOutcome.Safe => DeleteRoleDialogViewState.SafeConfirmation,
@@ -154,7 +167,12 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
                     ExpectedDependencyVersion = _impact.DependencyVersion,
                     ConfirmRemoveFromEditableJitPolicies = _confirmEditableReferences,
                     ConfirmEmptyDefaultRoles = _confirmEmptyDefaultRoles,
-                    ConfirmBestEffort = _confirmBestEffort
+                    ConfirmBestEffort = _confirmBestEffort,
+                    SelectedReferences = EditableReferences
+                        .Where(IsReferenceSelected)
+                        .Select(ToSelection)
+                        .ToArray(),
+                    ReplacementDefaultRoleId = _replacementDefaultRoleId
                 }, cancellationToken);
 
             if (_closed || cancellationToken.IsCancellationRequested)
@@ -181,7 +199,10 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
     {
         var previousImpact = _impact;
         if (result.Impact is not null)
+        {
             _impact = result.Impact;
+            ResetSelectedReferences();
+        }
 
         _errorMessage = result.Message;
         _changedOwnerIds = result.ChangedOwnerIds;
@@ -195,15 +216,18 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
                 _state = DeleteRoleDialogViewState.ConfigurationBlocked;
                 break;
             case RoleDeletionOperationOutcome.DependencyConflict:
+                _operationCode = result.Code;
                 _previousDependencyVersion = previousImpact?.DependencyVersion;
                 _state = DeleteRoleDialogViewState.DependencyConflict;
                 ResetConfirmations();
                 break;
             case RoleDeletionOperationOutcome.ConfirmationRequired:
+                _operationCode = result.Code;
                 _state = DeleteRoleDialogViewState.ConfirmationRequired;
                 ResetConfirmations();
                 break;
             case RoleDeletionOperationOutcome.Incomplete:
+                _operationCode = result.Code;
                 _state = DeleteRoleDialogViewState.Incomplete;
                 ResetConfirmations();
                 break;
@@ -260,6 +284,38 @@ public partial class DeleteRoleDialog : ComponentBase, IAsyncDisposable
         _confirmEmptyDefaultRoles = false;
         _confirmBestEffort = false;
     }
+
+    private void ResetSelectedReferences()
+    {
+        _selectedReferenceKeys.Clear();
+        foreach (var reference in EditableReferences)
+            _selectedReferenceKeys.Add(ReferenceKey(reference));
+
+        _replacementDefaultRoleId = null;
+    }
+
+    private bool IsReferenceSelected(RoleDeletionDependencyResponse reference) =>
+        _selectedReferenceKeys.Contains(ReferenceKey(reference));
+
+    private void SetReferenceSelection(RoleDeletionDependencyResponse reference, bool selected)
+    {
+        var key = ReferenceKey(reference);
+        if (selected)
+            _selectedReferenceKeys.Add(key);
+        else
+            _selectedReferenceKeys.Remove(key);
+    }
+
+    private void SetReplacementDefaultRole(string? roleId) => _replacementDefaultRoleId = roleId;
+
+    private static string ReferenceKey(RoleDeletionDependencyResponse reference) =>
+        $"{reference.Source}\u001F{reference.OwnerId}";
+
+    private static RoleDeletionReferenceSelection ToSelection(RoleDeletionDependencyResponse reference) => new()
+    {
+        Source = reference.Source,
+        OwnerId = reference.OwnerId
+    };
 
     private void Cancel()
     {

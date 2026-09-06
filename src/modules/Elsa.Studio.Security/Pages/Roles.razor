@@ -313,7 +313,12 @@
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Name">
-                            <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
+                            <a class="role-row-link"
+                               href="@RoleDetailsUrl(context)"
+                               aria-label="@($"Open {context.Name} role details")"
+                               @onclick:stopPropagation="true">
+                                <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
+                            </a>
                         </MudTd>
                         <MudTd DataLabel="ID">
                             <code class="role-id">@context.Id</code>
@@ -495,7 +500,7 @@
         _deleteDialogOpen = true;
         try
         {
-            var result = await DialogService.ShowRoleDeletionAsync(role, access);
+            var result = await DialogService.ShowRoleDeletionAsync(role, access, _roles);
             if (!_disposed && result?.ShouldRefresh == true)
                 await LoadRolesAsync(_loadCancellation.Token);
         }

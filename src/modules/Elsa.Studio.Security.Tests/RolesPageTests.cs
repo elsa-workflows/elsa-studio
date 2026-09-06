@@ -172,6 +172,26 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void DesktopRowsExposeAKeyboardOperableDetailsLink()
+    {
+        var api = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "auditors", Name = "Auditors" }]
+            }
+        };
+        Register(api, ReadyAccess);
+
+        var cut = RenderRoles();
+        cut.WaitForAssertion(() => Assert.Contains("Auditors", cut.Markup));
+
+        var link = cut.Find("tbody tr a.role-row-link");
+        Assert.Equal("/security/roles/auditors", link.GetAttribute("href"));
+        Assert.Equal("Open Auditors role details", link.GetAttribute("aria-label"));
+    }
+
+    [Fact]
     public void DeleteAction_OpensTheSharedDeletionDialogWithoutNavigatingToDetails()
     {
         var api = new StubRolesApi

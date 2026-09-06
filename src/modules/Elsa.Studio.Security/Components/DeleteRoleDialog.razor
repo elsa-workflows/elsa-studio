@@ -1,3 +1,15 @@
+<style>
+    @@media (max-width: 600px) {
+        .mud-dialog.delete-role-dialog {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            max-height: 100vh;
+            margin: 0;
+        }
+    }
+</style>
+
 <MudDialog Visible="true" Class="delete-role-dialog" ContentClass="delete-role-dialog-content" ActionsClass="delete-role-dialog-actions">
     <TitleContent>
         <MudStack Spacing="0">
@@ -95,7 +107,11 @@
                                 <MudText Typo="Typo.body1">@GetReferenceName(reference)</MudText>
                                 <MudText Typo="Typo.caption">@reference.Source @GetPolicyBranch(reference)</MudText>
                             </MudStack>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">Remove @RoleName</MudChip>
+                            <MudCheckBox T="bool"
+                                         Value="@IsReferenceSelected(reference)"
+                                         ValueChanged="@((bool selected) => SetReferenceSelection(reference, selected))"
+                                         Disabled="@_isSubmitting"
+                                         Label="@($"Remove {RoleName} from {GetReferenceName(reference)}")" />
                         </MudStack>
                     </MudPaper>
                 }
@@ -105,8 +121,26 @@
                     <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
                         Final default-role warning: @RoleName is the final default role.
                     </MudAlert>
+                    <MudSelect T="string"
+                               Label="Replacement default role"
+                               Value="@_replacementDefaultRoleId"
+                               ValueChanged="SetReplacementDefaultRole"
+                               Required="true"
+                               RequiredError="Choose a replacement default role."
+                               Disabled="@_isSubmitting"
+                               Dense="true"
+                               Variant="Variant.Outlined">
+                        @foreach (var replacementRole in ReplacementRoles.Where(x => !string.Equals(x.Id, RoleId, StringComparison.Ordinal)))
+                        {
+                            <MudSelectItem T="string" Value="@replacementRole.Id">@replacementRole.Name (@replacementRole.Id)</MudSelectItem>
+                        }
+                    </MudSelect>
+                    @if (!ReplacementRoles.Any(x => !string.Equals(x.Id, RoleId, StringComparison.Ordinal)))
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Error">No replacement role is available. The final default role cannot be removed from this screen.</MudText>
+                    }
                     <MudCheckBox T="bool" @bind-Value="_confirmEmptyDefaultRoles" Disabled="@_isSubmitting"
-                                 Label="I understand the final default role may be removed." />
+                                 Label="I confirm the selected replacement will be applied before deletion." />
                 }
 
                 @if (RequiresBestEffortConfirmation)

@@ -300,6 +300,7 @@ else
     private readonly HashSet<string> _reachLoading = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _reachErrors = new(StringComparer.Ordinal);
     private readonly CancellationTokenSource _lifetime = new();
+    private IReadOnlyList<RoleSummary> _availableRoles = [];
     private string? _loadedRoleId;
 
     private bool _isCreate => string.IsNullOrWhiteSpace(RoleId);
@@ -351,7 +352,9 @@ else
             {
                 var rolesApi = await ApiClientProvider.GetApiAsync<IRolesApi>(_lifetime.Token);
                 var roles = await rolesApi.ListAsync(_lifetime.Token);
-                _role = roles.Roles.FirstOrDefault(x => string.Equals(x.Id, RoleId, StringComparison.Ordinal));
+                var roleSummaries = roles.Roles ?? [];
+                _availableRoles = roleSummaries.ToList();
+                _role = roleSummaries.FirstOrDefault(x => string.Equals(x.Id, RoleId, StringComparison.Ordinal));
                 if (_role == null)
                 {
                     _loadError = "The role no longer exists.";
@@ -553,8 +556,18 @@ else
 
     private async Task LoadReachAsync(string grant)
     {
-        var api = await ApiClientProvider.GetApiAsync<IPermissionsApi>(_lifetime.Token);
-        await LoadReachAsync(api, grant);
+        try
+        {
+            var api = await ApiClientProvider.GetApiAsync<IPermissionsApi>(_lifetime.Token);
+            await LoadReachAsync(api, grant);
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _reachErrors[grant] = IdentityApiErrorMapper.Describe(exception).Message;
+        }
     }
 
     private async Task LoadReachAsync(IPermissionsApi api, string grant)
@@ -607,7 +620,7 @@ else
         _unresolved.Remove(original);
         if (kind == RolePermissionGrantKind.Exact)
         {
-            if (RolePermissionAuthoring.TryParse(replacement, out var exact) && FindCoveringWildcard(exact.Resource, exact.Verb) == null)
+            if (RolePermissionAuthoring.TryParse(replacement, out _))
                 _direct.Add(replacement);
         }
         else if (!_advanced.Contains(replacement, StringComparer.Ordinal))
@@ -649,17 +662,17 @@ else
 
     private async Task SaveAsync()
     {
-        if (!CanSave || _form == null)
-            return;
-
-        await _form.Validate();
-        if (!_form.IsValid || _saving)
+        if (!CanSave || _form == null || _saving)
             return;
 
         _saving = true;
         _saveError = null;
         try
         {
+            await _form.Validate();
+            if (!_form.IsValid)
+                return;
+
             var permissions = RolePermissionAuthoring.NormalizePermissions(_direct.Concat(_advanced).Concat(_unresolved));
             var api = await ApiClientProvider.GetApiAsync<IRolesApi>(_lifetime.Token);
             if (_isCreate)
@@ -700,7 +713,7 @@ else
         _deleteDialogOpen = true;
         try
         {
-            var result = await DialogService.ShowRoleDeletionAsync(_role, Access);
+            var result = await DialogService.ShowRoleDeletionAsync(_role, Access, _availableRoles);
             if (result?.WasDeleted == true)
             {
                 Snackbar.Add("Role deleted.", Severity.Success);

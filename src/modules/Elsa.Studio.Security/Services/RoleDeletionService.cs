@@ -71,7 +71,9 @@ public sealed class RoleDeletionService(IBackendApiClientProvider apiClientProvi
                     ExpectedDependencyVersion = confirmation.ExpectedDependencyVersion,
                     ConfirmRemoveFromEditableJitPolicies = confirmation.ConfirmRemoveFromEditableJitPolicies,
                     ConfirmEmptyDefaultRoles = confirmation.ConfirmEmptyDefaultRoles,
-                    ConfirmBestEffort = confirmation.ConfirmBestEffort
+                    ConfirmBestEffort = confirmation.ConfirmBestEffort,
+                    SelectedReferences = confirmation.SelectedReferences,
+                    ReplacementRoleId = confirmation.ReplacementDefaultRoleId
                 },
                 cancellationToken);
             return new() { Outcome = RoleDeletionOperationOutcome.Deleted };
