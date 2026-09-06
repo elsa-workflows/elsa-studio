@@ -68,6 +68,8 @@ public sealed record RoleDeletionConfirmation
     public bool ConfirmRemoveFromEditableJitPolicies { get; init; }
     public bool ConfirmEmptyDefaultRoles { get; init; }
     public bool ConfirmBestEffort { get; init; }
+    public IReadOnlyCollection<RoleDeletionReferenceSelection> SelectedReferences { get; init; } = [];
+    public string? ReplacementDefaultRoleId { get; init; }
 }
 
 /// <summary>Stable result returned by <see cref="Components.DeleteRoleDialog"/>.</summary>

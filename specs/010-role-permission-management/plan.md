@@ -3,7 +3,7 @@
 ## Repository responsibility
 
 - `elsa-studio`: canonical program artifacts, module activation, internal API clients and DTOs, permission context, navigation, role UI, deletion UI, component tests, and browser validation.
-- `elsa-core`: authoritative role, catalog, reach, authorization, deletion-impact, and remediation behavior. No planned changes.
+- `elsa-core`: authoritative role, catalog, reach, authorization, deletion-impact, and remediation behavior. During exact-host validation, additive selective-remediation work moved to elsa-core#8028/PR #8029, in-memory role tenant isolation to #8012, and an unrelated .NET 10 compile unblocker to #8030/PR #8031. These remain separately reviewed Core changes rather than hidden Studio scope.
 
 ## Architecture
 
@@ -29,6 +29,8 @@
 3. Approved role list/editor, permission catalog, advanced grants, repair UI, and component tests.
 4. Shared deletion/remediation modal and focused tests.
 5. Exact-head integration fixes and recorded Server/WebAssembly end-to-end evidence.
+
+Core prerequisites discovered on that path land independently before the final host matrix is accepted.
 
 ## Critical path
 

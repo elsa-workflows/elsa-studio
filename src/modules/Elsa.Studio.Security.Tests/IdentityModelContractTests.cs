@@ -138,7 +138,9 @@ public sealed class IdentityModelContractTests
             ExpectedDependencyVersion = "dep-7",
             ConfirmRemoveFromEditableJitPolicies = true,
             ConfirmEmptyDefaultRoles = false,
-            ConfirmBestEffort = true
+            ConfirmBestEffort = true,
+            SelectedReferences = [new RoleDeletionReferenceSelection { Source = "external-authentication", OwnerId = "connection-1" }],
+            ReplacementRoleId = "workflow-authors"
         };
         using var requestDocument = JsonDocument.Parse(JsonSerializer.Serialize(request, JsonOptions));
 
@@ -146,6 +148,10 @@ public sealed class IdentityModelContractTests
         Assert.True(requestDocument.RootElement.GetProperty("confirmRemoveFromEditableJitPolicies").GetBoolean());
         Assert.False(requestDocument.RootElement.GetProperty("confirmEmptyDefaultRoles").GetBoolean());
         Assert.True(requestDocument.RootElement.GetProperty("confirmBestEffort").GetBoolean());
+        var selection = Assert.Single(requestDocument.RootElement.GetProperty("selectedReferences").EnumerateArray());
+        Assert.Equal("external-authentication", selection.GetProperty("source").GetString());
+        Assert.Equal("connection-1", selection.GetProperty("ownerId").GetString());
+        Assert.Equal("workflow-authors", requestDocument.RootElement.GetProperty("replacementRoleId").GetString());
 
         var coreError = JsonSerializer.Deserialize<CoreApiErrorResponse>(
             """{ "error": "role_referenced_by_jit_policy", "message": "The role is still referenced.", "details": { "roleId": "role-1" } }""", JsonOptions)!;

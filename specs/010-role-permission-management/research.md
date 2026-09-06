@@ -47,6 +47,10 @@ Remediation submits:
 - `confirmRemoveFromEditableJitPolicies`;
 - `confirmEmptyDefaultRoles`;
 - `confirmBestEffort`.
+- optional `selectedReferences`, each identified by the contributor `source` and `ownerId`;
+- optional `replacementRoleId` when a selected edit would otherwise remove a policy's final default role.
+
+Omitting `selectedReferences` preserves the legacy all-editable contract. Sending an explicit empty collection performs no editable mutations and cannot delete while dependencies remain. Unknown, duplicate, stale, or non-database selections fail closed. Configuration-owned dependencies block the complete operation even when database-owned references were selected.
 
 Core maps deletion outcomes to `204`, `400 confirmation_required`, `403`, `404 not_found`, and `409` codes including `role_referenced_by_jit_policy`, `role_dependency_changed`, and `role_remediation_incomplete`. Core retains the role after incomplete remediation and does not automatically retry version conflicts.
 
@@ -58,7 +62,7 @@ The Studio checkout's nearby release Core (`release/3.8.0`) and package fallback
 
 These are not silently expanded into the Studio implementation:
 
-1. The in-memory role path does not safely isolate deterministic role IDs across tenants.
+1. The in-memory role path does not safely isolate deterministic role IDs across tenants. Real-host validation also proved that a newly created null-tenant role is omitted by an immediate authenticated list when an ambient tenant is active, so #8012 is a hard acceptance prerequisite rather than a release-note-only boundary.
 2. External-authentication deletion impact is not tenant-filtered.
 3. Role deletion does not publish the security notification emitted by create/update.
 
@@ -69,6 +73,8 @@ Tracking issues:
 - [elsa-core#8014](https://github.com/elsa-workflows/elsa-core/issues/8014)
 
 Studio implementation may proceed against a current-main-compatible, appropriately isolated deployment, but release proof must record this boundary. The Core defects are tracked separately.
+
+The current Core main branch also had an unrelated .NET 10 compile break in the UserTasks requestless invitation endpoint. That gate is isolated as #8030/PR #8031 and must pass independently before the role-remediation PR's repository-wide CI can be interpreted.
 
 ## Architectural conclusion
 

@@ -19,7 +19,6 @@ public sealed class SecurityMenuTests
     {
         var contributor = new IdentitySecurityMenuContributor(
             new TestRemoteFeatureProvider(true),
-            new TestIdentityPermissionService(),
             new TestRoleAccessService(RoleAdministrationAccess.Forbidden));
         var menu = new SecurityMenu([contributor]);
 
@@ -33,7 +32,6 @@ public sealed class SecurityMenuTests
     {
         var contributor = new IdentitySecurityMenuContributor(
             new TestRemoteFeatureProvider(true),
-            new TestIdentityPermissionService(),
             new TestRoleAccessService(new RoleAdministrationAccess(
                 RoleAdministrationAccessState.Ready, CanView: true, CanCreate: true, CanUpdate: false, CanDelete: false)));
         var menu = new SecurityMenu([contributor]);
@@ -48,17 +46,6 @@ public sealed class SecurityMenuTests
         Assert.Equal("security/roles", roles.Href);
         Assert.DoesNotContain(items.SelectMany(x => x.SubMenuItems), x => x.Text == "Users");
     }
-}
-
-internal sealed class TestIdentityPermissionService(params string[] permissions) : IIdentityPermissionService
-{
-    private readonly IReadOnlySet<string> _permissions = permissions.ToHashSet(StringComparer.Ordinal);
-
-    public ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default) =>
-        new(_permissions.Contains(permission));
-
-    public ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default) =>
-        new(_permissions);
 }
 
 public sealed class RoleAdministrationAccessBoundaryTests : BunitContext, IAsyncLifetime
@@ -107,6 +94,22 @@ public sealed class RoleAdministrationAccessBoundaryTests : BunitContext, IAsync
         Assert.DoesNotContain("Role administration is unavailable", cut.Markup);
     }
 
+    [Fact]
+    public async Task Dispose_CancelsAnOutstandingAccessCheck()
+    {
+        var service = new BlockingRoleAccessService();
+        Services.AddSingleton<IRoleAdministrationAccessService>(service);
+
+        var cut = Render<RoleAdministrationAccessBoundary>(parameters =>
+            parameters.Add(component => component.ChildContent, Child("ready")));
+        await service.Started.Task;
+
+        await Assert.IsAssignableFrom<IAsyncDisposable>(cut.Instance).DisposeAsync();
+
+        Assert.True(service.CancellationToken.IsCancellationRequested);
+        service.Release.TrySetResult(RoleAdministrationAccess.Unavailable);
+    }
+
     private static RenderFragment<RoleAdministrationAccess> Child(string text) =>
         access => builder => builder.AddContent(0, $"{text}:{access.CanView}");
 
@@ -117,6 +120,24 @@ public sealed class RoleAdministrationAccessBoundaryTests : BunitContext, IAsync
 internal sealed class TestRoleAccessService(RoleAdministrationAccess access) : IRoleAdministrationAccessService
 {
     public Task<RoleAdministrationAccess> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(access);
+    public void Invalidate()
+    {
+    }
+}
+
+internal sealed class BlockingRoleAccessService : IRoleAdministrationAccessService
+{
+    public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public TaskCompletionSource<RoleAdministrationAccess> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public CancellationToken CancellationToken { get; private set; }
+
+    public async Task<RoleAdministrationAccess> GetAsync(CancellationToken cancellationToken = default)
+    {
+        CancellationToken = cancellationToken;
+        Started.TrySetResult();
+        return await Release.Task.WaitAsync(cancellationToken);
+    }
+
     public void Invalidate()
     {
     }

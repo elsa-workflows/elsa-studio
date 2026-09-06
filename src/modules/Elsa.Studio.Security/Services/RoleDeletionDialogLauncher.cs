@@ -10,13 +10,15 @@ public static class RoleDeletionDialogLauncher
     public static async Task<DeleteRoleDialogResult?> ShowRoleDeletionAsync(
         this IDialogService dialogService,
         RoleSummary role,
-        RoleAdministrationAccess access)
+        RoleAdministrationAccess access,
+        IReadOnlyCollection<RoleSummary>? replacementRoles = null)
     {
         var parameters = new DialogParameters<DeleteRoleDialog>
         {
             { x => x.RoleId, role.Id },
             { x => x.RoleName, role.Name },
-            { x => x.Access, access }
+            { x => x.Access, access },
+            { x => x.ReplacementRoles, replacementRoles ?? [] }
         };
         var options = new DialogOptions
         {

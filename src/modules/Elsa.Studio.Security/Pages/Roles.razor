@@ -14,6 +14,16 @@
     .roles-page {
         --roles-border: var(--mud-palette-lines-default);
         --roles-muted: var(--mud-palette-text-secondary);
+        --roles-primary-aa: color-mix(in srgb, var(--mud-palette-primary), var(--mud-palette-text-primary) 32%);
+    }
+
+    .roles-page .roles-primary-action.mud-button-filled {
+        background-color: var(--roles-primary-aa);
+    }
+
+    .roles-page .role-permission-chip.mud-chip-outlined.mud-chip-color-primary {
+        border-color: var(--roles-primary-aa);
+        color: var(--roles-primary-aa);
     }
 
     .roles-toolbar {
@@ -63,7 +73,7 @@
     }
 
     .roles-table .mud-table-head .mud-table-cell {
-        color: var(--roles-muted);
+        color: color-mix(in srgb, var(--roles-muted), var(--mud-palette-text-primary) 16%);
         font-size: 0.75rem;
         font-weight: 600;
         letter-spacing: 0.04em;
@@ -199,7 +209,7 @@
 
 <MudContainer MaxWidth="MaxWidth.False" Class="roles-page">
     <RoleAdministrationAccessBoundary Context="access">
-        <PageHeading Text="Roles" />
+        <MudText Typo="Typo.h5" HtmlTag="h1" Class="my-6">Roles</MudText>
 
         @if (!access.CanCreate && !access.CanUpdate && !access.CanDelete)
         {
@@ -226,6 +236,7 @@
             {
                 <MudButton Variant="Variant.Filled"
                             Color="Color.Primary"
+                            Class="roles-primary-action"
                             StartIcon="@Icons.Material.Filled.Add"
                             OnClick="NavigateToCreate"
                             Disabled="@_navigationStarted"
@@ -258,6 +269,7 @@
                 <MudText Typo="Typo.body2">@_loadError.Message</MudText>
                 <MudButton Variant="Variant.Filled"
                             Color="Color.Primary"
+                            Class="roles-primary-action"
                             OnClick="ReloadAsync"
                             Disabled="@_isLoading"
                             aria-label="Try loading roles again">
@@ -275,6 +287,7 @@
                 {
                     <MudButton Variant="Variant.Filled"
                                 Color="Color.Primary"
+                                Class="roles-primary-action"
                                 OnClick="NavigateToCreate"
                                 Disabled="@_navigationStarted"
                                 aria-label="Create your first role">
@@ -313,7 +326,12 @@
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Name">
-                            <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
+                            <a class="role-row-link"
+                               href="@RoleDetailsUrl(context)"
+                               aria-label="@($"Open {context.Name} role details")"
+                               @onclick:stopPropagation="true">
+                                <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
+                            </a>
                         </MudTd>
                         <MudTd DataLabel="ID">
                             <code class="role-id">@context.Id</code>
@@ -327,7 +345,7 @@
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                          Size="Size.Small"
                                          Dense="true"
-                                         aria-label="@($"Actions for {context.Name}")">
+                                         AriaLabel="@($"Actions for {context.Name}")">
                                     @if (access.CanUpdate)
                                     {
                                         <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(context))">Edit</MudMenuItem>
@@ -364,7 +382,7 @@
                                     <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                              Size="Size.Small"
                                              Dense="true"
-                                             aria-label="@($"Actions for {role.Name}")">
+                                             AriaLabel="@($"Actions for {role.Name}")">
                                         @if (access.CanUpdate)
                                         {
                                             <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(role))">Edit</MudMenuItem>
@@ -495,7 +513,7 @@
         _deleteDialogOpen = true;
         try
         {
-            var result = await DialogService.ShowRoleDeletionAsync(role, access);
+            var result = await DialogService.ShowRoleDeletionAsync(role, access, _roles);
             if (!_disposed && result?.ShouldRefresh == true)
                 await LoadRolesAsync(_loadCancellation.Token);
         }

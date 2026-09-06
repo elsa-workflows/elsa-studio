@@ -113,7 +113,9 @@ public sealed class RoleDeletionServiceTests
             ExpectedDependencyVersion = "dep-4",
             ConfirmRemoveFromEditableJitPolicies = true,
             ConfirmEmptyDefaultRoles = true,
-            ConfirmBestEffort = true
+            ConfirmBestEffort = true,
+            SelectedReferences = [new RoleDeletionReferenceSelection { Source = "external-authentication", OwnerId = "connection-1" }],
+            ReplacementDefaultRoleId = "replacement"
         };
 
         var result = await service.RemediateAndDeleteAsync("role-1", CanDelete, confirmation);
@@ -124,6 +126,8 @@ public sealed class RoleDeletionServiceTests
         Assert.True(api.RemediationRequest.ConfirmRemoveFromEditableJitPolicies);
         Assert.True(api.RemediationRequest.ConfirmEmptyDefaultRoles);
         Assert.True(api.RemediationRequest.ConfirmBestEffort);
+        Assert.Equal([new RoleDeletionReferenceSelection { Source = "external-authentication", OwnerId = "connection-1" }], api.RemediationRequest.SelectedReferences);
+        Assert.Equal("replacement", api.RemediationRequest.ReplacementRoleId);
     }
 
     [Fact]

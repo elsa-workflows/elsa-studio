@@ -42,10 +42,14 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         var cut = RenderRoles();
 
         cut.WaitForAssertion(() => Assert.Contains("Administrators", cut.Markup));
+        Assert.Equal("Roles", cut.Find("h1").TextContent.Trim());
         Assert.Contains("2 roles · all loaded", cut.Markup);
         Assert.Contains("Global access (*)", cut.Markup);
         Assert.DoesNotContain("Tenant", cut.Markup);
         Assert.DoesNotContain("mud-table-pagination", cut.Markup);
+        var actionButtons = cut.FindAll("button[aria-label^='Actions for ']");
+        Assert.Equal(4, actionButtons.Count);
+        Assert.All(actionButtons, button => Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label"))));
     }
 
     [Fact]
@@ -169,6 +173,26 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         secondCut.Find("tbody tr").Click();
 
         Assert.EndsWith("/security/roles/auditors%2Fread%20only", navigation.Uri, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DesktopRowsExposeAKeyboardOperableDetailsLink()
+    {
+        var api = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "auditors", Name = "Auditors" }]
+            }
+        };
+        Register(api, ReadyAccess);
+
+        var cut = RenderRoles();
+        cut.WaitForAssertion(() => Assert.Contains("Auditors", cut.Markup));
+
+        var link = cut.Find("tbody tr a.role-row-link");
+        Assert.Equal("/security/roles/auditors", link.GetAttribute("href"));
+        Assert.Equal("Open Auditors role details", link.GetAttribute("aria-label"));
     }
 
     [Fact]

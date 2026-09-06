@@ -173,6 +173,8 @@ src/framework/**/wwwroot/
 !src/modules/Elsa.Studio.Authentication.UI/wwwroot/**
 !src/modules/Elsa.Studio.Authentication.Themes/wwwroot/
 !src/modules/Elsa.Studio.Authentication.Themes/wwwroot/**
+!src/modules/Elsa.Studio.ExternalAuthentication.BlazorWasm/wwwroot/
+!src/modules/Elsa.Studio.ExternalAuthentication.BlazorWasm/wwwroot/**
 !src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/
 !src/modules/Elsa.Studio.Diagnostics.ConsoleLogs/wwwroot/*
 !src/modules/Elsa.Studio.Diagnostics.OpenTelemetry/wwwroot/
