@@ -181,11 +181,17 @@ export ROLE_E2E_PROXY_UPSTREAM=https://localhost:7294
 export ROLE_E2E_PROXY_URL=https://localhost:5001
 export ROLE_E2E_PROXY_PFX_PATH=/absolute/path/to/temporary-dev-cert.pfx
 export ROLE_E2E_PROXY_PFX_PASSWORD='<runtime-only password>'
+export ROLE_E2E_PROXY_UPSTREAM_CERT_PATH=/absolute/path/to/core-public-cert.pem
 npm run proxy:serve
 ```
 
 The proxy refuses non-loopback endpoints, non-matching origins, and paths
-outside `/elsa/api/`. Remove the temporary certificate after the run.
+outside `/elsa/api/`. It validates the upstream TLS certificate against the
+explicit public certificate instead of disabling TLS verification. A local
+Core certificate can be captured without its private key by piping
+`openssl s_client -connect localhost:7294 -servername localhost -showcerts`
+into `openssl x509 -out core-public-cert.pem`. Remove both temporary
+certificates after the run.
 
 ## Scope of evidence
 
