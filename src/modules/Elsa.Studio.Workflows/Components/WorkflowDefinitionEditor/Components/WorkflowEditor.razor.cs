@@ -320,13 +320,13 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
                 return;
 
-            if (progressOperationOwner.HasValue)
+            if (progressOperationOwner is { } progressOwner)
             {
                 try
                 {
                     await InvokeAsync(() =>
                     {
-                        if (!IsCurrentProgressOperation(expectedWorkflowDefinitionGeneration, progressOperationOwner.Value))
+                        if (!IsCurrentProgressOperation(expectedWorkflowDefinitionGeneration, progressOwner))
                             return;
 
                         IsProgressing = true;
@@ -416,8 +416,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
         finally
         {
-            if (progressOperationOwner.HasValue)
-                await CompleteProgressOperationAsync(expectedWorkflowDefinitionGeneration, progressOperationOwner.Value);
+            if (progressOperationOwner is { } progressOwner)
+                await CompleteProgressOperationAsync(expectedWorkflowDefinitionGeneration, progressOwner);
         }
     }
 
