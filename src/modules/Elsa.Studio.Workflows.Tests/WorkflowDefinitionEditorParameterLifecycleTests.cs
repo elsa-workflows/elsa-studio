@@ -116,6 +116,27 @@ public sealed class WorkflowDefinitionEditorParameterLifecycleTests
     }
 
     [Fact]
+    public async Task WorkflowDefinitionEditorCoalescesSameDefinitionLoadsWhileTheCurrentLoadIsPending()
+    {
+        await using var context = CreateContext();
+        var service = AddWorkflowDefinitionServiceProxy(context);
+        var pendingLoad = service.EnqueueFind();
+        var cut = RenderOuterEditor(context, "definition-a");
+
+        cut.Render(parameters => parameters.Add(x => x.DefinitionId, "definition-a"));
+        cut.Render(parameters => parameters.Add(x => x.DefinitionId, "definition-a"));
+
+        Assert.Equal(1, service.FindByDefinitionIdCallCount);
+
+        var definition = CreateDefinition("definition a", "version-a");
+        definition.DefinitionId = "definition-a";
+        pendingLoad.SetResult(definition);
+
+        cut.WaitForAssertion(() => Assert.Same(definition, cut.Instance.GetSelectedWorkflowDefinitionVersion()));
+        Assert.Equal(1, service.FindByDefinitionIdCallCount);
+    }
+
+    [Fact]
     public async Task WorkflowDefinitionEditorKeepsTheLatestOutOfOrderDefinitionLoad()
     {
         await using var context = CreateContext();
@@ -141,6 +162,50 @@ public sealed class WorkflowDefinitionEditorParameterLifecycleTests
         secondLoad.SetResult(CreateDefinition("stale definition b", "version-b-old"));
         cut.WaitForState(() => cut.RenderCount > renderCount, TimeSpan.FromSeconds(5));
         Assert.Same(latestDefinition, cut.Instance.GetSelectedWorkflowDefinitionVersion());
+        Assert.Equal(3, service.FindByDefinitionIdCallCount);
+    }
+
+    [Fact]
+    public async Task WorkflowDefinitionEditorIgnoresFailureFromAnObsoleteDefinitionLoad()
+    {
+        await using var context = CreateContext();
+        var service = AddWorkflowDefinitionServiceProxy(context);
+        var firstLoad = service.EnqueueFind();
+        var cut = RenderOuterEditor(context, "definition-a");
+        var secondLoad = service.EnqueueFind();
+        cut.Render(parameters => parameters.Add(x => x.DefinitionId, "definition-b"));
+
+        var latestDefinition = CreateDefinition("latest definition b", "version-b-latest");
+        latestDefinition.DefinitionId = "definition-b";
+        secondLoad.SetResult(latestDefinition);
+        cut.WaitForAssertion(() => Assert.Same(latestDefinition, cut.Instance.GetSelectedWorkflowDefinitionVersion()));
+
+        var renderCount = cut.RenderCount;
+        firstLoad.SetException(new InvalidOperationException("obsolete definition load failed"));
+        cut.WaitForState(() => cut.RenderCount > renderCount, TimeSpan.FromSeconds(5));
+
+        Assert.Same(latestDefinition, cut.Instance.GetSelectedWorkflowDefinitionVersion());
+    }
+
+    [Fact]
+    public async Task WorkflowDefinitionEditorPropagatesCurrentLoadFailureAndRetriesAfterFailure()
+    {
+        await using var context = CreateContext();
+        var service = AddWorkflowDefinitionServiceProxy(context);
+        var cut = RenderOuterEditor(context, "definition-a");
+        service.FindException = new InvalidOperationException("current definition load failed");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => cut.Render(parameters => parameters.Add(x => x.DefinitionId, "definition-b")));
+
+        Assert.Equal("current definition load failed", exception.Message);
+
+        service.FindException = null;
+        var recoveredDefinition = CreateDefinition("recovered", "version-b");
+        recoveredDefinition.DefinitionId = "definition-b";
+        service.FindResultFactory = _ => recoveredDefinition;
+        cut.Render(parameters => parameters.Add(x => x.DefinitionId, "definition-b"));
+
+        Assert.Same(recoveredDefinition, cut.Instance.GetSelectedWorkflowDefinitionVersion());
         Assert.Equal(3, service.FindByDefinitionIdCallCount);
     }
 
@@ -327,6 +392,7 @@ public sealed class WorkflowDefinitionEditorParameterLifecycleTests
 
         public int FindByDefinitionIdCallCount { get; private set; }
         public Func<string, WorkflowDefinition?> FindResultFactory { get; set; } = definitionId => CreateDefinition("loaded", definitionId);
+        public Exception? FindException { get; set; }
 
         public TaskCompletionSource<WorkflowDefinition?> EnqueueFind()
         {
@@ -343,6 +409,9 @@ public sealed class WorkflowDefinitionEditorParameterLifecycleTests
                 var definitionId = (string)args![0]!;
                 if (_pendingFinds.TryDequeue(out var pending))
                     return pending.Task;
+
+                if (FindException != null)
+                    return Task.FromException<WorkflowDefinition?>(FindException);
 
                 return Task.FromResult(FindResultFactory(definitionId));
             }

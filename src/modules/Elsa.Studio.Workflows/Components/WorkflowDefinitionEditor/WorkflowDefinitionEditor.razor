@@ -36,6 +36,8 @@
     private WorkflowDefinition? _workflowDefinition;
     private string? _loadedDefinitionId;
     private long _definitionLoadGeneration;
+    private Task<WorkflowDefinition?>? _pendingDefinitionLoad;
+    private string? _pendingDefinitionLoadId;
     private WorkflowDefinitionWorkspace WorkflowDefinitionWorkspace { get; set; } = null!;
 
     /// The ID of the workflow definition to load.
@@ -71,15 +73,40 @@
             return;
 
         var requestedDefinitionId = DefinitionId;
-        var definitionLoadGeneration = ++_definitionLoadGeneration;
-        var workflowDefinition = await WorkflowDefinitionService.FindByDefinitionIdAsync(requestedDefinitionId, VersionOptions.Latest);
+        var definitionLoadGeneration = _definitionLoadGeneration;
+        var definitionLoad = _pendingDefinitionLoad;
 
-        if (definitionLoadGeneration != _definitionLoadGeneration || !string.Equals(requestedDefinitionId, DefinitionId, StringComparison.Ordinal))
+        if (definitionLoad == null || !string.Equals(_pendingDefinitionLoadId, requestedDefinitionId, StringComparison.Ordinal))
+        {
+            definitionLoadGeneration = ++_definitionLoadGeneration;
+            definitionLoad = WorkflowDefinitionService.FindByDefinitionIdAsync(requestedDefinitionId, VersionOptions.Latest);
+            _pendingDefinitionLoad = definitionLoad;
+            _pendingDefinitionLoadId = requestedDefinitionId;
+        }
+
+        try
+        {
+            var workflowDefinition = await definitionLoad;
+
+            if (definitionLoadGeneration != _definitionLoadGeneration || !string.Equals(requestedDefinitionId, DefinitionId, StringComparison.Ordinal))
+                return;
+
+            _workflowDefinition = workflowDefinition;
+
+            if (workflowDefinition != null)
+                _loadedDefinitionId = requestedDefinitionId;
+        }
+        catch (Exception) when (definitionLoadGeneration != _definitionLoadGeneration || !string.Equals(requestedDefinitionId, DefinitionId, StringComparison.Ordinal))
+        {
             return;
-
-        _workflowDefinition = workflowDefinition;
-
-        if (workflowDefinition != null)
-            _loadedDefinitionId = requestedDefinitionId;
+        }
+        finally
+        {
+            if (ReferenceEquals(_pendingDefinitionLoad, definitionLoad))
+            {
+                _pendingDefinitionLoad = null;
+                _pendingDefinitionLoadId = null;
+            }
+        }
     }
 }

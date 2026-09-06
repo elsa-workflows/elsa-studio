@@ -39,8 +39,11 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 {
     private readonly RateLimitedFunc<(bool ReadDiagram, long WorkflowDefinitionGeneration), Task> _rateLimitedSaveChangesAsync;
     private bool _isDirty;
+    private bool _disposed;
     private WorkflowDefinition? _lastImportedWorkflowDefinition;
     private long _workflowDefinitionGeneration;
+    private long _progressOperationSequence;
+    private long? _progressOperationOwner;
     private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = null!;
@@ -159,18 +162,33 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        if (_disposed)
+            return;
+
         if (ReferenceEquals(WorkflowDefinition, _workflowDefinition))
             return;
 
-        _workflowDefinitionGeneration++;
+        InvalidateWorkflowDefinitionOperations();
 
-        _workflowDefinition = WorkflowDefinition;
+        var workflowDefinition = _workflowDefinition = WorkflowDefinition;
+        var expectedWorkflowDefinitionGeneration = _workflowDefinitionGeneration;
 
-        if (_workflowDefinition?.Root == null)
+        if (workflowDefinition?.Root == null)
             return;
 
-        await _diagramDesigner.LoadActivityAsync(_workflowDefinition!.Root);
-        await SelectActivityAsync(_workflowDefinition.Root);
+        try
+        {
+            await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
+        }
+        catch (Exception) when (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration) || !ReferenceEquals(_workflowDefinition, workflowDefinition))
+        {
+            return;
+        }
+
+        if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration) || !ReferenceEquals(_workflowDefinition, workflowDefinition))
+            return;
+
+        await SelectActivityAsync(workflowDefinition.Root);
     }
 
     /// <inheritdoc />
@@ -187,13 +205,29 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc />
     public void Dispose()
     {
+        DisposeCore();
+    }
+
+    private void DisposeCore()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
         _workflowDefinitionGeneration++;
+        _progressOperationOwner = null;
+        IsProgressing = false;
         Mediator.Unsubscribe(this);
         _rateLimitedSaveChangesAsync.Dispose();
-    }    
+    }
 
     /// Invalidates asynchronous operations that belong to the current workflow definition.
-    public void InvalidateWorkflowDefinitionOperations() => _workflowDefinitionGeneration++;
+    public void InvalidateWorkflowDefinitionOperations()
+    {
+        _workflowDefinitionGeneration++;
+        _progressOperationOwner = null;
+        IsProgressing = false;
+    }
 
     private async Task HandleChangesAsync(bool readDiagram, bool force = false)
     {
@@ -216,7 +250,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         {
             var root = await _diagramDesigner.GetActivityAsync();
 
-            if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+            if (!IsCurrentWorkflowOperation(workflowDefinitionGeneration))
                 throw new OperationCanceledException();
 
             workflowDefinition.Root = root;
@@ -224,11 +258,11 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition =>
         {
-            if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
+            if (IsCurrentWorkflowOperation(workflowDefinitionGeneration))
                 await SetWorkflowDefinitionAsync(definition);
         });
 
-        if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
+        if (IsCurrentWorkflowOperation(workflowDefinitionGeneration))
         {
             _isDirty = false;
             await InvokeAsync(StateHasChanged);
@@ -274,45 +308,77 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         var expectedWorkflowDefinitionGeneration = workflowDefinitionGeneration ?? _workflowDefinitionGeneration;
 
-        if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+        if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
             return;
 
-        await InvokeAsync(() =>
-        {
-            if (showLoader)
-            {
-                IsProgressing = true;
-                StateHasChanged();
-            }
-        });
+        var progressOperationOwner = showLoader ? BeginProgressOperation() : null;
 
         // Because this method is rate-limited, it's possible that the designer has been disposed of since the last invocation.
         // Therefore, we need to wrap this in a try/catch block.
         try
         {
-            if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+            if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                return;
+
+            if (progressOperationOwner.HasValue)
+            {
+                try
+                {
+                    await InvokeAsync(() =>
+                    {
+                        if (!IsCurrentProgressOperation(expectedWorkflowDefinitionGeneration, progressOperationOwner.Value))
+                            return;
+
+                        IsProgressing = true;
+                        StateHasChanged();
+                    });
+                }
+                catch (ObjectDisposedException) when (_disposed)
+                {
+                    return;
+                }
+                catch (InvalidOperationException) when (_disposed)
+                {
+                    return;
+                }
+            }
+
+            if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
                 return;
 
             var result = await SaveAsync(readDiagram, publish, expectedWorkflowDefinitionGeneration);
 
-            if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+            if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
                 return;
 
             await result.OnSuccessAsync(async response =>
             {
-                if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+                if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
                     return;
 
                 var currentSelectedActivityId = SelectedActivityId;
 
                 await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
 
+                if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                    return;
+
                 if (!string.IsNullOrEmpty(currentSelectedActivityId))
                 {
                     await RefreshSelectedActivityAsync(currentSelectedActivityId);
+
+                    if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                        return;
                 }
 
-                await InvokeAsync(StateHasChanged);
+                await InvokeAsync(() =>
+                {
+                    if (IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                        StateHasChanged();
+                });
+
+                if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                    return;
 
                 if (onSuccess != null)
                     await onSuccess(response);
@@ -321,6 +387,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
             await result.OnFailedAsync(errors =>
             {
+                if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                    return Task.CompletedTask;
+
                 onFailure?.Invoke(errors);
                 UserMessageService.ShowSnackbarTextMessage(
                     errors.Errors.Select(x => x.ErrorMessage),
@@ -332,6 +401,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
         catch (DiagramDesignerValidationException e)
         {
+            if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
+                return;
+
             UserMessageService.ShowSnackbarTextMessage(
                 e.Message,
                 Severity.Error,
@@ -344,11 +416,55 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }
         finally
         {
-            if (showLoader)
+            if (progressOperationOwner.HasValue)
+                await CompleteProgressOperationAsync(expectedWorkflowDefinitionGeneration, progressOperationOwner.Value);
+        }
+    }
+
+    private long? BeginProgressOperation() => _progressOperationOwner = ++_progressOperationSequence;
+
+    private bool IsCurrentWorkflowOperation(long workflowDefinitionGeneration) => !_disposed && workflowDefinitionGeneration == _workflowDefinitionGeneration;
+
+    private bool IsCurrentProgressOperation(long workflowDefinitionGeneration, long progressOperationOwner) =>
+        IsCurrentWorkflowOperation(workflowDefinitionGeneration) && _progressOperationOwner == progressOperationOwner;
+
+    private async Task CompleteProgressOperationAsync(long workflowDefinitionGeneration, long progressOperationOwner)
+    {
+        if (_disposed)
+        {
+            if (_progressOperationOwner == progressOperationOwner)
+                _progressOperationOwner = null;
+
+            return;
+        }
+
+        try
+        {
+            await InvokeAsync(() =>
             {
+                if (_progressOperationOwner != progressOperationOwner)
+                    return;
+
+                _progressOperationOwner = null;
                 IsProgressing = false;
-                await InvokeAsync(StateHasChanged);
-            }
+
+                if (IsCurrentWorkflowOperation(workflowDefinitionGeneration))
+                    StateHasChanged();
+            });
+        }
+        catch (ObjectDisposedException) when (_disposed)
+        {
+            if (_progressOperationOwner == progressOperationOwner)
+                _progressOperationOwner = null;
+
+            Logger.LogDebug("Skipped obsolete workflow progress cleanup after editor disposal.");
+        }
+        catch (InvalidOperationException) when (_disposed)
+        {
+            if (_progressOperationOwner == progressOperationOwner)
+                _progressOperationOwner = null;
+
+            Logger.LogDebug("Skipped obsolete workflow progress cleanup after editor disposal.");
         }
     }
 
@@ -363,7 +479,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition, bool isExternalReplacement = false)
     {
         if (isExternalReplacement)
-            _workflowDefinitionGeneration++;
+            InvalidateWorkflowDefinitionOperations();
 
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
         if (isExternalReplacement && WorkflowDefinitionReloaded != null)
@@ -615,6 +731,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
+        DisposeCore();
+
         if (_dotNetRef != null)
         {
             await JSRuntime.InvokeVoidAsync("editorHotkeys.dispose", _dotNetRef);
