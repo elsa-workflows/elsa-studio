@@ -167,7 +167,8 @@ export class CoreApiSession {
   private constructor(
     private readonly request: APIRequestContext,
     private readonly backendUrl: string,
-    private readonly accessToken: string
+    private readonly accessToken: string,
+    private readonly refreshToken?: string
   ) {
   }
 
@@ -180,7 +181,7 @@ export class CoreApiSession {
       throw new Error(`Core login failed with status ${response.status()}.`);
 
     // The token is intentionally kept only in this object for the duration of the test.
-    return new CoreApiSession(request, backendUrl, body.accessToken);
+    return new CoreApiSession(request, backendUrl, body.accessToken, body.refreshToken ?? undefined);
   }
 
   async createRole(name: string, permissions: string[] = []): Promise<RoleRecord> {
@@ -230,6 +231,18 @@ export class CoreApiSession {
   async expectForbiddenRoleCreation(name = `unauthorized-${randomUUID()}`): Promise<void> {
     const response = await this.send('POST', '/identity/roles', { name, permissions: [] });
     expect(response.status()).toBe(403);
+  }
+
+  async refresh(): Promise<CoreApiSession> {
+    if (!this.refreshToken)
+      throw new Error('Core login did not return a refresh token.');
+    const response = await this.request.post(`${this.backendUrl}/identity/refresh-token`, {
+      headers: { Authorization: `Bearer ${this.refreshToken}` }
+    });
+    const body = await response.json().catch(() => ({})) as LoginResponse;
+    if (response.status() !== 200 || body.isAuthenticated !== true || !body.accessToken)
+      throw new Error(`Core token refresh failed with status ${response.status()}.`);
+    return new CoreApiSession(this.request, this.backendUrl, body.accessToken, body.refreshToken ?? undefined);
   }
 
   async triggerLocalFixture(url: string, roleId: string): Promise<void> {

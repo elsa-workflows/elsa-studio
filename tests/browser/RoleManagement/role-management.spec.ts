@@ -205,6 +205,29 @@ test.describe('role management against a real Core host', () => {
     }
   });
 
+  test('role changes reach an existing user only after token refresh', async ({ request, config, adminApi }) => {
+    const assignedRole = await adminApi.createRole(roleName('refresh-role'), ['identity/roles:view']);
+    const generatedUser = await adminApi.createUser(roleName('refresh-user'), [assignedRole.id]);
+    let createdAfterRefresh: string | undefined;
+    try {
+      const originalSession = await CoreApiSession.signIn(request, config.backendUrl, {
+        username: generatedUser.name,
+        password: generatedUser.password
+      });
+      await adminApi.updateRole(assignedRole.id, assignedRole.name, ['identity/roles:view', 'identity/roles:create']);
+
+      await originalSession.expectForbiddenRoleCreation();
+      const refreshedSession = await originalSession.refresh();
+      const created = await refreshedSession.createRole(roleName('refresh-proof'));
+      createdAfterRefresh = created.id;
+    } finally {
+      if (createdAfterRefresh)
+        await adminApi.deleteRole(createdAfterRefresh);
+      await adminApi.deleteUser(generatedUser.id);
+      await adminApi.deleteRole(assignedRole.id);
+    }
+  });
+
   test('recognized unverified catalog entries remain selectable', async ({ page, config, diagnostics }) => {
     test.skip(!config.requireUnverifiedCatalog,
       'Set ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true only when the isolated Core catalog includes a verified:false descriptor.');
