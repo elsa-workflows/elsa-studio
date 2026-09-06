@@ -129,6 +129,11 @@ It covers:
 The existing External Authentication browser suite remains separate:
 `tests/browser/ExternalAuthentication`.
 
+Set `ROLE_E2E_EVIDENCE_DIR` to a repository-local directory to save role-list
+screenshots made only from generated fixture names. The suite rejects paths
+outside the Studio checkout and still leaves traces, videos, credentials,
+cookies, and tokens off disk.
+
 ## Coverage and known gates
 
 | Required behavior | Harness proof | Default state |

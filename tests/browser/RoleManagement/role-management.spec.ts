@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
-import type { Page } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import type { Page, TestInfo } from '@playwright/test';
 import { CoreApiSession, expect, openRoles, signIn, test, assertCleanRuntime } from './fixtures';
 
 const roleHostConfigured = ['SERVER', 'WASM'].some(prefix =>
@@ -19,6 +21,23 @@ function roleIdFromUrl(url: string): string {
   if (!segment)
     throw new Error('The role editor did not navigate to a role ID.');
   return decodeURIComponent(segment);
+}
+
+async function captureEvidence(page: Page, testInfo: TestInfo, label: string): Promise<void> {
+  const configuredDirectory = process.env.ROLE_E2E_EVIDENCE_DIR?.trim();
+  if (!configuredDirectory)
+    return;
+
+  const repositoryRoot = path.resolve(process.cwd(), '../../..');
+  const evidenceDirectory = path.resolve(process.cwd(), configuredDirectory);
+  if (evidenceDirectory !== repositoryRoot && !evidenceDirectory.startsWith(`${repositoryRoot}${path.sep}`))
+    throw new Error('ROLE_E2E_EVIDENCE_DIR must resolve inside the Studio repository.');
+
+  await mkdir(evidenceDirectory, { recursive: true });
+  await page.screenshot({
+    path: path.join(evidenceDirectory, `${testInfo.project.name}-${label}.png`),
+    fullPage: true
+  });
 }
 
 async function createRoleInEditor(
@@ -116,7 +135,7 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('role list is keyboard accessible and switches layout at the responsive breakpoint', async ({ page, config, adminApi, registerRole, diagnostics }) => {
+  test('role list is keyboard accessible and switches layout at the responsive breakpoint', async ({ page, config, adminApi, registerRole, diagnostics }, testInfo) => {
     const fixture = await adminApi.createRole(roleName('responsive-role'), ['identity/roles:view']);
     registerRole(fixture.id);
     await openRoles(page, config.admin);
@@ -142,7 +161,11 @@ test.describe('role management against a real Core host', () => {
     const results = await new AxeBuilder({ page }).analyze();
     const blockingViolations = results.violations.filter(violation =>
       violation.impact === 'serious' || violation.impact === 'critical');
-    expect(blockingViolations.length).toBe(0);
+    await captureEvidence(page, testInfo, 'roles-list');
+    const violationSummary = blockingViolations
+      .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
+      .join('\n');
+    expect(blockingViolations, violationSummary).toHaveLength(0);
     await assertCleanRuntime(diagnostics);
   });
 
