@@ -28,12 +28,20 @@
     .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; min-height: 2rem; min-width: 9rem; }
     .role-verb-option .mud-checkbox { margin: 0; }
     .role-grant-state { color: var(--mud-palette-text-secondary); font-size: .7rem; margin-left: -.2rem; }
+    .role-repair-field { min-width: 0; }
+    .role-repair-action { min-width: 0; }
 
     @@media (max-width: 959.98px) {
         .role-editor-details,
         .role-resource-row { grid-template-columns: 1fr; }
         .role-editor-actions { width: 100%; }
         .role-editor-actions .mud-button-root { flex: 1 1 auto; }
+    }
+
+    @@media (max-width: 599.98px) {
+        .role-repair-row { flex-wrap: wrap; }
+        .role-repair-field { flex: 1 0 100%; max-width: 100%; width: 100%; }
+        .role-repair-action { flex: 1 1 calc(50% - .5rem); }
     }
 </style>
 
@@ -118,7 +126,7 @@ else
                 <MudText Typo="Typo.h6">Permissions</MudText>
                 <MudText Typo="Typo.caption" Class="role-permissions-summary">@DirectCount direct · @CoveredCount covered · @_advanced.Count advanced</MudText>
             </div>
-            <MudTabs Border="false" Elevation="0" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
+            <MudTabs Border="false" Elevation="0" MinimumTabWidth="min(160px, 50%)" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
                 <MudTabPanel Text="Exact permissions">
                     <MudStack Spacing="2" Class="pt-2">
                         <MudText Typo="Typo.body2">Select concrete permissions. Category actions add exact grants only and never create a wildcard.</MudText>
@@ -247,10 +255,10 @@ else
                         <MudText Typo="Typo.caption">Unresolved legacy grant · verified:false</MudText>
                         @if (!IsReadOnly)
                         {
-                            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2" Class="mt-2">
-                                <MudTextField T="string" Label="Replacement grant" Placeholder="resource:verb or wildcard" Value="@GetReplacement(original)" ValueChanged="@(value => SetReplacement(original, value))" Variant="Variant.Outlined" Class="flex-grow-1" />
-                                <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="@(() => ReplaceGrant(original))">Replace</MudButton>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => RemoveUnresolved(original))">Remove</MudButton>
+                            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2" Class="role-repair-row mt-2">
+                                <MudTextField T="string" Label="Replacement grant" Placeholder="resource:verb or wildcard" Value="@GetReplacement(original)" ValueChanged="@(value => SetReplacement(original, value))" Variant="Variant.Outlined" Class="role-repair-field flex-grow-1" />
+                                <MudButton Variant="Variant.Outlined" Color="Color.Warning" Class="role-repair-action" OnClick="@(() => ReplaceGrant(original))">Replace</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error" Class="role-repair-action" OnClick="@(() => RemoveUnresolved(original))">Remove</MudButton>
                             </MudStack>
                             @if (_repairErrors.TryGetValue(original, out var repairError))
                             {
