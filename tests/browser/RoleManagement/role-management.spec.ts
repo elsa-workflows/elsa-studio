@@ -233,6 +233,7 @@ test.describe('role management against a real Core host', () => {
       'Set ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true only when the isolated Core catalog includes a verified:false descriptor.');
     await signIn(page, config.admin);
     await page.goto('/security/roles/new');
+    await page.getByLabel('Filter permissions').fill('e2e/role-management/unverified');
 
     const marker = page.getByText('Unverified · verified:false', { exact: true }).first();
     await expect(marker).toBeVisible();
