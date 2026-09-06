@@ -185,7 +185,11 @@ test.describe('role management against a real Core host', () => {
   test('restricted actor sees read-only roles and Core rejects mutation', async ({ page, request, config, adminApi, diagnostics }) => {
     const fixture = config.restricted
       ? undefined
-      : await adminApi.createRole(roleName('restricted-role'), ['identity/roles:view', 'system/features:view']);
+      : await adminApi.createRole(roleName('restricted-role'), [
+          'identity/roles:view',
+          'system/features:view',
+          'user-tasks:view'
+        ]);
     const generatedUser = fixture ? await adminApi.createUser(roleName('restricted-user'), [fixture.id]) : undefined;
     const restrictedActor = config.restricted ?? { username: generatedUser!.name, password: generatedUser!.password };
     const restrictedSession = await CoreApiSession.signIn(request, config.backendUrl, restrictedActor);

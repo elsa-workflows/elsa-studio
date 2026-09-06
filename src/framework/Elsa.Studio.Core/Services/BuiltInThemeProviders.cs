@@ -108,7 +108,7 @@ public sealed class HumanAutomationThemeProvider : IThemeProvider
         lightSurface: "#FFFCF8",
         lightDrawer: "#F1ECE4",
         lightText: "#252B33",
-        lightSecondaryText: "#667085",
+        lightSecondaryText: "#5F6875",
         lightDivider: "#DDD5CA",
         darkBackground: "#111820",
         darkSurface: "#18212B",

@@ -169,6 +169,24 @@ and deleted in fixture teardown. If a host is interrupted, remove only the
 explicitly named isolated fixture role/database; do not clean broad paths or a
 shared development database.
 
+The Modular sample host intentionally has no browser CORS policy. For the WASM
+matrix, `npm run proxy:serve` supplies a localhost-only HTTPS forwarding seam
+that adds CORS headers while leaving every request, response, authorization
+decision, and mutation on the real Core API. Export an exact loopback origin,
+upstream, listener URL, and a temporary PFX produced by `dotnet dev-certs https`:
+
+```bash
+export ROLE_E2E_PROXY_ALLOWED_ORIGIN=https://localhost:7052
+export ROLE_E2E_PROXY_UPSTREAM=https://localhost:7294
+export ROLE_E2E_PROXY_URL=https://localhost:5001
+export ROLE_E2E_PROXY_PFX_PATH=/absolute/path/to/temporary-dev-cert.pfx
+export ROLE_E2E_PROXY_PFX_PASSWORD='<runtime-only password>'
+npm run proxy:serve
+```
+
+The proxy refuses non-loopback endpoints, non-matching origins, and paths
+outside `/elsa/api/`. Remove the temporary certificate after the run.
+
 ## Scope of evidence
 
 The suite exercises the real Studio DOM and observes the role API methods and

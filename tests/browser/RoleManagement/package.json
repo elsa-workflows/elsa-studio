@@ -6,7 +6,8 @@
     "typecheck": "tsc --noEmit",
     "fixtures:prepare": "tsx fixture-tool.ts prepare",
     "fixtures:serve": "tsx fixture-tool.ts serve",
-    "fixtures:cleanup": "tsx fixture-tool.ts cleanup"
+    "fixtures:cleanup": "tsx fixture-tool.ts cleanup",
+    "proxy:serve": "tsx core-cors-proxy.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
