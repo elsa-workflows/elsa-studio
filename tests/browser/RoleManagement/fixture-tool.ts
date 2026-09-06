@@ -319,6 +319,8 @@ function printEnvironment(dbPath: string, overridePath: string, port?: number): 
     `export ROLE_E2E_SQLITE_PATH=${shellQuote(dbPath)}`,
     `export ROLE_E2E_SQLITE_CONFIRM=${CONFIRMATION}`,
     `export ROLE_E2E_CORE_OVERLAY_PATH=${shellQuote(overridePath)}`,
+    'export RoleManagementE2EFixtures__IncludeUnverifiedPermissionDescriptor=true',
+    'export ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true',
     `export ROLE_E2E_BLOCKED_ROLE_ID=${fixture.roles.blocked}`,
     `export ROLE_E2E_REMEDIABLE_ROLE_ID=${fixture.roles.remediable}`,
     `export ROLE_E2E_CONFLICT_ROLE_ID=${fixture.roles.conflict}`,

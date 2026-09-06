@@ -90,6 +90,9 @@ eval "$(printf '%s\n' "$fixture_output" | sed -n '/^export /p')"
 ```
 
 The generated `ROLE_E2E_CORE_OVERLAY_PATH` is a marked, secret-free JSON file.
+The exported `RoleManagementE2EFixtures__IncludeUnverifiedPermissionDescriptor`
+switch opts the Modular sample host into the single `verified:false` catalog
+descriptor supplied for this acceptance harness; it is disabled by default.
 Start Modular Core from its app directory with the overlay path supplied before
 starting Studio (the overlay is loaded at startup):
 
@@ -153,14 +156,13 @@ direct create rejection, then deletes both fixtures. Operators may instead
 inject `ROLE_E2E_RESTRICTED_USERNAME` and `ROLE_E2E_RESTRICTED_PASSWORD`; the
 response body from the rejected mutation is never read or logged.
 
-## Other optional catalog fixture
+## Catalog fixture
 
-`ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true` still requires the current Core
-catalog to expose a `verified:false` descriptor. The sample hosts do not ship
-one by default, so that gate remains a visible skip until a non-production host
-composition provides it. The fixture tool prepares the unresolved legacy grant
-directly in SQLite because Core correctly rejects unknown grants through its
-public API; the test preserves the original text and explicitly replaces it.
+The prepared environment sets `ROLE_E2E_REQUIRE_UNVERIFIED_CATALOG=true` and
+enables Core's dormant sample-host descriptor switch. The fixture tool prepares
+the unresolved legacy grant directly in SQLite because Core correctly rejects
+unknown grants through its public API; the test preserves the original text and
+explicitly replaces it.
 
 Ordinary test roles are created with a short-lived in-memory Core API session
 and deleted in fixture teardown. If a host is interrupted, remove only the
