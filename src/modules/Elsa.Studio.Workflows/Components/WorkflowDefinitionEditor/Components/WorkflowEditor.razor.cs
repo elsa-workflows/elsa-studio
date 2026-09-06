@@ -37,7 +37,7 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 /// A component that allows the user to edit a workflow definition.
 public partial class WorkflowEditor : WorkflowEditorComponentBase, INotificationHandler<ImportedWorkflowDefinition>, IDisposable
 {
-    private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
+    private readonly RateLimitedFunc<(bool ReadDiagram, long WorkflowDefinitionGeneration), Task> _rateLimitedSaveChangesAsync;
     private bool _isDirty;
     private WorkflowDefinition? _lastImportedWorkflowDefinition;
     private long _workflowDefinitionGeneration;
@@ -48,7 +48,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc />
     public WorkflowEditor()
     {
-        _rateLimitedSaveChangesAsync = Debouncer.Debounce<bool, Task>(readDiagram => SaveChangesAsync(readDiagram, false, false), TimeSpan.FromMilliseconds(500));
+        _rateLimitedSaveChangesAsync = Debouncer.Debounce<(bool ReadDiagram, long WorkflowDefinitionGeneration), Task>(
+            request => SaveChangesAsync(request.ReadDiagram, false, false, workflowDefinitionGeneration: request.WorkflowDefinitionGeneration),
+            TimeSpan.FromMilliseconds(500));
     }
 
     /// Gets or sets the drag and drop manager via property injection.
@@ -186,20 +188,25 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <inheritdoc />
     public void Dispose()
     {
+        _workflowDefinitionGeneration++;
         Mediator.Unsubscribe(this);
         _rateLimitedSaveChangesAsync.Dispose();
     }    
 
+    /// Invalidates asynchronous operations that belong to the current workflow definition.
+    public void InvalidateWorkflowDefinitionOperations() => _workflowDefinitionGeneration++;
+
     private async Task HandleChangesAsync(bool readDiagram, bool force = false)
     {
+        var workflowDefinitionGeneration = _workflowDefinitionGeneration;
         _isDirty = true;
         await InvokeAsync(StateHasChanged);
 
         if (AutoSave)
             if (force)
-                await SaveChangesAsync(readDiagram, showLoader: false, publish: false);
+                await SaveChangesAsync(readDiagram, showLoader: false, publish: false, workflowDefinitionGeneration: workflowDefinitionGeneration);
             else
-                await SaveChangesRateLimitedAsync(readDiagram);
+                await SaveChangesRateLimitedAsync(readDiagram, workflowDefinitionGeneration);
     }
 
     private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish, long workflowDefinitionGeneration)
@@ -244,6 +251,10 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
                 await SetWorkflowDefinitionAsync(definition);
         });
+
+        if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+            return;
+
         await result.OnSuccessAsync(async _ =>
         {
             if (onSuccess != null) await onSuccess();
@@ -255,14 +266,17 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         });
     }
 
-    private async Task SaveChangesRateLimitedAsync(bool readDiagram)
+    private async Task SaveChangesRateLimitedAsync(bool readDiagram, long workflowDefinitionGeneration)
     {
-        await _rateLimitedSaveChangesAsync!.InvokeAsync(readDiagram);
+        await _rateLimitedSaveChangesAsync!.InvokeAsync((readDiagram, workflowDefinitionGeneration));
     }
 
-    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
+    private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null, long? workflowDefinitionGeneration = null)
     {
-        var workflowDefinitionGeneration = _workflowDefinitionGeneration;
+        var expectedWorkflowDefinitionGeneration = workflowDefinitionGeneration ?? _workflowDefinitionGeneration;
+
+        if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+            return;
 
         await InvokeAsync(() =>
         {
@@ -277,13 +291,17 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         // Therefore, we need to wrap this in a try/catch block.
         try
         {
-            if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+            if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
                 return;
 
-            var result = await SaveAsync(readDiagram, publish, workflowDefinitionGeneration);
+            var result = await SaveAsync(readDiagram, publish, expectedWorkflowDefinitionGeneration);
+
+            if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
+                return;
+
             await result.OnSuccessAsync(async response =>
             {
-                if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+                if (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
                     return;
 
                 var currentSelectedActivityId = SelectedActivityId;
@@ -321,8 +339,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 options => options.VisibleStateDuration = 5000
             );
         }
-        catch (OperationCanceledException) when (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+        catch (OperationCanceledException) when (expectedWorkflowDefinitionGeneration != _workflowDefinitionGeneration)
         {
+            Logger.LogDebug("Skipped obsolete workflow save after the workflow definition changed.");
         }
         finally
         {

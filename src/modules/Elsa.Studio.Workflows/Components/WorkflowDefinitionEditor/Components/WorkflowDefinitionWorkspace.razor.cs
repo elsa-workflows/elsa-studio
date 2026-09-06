@@ -86,6 +86,9 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         if (_selectedWorkflowDefinition == workflowDefinition)
             return;
 
+        if (WorkflowEditor != null)
+            WorkflowEditor.InvalidateWorkflowDefinitionOperations();
+
         _workflowDefinitionReloadVersion++;
         _selectedWorkflowDefinition = workflowDefinition;
 

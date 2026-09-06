@@ -537,7 +537,7 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         validation.Result.SetResult(true);
         await blurTask;
 
-        var editor = new WorkflowEditor();
+        using var editor = new WorkflowEditor();
         typeof(WorkflowEditor).GetProperty("Mediator", BindingFlags.Instance | BindingFlags.NonPublic)!
             .SetValue(editor, new NoOpMediator());
 
@@ -553,29 +553,63 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         };
 #pragma warning restore BL0005
 
-        try
-        {
-            // The importer invokes this callback before publishing ImportedWorkflowDefinition.
-            await editor.SetImportedWorkflowDefinitionAsync(importedDefinition);
+        // The importer invokes this callback before publishing ImportedWorkflowDefinition.
+        await editor.SetImportedWorkflowDefinitionAsync(importedDefinition);
 
-            var fields = cut.FindComponent<MetadataComponent>().FindComponents<MudTextField<string>>();
-            Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
-            Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
+        var fields = cut.FindComponent<MetadataComponent>().FindComponents<MudTextField<string>>();
+        Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
+        Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
 
-            // The notification is the same import object and must not reset the form a second time.
-            await ((INotificationHandler<ImportedWorkflowDefinition>)editor)
-                .HandleAsync(new ImportedWorkflowDefinition(importedDefinition), CancellationToken.None);
+        // The notification is the same import object and must not reset the form a second time.
+        await ((INotificationHandler<ImportedWorkflowDefinition>)editor)
+            .HandleAsync(new ImportedWorkflowDefinition(importedDefinition), CancellationToken.None);
 
-            Assert.Equal(1, reloadCount);
-            Assert.Equal("imported name", importedDefinition.Name);
-            Assert.Equal("imported description", importedDefinition.Description);
-            Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
-            Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
-        }
-        finally
-        {
-            editor.Dispose();
-        }
+        Assert.Equal(1, reloadCount);
+        Assert.Equal("imported name", importedDefinition.Name);
+        Assert.Equal("imported description", importedDefinition.Description);
+        Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
+        Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
+    }
+
+    [Fact]
+    public async Task ObsoleteQueuedSavePayloadDoesNotTouchTheRendererOrCallbacks()
+    {
+        using var editor = new WorkflowEditor();
+        var editorService = new RecordingWorkflowDefinitionEditorService();
+        typeof(WorkflowEditor).GetProperty("Mediator", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(editor, new NoOpMediator());
+        typeof(WorkflowEditor).GetProperty("WorkflowDefinitionEditorService", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(editor, editorService);
+
+        editor.InvalidateWorkflowDefinitionOperations();
+
+        var successInvoked = false;
+        var failureInvoked = false;
+        var saveMethod = typeof(WorkflowEditor).GetMethod("SaveChangesAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var saveTask = (Task)saveMethod.Invoke(editor,
+            new object?[]
+            {
+                false,
+                false,
+                false,
+                (Func<SaveWorkflowDefinitionResponse, Task>)(_ =>
+                {
+                    successInvoked = true;
+                    return Task.CompletedTask;
+                }),
+                (Func<ValidationErrors, Task>)(_ =>
+                {
+                    failureInvoked = true;
+                    return Task.CompletedTask;
+                }),
+                0L
+            })!;
+
+        await saveTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.False(successInvoked);
+        Assert.False(failureInvoked);
+        Assert.Equal(0, editorService.SaveCallCount);
     }
 
     private IRenderedComponent<MetadataComponent> RenderMetadata(WorkflowDefinition definition, List<(string? Name, string? Description)> callbackValues, Func<WorkflowDefinition>? currentDefinition = null) =>
@@ -647,6 +681,21 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         public Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    private sealed class RecordingWorkflowDefinitionEditorService : IWorkflowDefinitionEditorService
+    {
+        public int SaveCallCount { get; private set; }
+
+        public Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(WorkflowDefinition workflowDefinition, bool publish, Func<WorkflowDefinition, Task>? workflowSavedCallback = null, CancellationToken cancellationToken = default)
+        {
+            SaveCallCount++;
+            throw new InvalidOperationException("The obsolete save payload reached the editor service.");
+        }
+
+        public Task<SaveWorkflowDefinitionResponse> PublishAsync(WorkflowDefinition workflowDefinition, Func<WorkflowDefinition, Task>? workflowPublishedCallback = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<Result<WorkflowDefinition, ValidationErrors>> RetractAsync(WorkflowDefinition workflowDefinition, Func<WorkflowDefinition, Task>? workflowRetractedCallback = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<FileDownload> ExportAsync(WorkflowDefinition workflowDefinition, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     private sealed class NoOpMediator : IMediator
