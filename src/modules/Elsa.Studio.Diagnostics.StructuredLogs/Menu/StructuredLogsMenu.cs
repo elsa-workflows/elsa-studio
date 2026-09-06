@@ -19,7 +19,8 @@ public class StructuredLogsMenu : IMenuProvider
                 Icon = Icons.Material.Filled.FormatListBulleted,
                 Href = "diagnostics/structured-logs",
                 Text = "Structured Logs",
-                GroupName = MenuItemGroups.Diagnostics.Name
+                GroupName = MenuItemGroups.Diagnostics.Name,
+                RequiredPermission = "diagnostics/structured-logs:view"
             }
         };
 

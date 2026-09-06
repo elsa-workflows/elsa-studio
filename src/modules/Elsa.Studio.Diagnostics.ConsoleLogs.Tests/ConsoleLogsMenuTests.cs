@@ -28,6 +28,7 @@ public class ConsoleLogsMenuTests
         var item = Assert.Single(items);
         Assert.Equal("diagnostics/console", item.Href);
         Assert.Equal("Console", item.Text);
+        Assert.Equal("diagnostics/console-logs:view", item.RequiredPermission);
     }
 
     [Fact]

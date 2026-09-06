@@ -261,6 +261,24 @@ test.describe('role management against a real Core host', () => {
       await openRoles(page, restrictedActor);
       await expect(page.getByText('You can view roles, but you cannot create, edit, or delete them.')).toBeVisible();
       await expect(page.getByRole('button', { name: 'New role', exact: true })).toHaveCount(0);
+
+      const navigation = page.locator('.studio-nav');
+      await navigation.getByRole('button', { name: 'Toggle Identity & access', exact: true }).click();
+      await expect(navigation.getByRole('link', { name: 'Roles', exact: true })).toBeVisible();
+      await expect(navigation.getByRole('link', { name: 'Dashboard', exact: true })).toHaveCount(0);
+      for (const href of [
+        '/workflows/definitions',
+        '/workflows/instances',
+        '/alterations',
+        '/alterations/instances',
+        '/ai/weaver',
+        '/diagnostics/opentelemetry',
+        '/diagnostics/console',
+        '/diagnostics/structured-logs',
+        '/security/secrets'
+      ])
+        await expect(navigation.locator(`a[href$="${href}"]`)).toHaveCount(0);
+
       await page.goto('/security/roles/new');
       await expect(page.getByText('You can view roles, but your current sign-in cannot create a role.')).toBeVisible();
       await restrictedSession.expectForbiddenRoleCreation();

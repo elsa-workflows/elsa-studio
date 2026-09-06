@@ -3,6 +3,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -11,12 +12,25 @@ namespace Elsa.Studio.Security.Services;
 /// <summary>
 /// Loads the current caller's effective permissions once per Studio scope.
 /// </summary>
-public sealed class IdentityPermissionContext(
-    IBackendApiClientProvider apiClientProvider,
-    ILogger<IdentityPermissionContext> logger) : IIdentityPermissionContext
+public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDisposable
 {
     private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private readonly IBackendApiClientProvider _apiClientProvider;
+    private readonly ILogger<IdentityPermissionContext> _logger;
+    private readonly AuthenticationStateProvider? _authenticationStateProvider;
     private IdentityPermissionSnapshot? _snapshot;
+
+    public IdentityPermissionContext(
+        IBackendApiClientProvider apiClientProvider,
+        ILogger<IdentityPermissionContext> logger,
+        AuthenticationStateProvider? authenticationStateProvider = null)
+    {
+        _apiClientProvider = apiClientProvider;
+        _logger = logger;
+        _authenticationStateProvider = authenticationStateProvider;
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
 
     public async Task<IdentityPermissionSnapshot> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -31,7 +45,7 @@ public sealed class IdentityPermissionContext(
 
             try
             {
-                var api = await apiClientProvider.GetApiAsync<IMePermissionsApi>(cancellationToken);
+                var api = await _apiClientProvider.GetApiAsync<IMePermissionsApi>(cancellationToken);
                 var response = await api.GetAsync(cancellationToken);
                 var grants = response.Grants
                     .GroupBy(x => x.Resource, StringComparer.Ordinal)
@@ -50,12 +64,12 @@ public sealed class IdentityPermissionContext(
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                logger.LogWarning("Loading the current Identity permissions timed out");
+                _logger.LogWarning("Loading the current Identity permissions timed out");
                 _snapshot = IdentityPermissionSnapshot.Unavailable;
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                logger.LogWarning(exception, "Loading the current Identity permissions failed");
+                _logger.LogWarning(exception, "Loading the current Identity permissions failed");
                 _snapshot = IdentityPermissionSnapshot.Unavailable;
             }
 
@@ -68,4 +82,13 @@ public sealed class IdentityPermissionContext(
     }
 
     public void Invalidate() => _snapshot = null;
+
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> _) => Invalidate();
+
+    public void Dispose()
+    {
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        _loadLock.Dispose();
+    }
 }

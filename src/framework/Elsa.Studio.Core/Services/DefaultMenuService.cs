@@ -8,14 +8,19 @@ public class DefaultMenuService : IMenuService
 {
     private readonly IEnumerable<IMenuProvider> _menuProviders;
     private readonly IEnumerable<IMenuGroupProvider> _menuGroupProviders;
+    private readonly ICurrentUserPermissionService? _permissionService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultMenuService"/> class.
     /// </summary>
-    public DefaultMenuService(IEnumerable<IMenuProvider> menuProviders, IEnumerable<IMenuGroupProvider> menuGroupProviders)
+    public DefaultMenuService(
+        IEnumerable<IMenuProvider> menuProviders,
+        IEnumerable<IMenuGroupProvider> menuGroupProviders,
+        ICurrentUserPermissionService? permissionService = null)
     {
         _menuProviders = menuProviders;
         _menuGroupProviders = menuGroupProviders;
+        _permissionService = permissionService;
     }
 
     /// <inheritdoc />
@@ -26,10 +31,37 @@ public class DefaultMenuService : IMenuService
         foreach (var menuProvider in _menuProviders)
         {
             var menuItems = await menuProvider.GetMenuItemsAsync(cancellationToken);
-            menu.AddRange(menuItems);
+            menu.AddRange(await FilterAsync(menuItems, cancellationToken));
         }
 
         return menu.OrderBy(x => x.Order).ToList();
+    }
+
+    private async ValueTask<IEnumerable<MenuItem>> FilterAsync(
+        IEnumerable<MenuItem> menuItems,
+        CancellationToken cancellationToken)
+    {
+        var visibleItems = new List<MenuItem>();
+
+        foreach (var item in menuItems)
+        {
+            if (item.RequiredPermission is not null)
+            {
+                if (_permissionService is null ||
+                    !await _permissionService.HasAsync(item.RequiredPermission, cancellationToken))
+                    continue;
+            }
+
+            var hadChildren = item.SubMenuItems.Count > 0;
+            item.SubMenuItems = (await FilterAsync(item.SubMenuItems, cancellationToken)).ToList();
+
+            if (hadChildren && item.SubMenuItems.Count == 0 && string.IsNullOrWhiteSpace(item.Href))
+                continue;
+
+            visibleItems.Add(item);
+        }
+
+        return visibleItems;
     }
 
     /// <inheritdoc />

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Security.Client;
@@ -6,6 +7,7 @@ using Elsa.Studio.Security.Constants;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Models;
 using Elsa.Studio.Security.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Refit;
 using Xunit;
@@ -87,6 +89,26 @@ public sealed class IdentityPermissionContextTests
     }
 
     [Fact]
+    public async Task AuthenticationStateChange_InvalidatesTheCachedSnapshot()
+    {
+        var calls = 0;
+        var api = new TestMePermissionsApi(_ =>
+        {
+            calls++;
+            return Task.FromResult(new CurrentCallerPermissionsResponse());
+        });
+        var authenticationStateProvider = new TestAuthenticationStateProvider();
+        using var context = CreateContext(api, authenticationStateProvider);
+
+        await context.GetAsync();
+        await context.GetAsync();
+        authenticationStateProvider.NotifyChanged();
+        await context.GetAsync();
+
+        Assert.Equal(2, calls);
+    }
+
+    [Fact]
     public async Task GetAsync_PropagatesCancellationFromTheMePermissionsCall()
     {
         using var cancellation = new CancellationTokenSource();
@@ -109,8 +131,22 @@ public sealed class IdentityPermissionContextTests
             new HttpResponseMessage(statusCode),
             new RefitSettings()).GetAwaiter().GetResult();
 
-    private static IdentityPermissionContext CreateContext(IMePermissionsApi api) =>
-        new(new StaticBackendApiClientProvider(api), NullLogger<IdentityPermissionContext>.Instance);
+    private static IdentityPermissionContext CreateContext(
+        IMePermissionsApi api,
+        AuthenticationStateProvider? authenticationStateProvider = null) =>
+        new(
+            new StaticBackendApiClientProvider(api),
+            NullLogger<IdentityPermissionContext>.Instance,
+            authenticationStateProvider ?? new TestAuthenticationStateProvider());
+
+    private sealed class TestAuthenticationStateProvider : AuthenticationStateProvider
+    {
+        private readonly AuthenticationState _state = new(new ClaimsPrincipal(new ClaimsIdentity()));
+
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(_state);
+
+        public void NotifyChanged() => NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
 }
 
 public sealed class RoleAdministrationAccessServiceTests

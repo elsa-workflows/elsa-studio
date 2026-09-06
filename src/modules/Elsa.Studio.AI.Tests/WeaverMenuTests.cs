@@ -28,6 +28,7 @@ public class WeaverMenuTests
         var item = Assert.Single(items);
         Assert.Equal("ai/weaver", item.Href);
         Assert.Equal("Weaver", item.Text);
+        Assert.Equal("ai/capabilities:view", item.RequiredPermission);
     }
 
     [Fact]

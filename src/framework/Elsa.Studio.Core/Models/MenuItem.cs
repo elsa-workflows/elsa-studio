@@ -8,6 +8,11 @@ namespace Elsa.Studio.Models;
 public class MenuItem
 {
     /// <summary>
+    /// The permission required to display this item. Items without a requirement remain visible.
+    /// </summary>
+    public string? RequiredPermission { get; set; }
+
+    /// <summary>
     /// The icon to use in SVG format.
     /// </summary>
     public string? Icon { get; set; }
