@@ -25,7 +25,7 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Render_WhenRolesAreLoaded_ShowsTheNonPaginatedListWithoutTenantUi()
+    public void Render_WhenRolesAreLoaded_ShowsTheStandardNonPaginatedTableWithoutTenantUi()
     {
         var api = new StubRolesApi
         {
@@ -47,9 +47,11 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         Assert.Contains("Global access (*)", cut.Markup);
         Assert.DoesNotContain("Tenant", cut.Markup);
         Assert.DoesNotContain("mud-table-pagination", cut.Markup);
-        var desktopList = cut.Find(".roles-desktop-list.mud-paper");
+        var desktopList = cut.Find(".roles-desktop-list");
         Assert.NotNull(desktopList.QuerySelector(".roles-table"));
         Assert.NotNull(desktopList.QuerySelector(".roles-no-pagination"));
+        Assert.Equal("Search by name, ID, or permission", cut.Find(".roles-search input").GetAttribute("placeholder"));
+        Assert.Contains("studio-page-heading", cut.Find("h1").ClassList);
         var actionButtons = cut.FindAll("button[aria-label^='Actions for ']");
         Assert.Equal(4, actionButtons.Count);
         Assert.All(actionButtons, button => Assert.False(string.IsNullOrWhiteSpace(button.GetAttribute("aria-label"))));
