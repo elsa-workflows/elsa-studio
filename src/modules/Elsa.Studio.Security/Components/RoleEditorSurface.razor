@@ -373,6 +373,7 @@ else
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
+            // Navigation or disposal cancelled the in-flight reach lookup.
         }
         catch (Exception exception)
         {
@@ -563,6 +564,7 @@ else
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
+            // Navigation or disposal cancelled the in-flight reach lookup.
         }
         catch (Exception exception)
         {

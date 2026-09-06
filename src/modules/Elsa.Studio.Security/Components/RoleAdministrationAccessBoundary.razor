@@ -64,14 +64,14 @@ else
         {
             return;
         }
-        catch (Exception) when (!_disposed)
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
         {
             _access = RoleAdministrationAccess.Unavailable;
         }
         finally
         {
             _accessLoading = false;
-            if (!_disposed)
+            if (!cancellationToken.IsCancellationRequested)
                 await InvokeAsync(StateHasChanged);
         }
     }
