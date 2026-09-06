@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import { CoreApiSession, expect, openRoles, signIn, test, assertCleanRuntime } from './fixtures';
 
 const roleHostConfigured = ['SERVER', 'WASM'].some(prefix =>
@@ -101,6 +101,14 @@ async function confirmRemediation(page: Page): Promise<void> {
   }
 }
 
+async function expectInsideViewport(locator: Locator, viewportWidth: number): Promise<void> {
+  await expect(locator).toBeVisible();
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewportWidth);
+}
+
 test.describe('role management against a real Core host', () => {
   test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
@@ -166,6 +174,47 @@ test.describe('role management against a real Core host', () => {
       .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
       .join('\n');
     expect(blockingViolations, violationSummary).toHaveLength(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
+  test('mobile role editor and deletion remediation controls stay within the viewport', async ({ page, config, diagnostics }) => {
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    test.skip(viewportWidth >= 600, 'This regression proof targets the phone layout.');
+
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/new');
+
+    const tabs = page.locator('.role-permissions-tabs [role="tab"]');
+    await expect(tabs).toHaveCount(2);
+    const advancedTab = tabs.filter({ hasText: 'Advanced grants' });
+    await advancedTab.click();
+    await expectInsideViewport(tabs.filter({ hasText: 'Exact permissions' }), viewportWidth);
+    await expectInsideViewport(advancedTab, viewportWidth);
+
+    if (config.unresolvedRoleId) {
+      await page.goto(`/security/roles/${encodeURIComponent(config.unresolvedRoleId)}`);
+      const repairActions = page.locator('.role-unresolved-repair-actions').first();
+      const replacement = repairActions.getByLabel('Replacement grant');
+      await expectInsideViewport(repairActions, viewportWidth);
+      await expectInsideViewport(replacement, viewportWidth);
+      expect((await replacement.boundingBox())!.width).toBeGreaterThanOrEqual(200);
+      await expectInsideViewport(repairActions.getByRole('button', { name: 'Replace', exact: true }), viewportWidth);
+      await expectInsideViewport(repairActions.getByRole('button', { name: 'Remove', exact: true }), viewportWidth);
+    }
+
+    if (config.remediableRoleId) {
+      await page.goto(`/security/roles/${encodeURIComponent(config.remediableRoleId)}`);
+      await page.getByRole('button', { name: 'Delete role', exact: true }).click();
+      const dialog = page.getByTestId('role-deletion-remediation');
+      await expect(dialog).toBeVisible();
+      const referenceRows = dialog.locator('.role-deletion-reference-row');
+      for (let index = 0; index < await referenceRows.count(); index++) {
+        const row = referenceRows.nth(index);
+        await expectInsideViewport(row, viewportWidth);
+        await expectInsideViewport(row.getByRole('checkbox'), viewportWidth);
+      }
+    }
+
     await assertCleanRuntime(diagnostics);
   });
 
