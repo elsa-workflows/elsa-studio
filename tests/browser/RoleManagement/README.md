@@ -58,6 +58,13 @@ npx playwright install chromium
 npm test
 ```
 
+For the fail-closed Identity-absent composition, disable the Core `Identity`
+and `DefaultAuthentication` shell features, start the same Studio hosts without
+signing in, and run `npm run test:identity-absent`. The separate matrix verifies
+at all four widths that the Security navigation entry is absent and a direct
+`/security/roles` visit renders only the unavailable state with no mutation
+action or role table.
+
 ## Deterministic deletion fixtures
 
 The optional deletion states can be prepared against an isolated current

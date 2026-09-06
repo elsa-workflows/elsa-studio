@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "test": "playwright test --config playwright.config.ts",
+    "test:identity-absent": "playwright test --config playwright.identity-absent.config.ts",
     "typecheck": "tsc --noEmit",
     "fixtures:prepare": "tsx fixture-tool.ts prepare",
     "fixtures:serve": "tsx fixture-tool.ts serve",

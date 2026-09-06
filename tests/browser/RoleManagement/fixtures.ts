@@ -282,6 +282,19 @@ function sanitizeDiagnostic(value: string, secrets: string[]): string {
   return sanitized.slice(0, 300);
 }
 
+function containsSecretUrlData(value: string, secrets: string[]): boolean {
+  const url = new URL(value);
+  if (url.username || url.password)
+    return true;
+
+  const parameters = [url.searchParams];
+  if (url.hash.includes('='))
+    parameters.push(new URLSearchParams(url.hash.replace(/^#\??/, '')));
+
+  return parameters.some(items => [...items].some(([key, parameterValue]) =>
+    secretUrlPattern.test(key) || secrets.filter(Boolean).some(secret => parameterValue.includes(secret))));
+}
+
 export function captureRuntimeDiagnostics(page: Page, secrets: string[]): RuntimeDiagnostics {
   const diagnostics: RuntimeDiagnostics = { consoleIssues: 0, consoleIssueSummaries: [], clientIssueSummaries: [], serverErrors: 0, secretUrls: 0 };
 
@@ -292,7 +305,7 @@ export function captureRuntimeDiagnostics(page: Page, secrets: string[]): Runtim
     }
   });
   page.on('request', request => {
-    if (secretUrlPattern.test(request.url()))
+    if (containsSecretUrlData(request.url(), secrets))
       diagnostics.secretUrls++;
   });
   page.on('response', response => {
