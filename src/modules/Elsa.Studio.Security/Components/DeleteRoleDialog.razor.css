@@ -9,12 +9,37 @@
 
 .role-deletion-path,
 .role-deletion-version {
+    min-width: 0;
     overflow-wrap: anywhere;
     font-family: var(--mud-font-family-monospace, monospace);
 }
 
 .delete-role-dialog ::deep .mud-alert-message {
     width: 100%;
+}
+
+.delete-role-dialog ::deep .role-deletion-reference-row,
+.delete-role-dialog ::deep .role-deletion-reference-copy,
+.delete-role-dialog ::deep .role-deletion-reference-check {
+    min-width: 0;
+}
+
+.delete-role-dialog ::deep .role-deletion-reference-copy {
+    overflow-wrap: anywhere;
+}
+
+.delete-role-dialog ::deep .role-deletion-path {
+    height: auto;
+    max-width: 100%;
+    white-space: normal;
+}
+
+.delete-role-dialog ::deep .role-deletion-path .mud-chip-content,
+.delete-role-dialog ::deep .role-deletion-reference-check .mud-checkbox-label,
+.delete-role-dialog ::deep .role-deletion-version {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 @media (max-width: 600px) {
@@ -28,6 +53,16 @@
     }
 
     .delete-role-dialog-actions .mud-button {
+        width: 100%;
+    }
+
+    .delete-role-dialog ::deep .role-deletion-reference-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .delete-role-dialog ::deep .role-deletion-reference-check {
         width: 100%;
     }
 }

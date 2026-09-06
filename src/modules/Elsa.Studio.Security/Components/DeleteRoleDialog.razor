@@ -102,12 +102,13 @@
                 @foreach (var reference in EditableReferences)
                 {
                     <MudPaper Outlined="true" Elevation="0" Class="pa-3">
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudStack Spacing="0">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="role-deletion-reference-row">
+                            <MudStack Spacing="0" Class="role-deletion-reference-copy">
                                 <MudText Typo="Typo.body1">@GetReferenceName(reference)</MudText>
                                 <MudText Typo="Typo.caption">@reference.Source @GetPolicyBranch(reference)</MudText>
                             </MudStack>
                             <MudCheckBox T="bool"
+                                         Class="role-deletion-reference-check"
                                          Value="@IsReferenceSelected(reference)"
                                          ValueChanged="@((bool selected) => SetReferenceSelection(reference, selected))"
                                          Disabled="@_isSubmitting"
