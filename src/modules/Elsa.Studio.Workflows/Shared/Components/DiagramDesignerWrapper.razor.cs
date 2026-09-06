@@ -15,6 +15,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Shared.Components;
@@ -24,6 +25,8 @@ public partial class DiagramDesignerWrapper
 {
     private const string SelfDesignerPortName = "__self";
     private IDiagramDesigner? _diagramDesigner;
+    private readonly object _loadActivityLock = new();
+    private Task _loadActivityTask = Task.CompletedTask;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private JsonObject? _currentContainerActivity;
     private List<BreadcrumbItem> _breadcrumbItems = new();
@@ -91,6 +94,9 @@ public partial class DiagramDesignerWrapper
 
     [Inject]
     private IActivityRegistry ActivityRegistry { get; set; } = null!;
+
+    [Inject]
+    private ILogger<DiagramDesignerWrapper> Logger { get; set; } = null!;
 
     [Inject]
     private IIdentityGenerator IdentityGenerator { get; set; } = null!;
@@ -221,7 +227,48 @@ public partial class DiagramDesignerWrapper
 
     /// Loads the specified activity into the designer.
     /// <param name="activity">The activity to load.</param>
-    public async Task LoadActivityAsync(JsonObject activity)
+    public Task LoadActivityAsync(JsonObject activity)
+    {
+        Task previousLoad;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        lock (_loadActivityLock)
+        {
+            previousLoad = _loadActivityTask;
+            _loadActivityTask = completion.Task;
+        }
+
+        _ = RunActivityLoadAsync(previousLoad, activity, completion);
+        return completion.Task;
+    }
+
+    private async Task RunActivityLoadAsync(Task previousLoad, JsonObject activity, TaskCompletionSource completion)
+    {
+        try
+        {
+            try
+            {
+                await previousLoad;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug(ex, "A previous diagram load failed; continuing with the newer load.");
+            }
+
+            await LoadActivityCoreAsync(activity);
+            completion.TrySetResult();
+        }
+        catch (OperationCanceledException ex)
+        {
+            completion.TrySetCanceled(ex.CancellationToken);
+        }
+        catch (Exception ex)
+        {
+            completion.TrySetException(ex);
+        }
+    }
+
+    private async Task LoadActivityCoreAsync(JsonObject activity)
     {
         Activity = activity;
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(activity);
