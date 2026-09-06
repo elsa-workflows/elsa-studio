@@ -6,21 +6,7 @@
 
 <MudContainer MaxWidth="MaxWidth.False" Class="dashboard-shell" Style="@DashboardStyles.Shell">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-header" Spacing="3" Style="@DashboardStyles.Header">
-        <MudStack Spacing="1">
-            <MudText Typo="Typo.h4">Dashboard</MudText>
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
-                <MudText Typo="Typo.body2" Class="dashboard-muted">@BackendLabel</MudText>
-                @if (_snapshot != null)
-                {
-                    <DashboardRuntimeChip Runtime="@_snapshot.Overview.Runtime" />
-                }
-                else
-                {
-                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" Icon="@Icons.Material.Outlined.CloudOff">@StatusLabel</MudChip>
-                }
-                <MudText Typo="Typo.caption" Class="dashboard-muted">@LastRefreshedLabel</MudText>
-            </MudStack>
-        </MudStack>
+        <MudText Typo="Typo.h4">Dashboard</MudText>
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
             <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">

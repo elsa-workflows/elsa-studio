@@ -141,6 +141,28 @@ async function expectNoBlockingAccessibilityViolations(page: Page): Promise<void
 }
 
 test.describe('role management against a real Core host', () => {
+  test('dashboard header keeps only primary controls', async ({ page, config, diagnostics }) => {
+    await signIn(page, config.admin);
+    await page.goto('/');
+
+    const header = page.locator('.dashboard-header');
+    await expect(header.getByText('Dashboard', { exact: true })).toBeVisible();
+    await expect(header.getByText('Selected backend', { exact: true })).toHaveCount(0);
+    await expect(header.getByText('Not refreshed yet', { exact: true })).toHaveCount(0);
+    await expect(header.getByText(/^Refreshed /)).toHaveCount(0);
+    await expect(header.locator('.mud-chip')).toHaveCount(0);
+    await expect(header.getByRole('button', { name: 'Refresh dashboard' })).toBeVisible();
+    await expect(header.getByText('1h', { exact: true })).toBeVisible();
+    await expect(header.getByText('24h', { exact: true })).toBeVisible();
+    await expect(header.getByText('7d', { exact: true })).toBeVisible();
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await page.getByRole('button', { name: 'Use dark theme' }).click();
+    await expect(page.getByRole('button', { name: 'Use light theme' })).toBeVisible();
+    await expect(header.locator('.mud-chip')).toHaveCount(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
   test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
     const name = roleName('browser-role');
