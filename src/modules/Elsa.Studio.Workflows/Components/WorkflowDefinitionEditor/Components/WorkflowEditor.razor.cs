@@ -39,6 +39,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 {
     private readonly RateLimitedFunc<bool, Task> _rateLimitedSaveChangesAsync;
     private bool _isDirty;
+    private WorkflowDefinition? _lastImportedWorkflowDefinition;
+    private long _workflowDefinitionGeneration;
     private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = null!;
@@ -57,6 +59,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     /// Gets or sets a callback invoked when the workflow definition is updated.
     [Parameter] public Func<Task>? WorkflowDefinitionUpdated { get; set; }
+
+    /// Gets or sets a callback invoked when an external workflow definition replaces the current definition.
+    [Parameter] public Func<Task>? WorkflowDefinitionReloaded { get; set; }
 
     /// Gets or sets the event triggered when an activity is selected.
     [Parameter] public Func<JsonObject, Task>? ActivitySelected { get; set; }
@@ -124,7 +129,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <param name="workflowDefinition">The workflow definition to apply. Cannot be null.</param>
     public async Task ApplyWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
-        await SetWorkflowDefinitionAsync(workflowDefinition);
+        await SetWorkflowDefinitionAsync(workflowDefinition, true);
         await HandleChangesAsync(false, true);
     }
 
@@ -154,6 +159,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         if (WorkflowDefinition == _workflowDefinition)
             return;
+
+        if (_workflowDefinition != null && !IsSameWorkflowVersion(_workflowDefinition, WorkflowDefinition))
+            _workflowDefinitionGeneration++;
 
         _workflowDefinition = WorkflowDefinition;
 
@@ -194,20 +202,31 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 await SaveChangesRateLimitedAsync(readDiagram);
     }
 
-    private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish)
+    private async Task<Result<SaveWorkflowDefinitionResponse, ValidationErrors>> SaveAsync(bool readDiagram, bool publish, long workflowDefinitionGeneration)
     {
         var workflowDefinition = _workflowDefinition ?? new WorkflowDefinition();
 
         if (readDiagram)
         {
             var root = await _diagramDesigner.GetActivityAsync();
+
+            if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+                throw new OperationCanceledException();
+
             workflowDefinition.Root = root;
         }
 
-        var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition => await SetWorkflowDefinitionAsync(definition));
+        var result = await WorkflowDefinitionEditorService.SaveAsync(workflowDefinition, publish, async definition =>
+        {
+            if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
+                await SetWorkflowDefinitionAsync(definition);
+        });
 
-        _isDirty = false;
-        await InvokeAsync(StateHasChanged);
+        if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
+        {
+            _isDirty = false;
+            await InvokeAsync(StateHasChanged);
+        }
 
         return result;
     }
@@ -219,7 +238,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task RetractAsync(Func<Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
-        var result = await WorkflowDefinitionEditorService.RetractAsync(_workflowDefinition!, async definition => await SetWorkflowDefinitionAsync(definition));
+        var workflowDefinitionGeneration = _workflowDefinitionGeneration;
+        var result = await WorkflowDefinitionEditorService.RetractAsync(_workflowDefinition!, async definition =>
+        {
+            if (workflowDefinitionGeneration == _workflowDefinitionGeneration)
+                await SetWorkflowDefinitionAsync(definition);
+        });
         await result.OnSuccessAsync(async _ =>
         {
             if (onSuccess != null) await onSuccess();
@@ -238,6 +262,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task SaveChangesAsync(bool readDiagram, bool showLoader, bool publish, Func<SaveWorkflowDefinitionResponse, Task>? onSuccess = null, Func<ValidationErrors, Task>? onFailure = null)
     {
+        var workflowDefinitionGeneration = _workflowDefinitionGeneration;
+
         await InvokeAsync(() =>
         {
             if (showLoader)
@@ -251,9 +277,15 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         // Therefore, we need to wrap this in a try/catch block.
         try
         {
-            var result = await SaveAsync(readDiagram, publish);
+            if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+                return;
+
+            var result = await SaveAsync(readDiagram, publish, workflowDefinitionGeneration);
             await result.OnSuccessAsync(async response =>
             {
+                if (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+                    return;
+
                 var currentSelectedActivityId = SelectedActivityId;
 
                 await SetWorkflowDefinitionAsync(response.WorkflowDefinition);
@@ -289,6 +321,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 options => options.VisibleStateDuration = 5000
             );
         }
+        catch (OperationCanceledException) when (workflowDefinitionGeneration != _workflowDefinitionGeneration)
+        {
+        }
         finally
         {
             if (showLoader)
@@ -307,11 +342,32 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
+    private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition, bool isExternalReplacement = false)
     {
+        if (isExternalReplacement)
+            _workflowDefinitionGeneration++;
+
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
-        if (WorkflowDefinitionUpdated != null) await WorkflowDefinitionUpdated();
+        if (isExternalReplacement && WorkflowDefinitionReloaded != null)
+            await WorkflowDefinitionReloaded();
+        else if (WorkflowDefinitionUpdated != null)
+            await WorkflowDefinitionUpdated();
     }
+
+    internal async Task SetImportedWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
+    {
+        var isNewImport = !ReferenceEquals(_lastImportedWorkflowDefinition, workflowDefinition);
+        _lastImportedWorkflowDefinition = workflowDefinition;
+        await SetWorkflowDefinitionAsync(workflowDefinition, isNewImport);
+
+        if (isNewImport && workflowDefinition.Root != null)
+            await _diagramDesigner.LoadActivityAsync(workflowDefinition.Root);
+    }
+
+    private static bool IsSameWorkflowVersion(WorkflowDefinition? first, WorkflowDefinition? second) =>
+        first != null && second != null &&
+        string.Equals(first.DefinitionId, second.DefinitionId, StringComparison.Ordinal) &&
+        string.Equals(first.Id, second.Id, StringComparison.Ordinal);
 
     private async Task<WorkflowDefinition?> GetWorkflowDefinitionSnapshotAsync()
     {
@@ -488,9 +544,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     
     async Task INotificationHandler<ImportedWorkflowDefinition>.HandleAsync(ImportedWorkflowDefinition notification, CancellationToken cancellationToken)
     {
-        var definition = notification.WorkflowDefinition;
-        await SetWorkflowDefinitionAsync(definition);
-        await _diagramDesigner.LoadActivityAsync(definition.Root);
+        await SetImportedWorkflowDefinitionAsync(notification.WorkflowDefinition);
     }
 
     private async Task ImportFilesAsync(IReadOnlyList<IBrowserFile> files)
@@ -504,8 +558,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             DefinitionId = WorkflowDefinition?.DefinitionId,
             ImportedCallback = async definition =>
             {
-                await SetWorkflowDefinitionAsync(definition);
-                await _diagramDesigner.LoadActivityAsync(definition.Root);
+                await SetImportedWorkflowDefinitionAsync(definition);
             },
             ErrorCallback = ex =>
             {

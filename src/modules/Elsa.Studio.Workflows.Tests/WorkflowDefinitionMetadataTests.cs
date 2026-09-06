@@ -4,8 +4,11 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Notifications;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -14,6 +17,7 @@ using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using Refit;
+using System.Reflection;
 using Xunit;
 
 using MetadataComponent = Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.Properties.Sections.Metadata.Metadata;
@@ -508,6 +512,72 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         Assert.Equal("code view description", fields[1].Find("textarea").GetAttribute("value"));
     }
 
+    [Fact]
+    public async Task ImportCallbackSignalsMetadataReloadBeforeItsDuplicateNotification()
+    {
+        var initialDefinition = CreateDefinition();
+        var importedDefinition = new WorkflowDefinition
+        {
+            Id = initialDefinition.Id,
+            DefinitionId = initialDefinition.DefinitionId,
+            Name = "imported name",
+            Description = "imported description"
+        };
+        var reloadVersion = 0L;
+        var reloadCount = 0;
+        var cut = Render<MetadataHost>(parameters => parameters
+            .Add(x => x.WorkflowDefinition, initialDefinition)
+            .Add(x => x.ReloadVersion, reloadVersion));
+        var nameInput = cut.FindComponent<MetadataComponent>().FindComponents<MudTextField<string>>()[0].Find("input");
+
+        await nameInput.InputAsync("submitted name");
+        var validation = _workflowDefinitionService.EnqueueValidation();
+        var blurTask = nameInput.BlurAsync();
+        await validation.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        validation.Result.SetResult(true);
+        await blurTask;
+
+        var editor = new WorkflowEditor();
+        typeof(WorkflowEditor).GetProperty("Mediator", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(editor, new NoOpMediator());
+
+#pragma warning disable BL0005 // The callback is configured directly to exercise the replacement boundary.
+        editor.WorkflowDefinitionReloaded = () =>
+        {
+            reloadCount++;
+            reloadVersion++;
+            cut.Render(parameters => parameters
+                .Add(x => x.WorkflowDefinition, importedDefinition)
+                .Add(x => x.ReloadVersion, reloadVersion));
+            return Task.CompletedTask;
+        };
+#pragma warning restore BL0005
+
+        try
+        {
+            // The importer invokes this callback before publishing ImportedWorkflowDefinition.
+            await editor.SetImportedWorkflowDefinitionAsync(importedDefinition);
+
+            var fields = cut.FindComponent<MetadataComponent>().FindComponents<MudTextField<string>>();
+            Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
+            Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
+
+            // The notification is the same import object and must not reset the form a second time.
+            await ((INotificationHandler<ImportedWorkflowDefinition>)editor)
+                .HandleAsync(new ImportedWorkflowDefinition(importedDefinition), CancellationToken.None);
+
+            Assert.Equal(1, reloadCount);
+            Assert.Equal("imported name", importedDefinition.Name);
+            Assert.Equal("imported description", importedDefinition.Description);
+            Assert.Equal("imported name", fields[0].Find("input").GetAttribute("value"));
+            Assert.Equal("imported description", fields[1].Find("textarea").GetAttribute("value"));
+        }
+        finally
+        {
+            editor.Dispose();
+        }
+    }
+
     private IRenderedComponent<MetadataComponent> RenderMetadata(WorkflowDefinition definition, List<(string? Name, string? Description)> callbackValues, Func<WorkflowDefinition>? currentDefinition = null) =>
         Render<MetadataComponent>(parameters => parameters
             .Add(x => x.WorkflowDefinition, definition)
@@ -577,6 +647,28 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
         public Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    private sealed class NoOpMediator : IMediator
+    {
+        public void Subscribe<TNotification, THandler>(THandler handler)
+            where TNotification : INotification
+            where THandler : INotificationHandler<TNotification>
+        {
+        }
+
+        public void Unsubscribe<TNotification, THandler>(THandler handler)
+            where TNotification : INotification
+            where THandler : INotificationHandler<TNotification>
+        {
+        }
+
+        public void Unsubscribe(INotificationHandler handler)
+        {
+        }
+
+        public Task NotifyAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+            where TNotification : INotification => Task.CompletedTask;
     }
 
     private sealed class TestLocalizer : ILocalizer
