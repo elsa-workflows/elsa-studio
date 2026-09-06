@@ -199,10 +199,6 @@ else
                                                             {
                                                                 <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Unverified · verified:false</MudChip>
                                                             }
-                                                            @if (resource.NonCoreVerbs.Count > 0)
-                                                            {
-                                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">Non-core: @string.Join(", ", resource.NonCoreVerbs)</MudChip>
-                                                            }
                                                         </div>
                                                         <MudText Typo="Typo.caption" Class="role-code">@resource.Resource</MudText>
                                                         @if (!string.IsNullOrWhiteSpace(resource.Description))

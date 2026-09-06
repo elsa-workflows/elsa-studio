@@ -50,7 +50,8 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
                         DisplayName = "Definitions",
                         Description = "Workflow definitions.",
                         Category = "Workflows",
-                        SupportedVerbs = ["view", "update"],
+                        SupportedVerbs = ["view", "update", "publish"],
+                        NonCoreVerbs = ["publish"],
                         Verified = false
                     }
                 ]
@@ -74,6 +75,8 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
+            Assert.DoesNotContain("Non-core:", cut.Markup);
+            Assert.NotNull(cut.Find("input[aria-label='workflows/definitions:publish']"));
             Assert.Contains("WorkflowDefinitions:Publish", cut.Markup);
             Assert.Contains("Save changes is disabled until issues are resolved", cut.Markup);
         });

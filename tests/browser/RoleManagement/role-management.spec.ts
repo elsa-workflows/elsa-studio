@@ -209,6 +209,10 @@ test.describe('role management against a real Core host', () => {
     for (const button of await actions.getByRole('button').all())
       await expectInsideViewport(button, viewportWidth);
 
+    await page.getByLabel('Filter permissions').fill('workflows/definitions');
+    await expect(page.getByLabel('workflows/definitions:publish')).toBeVisible();
+    await expect(page.getByText(/^Non-core:/)).toHaveCount(0);
+
     await expectNoBlockingAccessibilityViolations(page);
     await captureEvidence(page, testInfo, 'role-editor-header');
     await assertCleanRuntime(diagnostics);
