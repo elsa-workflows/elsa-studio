@@ -8,11 +8,13 @@ using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Inputs;
+using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.WorkflowProperties.Tabs.InputOutput.Components.Outputs;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Services;
 using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Tests.Support;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,9 +36,9 @@ namespace Elsa.Studio.Workflows.Tests;
 /// path ever awaited the asynchronous rule.
 /// </para>
 /// <para>
-/// The input dialog builds its validator only after an awaited service call, so its validator component is
-/// first created without one and only replaced when the dialog swaps in its final EditContext and EditForm
-/// rebuilds its subtree. The stubs below deliberately yield to reproduce that window.
+/// The input and output dialogs populate their default field values (e.g. "Input1"/"Output1") only after
+/// awaiting the storage driver and variable type services, so the stubs below deliberately yield to
+/// reproduce that delay and the tests wait for the resulting render before interacting with the form.
 /// </para>
 /// </summary>
 public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
@@ -191,6 +193,36 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain("Please enter a name for the input.", _dialogProvider.Markup);
     }
 
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task OutputDialogDoesNotCloseWhenTheNameIsEmpty(SubmitPath submitPath)
+    {
+        var dialog = await ShowOutputDialogAsync();
+        await SetOutputNameAsync(string.Empty);
+
+        await Submit(submitPath);
+
+        Assert.False(dialog.Result.IsCompleted);
+        _dialogProvider.WaitForAssertion(() => Assert.Contains("Please enter a name for the output.", _dialogProvider.Markup));
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task OutputDialogClosesWithTheOutputWhenTheNameIsValid(SubmitPath submitPath)
+    {
+        var dialog = await ShowOutputDialogAsync();
+
+        await Submit(submitPath);
+
+        var result = await dialog.Result.WaitAsync(Timeout);
+
+        Assert.False(result?.Canceled);
+        Assert.Equal("Output1", Assert.IsType<OutputDefinition>(result?.Data).Name);
+        Assert.DoesNotContain("Please enter a name for the output.", _dialogProvider.Markup);
+    }
+
     private async Task<IDialogReference> ShowDialogAsync<TDialog>(DialogParameters parameters) where TDialog : ComponentBase
     {
         var dialogService = Services.GetRequiredService<IDialogService>();
@@ -221,12 +253,21 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
 
     private Task SetInputNameAsync(string name) => NameField().Find("input").ChangeAsync(new ChangeEventArgs { Value = name });
 
+    private async Task<IDialogReference> ShowOutputDialogAsync()
+    {
+        var dialog = await ShowDialogAsync<EditOutputDialog>(
+            new DialogParameters<EditOutputDialog> { { x => x.WorkflowDefinition, new WorkflowDefinition() } });
+        _dialogProvider.WaitForAssertion(() => Assert.Equal("Output1", NameField().Find("input").GetAttribute("value")));
+        return dialog;
+    }
+
+    private Task SetOutputNameAsync(string name) => NameField().Find("input").ChangeAsync(new ChangeEventArgs { Value = name });
+
     private IRenderedComponent<MudTextField<string>> NameField() => _dialogProvider.FindComponents<MudTextField<string>>()[0];
 
     /// <summary>
-    /// Yields before returning so that the input dialog renders once while its validator is still null.
-    /// The dialog then assigns both a new EditContext and the validator, and EditForm rebuilds its subtree
-    /// around the new EditContext, which is what gives the validator component its validator.
+    /// Yields before returning so that the input and output dialogs render once with their default field
+    /// values still unset, reproducing the delay the tests wait out before interacting with the form.
     /// </summary>
     private sealed class DeferredStorageDriverService : IStorageDriverService
     {
@@ -245,72 +286,6 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
             await Task.Yield();
             return [new("System.String", "String", "Text", null)];
         }
-    }
-
-    private sealed class ControlledWorkflowDefinitionService : IWorkflowDefinitionService
-    {
-        private readonly Queue<PendingValidation> _pendingValidations = new();
-
-        public int CreateCallCount { get; private set; }
-        public string? CreatedName { get; private set; }
-
-        public PendingValidation EnqueueValidation()
-        {
-            var validation = new PendingValidation();
-            lock (_pendingValidations)
-                _pendingValidations.Enqueue(validation);
-            return validation;
-        }
-
-        public async Task<bool> GetIsNameUniqueAsync(string name, string? definitionId = null, CancellationToken cancellationToken = default)
-        {
-            PendingValidation validation;
-            lock (_pendingValidations)
-                validation = _pendingValidations.Dequeue();
-
-            validation.Name = name;
-            validation.Started.TrySetResult(true);
-            return await validation.Result.Task.WaitAsync(cancellationToken);
-        }
-
-        public Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description, string? rootActivityTemplateKey, Action<SaveWorkflowDefinitionRequest>? configureRequest = null, CancellationToken cancellationToken = default)
-        {
-            CreateCallCount++;
-            CreatedName = name;
-            return Task.FromResult(new Result<WorkflowDefinition, ValidationErrors>(new WorkflowDefinition
-            {
-                Name = name,
-                Description = description
-            }));
-        }
-
-        public sealed class PendingValidation
-        {
-            public string? Name { get; set; }
-            public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            public TaskCompletionSource<bool> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        }
-
-        public Task<PagedListResponse<WorkflowDefinitionSummary>> ListAsync(ListWorkflowDefinitionsRequest request, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<WorkflowDefinition?> FindByDefinitionIdAsync(string definitionId, VersionOptions? versionOptions = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<WorkflowDefinition?> FindByIdAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IEnumerable<WorkflowDefinition>> FindManyByIdAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ActivityNode?> FindSubgraphAsync(string id, string? parentNodeId = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<GetPathSegmentsResponse?> GetPathSegmentsAsync(string id, string? childNodeId = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> DeleteAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> DeleteVersionAsync(WorkflowDefinitionVersion workflowDefinitionVersion, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<SaveWorkflowDefinitionResponse> PublishAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<WorkflowDefinition, ValidationErrors>> RetractAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<long> BulkDeleteAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<long> BulkDeleteVersionsAsync(IEnumerable<WorkflowDefinitionVersion> workflowDefinitionVersions, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<BulkPublishWorkflowDefinitionsResponse> BulkPublishAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<BulkRetractWorkflowDefinitionsResponse> BulkRetractAsync(IEnumerable<string> definitionIds, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<string> GenerateUniqueNameAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<WorkflowDefinition, ValidationErrors>> CreateNewDefinitionAsync(string name, string? description = null, Action<SaveWorkflowDefinitionRequest>? configureRequest = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<FileDownload> ExportDefinitionAsync(string definitionId, VersionOptions? versionOptions = null, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<FileDownload> BulkExportDefinitionsAsync(IEnumerable<string> ids, bool includeConsumingWorkflows = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<UpdateConsumingWorkflowReferencesResponse> UpdateReferencesAsync(string definitionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ExecuteWorkflowResult> ExecuteAsync(string definitionId, ExecuteWorkflowDefinitionRequest? request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     private sealed class TestLocalizer : ILocalizer
