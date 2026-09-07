@@ -279,6 +279,25 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     }
 
     [Fact]
+    public async Task DisposeAsyncStopsRefreshTimerEvenWhenObserverDisposalThrows()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+
+        var observerException = new InvalidOperationException("Observer disposal failed.");
+        SetWorkflowInstanceObserver(cut.Instance, new ThrowingWorkflowInstanceObserver(observerException));
+
+        using var refreshTimer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+        SetRefreshTimer(cut.Instance, refreshTimer);
+
+        var exception = await Record.ExceptionAsync(() => ((IAsyncDisposable)cut.Instance).DisposeAsync().AsTask());
+
+        Assert.Same(observerException, exception);
+        Assert.Null(GetRefreshTimer(cut.Instance));
+    }
+
+    [Fact]
     public async Task RefreshActivityStatePeriodicallyAfterDisposalLeavesTimerFieldNull()
     {
         var activityExecutionService = new RecordingActivityExecutionService();
@@ -372,6 +391,25 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
 
     private static FieldInfo GetTimerField(string fieldName) =>
         typeof(WorkflowInstanceDesigner).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    private static void SetWorkflowInstanceObserver(WorkflowInstanceDesigner instance, IWorkflowInstanceObserver observer)
+    {
+        var property = typeof(WorkflowInstanceDesigner).GetProperty("WorkflowInstanceObserver", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        property.SetValue(instance, observer);
+    }
+
+    /// <summary>
+    /// An <see cref="IWorkflowInstanceObserver"/> whose <see cref="DisposeAsync"/> throws, used to pin
+    /// that the periodic refresh timer is still stopped when observer disposal faults.
+    /// </summary>
+    private sealed class ThrowingWorkflowInstanceObserver(Exception exceptionToThrow) : IWorkflowInstanceObserver
+    {
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowExecutionLogUpdatedMessage, Task>? WorkflowJournalUpdated;
+        public event Func<Elsa.Api.Client.RealTime.Messages.ActivityExecutionLogUpdatedMessage, Task>? ActivityExecutionLogUpdated;
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowInstanceUpdatedMessage, Task>? WorkflowInstanceUpdated;
+
+        public ValueTask DisposeAsync() => throw exceptionToThrow;
+    }
 
     /// <summary>
     /// A <see cref="WorkflowInstanceDesigner"/> whose state-changed notification can be made to throw

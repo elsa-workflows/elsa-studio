@@ -266,7 +266,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (_disposed) return;
         if (_elapsedTimer != null) return;
 
-        var timer = new Timer(_ => _ = ElapsedTimerTickAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        async void Callback(object? _) => await ElapsedTimerTickAsync();
+
+        var timer = new Timer(Callback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
         if (Interlocked.CompareExchange(ref _elapsedTimer, timer, null) is not null)
         {
@@ -420,7 +422,17 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         async void Callback(object? _) => await RefreshTimerTickAsync(activityExecutionRecordId);
 
-        var timer = new Timer(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        // Ownership of the timer created here transfers to _refreshTimer via PublishRefreshTimer; it is
+        // disposed by the stop path (StopRefreshActivityStatePeriodically) or by DisposeAsync.
+        PublishRefreshTimer(new Timer(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan));
+    }
+
+    /// <summary>
+    /// Publishes a newly created refresh timer to <see cref="_refreshTimer"/>, disposing any timer it
+    /// replaces, and detaches the published timer again if the component was disposed concurrently.
+    /// </summary>
+    private void PublishRefreshTimer(Timer timer)
+    {
         var previousTimer = Interlocked.Exchange(ref _refreshTimer, timer);
         previousTimer?.Dispose();
 
@@ -546,7 +558,14 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     {
         _disposed = true;
         StopElapsedTimer();
-        await DisposeObserverAsync();
-        await StopRefreshActivityStatePeriodically();
+
+        try
+        {
+            await DisposeObserverAsync();
+        }
+        finally
+        {
+            await StopRefreshActivityStatePeriodically();
+        }
     }
 }
