@@ -45,12 +45,10 @@ public class DefaultMenuService : IMenuService
 
         foreach (var item in menuItems)
         {
-            if (item.RequiredPermission is not null)
-            {
-                if (_permissionService is null ||
-                    !await _permissionService.HasAsync(item.RequiredPermission, cancellationToken))
-                    continue;
-            }
+            if (item.RequiredPermission is not null &&
+                (_permissionService is null ||
+                 !await _permissionService.HasAsync(item.RequiredPermission, cancellationToken)))
+                continue;
 
             var hadChildren = item.SubMenuItems.Count > 0;
             item.SubMenuItems = (await FilterAsync(item.SubMenuItems, cancellationToken)).ToList();
