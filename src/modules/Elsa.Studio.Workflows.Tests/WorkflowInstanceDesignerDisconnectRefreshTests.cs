@@ -74,16 +74,24 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         var activityExecutionService = new RecordingActivityExecutionService(circuitGoneException);
         var cut = RenderDesigner(activityExecutionService);
         SetLastActivityExecution(cut.Instance, "node-1");
-        SetRefreshTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+        using var timer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+        SetRefreshTimer(cut.Instance, timer);
 
-        var exception = await Record.ExceptionAsync(() => InvokeRefreshTimerTickAsync(cut.Instance, "exec-1"));
+        try
+        {
+            var exception = await Record.ExceptionAsync(() => InvokeRefreshTimerTickAsync(cut.Instance, "exec-1"));
 
-        Assert.Null(exception);
-        Assert.Equal(1, activityExecutionService.ListSummariesCallCount);
+            Assert.Null(exception);
+            Assert.Equal(1, activityExecutionService.ListSummariesCallCount);
 
-        // The periodic refresh timer has been stopped and disposed in response to the circuit-gone
-        // exception, so the real Timer can no longer produce a subsequent tick.
-        Assert.Null(GetRefreshTimer(cut.Instance));
+            // The periodic refresh timer has been stopped and disposed in response to the circuit-gone
+            // exception, so the real Timer can no longer produce a subsequent tick.
+            Assert.Null(GetRefreshTimer(cut.Instance));
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
     }
 
     [Fact]
@@ -118,14 +126,76 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         var activityExecutionService = new RecordingActivityExecutionService();
         var cut = RenderDesigner(activityExecutionService);
         cut.Instance.ThrowOnRender = circuitGoneException;
-        SetElapsedTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+        using var timer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+        SetElapsedTimer(cut.Instance, timer);
 
-        var exception = await Record.ExceptionAsync(() => cut.Instance.ElapsedTimerTickAsync());
+        try
+        {
+            var exception = await Record.ExceptionAsync(() => cut.Instance.ElapsedTimerTickAsync());
+
+            Assert.Null(exception);
+
+            // The elapsed timer has been stopped and disposed in response to the circuit-gone exception,
+            // so the real Timer can no longer produce a subsequent tick.
+            Assert.Null(GetElapsedTimer(cut.Instance));
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RefreshTimerTickRearmToleratesConcurrentlyDisposedTimer()
+    {
+        var runningRecord = new ActivityExecutionRecord
+        {
+            Id = "exec-1",
+            WorkflowInstanceId = "instance-1",
+            ActivityId = "activity-1",
+            ActivityNodeId = "node-1",
+            ActivityType = "Test",
+            Status = ActivityStatus.Running
+        };
+        var summary = new ActivityExecutionRecordSummary
+        {
+            Id = "exec-1",
+            WorkflowInstanceId = "instance-1",
+            ActivityId = "activity-1",
+            ActivityNodeId = "node-1",
+            ActivityType = "Test",
+            Status = ActivityStatus.Running
+        };
+        var activityExecutionService = new RecordingActivityExecutionService(summariesToReturn: [summary], recordToReturn: runningRecord);
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+
+        // Simulate the timer being disposed concurrently (e.g. by DisposeAsync racing this tick) right
+        // before the tick tries to rearm it.
+        var timer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+        SetRefreshTimer(cut.Instance, timer);
+        timer.Dispose();
+
+        var exception = await Record.ExceptionAsync(() => InvokeRefreshTimerTickAsync(cut.Instance, "exec-1"));
 
         Assert.Null(exception);
+    }
 
-        // The elapsed timer has been stopped and disposed in response to the circuit-gone exception,
-        // so the real Timer can no longer produce a subsequent tick.
+    [Fact]
+    public async Task ConcurrentDisposeCallsDetachTimersAtomicallyWithoutThrowing()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+        SetRefreshTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+        SetElapsedTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+
+        var disposable = (IAsyncDisposable)cut.Instance;
+
+        var exception = await Record.ExceptionAsync(() => Task.WhenAll(disposable.DisposeAsync().AsTask(), disposable.DisposeAsync().AsTask()));
+
+        Assert.Null(exception);
+        Assert.Null(GetRefreshTimer(cut.Instance));
         Assert.Null(GetElapsedTimer(cut.Instance));
     }
 
@@ -216,7 +286,10 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     /// and, when constructed with an exception, throws it from that call to simulate a circuit
     /// disconnecting mid-refresh.
     /// </summary>
-    private sealed class RecordingActivityExecutionService(Exception? exceptionToThrow = null) : IActivityExecutionService
+    private sealed class RecordingActivityExecutionService(
+        Exception? exceptionToThrow = null,
+        IEnumerable<ActivityExecutionRecordSummary>? summariesToReturn = null,
+        ActivityExecutionRecord? recordToReturn = null) : IActivityExecutionService
     {
         public int ListSummariesCallCount { get; private set; }
 
@@ -233,11 +306,11 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
             if (exceptionToThrow != null)
                 throw exceptionToThrow;
 
-            return Task.FromResult<IEnumerable<ActivityExecutionRecordSummary>>([]);
+            return Task.FromResult(summariesToReturn ?? []);
         }
 
         public Task<ActivityExecutionRecord?> GetAsync(string id, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
+            recordToReturn != null ? Task.FromResult<ActivityExecutionRecord?>(recordToReturn) : throw new NotSupportedException();
 
         public Task<ActivityExecutionCallStack> GetCallStackAsync(string activityExecutionId, bool? includeCrossWorkflowChain = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();

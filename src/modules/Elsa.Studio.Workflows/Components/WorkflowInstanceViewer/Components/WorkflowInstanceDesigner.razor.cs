@@ -308,11 +308,8 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private void StopElapsedTimer()
     {
-        if (_elapsedTimer != null)
-        {
-            _elapsedTimer?.Dispose();
-            _elapsedTimer = null;
-        }
+        var timer = Interlocked.Exchange(ref _elapsedTimer, null);
+        timer?.Dispose();
     }
 
     private Task StopElapsedTimerAsync()
@@ -413,18 +410,33 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         if (_disposed) return;
 
         if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
+        {
             await StopRefreshActivityStatePeriodically();
+        }
         else
-            _refreshTimer?.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        {
+            var timer = _refreshTimer;
+
+            if (timer == null) return;
+
+            try
+            {
+                timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The timer was disposed concurrently (e.g. by DisposeAsync racing this tick); nothing to rearm.
+            }
+        }
     }
 
     private async Task StopRefreshActivityStatePeriodically()
     {
-        if (_refreshTimer != null)
-        {
-            await _refreshTimer.DisposeAsync();
-            _refreshTimer = null;
-        }
+        var timer = Interlocked.Exchange(ref _refreshTimer, null);
+
+        if (timer is null) return;
+
+        await timer.DisposeAsync();
     }
 
     /// <summary>
