@@ -24,6 +24,7 @@ using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
@@ -44,6 +45,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private readonly Dictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new();
     private readonly Dictionary<string, ActivityExecutionRecord> _lastActivityExecutionRecordLookup = new();
     private Timer? _elapsedTimer;
+    private bool _disposed;
     private bool IsAlterationsEnabled { get; set; }
 
     /// The workflow instance.
@@ -258,7 +260,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private void StartElapsedTimer()
     {
         if (_elapsedTimer == null)
-            _elapsedTimer = new(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            _elapsedTimer = new(_ =>
+            {
+                if (_disposed) return;
+                _ = InvokeAsync(StateHasChanged);
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
     private void StopElapsedTimer()
@@ -344,17 +350,38 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     private void RefreshActivityStatePeriodically(string activityExecutionRecordId)
     {
-        async void Callback(object? _)
-        {
-            await RefreshSelectedItemAsync(activityExecutionRecordId);
-
-            if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
-                await StopRefreshActivityStatePeriodically();
-            else
-                _refreshTimer?.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
-        }
+        async void Callback(object? _) => await RefreshTimerTickAsync(activityExecutionRecordId);
 
         _refreshTimer = new(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+    }
+
+    /// <summary>
+    /// The body of the periodic refresh timer tick, extracted so tests can invoke it directly instead
+    /// of waiting for the real <see cref="Timer"/> to fire.
+    /// </summary>
+    private async Task RefreshTimerTickAsync(string activityExecutionRecordId)
+    {
+        if (_disposed) return;
+
+        try
+        {
+            await RefreshSelectedItemAsync(activityExecutionRecordId);
+        }
+        catch (Exception ex) when (IsCircuitGoneException(ex))
+        {
+            // The circuit has disconnected (e.g. the browser tab hosting this workflow instance was
+            // closed) while the refresh was in flight. Stop refreshing instead of letting the
+            // exception escape the timer callback and crash the process.
+            await StopRefreshActivityStatePeriodically();
+            return;
+        }
+
+        if (_disposed) return;
+
+        if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
+            await StopRefreshActivityStatePeriodically();
+        else
+            _refreshTimer?.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
     }
 
     private async Task StopRefreshActivityStatePeriodically()
@@ -365,6 +392,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             _refreshTimer = null;
         }
     }
+
+    /// <summary>
+    /// Determines whether the given exception signals that the Blazor circuit is gone (disconnected
+    /// or already disposed), in which case timer callbacks should stop quietly instead of throwing.
+    /// </summary>
+    private static bool IsCircuitGoneException(Exception ex) =>
+        ex is ObjectDisposedException or JSDisconnectedException or OperationCanceledException;
 
     private static ActivityStats Map(ActivityExecutionStats source)
     {
@@ -429,10 +463,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        _disposed = true;
         StopElapsedTimer();
         await DisposeObserverAsync();
-
-        if (_refreshTimer != null)
-            await _refreshTimer.DisposeAsync();
+        await StopRefreshActivityStatePeriodically();
     }
 }
