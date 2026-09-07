@@ -169,7 +169,7 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     public async Task InputDialogDoesNotCloseWhenTheNameIsEmpty(SubmitPath submitPath)
     {
         var dialog = await ShowInputDialogAsync();
-        await SetInputNameAsync(string.Empty);
+        await SetNameAsync(string.Empty);
 
         await Submit(submitPath);
 
@@ -199,7 +199,7 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     public async Task OutputDialogDoesNotCloseWhenTheNameIsEmpty(SubmitPath submitPath)
     {
         var dialog = await ShowOutputDialogAsync();
-        await SetOutputNameAsync(string.Empty);
+        await SetNameAsync(string.Empty);
 
         await Submit(submitPath);
 
@@ -251,8 +251,6 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         return dialog;
     }
 
-    private Task SetInputNameAsync(string name) => NameField().Find("input").ChangeAsync(new ChangeEventArgs { Value = name });
-
     private async Task<IDialogReference> ShowOutputDialogAsync()
     {
         var dialog = await ShowDialogAsync<EditOutputDialog>(
@@ -261,7 +259,7 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         return dialog;
     }
 
-    private Task SetOutputNameAsync(string name) => NameField().Find("input").ChangeAsync(new ChangeEventArgs { Value = name });
+    private Task SetNameAsync(string name) => NameField().Find("input").ChangeAsync(new ChangeEventArgs { Value = name });
 
     private IRenderedComponent<MudTextField<string>> NameField() => _dialogProvider.FindComponents<MudTextField<string>>()[0];
 
