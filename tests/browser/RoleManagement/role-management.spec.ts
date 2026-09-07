@@ -153,15 +153,32 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
-  test('external identity links loads with authenticated API clients', async ({ page, config, diagnostics }) => {
-    await signIn(page, config.admin);
-    await page.goto('/security/external-authentication/identity-links');
+  const externalAuthenticationRoutes = [
+    {
+      name: 'external identity links',
+      path: '/security/external-authentication/identity-links',
+      heading: 'External identity links',
+      listSelector: '.identity-link-list'
+    },
+    {
+      name: 'identity provider connections',
+      path: '/security/external-authentication/connections',
+      heading: 'Identity provider connections',
+      listSelector: '.connection-list'
+    }
+  ];
 
-    await expect(page.getByRole('heading', { level: 1, name: 'External identity links' })).toBeVisible();
-    await expect(page.locator('.identity-link-list')).toBeVisible();
-    await expect(page.getByText(/InnerHandler.*must be null/i)).toHaveCount(0);
-    await assertCleanRuntime(diagnostics);
-  });
+  for (const route of externalAuthenticationRoutes) {
+    test(`${route.name} loads with authenticated API clients`, async ({ page, config, diagnostics }) => {
+      await signIn(page, config.admin);
+      await page.goto(route.path);
+
+      await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
+      await expect(page.locator(route.listSelector)).toBeVisible();
+      await expect(page.getByText(/InnerHandler.*must be null/i)).toHaveCount(0);
+      await assertCleanRuntime(diagnostics);
+    });
+  }
 
   test('dashboard header keeps only primary controls', async ({ page, config, diagnostics }) => {
     await signIn(page, config.admin);
