@@ -404,9 +404,23 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     /// </summary>
     private sealed class ThrowingWorkflowInstanceObserver(Exception exceptionToThrow) : IWorkflowInstanceObserver
     {
-        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowExecutionLogUpdatedMessage, Task>? WorkflowJournalUpdated;
-        public event Func<Elsa.Api.Client.RealTime.Messages.ActivityExecutionLogUpdatedMessage, Task>? ActivityExecutionLogUpdated;
-        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowInstanceUpdatedMessage, Task>? WorkflowInstanceUpdated;
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowExecutionLogUpdatedMessage, Task>? WorkflowJournalUpdated
+        {
+            add { }
+            remove { }
+        }
+
+        public event Func<Elsa.Api.Client.RealTime.Messages.ActivityExecutionLogUpdatedMessage, Task>? ActivityExecutionLogUpdated
+        {
+            add { }
+            remove { }
+        }
+
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowInstanceUpdatedMessage, Task>? WorkflowInstanceUpdated
+        {
+            add { }
+            remove { }
+        }
 
         public ValueTask DisposeAsync() => throw exceptionToThrow;
     }
