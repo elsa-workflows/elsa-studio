@@ -141,6 +141,18 @@ async function expectNoBlockingAccessibilityViolations(page: Page): Promise<void
 }
 
 test.describe('role management against a real Core host', () => {
+  test('Elsa account sign-in submits with Enter', async ({ page, config, diagnostics }) => {
+    await page.goto('/workflows/definitions');
+    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fworkflows%2Fdefinitions/i);
+    await page.waitForLoadState('networkidle');
+    await page.getByLabel('User name').fill(config.admin.username);
+    await page.getByLabel('Password').fill(config.admin.password);
+    await page.getByLabel('Password').press('Enter');
+
+    await expect(page).toHaveURL(/\/workflows\/definitions(?:$|[?#])/);
+    await assertCleanRuntime(diagnostics);
+  });
+
   test('dashboard header keeps only primary controls', async ({ page, config, diagnostics }) => {
     await signIn(page, config.admin);
     await page.goto('/');

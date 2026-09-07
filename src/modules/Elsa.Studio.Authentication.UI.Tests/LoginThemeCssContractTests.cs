@@ -147,6 +147,36 @@ public sealed class LoginThemeCssContractTests
         }
     }
 
+    [Fact]
+    public void InteractiveCredentialLoginMethods_SubmitOnEnterAndGuardReentry()
+    {
+        var components = new[]
+        {
+            ReadRepositoryFile(
+                "src", "modules", "Elsa.Studio.Authentication.ElsaIdentity.UI", "Components", "ElsaIdentityLoginMethod.razor"),
+            ReadRepositoryFile(
+                "src", "modules", "Elsa.Studio.ExternalAuthentication", "Components", "LoginMethods", "BrokerLocalLoginMethod.razor")
+        };
+
+        foreach (var component in components)
+        {
+            Assert.Contains("<MudForm @ref=\"_form\" OnEnterPressed=\"SignInAsync\">", component, StringComparison.Ordinal);
+            Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(component, "Immediate=\"true\"").Count);
+            Assert.Contains("Disabled=\"@_signingIn\"", component, StringComparison.Ordinal);
+            Assert.Contains("if (_signingIn)", component, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void ElsaIdentityRedirect_ProducesAnAbsoluteLocalReturnPath()
+    {
+        var redirect = ReadRepositoryFile(
+            "src", "modules", "Elsa.Studio.Authentication.ElsaIdentity.UI", "Components", "RedirectToLogin.razor");
+
+        Assert.Contains("$\"/{relativePath.TrimStart('/')}\"", redirect, StringComparison.Ordinal);
+        Assert.Contains("Uri.EscapeDataString", redirect, StringComparison.Ordinal);
+    }
+
     private static string ReadModernThemeCss() =>
         ReadRepositoryFile(
             "src", "modules", "Elsa.Studio.Authentication.Themes", "wwwroot", "css", "login-themes.css");

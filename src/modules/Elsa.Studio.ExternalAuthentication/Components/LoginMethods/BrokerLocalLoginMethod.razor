@@ -33,10 +33,11 @@
     }
     else
     {
-        <MudForm @ref="_form">
+        <MudForm @ref="_form" OnEnterPressed="SignInAsync">
             <MudTextField @bind-Value="_username"
                           Label="User name"
                           autocomplete="username"
+                          Immediate="true"
                           Required="true"
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense" />
@@ -44,10 +45,13 @@
                           Label="Password"
                           InputType="InputType.Password"
                           autocomplete="current-password"
+                          Immediate="true"
                           Required="true"
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense" />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Disabled="@_signingIn" OnClick="SignInAsync">
+                @(_signingIn ? "Signing in…" : "Sign in")
+            </MudButton>
         </MudForm>
     }
 </MudPaper>
@@ -59,6 +63,7 @@
     private MudForm _form = default!;
     private string _username = string.Empty;
     private string _password = string.Empty;
+    private bool _signingIn;
     private Elsa.Studio.ExternalAuthentication.Services.ExternalAuthenticationAntiforgeryToken? _antiforgeryToken;
 
     protected override void OnInitialized()
@@ -72,17 +77,25 @@
 
     private async Task SignInAsync()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (_signingIn)
             return;
 
+        _signingIn = true;
         try
         {
+            await _form.Validate();
+            if (!_form.IsValid)
+                return;
+
             await LoginCoordinator.BeginLocalAsync(_username, _password, Context.ReturnPath);
         }
         catch
         {
             await Context.ReportFailureAsync("Sign-in failed. Check your credentials and try again.");
+        }
+        finally
+        {
+            _signingIn = false;
         }
     }
 }
