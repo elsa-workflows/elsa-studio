@@ -33,11 +33,17 @@
         gap: 16px;
         justify-content: flex-end;
         min-height: 64px;
-        padding: 16px;
+        padding: 0 8px 0 16px;
+    }
+
+    .roles-list-surface {
+        background-color: var(--mud-palette-surface);
+        border-radius: 4px;
+        margin-top: 16px;
+        overflow: hidden;
     }
 
     .roles-search {
-        height: 36.5px;
         max-width: 400px;
         width: 100%;
     }
@@ -53,9 +59,7 @@
     }
 
     .roles-desktop-list {
-        background-color: var(--mud-palette-surface);
-        border-radius: 4px;
-        overflow: hidden;
+        background-color: transparent;
     }
 
     .roles-table .mud-table-cell {
@@ -182,8 +186,14 @@
     }
 
     @@media (max-width: 959.98px) {
+        .roles-list-surface {
+            background-color: transparent;
+            overflow: visible;
+        }
+
         .roles-toolbar {
-            padding-inline: 0;
+            min-height: 0;
+            padding: 0;
         }
 
         .roles-desktop-list {
@@ -217,189 +227,192 @@
             </MudAlert>
         }
 
-        <div class="roles-toolbar" role="search">
-            <MudTextField T="string"
-                          Value="@_search"
-                          ValueChanged="OnSearchChanged"
-                          Placeholder="Search by name, ID, or permission"
-                          Variant="Variant.Outlined"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@Icons.Material.Outlined.Search"
-                          Clearable="true"
-                          Immediate="true"
-                          Class="roles-search"
-                          aria-label="Search roles by name, ID, or permission" />
+        <MudPaper Elevation="0" Class="roles-list-surface">
+            <div class="roles-toolbar" role="search">
+                <MudTextField T="string"
+                              Value="@_search"
+                              ValueChanged="OnSearchChanged"
+                              Placeholder="Search by name, ID, or permission"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Outlined.Search"
+                              Clearable="true"
+                              Immediate="true"
+                              Class="roles-search"
+                              aria-label="Search roles by name, ID, or permission" />
 
-            @if (access.CanCreate)
-            {
-                <MudButton Variant="Variant.Filled"
-                            Color="Color.Primary"
-                            Class="roles-primary-action"
-                            StartIcon="@Icons.Material.Filled.Add"
-                            OnClick="NavigateToCreate"
-                            Disabled="@_navigationStarted"
-                            aria-label="Create a new role">
-                    New role
-                </MudButton>
-            }
-        </div>
-
-        @if (!_isLoading && _loadError is null)
-        {
-            <div class="roles-count" role="status" aria-live="polite">
-                <span>@ResultSummary</span>
-            </div>
-        }
-
-        @if (_isLoading)
-        {
-            <MudPaper Outlined="true" Class="roles-state-card" Role="status">
-                <MudProgressCircular Indeterminate="true" Color="Color.Primary" aria-label="Loading roles" />
-                <MudText Typo="Typo.body2">Loading roles...</MudText>
-            </MudPaper>
-        }
-        else if (_loadError is not null)
-        {
-            <MudPaper Outlined="true" Class="roles-state-card" Role="alert">
-                <MudIcon Icon="@Icons.Material.Outlined.ErrorOutline" Color="Color.Error" Size="Size.Large" aria-hidden="true" />
-                <MudText Typo="Typo.h6">Roles could not be loaded</MudText>
-                <MudText Typo="Typo.body2">@_loadError.Message</MudText>
-                <MudButton Variant="Variant.Filled"
-                            Color="Color.Primary"
-                            Class="roles-primary-action"
-                            OnClick="ReloadAsync"
-                            Disabled="@_isLoading"
-                            aria-label="Try loading roles again">
-                    Try again
-                </MudButton>
-            </MudPaper>
-        }
-        else if (_roles.Count == 0)
-        {
-            <MudPaper Outlined="true" Class="roles-state-card">
-                <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Color="Color.Secondary" Size="Size.Large" aria-hidden="true" />
-                <MudText Typo="Typo.h6">No roles yet</MudText>
-                <MudText Typo="Typo.body2">Get started by creating your first role.</MudText>
                 @if (access.CanCreate)
                 {
                     <MudButton Variant="Variant.Filled"
-                                Color="Color.Primary"
-                                Class="roles-primary-action"
-                                OnClick="NavigateToCreate"
-                                Disabled="@_navigationStarted"
-                                aria-label="Create your first role">
-                        Create first role
+                               Color="Color.Primary"
+                               Class="roles-primary-action"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="NavigateToCreate"
+                               Disabled="@_navigationStarted"
+                               aria-label="Create a new role">
+                        New role
                     </MudButton>
                 }
-            </MudPaper>
-        }
-        else if (FilteredRoles.Count == 0)
-        {
-            <MudPaper Outlined="true" Class="roles-state-card">
-                <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary" Size="Size.Large" aria-hidden="true" />
-                <MudText Typo="Typo.h6">No matching roles</MudText>
-                <MudText Typo="Typo.body2">Try a different name, ID, or permission.</MudText>
-            </MudPaper>
-        }
-        else
-        {
-            <div class="roles-desktop-list">
-                <MudTable T="RoleSummary"
-                          Items="@FilteredRoles"
-                          Dense="true"
-                          Hover="true"
-                          Elevation="0"
-                          OnRowClick="OnRoleRowClick"
-                          RowStyle="cursor: pointer;"
-                          Class="roles-table">
-                    <HeaderContent>
-                        <MudTh>Name</MudTh>
-                        <MudTh>ID</MudTh>
-                        <MudTh>Permissions</MudTh>
-                        @if (access.CanUpdate || access.CanDelete)
-                        {
-                            <MudTh Class="roles-actions"><span class="roles-visually-hidden">Actions</span></MudTh>
-                        }
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Name">
-                            <a class="role-row-link"
-                               href="@RoleDetailsUrl(context)"
-                               aria-label="@($"Open {context.Name} role details")"
-                               @onclick:stopPropagation="true">
-                                <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
-                            </a>
-                        </MudTd>
-                        <MudTd DataLabel="ID">
-                            <code class="role-id">@context.Id</code>
-                        </MudTd>
-                        <MudTd DataLabel="Permissions">
-                            <RolePermissionPreview Role="context" />
-                        </MudTd>
-                        @if (access.CanUpdate || access.CanDelete)
-                        {
-                            <MudTd DataLabel="Actions" Class="roles-actions" @onclick:stopPropagation="true">
-                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                                         Size="Size.Small"
-                                         Dense="true"
-                                         AriaLabel="@($"Actions for {context.Name}")">
-                                    @if (access.CanUpdate)
-                                    {
-                                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(context))">Edit</MudMenuItem>
-                                    }
-                                    @if (access.CanDelete)
-                                    {
-                                        <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(context, access))">Delete</MudMenuItem>
-                                    }
-                                </MudMenu>
-                            </MudTd>
-                        }
-                    </RowTemplate>
-                </MudTable>
-                <div class="roles-no-pagination" role="note">
-                    <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" aria-hidden="true" />
-                    <span>All matching roles are shown. No pagination.</span>
-                </div>
             </div>
 
-            <div class="roles-mobile-list" aria-label="Roles list">
-                @foreach (var role in FilteredRoles)
-                {
-                    <MudPaper Outlined="true" Class="role-card">
-                        <div class="role-card-header">
-                            <a class="role-card-link role-card-content"
-                               href="@RoleDetailsUrl(role)"
-                               aria-label="@($"Open {role.Name} role details")">
-                                <MudText Typo="Typo.body1" Class="role-name">@role.Name</MudText>
-                                <code class="role-id">@role.Id</code>
-                            </a>
+            @if (!_isLoading && _loadError is null)
+            {
+                <div class="roles-count" role="status" aria-live="polite">
+                    <span>@ResultSummary</span>
+                </div>
+            }
+
+            @if (_isLoading)
+            {
+                <MudPaper Outlined="true" Class="roles-state-card" Role="status">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" aria-label="Loading roles" />
+                    <MudText Typo="Typo.body2">Loading roles...</MudText>
+                </MudPaper>
+            }
+            else if (_loadError is not null)
+            {
+                <MudPaper Outlined="true" Class="roles-state-card" Role="alert">
+                    <MudIcon Icon="@Icons.Material.Outlined.ErrorOutline" Color="Color.Error" Size="Size.Large" aria-hidden="true" />
+                    <MudText Typo="Typo.h6">Roles could not be loaded</MudText>
+                    <MudText Typo="Typo.body2">@_loadError.Message</MudText>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="roles-primary-action"
+                               OnClick="ReloadAsync"
+                               Disabled="@_isLoading"
+                               aria-label="Try loading roles again">
+                        Try again
+                    </MudButton>
+                </MudPaper>
+            }
+            else if (_roles.Count == 0)
+            {
+                <MudPaper Outlined="true" Class="roles-state-card">
+                    <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Color="Color.Secondary" Size="Size.Large" aria-hidden="true" />
+                    <MudText Typo="Typo.h6">No roles yet</MudText>
+                    <MudText Typo="Typo.body2">Get started by creating your first role.</MudText>
+                    @if (access.CanCreate)
+                    {
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="roles-primary-action"
+                                   OnClick="NavigateToCreate"
+                                   Disabled="@_navigationStarted"
+                                   aria-label="Create your first role">
+                            Create first role
+                        </MudButton>
+                    }
+                </MudPaper>
+            }
+            else if (FilteredRoles.Count == 0)
+            {
+                <MudPaper Outlined="true" Class="roles-state-card">
+                    <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary" Size="Size.Large" aria-hidden="true" />
+                    <MudText Typo="Typo.h6">No matching roles</MudText>
+                    <MudText Typo="Typo.body2">Try a different name, ID, or permission.</MudText>
+                </MudPaper>
+            }
+            else
+            {
+                <div class="roles-desktop-list">
+                    <MudTable T="RoleSummary"
+                              Items="@FilteredRoles"
+                              Dense="true"
+                              Hover="true"
+                              Elevation="0"
+                              OnRowClick="OnRoleRowClick"
+                              RowStyle="cursor: pointer;"
+                              Class="roles-table">
+                        <HeaderContent>
+                            <MudTh>Name</MudTh>
+                            <MudTh>ID</MudTh>
+                            <MudTh>Permissions</MudTh>
                             @if (access.CanUpdate || access.CanDelete)
                             {
-                                <div class="role-card-actions" @onclick:stopPropagation="true">
+                                <MudTh Class="roles-actions"><span class="roles-visually-hidden">Actions</span></MudTh>
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Name">
+                                <a class="role-row-link"
+                                   href="@RoleDetailsUrl(context)"
+                                   aria-label="@($"Open {context.Name} role details")"
+                                   @onclick:stopPropagation="true">
+                                    <MudText Typo="Typo.body2" Class="role-name">@context.Name</MudText>
+                                </a>
+                            </MudTd>
+                            <MudTd DataLabel="ID">
+                                <code class="role-id">@context.Id</code>
+                            </MudTd>
+                            <MudTd DataLabel="Permissions">
+                                <RolePermissionPreview Role="context" />
+                            </MudTd>
+                            @if (access.CanUpdate || access.CanDelete)
+                            {
+                                <MudTd DataLabel="Actions" Class="roles-actions" @onclick:stopPropagation="true">
                                     <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                              Size="Size.Small"
                                              Dense="true"
-                                             AriaLabel="@($"Actions for {role.Name}")">
+                                             AriaLabel="@($"Actions for {context.Name}")">
                                         @if (access.CanUpdate)
                                         {
-                                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(role))">Edit</MudMenuItem>
+                                            <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(context))">Edit</MudMenuItem>
                                         }
                                         @if (access.CanDelete)
                                         {
-                                            <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(role, access))">Delete</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(context, access))">Delete</MudMenuItem>
                                         }
                                     </MudMenu>
-                                </div>
+                                </MudTd>
                             }
-                        </div>
-                        <div class="role-permission-preview mt-3">
-                            <MudText Typo="Typo.caption">Permissions</MudText>
-                            <RolePermissionPreview Role="role" />
-                        </div>
-                    </MudPaper>
-                }
-            </div>
-        }
+                        </RowTemplate>
+                    </MudTable>
+                    <div class="roles-no-pagination" role="note">
+                        <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" aria-hidden="true" />
+                        <span>All matching roles are shown. No pagination.</span>
+                    </div>
+                </div>
+
+                <div class="roles-mobile-list" aria-label="Roles list">
+                    @foreach (var role in FilteredRoles)
+                    {
+                        <MudPaper Outlined="true" Class="role-card">
+                            <div class="role-card-header">
+                                <a class="role-card-link role-card-content"
+                                   href="@RoleDetailsUrl(role)"
+                                   aria-label="@($"Open {role.Name} role details")">
+                                    <MudText Typo="Typo.body1" Class="role-name">@role.Name</MudText>
+                                    <code class="role-id">@role.Id</code>
+                                </a>
+                                @if (access.CanUpdate || access.CanDelete)
+                                {
+                                    <div class="role-card-actions" @onclick:stopPropagation="true">
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                                 Size="Size.Small"
+                                                 Dense="true"
+                                                 AriaLabel="@($"Actions for {role.Name}")">
+                                            @if (access.CanUpdate)
+                                            {
+                                                <MudMenuItem Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenRoleDetails(role))">Edit</MudMenuItem>
+                                            }
+                                            @if (access.CanDelete)
+                                            {
+                                                <MudMenuItem OnClick="@(() => OpenDeleteRoleAsync(role, access))">Delete</MudMenuItem>
+                                            }
+                                        </MudMenu>
+                                    </div>
+                                }
+                            </div>
+                            <div class="role-permission-preview mt-3">
+                                <MudText Typo="Typo.caption">Permissions</MudText>
+                                <RolePermissionPreview Role="role" />
+                            </div>
+                        </MudPaper>
+                    }
+                </div>
+            }
+        </MudPaper>
     </RoleAdministrationAccessBoundary>
 </MudContainer>
 

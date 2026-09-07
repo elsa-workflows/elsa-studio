@@ -50,7 +50,10 @@ public sealed class RolesPageTests : BunitContext, IAsyncLifetime
         var desktopList = cut.Find(".roles-desktop-list");
         Assert.NotNull(desktopList.QuerySelector(".roles-table"));
         Assert.NotNull(desktopList.QuerySelector(".roles-no-pagination"));
-        Assert.Equal("Search by name, ID, or permission", cut.Find(".roles-search input").GetAttribute("placeholder"));
+        var listSurface = cut.Find(".roles-list-surface");
+        Assert.NotNull(listSurface.QuerySelector(".roles-search"));
+        Assert.NotNull(listSurface.QuerySelector(".roles-desktop-list"));
+        Assert.Equal("Search by name, ID, or permission", listSurface.QuerySelector(".roles-search input")?.GetAttribute("placeholder"));
         Assert.Contains("studio-page-heading", cut.Find("h1").ClassList);
         var actionButtons = cut.FindAll("button[aria-label^='Actions for ']");
         Assert.Equal(4, actionButtons.Count);
