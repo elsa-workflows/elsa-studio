@@ -8,7 +8,7 @@
 
 <MudDialog>
     <DialogContent>
-        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit">
+        <EditForm @key="_editContext" EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidator Validator="_validator"/>
             <MudStack>
                 <MudTextField Label="@Localizer["Name"]" @bind-Value="_model.Name" For="@(() => _model.Name)" HelperText="@Localizer["The technical name of the input."]" Variant="Variant.Outlined" Margin="Margin.Dense" />

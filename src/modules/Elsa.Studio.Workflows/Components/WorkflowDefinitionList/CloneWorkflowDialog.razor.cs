@@ -49,7 +49,15 @@ public partial class CloneWorkflowDialog
 
     private async Task ValidateAndSubmitAsync()
     {
+        // The bound name can change while the asynchronous uniqueness check is pending. Capture it up
+        // front and bail out if it no longer matches once validation completes, so a stale value is
+        // never submitted; the user's next submission will re-validate the current value.
+        var submittedName = _metadataModel.Name;
+
         if (!await _editContext.ValidateAsync())
+            return;
+
+        if (!string.Equals(_metadataModel.Name, submittedName, StringComparison.Ordinal))
             return;
 
         MudDialog.Close(_metadataModel);

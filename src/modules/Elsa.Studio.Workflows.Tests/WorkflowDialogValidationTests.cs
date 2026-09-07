@@ -125,6 +125,46 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     [Theory]
     [InlineData(SubmitPath.Form)]
     [InlineData(SubmitPath.OkButton)]
+    public async Task CreateDialogDoesNotCreateAWorkflowWhenTheNameChangesWhileTheUniquenessCheckIsPending(SubmitPath submitPath)
+    {
+        const string changedName = "Renamed workflow";
+        var dialog = await ShowWorkflowDialogAsync<CreateWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // Changing the name while the submission's uniqueness check is still pending triggers Blazilla's
+        // own field-changed validation, which runs a second (unrelated) uniqueness check for the new value.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(changedName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+        fieldChangeValidation.Result.SetResult(true);
+
+        submitValidation.Result.SetResult(true);
+        await submitTask;
+
+        Assert.Equal(WorkflowName, submitValidation.Name);
+        Assert.Equal(0, _workflowDefinitionService.CreateCallCount);
+        Assert.False(dialog.Result.IsCompleted);
+
+        var retryValidation = _workflowDefinitionService.EnqueueValidation();
+        var retrySubmitTask = Submit(submitPath);
+        await retryValidation.Started.Task.WaitAsync(Timeout);
+        retryValidation.Result.SetResult(true);
+        await retrySubmitTask;
+
+        var result = await dialog.Result.WaitAsync(Timeout);
+
+        Assert.Equal(changedName, retryValidation.Name);
+        Assert.Equal(1, _workflowDefinitionService.CreateCallCount);
+        Assert.Equal(changedName, _workflowDefinitionService.CreatedName);
+        Assert.False(result?.Canceled);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
     public async Task CloneDialogDoesNotCloseWhenTheNameIsNotUnique(SubmitPath submitPath)
     {
         var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
@@ -161,6 +201,44 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         Assert.False(result?.Canceled);
         Assert.Equal(WorkflowName, Assert.IsType<WorkflowMetadataModel>(result?.Data).Name);
         Assert.DoesNotContain(DuplicateNameMessage, _dialogProvider.Markup);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task CloneDialogDoesNotCloseWhenTheNameChangesWhileTheUniquenessCheckIsPending(SubmitPath submitPath)
+    {
+        const string changedName = "Renamed clone";
+        var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // Changing the name while the submission's uniqueness check is still pending triggers Blazilla's
+        // own field-changed validation, which runs a second (unrelated) uniqueness check for the new value.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(changedName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+        fieldChangeValidation.Result.SetResult(true);
+
+        submitValidation.Result.SetResult(true);
+        await submitTask;
+
+        Assert.Equal(WorkflowName, submitValidation.Name);
+        Assert.False(dialog.Result.IsCompleted);
+
+        var retryValidation = _workflowDefinitionService.EnqueueValidation();
+        var retrySubmitTask = Submit(submitPath);
+        await retryValidation.Started.Task.WaitAsync(Timeout);
+        retryValidation.Result.SetResult(true);
+        await retrySubmitTask;
+
+        var result = await dialog.Result.WaitAsync(Timeout);
+
+        Assert.Equal(changedName, retryValidation.Name);
+        Assert.False(result?.Canceled);
+        Assert.Equal(changedName, Assert.IsType<WorkflowMetadataModel>(result?.Data).Name);
     }
 
     [Theory]

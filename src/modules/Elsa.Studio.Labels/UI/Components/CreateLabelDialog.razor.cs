@@ -14,7 +14,7 @@ public partial class CreateLabelDialog
 {
     private readonly LabelInputModel _inputModel = new() { Name = string.Empty };
     private EditContext _editContext = null!;
-    private LabelInputModelValidator _validator = null!;
+    private LabelInputModelValidator? _validator;
     
     /// The default name of the agent to create.
     [Parameter] public string LabelName { get; set; } = "";
