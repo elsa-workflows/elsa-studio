@@ -280,6 +280,72 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         }
     }
 
+    /// <summary>
+    /// Pins that <see cref="WorkflowInstanceDesigner.StartElapsedTimer"/> arms the timer it publishes
+    /// (not just creates it disabled), by waiting for a real tick to reach
+    /// <see cref="TestWorkflowInstanceDesigner.NotifyStateChangedAsync"/>.
+    /// </summary>
+    [Fact]
+    public async Task StartElapsedTimerOnLiveComponentArmsTimerAndTicks()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        try
+        {
+            cut.Instance.StartElapsedTimer();
+
+            var ticked = await WaitUntilAsync(() => cut.Instance.NotifyStateChangedCallCount > 0, TimeSpan.FromSeconds(5));
+
+            Assert.True(ticked, "The elapsed timer did not tick within the bounded wait.");
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Pins that <see cref="WorkflowInstanceDesigner.RefreshActivityStatePeriodically"/> arms the timer
+    /// it publishes (not just creates it disabled), by waiting for a real tick to reach
+    /// <see cref="RecordingActivityExecutionService.ListSummariesAsync"/>.
+    /// </summary>
+    [Fact]
+    public async Task RefreshActivityStatePeriodicallyOnLiveComponentArmsTimerAndTicks()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+
+        try
+        {
+            cut.Instance.RefreshActivityStatePeriodically("exec-1");
+
+            var ticked = await WaitUntilAsync(() => activityExecutionService.ListSummariesCallCount > 0, TimeSpan.FromSeconds(5));
+
+            Assert.True(ticked, "The refresh timer did not tick within the bounded wait.");
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
+    private static async Task<bool> WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            if (condition())
+                return true;
+
+            await Task.Delay(20);
+        }
+
+        return condition();
+    }
+
     [Fact]
     public async Task DisposeAsyncStopsRefreshTimerEvenWhenObserverDisposalThrows()
     {
