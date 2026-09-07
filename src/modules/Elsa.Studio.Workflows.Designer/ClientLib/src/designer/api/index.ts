@@ -5,6 +5,7 @@ export * from './center-content';
 export * from './create-graph';
 export * from './dispose-graph';
 export * from './designer-mode';
+export * from './export-graph';
 export * from './graph-bindings';
 export * from './load-graph';
 export * from './paste-cells';

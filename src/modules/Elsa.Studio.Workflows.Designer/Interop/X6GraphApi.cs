@@ -11,6 +11,12 @@ namespace Elsa.Studio.Workflows.Designer.Interop;
 /// Provides a wrapper around the X6 graph API.
 public class X6GraphApi
 {
+    private static readonly JsonSerializerOptions ExportSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
+
     private readonly IJSObjectReference _module;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _containerId;
@@ -107,6 +113,23 @@ public class X6GraphApi
 
     /// Center the canvas content.
     public async Task CenterContentAsync() => await InvokeAsync(module => module.InvokeVoidAsync("centerContent", _containerId));
+
+    /// <summary>
+    /// Exports the canvas content as an image and lets the browser download it.
+    /// </summary>
+    /// <param name="options">The export options.</param>
+    public async Task ExportGraphAsync(ExportGraphOptions options)
+    {
+        var payload = CreateExportPayload(options);
+        await InvokeAsync(module => module.InvokeVoidAsync("exportGraph", _containerId, payload));
+    }
+
+    /// <summary>
+    /// Serializes the export options into the payload the <c>exportGraph</c> JavaScript function expects. That
+    /// function switches on lowercase format names ("png", "jpeg", "svg") and throws on anything else, so the
+    /// enum must be written as a camel-cased string rather than as its member name or its numeric value.
+    /// </summary>
+    internal static JsonElement CreateExportPayload(ExportGraphOptions options) => JsonSerializer.SerializeToElement(options, ExportSerializerOptions);
 
     /// Adjusts the graph layout.
     public async Task AutoLayoutAsync(X6Graph graph)
