@@ -45,7 +45,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private readonly Dictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new();
     private readonly Dictionary<string, ActivityExecutionRecord> _lastActivityExecutionRecordLookup = new();
     private Timer? _elapsedTimer;
-    private bool _disposed;
+    private volatile bool _disposed;
     private bool IsAlterationsEnabled { get; set; }
 
     /// The workflow instance.

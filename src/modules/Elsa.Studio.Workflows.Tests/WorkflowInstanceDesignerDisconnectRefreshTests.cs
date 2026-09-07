@@ -181,20 +181,63 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         Assert.Null(exception);
     }
 
+    /// <summary>
+    /// Pins that the refresh timer is detached from <c>_refreshTimer</c> atomically, before the
+    /// (potentially slow) <see cref="Timer.DisposeAsync"/> call completes. To exercise that, the
+    /// refresh timer's callback is kept running (blocked on <paramref name="release"/> below) while
+    /// the first disposal is in flight, so a second, concurrent disposal genuinely overlaps with it
+    /// instead of running after the first has already finished.
+    /// </summary>
     [Fact]
     public async Task ConcurrentDisposeCallsDetachTimersAtomicallyWithoutThrowing()
     {
+        var timeout = TimeSpan.FromSeconds(5);
         var activityExecutionService = new RecordingActivityExecutionService();
         var cut = RenderDesigner(activityExecutionService);
         SetLastActivityExecution(cut.Instance, "node-1");
-        SetRefreshTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
-        SetElapsedTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+
+        using var started = new ManualResetEventSlim(false);
+        using var release = new ManualResetEventSlim(false);
+        using var refreshTimer = new Timer(_ =>
+        {
+            started.Set();
+            release.Wait(timeout);
+        }, null, Timeout.Infinite, Timeout.Infinite);
+        using var elapsedTimer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+
+        SetRefreshTimer(cut.Instance, refreshTimer);
+        SetElapsedTimer(cut.Instance, elapsedTimer);
+
+        // Fire the refresh timer's callback immediately and wait for it to actually start running.
+        refreshTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+        Assert.True(started.Wait(timeout), "The refresh timer callback did not start in time.");
 
         var disposable = (IAsyncDisposable)cut.Instance;
 
-        var exception = await Record.ExceptionAsync(() => Task.WhenAll(disposable.DisposeAsync().AsTask(), disposable.DisposeAsync().AsTask()));
+        // System.Threading.Timer.DisposeAsync only completes once any in-flight callback finishes, so
+        // this first disposal stays pending while the callback above is blocked on `release`.
+        var firstDisposeTask = disposable.DisposeAsync().AsTask();
 
-        Assert.Null(exception);
+        // The atomic Interlocked.Exchange detach in StopRefreshActivityStatePeriodically happens
+        // before the timer is awaited, so the field is already cleared while the first disposal is
+        // still pending. Against the previous check/await/clear implementation, this assertion would
+        // still hold, but the second call below would then observe a non-null field and race to
+        // dispose/clear it itself instead of being a no-op.
+        Assert.Null(GetRefreshTimer(cut.Instance));
+
+        var secondDisposeException = await Record.ExceptionAsync(() => disposable.DisposeAsync().AsTask());
+
+        Assert.Null(secondDisposeException);
+        Assert.False(firstDisposeTask.IsCompleted, "The first disposal should still be pending on the blocked callback.");
+
+        release.Set();
+
+        var completedTask = await Task.WhenAny(firstDisposeTask, Task.Delay(timeout));
+        Assert.Same(firstDisposeTask, completedTask);
+
+        var firstDisposeException = await Record.ExceptionAsync(() => firstDisposeTask);
+
+        Assert.Null(firstDisposeException);
         Assert.Null(GetRefreshTimer(cut.Instance));
         Assert.Null(GetElapsedTimer(cut.Instance));
     }
