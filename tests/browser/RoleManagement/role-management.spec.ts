@@ -153,6 +153,16 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
+  test('external identity links loads with authenticated API clients', async ({ page, config, diagnostics }) => {
+    await signIn(page, config.admin);
+    await page.goto('/security/external-authentication/identity-links');
+
+    await expect(page.getByRole('heading', { level: 1, name: 'External identity links' })).toBeVisible();
+    await expect(page.locator('.identity-link-list')).toBeVisible();
+    await expect(page.getByText(/InnerHandler.*must be null/i)).toHaveCount(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
   test('dashboard header keeps only primary controls', async ({ page, config, diagnostics }) => {
     await signIn(page, config.admin);
     await page.goto('/');
