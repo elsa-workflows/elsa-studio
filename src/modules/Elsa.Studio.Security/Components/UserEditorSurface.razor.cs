@@ -139,10 +139,7 @@ public partial class UserEditorSurface : IAsyncDisposable
                 Snackbar.Add("User updated.", Severity.Success);
             }
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception)
+        catch (Exception exception) when (!_lifetime.IsCancellationRequested)
         {
             if (IsCurrentLoad(operationVersion))
                 _saveError = DescribeSaveFailure(exception, rolesIncluded);
@@ -183,10 +180,7 @@ public partial class UserEditorSurface : IAsyncDisposable
             Snackbar.Add("User deleted.", Severity.Success);
             NavigationManager.NavigateTo("security/users");
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception)
+        catch (Exception exception) when (!_lifetime.IsCancellationRequested)
         {
             if (IsCurrentLoad(operationVersion))
                 _deleteError = IdentityApiErrorMapper.Describe(exception, IdentityApiErrorMapper.UserSubject).Message;
@@ -276,11 +270,9 @@ public partial class UserEditorSurface : IAsyncDisposable
                 _roleOptions.AddRange(roles.Roles.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase));
             }
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (Exception exception) when (!_lifetime.IsCancellationRequested)
         {
-        }
-        catch (Exception exception)
-        {
+            // Once the component is disposed nothing may touch state; otherwise every failure maps to a safe message.
             if (IsCurrentLoad(loadVersion))
                 _loadError = IdentityApiErrorMapper.Describe(exception, IdentityApiErrorMapper.UserSubject).Message;
         }

@@ -92,7 +92,7 @@ public partial class UserListSurface : IAsyncDisposable
             $"Delete {user.Name}? This cannot be undone.",
             yesText: "Delete",
             cancelText: "Cancel");
-        if (confirmed != true || _disposed || !_deletingIds.Add(user.Id))
+        if (confirmed != true || !_deletingIds.Add(user.Id))
             return;
 
         _actionError = null;
@@ -104,11 +104,9 @@ public partial class UserListSurface : IAsyncDisposable
             _users.Remove(user);
             Snackbar.Add("User deleted.", Severity.Success);
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (Exception exception) when (!_lifetime.IsCancellationRequested)
         {
-        }
-        catch (Exception exception) when (!_disposed)
-        {
+            // Failures after disposal are dropped by the filter; everything else is mapped to a safe message.
             _actionError = IdentityApiErrorMapper.Describe(exception, IdentityApiErrorMapper.UserSubject);
         }
         finally
@@ -142,11 +140,7 @@ public partial class UserListSurface : IAsyncDisposable
             _users.Clear();
             _users.AddRange(response.Users.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase));
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
-        catch (Exception exception) when (!_disposed)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
             _loadError = IdentityApiErrorMapper.Describe(exception, IdentityApiErrorMapper.UserSubject);
         }

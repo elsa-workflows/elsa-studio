@@ -568,12 +568,12 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         Assert.Equal(uriBeforeDisposal, navigation.Uri);
     }
 
-    private static ApiException CreateApiException(HttpStatusCode statusCode, string content = "") =>
-        ApiException.Create(
-            new HttpRequestMessage(HttpMethod.Post, "https://elsa.example/identity/users"),
-            HttpMethod.Post,
-            new HttpResponseMessage(statusCode) { Content = new StringContent(content) },
-            new RefitSettings()).GetAwaiter().GetResult();
+    private static ApiException CreateApiException(HttpStatusCode statusCode, string content = "")
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://elsa.example/identity/users");
+        using var response = new HttpResponseMessage(statusCode) { Content = new StringContent(content) };
+        return ApiException.Create(request, HttpMethod.Post, response, new RefitSettings()).GetAwaiter().GetResult();
+    }
 
     private sealed class ApiProvider(UsersApi users, RolesApi roles) : IBackendApiClientProvider
     {
