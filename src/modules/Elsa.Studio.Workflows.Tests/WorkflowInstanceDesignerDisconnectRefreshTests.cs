@@ -64,6 +64,7 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     {
         yield return new object[] { new JSDisconnectedException("The circuit has disconnected.") };
         yield return new object[] { new ObjectDisposedException("ActivityExecutionService") };
+        yield return new object[] { new OperationCanceledException("The operation was canceled.") };
     }
 
     [Theory]
@@ -83,6 +84,37 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         // The periodic refresh timer has been stopped and disposed in response to the circuit-gone
         // exception, so the real Timer can no longer produce a subsequent tick.
         Assert.Null(GetRefreshTimer(cut.Instance));
+    }
+
+    [Fact]
+    public async Task ElapsedTickAfterDisposalDoesNothing()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+
+        var exception = await Record.ExceptionAsync(() => cut.Instance.ElapsedTimerTickAsync());
+
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [MemberData(nameof(CircuitGoneExceptions))]
+    public async Task ElapsedTickStopsElapsedTimerWhenCircuitIsGone(Exception circuitGoneException)
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        cut.Instance.ThrowOnRender = circuitGoneException;
+        SetElapsedTimer(cut.Instance, new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite));
+
+        var exception = await Record.ExceptionAsync(() => cut.Instance.ElapsedTimerTickAsync());
+
+        Assert.Null(exception);
+
+        // The elapsed timer has been stopped and disposed in response to the circuit-gone exception,
+        // so the real Timer can no longer produce a subsequent tick.
+        Assert.Null(GetElapsedTimer(cut.Instance));
     }
 
     private IRenderedComponent<TestWorkflowInstanceDesigner> RenderDesigner(IActivityExecutionService activityExecutionService)
@@ -123,19 +155,38 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     private static FieldInfo GetRefreshTimerField() =>
         typeof(WorkflowInstanceDesigner).GetField("_refreshTimer", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private static Task InvokeRefreshTimerTickAsync(WorkflowInstanceDesigner instance, string activityExecutionRecordId)
-    {
-        var method = typeof(WorkflowInstanceDesigner).GetMethod("RefreshTimerTickAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        return (Task)method.Invoke(instance, [activityExecutionRecordId])!;
-    }
+    private static Task InvokeRefreshTimerTickAsync(WorkflowInstanceDesigner instance, string activityExecutionRecordId) =>
+        instance.RefreshTimerTickAsync(activityExecutionRecordId);
 
+    private static void SetElapsedTimer(WorkflowInstanceDesigner instance, Timer timer) =>
+        GetElapsedTimerField().SetValue(instance, timer);
+
+    private static Timer? GetElapsedTimer(WorkflowInstanceDesigner instance) =>
+        (Timer?)GetElapsedTimerField().GetValue(instance);
+
+    private static FieldInfo GetElapsedTimerField() =>
+        typeof(WorkflowInstanceDesigner).GetField("_elapsedTimer", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    /// <summary>
+    /// A <see cref="WorkflowInstanceDesigner"/> whose state-changed notification can be made to throw
+    /// on demand. bUnit's test renderer does not propagate exceptions from the JS-interop-driven
+    /// render pipeline back through <c>InvokeAsync(StateHasChanged)</c> the way a real Blazor circuit
+    /// does, so the internal <see cref="WorkflowInstanceDesigner.NotifyStateChangedAsync"/> seam is
+    /// overridden here to simulate the circuit-gone exception that a real disconnect would surface
+    /// from that call.
+    /// </summary>
     private sealed class TestWorkflowInstanceDesigner : WorkflowInstanceDesigner
     {
+        public Exception? ThrowOnRender { get; set; }
+
         protected override Task OnAfterRenderAsync(bool firstRender) => Task.CompletedTask;
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
         }
+
+        internal override Task NotifyStateChangedAsync() =>
+            ThrowOnRender != null ? Task.FromException(ThrowOnRender) : base.NotifyStateChangedAsync();
     }
 
     /// <summary>

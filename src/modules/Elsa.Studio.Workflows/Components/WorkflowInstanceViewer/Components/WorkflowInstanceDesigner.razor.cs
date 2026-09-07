@@ -260,12 +260,36 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private void StartElapsedTimer()
     {
         if (_elapsedTimer == null)
-            _elapsedTimer = new(_ =>
-            {
-                if (_disposed) return;
-                _ = InvokeAsync(StateHasChanged);
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            _elapsedTimer = new(_ => _ = ElapsedTimerTickAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
+
+    /// <summary>
+    /// The body of the elapsed timer tick, extracted so tests can invoke it directly instead of
+    /// waiting for the real <see cref="Timer"/> to fire.
+    /// </summary>
+    internal async Task ElapsedTimerTickAsync()
+    {
+        if (_disposed) return;
+
+        try
+        {
+            await NotifyStateChangedAsync();
+        }
+        catch (Exception ex) when (IsCircuitGoneException(ex))
+        {
+            // The circuit has disconnected (e.g. the browser tab hosting this workflow instance was
+            // closed) while the render was in flight. Stop the elapsed timer instead of letting the
+            // exception escape the timer callback and crash the process.
+            StopElapsedTimer();
+        }
+    }
+
+    /// <summary>
+    /// Invokes <see cref="ComponentBase.StateHasChanged"/> on the renderer's dispatcher. Extracted as
+    /// a virtual seam so tests can simulate a circuit-gone exception surfacing from the render
+    /// pipeline without needing a real Blazor circuit.
+    /// </summary>
+    internal virtual Task NotifyStateChangedAsync() => InvokeAsync(StateHasChanged);
 
     private void StopElapsedTimer()
     {
@@ -359,7 +383,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// The body of the periodic refresh timer tick, extracted so tests can invoke it directly instead
     /// of waiting for the real <see cref="Timer"/> to fire.
     /// </summary>
-    private async Task RefreshTimerTickAsync(string activityExecutionRecordId)
+    internal async Task RefreshTimerTickAsync(string activityExecutionRecordId)
     {
         if (_disposed) return;
 
