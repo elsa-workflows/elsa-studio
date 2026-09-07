@@ -424,6 +424,7 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
         cut.Find("input[placeholder='workflows/*:view or *']").Change("workflows/*:view");
         cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        Assert.DoesNotContain("Broad access", cut.Markup);
         cut.Find("button[aria-label='Edit advanced grant workflows/*:view']").Click();
         Assert.True(cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).HasAttribute("disabled"));
         cut.Find("input[aria-label='Grant expression for workflows/*:view']").Input(" workflows/*:* ");

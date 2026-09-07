@@ -65,6 +65,7 @@ async function createRoleInEditor(
   await page.getByRole('textbox', { name: 'Advanced grant' }).fill('identity/roles:*');
   await page.getByRole('button', { name: 'Add advanced grant' }).click();
   await expect(page.getByText('identity/roles:*', { exact: true })).toBeVisible();
+  await expect(page.getByText('Broad access', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/\d+ resources today/)).toBeVisible();
   await expect(page.getByText('Future reach:', { exact: false })).toBeVisible();
 
