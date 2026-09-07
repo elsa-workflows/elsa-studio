@@ -1,17 +1,8 @@
 using System.Text.Json;
-using Refit;
 
 namespace Elsa.Studio.Security.Models;
 
-public static class IdentityClaimPermissions
-{
-    public const string ReadUser = "read:user";
-    public const string CreateUser = "create:user";
-    public const string UpdateUser = "update:user";
-    public const string DeleteUser = "delete:user";
-    public const string ReadRole = "read:role";
-}
-
+/// <summary>One user returned by the Identity user endpoints. Never carries credential material.</summary>
 public class UserSummary
 {
     public string Id { get; set; } = string.Empty;
@@ -32,9 +23,13 @@ public sealed class CreateUserRequest
     public ICollection<string> Roles { get; set; } = [];
 }
 
+/// <summary>
+/// Response from <c>POST /identity/users</c>. <see cref="GeneratedPassword"/> is present only when Core generated the
+/// password because none was supplied; it is shown once and cannot be retrieved again.
+/// </summary>
 public sealed class CreateUserResponse : UserSummary
 {
-    public string Password { get; set; } = string.Empty;
+    public string? GeneratedPassword { get; set; }
 }
 
 public sealed class UpdateUserRequest
@@ -189,30 +184,4 @@ public sealed record ValidationApiErrorResponse
     public int StatusCode { get; init; }
     public string Message { get; init; } = string.Empty;
     public Dictionary<string, List<string>> Errors { get; init; } = [];
-}
-
-public static class IdentityApiErrors
-{
-    public static string ToDisplayMessage(Exception exception, string fallback)
-    {
-        if (exception is not ApiException { Content: { Length: > 0 } content })
-            return string.IsNullOrWhiteSpace(exception.Message) ? fallback : exception.Message;
-
-        try
-        {
-            using var document = JsonDocument.Parse(content);
-            var root = document.RootElement;
-            if (root.TryGetProperty("message", out var message) && !string.IsNullOrWhiteSpace(message.GetString()))
-                return message.GetString()!;
-
-            if (root.TryGetProperty("title", out var title) && !string.IsNullOrWhiteSpace(title.GetString()))
-                return title.GetString()!;
-        }
-        catch (JsonException)
-        {
-            // The API returned a non-JSON error body. Use the stable fallback below.
-        }
-
-        return fallback;
-    }
 }

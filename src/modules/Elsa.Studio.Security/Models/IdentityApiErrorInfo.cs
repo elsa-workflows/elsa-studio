@@ -11,6 +11,9 @@ public sealed record IdentityApiErrorInfo(
     bool IsConflict = false,
     bool IsValidation = false)
 {
-    public static IdentityApiErrorInfo Unavailable { get; } =
-        new("unavailable", "Role administration is unavailable right now. Try again in a moment.");
+    public static IdentityApiErrorInfo Unavailable { get; } = UnavailableFor("role");
+
+    /// <summary>Builds the generic unavailable error for one administration subject such as <c>role</c> or <c>user</c>.</summary>
+    public static IdentityApiErrorInfo UnavailableFor(string subject) =>
+        new("unavailable", $"{char.ToUpperInvariant(subject[0])}{subject[1..]} administration is unavailable right now. Try again in a moment.");
 }

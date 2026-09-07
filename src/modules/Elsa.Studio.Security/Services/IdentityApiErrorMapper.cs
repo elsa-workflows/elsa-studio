@@ -11,15 +11,20 @@ namespace Elsa.Studio.Security.Services;
 /// </summary>
 public static class IdentityApiErrorMapper
 {
-    public static IdentityApiErrorInfo Describe(Exception exception) => exception switch
+    public const string RoleSubject = "role";
+    public const string UserSubject = "user";
+
+    /// <param name="exception">The failure raised by the Identity API client.</param>
+    /// <param name="subject">The administered subject used in fallback messages, such as <see cref="RoleSubject"/> or <see cref="UserSubject"/>.</param>
+    public static IdentityApiErrorInfo Describe(Exception exception, string subject = RoleSubject) => exception switch
     {
-        ApiException apiException => FromApi(apiException),
+        ApiException apiException => FromApi(apiException, subject),
         OperationCanceledException => new("cancelled", "The request was cancelled."),
         HttpRequestException => new("offline", "Core could not be reached. Check the connection and try again."),
-        _ => IdentityApiErrorInfo.Unavailable
+        _ => IdentityApiErrorInfo.UnavailableFor(subject)
     };
 
-    private static IdentityApiErrorInfo FromApi(ApiException exception)
+    private static IdentityApiErrorInfo FromApi(ApiException exception, string subject)
     {
         var structured = TryReadStructuredError(exception.Content);
         var validation = TryReadValidationError(exception.Content);
@@ -46,11 +51,11 @@ public static class IdentityApiErrorMapper
         {
             HttpStatusCode.BadRequest => new("invalid", "The request did not pass validation.", IsValidation: true),
             HttpStatusCode.Unauthorized => new("unauthorized", "Your session has expired. Sign in again to continue.", IsAuthorization: true),
-            HttpStatusCode.Forbidden => new("forbidden", "You are not allowed to perform this role administration action.", IsAuthorization: true),
-            HttpStatusCode.NotFound => new("not_found", "The role no longer exists.", IsNotFound: true),
-            HttpStatusCode.Conflict => new("conflict", "The role or one of its dependencies changed. Refresh and review the latest state.", IsConflict: true),
+            HttpStatusCode.Forbidden => new("forbidden", $"You are not allowed to perform this {subject} administration action.", IsAuthorization: true),
+            HttpStatusCode.NotFound => new("not_found", $"The {subject} no longer exists.", IsNotFound: true),
+            HttpStatusCode.Conflict => new("conflict", $"The {subject} or one of its dependencies changed. Refresh and review the latest state.", IsConflict: true),
             HttpStatusCode.TooManyRequests => new("throttled", "Too many requests. Wait a moment and try again."),
-            _ => IdentityApiErrorInfo.Unavailable
+            _ => IdentityApiErrorInfo.UnavailableFor(subject)
         };
     }
 

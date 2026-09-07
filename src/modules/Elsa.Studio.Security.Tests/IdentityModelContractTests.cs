@@ -165,4 +165,34 @@ public sealed class IdentityModelContractTests
         Assert.Equal("One or more validation errors occurred.", validationError.Message);
         Assert.Equal("The name is required.", Assert.Single(validationError.Errors["Name"]));
     }
+
+    [Fact]
+    public void CreateUserResponseCarriesOnlyTheGeneratedPasswordAndNoCredentialMaterial()
+    {
+        var response = JsonSerializer.Deserialize<CreateUserResponse>(
+            """{ "id": "user-1", "name": "alice", "roles": ["admin"], "tenantId": "tenant-a", "generatedPassword": "once-only" }""", JsonOptions)!;
+
+        Assert.Equal("user-1", response.Id);
+        Assert.Equal("alice", response.Name);
+        Assert.Equal(["admin"], response.Roles);
+        Assert.Equal("tenant-a", response.TenantId);
+        Assert.Equal("once-only", response.GeneratedPassword);
+
+        var withoutGeneratedPassword = JsonSerializer.Deserialize<CreateUserResponse>("""{ "id": "user-1", "name": "alice" }""", JsonOptions)!;
+        Assert.Null(withoutGeneratedPassword.GeneratedPassword);
+
+        var propertyNames = typeof(CreateUserResponse).GetProperties().Select(x => x.Name).ToArray();
+        Assert.DoesNotContain("Password", propertyNames);
+        Assert.DoesNotContain(propertyNames, x => x.Contains("Hash", StringComparison.OrdinalIgnoreCase) || x.Contains("Salt", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void LegacyClaimBasedUserPermissionsNoLongerExist()
+    {
+        var assembly = typeof(UserSummary).Assembly;
+
+        Assert.Null(assembly.GetType("Elsa.Studio.Security.Models.IdentityClaimPermissions"));
+        Assert.Null(assembly.GetType("Elsa.Studio.Security.Services.IIdentityPermissionService"));
+        Assert.Equal("identity/users", Elsa.Studio.Security.Constants.IdentityPermissions.UsersResource);
+    }
 }

@@ -22,8 +22,19 @@ public sealed class SecurityServiceRegistrationTests
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IMenuProvider>(services).Lifetime);
         Assert.Equal(typeof(SecurityMenu), FindDescriptor<IMenuProvider>(services).ImplementationType);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IIdentityPermissionContext>(services).Lifetime);
+        Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IUserAdministrationAccessService>(services).Lifetime);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IRoleAdministrationAccessService>(services).Lifetime);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IRoleDeletionService>(services).Lifetime);
+    }
+
+    [Fact]
+    public void AddSecurityModuleNoLongerRegistersTheLegacyClaimBasedPermissionService()
+    {
+        var services = new ServiceCollection();
+
+        services.AddSecurityModule();
+
+        Assert.DoesNotContain(services, descriptor => descriptor.ServiceType.Name == "IIdentityPermissionService");
     }
 
     [Fact]
@@ -33,6 +44,7 @@ public sealed class SecurityServiceRegistrationTests
 
         services.AddSecurityModule(new BackendApiConfig());
 
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IUsersApi));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRolesApi));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IPermissionsApi));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IMePermissionsApi));

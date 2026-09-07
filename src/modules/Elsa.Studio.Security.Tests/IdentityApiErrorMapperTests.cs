@@ -45,6 +45,18 @@ public sealed class IdentityApiErrorMapperTests
         Assert.DoesNotContain("proxy", error.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void Describe_UsesTheSubjectInFallbackMessagesAndDefaultsToRoles()
+    {
+        var notFound = CreateApiException(HttpStatusCode.NotFound, string.Empty);
+        var forbidden = CreateApiException(HttpStatusCode.Forbidden, string.Empty);
+
+        Assert.Equal("The role no longer exists.", IdentityApiErrorMapper.Describe(notFound).Message);
+        Assert.Equal("The user no longer exists.", IdentityApiErrorMapper.Describe(notFound, IdentityApiErrorMapper.UserSubject).Message);
+        Assert.True(IdentityApiErrorMapper.Describe(forbidden, IdentityApiErrorMapper.UserSubject).IsAuthorization);
+        Assert.StartsWith("User administration is unavailable", IdentityApiErrorMapper.Describe(new InvalidOperationException(), IdentityApiErrorMapper.UserSubject).Message);
+    }
+
     private static ApiException CreateApiException(HttpStatusCode statusCode, string content) =>
         ApiException.Create(
             new HttpRequestMessage(HttpMethod.Post, "https://elsa.example/identity/roles"),

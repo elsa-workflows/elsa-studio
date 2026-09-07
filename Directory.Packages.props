@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
-    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0" />
+    <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-preview.5565" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Blazilla" Version="2.3.0" />
