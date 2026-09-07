@@ -283,14 +283,17 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
         cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all permissions in Workflows']")));
 
-        cut.Find("button[aria-label='Select all permissions in Workflows']").Click();
+        var selectButton = cut.Find("button[aria-label='Select all permissions in Workflows']");
+        Assert.DoesNotContain("mud-panel-expanded", selectButton.Closest(".mud-expand-panel")!.ClassList);
+        selectButton.Click();
 
         cut.WaitForAssertion(() =>
         {
             Assert.True(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
             Assert.True(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
             Assert.False(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
-            Assert.NotNull(cut.Find("button[aria-label='Clear all permissions in Workflows']"));
+            var clearButton = cut.Find("button[aria-label='Clear all permissions in Workflows']");
+            Assert.DoesNotContain("mud-panel-expanded", clearButton.Closest(".mud-expand-panel")!.ClassList);
         });
 
         cut.Find("button[aria-label='Clear all permissions in Workflows']").Click();
@@ -299,6 +302,32 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             Assert.False(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
             Assert.False(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+        });
+    }
+
+    [Fact]
+    public void ClearingCategoryPermissionsDoesNotCollapseAnExpandedCategory()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/definitions:view", "workflows/definitions:write"],
+            []);
+        Register(roles, new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() =>
+        {
+            var clearButton = cut.Find("button[aria-label='Clear all permissions in Workflows']");
+            Assert.Contains("mud-panel-expanded", clearButton.Closest(".mud-expand-panel")!.ClassList);
+        });
+
+        cut.Find("button[aria-label='Clear all permissions in Workflows']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var selectButton = cut.Find("button[aria-label='Select all permissions in Workflows']");
+            Assert.Contains("mud-panel-expanded", selectButton.Closest(".mud-expand-panel")!.ClassList);
         });
     }
 

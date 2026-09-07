@@ -184,7 +184,12 @@ else
                                 var categoryResources = GetCategoryResources(category).ToArray();
                                 var directCount = CategoryDirectCount(categoryResources);
                                 var coveredCount = CategoryCoveredCount(categoryResources);
-                                <MudExpansionPanel Text="@category" Expanded="@ShouldExpandCategory(categoryResources)" Dense="true" Gutters="false" Class="role-category-panel">
+                                <MudExpansionPanel Text="@category"
+                                                   Expanded="@IsCategoryExpanded(category)"
+                                                   ExpandedChanged="@(expanded => SetCategoryExpanded(category, expanded))"
+                                                   Dense="true"
+                                                   Gutters="false"
+                                                   Class="role-category-panel">
                                     <TitleContent>
                                         <div class="role-category-title">
                                             <div class="role-category-title-copy">
@@ -372,6 +377,7 @@ else
     private readonly Dictionary<string, PermissionReachResponse?> _reach = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reachLoading = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _reachErrors = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _expandedCategories = new(StringComparer.Ordinal);
     private readonly CancellationTokenSource _lifetime = new();
     private IReadOnlyList<RoleSummary> _availableRoles = [];
     private string? _loadedRoleId;
@@ -403,6 +409,7 @@ else
         _loadError = null;
         _saveError = null;
         ClearGrantState();
+        _expandedCategories.Clear();
         if (_isCreate)
         {
             _role = null;
@@ -432,6 +439,7 @@ else
 
                 _name = _role.Name;
                 LoadStoredGrants(_role.Permissions);
+                ExpandCategoriesWithDirectGrants();
                 await LoadAllReachAsync(permissionsApi);
             }
             else
@@ -541,8 +549,22 @@ else
         resources.Sum(resource => resource.SupportedVerbs.Count(verb =>
             !IsDirect($"{resource.Resource}:{verb}") && FindCoveringWildcard(resource.Resource, verb) != null));
 
-    private bool ShouldExpandCategory(IEnumerable<PermissionResourceDescriptor> resources) =>
-        !string.IsNullOrWhiteSpace(_search) || CategoryDirectCount(resources) > 0;
+    private bool IsCategoryExpanded(string category) =>
+        !string.IsNullOrWhiteSpace(_search) || _expandedCategories.Contains(category);
+
+    private void SetCategoryExpanded(string category, bool expanded)
+    {
+        if (expanded)
+            _expandedCategories.Add(category);
+        else
+            _expandedCategories.Remove(category);
+    }
+
+    private void ExpandCategoriesWithDirectGrants()
+    {
+        foreach (var category in Categories.Where(category => CategoryDirectCount(GetCategoryResources(category)) > 0))
+            _expandedCategories.Add(category);
+    }
 
     private static string CategorySummary(int total, int direct, int covered)
     {
