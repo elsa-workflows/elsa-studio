@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -21,7 +21,7 @@ public partial class EditInputDialog
     private readonly InputDefinitionModel _model = new();
     private EditContext _editContext = default!;
     private InputModelValidator _validator = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
+    private bool _initialized;
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<UIHintDescriptor> _uiHints = new List<UIHintDescriptor>();
@@ -36,11 +36,15 @@ public partial class EditInputDialog
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        // Instantiate the edit context first so that it is available when rendering (which happens as soon as we call an async method on the next line).
         _editContext = new(_model);
+        _validator = new(WorkflowDefinition, Localizer);
+
         _storageDriverDescriptors = (await StorageDriverService.GetStorageDriversAsync()).ToList();
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
+        _initialized = true;
     }
 
     /// <inheritdoc />
@@ -48,7 +52,7 @@ public partial class EditInputDialog
     {
         _editContext = new(_model);
         _validator = new(WorkflowDefinition, Localizer);
-        
+
         if (Input == null)
         {
             _model.Name = GetNewInputName(WorkflowDefinition.Inputs);
@@ -114,7 +118,10 @@ public partial class EditInputDialog
 
     private async Task OnSubmitClicked()
     {
-        if (!await _fluentValidationValidator.ValidateAsync())
+        if (!_initialized)
+            return;
+
+        if (!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();
@@ -122,6 +129,9 @@ public partial class EditInputDialog
 
     private Task OnValidSubmit()
     {
+        if (!_initialized)
+            return Task.CompletedTask;
+
         var input = Input ?? new InputDefinition();
 
         input.Name = _model.Name;

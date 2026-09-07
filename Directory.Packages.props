@@ -7,7 +7,7 @@
     <PackageVersion Include="Elsa.Api.Client" Version="3.8.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Blazored.FluentValidation" Version="2.2.0" />
+    <PackageVersion Include="Blazilla" Version="2.3.0" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />

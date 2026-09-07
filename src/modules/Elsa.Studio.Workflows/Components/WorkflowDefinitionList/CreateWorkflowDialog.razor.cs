@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -13,15 +13,15 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 /// <summary>
 /// A dialog that allows the user to create a new workflow.
 /// </summary>
-public partial class CreateWorkflowDialog
+public partial class CreateWorkflowDialog : IDisposable
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
     private IReadOnlyCollection<WorkflowRootActivityTemplate> _rootActivityTemplates = [];
     private string? _selectedRootActivityTemplateKey;
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
-   
+    private WorkflowMetadataSubmitValidator _submitValidator = null!;
+
     /// <summary>
     /// The name of the workflow to create.
     /// </summary>
@@ -36,6 +36,12 @@ public partial class CreateWorkflowDialog
         _metadataModel.Name = WorkflowName;
         _editContext = new(_metadataModel);
         _validator = new(WorkflowDefinitionService, Localizer);
+
+        // Discard the previous instance's field-changed subscription before it is replaced, so it does not
+        // keep running against an edit context this component no longer uses.
+        _submitValidator?.Dispose();
+        _submitValidator = new(_validator, _metadataModel, _editContext);
+
         _rootActivityTemplates = WorkflowRootActivityTemplateProvider.List();
         _selectedRootActivityTemplateKey ??= WorkflowRootActivityTemplateProvider.GetDefault().Key;
     }
@@ -46,18 +52,29 @@ public partial class CreateWorkflowDialog
         return Task.CompletedTask;
     }
 
-    private async Task OnSubmitClicked()
+    private Task OnSubmitClicked() => ValidateAndSubmitAsync();
+
+    // Blazilla runs the async uniqueness rule outside the synchronous validation pass, so the form is
+    // routed through OnSubmit: OnValidSubmit would fire before that rule completed and could create a
+    // workflow whose name turns out to be taken.
+    private Task OnSubmit(EditContext _) => ValidateAndSubmitAsync();
+
+    private async Task ValidateAndSubmitAsync()
     {
-        if(!await _fluentValidationValidator.ValidateAsync())
+        // Validate directly against the component-owned validator rather than EditContext.ValidateAsync(),
+        // whose shared, unversioned message store can be overwritten by Blazilla's own asynchronous
+        // field-change validation resolving after this check does. The validator also discards a result
+        // that no longer describes the current name, so a bound-name change while the check was pending
+        // never submits a stale value; the user's next submission re-validates the current value.
+        var isValid = await _submitValidator.ValidateAndPublishAsync();
+
+        if (!isValid)
             return;
 
-        await OnValidSubmit();
-    }
-
-    private async Task OnValidSubmit()
-    {
         var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(_metadataModel.Name!, _metadataModel.Description!, _selectedRootActivityTemplateKey);
         MudDialog.Close(result);
     }
 
+    /// <inheritdoc />
+    public void Dispose() => _submitValidator?.Dispose();
 }
