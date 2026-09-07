@@ -39,6 +39,11 @@ public partial class CreateLabelDialog
 
     private async Task OnSubmitClicked()
     {
+        // Guard against submitting while the validator is still loading: no FluentValidator is attached to
+        // _editContext yet, so ValidateAsync() would find no messages and return true, letting an empty label through.
+        if (_validator is null)
+            return;
+
         if(!await _editContext.ValidateAsync())
             return;
 

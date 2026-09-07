@@ -33,7 +33,7 @@ public partial class EditInputDialog
     [Inject] private IVariableTypeService VariableTypeService { get; set; } = default!;
 
     /// <inheritdoc />
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
         // Instantiate the edit context first so that it is available when rendering (which happens as soon as we call an async method on the next line).
         _editContext = new(_model);
@@ -43,6 +43,13 @@ public partial class EditInputDialog
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _editContext = new(_model);
+        _validator = new(WorkflowDefinition, Localizer);
 
         if (Input == null)
         {

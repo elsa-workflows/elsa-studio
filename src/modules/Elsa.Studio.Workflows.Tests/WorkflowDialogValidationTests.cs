@@ -48,6 +48,8 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     private const string DuplicateNameMessage = "A workflow with this name already exists.";
 
     private readonly ControlledWorkflowDefinitionService _workflowDefinitionService = new();
+    private readonly DeferredStorageDriverService _storageDriverService = new();
+    private readonly DeferredVariableTypeService _variableTypeService = new();
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
     public WorkflowDialogValidationTests()
@@ -58,8 +60,8 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IWorkflowDefinitionService>(_workflowDefinitionService);
         Services.AddSingleton<IWorkflowRootActivityTemplateProvider>(new DefaultWorkflowRootActivityTemplateProvider());
         Services.AddMudExtensions();
-        Services.AddSingleton<IStorageDriverService, DeferredStorageDriverService>();
-        Services.AddSingleton<IVariableTypeService, DeferredVariableTypeService>();
+        Services.AddSingleton<IStorageDriverService>(_storageDriverService);
+        Services.AddSingleton<IVariableTypeService>(_variableTypeService);
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -271,6 +273,22 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain("Please enter a name for the input.", _dialogProvider.Markup);
     }
 
+    [Fact]
+    public async Task InputDialogLoadsDescriptorsOnceAcrossInitialRenderAndParentReRender()
+    {
+        await ShowInputDialogAsync();
+
+        Assert.Equal(1, _storageDriverService.CallCount);
+        Assert.Equal(1, _variableTypeService.CallCount);
+
+        var editInputDialog = _dialogProvider.FindComponent<EditInputDialog>();
+        editInputDialog.Render(parameters => parameters
+            .Add(x => x.WorkflowDefinition, new WorkflowDefinition()));
+
+        Assert.Equal(1, _storageDriverService.CallCount);
+        Assert.Equal(1, _variableTypeService.CallCount);
+    }
+
     [Theory]
     [InlineData(SubmitPath.Form)]
     [InlineData(SubmitPath.OkButton)]
@@ -344,11 +362,16 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     /// <summary>
     /// Yields before returning so that the input and output dialogs render once with their default field
     /// values still unset, reproducing the delay the tests wait out before interacting with the form.
+    /// Also counts calls so tests can assert the input dialog loads its descriptors once, in
+    /// <c>OnInitializedAsync</c>, rather than on every parent re-render.
     /// </summary>
     private sealed class DeferredStorageDriverService : IStorageDriverService
     {
+        public int CallCount { get; private set; }
+
         public async Task<IEnumerable<StorageDriverDescriptor>> GetStorageDriversAsync(CancellationToken cancellationToken = default)
         {
+            CallCount++;
             await Task.Yield();
             return [new("Workflow", "Workflow", 0, false)];
         }
@@ -357,8 +380,11 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     /// <inheritdoc cref="DeferredStorageDriverService"/>
     private sealed class DeferredVariableTypeService : IVariableTypeService
     {
+        public int CallCount { get; private set; }
+
         public async Task<IEnumerable<VariableTypeDescriptor>> GetVariableTypesAsync(CancellationToken cancellationToken = default)
         {
+            CallCount++;
             await Task.Yield();
             return [new("System.String", "String", "Text", null)];
         }
