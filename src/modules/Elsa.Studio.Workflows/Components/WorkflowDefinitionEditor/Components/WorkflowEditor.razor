@@ -8,6 +8,7 @@
     <RadzenSplitterPane Size="70%">
         <DiagramDesignerWrapper @ref="_diagramDesigner"
                                 WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
+                                WorkflowDefinition="@_workflowDefinition"
                                 Activity="@Activity"
                                 IsProgressing="@IsProgressing"
                                 ActivitySelected="@OnActivitySelected"

@@ -9,9 +9,9 @@
             <FluentValidator Validator="_validator"/>
             <MudStack>
                 <MudRadioGroup T="ExportGraphFormat" @bind-Value="_model.Format">
-                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Png" Dense="true">PNG</MudRadio>
-                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Jpeg" Dense="true">JPEG</MudRadio>
-                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Svg" Dense="true">SVG</MudRadio>
+                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Png" Dense="true">@Localizer["PNG"]</MudRadio>
+                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Jpeg" Dense="true">@Localizer["JPEG"]</MudRadio>
+                    <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Svg" Dense="true">@Localizer["SVG"]</MudRadio>
                 </MudRadioGroup>
                 <MudTextField Label="@Localizer["File name"]" @bind-Value="_model.FileName" For="@(() => _model.FileName)" HelperText="@Localizer["The name of the exported file. The extension is added automatically."]" Variant="Variant.Outlined" Margin="Margin.Dense"/>
                 @* SVG is vector output with no raster canvas to pad, so the field is offered only for the image formats. *@

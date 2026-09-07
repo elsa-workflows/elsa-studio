@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Bunit;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
@@ -61,22 +62,44 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
     [InlineData("Orders/Fulfillment", 2, "Orders_Fulfillment_v2")]
     [InlineData("", 4, "flowchart_v4")]
     [InlineData(null, 0, "flowchart")]
-    public void TheProposedFileNameDerivesFromTheFlowchartNameAndVersion(string? name, int version, string expected)
+    public void TheProposedFileNameDerivesFromTheWorkflowDefinitionNameAndVersion(string? name, int version, string expected)
     {
-        var flowchart = new JsonObject();
+        var workflowDefinition = new WorkflowDefinition
+        {
+            Name = name!,
+            Version = version
+        };
 
-        if (name is not null)
-            flowchart["name"] = name;
-
-        if (version != 0)
-            flowchart["version"] = version;
-
-        Assert.Equal(expected, FlowchartDiagramDesigner.GetDefaultFileName(flowchart));
+        Assert.Equal(expected, FlowchartDiagramDesigner.GetDefaultFileName(workflowDefinition));
     }
 
     [Fact]
-    public void TheProposedFileNameFallsBackWhenThereIsNoFlowchart() =>
+    public void TheProposedFileNameFallsBackWhenThereIsNoWorkflowDefinition() =>
         Assert.Equal("flowchart", FlowchartDiagramDesigner.GetDefaultFileName(null));
+
+    [Fact]
+    public void TheProposedFileNameIgnoresTheRootActivityJsonEvenWhenItCarriesAName()
+    {
+        // Production shape: a real workflow's root `Elsa.Flowchart` activity carries no `name`, and its `version`
+        // is the activity type's version rather than the workflow's - as reproduced here. `GetDefaultFileName` no
+        // longer even accepts the root activity JSON; it is derived solely from the workflow definition, which is
+        // how production supplies it (via `DisplayContext.WorkflowDefinition`).
+        var rootActivity = new JsonObject
+        {
+            ["type"] = "Elsa.Flowchart",
+            ["version"] = 1
+        };
+        var workflowDefinition = new WorkflowDefinition
+        {
+            Name = "Order processing",
+            Version = 3
+        };
+
+        var fileName = FlowchartDiagramDesigner.GetDefaultFileName(workflowDefinition);
+
+        Assert.Equal("Order processing_v3", fileName);
+        Assert.Null(rootActivity["name"]);
+    }
 
     [Theory]
     [InlineData(SubmitPath.Form)]
@@ -199,8 +222,21 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
 
     private Task SetPaddingAsync(string padding) => PaddingFields().Single().Find("input").ChangeAsync(new ChangeEventArgs { Value = padding });
 
-    private Task SelectFormatAsync(ExportGraphFormat format) =>
-        _dialogProvider.InvokeAsync(() => _dialogProvider.FindAll("input.mud-radio-input")[(int)format].ClickAsync(new MouseEventArgs()));
+    // Radios are matched by their visible label text rather than by position, so a reordering or a missing option
+    // fails the test loudly instead of silently selecting the wrong format.
+    private static string FormatLabel(ExportGraphFormat format) => format switch
+    {
+        ExportGraphFormat.Png => "PNG",
+        ExportGraphFormat.Jpeg => "JPEG",
+        ExportGraphFormat.Svg => "SVG",
+        _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+    };
+
+    private Task SelectFormatAsync(ExportGraphFormat format) => _dialogProvider.InvokeAsync(() =>
+        _dialogProvider.FindAll("label.mud-radio")
+            .Single(label => label.TextContent.Trim() == FormatLabel(format))
+            .QuerySelector("input.mud-radio-input")!
+            .ClickAsync(new MouseEventArgs()));
 
     private IRenderedComponent<MudTextField<string>> FileNameField() => _dialogProvider.FindComponents<MudTextField<string>>()[0];
 

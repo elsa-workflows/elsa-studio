@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -46,6 +47,11 @@ public partial class DiagramDesignerWrapper
     /// The root activity to display.
     [Parameter]
     public JsonObject Activity { get; set; } = null!;
+
+    /// The workflow definition that the displayed activity belongs to, if known. Used, for example, to propose a
+    /// file name for diagram exports.
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// Whether the designer is read-only.
     [Parameter]
@@ -515,7 +521,8 @@ public partial class DiagramDesignerWrapper
             EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
             EventCallback.Factory.Create(this, OnGraphUpdated),
             IsReadOnly,
-            _activityStats));
+            _activityStats,
+            WorkflowDefinition));
     }
 
     private async Task OnActivitySelected(JsonObject activity)

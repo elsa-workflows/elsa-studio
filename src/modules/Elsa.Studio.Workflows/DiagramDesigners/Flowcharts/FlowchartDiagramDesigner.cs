@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Options;
@@ -24,6 +24,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
 
     private FlowchartDesignerWrapper? _designerWrapper;
     private readonly Guid _id = Guid.NewGuid();
+    private WorkflowDefinition? _workflowDefinition;
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -60,6 +61,8 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
     {
         var flowchart = context.Activity;
         var sequence = 0;
+
+        _workflowDefinition = context.WorkflowDefinition;
 
         return builder =>
         {
@@ -127,7 +130,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
 
         var parameters = new DialogParameters<ExportFlowchartDialog>
         {
-            { x => x.FileName, GetDefaultFileName(_designerWrapper.Flowchart) }
+            { x => x.FileName, GetDefaultFileName(_workflowDefinition) }
         };
 
         var options = new DialogOptions
@@ -148,18 +151,20 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
     }
 
     /// <summary>
-    /// Derives the file name to propose for an export from the flowchart's name, suffixed with its version when the
-    /// flowchart carries one. Characters that the host platform does not allow in a file name are replaced with an
-    /// underscore; the browser applies its own sanitization to the download name on top of this.
+    /// Derives the file name to propose for an export from the workflow definition's name, suffixed with its
+    /// version when the definition carries one. The root activity's JSON is not used, because for a real workflow
+    /// its root activity carries no name and its version is the activity type's version, not the workflow's.
+    /// Characters that the host platform does not allow in a file name are replaced with an underscore; the
+    /// browser applies its own sanitization to the download name on top of this.
     /// </summary>
-    internal static string GetDefaultFileName(JsonObject? flowchart)
+    internal static string GetDefaultFileName(WorkflowDefinition? workflowDefinition)
     {
-        var name = flowchart?.GetName()?.Trim();
+        var name = workflowDefinition?.Name?.Trim();
         var invalidChars = Path.GetInvalidFileNameChars();
         var fileName = string.IsNullOrEmpty(name)
             ? DefaultFileName
             : new string(name.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
-        var version = flowchart?.GetVersion() ?? 0;
+        var version = workflowDefinition?.Version ?? 0;
 
         return version > 0 ? $"{fileName}_v{version}" : fileName;
     }
