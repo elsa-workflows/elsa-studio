@@ -242,6 +242,81 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         Assert.Null(GetElapsedTimer(cut.Instance));
     }
 
+    [Fact]
+    public async Task StartElapsedTimerAfterDisposalLeavesTimerFieldNull()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+
+        cut.Instance.StartElapsedTimer();
+
+        Assert.Null(GetElapsedTimer(cut.Instance));
+    }
+
+    [Fact]
+    public async Task StartElapsedTimerOnLiveComponentInstallsTimerOnce()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        try
+        {
+            cut.Instance.StartElapsedTimer();
+            var firstTimer = GetElapsedTimer(cut.Instance);
+            Assert.NotNull(firstTimer);
+
+            cut.Instance.StartElapsedTimer();
+            var secondTimer = GetElapsedTimer(cut.Instance);
+
+            Assert.Same(firstTimer, secondTimer);
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RefreshActivityStatePeriodicallyAfterDisposalLeavesTimerFieldNull()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+
+        cut.Instance.RefreshActivityStatePeriodically("exec-1");
+
+        Assert.Null(GetRefreshTimer(cut.Instance));
+    }
+
+    [Fact]
+    public async Task RefreshActivityStatePeriodicallyOnLiveComponentInstallsTimerOnce()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+        SetLastActivityExecution(cut.Instance, "node-1");
+
+        try
+        {
+            cut.Instance.RefreshActivityStatePeriodically("exec-1");
+            var firstTimer = GetRefreshTimer(cut.Instance);
+            Assert.NotNull(firstTimer);
+
+            cut.Instance.RefreshActivityStatePeriodically("exec-1");
+            var secondTimer = GetRefreshTimer(cut.Instance);
+
+            Assert.NotNull(secondTimer);
+            Assert.NotSame(firstTimer, secondTimer);
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
     private IRenderedComponent<TestWorkflowInstanceDesigner> RenderDesigner(IActivityExecutionService activityExecutionService)
     {
         Services.AddSingleton(activityExecutionService);

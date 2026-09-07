@@ -257,10 +257,30 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
-    private void StartElapsedTimer()
+    /// <summary>
+    /// Starts the periodic elapsed-time timer, unless the component has already been disposed. Internal
+    /// so tests can invoke it directly to pin the disposal race it guards against.
+    /// </summary>
+    internal void StartElapsedTimer()
     {
-        if (_elapsedTimer == null)
-            _elapsedTimer = new(_ => _ = ElapsedTimerTickAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        if (_disposed) return;
+        if (_elapsedTimer != null) return;
+
+        var timer = new Timer(_ => _ = ElapsedTimerTickAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
+        if (Interlocked.CompareExchange(ref _elapsedTimer, timer, null) is not null)
+        {
+            // Another caller already installed a timer; discard the one we just created.
+            timer.Dispose();
+            return;
+        }
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the timer; detach and dispose it.
+            var disposedTimer = Interlocked.Exchange(ref _elapsedTimer, null);
+            disposedTimer?.Dispose();
+        }
     }
 
     /// <summary>
@@ -390,11 +410,26 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         });
     }
 
-    private void RefreshActivityStatePeriodically(string activityExecutionRecordId)
+    /// <summary>
+    /// Starts the periodic activity-state refresh timer, unless the component has already been
+    /// disposed. Internal so tests can invoke it directly to pin the disposal race it guards against.
+    /// </summary>
+    internal void RefreshActivityStatePeriodically(string activityExecutionRecordId)
     {
+        if (_disposed) return;
+
         async void Callback(object? _) => await RefreshTimerTickAsync(activityExecutionRecordId);
 
-        _refreshTimer = new(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        var timer = new Timer(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        var previousTimer = Interlocked.Exchange(ref _refreshTimer, timer);
+        previousTimer?.Dispose();
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the timer; detach and dispose it.
+            var disposedTimer = Interlocked.Exchange(ref _refreshTimer, null);
+            disposedTimer?.Dispose();
+        }
     }
 
     /// <summary>
