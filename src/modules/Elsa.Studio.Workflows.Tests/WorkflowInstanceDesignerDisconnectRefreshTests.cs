@@ -97,6 +97,18 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         var exception = await Record.ExceptionAsync(() => cut.Instance.ElapsedTimerTickAsync());
 
         Assert.Null(exception);
+        Assert.Equal(0, cut.Instance.NotifyStateChangedCallCount);
+    }
+
+    [Fact]
+    public async Task ElapsedTickBeforeDisposalNotifiesStateChanged()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        await cut.Instance.ElapsedTimerTickAsync();
+
+        Assert.Equal(1, cut.Instance.NotifyStateChangedCallCount);
     }
 
     [Theory]
@@ -178,6 +190,7 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     private sealed class TestWorkflowInstanceDesigner : WorkflowInstanceDesigner
     {
         public Exception? ThrowOnRender { get; set; }
+        public int NotifyStateChangedCallCount { get; private set; }
 
         protected override Task OnAfterRenderAsync(bool firstRender) => Task.CompletedTask;
 
@@ -185,8 +198,11 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         {
         }
 
-        internal override Task NotifyStateChangedAsync() =>
-            ThrowOnRender != null ? Task.FromException(ThrowOnRender) : base.NotifyStateChangedAsync();
+        internal override Task NotifyStateChangedAsync()
+        {
+            NotifyStateChangedCallCount++;
+            return ThrowOnRender != null ? Task.FromException(ThrowOnRender) : base.NotifyStateChangedAsync();
+        }
     }
 
     /// <summary>

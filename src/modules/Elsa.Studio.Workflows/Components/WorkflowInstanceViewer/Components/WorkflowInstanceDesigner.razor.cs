@@ -269,19 +269,34 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// </summary>
     internal async Task ElapsedTimerTickAsync()
     {
-        if (_disposed) return;
+        await RunTimerTickAsync(NotifyStateChangedAsync, StopElapsedTimerAsync);
+    }
+
+    /// <summary>
+    /// Runs the body of a periodic timer tick, guarding it against disposal and a disconnected
+    /// circuit. Returns <c>false</c> when the component was already disposed or when <paramref name="work"/>
+    /// threw a circuit-gone exception (in which case <paramref name="stopTimer"/> stopped the timer);
+    /// returns <c>true</c> when <paramref name="work"/> completed normally. Exceptions that do not
+    /// signal a gone circuit propagate to the caller.
+    /// </summary>
+    private async Task<bool> RunTimerTickAsync(Func<Task> work, Func<Task> stopTimer)
+    {
+        if (_disposed) return false;
 
         try
         {
-            await NotifyStateChangedAsync();
+            await work();
         }
         catch (Exception ex) when (IsCircuitGoneException(ex))
         {
             // The circuit has disconnected (e.g. the browser tab hosting this workflow instance was
-            // closed) while the render was in flight. Stop the elapsed timer instead of letting the
-            // exception escape the timer callback and crash the process.
-            StopElapsedTimer();
+            // closed) while the tick was in flight. Stop the timer instead of letting the exception
+            // escape the timer callback and crash the process.
+            await stopTimer();
+            return false;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -298,6 +313,12 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             _elapsedTimer?.Dispose();
             _elapsedTimer = null;
         }
+    }
+
+    private Task StopElapsedTimerAsync()
+    {
+        StopElapsedTimer();
+        return Task.CompletedTask;
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
@@ -385,20 +406,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// </summary>
     internal async Task RefreshTimerTickAsync(string activityExecutionRecordId)
     {
-        if (_disposed) return;
+        var ticked = await RunTimerTickAsync(() => RefreshSelectedItemAsync(activityExecutionRecordId), StopRefreshActivityStatePeriodically);
 
-        try
-        {
-            await RefreshSelectedItemAsync(activityExecutionRecordId);
-        }
-        catch (Exception ex) when (IsCircuitGoneException(ex))
-        {
-            // The circuit has disconnected (e.g. the browser tab hosting this workflow instance was
-            // closed) while the refresh was in flight. Stop refreshing instead of letting the
-            // exception escape the timer callback and crash the process.
-            await StopRefreshActivityStatePeriodically();
-            return;
-        }
+        if (!ticked) return;
 
         if (_disposed) return;
 
