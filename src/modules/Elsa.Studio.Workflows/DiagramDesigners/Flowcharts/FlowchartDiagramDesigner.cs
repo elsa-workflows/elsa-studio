@@ -106,6 +106,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
                 childBuilder.AddAttribute(2, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
+                childBuilder.AddAttribute(3, "aria-label", title);
                 childBuilder.CloseComponent();
             }));
 
@@ -144,7 +145,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
         var dialog = await dialogService.ShowAsync<ExportFlowchartDialog>(localizer["Export flowchart"], parameters, options);
         var result = await dialog.Result;
 
-        if (result?.Canceled != false || result.Data is not ExportGraphOptions exportOptions)
+        if ((result?.Canceled ?? true) || result.Data is not ExportGraphOptions exportOptions)
             return;
 
         await _designerWrapper.ExportGraphAsync(exportOptions);

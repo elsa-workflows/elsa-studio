@@ -8,7 +8,7 @@
         <EditForm @key="_editContext" EditContext="_editContext" OnValidSubmit="OnValidSubmit">
             <FluentValidator Validator="_validator"/>
             <MudStack>
-                <MudRadioGroup T="ExportGraphFormat" @bind-Value="_model.Format">
+                <MudRadioGroup T="ExportGraphFormat" @bind-Value="_model.Format" aria-label="@Localizer["Format"]">
                     <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Png" Dense="true">@Localizer["PNG"]</MudRadio>
                     <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Jpeg" Dense="true">@Localizer["JPEG"]</MudRadio>
                     <MudRadio T="ExportGraphFormat" Value="ExportGraphFormat.Svg" Dense="true">@Localizer["SVG"]</MudRadio>

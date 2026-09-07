@@ -16,7 +16,6 @@ namespace Elsa.Studio.Workflows.UI.Contexts;
 /// <param name="GraphUpdatedCallback">A callback that is invoked when the graph is updated.</param>
 /// <param name="IsReadOnly">Whether the activity is read-only.</param>
 /// <param name="ActivityStats">A map of activity stats.</param>
-/// <param name="WorkflowDefinition">The workflow definition that the activity belongs to, if known. Diagram designers can use this to derive a proposed file name for exports instead of relying on the root activity's JSON, which does not reliably carry the workflow's name or version.</param>
 public record DisplayContext(
     JsonObject Activity,
     EventCallback<JsonObject> ActivitySelectedCallback = default,
@@ -25,5 +24,12 @@ public record DisplayContext(
     EventCallback<JsonObject> ActivityDoubleClickCallback = default,
     EventCallback GraphUpdatedCallback = default,
     bool IsReadOnly = false,
-    IDictionary<string, ActivityStats>? ActivityStats = null,
-    WorkflowDefinition? WorkflowDefinition = null);
+    IDictionary<string, ActivityStats>? ActivityStats = null)
+{
+    /// <summary>
+    /// The workflow definition that the activity belongs to, if known. Diagram designers can use this to derive a
+    /// proposed file name for exports instead of relying on the root activity's JSON, which does not reliably
+    /// carry the workflow's name or version.
+    /// </summary>
+    public WorkflowDefinition? WorkflowDefinition { get; init; }
+}

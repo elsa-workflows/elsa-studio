@@ -27,7 +27,7 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
     private const string ProposedFileName = "Order processing";
     private const string EmptyFileNameMessage = "Please enter a file name for the export.";
-    private const string NegativePaddingMessage = "The padding cannot be negative.";
+    private const string OutOfRangePaddingMessage = "The padding must be between 0 and 1000 pixels.";
 
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
@@ -116,17 +116,19 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(SubmitPath.Form)]
-    [InlineData(SubmitPath.OkButton)]
-    public async Task TheDialogDoesNotCloseWhenThePaddingIsNegative(SubmitPath submitPath)
+    [InlineData(SubmitPath.Form, "-5")]
+    [InlineData(SubmitPath.OkButton, "-5")]
+    [InlineData(SubmitPath.Form, "1001")]
+    [InlineData(SubmitPath.OkButton, "1001")]
+    public async Task TheDialogDoesNotCloseWhenThePaddingIsOutOfRange(SubmitPath submitPath, string padding)
     {
         var dialog = await ShowDialogAsync();
-        await SetPaddingAsync("-5");
+        await SetPaddingAsync(padding);
 
         await Submit(submitPath);
 
         Assert.False(dialog.Result.IsCompleted);
-        _dialogProvider.WaitForAssertion(() => Assert.Contains(NegativePaddingMessage, _dialogProvider.Markup));
+        _dialogProvider.WaitForAssertion(() => Assert.Contains(OutOfRangePaddingMessage, _dialogProvider.Markup));
     }
 
     [Theory]
@@ -149,7 +151,7 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
         Assert.Equal("Fulfillment diagram", options.FileName);
         Assert.Equal(40, options.Padding);
         Assert.DoesNotContain(EmptyFileNameMessage, _dialogProvider.Markup);
-        Assert.DoesNotContain(NegativePaddingMessage, _dialogProvider.Markup);
+        Assert.DoesNotContain(OutOfRangePaddingMessage, _dialogProvider.Markup);
     }
 
     [Fact]
@@ -163,6 +165,15 @@ public sealed class ExportFlowchartDialogTests : BunitContext, IAsyncLifetime
 
         Assert.Equal(ExportGraphFormat.Png, options.Format);
         Assert.Equal(ProposedFileName, options.FileName);
+    }
+
+    [Fact]
+    public async Task TheFormatRadioGroupHasAnAccessibleName()
+    {
+        await ShowDialogAsync();
+
+        var radioGroup = _dialogProvider.Find("[role='radiogroup']");
+        Assert.Equal("Format", radioGroup.GetAttribute("aria-label"));
     }
 
     [Fact]

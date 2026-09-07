@@ -521,8 +521,10 @@ public partial class DiagramDesignerWrapper
             EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
             EventCallback.Factory.Create(this, OnGraphUpdated),
             IsReadOnly,
-            _activityStats,
-            WorkflowDefinition));
+            _activityStats)
+        {
+            WorkflowDefinition = WorkflowDefinition
+        });
     }
 
     private async Task OnActivitySelected(JsonObject activity)
