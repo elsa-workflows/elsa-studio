@@ -196,6 +196,16 @@ test.describe('role management against a real Core host', () => {
     await expect(header.getByText('24h', { exact: true })).toBeVisible();
     await expect(header.getByText('7d', { exact: true })).toBeVisible();
 
+    const operationalHealth = page.locator('.dashboard-operational-health');
+    const executionTrend = page.locator('.dashboard-chart-panel');
+    await expect(operationalHealth).toBeVisible();
+    await expect(executionTrend).toBeVisible();
+    const operationalHealthBox = await operationalHealth.boundingBox();
+    const executionTrendBox = await executionTrend.boundingBox();
+    expect(operationalHealthBox).not.toBeNull();
+    expect(executionTrendBox).not.toBeNull();
+    expect(executionTrendBox!.y - (operationalHealthBox!.y + operationalHealthBox!.height)).toBeGreaterThanOrEqual(16);
+
     await expectNoBlockingAccessibilityViolations(page);
     await page.getByRole('button', { name: 'Use dark theme' }).click();
     await expect(page.getByRole('button', { name: 'Use light theme' })).toBeVisible();
