@@ -214,6 +214,10 @@ test.describe('role management against a real Core host', () => {
     await advancedTab.click();
     await expect(page.getByText('identity/roles:*', { exact: true })).toBeVisible();
     await expect(page.getByText(/Future reach:/)).toBeVisible();
+    await page.getByRole('button', { name: 'Edit advanced grant identity/roles:*', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Grant expression for identity/roles:*', exact: true }).fill('identity/*:view');
+    await page.getByRole('button', { name: 'Save advanced grant identity/roles:*', exact: true }).click();
+    await expect(page.getByText('identity/*:view', { exact: true })).toBeVisible();
 
     const updatedName = `${name}-updated`;
     await page.getByLabel('Role name').fill(updatedName);
@@ -223,6 +227,8 @@ test.describe('role management against a real Core host', () => {
     await page.reload();
     await expect(page.getByLabel('Role name')).toHaveValue(updatedName);
     await expect(page.getByText(id, { exact: true })).toBeVisible();
+    await page.locator('[role="tab"]').filter({ hasText: /Advanced grants/ }).first().click();
+    await expect(page.getByText('identity/*:view', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Delete role', exact: true }).click();
     await expect(page.getByTestId('role-deletion-safe')).toBeVisible();

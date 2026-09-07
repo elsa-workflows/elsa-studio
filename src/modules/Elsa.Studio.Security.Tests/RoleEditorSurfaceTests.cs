@@ -410,6 +410,70 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void AdvancedGrantCanBeEditedInPlaceAndSubmitted()
+    {
+        var roles = new StubRolesApi
+        {
+            Created = new CreateRoleResponse { Id = "workflow-admin", Name = "Workflow admin" }
+        };
+        Register(roles, new StubPermissionsApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+
+        cut.Find("input[aria-label='Role name']").Input("Workflow admin");
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.Find("input[placeholder='workflows/*:view or *']").Change("workflows/*:view");
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.Find("button[aria-label='Edit advanced grant workflows/*:view']").Click();
+        Assert.True(cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).HasAttribute("disabled"));
+        cut.Find("input[aria-label='Grant expression for workflows/*:view']").Input(" workflows/*:* ");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("workflows/*:*", cut.Markup);
+            Assert.Empty(cut.FindAll("button[aria-label='Edit advanced grant workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant workflows/*:*']"));
+            Assert.False(cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).HasAttribute("disabled"));
+        });
+
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.CreateCalls));
+        Assert.Equal(["workflows/*:*"], roles.LastCreate!.Permissions);
+    }
+
+    [Fact]
+    public void AdvancedGrantEditRejectsInvalidAndDuplicateValuesAndCanBeCancelled()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+
+        AddAdvancedGrant(cut, "identity/roles:*");
+        AddAdvancedGrant(cut, "workflows/*:view");
+        cut.Find("button[aria-label='Edit advanced grant workflows/*:view']").Click();
+        var editor = cut.Find("input[aria-label='Grant expression for workflows/*:view']");
+
+        editor.Input("workflows/definitions:view");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() => Assert.Contains("This is an exact permission", cut.Markup));
+
+        editor = cut.Find("input[aria-label='Grant expression for workflows/*:view']");
+        editor.Input("identity/roles:*");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() => Assert.Contains("This advanced grant already exists", cut.Markup));
+
+        cut.Find("button[aria-label='Cancel editing advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("input[aria-label='Grant expression for workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant identity/roles:*']"));
+        });
+    }
+
+    [Fact]
     public void ExactPermissionSearch_MatchesTheFullPermissionIdentifier()
     {
         Register(new StubRolesApi(), new StubPermissionsApi
@@ -537,6 +601,13 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
                 ]
             }
         };
+
+    private static void AddAdvancedGrant(IRenderedComponent<RoleEditorSurface> cut, string grant)
+    {
+        cut.Find("input[placeholder='workflows/*:view or *']").Change(grant);
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find($"button[aria-label='Edit advanced grant {grant}']")));
+    }
 
     private static RoleAdministrationAccess ReadyAccess =>
         new(RoleAdministrationAccessState.Ready, CanView: true, CanCreate: true, CanUpdate: true, CanDelete: false);

@@ -270,13 +270,19 @@ else
                         }
                         @foreach (var grant in _advanced)
                         {
-                            <RoleAdvancedGrantCard Grant="@grant"
+                            <RoleAdvancedGrantCard @key="grant"
+                                                    Grant="@grant"
                                                     Reach="@(_reach.TryGetValue(grant, out var reach) ? reach : null)"
                                                     ReachLoading="@_reachLoading.Contains(grant)"
                                                     ReachError="@(_reachErrors.TryGetValue(grant, out var reachError) ? reachError : null)"
                                                     MaterializedDuplicates="@GetMaterializedDuplicates(grant)"
                                                     IsReadOnly="@IsReadOnly"
+                                                    IsEditing="@string.Equals(_editingAdvancedGrant, grant, StringComparison.Ordinal)"
+                                                    EditDisabled="@(_editingAdvancedGrant is not null && !string.Equals(_editingAdvancedGrant, grant, StringComparison.Ordinal))"
+                                                    OnEdit="@(() => BeginAdvancedGrantEdit(grant))"
+                                                    OnCancelEdit="CancelAdvancedGrantEdit"
                                                     OnRemove="@(() => RemoveAdvancedGrant(grant))"
+                                                    OnSave="@(value => EditAdvancedGrantAsync(grant, value))"
                                                     OnLoadReach="@(() => LoadReachAsync(grant))" />
                         }
                     </MudStack>
@@ -347,6 +353,7 @@ else
     private string _name = string.Empty;
     private string _search = string.Empty;
     private string _advancedDraft = string.Empty;
+    private string? _editingAdvancedGrant;
     private string? _loadError;
     private string? _saveError;
     private string? _advancedError;
@@ -371,7 +378,7 @@ else
     private bool _isCreate => string.IsNullOrWhiteSpace(RoleId);
     private bool IsReadOnly => !_isCreate && !Access.CanUpdate;
     private bool CanOpen => _isCreate ? Access.CanCreate : Access.CanView;
-    private bool CanSave => !IsReadOnly && !_saving && _unresolved.Count == 0 && !string.IsNullOrWhiteSpace(_name);
+    private bool CanSave => !IsReadOnly && !_saving && _editingAdvancedGrant is null && _unresolved.Count == 0 && !string.IsNullOrWhiteSpace(_name);
     private IEnumerable<string> Categories => _catalog.Resources
         .Select(x => string.IsNullOrWhiteSpace(x.Category) ? "Other" : x.Category)
         .Distinct(StringComparer.Ordinal)
@@ -486,6 +493,7 @@ else
         _reach.Clear();
         _reachLoading.Clear();
         _reachErrors.Clear();
+        _editingAdvancedGrant = null;
     }
 
     private void SortGrantState()
@@ -621,16 +629,10 @@ else
     private async Task AddAdvancedGrant()
     {
         _advancedError = null;
-        var value = _advancedDraft.Trim();
-        if (!RolePermissionAuthoring.TryParse(value, out var pattern) || !RolePermissionAuthoring.IsValidPattern(pattern))
+        var validationError = ValidateAdvancedGrant(_advancedDraft, out var value);
+        if (validationError is not null)
         {
-            _advancedError = "Enter a valid grant. Wildcards may be *, a trailing resource /*, or the entire verb *.";
-            return;
-        }
-
-        if (!pattern.HasWildcard)
-        {
-            _advancedError = "This is an exact permission. Select it on the Exact permissions tab.";
+            _advancedError = validationError;
             return;
         }
 
@@ -642,6 +644,55 @@ else
         _reach.Remove(value);
         _reachErrors.Remove(value);
         await LoadReachAsync(value);
+    }
+
+    private async Task<string?> EditAdvancedGrantAsync(string grant, string draft)
+    {
+        if (IsReadOnly)
+            return "You do not have permission to edit this role.";
+
+        var validationError = ValidateAdvancedGrant(draft, out var value);
+        if (validationError is not null)
+            return validationError;
+
+        if (string.Equals(grant, value, StringComparison.Ordinal))
+        {
+            _editingAdvancedGrant = null;
+            return null;
+        }
+
+        if (_advanced.Contains(value, StringComparer.Ordinal))
+            return "This advanced grant already exists.";
+
+        var index = _advanced.IndexOf(grant);
+        if (index < 0)
+            return "This advanced grant is no longer available.";
+
+        _advanced[index] = value;
+        _advanced.Sort(StringComparer.Ordinal);
+        _advancedError = null;
+        _reach.Remove(grant);
+        _reachErrors.Remove(grant);
+        _reach.Remove(value);
+        _reachErrors.Remove(value);
+        _editingAdvancedGrant = null;
+        await LoadReachAsync(value);
+        return null;
+    }
+
+    private void BeginAdvancedGrantEdit(string grant) => _editingAdvancedGrant = grant;
+
+    private void CancelAdvancedGrantEdit() => _editingAdvancedGrant = null;
+
+    private static string? ValidateAdvancedGrant(string draft, out string value)
+    {
+        value = draft.Trim();
+        if (!RolePermissionAuthoring.TryParse(value, out var pattern) || !RolePermissionAuthoring.IsValidPattern(pattern))
+            return "Enter a valid grant. Wildcards may be *, a trailing resource /*, or the entire verb *.";
+
+        return pattern.HasWildcard
+            ? null
+            : "This is an exact permission. Select it on the Exact permissions tab.";
     }
 
     private void RemoveAdvancedGrant(string grant)
