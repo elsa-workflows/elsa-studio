@@ -383,7 +383,7 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void BulkClearPreservesPreExistingExactPermissionsCoveredByAnAdvancedGrant()
+    public void BulkClearRemovesPreExistingExactPermissionsCoveredByAnAdvancedGrant()
     {
         var roles = CreateRoleFixture(
             ["workflows/*:view", "workflows/definitions:view", "workflows/definitions:write"],
@@ -404,7 +404,33 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
 
         cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
-        Assert.Equal(["workflows/*:view", "workflows/definitions:view"], roles.LastUpdate!.Permissions);
+        Assert.Equal(["workflows/*:view"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
+    public void BulkClearRemovesDirectCoveredPermissionsWhenAllCatalogPermissionsAreCovered()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:*", "workflows/definitions:view"],
+            ["workflows/*:*"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+            var directCoveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(directCoveredPermission.HasAttribute("checked"));
+            Assert.False(directCoveredPermission.HasAttribute("disabled"));
+        });
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:*"], roles.LastUpdate!.Permissions);
     }
 
     [Fact]

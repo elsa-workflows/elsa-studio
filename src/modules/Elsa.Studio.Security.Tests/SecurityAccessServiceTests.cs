@@ -124,6 +124,45 @@ public sealed class IdentityPermissionContextTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => context.GetAsync(cancellation.Token));
     }
 
+    [Fact]
+    public async Task GetAsync_WhenAuthenticationChangesDuringLoad_DoesNotCacheThePreviousIdentityPermissions()
+    {
+        var firstRequestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseFirstRequest = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var api = new TestMePermissionsApi(async _ =>
+        {
+            if (Interlocked.Increment(ref calls) == 1)
+            {
+                firstRequestStarted.SetResult();
+                await releaseFirstRequest.Task;
+                return new CurrentCallerPermissionsResponse
+                {
+                    Grants = [new CurrentCallerResourceGrant { Resource = "old", Verbs = [IdentityPermissions.View] }]
+                };
+            }
+
+            return new CurrentCallerPermissionsResponse
+            {
+                Grants = [new CurrentCallerResourceGrant { Resource = "new", Verbs = [IdentityPermissions.View] }]
+            };
+        });
+        var authenticationStateProvider = new TestAuthenticationStateProvider();
+        using var context = CreateContext(api, authenticationStateProvider);
+
+        var load = context.GetAsync();
+        await firstRequestStarted.Task;
+        authenticationStateProvider.NotifyChanged();
+        releaseFirstRequest.SetResult();
+
+        var snapshot = await load;
+
+        Assert.Equal(IdentityPermissionSnapshotState.Ready, snapshot.State);
+        Assert.False(snapshot.HasPermission("old", IdentityPermissions.View));
+        Assert.True(snapshot.HasPermission("new", IdentityPermissions.View));
+        Assert.Equal(2, calls);
+    }
+
     private static ApiException CreateApiException(HttpStatusCode statusCode) =>
         ApiException.Create(
             new HttpRequestMessage(HttpMethod.Get, "https://elsa.example/identity/me/permissions"),

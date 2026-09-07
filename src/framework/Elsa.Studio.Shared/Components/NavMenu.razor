@@ -29,49 +29,105 @@
     private IDictionary<string, MenuItemGroup> _menuItemsGroups = new Dictionary<string, MenuItemGroup>();
     private IEnumerable<MenuItem> _menuItems = new List<MenuItem>();
     private readonly CancellationTokenSource _lifetime = new();
+    private readonly object _refreshSync = new();
+    private CancellationTokenSource? _refreshCancellation;
+    private long _authenticationGeneration;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
         AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        await LoadMenuAsync(_lifetime.Token);
+        var generation = Volatile.Read(ref _authenticationGeneration);
+        var menu = await LoadMenuAsync(_lifetime.Token);
+
+        if (IsCurrentGeneration(generation))
+            PublishMenu(menu);
     }
 
-    private async Task LoadMenuAsync(CancellationToken cancellationToken)
+    private async Task<(IDictionary<string, MenuItemGroup> Groups, IEnumerable<MenuItem> Items)> LoadMenuAsync(CancellationToken cancellationToken)
     {
-        _menuItemsGroups = (await MenuService.GetMenuItemGroupsAsync(cancellationToken)).ToDictionary(x => x.Name);
-        _menuItems = await MenuService.GetMenuItemsAsync(cancellationToken);
+        var groups = (await MenuService.GetMenuItemGroupsAsync(cancellationToken)).ToDictionary(x => x.Name);
+        var items = await MenuService.GetMenuItemsAsync(cancellationToken);
+        return (groups, items);
     }
 
-    private void OnAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask) =>
-        _ = RefreshMenuAsync(authenticationStateTask);
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
+    {
+        CancellationTokenSource refreshCancellation;
+        long generation;
 
-    private async Task RefreshMenuAsync(Task<AuthenticationState> authenticationStateTask)
+        lock (_refreshSync)
+        {
+            generation = ++_authenticationGeneration;
+            _refreshCancellation?.Cancel();
+            _refreshCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+            refreshCancellation = _refreshCancellation;
+        }
+
+        _ = RefreshMenuAsync(authenticationStateTask, generation, refreshCancellation);
+    }
+
+    private async Task RefreshMenuAsync(
+        Task<AuthenticationState> authenticationStateTask,
+        long generation,
+        CancellationTokenSource refreshCancellation)
     {
         try
         {
-            await authenticationStateTask;
+            await authenticationStateTask.WaitAsync(refreshCancellation.Token);
             await InvokeAsync(async () =>
             {
+                if (!IsCurrentGeneration(generation))
+                    return;
+
                 _menuItems = [];
                 StateHasChanged();
-                await LoadMenuAsync(_lifetime.Token);
-                StateHasChanged();
+                var menu = await LoadMenuAsync(refreshCancellation.Token);
+
+                if (IsCurrentGeneration(generation))
+                {
+                    PublishMenu(menu);
+                    StateHasChanged();
+                }
             });
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (refreshCancellation.IsCancellationRequested)
         {
+            Logger.LogDebug("Skipping a stale navigation menu refresh");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
             Logger.LogWarning(exception, "Reloading the navigation menu after an authentication change failed");
         }
+        finally
+        {
+            lock (_refreshSync)
+            {
+                if (ReferenceEquals(_refreshCancellation, refreshCancellation))
+                    _refreshCancellation = null;
+            }
+
+            refreshCancellation.Dispose();
+        }
+    }
+
+    private bool IsCurrentGeneration(long generation) =>
+        Volatile.Read(ref _authenticationGeneration) == generation && !_lifetime.IsCancellationRequested;
+
+    private void PublishMenu((IDictionary<string, MenuItemGroup> Groups, IEnumerable<MenuItem> Items) menu)
+    {
+        _menuItemsGroups = menu.Groups;
+        _menuItems = menu.Items;
     }
 
     public void Dispose()
     {
         AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         _lifetime.Cancel();
+        lock (_refreshSync)
+        {
+            _refreshCancellation?.Cancel();
+        }
         _lifetime.Dispose();
     }
 }

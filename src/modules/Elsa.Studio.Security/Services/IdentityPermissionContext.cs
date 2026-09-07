@@ -18,7 +18,10 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
     private readonly IBackendApiClientProvider _apiClientProvider;
     private readonly ILogger<IdentityPermissionContext> _logger;
     private readonly AuthenticationStateProvider? _authenticationStateProvider;
+    private readonly object _stateSync = new();
     private IdentityPermissionSnapshot? _snapshot;
+    private CancellationTokenSource? _activeLoadCancellation;
+    private long _authenticationGeneration;
 
     public IdentityPermissionContext(
         IBackendApiClientProvider apiClientProvider,
@@ -34,54 +37,97 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
 
     public async Task<IdentityPermissionSnapshot> GetAsync(CancellationToken cancellationToken = default)
     {
-        if (_snapshot != null)
-            return _snapshot;
-
-        await _loadLock.WaitAsync(cancellationToken);
-        try
+        while (true)
         {
-            if (_snapshot != null)
-                return _snapshot;
+            var generation = Volatile.Read(ref _authenticationGeneration);
+            lock (_stateSync)
+            {
+                if (_snapshot != null && generation == _authenticationGeneration)
+                    return _snapshot;
+            }
+
+            await _loadLock.WaitAsync(cancellationToken);
+            CancellationTokenSource? loadCancellation = null;
 
             try
             {
-                var api = await _apiClientProvider.GetApiAsync<IMePermissionsApi>(cancellationToken);
-                var response = await api.GetAsync(cancellationToken);
-                var grants = response.Grants
-                    .GroupBy(x => x.Resource, StringComparer.Ordinal)
-                    .ToDictionary(
-                        group => group.Key,
-                        group => (IReadOnlySet<string>)group
-                            .SelectMany(x => x.Verbs)
-                            .ToHashSet(StringComparer.Ordinal),
-                        StringComparer.Ordinal);
+                lock (_stateSync)
+                {
+                    generation = _authenticationGeneration;
+                    if (_snapshot != null)
+                        return _snapshot;
 
-                _snapshot = new IdentityPermissionSnapshot(IdentityPermissionSnapshotState.Ready, grants);
-            }
-            catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-            {
-                _snapshot = IdentityPermissionSnapshot.Forbidden;
-            }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogWarning("Loading the current Identity permissions timed out");
-                _snapshot = IdentityPermissionSnapshot.Unavailable;
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                _logger.LogWarning(exception, "Loading the current Identity permissions failed");
-                _snapshot = IdentityPermissionSnapshot.Unavailable;
-            }
+                    loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    _activeLoadCancellation = loadCancellation;
+                }
 
-            return _snapshot;
-        }
-        finally
-        {
-            _loadLock.Release();
+                IdentityPermissionSnapshot snapshot;
+                try
+                {
+                    var api = await _apiClientProvider.GetApiAsync<IMePermissionsApi>(loadCancellation.Token);
+                    var response = await api.GetAsync(loadCancellation.Token);
+                    var grants = response.Grants
+                        .GroupBy(x => x.Resource, StringComparer.Ordinal)
+                        .ToDictionary(
+                            group => group.Key,
+                            group => (IReadOnlySet<string>)group
+                                .SelectMany(x => x.Verbs)
+                                .ToHashSet(StringComparer.Ordinal),
+                            StringComparer.Ordinal);
+
+                    snapshot = new IdentityPermissionSnapshot(IdentityPermissionSnapshotState.Ready, grants);
+                }
+                catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    snapshot = IdentityPermissionSnapshot.Forbidden;
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && generation != Volatile.Read(ref _authenticationGeneration))
+                {
+                    continue;
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Loading the current Identity permissions timed out");
+                    snapshot = IdentityPermissionSnapshot.Unavailable;
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    _logger.LogWarning(exception, "Loading the current Identity permissions failed");
+                    snapshot = IdentityPermissionSnapshot.Unavailable;
+                }
+
+                lock (_stateSync)
+                {
+                    if (generation != _authenticationGeneration)
+                        continue;
+
+                    _snapshot = snapshot;
+                    return snapshot;
+                }
+            }
+            finally
+            {
+                lock (_stateSync)
+                {
+                    if (ReferenceEquals(_activeLoadCancellation, loadCancellation))
+                        _activeLoadCancellation = null;
+                }
+
+                loadCancellation?.Dispose();
+                _loadLock.Release();
+            }
         }
     }
 
-    public void Invalidate() => _snapshot = null;
+    public void Invalidate()
+    {
+        lock (_stateSync)
+        {
+            _authenticationGeneration++;
+            _snapshot = null;
+            _activeLoadCancellation?.Cancel();
+        }
+    }
 
     private void OnAuthenticationStateChanged(Task<AuthenticationState> _) => Invalidate();
 
