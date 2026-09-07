@@ -158,26 +158,32 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         });
     }
 
+    private const string RefreshTimerFieldName = "_refreshTimer";
+    private const string ElapsedTimerFieldName = "_elapsedTimer";
+
     private static void SetRefreshTimer(WorkflowInstanceDesigner instance, Timer timer) =>
-        GetRefreshTimerField().SetValue(instance, timer);
+        SetTimer(instance, RefreshTimerFieldName, timer);
 
     private static Timer? GetRefreshTimer(WorkflowInstanceDesigner instance) =>
-        (Timer?)GetRefreshTimerField().GetValue(instance);
-
-    private static FieldInfo GetRefreshTimerField() =>
-        typeof(WorkflowInstanceDesigner).GetField("_refreshTimer", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        GetTimer(instance, RefreshTimerFieldName);
 
     private static Task InvokeRefreshTimerTickAsync(WorkflowInstanceDesigner instance, string activityExecutionRecordId) =>
         instance.RefreshTimerTickAsync(activityExecutionRecordId);
 
     private static void SetElapsedTimer(WorkflowInstanceDesigner instance, Timer timer) =>
-        GetElapsedTimerField().SetValue(instance, timer);
+        SetTimer(instance, ElapsedTimerFieldName, timer);
 
     private static Timer? GetElapsedTimer(WorkflowInstanceDesigner instance) =>
-        (Timer?)GetElapsedTimerField().GetValue(instance);
+        GetTimer(instance, ElapsedTimerFieldName);
 
-    private static FieldInfo GetElapsedTimerField() =>
-        typeof(WorkflowInstanceDesigner).GetField("_elapsedTimer", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static Timer? GetTimer(WorkflowInstanceDesigner instance, string fieldName) =>
+        (Timer?)GetTimerField(fieldName).GetValue(instance);
+
+    private static void SetTimer(WorkflowInstanceDesigner instance, string fieldName, Timer? value) =>
+        GetTimerField(fieldName).SetValue(instance, value);
+
+    private static FieldInfo GetTimerField(string fieldName) =>
+        typeof(WorkflowInstanceDesigner).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     /// <summary>
     /// A <see cref="WorkflowInstanceDesigner"/> whose state-changed notification can be made to throw
