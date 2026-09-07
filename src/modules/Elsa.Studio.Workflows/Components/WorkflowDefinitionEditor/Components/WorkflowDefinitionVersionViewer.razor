@@ -7,7 +7,7 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height));" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
-        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@_workflowDefinition!.Id" Activity="Activity" IsProgressing="IsProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
+        <DiagramDesignerWrapper @ref="_diagramDesigner" WorkflowDefinitionVersionId="@_workflowDefinition!.Id" WorkflowDefinition="@_workflowDefinition" Activity="Activity" IsProgressing="IsProgressing" ActivitySelected="@OnActivitySelected" IsReadOnly="true">
             <CustomToolbarItems>
                 <MudTooltip Text="@Localizer["Export this version as a JSON file."]" Inline="false">
                     <MudIconButton Icon="@Icons.Material.Filled.FileDownload" OnClick="OnDownloadClicked">@Localizer["Export"]</MudIconButton>

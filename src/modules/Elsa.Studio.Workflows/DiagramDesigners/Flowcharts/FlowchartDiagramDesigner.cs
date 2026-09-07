@@ -1,5 +1,8 @@
 using System.Text.Json.Nodes;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Designer.Models;
+using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
@@ -7,6 +10,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
@@ -14,10 +18,13 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 /// <summary>
 /// A diagram designer that displays a flowchart.
 /// </summary>
-public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerToolboxProvider
+public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialogService, IOptions<DesignerOptions> designerOptions) : IDiagramDesignerToolboxProvider
 {
+    private const string DefaultFileName = "flowchart";
+
     private FlowchartDesignerWrapper? _designerWrapper;
     private readonly Guid _id = Guid.NewGuid();
+    private WorkflowDefinition? _workflowDefinition;
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -55,6 +62,8 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
         var flowchart = context.Activity;
         var sequence = 0;
 
+        _workflowDefinition = context.WorkflowDefinition;
+
         return builder =>
         {
             builder.OpenComponent<FlowchartDesignerWrapper>(sequence++);
@@ -79,6 +88,10 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
         yield return DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
         yield return DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
         yield return DisplayToolboxItem(localizer["Auto layout"], Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
+
+        // Exporting is available in both read-only and editable mode, but only the X6 designer can produce an image.
+        if (!designerOptions.Value.UseReactFlow)
+            yield return DisplayToolboxItem(localizer["Export"], Icons.Material.Outlined.Download, localizer["Export as image"], OnExportClicked);
     }
 
     private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)
@@ -93,6 +106,7 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
                 childBuilder.OpenComponent<MudIconButton>(0);
                 childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
                 childBuilder.AddAttribute(2, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
+                childBuilder.AddAttribute(3, "aria-label", title);
                 childBuilder.CloseComponent();
             }));
 
@@ -109,4 +123,50 @@ public class FlowchartDiagramDesigner(ILocalizer localizer) : IDiagramDesignerTo
     private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
     private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper!.CenterContentAsync() : Task.CompletedTask;
     private Task OnAutoLayoutClicked() => _designerWrapper != null ? _designerWrapper!.AutoLayoutAsync() : Task.CompletedTask;
+
+    private async Task OnExportClicked()
+    {
+        if (_designerWrapper == null)
+            return;
+
+        var parameters = new DialogParameters<ExportFlowchartDialog>
+        {
+            { x => x.FileName, GetDefaultFileName(_workflowDefinition) }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await dialogService.ShowAsync<ExportFlowchartDialog>(localizer["Export flowchart"], parameters, options);
+        var result = await dialog.Result;
+
+        if ((result?.Canceled ?? true) || result.Data is not ExportGraphOptions exportOptions)
+            return;
+
+        await _designerWrapper.ExportGraphAsync(exportOptions);
+    }
+
+    /// <summary>
+    /// Derives the file name to propose for an export from the workflow definition's name, suffixed with its
+    /// version when the definition carries one. The root activity's JSON is not used, because for a real workflow
+    /// its root activity carries no name and its version is the activity type's version, not the workflow's.
+    /// Characters that the host platform does not allow in a file name are replaced with an underscore; the
+    /// browser applies its own sanitization to the download name on top of this.
+    /// </summary>
+    internal static string GetDefaultFileName(WorkflowDefinition? workflowDefinition)
+    {
+        var name = workflowDefinition?.Name?.Trim();
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var fileName = string.IsNullOrEmpty(name)
+            ? DefaultFileName
+            : new string(name.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
+        var version = workflowDefinition?.Version ?? 0;
+
+        return version > 0 ? $"{fileName}_v{version}" : fileName;
+    }
 }
